@@ -1,0 +1,100 @@
+The pydos package.
+
+Copyright (c) 2008, Steve Schmerler <mefx@gmx.net>.
+
+Installation
+============
+
+Python versions
+---------------
+
+The Pydos package is written in Python 2.5.2. Most likely it also works with
+Python 2.3 < 3.0, i.e. in fact the whole 2.x series. If in doubt, use at
+least 2.4. For the new Python 3.0, there are a few changes needed. See
+www.python.org. Have a nice day.
+
+Add-on packages
+---------------
+
+Pydos uses numpy and scipy. Tested was numpy 1.1.0 and scipy 0.6.0 (on openSUSE
+10.3 and Debian lenny, but the Linux distro shouldn't matter).
+
+Debian:
+    # apt-get install python-numpy python-scipy
+
+openSuSE 10.3
+    - In Yast -> Software Repositories, add
+      http://download.opensuse.org/repositories/science/openSUSE_10.3
+    - install python-numpy, python-scipy
+
+
+path issues (.bashrc)
+---------------------
+
+Suppose all pydos files (including the cmd line tool pydos.py) are in
+/home/foo/pydos/, then do
+    
+    # makes "import pydos" possible
+    export PYTHONPATH=$PYTHONPATH:/home/foo
+    export PATH=$PYTHONPATH:$PATH
+
+
+Fortran extensions
+------------------
+
+See Makefile.
+
+Usage
+=====
+
+See for cmd line opts and some examples, see
+    
+    $ pydos.py -h
+
+Output files
+------------
+
+Example session:
+
+    $ cd ~/work/AlN/calculation
+    
+    $ ls -l
+    -rw-r--r-- 1 schmerler theorie     5510 2008-10-29 15:39 AlN.md.in
+    -rw-r--r-- 1 schmerler theorie 42045748 2008-10-29 15:39 AlN.md.out
+    -rw-r--r-- 1 schmerler theorie      245 2008-10-29 15:39 job.lsf
+    
+    $ pydos.py -i AlN.md.in -o AlN.md.out -p -d
+    
+    $ ls -l pdos
+    -rw-r--r-- 1 schmerler theorie    9600 2008-12-04 13:41 AlN.md.out.c.dat
+    -rw-r--r-- 1 schmerler theorie      59 2008-12-04 13:41 AlN.md.out.c.dat.info
+    -rw-r--r-- 1 schmerler theorie   76768 2008-12-04 13:41 AlN.md.out.fft.dat
+    -rw-r--r-- 1 schmerler theorie     251 2008-12-04 13:41 AlN.md.out.fft.dat.info
+    -rw-r--r-- 1 schmerler theorie     864 2008-12-04 13:41 AlN.md.out.m.dat
+    -rw-r--r-- 1 schmerler theorie      58 2008-12-04 13:41 AlN.md.out.m.dat.info
+    -rw-r--r-- 1 schmerler theorie    9608 2008-12-04 13:41 AlN.md.out.p.dat
+    -rw-r--r-- 1 schmerler theorie      59 2008-12-04 13:41 AlN.md.out.p.dat.info
+    -rw-r--r-- 1 schmerler theorie 3112992 2008-12-04 13:41 AlN.md.out.r.dat
+    -rw-r--r-- 1 schmerler theorie      65 2008-12-04 13:41 AlN.md.out.r.dat.info
+    -rw-r--r-- 1 schmerler theorie    9608 2008-12-04 13:41 AlN.md.out.temp.dat
+    -rw-r--r-- 1 schmerler theorie      59 2008-12-04 13:41 AlN.md.out.temp.dat.info
+    -rw-r--r-- 1 schmerler theorie 3110400 2008-12-04 13:41 AlN.md.out.v.dat
+    -rw-r--r-- 1 schmerler theorie      65 2008-12-04 13:41 AlN.md.out.v.dat.info
+
+Filenames:
+    nstep : Number of time steps in the MD run (see *.in file). 
+        To construct a time axis, the time _step_ can be found in the
+        pw.x *.in file in Rydberg time units or in seconds in *fft*.info)
+    natoms: Number of atoms in the supercell.
+
+    *c*     VACF, velocity autocorrelation function, 1d array, (nstep,)
+    *fft*   PDOS, matrix with currently 4 columns, see *.info file
+    *m*     1d array with atom masses, extracted from *.in, (nstep)
+    *p*     1d array with pressure, (nstep,), from pw.x outfile
+    *temp*  1d array with temperature, (nstep,), from pw.x outfile
+    *r*     atomic coords
+            binary: 3d array (natoms, nstep+1, 3)
+            text:   2d array (natoms*(nstep+1), 3)
+    *v*     atomic velocities
+            binary: 3d array (natoms, nstep, 3)
+            text:   2d array (natoms*nstep, 3)            
