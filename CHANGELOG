@@ -1,0 +1,14 @@
+Most important:
+- Moved examples to README.
+- File renames:
+    *c*   -> *vacf*
+    *fft* -> *pdos*
+- Output PDOS which is normalized (integral area).
+- Implemented Direct Method (there is no official name) as alternative to
+  FFT(vacf) for calculating the PDOS.
+- Renamed option -t -> -f
+- new option: -t for choosing the DOS calculation method.
+
+other:
+- Moved cmd line args parsing code out of main() to __main__ 
+  on module level.    

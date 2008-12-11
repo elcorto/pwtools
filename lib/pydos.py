@@ -33,7 +33,7 @@ TODO
   empty(), array(), etc. are no members of ndarray. They are normal
   numpy.core.multiarray functions with kwarg "order={'C','F'}".
 
-  => Best would be to subclass numpy.ndarray .
+  => Best would be to subclass numpy.ndarray and redefind array() etc.
 
 - Make a Parser class which holds all parsing functions for in- and outfile.
   The class also holds all arrays constructed from parsing (R, T, P) and also
@@ -47,16 +47,13 @@ TODO
 
 - Test suite. We have some primitive doctests now but hey ...
 
-- setup.py
-
-- Software repositiry (svn, hg, git, whatever)
+- setup.py, real pythonic install, no fiddling with PYTHONPATH etc,
+  you can also install in $HOME dir using `setup.py install
+  --prefix=~/some/path/`, but it's probably overkill for this little project
 
 - {write|read}bin_array(): use new numpy.save(), numpy.load() -> .npy/.npz
   format
 
-- normalize PDOS to 3*natoms
-
-- implement method from PhysRevB 47(9) 1993
 
 Units
 ------
@@ -76,14 +73,6 @@ Default in all functions is that
 - In case of fileobjects, they will NOT be closed
   but returned, i.e. they must be opened and closed outside of a function.
 - In case they accept both, the file will be closed inside in any case.  
-
-scipy imports
--------------
-Scipy imports are *very* slow.
-Since this script will be mainly used as cmd line tool and not as toolkit
-library, these imports have been moved to main() and function level. ATM,
-fft() is only really used in main() and ifft() only in acorr(), which is
-only test/reference/verification code and not used anyway.
 
 Calculation of the PDOS
 -----------------------
@@ -119,8 +108,10 @@ import numpy as np
 ##from scipy.io.npfile import npfile
 from scipy_npfile import npfile
 
+# slow import time !!!
 from scipy.fftpack import fft, ifft
 from scipy.linalg import inv
+from scipy.integrate import simps
 
 # own modules
 import constants
@@ -134,6 +125,7 @@ from common import assert_cond as _assert
 #-----------------------------------------------------------------------------
 
 VERBOSE=True
+VERSION = '0.2'
 
 # All card names that may follow the namelist section in a pw.x input file.
 INPUT_PW_CARDS = [\
@@ -1407,11 +1399,12 @@ def fvacf(V, m=None, method=2):
     # makes extension more pythonic, don't pass `c` in, let be allocated on
     # Fortran side
     c = np.zeros((nstep,), dtype=float)
-    use_m = 1
     if m is None:
         # dummy
         m = np.empty((natoms,), dtype=float)
         use_m = 0
+    else:
+        use_m = 1
     # With "order='F'", we convert V to F-order and a copy is made. If we don't
     # do it, the wrapper code does. This copy is unavoidable, unless we
     # allocate the array in F order in the first place.
@@ -1424,23 +1417,90 @@ vacf = fvacf
 
 #-----------------------------------------------------------------------------
 
-def direct_pdos(V, dt=1.0, massvec=None):
-# TEST >>>>>>>>>>>>>>>>>>>>>>>
-##    fft=dft_axis   
-# TEST <<<<<<<<<<<<<<<<<<<<<<<
+def norm_int(y, x, val=1.0):
+    """Normalize integral area of y(x) to `val`.
+    
+    args:
+    -----
+    x,y : numpy 1d arrays
+    val : float
+
+    returns:
+    --------
+    scaled y
+
+    notes:
+    ------
+    The argument order y,x might be confusing. x,y would be more natural but we
+    stick to order used in the scipy.integrate routines.
+    """
+#>>>>>>>>>>>>>>>>>>>>>>>    
+    # First, scale x and y to the same order of magnitude before integration.
+    # Not sure if this is necessary.
+    fx = 1.0 / np.abs(x).max()
+    fy = 1.0 / np.abs(y).max()
+    # scaled vals
+    sx = fx*x
+    sy = fy*y
+#-------------------
+##    fx = fy = 1.0
+##    sx=x
+##    sy=y
+#<<<<<<<<<<<<<<<<<<<<<<    
+    # Area under unscaled y(x).
+    area = simps(sy, sx) / (fx*fy)
+    return y*val/area
+
+#-----------------------------------------------------------------------------
+
+def direct_pdos(V, dt=1.0, m=None, full_out=False):
+    massvec=m 
     time_axis=1
     # array of V.shape, axis=1 is the fft of the arrays along axis 1 of V
     fftv = np.abs(fft(V, axis=time_axis))**2.0
     if massvec is not None:
-        _assert(len(massvec) == V.shape[0], "len(masvec) != V.shape[0]")
+        _assert(len(massvec) == V.shape[0], "len(massvec) != V.shape[0]")
         fftv *= massvec[:,np.newaxis, np.newaxis]
     # average remaining axes        
-    pdos = fftv.sum(axis=0).sum(axis=1)        
-    faxis = np.fft.fftfreq(V.shape[time_axis], dt)
-    split_idx = len(faxis)/2
-    # XXX better normalize to integral area (int(pdos) == 3*natoms)
-    # -> pdos /= integrate.simps(pdos, faxis)
-    return faxis[:split_idx], normalize(pdos[:split_idx])    
+    full_pdos = fftv.sum(axis=0).sum(axis=1)        
+    full_faxis = np.fft.fftfreq(V.shape[time_axis], dt)
+    split_idx = len(full_faxis)/2
+    faxis = full_faxis[:split_idx]
+    pdos = full_pdos[:split_idx]
+    
+    default_out = (faxis, norm_int(pdos, faxis))
+    extra_out = (full_faxis, full_pdos, split_idx)
+    if full_out:
+        return default_out + (extra_out,)
+    else:
+        return default_out
+
+#-----------------------------------------------------------------------------
+
+def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False):
+    massvec=m 
+    c = vacf(V, m=massvec)
+    if mirr:
+        verbose("[vacf_pdos] mirror VACF at t=0")
+        cc = mirror(c)
+    else:
+        cc = c
+       
+    fftcc = fft(cc)
+    # in Hz
+    full_faxis = np.fft.fftfreq(fftcc.shape[0], dt)
+    full_pdos = np.abs(fftcc)
+    split_idx = len(full_faxis)/2
+    faxis = full_faxis[:split_idx]
+    pdos = full_pdos[:split_idx]
+
+    default_out = (faxis, norm_int(pdos, faxis))
+    extra_out = (full_faxis, fftcc, split_idx, c)
+    if full_out:
+        return default_out + (extra_out,)
+    else:
+        return default_out
+
 
 #-----------------------------------------------------------------------------
 
@@ -1476,7 +1536,7 @@ def dft(a, method='loop'):
     N = len(a)
     sqrt(-1) == np.sqrt(1.0 + 0.0*j) = 1.0j
 
-    Forward DFT, see [2], scipy.fftpack.fft():
+    Forward DFT, see [2,3], scipy.fftpack.fft():
         y[k] = sum(n=0...N-1) a[n] * exp(-2*pi*n*k*sqrt(-1)/N)
         k = 0 ... N-1
     
@@ -1490,6 +1550,7 @@ def dft(a, method='loop'):
 
     [1] Numerical Recipes in Fortran, Second Edition, 1992
     [2] http://www.fftw.org/doc/The-1d-Real_002ddata-DFT.html
+    [3] http://mathworld.wolfram.com/FourierTransform.html
     """
     pi = constants.pi
     N = a.shape[0]
@@ -2063,6 +2124,13 @@ def _test_atpos(R, pw_fn='SiAlON.example_md.out'):
 
 
 def main(opts):
+    """Main function.
+
+    args:
+    ----
+    opts: output of `opts=parser.parse_args()`, where
+        `parser=argparse.ArgumentParser()`
+    """
 
     # print options
     verbose("options:")
@@ -2081,20 +2149,20 @@ def main(opts):
         fn_body = os.path.basename(opts.pwofn.replace('.out', ''))
     else:
         fn_body = os.path.basename(opts.pwofn)
-    if opts.out_type == 'bin':
+    if opts.file_type == 'bin':
         file_suffix = '.dat'
-    elif opts.out_type == 'txt':
+    elif opts.file_type == 'txt':
         file_suffix = '.txt'
     else:
-        raise StandardError("wrong opts.out_type")
+        raise StandardError("wrong opts.file_type")
     verbose("fn_body: %s" %fn_body        )
     vfn = pjoin(opts.outdir, fn_body + '.v' + file_suffix)
     rfn = pjoin(opts.outdir, fn_body + '.r' + file_suffix)
     mfn = pjoin(opts.outdir, fn_body + '.m' + file_suffix)
     tfn = pjoin(opts.outdir, fn_body + '.temp' + file_suffix)
-    cfn = pjoin(opts.outdir, fn_body + '.c' + file_suffix)
+    vacffn = pjoin(opts.outdir, fn_body + '.vacf' + file_suffix)
     pfn = pjoin(opts.outdir, fn_body + '.p' + file_suffix)
-    fftfn = pjoin(opts.outdir, fn_body + '.fft' + file_suffix)
+    pdosfn = pjoin(opts.outdir, fn_body + '.pdos' + file_suffix)
     
     # needed in 'parse' and 'dos'
     nl_dct = conf_namelists(opts.pwifn)
@@ -2222,10 +2290,10 @@ def main(opts):
                 "CELL_PARAMETERS, no coord transformation") 
 
         # write R here if it's overwritten in velocity()
-        writearr(mfn, massvec,  type=opts.out_type)
-        writearr(tfn, Tfull,     type=opts.out_type)
-        writearr(rfn, Rfull,     type=opts.out_type, axis=1)
-        writearr(pfn, Pfull,     type=opts.out_type)
+        writearr(mfn, massvec,  type=opts.file_type)
+        writearr(tfn, Tfull,     type=opts.file_type)
+        writearr(rfn, Rfull,     type=opts.file_type, axis=1)
+        writearr(pfn, Pfull,     type=opts.file_type)
         
     # ---  read --------------------------------------------------------------
     
@@ -2244,7 +2312,7 @@ def main(opts):
         # v_x(t)> = 1/dt^2 <dx(0) dx(t)> ) which cancels in the normalization.
         # dt is not needed in the velocity calculation.
         V = velocity(R, copy=False)
-        
+
         # in s
         dt = _float(nl_dct['control']['dt']) * constants.tryd
         verbose("dt: %s seconds" %dt)
@@ -2258,52 +2326,53 @@ def main(opts):
         else:
             verbose("mass-weighting VACF")
         
-        c = vacf(V, m=massvec)
-        if opts.mirror:
-            verbose("mirror VACF at t=0")
-            cc = mirror(c)
-        else:
-            cc = c
-# TEST >>>>>>>>>>>>>>>>>>>>>>>
-##        fft=dft   
-# TEST <<<<<<<<<<<<<<<<<<<<<<<
-           
-        fftcc = fft(cc)
-        # for testing the fft library that is used by fft()
-##        fftcc = dft(cc)
-        real_imag_ratio = norm(fftcc.real) / norm(fftcc.imag)
-        verbose("fft: real/imag: %s" %real_imag_ratio)
-        afftcc = np.abs(fftcc)
-        # in Hz
-        faxis = np.fft.fftfreq(fftcc.shape[0], dt)
-        # freq resolution
-        df1 = faxis[1]-faxis[0]
-        df2 = 1.0/len(afftcc)/dt
+        if opts.dos_method == 'vacf':
+            faxis, pdos, extra = vacf_pdos(V, dt=dt, m=massvec,
+                mirr=opts.mirror, full_out=True)
+            full_faxis, fftcc, split_idx, vacf_data = extra                
+            real_imag_ratio = norm(fftcc.real) / norm(fftcc.imag)
+            verbose("fft: real/imag: %s" %real_imag_ratio)
+            pdos_out = np.empty((split_idx, 4), dtype=float)
+            pdos_comment = textwrap.dedent("""
+            # PDOS by FFT of VACF
+            # Integral normalized to 1.0: int(abs(fft(vacf)), f) = 1.0 
+            # f [Hz]  abs(fft(vacf))  fft(vacf).real  fft(vacf).imag 
+            """)
+        elif opts.dos_method == 'direct':
+            faxis, pdos, extra = direct_pdos(V, dt=dt, m=massvec,
+                full_out=True)
+            full_faxis, full_pdos, split_idx = extra                
+            real_imag_ratio = None
+            pdos_out = np.empty((split_idx, 2), dtype=float)
+            pdos_comment = textwrap.dedent("""
+            # Direct PDOS
+            # Integral normalized to 1.0: int(pdos, f) = 1.0 
+            # f [Hz]  pdos
+            """)
+            
+        df1 = full_faxis[1]-full_faxis[0]
+        df2 = 1.0/len(full_faxis)/dt
         # f axis in in order 1e12, so small `decimal` values are sufficient
         np.testing.assert_almost_equal(df1, df2, decimal=0)
         df = df1
         
-        split_idx = len(faxis)/2 
-##        fftout = np.empty((fftcc.shape[0]/2, 4), dtype=float)
-        fftout = np.empty((split_idx, 4), dtype=float)
-        fftout[:,0] = faxis[:split_idx]
-        fftout[:,1] = normalize(fftcc[:split_idx].real)
-        fftout[:,2] = normalize(fftcc[:split_idx].imag)
-        fftout[:,3] = normalize(afftcc[:split_idx])
-        fft_comment='# f [Hz]  fft.real  fft.imag  abs(fft)'
-        # Nyquist freq is half the samplerate (SR=1/dt)
-        info = dict(
-            nyquist_freq = 0.5/dt,
-            freq_resolution = df,
-            dt = dt,
-            real_imag_ratio = real_imag_ratio,
-        )
-        fft_info = {'fft': info}
+        pdos_out[:,0] = faxis
+        pdos_out[:,1] = pdos
+        if opts.dos_method == 'vacf':
+            pdos_out[:,2] = normalize(fftcc[:split_idx].real)
+            pdos_out[:,3] = normalize(fftcc[:split_idx].imag)
+        info = dict()
+        info['nyquist_freq'] = 0.5/dt,
+        info['freq_resolution'] = df,
+        info['dt'] = dt,
+        if real_imag_ratio is not None:
+            info['real_imag_ratio'] = real_imag_ratio,
+        pdos_info = {'fft': info}
 
-        writearr(fftfn,fftout, info=fft_info, comment=fft_comment, type=opts.out_type)
-        writearr(vfn, V, axis=1, type=opts.out_type)
-        writearr(cfn, c, type=opts.out_type)
-
+        writearr(pdosfn, pdos_out, info=pdos_info, comment=pdos_comment, type=opts.file_type)
+        writearr(vfn, V, axis=1, type=opts.file_type)
+        if opts.dos_method == 'vacf':
+            writearr(vacffn, vacf_data, type=opts.file_type)
 
 #-----------------------------------------------------------------------------
 # main
@@ -2341,32 +2410,17 @@ if __name__ == '__main__':
     argument is given (e.g. just "-d"), then the corresponding variable is
     True. With arguments, e.g. "-d VAL", VAL can be
         
-        1 | [T|t]rue  | [O|o]n  | [Y|y]es -> True
-        0 | [F|f]alse | [O|o]ff | [N|n]o  -> False
+        1, true,  on,  yes -> True
+        0, false, off, no  -> False
      
     Only disadvantage: You cannot use
       -dpm 
     must be 
       -d -p -m
-
-    examples
-    --------
-    $ %(prog)s -i AlN.md.in -o AlN.md.out -p -d
-        Parse (-p) pw.x infile and outfile, calculate dos (-p). Write all files
-        to ./pdos/ .
-    
-    $ %(prog)s -i AlN.md.in -o AlN.md.out -d -M0 -m0
-        Repeat the DOS calculation by first loading the atomic coordinate file
-        from the previous parsing from pdos/. But this time, don't mass-weight
-        the VACF (-M 0) and and don't mirror the VACF before FFT (-m 0).
-
-    $ %(prog)s -i Si.md.in -o Si.md.out -p -d -s 300: -x pdos.Si
-        Do another analysis on Si md data. Save the output to pdos.Si/ and skip
-        the first 300 time points.
-    
     """)    
     parser = argparse.ArgumentParser(epilog=epilog,
-        formatter_class=argparse.RawDescriptionHelpFormatter)
+        formatter_class=argparse.RawDescriptionHelpFormatter, 
+        version="%(prog)s " + str(VERSION))
     # --- bool flags with optional args  ------------------
     parser.add_argument('-p', '--parse',
         nargs='?',
@@ -2444,10 +2498,14 @@ if __name__ == '__main__':
             section "Indexing, Slicing and Iterating"
             """,  
         )
-    parser.add_argument('-t', '--out-type', 
+    parser.add_argument('-f', '--file-type', 
         default='bin',
         help="""{'bin', 'txt'} write data files binary or ASCII text 
             [%(default)s]""",
+        )
+    parser.add_argument('-t', '--dos-method', 
+        default='vacf',
+        help="""{'vacf', 'direct'} method to calculate PDOS  [%(default)s]""",
         )
 
     opts = parser.parse_args()    

@@ -47,9 +47,34 @@ See Makefile.
 Usage
 =====
 
-See for cmd line opts and some examples, see
+See for cmd line opts, see
     
     $ pydos.py -h
+
+Eexamples
+--------
+    $ pydos.py -i AlN.md.in -o AlN.md.out -p -d
+        Parse (-p) pw.x infile and outfile, calculate dos (-p). Write all files
+        to ./pdos/ .
+    
+    $ pydos.py -i AlN.md.in -o AlN.md.out -d -M0 -m0
+        Repeat the DOS calculation by first loading the atomic coordinate file
+        from the previous parsing from pdos/. But this time, don't mass-weight
+        the VACF (-M 0) and and don't mirror the VACF before FFT (-m 0).
+
+    $ pydos.py -i Si.md.in -o Si.md.out -p -d -s 300: -x pdos.Si
+        Do another analysis on Si md data. Save the output to pdos.Si/ and skip
+        the first 300 time points.
+    
+    $ pydos.py -i Si.md.in -o Si.md.out -p -d -s 300: -x pdos.Si -f txt -t direct
+        The same, but now write txt files instead of binary files and use the
+        Direct Method to compute the PDOS.
+
+Known issues
+------------
+
+When you write .txt files (-f txt), you cannot re-load them for a subsequent
+calculation. You must parse (-p) again.
 
 Output files
 ------------
@@ -87,8 +112,8 @@ Filenames:
         pw.x *.in file in Rydberg time units or in seconds in *fft*.info)
     natoms: Number of atoms in the supercell.
 
-    *c*     VACF, velocity autocorrelation function, 1d array, (nstep,)
-    *fft*   PDOS, matrix with currently 4 columns, see *.info file
+    *vacf*  VACF, velocity autocorrelation function, 1d array, (nstep,)
+    *pdos*  PDOS, matrix with currently 4 columns, see *.info file
     *m*     1d array with atom masses, extracted from *.in, (nstep)
     *p*     1d array with pressure, (nstep,), from pw.x outfile
     *temp*  1d array with temperature, (nstep,), from pw.x outfile
