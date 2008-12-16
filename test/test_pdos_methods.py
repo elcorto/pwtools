@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
-
 import pydos
 
+# Define your MD data here.
 pwifn = 'AlN.md.in'
-pwofn = 'AlN.md.out.gz'
+pwofn = 'AlN.md.out.gz' # or AlN.md.out or whatever
 
 #--- minimal pydos.main() -----------------------------------------------------
 
@@ -39,6 +39,7 @@ faxis_dd, ddm = pydos.direct_pdos(V, dt=dt, m=M)
 fig=[]
 ax=[]
 
+# Plot all 4 PODSs.
 fig.append(plt.figure())
 ax.append(fig[-1].add_subplot(111))
 ax[-1].plot(faxis_vd, vd, label='vd')
@@ -47,7 +48,9 @@ ax[-1].plot(faxis_dd, dd, label='dd')
 ax[-1].plot(faxis_dd, ddm, label='ddm')
 ax[-1].legend()
 
-# Plot the ratio [w/o mass] / [with mass] for each method.
+# Plot the ratio [w/o mass] / [with mass] for each method. The `vd` has
+# higher frequency resolution, but other than that, the curves should track
+# each other -- i.e. both methods do the same thing.
 fig.append(plt.figure())
 ax.append(fig[-1].add_subplot(111))
 ax[-1].plot(faxis_vd, vd/vdm, label='vd/vdm')
