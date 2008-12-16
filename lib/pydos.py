@@ -19,6 +19,35 @@ code in parse_pwout().
 
 Tested with QE 3.2.3 and 4.0.1. 
 
+Units
+------
+From http://www.quantum-espresso.org/input-syntax/INPUT_PW.html
+
+    All quantities whose dimensions are not explicitly specified are in
+    RYDBERG ATOMIC UNITS
+
+    See constants.py
+
+File handling:
+--------------
+Some functions accept only filenames or only fileobjects. Some accept both.
+Default in all functions is that 
+- in case of filenames, a file will be opened
+  and closed inside the function. 
+- In case of fileobjects, they will NOT be closed
+  but returned, i.e. they must be opened and closed outside of a function.
+- In case they accept both, the file will be closed inside in any case.  
+
+Calculation of the PDOS
+-----------------------
+
+PDOS obtained the VACF way (V -> VACF -> FFT(VACF)) and the direct way
+(direct_pdos()) differ a bit. Dunno why yet. Probably numerical errors due to
+FFT. But using different FFT algos for the two methods changes nothing (very
+good). The numerical difference *within each method* between
+scipy.fftpack.fft() and dft() (and dft_axis()) are much much smaller then the
+difference between the two methods itself.
+
 TODO
 ----
 - Drop some line.strip(), extend REs where possible to use faster re.match()
@@ -54,34 +83,6 @@ TODO
 - {write|read}bin_array(): use new numpy.save(), numpy.load() -> .npy/.npz
   format
 
-
-Units
-------
-From http://www.quantum-espresso.org/input-syntax/INPUT_PW.html
-
-    All quantities whose dimensions are not explicitly specified are in
-    RYDBERG ATOMIC UNITS
-
-    See constants.py
-
-File handling:
---------------
-Some functions accept only filenames or only fileobjects. Some accept both.
-Default in all functions is that 
-- in case of filenames, a file will be opened
-  and closed inside the function. 
-- In case of fileobjects, they will NOT be closed
-  but returned, i.e. they must be opened and closed outside of a function.
-- In case they accept both, the file will be closed inside in any case.  
-
-Calculation of the PDOS
------------------------
-
-PDOS obtained the VACF way (V -> VACF -> FFT(VACF)) and the direct way
-(direct_pdos()) differ a bit. Dunno why yet. But using different FFT algos
-for the two methods changes nothing (very good), i.e. the numerical
-difference between scipy.fftpack.fft() and dft() (and dft_axis()) are much much
-smaller.
 
 assert -> _assert()
 -------------------
@@ -143,7 +144,7 @@ INPUT_PW_CARDS = [\
 #-----------------------------------------------------------------------------
 
 def fileo(val, mode='r'):
-    """Return open file object with mode `mode`.
+    """Return open file object with mode `mode`. Handles also gzip'ed files.
 
     args:
     -----
@@ -151,7 +152,15 @@ def fileo(val, mode='r'):
     mode : file mode (everything that Python's open() can handle)
     """
     if isinstance(val, types.StringType):
-        return open(val, mode)
+        if val.endswith('.gz'):
+            import gzip
+            ret =  gzip.open(val, mode)
+            # Files opened with gzip don't have a 'name' attr.
+            if not hasattr(ret, 'name'):
+                ret.name = fullpath(val)
+            return ret                
+        else:
+            return open(val, mode)
     elif isinstance(val, types.FileType):
         if val.closed:
             raise StandardError("need an open file") 
@@ -1006,23 +1015,23 @@ class Array(object):
 
 #-----------------------------------------------------------------------------
 
-def parse_pwout(fn_out, nl_dct=None, atspec=None, atpos_in=None):
+def parse_pwout(fn_out, pwin_nl=None, atspec=None, atpos_in=None):
     """
     args:
     -----
     fn_out : filename of the pw.x output file
-    nl_cdt : dict returned by conf_namelists()
+    pwin_nl : dict returned by conf_namelists()
     atspec : dict returned by atomic_species()
     atpos_in : dict returned by atomic_positions()
     """
     verbose("[parse_pwout] parsing %s" %(fn_out))
     
-    nstep = int(nl_dct['control']['nstep'])
+    nstep = int(pwin_nl['control']['nstep'])
     # Start temperature of MD run. Can also grep it from .out file, pattern for
     # re.search() (untested):
     # r'Starting temperature[ ]+=[ ]+([0-9\.])+[ ]+K'. Comes before the first 
     # 'ATOMIC_POSITIONS' and belongs to Rold.
-    tempw = _float(nl_dct['ions']['tempw'])
+    tempw = _float(pwin_nl['ions']['tempw'])
     
     # Rold: (natoms x 3)
     Rold = atpos_in['R0']
@@ -1048,7 +1057,7 @@ def parse_pwout(fn_out, nl_dct=None, atspec=None, atpos_in=None):
     # pressure array
     P = np.empty((nstep+1,), dtype=float)
 
-    fh = open(fn_out)
+    fh = fileo(fn_out)
     # R[:,0,:] = Rold, fill R[:,1:,:]
     j=1
     scan_atpos_rex = re.compile(r'^ATOMIC_POSITIONS[ ]*')
@@ -1454,6 +1463,30 @@ def norm_int(y, x, val=1.0):
 #-----------------------------------------------------------------------------
 
 def direct_pdos(V, dt=1.0, m=None, full_out=False):
+    """Compute PDOS without the VACF by direct FFT of the atomic velocities.
+    We call this Direct Method.
+    
+    args:
+    -----
+    V : (natoms, nstep, 3)
+    dt : time step in seconds
+    m : 1d array (natoms,), atomic mass array, if None then mass=1.0 for all
+        atoms is used  
+    full_out : bool
+
+    returns:
+    --------
+    full_out = False
+        (faxis, pdos)
+        faxis : 1d array, frequency in Hz
+        pdos : 1d array, the PDOS
+    full_out = True
+        (faxis, pdos, (full_faxis, full_pdos, split_idx))
+
+    refs:
+    -----
+    [1] Phys Rev B 47(9) 1993
+    """
     massvec=m 
     time_axis=1
     # array of V.shape, axis=1 is the fft of the arrays along axis 1 of V
@@ -1478,6 +1511,28 @@ def direct_pdos(V, dt=1.0, m=None, full_out=False):
 #-----------------------------------------------------------------------------
 
 def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False):
+    """Compute PDOS by FFT of the VACF.
+    
+    args:
+    -----
+    V : (natoms, nstep, 3)
+    dt : time step in seconds
+    m : 1d array (natoms,), atomic mass array, if None then mass=1.0 for all
+        atoms is used  
+    mirr : bool, mirror VACF at t=0 before fft
+    full_out : bool
+
+    returns:
+    --------
+    full_out = False
+        (faxis, pdos)
+        faxis : 1d array, frequency in Hz
+        pdos : 1d array, the PDOS
+    full_out = True
+        (faxis, pdos, (full_faxis, fftcc, split_idx, c))
+        ffttc : 1d complex array, result of fft(c) or fft(mirror(c))
+        c : 1d array, the VACF
+    """
     massvec=m 
     c = vacf(V, m=massvec)
     if mirr:
@@ -2165,7 +2220,7 @@ def main(opts):
     pdosfn = pjoin(opts.outdir, fn_body + '.pdos' + file_suffix)
     
     # needed in 'parse' and 'dos'
-    nl_dct = conf_namelists(opts.pwifn)
+    pwin_nl = conf_namelists(opts.pwifn)
     
     # --- parse and write ----------------------------------------------------
     
@@ -2180,7 +2235,8 @@ def main(opts):
         # individual functions as methods. Individual output args will be
         # shared via data members. Stay tuned.
         pwout = parse_pwout(fn_out=opts.pwofn,
-                            nl_dct=nl_dct, atspec=atspec,
+                            pwin_nl=pwin_nl, 
+                            atspec=atspec,
                             atpos_in=atpos_in)
         
         massvec = atpos_in['massvec']
@@ -2255,7 +2311,7 @@ def main(opts):
         #              (see below)
         # 
         unit = atpos_in['unit']
-        ibrav = int(nl_dct['system']['ibrav'])
+        ibrav = int(pwin_nl['system']['ibrav'])
         verbose("unit: '%s'" %unit)
         verbose("ibrav: %s" %ibrav)
         # ATOMIC_POSITIONS angstrom  -> cartesian angstrom
@@ -2271,8 +2327,8 @@ def main(opts):
             if ibrav == 0:
                 cp = cell_parameters(opts.pwifn)
                 # CELL_PARAMETERS in alat
-                if nl_dct['system'].has_key('celldm(1)'):
-                    alat = _float(nl_dct['system']['celldm(1)'])
+                if pwin_nl['system'].has_key('celldm(1)'):
+                    alat = _float(pwin_nl['system']['celldm(1)'])
                     verbose("alat:", alat)
                     verbose("assuming CELL_PARAMETERS in alat")
                     new_unit = 'alat'
@@ -2314,7 +2370,7 @@ def main(opts):
         V = velocity(R, copy=False)
 
         # in s
-        dt = _float(nl_dct['control']['dt']) * constants.tryd
+        dt = _float(pwin_nl['control']['dt']) * constants.tryd
         verbose("dt: %s seconds" %dt)
         if (opts.slice is not None) and (opts.slice.step is not None):
             verbose("scaling dt with slice step: %s" %opts.slice.step)
@@ -2417,6 +2473,10 @@ if __name__ == '__main__':
       -dpm 
     must be 
       -d -p -m
+    
+    examples
+    --------
+    See the README file.
     """)    
     parser = argparse.ArgumentParser(epilog=epilog,
         formatter_class=argparse.RawDescriptionHelpFormatter, 
@@ -2452,7 +2512,7 @@ if __name__ == '__main__':
         const=True,
         type=tobool,
         default=True,
-        help="use mass-weighted VACF [%(default)s]",
+        help="use mass-weightng in PDOS calculation [%(default)s]",
         )
     parser.add_argument('-c', '--coord-trans', 
         nargs='?',
@@ -2500,7 +2560,7 @@ if __name__ == '__main__':
         )
     parser.add_argument('-f', '--file-type', 
         default='bin',
-        help="""{'bin', 'txt'} write data files binary or ASCII text 
+        help="""{'bin', 'txt'} write data files as binary or ASCII text 
             [%(default)s]""",
         )
     parser.add_argument('-t', '--dos-method', 

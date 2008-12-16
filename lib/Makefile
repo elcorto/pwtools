@@ -1,6 +1,5 @@
-# vim:noexpandtab
-# vim:ts=4:sw=4:et
-
+# vim:ts=4:sw=4:noet
+	    
 # 
 # Copyright (c) 2008, Steve Schmerler <mefx@gmx.net>.
 # The pydos package. 
@@ -84,8 +83,8 @@
 #     For compiler details, run 'config_fc --verbose' setup command.
 # 
 # So it has correctly found my ifort 9.1 and uses that by default. If you want
-# another compiler, e.g.  gfortran, modify F2PY_FLAGS to use `f2py
-# --fcompiler=gnu95`.    
+# another compiler, e.g.  gfortran, modify F2PY_FLAGS to use
+# "--fcompiler=gnu95".    
 # 
 # There is also a pythonic way to build the extension: setup.py (i.e. using
 # Python's distutils).  See

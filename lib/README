@@ -36,6 +36,7 @@ Suppose all pydos files (including the cmd line tool pydos.py) are in
     
     # makes "import pydos" possible
     export PYTHONPATH=$PYTHONPATH:/home/foo
+    # to find the executable pydos.py
     export PATH=$PYTHONPATH:$PATH
 
 
@@ -53,20 +54,20 @@ See for cmd line opts, see
 
 Eexamples
 --------
-    $ pydos.py -i AlN.md.in -o AlN.md.out -p -d
+1)  $ pydos.py -i AlN.md.in -o AlN.md.out -p -d
         Parse (-p) pw.x infile and outfile, calculate dos (-p). Write all files
         to ./pdos/ .
     
-    $ pydos.py -i AlN.md.in -o AlN.md.out -d -M0 -m0
+2)  $ pydos.py -i AlN.md.in -o AlN.md.out -d -M0 -m0
         Repeat the DOS calculation by first loading the atomic coordinate file
         from the previous parsing from pdos/. But this time, don't mass-weight
         the VACF (-M 0) and and don't mirror the VACF before FFT (-m 0).
 
-    $ pydos.py -i Si.md.in -o Si.md.out -p -d -s 300: -x pdos.Si
+3)  $ pydos.py -i Si.md.in -o Si.md.out -p -d -s 300: -x pdos.Si
         Do another analysis on Si md data. Save the output to pdos.Si/ and skip
         the first 300 time points.
     
-    $ pydos.py -i Si.md.in -o Si.md.out -p -d -s 300: -x pdos.Si -f txt -t direct
+4)  $ pydos.py -i Si.md.in -o Si.md.out -p -d -s 300: -x pdos.Si -f txt -t direct
         The same, but now write txt files instead of binary files and use the
         Direct Method to compute the PDOS.
 
@@ -74,7 +75,8 @@ Known issues
 ------------
 
 When you write .txt files (-f txt), you cannot re-load them for a subsequent
-calculation. You must parse (-p) again.
+calculation like in example (2). This is not yet implemented for text files.
+You must parse (-p) again.
 
 Output files
 ------------
@@ -91,10 +93,10 @@ Example session:
     $ pydos.py -i AlN.md.in -o AlN.md.out -p -d
     
     $ ls -l pdos
-    -rw-r--r-- 1 schmerler theorie    9600 2008-12-04 13:41 AlN.md.out.c.dat
-    -rw-r--r-- 1 schmerler theorie      59 2008-12-04 13:41 AlN.md.out.c.dat.info
-    -rw-r--r-- 1 schmerler theorie   76768 2008-12-04 13:41 AlN.md.out.fft.dat
-    -rw-r--r-- 1 schmerler theorie     251 2008-12-04 13:41 AlN.md.out.fft.dat.info
+    -rw-r--r-- 1 schmerler theorie    9600 2008-12-04 13:41 AlN.md.out.vacf.dat
+    -rw-r--r-- 1 schmerler theorie      59 2008-12-04 13:41 AlN.md.out.vacf.dat.info
+    -rw-r--r-- 1 schmerler theorie   76768 2008-12-04 13:41 AlN.md.out.pdos.dat
+    -rw-r--r-- 1 schmerler theorie     251 2008-12-04 13:41 AlN.md.out.pdos.dat.info
     -rw-r--r-- 1 schmerler theorie     864 2008-12-04 13:41 AlN.md.out.m.dat
     -rw-r--r-- 1 schmerler theorie      58 2008-12-04 13:41 AlN.md.out.m.dat.info
     -rw-r--r-- 1 schmerler theorie    9608 2008-12-04 13:41 AlN.md.out.p.dat
@@ -109,12 +111,18 @@ Example session:
 Filenames:
     nstep : Number of time steps in the MD run (see *.in file). 
         To construct a time axis, the time _step_ can be found in the
-        pw.x *.in file in Rydberg time units or in seconds in *fft*.info)
+        pw.x *.in file in Rydberg time units or in seconds in *pdos*.info)
     natoms: Number of atoms in the supercell.
 
     *vacf*  VACF, velocity autocorrelation function, 1d array, (nstep,)
-    *pdos*  PDOS, matrix with currently 4 columns, see *.info file
-    *m*     1d array with atom masses, extracted from *.in, (nstep)
+    *pdos*  frequency axis and PDOS, 2d array
+            binary: 4 columns 
+            text: 2 columns
+            see *.info file
+            FFT results in a spectrum mirrored around f=0 and a frequency axis
+            going from -fn ... 0 ... +fn, where fn is the Nyquist frequency. We
+            output only the 0 ... +fn part of the spectrum.
+    *m*     1d array with atom masses, extracted from *.in, (nstep,)
     *p*     1d array with pressure, (nstep,), from pw.x outfile
     *temp*  1d array with temperature, (nstep,), from pw.x outfile
     *r*     atomic coords
