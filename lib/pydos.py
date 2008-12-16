@@ -126,7 +126,7 @@ from common import assert_cond as _assert
 #-----------------------------------------------------------------------------
 
 VERBOSE=True
-VERSION = '0.2'
+VERSION = '0.2.1'
 
 # All card names that may follow the namelist section in a pw.x input file.
 INPUT_PW_CARDS = [\

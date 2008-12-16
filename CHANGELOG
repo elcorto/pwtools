@@ -1,3 +1,5 @@
+0.2.0
+-----
 Most important:
 - Moved examples to README.
 - File renames:
@@ -12,3 +14,8 @@ Most important:
 other:
 - Moved cmd line args parsing code out of main() to __main__ 
   on module level.    
+
+0.2.1
+-----
+Some doc updates. Added support for gzip compressed ow.x outfiles.
+Test for vacf_pdos() and direct_pdos() in test/.
