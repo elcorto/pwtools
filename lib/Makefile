@@ -108,7 +108,12 @@ SO=$(EXT_MODULE).so
 #
 # numpy.distutils has default -03 for fcompiler. --f90flags="-02" does NOT
 # override this. We get "-O3 -O2" and a compiler warning.
-F2PY_FLAGS=--opt='-O2' -DF2PY_REPORT_ON_ARRAY_COPY=1 # -DF2PY_REPORT_ATEXIT
+# On cartman (AMD X4 Phenom), the numpy.distutils falsely sets "-march=k6-2".
+F2PY_FLAGS=--opt='-O2' \
+			-DF2PY_REPORT_ON_ARRAY_COPY=1 \
+			--f90exec=/usr/bin/gfortran \
+			--arch='-mmmx -m3dnow -msse2 -msse -msse3'
+
 
 # compiler 
 #

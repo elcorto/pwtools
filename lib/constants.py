@@ -58,11 +58,11 @@
 # unit of charge = e0/sqrt(2) = 1
 # 
 # In all Hartree-definitions, replace:
-#   e**2 -> e**2/2
-#   m0   -> 2*m0
+#   e0**2 -> e0**2/2
+#   m0    -> 2*m0
 #
 # length:
-#     a0 (the same, b/c in a0 formula: m0*e**2 -> 2*m*e**2/2)     
+#     a0 (the same, b/c in a0 formula: m0*e0**2 -> 2*m0*e0**2/2)     
 # energy:
 #     Eryd = e0**2/2 / (4*pi**eps0*a0) = 1/4*alpha**2*2*m0*c0**2
 #            ^^^^^^^                     ^^^          ^^^^
@@ -73,6 +73,10 @@
 # Eryd        = 1/2*Eh
 # tryd = hbar/Eryd = 2*th     
 #
+
+__all__ = ['pi', 'h', 'hbar', 'm0', 'e0', 'mu0', 'c0', 'eps0', 'a0', 'Eh',\
+           'th', 'Eryd', 'tryd']
+
 from math import pi
 h = 6.62606896e-34          # J*s
 hbar = 1.054571628e-34      # J*s
@@ -84,6 +88,7 @@ eps0 = 1.0 / (mu0*c0**2)    # F/m = C / (V*m)
 a0 = 0.52917720859e-10      # m
 Eh = 4.35974394e-18         # J
 th = 2.418884326505e-17     # s
+kb = 1.3806504e-23          # J/K
 
 Eryd = 0.5*Eh
 tryd = 2.0*th

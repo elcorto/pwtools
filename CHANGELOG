@@ -17,5 +17,5 @@ other:
 
 0.2.1
 -----
-Some doc updates. Added support for gzip compressed ow.x outfiles.
+Some doc updates. Added support for gzip compressed pw.x outfiles.
 Test for vacf_pdos() and direct_pdos() in test/.

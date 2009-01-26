@@ -3,7 +3,7 @@
 # vim:ts=4:sw=4:et
 
 # 
-# Copyright (c) 2008, Steve Schmerler <mefx@gmx.net>.
+# Copyright (c) 2008-2009, Steve Schmerler <mefx@gmx.net>.
 # The pydos package. 
 # 
 
@@ -83,6 +83,27 @@ TODO
 - {write|read}bin_array(): use new numpy.save(), numpy.load() -> .npy/.npz
   format
 
+- unify vacf_pdos(), direct_pdos(), thay have almost the same signature and
+  functionallity, use 'method' kwarg or so, OR make a base class Vacf, derive 2
+  special-case classes ... 
+
+- If pydos.main(opts) is called in a script, find a way to define defaults in
+  here so that the user doesn't have to provide *all* options. Currently we
+  solve this by creating `opts` as a full argparse.Namepace in the script.
+  This seems overkill although it's very fast. But the advantage is that we
+  could pass pydos.py cmd line opts to any othert script if we wanted to.
+  Python rocks!
+
+- Implement the maximum entropy method.
+
+- make everything a python package, so that we can
+    import pydos.constants
+  and stuff  
+
+- make all parsing functions deal with Fortran style strings, e.g. 3D+3, 1d0,
+  etc., maybe map(_float, <list_of_strings>) or so ...
+  Check all regexes, we have in a hurry replaced all '0-9\.' by '0-9eE+-\.'
+
 
 assert -> _assert()
 -------------------
@@ -103,6 +124,7 @@ import types
 import subprocess as S
 import ConfigParser
 from os.path import join as pjoin
+import textwrap
 
 import numpy as np
 # faster import, copied file from scipy sources
@@ -126,7 +148,6 @@ from common import assert_cond as _assert
 #-----------------------------------------------------------------------------
 
 VERBOSE=True
-VERSION = '0.2.1'
 
 # All card names that may follow the namelist section in a pw.x input file.
 INPUT_PW_CARDS = [\
@@ -138,6 +159,7 @@ INPUT_PW_CARDS = [\
     'climbing_images',
     'constraints',
     'collective_vars']
+
 
 #-----------------------------------------------------------------------------
 # file handling
@@ -196,7 +218,7 @@ def fileo(val, mode='r'):
 ##        for index in a.shape[ax]:
 ##            np.savetxt(fileo, slicetake())
 
-# quick hack for 3d arrays
+# quick'n'dirty for 3d arrays
 def writetxt(fl, arr, axis=-1):
     maxdim=3
     _assert(arr.ndim <= maxdim, 'no rank > 3 arrays supported')
@@ -445,13 +467,14 @@ def _float(st):
 
 #-----------------------------------------------------------------------------
 
-def _repr(var, float_fmt="%.15e"):
+def _repr(var, ffmt="%.15e"):
     """Similar to Python's repr(), but return floats formated
-    with `float_fmt`. Python's repr() handles also var = None.
+    with `ffmt`. Python's repr() handles also var = None.
     
     args:
     -----
     var : almost anything (str, None, int, float)
+    ffmt : format specifier for float values
     
     examples:
     ---------
@@ -461,7 +484,7 @@ def _repr(var, float_fmt="%.15e"):
     'abc' -> 'abc' (repr() does: 'abc' -> "'abc'")
     """
     if isinstance(var, types.FloatType):
-        return float_fmt %var
+        return ffmt %var
     elif isinstance(var, types.StringType):
         return var
     else:
@@ -605,7 +628,8 @@ def scan_until_pat2(fh, rex, err=True, retmatch=False):
         fh, flag = scan_until_pat2(fh, re.compile(...))
     BUT, if you call this function often (e.g. in a loop) with the same
     pattern, use the first form, b/c otherwise re.compile(...) is evaluated in
-    each loop pass.
+    each loop pass. Then, this would essentially be the same as using
+    re.match() directly.
     """
     # Evaluating rex.match(line) twice if a match occured should be no
     # performance penalty, probably better than assigning m=rex.match(line)
@@ -628,7 +652,7 @@ def scan_until_pat2(fh, rex, err=True, retmatch=False):
 
 # Must parse for ATOMIC_SPECIES and ATOMIC_POSITIONS separately (open, close
 # infile) each time b/c the cards can be in arbitrary order in the input file.
-# Therefore, we cant take an open fileobject as argumrent, but use the
+# Therefore, we can't take an open fileobject as argumrent, but use the
 # filename.
 def atomic_species(fn):
     """Parses ATOMIC_SPECIES card in a pw.x input file.
@@ -663,7 +687,7 @@ def atomic_species(fn):
     verbose('[atomic_species] reading ATOMIC_SPECIES from %s' %fn)
     fh = open(fn)
     # rex: for the pseudo name, we include possible digits 0-9 
-    rex = re.compile(r'[ ]*([a-zA-Z]+)[ ]+([0-9\.]+)[ ]+([0-9a-zA-Z\.]*)')
+    rex = re.compile(r'[ ]*([a-zA-Z]+)[ ]+([0-9eEdD+-\.]+)[ ]+([0-9a-zA-Z\.]*)')
     fh, flag = scan_until_pat(fh, pat='atomic_species')
     line = next_line(fh)
     while line == '':
@@ -718,7 +742,7 @@ def cell_parameters(fn):
     """
     verbose('[cell_parameters] reading CELL_PARAMETERS from %s' %fn)
     fh = open(fn)
-    rex = re.compile(r'[ ]*(([ ]*-*[0-9\.]+){3})[ ]*')
+    rex = re.compile(r'[ ]*(([ ]*-*[0-9eEdD+-\.]+){3})[ ]*')
     fh, flag = scan_until_pat(fh, pat="cell_parameters")
     line = next_line(fh)
     while line == '':
@@ -775,7 +799,7 @@ def atomic_positions(fn, atspec=None):
     verbose("[atomic_positions] reading ATOMIC_POSITIONS from %s" %fn)
     if atspec is None:
         atspec = atomic_species(fn)
-    rex = re.compile(r'[ ]*([a-zA-Z]+)(([ ]+-*[0-9\.]+){3})[ ]*')
+    rex = re.compile(r'[ ]*([a-zA-Z]+)(([ ]+-*[0-9eEdD+-\.]+){3})[ ]*')
     fh = open(fn)
     fh, flag, line = scan_until_pat(fh, pat="atomic_positions", retline=True)
     line = line.strip().lower().split()
@@ -844,14 +868,14 @@ def atomic_positions_out(fh, rex, work):
     - With this implementstion, `rex` must be:
         
         With scan_until_pat*(), we need to know that we extract 3 numbers:
-        >>> pat =  r'[ ]*[A-Za-z]+(([ ]+-*[0-9\.]+){3})'
+        >>> pat =  r'[ ]*[A-Za-z]+(([ ]+-*[0-9eEdD+-\.]+){3})'
         >>> rex = re.compile(pat)
     
         For scanning the whole file w/o the usage of scan_until_pat*() first,
         we have to know the atom symbols. We would use this kind of pattern if
         we'd parse the file with perl & friends:
         >>> atoms = ['Si', 'O', 'Al', 'N']
-        >>> pat =  r'(%s)' %r'|'.join(atoms) + r'(([ ]+-*[0-9\.]+){3})'
+        >>> pat =  r'(%s)' %r'|'.join(atoms) + r'(([ ]+-*[0-9eEdD+-\.]+){3})'
         >>> rex = re.compile(pat)
         
     - Is a *little* bit slower than atomic_positions_out2.
@@ -1025,16 +1049,16 @@ def parse_pwout(fn_out, pwin_nl=None, atspec=None, atpos_in=None):
     atpos_in : dict returned by atomic_positions()
     """
     verbose("[parse_pwout] parsing %s" %(fn_out))
-    
     nstep = int(pwin_nl['control']['nstep'])
     # Start temperature of MD run. Can also grep it from .out file, pattern for
     # re.search() (untested):
-    # r'Starting temperature[ ]+=[ ]+([0-9\.])+[ ]+K'. Comes before the first 
+    # r'Starting temperature[ ]+=[ ]+([0-9eEdD+-\.])+[ ]+K'. Comes before the first 
     # 'ATOMIC_POSITIONS' and belongs to Rold.
     tempw = _float(pwin_nl['ions']['tempw'])
     
     # Rold: (natoms x 3)
     Rold = atpos_in['R0']
+    # Or: natoms = pwin_nl['system']['nat']
     natoms = atpos_in['natoms']
     
 ##    DBG.t('parse-output')
@@ -1061,8 +1085,8 @@ def parse_pwout(fn_out, pwin_nl=None, atspec=None, atpos_in=None):
     # R[:,0,:] = Rold, fill R[:,1:,:]
     j=1
     scan_atpos_rex = re.compile(r'^ATOMIC_POSITIONS[ ]*')
-    scan_temp_rex = re.compile(r'[ ]+temperature[ ]+=[ ]+([0-9\.]+)[ ]+K')
-    scan_stress_rex = re.compile(r'[ ]+total[ ]+stress[ ]+.*P.*=[ ]*(-*[0-9\.]+)')
+    scan_temp_rex = re.compile(r'[ ]+temperature[ ]+=[ ]+([0-9eEdD+-\.]+)[ ]+K')
+    scan_stress_rex = re.compile(r'[ ]+total[ ]+stress[ ]+.*P.*=[ ]*(-*[0-9eEdD+-\.]+)')
     while True:
         
         # --- stress -----------------
@@ -1418,7 +1442,9 @@ def fvacf(V, m=None, method=2):
     # do it, the wrapper code does. This copy is unavoidable, unless we
     # allocate the array in F order in the first place.
 ##    c = _flib.vacf(np.array(V, order='F'), m, c, method, use_m)
+    verbose("calling _flib.vacf ...")
     c = _flib.vacf(V, m, c, method, use_m)
+    verbose("... ready")
     return c
 
 # alias
@@ -1426,13 +1452,13 @@ vacf = fvacf
 
 #-----------------------------------------------------------------------------
 
-def norm_int(y, x, val=1.0):
-    """Normalize integral area of y(x) to `val`.
+def norm_int(y, x, area=1.0):
+    """Normalize integral area of y(x) to `area`.
     
     args:
     -----
     x,y : numpy 1d arrays
-    val : float
+    area : float
 
     returns:
     --------
@@ -1441,9 +1467,8 @@ def norm_int(y, x, val=1.0):
     notes:
     ------
     The argument order y,x might be confusing. x,y would be more natural but we
-    stick to order used in the scipy.integrate routines.
+    stick to the order used in the scipy.integrate routines.
     """
-#>>>>>>>>>>>>>>>>>>>>>>>    
     # First, scale x and y to the same order of magnitude before integration.
     # Not sure if this is necessary.
     fx = 1.0 / np.abs(x).max()
@@ -1451,20 +1476,19 @@ def norm_int(y, x, val=1.0):
     # scaled vals
     sx = fx*x
     sy = fy*y
-#-------------------
+##    # Don't scale.
 ##    fx = fy = 1.0
 ##    sx=x
 ##    sy=y
-#<<<<<<<<<<<<<<<<<<<<<<    
     # Area under unscaled y(x).
-    area = simps(sy, sx) / (fx*fy)
-    return y*val/area
+    _area = simps(sy, sx) / (fx*fy)
+    return y*area/_area
 
 #-----------------------------------------------------------------------------
 
-def direct_pdos(V, dt=1.0, m=None, full_out=False):
+def direct_pdos(V, dt=1.0, m=None, full_out=False, natoms=1.0):
     """Compute PDOS without the VACF by direct FFT of the atomic velocities.
-    We call this Direct Method.
+    We call this Direct Method. Integral area is normalized to 3*natoms.
     
     args:
     -----
@@ -1473,6 +1497,7 @@ def direct_pdos(V, dt=1.0, m=None, full_out=False):
     m : 1d array (natoms,), atomic mass array, if None then mass=1.0 for all
         atoms is used  
     full_out : bool
+    natoms : float, number of atoms
 
     returns:
     --------
@@ -1501,7 +1526,7 @@ def direct_pdos(V, dt=1.0, m=None, full_out=False):
     faxis = full_faxis[:split_idx]
     pdos = full_pdos[:split_idx]
     
-    default_out = (faxis, norm_int(pdos, faxis))
+    default_out = (faxis, norm_int(pdos, faxis, area=3.0*natoms))
     extra_out = (full_faxis, full_pdos, split_idx)
     if full_out:
         return default_out + (extra_out,)
@@ -1510,8 +1535,9 @@ def direct_pdos(V, dt=1.0, m=None, full_out=False):
 
 #-----------------------------------------------------------------------------
 
-def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False):
-    """Compute PDOS by FFT of the VACF.
+def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False, natoms=1.0):
+    """Compute PDOS by FFT of the VACF. Integral area is normalized to
+    3*natoms.
     
     args:
     -----
@@ -1521,6 +1547,7 @@ def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False):
         atoms is used  
     mirr : bool, mirror VACF at t=0 before fft
     full_out : bool
+    natoms : float, number of atoms
 
     returns:
     --------
@@ -1549,7 +1576,9 @@ def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False):
     faxis = full_faxis[:split_idx]
     pdos = full_pdos[:split_idx]
 
-    default_out = (faxis, norm_int(pdos, faxis))
+    default_out = (faxis, norm_int(pdos, faxis, area=3.0*natoms))
+##    default_out = (faxis, norm_int(pdos, faxis, area=12)) # HACK!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # area must be == 3*atoms in unit cell, NOT supercell
     extra_out = (full_faxis, fftcc, split_idx, c)
     if full_out:
         return default_out + (extra_out,)
@@ -2125,8 +2154,44 @@ def verbose(msg):
 
 #-----------------------------------------------------------------------------
 
-def str_arr(a):
-    return str(a).replace('[', '').replace(']', '')
+def str_arr(arr, fmt='%.18e', delim=' '*4):
+    """Convert array `arr` to nice string representation for printing.
+    
+    args:
+    -----
+    arr : numpy 1d or 2d array
+    fmt : string, format specifier, all entries of arr are formatted with that
+    delim : string, delimiter
+
+    returns:
+    --------
+    string
+
+    examples:
+    ---------
+    >>> a=rand(3)
+    >>> pydos.str_arr(a, fmt='%.2f')
+    '0.26 0.35 0.97'
+    >>> a=rand(2,3)
+    >>> pydos.str_arr(a, fmt='%.2f')
+    '0.13 0.75 0.39\n0.54 0.22 0.66'
+
+    >>> print pydos.str_arr(a, fmt='%.2f')
+    0.13 0.75 0.39
+    0.54 0.22 0.66
+    
+    notes:
+    ------
+    Essentially, we replicate the core part of np.savetxt.
+    """
+    if arr.ndim == 1:
+        return delim.join([fmt]*arr.size) % tuple(arr)
+    elif arr.ndim == 2:
+        _fmt = delim.join([fmt]*arr.shape[1])
+        lst = [_fmt % tuple(row) for row in arr]
+        return '\n'.join(lst)
+    else:
+        raise ValueError('array dims > 2 not supported')
 
 #-----------------------------------------------------------------------------
 
@@ -2177,14 +2242,29 @@ def _test_atpos(R, pw_fn='SiAlON.example_md.out'):
 
 #-----------------------------------------------------------------------------
 
-
 def main(opts):
     """Main function.
 
     args:
     ----
-    opts: output of `opts=parser.parse_args()`, where
-        `parser=argparse.ArgumentParser()`
+    opts: This will usually be a class argparse.Namespace, i.e. output of
+        `opts=parser.parse_args()`, where `parser=argparse.ArgumentParser(...)`.
+    
+    notes:
+    ------
+    In general, `opts` can be any object providing attributes like opts.dos,
+    opts.vacf_method, etc. For example
+
+        class Opts(object):
+            pass
+        
+        opts = Opts()
+        opts.dos = True
+        opts.vacf_method = 'direct'
+        ...
+
+    The disadvantage is that you must set *all* opts.<attribute>, since `opts`
+    is supposed to contain all of them.
     """
 
     # print options
@@ -2267,6 +2347,7 @@ def main(opts):
         
         # Slice arrays if -s option was used. This does not affect the "full"
         # arrays. Slices are only views.
+        _already_sliced = False
         if opts.slice is not None:
             verbose("slicing arrays")
             verbose("    R: old shape: %s" %str(Rfull.shape))
@@ -2278,6 +2359,9 @@ def main(opts):
             verbose("    R: new shape: %s" %str(R.shape))
             verbose("    T: new shape: %s" %str(T.shape))
             verbose("    P: new shape: %s" %str(P.shape))
+# HACK >>>>>>>>>>>>>>>>>>>>>>>>>
+##           _already_sliced = True
+# HACK <<<<<<<<<<<<<<<<<<<<<<<<<
         else:
             R = Rfull
             T = Tfull
@@ -2359,15 +2443,41 @@ def main(opts):
         # to re-compute them as long as the calculations run only seconds.
         R = readbin(rfn)
         massvec = readbin(mfn)
+        
+        # XXX If we return ret
+        T = readbin(tfn)
+        P = readbin(pfn)
     
     # --- dos ----------------------------------------------------------------
     
     if opts.dos: 
 
+# HACK >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+## 
+##        # now -s works also if opts.parse == False
+##
+##        if opts.slice is not None and (not _already_sliced):
+##            verbose("slicing arrays")
+##            verbose("    R: old shape: %s" %str(Rfull.shape))
+##            verbose("    T: old shape: %s" %str(Tfull.shape))
+##            verbose("    P: old shape: %s" %str(Pfull.shape))
+##            R = slicetake(Rfull, opts.slice, axis=1)
+##            T = slicetake(Tfull, opts.slice, axis=0)
+##            P = slicetake(Pfull, opts.slice, axis=0)
+##            verbose("    R: new shape: %s" %str(R.shape))
+##            verbose("    T: new shape: %s" %str(T.shape))
+##            verbose("    P: new shape: %s" %str(P.shape))
+##        else:
+##            R = Rfull
+##            T = Tfull
+##            P = Pfull
+# HACK <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
         # If we compute the *normalized* VCAF, then dt is a factor ( <v_x(0)
         # v_x(t)> = 1/dt^2 <dx(0) dx(t)> ) which cancels in the normalization.
         # dt is not needed in the velocity calculation.
         V = velocity(R, copy=False)
+        writearr(vfn, V, axis=1, type=opts.file_type)
 
         # in s
         dt = _float(pwin_nl['control']['dt']) * constants.tryd
@@ -2383,8 +2493,14 @@ def main(opts):
             verbose("mass-weighting VACF")
         
         if opts.dos_method == 'vacf':
-            faxis, pdos, extra = vacf_pdos(V, dt=dt, m=massvec,
-                mirr=opts.mirror, full_out=True)
+            faxis, pdos, extra = vacf_pdos(
+                V, 
+                dt=dt, 
+                m=massvec,
+                mirr=opts.mirror, 
+                full_out=True, 
+                natoms=float(pwin_nl['system']['nat']),
+                )
             full_faxis, fftcc, split_idx, vacf_data = extra                
             real_imag_ratio = norm(fftcc.real) / norm(fftcc.imag)
             verbose("fft: real/imag: %s" %real_imag_ratio)
@@ -2395,8 +2511,13 @@ def main(opts):
             # f [Hz]  abs(fft(vacf))  fft(vacf).real  fft(vacf).imag 
             """)
         elif opts.dos_method == 'direct':
-            faxis, pdos, extra = direct_pdos(V, dt=dt, m=massvec,
-                full_out=True)
+            faxis, pdos, extra = direct_pdos(
+                V, 
+                dt=dt, 
+                m=massvec,
+                full_out=True, 
+                natoms=float(pwin_nl['system']['nat']),
+                )
             full_faxis, full_pdos, split_idx = extra                
             real_imag_ratio = None
             pdos_out = np.empty((split_idx, 2), dtype=float)
@@ -2426,24 +2547,32 @@ def main(opts):
         pdos_info = {'fft': info}
 
         writearr(pdosfn, pdos_out, info=pdos_info, comment=pdos_comment, type=opts.file_type)
-        writearr(vfn, V, axis=1, type=opts.file_type)
         if opts.dos_method == 'vacf':
             writearr(vacffn, vacf_data, type=opts.file_type)
+       
+        # XXX Don't return stuff here. 
+        # - It's only done when opts.dos == True. 
+        # If we want to return R, then call `V = velocity(..., copy=True)`.
+        ret = dict(
+            faxis=faxis,
+            pdos=pdos,
+            T=T,
+            P=P,
+            V=V,
+            dt=dt,
+            df=df,
+            m=massvec,
+            ) 
+        return ret
 
-#-----------------------------------------------------------------------------
-# main
-#-----------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
-if __name__ == '__main__':
+def get_parser():
+    """Create argparse.ArgumentParser instance with default values."""
+ 
+    import argparse
     
-##    # Turn off text messages from individual functions. They confuse doctest.
-##    VERBOSE = False
-##    import doctest
-##    doctest.testmod(verbose=True)
-    
-    VERBOSE = True
-    
-    # argparse's bool options:
+    # argparse's bool options
     # We use argparse.py instead of Python's standard lib optparse, b/c only
     # argparse supports optional arguments. We use this for our bool valued
     # options.
@@ -2455,9 +2584,7 @@ if __name__ == '__main__':
     #
     # For bool opts, all our "const" values are True, i.e. if the option is
     # used w/o argument, then it is True.
-
-    import argparse
-    import textwrap
+    
     epilog=textwrap.dedent("""
     bool options
     ------------
@@ -2478,9 +2605,11 @@ if __name__ == '__main__':
     --------
     See the README file.
     """)    
-    parser = argparse.ArgumentParser(epilog=epilog,
+    parser = argparse.ArgumentParser(
+        epilog=epilog,
         formatter_class=argparse.RawDescriptionHelpFormatter, 
-        version="%(prog)s " + str(VERSION))
+##        version="%(prog)s " + str(VERSION),
+        )
     # --- bool flags with optional args  ------------------
     parser.add_argument('-p', '--parse',
         nargs='?',
@@ -2567,6 +2696,31 @@ if __name__ == '__main__':
         default='vacf',
         help="""{'vacf', 'direct'} method to calculate PDOS  [%(default)s]""",
         )
+    return parser
 
+#-----------------------------------------------------------------------------
+
+def get_default_opts():
+    """Return a class argparse.Namespace with all default options."""
+    return get_parser().parse_args('')
+
+# module level variable for convenience
+default_opts = get_default_opts()
+
+#-----------------------------------------------------------------------------
+# main
+#-----------------------------------------------------------------------------
+
+if __name__ == '__main__':
+    
+##    # Turn off text messages from individual functions. They confuse doctest.
+##    VERBOSE = False
+##    import doctest
+##    doctest.testmod(verbose=True)
+    
+    VERBOSE = True
+    
+    parser = get_parser()
     opts = parser.parse_args()    
-    sys.exit(main(opts))
+    ret=main(opts)
+    sys.exit()

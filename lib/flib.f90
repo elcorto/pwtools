@@ -1,5 +1,3 @@
-! vim:let fortran_free_source=1
-
 ! 
 ! Copyright (c) 2008, Steve Schmerler <mefx@gmx.net>.
 ! The pydos package. 
@@ -109,7 +107,6 @@ subroutine vect_loops(v, natoms, nstep, c)
 !!    double precision, intent(in) :: v(:, :, :)
     double precision, intent(in) :: v(0:natoms-1, 0:nstep-1, 0:2)
     double precision, intent(out) :: c(0:nstep-1)
-    
     do t = 0,nstep-1
         c(t) = sum(v(:,:(nstep-t-1),:) * v(:,t:,:))
     end do

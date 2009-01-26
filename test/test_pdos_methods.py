@@ -48,7 +48,7 @@ ax[-1].plot(faxis_dd, dd, label='dd')
 ax[-1].plot(faxis_dd, ddm, label='ddm')
 ax[-1].legend()
 
-# Plot the ratio [w/o mass] / [with mass] for each method. The `vd` has
+# Plot the ratio [w/o mass] / [with mass] for each method. The `vd*` have
 # higher frequency resolution, but other than that, the curves should track
 # each other -- i.e. both methods do the same thing.
 fig.append(plt.figure())

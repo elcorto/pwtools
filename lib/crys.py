@@ -42,7 +42,7 @@ u=0.382 # claudi
 # pwscf's def. for hexagonal primitive lattice vecs (ibrav=4), from [1]
 #
 # simple hexagonal and trigonal(p)
-# ==============================
+# ================================
 # v1 = a(1,0,0),  v2 = a(-1/2,sqrt(3)/2,0),  v3 = a(0,0,c/a).
 #
 a1 = alat*x  
