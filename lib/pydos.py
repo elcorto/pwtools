@@ -104,6 +104,8 @@ TODO
   etc., maybe map(_float, <list_of_strings>) or so ...
   Check all regexes, we have in a hurry replaced all '0-9\.' by '0-9eE+-\.'
 
+- There may be problems when the ATOMIC_POSITIONS unit is given in braces:
+  "(alat)" instead of "alat". Check this.
 
 assert -> _assert()
 -------------------
@@ -141,6 +143,9 @@ import constants
 import _flib
 from common import assert_cond as _assert
 
+# save stdlib's repr
+_repr = repr 
+
 ##DBG.pt('import')
 
 #-----------------------------------------------------------------------------
@@ -165,15 +170,24 @@ INPUT_PW_CARDS = [\
 # file handling
 #-----------------------------------------------------------------------------
 
-def fileo(val, mode='r'):
+def fileo(val, mode='r', force=False):
     """Return open file object with mode `mode`. Handles also gzip'ed files.
+    Non-empty files are protected. File objects are just passed through, not
+    modified.
 
     args:
     -----
     val : str or file object
     mode : file mode (everything that Python's open() can handle)
+    force : bool, force to overwrite non-empty files
     """
     if isinstance(val, types.StringType):
+        if os.path.exists(val): 
+            if not os.path.isfile(val):
+                raise ValueError("argument '%s' exists but is no file")
+            if ('w' in mode) and (not force) and (os.path.getsize(val) > 0):
+                raise StandardError("file '%s' not empty, won't ovewrite, use "
+                    "force=True" %val)
         if val.endswith('.gz'):
             import gzip
             ret =  gzip.open(val, mode)
@@ -467,7 +481,7 @@ def _float(st):
 
 #-----------------------------------------------------------------------------
 
-def _repr(var, ffmt="%.15e"):
+def repr(var, ffmt="%.16e"):
     """Similar to Python's repr(), but return floats formated
     with `ffmt`. Python's repr() handles also var = None.
     
@@ -488,7 +502,7 @@ def _repr(var, ffmt="%.15e"):
     elif isinstance(var, types.StringType):
         return var
     else:
-        return repr(var)
+        return _repr(var)
 
 #-----------------------------------------------------------------------------
 
@@ -510,14 +524,14 @@ def str2tup(s, func=int):
 
 class PydosConfigParser(ConfigParser.SafeConfigParser):
     """All values passed as `arg` to self.set(self, section, option, arg) are
-    converted to a string with _repr(). get*() methods are the usual ones
+    converted to a string with repr(). get*() methods are the usual ones
     provided by the base class ConfigParser.SafeConfigParser: get(), getint(),
     getfloat(), getboolean(). Option keys are case-sensitive.
     """
     # make keys case-sensitive
     ConfigParser.SafeConfigParser.optionxform = str
     def set(self, section, option, arg):
-        ConfigParser.SafeConfigParser.set(self, section, option, _repr(arg))
+        ConfigParser.SafeConfigParser.set(self, section, option, repr(arg))
 
 #-----------------------------------------------------------------------------
 
@@ -2154,7 +2168,7 @@ def verbose(msg):
 
 #-----------------------------------------------------------------------------
 
-def str_arr(arr, fmt='%.18e', delim=' '*4):
+def str_arr(arr, fmt='%.16e', delim=' '*4):
     """Convert array `arr` to nice string representation for printing.
     
     args:

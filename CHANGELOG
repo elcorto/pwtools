@@ -19,3 +19,16 @@ other:
 -----
 Some doc updates. Added support for gzip compressed pw.x outfiles.
 Test for vacf_pdos() and direct_pdos() in test/.
+changeset:   11:83cdcd4bebb3
+
+0.2.2
+-----
+lib/Makefile
+    Use gfortran per default and some custom AMD Phenom X4 options.
+lib/pydos.py
+    Make regular expressions match all kinds of strings representing
+    floats.
+    Introduced default option handling to main(): get_parser().
+    get_default_opts().
+
+
