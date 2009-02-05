@@ -142,6 +142,7 @@ from scipy.integrate import simps
 import constants
 import _flib
 from common import assert_cond as _assert
+from common import fileo
 
 # save stdlib's repr
 _repr = repr 
@@ -170,44 +171,6 @@ INPUT_PW_CARDS = [\
 # file handling
 #-----------------------------------------------------------------------------
 
-def fileo(val, mode='r', force=False):
-    """Return open file object with mode `mode`. Handles also gzip'ed files.
-    Non-empty files are protected. File objects are just passed through, not
-    modified.
-
-    args:
-    -----
-    val : str or file object
-    mode : file mode (everything that Python's open() can handle)
-    force : bool, force to overwrite non-empty files
-    """
-    if isinstance(val, types.StringType):
-        if os.path.exists(val): 
-            if not os.path.isfile(val):
-                raise ValueError("argument '%s' exists but is no file")
-            if ('w' in mode) and (not force) and (os.path.getsize(val) > 0):
-                raise StandardError("file '%s' not empty, won't ovewrite, use "
-                    "force=True" %val)
-        if val.endswith('.gz'):
-            import gzip
-            ret =  gzip.open(val, mode)
-            # Files opened with gzip don't have a 'name' attr.
-            if not hasattr(ret, 'name'):
-                ret.name = fullpath(val)
-            return ret                
-        else:
-            return open(val, mode)
-    elif isinstance(val, types.FileType):
-        if val.closed:
-            raise StandardError("need an open file") 
-        elif not val.mode == mode:
-            raise ValueError("mode of file '%s' is '%s', must be '%s'" 
-                %(val.name, val.mode, mode))
-        return val
-    else:
-        raise ValueError("`val` must be string or file object")
-
-#-----------------------------------------------------------------------------
 
 # This should become a general save-nd-array-to-txt-file function. We can only write 
 # 1d or 2d arrays to file with np.savetxt. `axes` specifies the axes which form
