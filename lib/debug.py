@@ -111,7 +111,7 @@ class Debug:
                 %(tag, str(self.time_ar_dict[tag]), str(self.none_ar)))
         # array is [<val>, None] (use case 1) or [<val>, <val>] (use case 2) 
         if self.time_ar_dict[tag][0] is not None:
-            # assign second time                
+            # [<val>, None], assign second time                
             if self.time_ar_dict[tag][1] is None:
                 self.t(tag)
             print "--DEBUG--: %s: %s time: %s" %(tag, msg,\

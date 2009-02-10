@@ -88,4 +88,27 @@ def file_readlines(fn):
     lst = fh.readlines()
     fh.close()
     return lst
-    
+
+#-----------------------------------------------------------------------------
+
+def fullpath(s):
+    """Complete path: absolute path + $HOME expansion."""
+    return os.path.abspath(os.path.expanduser(s))
+
+#-----------------------------------------------------------------------------
+# Child processes & shell calls
+#-----------------------------------------------------------------------------
+
+def system(call):
+    """
+    Primitive os.system() replacement. stdout and stderr go to the shell. Only
+    diff: Waits until child process is complete. 
+
+    args:
+    ----
+    call : string (example: 'ls -l')
+    """
+    p = S.Popen(call, shell=True)
+    os.waitpid(p.pid, 0)
+
+

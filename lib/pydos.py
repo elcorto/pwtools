@@ -107,6 +107,11 @@ TODO
 - There may be problems when the ATOMIC_POSITIONS unit is given in braces:
   "(alat)" instead of "alat". Check this.
 
+- All parsing functions which get and return a fileobject (e.g.
+  atomic_positions_out2()) are technically not required to return it. The object
+  is modified in place when it's .next() method is called inside the function.
+  We use this e.g. in next_line().
+
 assert -> _assert()
 -------------------
 :%s/assert[ ]*\(.*\)[ ]*,[ ]*[(]\?\([ `'"a-zA-Z0-9]\+\)[)]\?/_assert(\1, \2)/gc
@@ -142,7 +147,7 @@ from scipy.integrate import simps
 import constants
 import _flib
 from common import assert_cond as _assert
-from common import fileo
+from common import fileo, system, fullpath
 
 # save stdlib's repr
 _repr = repr 
@@ -511,6 +516,17 @@ def next_line(fh):
 
 #-----------------------------------------------------------------------------
 
+def next_nonempty_line(fh):
+    """
+    Will raise StopIteration at end of file.
+    """
+    line = next_line()
+    while line == '':
+        line = next_line(fh)
+    return line        
+
+#-----------------------------------------------------------------------------
+
 # cannot use:
 #
 #   >>> fh, flag = scan_until_pat(fh, ...)
@@ -608,21 +624,18 @@ def scan_until_pat2(fh, rex, err=True, retmatch=False):
     each loop pass. Then, this would essentially be the same as using
     re.match() directly.
     """
-    # Evaluating rex.match(line) twice if a match occured should be no
-    # performance penalty, probably better than assigning m=rex.match(line)
-    # in each loop. Could be a possible problem if called many times on short
-    # files or a file with many matches.
     for line in fh:
-        if rex.match(line) is not None:
+        match = rex.match(line)
+        if match is not None:
             if retmatch:
-                return fh, 1, rex.match(line)
+                return fh, 1, match
             return fh, 1
     if err:
         raise StandardError("end of file '%s', pattern "
             "not found" %fh)
     # nothing found = end of file, rex.match(line) should be == None
     if retmatch:
-        return fh, 0, rex.match(line)
+        return fh, 0, match
     return fh, 0
 
 #-----------------------------------------------------------------------------
@@ -915,6 +928,11 @@ def atomic_positions_out2(fh, natoms, work):
         work[i,:] = np.array(line.split()[1:]).astype(float)
         line = next_line(fh)
     return fh
+
+#-----------------------------------------------------------------------------
+
+##def stress_tensor_out(fh, rex, work):
+    
 
 #-----------------------------------------------------------------------------
 
@@ -1420,6 +1438,7 @@ def fvacf(V, m=None, method=2):
     # allocate the array in F order in the first place.
 ##    c = _flib.vacf(np.array(V, order='F'), m, c, method, use_m)
     verbose("calling _flib.vacf ...")
+    print c
     c = _flib.vacf(V, m, c, method, use_m)
     verbose("... ready")
     return c
@@ -2131,7 +2150,7 @@ def verbose(msg):
 
 #-----------------------------------------------------------------------------
 
-def str_arr(arr, fmt='%.16e', delim=' '*4):
+def str_arr(arr, fmt='%.15g', delim=' '*4):
     """Convert array `arr` to nice string representation for printing.
     
     args:
@@ -2169,26 +2188,6 @@ def str_arr(arr, fmt='%.16e', delim=' '*4):
         return '\n'.join(lst)
     else:
         raise ValueError('array dims > 2 not supported')
-
-#-----------------------------------------------------------------------------
-
-def system(call):
-    """
-    Primitive os.system() replacement. stdout and stderr go to the shell. Only
-    diff: Waits until child process is complete. 
-
-    args:
-    ----
-    call : string (example: 'ls -l')
-    """
-    p = S.Popen(call, shell=True)
-    os.waitpid(p.pid, 0)
-
-#-----------------------------------------------------------------------------
-
-def fullpath(s):
-    """Complete path: absolute path + $HOME expansion."""
-    return os.path.abspath(os.path.expanduser(s))
 
 #-----------------------------------------------------------------------------
 
