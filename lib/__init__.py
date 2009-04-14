@@ -1,4 +1,4 @@
 
-__all__ = ['pydos', 'units', 'constants', '_flib', 'common', 'comb']
+__all__ = ['pydos', 'constants', '_flib', 'common', 'comb', 'utils']
 
 

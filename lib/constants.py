@@ -73,20 +73,28 @@
 # Eryd        = 1/2*Eh
 # tryd = hbar/Eryd = 2*th     
 #
-#
+
+
 #-----------------------------------------------------------------------------
-# Useful pressure stuff
+# Useful conversions
 #-----------------------------------------------------------------------------
+# 
+# pressure
 #
 # dyn / cm**2 = 0.1 Pa
 # 1 Mbar      = 100 GPa
+# 1 kbar      = 0.1 GPa
+#
+# energy/frequency
+#
+# 1 cm^-1     = 2.998e10 Hz = 0.02998 THz
 
 
 
 
 
-__all__ = ['pi', 'h', 'hbar', 'm0', 'e0', 'mu0', 'c0', 'eps0', 'a0', 'Eh',\
-           'th', 'Eryd', 'tryd']
+__all__ = ['pi', 'h', 'hbar', 'm0', 'e0', 'mu0', 'c0', 'eps0', 'a0', 'a0_A',\
+           'Eh', 'th', 'kb', 'avo', 'Eryd', 'tryd', 'dyn']
 
 from math import pi
 h = 6.62606896e-34          # J*s
@@ -97,9 +105,11 @@ mu0 = 4e-7 * pi             # N / A**2
 c0 = 299792458.0            # m/s  
 eps0 = 1.0 / (mu0*c0**2)    # F/m = C / (V*m)
 a0 = 0.52917720859e-10      # m
+a0_A = 0.52917720859        # Angstrom
 Eh = 4.35974394e-18         # J
 th = 2.418884326505e-17     # s
 kb = 1.3806504e-23          # J/K
+avo = 6.02214179e23         # 1/mol
 
 Eryd = 0.5*Eh
 tryd = 2.0*th

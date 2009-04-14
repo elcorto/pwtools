@@ -134,6 +134,7 @@ from os.path import join as pjoin
 import textwrap
 
 import numpy as np
+norm = np.linalg.norm
 # faster import, copied file from scipy sources
 ##from scipy.io.npfile import npfile
 from scipy_npfile import npfile
@@ -262,7 +263,7 @@ def writearr(fl, arr, order='C', endian='<', comment=None, info=None,
     if type == 'bin':
         # here, perm could be anything, will be changed in npfile() anyway
         perm = 'wb'
-        fl = fileo(fl, mode=perm)
+        fl = fileo(fl, mode=perm, force=True)
         npf = npfile(fl, order=order, endian=endian, permission=perm)
         npf.write_array(arr)
         # closes also `fl`
@@ -360,6 +361,17 @@ def toslice(val):
     slice(1, 5, None)
     """
     _assert(isinstance(val, types.StringType), "input must be string")
+    # FIXME
+    # np.s_ doesn't work for slices starting at end, like
+    # >>> a = array([1,2,3,4,5,6])
+    # >>> a[-2:]
+    # array([5, 6])
+    # >>> a[np.s_[-2:]]
+    # array([], dtype=int64)
+    # >>> np.s_[-2:]
+    # slice(9223372036854775805, None, None)
+    if '-' in val:
+        verbose("[toslice]: WARNING: minus slines not supported, check your results!")
     # This eval() trick works but seems hackish. Better ideas, anyone?
     return eval('np.s_[%s]' %val)
 
@@ -1162,9 +1174,84 @@ def parse_pwout(fn_out, pwin_nl=None, atspec=None, atpos_in=None):
 ##    DBG.pt('parse-output')
     return {'R': R, 'T': T, 'P': P, 'skipend': nstep-endj}
 
+# Convenience wrapper for interactive usage. 
+def parse_pwout_ia(pwifn, pwofn):
+    pwin_nl = conf_namelists(pwifn)
+    atspec = atomic_species(pwifn)
+    atpos_in = atomic_positions(pwifn, atspec)
+    pwout = parse_pwout(fn_out=pwofn,
+                        pwin_nl=pwin_nl, 
+                        atspec=atspec,
+                        atpos_in=atpos_in)
+    return pwout                        
+
 #-----------------------------------------------------------------------------
 # computational
 #-----------------------------------------------------------------------------
+
+def fftsample(a, b, mode='f', mirr=False):
+    """Convert size and resolution between time and frequency domain.
+    
+    Convert between maximal frequency to sample + desired frequency
+    resolution and the needed number of sample points and the time step.
+    
+    The maximal frequency is also called the Nyquist frequency and is
+    1/2*samplerate.
+    
+    args:
+    -----
+    a, b: see below
+    mode : string, {'f', 's'}
+        f : frequency mode
+        t : time mode
+    mirr: bool, consider signal mirroring of the signal
+
+    f-mode:
+        a : fmax, max. freq to sample [Hz] == Nyquist freq. == 1/2 samplerate
+        b : df, desired freq. resolution [Hz]
+    t-mode:
+        a : dt
+        b : N
+
+    returns:
+    --------
+    f-mode:
+        dt : time step, unit is [s] (or in general 1/unit_of_fmax)
+        N : number of samples
+    t-mode:
+        fmax
+        df
+    
+    notes:
+    ------
+    These relations hold ("v" - down, "^" - up):
+        size                resolution
+        N [t] ^     <->     df [f] v
+        fmax [f] ^  <->     dt [t] v
+
+    If you know that the signal in the time domain will be mirrored before FFT
+    (N -> 2*N), you will get 1/2*df (double fine resolution), so 1/2*N is
+    sufficient to get the desired df.
+    """
+    if mode == 'f':
+        fmax, df = a,b
+        if mirr:
+            df *= 2
+        dt = 0.5/fmax
+        N = 1.0/(df*dt)
+        return dt, int(N)
+    elif mode == 't':
+        dt, N = a, b
+        if mirr:
+            N *= 2
+        fmax = 0.5/dt
+        df = 1.0/(N*dt)
+        return fmax, df    
+    else:
+        raise ValueError("illegal mode, allowed: t, f")
+
+#-----------------------------------------------------------------------------
+
 
 # "!>>>" in the docstring so that it won't get picked up by doctest, which
 # looks for ">>>".
@@ -1182,14 +1269,6 @@ def normalize(a):
     array([ 0.75609756+0.19512195j,  1.00000000+0.j ])
     """
     return a / a.max()
-
-#-----------------------------------------------------------------------------
-
-def norm(a):
-    """2-norm for vectors."""
-    _assert(len(a.shape) == 1, "input must be 1d array")
-    # math.sqrt is faster then np.sqrt for scalar args
-    return math.sqrt(np.dot(a,a))
 
 #-----------------------------------------------------------------------------
 
@@ -1438,7 +1517,6 @@ def fvacf(V, m=None, method=2):
     # allocate the array in F order in the first place.
 ##    c = _flib.vacf(np.array(V, order='F'), m, c, method, use_m)
     verbose("calling _flib.vacf ...")
-    print c
     c = _flib.vacf(V, m, c, method, use_m)
     verbose("... ready")
     return c
@@ -1522,7 +1600,8 @@ def direct_pdos(V, dt=1.0, m=None, full_out=False, natoms=1.0):
     faxis = full_faxis[:split_idx]
     pdos = full_pdos[:split_idx]
     
-    default_out = (faxis, norm_int(pdos, faxis, area=3.0*natoms))
+##    default_out = (faxis, norm_int(pdos, faxis, area=3.0*natoms))
+    default_out = (faxis, norm_int(pdos, faxis, area=1.0))
     extra_out = (full_faxis, full_pdos, split_idx)
     if full_out:
         return default_out + (extra_out,)
@@ -1572,8 +1651,8 @@ def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False, natoms=1.0):
     faxis = full_faxis[:split_idx]
     pdos = full_pdos[:split_idx]
 
-    default_out = (faxis, norm_int(pdos, faxis, area=3.0*natoms))
-##    default_out = (faxis, norm_int(pdos, faxis, area=12)) # HACK!!!!!!!!!!!!!!!!!!!!!!!!!!
+##    default_out = (faxis, norm_int(pdos, faxis, area=3.0*natoms))
+    default_out = (faxis, norm_int(pdos, faxis, area=1.0))
     # area must be == 3*atoms in unit cell, NOT supercell
     extra_out = (full_faxis, fftcc, split_idx, c)
     if full_out:
@@ -1867,11 +1946,12 @@ def scell_mask(dim1, dim2, dim3):
     possibilities.
     Here r = 3 always (select x,y,z direction):
     example:
-    n = 2 <=> 2x2x2 supercell: 
-      all 3-tuples out of [0,1]   -> n**r = 2**3 = 8
-    n=3 <=> 3x3x3 supercell:
-      all 3-tuples out of [0,1,2] -> n**r = 3**3 = 27
-    Computationally, we need `r` nested loops, one per dim.  
+    n=2 : {0,1}   <=> 2x2x2 supercell: 
+      all 3-tuples out of {0,1}   -> n**r = 2**3 = 8
+    n=3 : {0,1,2} <=> 3x3x3 supercell:
+      all 3-tuples out of {0,1,2} -> n**r = 3**3 = 27
+    Computationally, we need `r` nested loops (or recursion of depth 3), one
+    per dim.  
     """
     b = [] 
     for n1 in xrange(dim1):
@@ -1887,12 +1967,14 @@ def scell(R0, cp, mask, symbols):
 
     args:
     -----
-    R0 : 2d array, (natoms, 3) with atomic coords
+    R0 : 2d array, (natoms, 3) with atomic coords, these represent the initial
+        single unit cell
     cp : 2d array, (3, 3)
         cell parameters, primitive lattice vecs as *rows* (see
         cell_parameters())
     mask : what scell_mask() returns, (N, 3)
-    symbols : list of strings with atom symbols, (natoms,)
+    symbols : list of strings with atom symbols, (natoms,), must match with the
+        rows of R0
 
     returns:
     --------
@@ -2515,11 +2597,11 @@ def main(opts):
             pdos_out[:,2] = normalize(fftcc[:split_idx].real)
             pdos_out[:,3] = normalize(fftcc[:split_idx].imag)
         info = dict()
-        info['nyquist_freq'] = 0.5/dt,
-        info['freq_resolution'] = df,
-        info['dt'] = dt,
+        info['nyquist_freq'] = "%e" %(0.5/dt),
+        info['freq_resolution'] = "%e" %df,
+        info['dt'] = "%e" %dt,
         if real_imag_ratio is not None:
-            info['real_imag_ratio'] = real_imag_ratio,
+            info['real_imag_ratio'] = "%e" %real_imag_ratio,
         pdos_info = {'fft': info}
 
         writearr(pdosfn, pdos_out, info=pdos_info, comment=pdos_comment, type=opts.file_type)
