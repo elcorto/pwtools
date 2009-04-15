@@ -1,7 +1,0 @@
-# vim:noexpandtab
-
-all:
-	# make .pyf
-	f2py -h foo.pyf foo.f90 -m _foo --overwrite-signature
-	# make _foo.so
-	f2py -c foo.pyf foo.f90 --opt='-O2' -DF2PY_REPORT_ON_ARRAY_COPY=1
