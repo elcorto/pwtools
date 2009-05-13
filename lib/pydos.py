@@ -114,7 +114,7 @@ TODO
 
 assert -> _assert()
 -------------------
-:%s/assert[ ]*\(.*\)[ ]*,[ ]*[(]\?\([ `'"a-zA-Z0-9]\+\)[)]\?/_assert(\1, \2)/gc
+:%s/assert\s*\(.*\)\s*,\s*[(]\?\([ `'"a-zA-Z0-9]\+\)[)]\?/_assert(\1, \2)/gc
 """
 
 from debug import Debug
@@ -451,7 +451,7 @@ def _float(st):
         # >>> m.groups()
         # ('40.0', '', '02', '  ')
         #
-        rex = re.compile(r'[ ]*([0-9\.]+)d([+-]*)([0-9]+)([_]*.*)')
+        rex = re.compile(r'\s*([0-9\.]+)d([+-]*)([0-9]+)([_]*.*)')
         m = rex.match(st)
         if m is None:
             raise ValueError("no match on string '%s'" %st)
@@ -691,7 +691,7 @@ def atomic_species(fn):
     verbose('[atomic_species] reading ATOMIC_SPECIES from %s' %fn)
     fh = open(fn)
     # rex: for the pseudo name, we include possible digits 0-9 
-    rex = re.compile(r'[ ]*([a-zA-Z]+)[ ]+([0-9eEdD+-\.]+)[ ]+([0-9a-zA-Z\.]*)')
+    rex = re.compile(r'\s*([a-zA-Z]+)\s+([0-9eEdD+-\.]+)\s+([0-9a-zA-Z\.]*)')
     fh, flag = scan_until_pat(fh, pat='atomic_species')
     line = next_line(fh)
     while line == '':
@@ -746,7 +746,7 @@ def cell_parameters(fn):
     """
     verbose('[cell_parameters] reading CELL_PARAMETERS from %s' %fn)
     fh = open(fn)
-    rex = re.compile(r'[ ]*(([ ]*-*[0-9eEdD+-\.]+){3})[ ]*')
+    rex = re.compile(r'\s*((\s*-*[0-9eEdD+-\.]+){3})\s*')
     fh, flag = scan_until_pat(fh, pat="cell_parameters")
     line = next_line(fh)
     while line == '':
@@ -803,7 +803,7 @@ def atomic_positions(fn, atspec=None):
     verbose("[atomic_positions] reading ATOMIC_POSITIONS from %s" %fn)
     if atspec is None:
         atspec = atomic_species(fn)
-    rex = re.compile(r'[ ]*([a-zA-Z]+)(([ ]+-*[0-9eEdD+-\.]+){3})[ ]*')
+    rex = re.compile(r'\s*([a-zA-Z]+)((\s+-*[0-9eEdD+-\.]+){3})\s*')
     fh = open(fn)
     fh, flag, line = scan_until_pat(fh, pat="atomic_positions", retline=True)
     line = line.strip().lower().split()
@@ -872,14 +872,14 @@ def atomic_positions_out(fh, rex, work):
     - With this implementstion, `rex` must be:
         
         With scan_until_pat*(), we need to know that we extract 3 numbers:
-        >>> pat =  r'[ ]*[A-Za-z]+(([ ]+-*[0-9eEdD+-\.]+){3})'
+        >>> pat =  r'\s*[A-Za-z]+((\s+-*[0-9eEdD+-\.]+){3})'
         >>> rex = re.compile(pat)
     
         For scanning the whole file w/o the usage of scan_until_pat*() first,
         we have to know the atom symbols. We would use this kind of pattern if
         we'd parse the file with perl & friends:
         >>> atoms = ['Si', 'O', 'Al', 'N']
-        >>> pat =  r'(%s)' %r'|'.join(atoms) + r'(([ ]+-*[0-9eEdD+-\.]+){3})'
+        >>> pat =  r'(%s)' %r'|'.join(atoms) + r'((\s+-*[0-9eEdD+-\.]+){3})'
         >>> rex = re.compile(pat)
         
     - Is a *little* bit slower than atomic_positions_out2.
@@ -1061,7 +1061,7 @@ def parse_pwout(fn_out, pwin_nl=None, atspec=None, atpos_in=None):
     nstep = int(pwin_nl['control']['nstep'])
     # Start temperature of MD run. Can also grep it from .out file, pattern for
     # re.search() (untested):
-    # r'Starting temperature[ ]+=[ ]+([0-9eEdD+-\.])+[ ]+K'. Comes before the first 
+    # r'Starting temperature\s+=\s+([0-9eEdD+-\.])+\s+K'. Comes before the first 
     # 'ATOMIC_POSITIONS' and belongs to Rold.
     tempw = _float(pwin_nl['ions']['tempw'])
     
@@ -1093,9 +1093,9 @@ def parse_pwout(fn_out, pwin_nl=None, atspec=None, atpos_in=None):
     fh = fileo(fn_out)
     # R[:,0,:] = Rold, fill R[:,1:,:]
     j=1
-    scan_atpos_rex = re.compile(r'^ATOMIC_POSITIONS[ ]*')
-    scan_temp_rex = re.compile(r'[ ]+temperature[ ]+=[ ]+([0-9eEdD+-\.]+)[ ]+K')
-    scan_stress_rex = re.compile(r'[ ]+total[ ]+stress[ ]+.*P.*=[ ]*(-*[0-9eEdD+-\.]+)')
+    scan_atpos_rex = re.compile(r'^ATOMIC_POSITIONS\s*')
+    scan_temp_rex = re.compile(r'\s+temperature\s+=\s+([0-9eEdD+-\.]+)\s+K')
+    scan_stress_rex = re.compile(r'\s+total\s+stress\s+.*P.*=\s*(-*[0-9eEdD+-\.]+)')
     while True:
         
         # --- stress -----------------
@@ -2326,7 +2326,7 @@ def _test_atpos(R, pw_fn='SiAlON.example_md.out'):
     os.unlink('out.python')
     os.unlink('out.perl')
     verbose("perl extract + write ...")
-    system("perl -ne 'print \"$2\n\" if /(Al|O|Si|N)(([ ]+-*[0-9]+\.*[0-9]*){3})/'"
+    system("perl -ne 'print \"$2\n\" if /(Al|O|Si|N)((\s+-*[0-9]+\.*[0-9]*){3})/'"
            " < %s > out.perl" %pw_fn)
     verbose("python write ...")
     fhout = open('out.python', 'a')
