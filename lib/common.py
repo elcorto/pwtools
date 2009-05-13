@@ -148,7 +148,7 @@ def igrep(pat_or_rex, iterable, func='search'):
     
     notes:
     ------
-    This function could also live in Python's itertools.
+    This function could also live in Python's itertools module.
 
     Similar to the shell grep(1) utility, one can directly access match
     groups. In the previous example, this is the same as 
@@ -208,6 +208,9 @@ def template_replace(dct, txt):
     # This is a pointer. Each txt.replace() returns a copy.
     new_txt = txt
     for key, val in dct.iteritems():
+        if val is None:
+            print 'value for key "%s" is None, skipping' %key
+            continue
         if not isinstance(val, types.StringType):
             raise StandardError("dict vals must be strings: key: %s, val: " %key + \
                 str(type(val)))

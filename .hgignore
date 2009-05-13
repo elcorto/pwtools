@@ -1,7 +1,6 @@
 syntax: regexp
 .*\.py[co]{1}$
-\_.*\.so$
 
 syntax: glob
-flib.pyf
-foo.pyf
+*.pyf
+*.so

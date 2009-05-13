@@ -130,7 +130,6 @@ import os
 import types
 import subprocess as S
 import ConfigParser
-from os.path import join as pjoin
 import textwrap
 
 import numpy as np
@@ -152,6 +151,9 @@ from common import fileo, system, fullpath
 
 # save stdlib's repr
 _repr = repr 
+
+# aliases
+pjoin = os.path.join
 
 ##DBG.pt('import')
 
@@ -1283,14 +1285,15 @@ def velocity(R, dt=None, copy=True, rslice=slice(None)):
     dt: float
         time step
     copy : bool
-        In-place modification of R to save memory and avoid array
-        copies. Use only if you don't use R after calling this function.
-    rslice : slice object
+        If False, then we do in-place modification of R to save memory and
+        avoid array copies. Use only if you don't use R after calling this
+        function.
+    rslice : slice object, defaults to slice(None), i.e. take all
         a slice for the 2nd axis (time axis) of R  
     
     returns:            
     --------
-    V : 3D array, shape (natoms, nstep - offset, 3)
+    V : 3D array, shape (natoms, <determined_by_rslice>, 3)
 
     notes:
     ------
@@ -1970,7 +1973,7 @@ def scell(R0, cp, mask, symbols):
     R0 : 2d array, (natoms, 3) with atomic coords, these represent the initial
         single unit cell
     cp : 2d array, (3, 3)
-        cell parameters, primitive lattice vecs as *rows* (see
+        cell parameters, lattice vecs as *rows* (see
         cell_parameters())
     mask : what scell_mask() returns, (N, 3)
     symbols : list of strings with atom symbols, (natoms,), must match with the
@@ -2009,7 +2012,15 @@ def scell(R0, cp, mask, symbols):
             sc_symbols.append(symbols[i])
             k += 1
     return sc_symbols, Rsc
-            
+
+#-----------------------------------------------------------------------------
+
+def scell2(coords, cp, dims, symbols):
+    mask = scell_mask(*tuple(dims))
+    scell_out = scell(coords, cp, mask, symbols)
+    new_cp = cp * np.asarray(dims)[:,np.newaxis]
+    return scell_out + (new_cp,)
+
 #-----------------------------------------------------------------------------
 
 def coord_trans(R, old=None, new=None, copy=True, align='cols'):
@@ -2201,9 +2212,9 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
     
     """
     _assert(old.shape[0] == new.shape[0], "dim 0 of `old` and `new` "
-        "doenn't match")
+        "doesn't match")
     _assert(old.shape[1] == new.shape[1], "dim 1 of `old` and `new` "
-        "doenn't match")
+        "doesn't match")
     msg = ''        
     if align == 'rows':
         old = old.T
@@ -2262,6 +2273,7 @@ def str_arr(arr, fmt='%.15g', delim=' '*4):
     ------
     Essentially, we replicate the core part of np.savetxt.
     """
+    arr = np.asarray(arr)
     if arr.ndim == 1:
         return delim.join([fmt]*arr.size) % tuple(arr)
     elif arr.ndim == 2:
@@ -2270,6 +2282,34 @@ def str_arr(arr, fmt='%.15g', delim=' '*4):
         return '\n'.join(lst)
     else:
         raise ValueError('array dims > 2 not supported')
+
+#-----------------------------------------------------------------------------
+
+def atpos_str(symbols, coords, fmt="%.10f"):
+    """Convenience function to make a string for the ATOMIC_POSITIONS section
+    of a pw.x input file. Usually, this can be used to process the output of
+    scell().
+    
+    args:
+    -----
+    symbols : list of strings with atom symbols, (natoms,), must match with the
+        rows of coords
+    coords : array (natoms, 3) with atomic coords
+
+    returns:
+    --------
+    string
+
+    example:
+    --------
+    >>> print atpos_str(['Al', 'N'], array([[0,0,0], [0,0,1.]]))
+    Al      0.0000000000    0.0000000000    0.0000000000
+    N       0.0000000000    0.0000000000    1.0000000000
+    """
+    assert len(symbols) == coords.shape[0], "len(symbols) != coords.shape[0]"
+    txt = '\n'.join(symbols[i] + '\t' +  str_arr(coords[i,:], fmt=fmt) \
+        for i in range(coords.shape[0]))
+    return txt        
 
 #-----------------------------------------------------------------------------
 
@@ -2298,6 +2338,7 @@ def _test_atpos(R, pw_fn='SiAlON.example_md.out'):
     fhout.close()
     DBG.pt('_test_atpos')
 
+#-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
 
 def main(opts):
