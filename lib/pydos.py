@@ -2018,7 +2018,7 @@ def scell(R0, cp, mask, symbols):
 def scell2(coords, cp, dims, symbols):
     mask = scell_mask(*tuple(dims))
     scell_out = scell(coords, cp, mask, symbols)
-    new_cp = cp * np.asarray(dims)[:,np.newaxis]
+    new_cp = cp * np.asarray(dims)[:,np.newaxis] # FIXME: bogus
     return scell_out + (new_cp,)
 
 #-----------------------------------------------------------------------------
@@ -2248,7 +2248,7 @@ def str_arr(arr, fmt='%.15g', delim=' '*4):
     
     args:
     -----
-    arr : numpy 1d or 2d array
+    arr : array_like, 1d or 2d array
     fmt : string, format specifier, all entries of arr are formatted with that
     delim : string, delimiter
 
@@ -2306,9 +2306,10 @@ def atpos_str(symbols, coords, fmt="%.10f"):
     Al      0.0000000000    0.0000000000    0.0000000000
     N       0.0000000000    0.0000000000    1.0000000000
     """
+    coords = np.asarray(coords)
     assert len(symbols) == coords.shape[0], "len(symbols) != coords.shape[0]"
-    txt = '\n'.join(symbols[i] + '\t' +  str_arr(coords[i,:], fmt=fmt) \
-        for i in range(coords.shape[0]))
+    txt = '\n'.join(symbols[i] + '\t' +  str_arr(row, fmt=fmt) \
+        for i,row in enumerate(coords))
     return txt        
 
 #-----------------------------------------------------------------------------

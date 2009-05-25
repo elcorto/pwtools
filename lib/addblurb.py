@@ -3,7 +3,7 @@
 # Copyright (c) 2008, Steve Schmerler <mefx@gmx.net>.
 #   
 # Add a license blurb (or on fact any kind of text) to the top of each file on
-# the cmd line. Leave vim modelines and bang stuff (i.e. #!/bin(sh)) alone,
+# the cmd line. Leave vim modelines and bang stuff (i.e. #!/bin/sh) alone,
 # i.e. try to add the text *after* these. We also try to fiddle out the comment
 # char and prefix the blurb with it.
 #

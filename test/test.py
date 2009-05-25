@@ -39,10 +39,10 @@ if __name__ == '__main__':
     #------------------------------------------------------------------------
 
     print("*"*78)
-    print("testing import of pydos package")
+    print("testing import of pwtools package")
     print("*"*78)
     
     # Modify PYTHONPATH so that we import from the current branch.
     os.environ['PYTHONPATH'] = os.path.abspath('../../')
     print "modified os.environ['PYTHONPATH']:", os.environ['PYTHONPATH']
-    system('cd $HOME && python -c "import pydos"')
+    system('cd $HOME && python -c "import pwtools"')

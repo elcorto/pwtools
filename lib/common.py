@@ -208,16 +208,20 @@ def template_replace(dct, txt):
     # This is a pointer. Each txt.replace() returns a copy.
     new_txt = txt
     for key, val in dct.iteritems():
-        if val is None:
-            print 'value for key "%s" is None, skipping' %key
-            continue
-        if not isinstance(val, types.StringType):
-            raise StandardError("dict vals must be strings: key: %s, val: " %key + \
-                str(type(val)))
         if key in new_txt:
+            if val is None:
+                print "template_replace: value for key '%s' is None, skipping" %key
+                continue
+            if not isinstance(val, types.StringType):
+                raise StandardError("dict vals must be strings: key: '%s', val: " %key + \
+                    str(type(val)))
+            cnt = txt.count(key)
+            if cnt > 1:
+                print("template_replace: warning: key '%s' found %i times"
+                %(key, cnt))
             new_txt = new_txt.replace(key, val)                                          
         else:
-            print "key not found: %s" %key
+            print "template_replace: key not found: %s" %key
     return new_txt
 
 #-----------------------------------------------------------------------------
@@ -235,5 +239,3 @@ def system(call):
     """
     p = subprocess.Popen(call, shell=True)
     os.waitpid(p.pid, 0)
-
-

@@ -122,5 +122,4 @@ class Debug:
     def p(self, msg):
         """ Simply print `msg`. """
         print "--DEBUG--: %s" %msg 
-        
 
