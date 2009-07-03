@@ -21,6 +21,6 @@ norm = np.linalg.norm
 
 def angle(x,y):
     """Angle between vectors `x' and `y' in degrees."""
-    # Numpy's `acos' is "acrcos", but wen take the one from math for scalar
+    # Numpy's `acos' is "acrcos", but we take the one from math for scalar
     # args.
     return acos(np.dot(x,y)/norm(x)/norm(y))*180.0/pi

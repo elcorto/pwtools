@@ -1,6 +1,6 @@
-The pydos package.
+The pwtools package.
 
-Copyright (c) 2008, Steve Schmerler <mefx@gmx.net>.
+Copyright (c) 2008-2009, Steve Schmerler <mefx@gmx.net>.
 
 Installation
 ============
@@ -8,7 +8,7 @@ Installation
 Python versions
 ---------------
 
-The Pydos package is written in Python 2.5.2. Most likely it also works with
+The package is written in Python 2.5.2. Most likely it also works with
 Python 2.3 < 3.0, i.e. in fact the whole 2.x series. If in doubt, use at
 least 2.4. For the new Python 3.0, there are a few changes needed. See
 www.python.org. Have a nice day.
@@ -16,7 +16,7 @@ www.python.org. Have a nice day.
 Add-on packages
 ---------------
 
-Pydos uses numpy and scipy. Tested was numpy 1.1.0 and scipy 0.6.0 (on openSUSE
+We use numpy and scipy. Tested was numpy 1.1.0 and scipy 0.6.0 (on openSUSE
 10.3 and Debian lenny, but the Linux distro shouldn't matter).
 
 Debian:
@@ -28,16 +28,16 @@ openSuSE 10.3
     - install python-numpy, python-scipy
 
 
-path issues (.bashrc)
----------------------
+path issues (.bashrc/.profile)
+------------------------------
 
-Suppose all pydos files (including the cmd line tool pydos.py) are in
-/home/foo/pydos/, then do
+Suppose all pwtools files) are in
+/home/foo/pwtools/ and the exe pydos.py in /home/foo/pwtools/lib/
     
-    # makes "import pydos" possible
+    # makes "import pwtools" possible
     export PYTHONPATH=$PYTHONPATH:/home/foo
     # to find the executable pydos.py
-    export PATH=$PYTHONPATH:$PATH
+    export PATH=/home/foo/pwtools/lib:$PATH
 
 
 Fortran extensions
@@ -74,9 +74,11 @@ Eexamples
 Known issues
 ------------
 
-When you write .txt files (-f txt), you cannot re-load them for a subsequent
+* When you write .txt files (-f txt), you cannot re-load them for a subsequent
 calculation like in example (2). This is not yet implemented for text files.
 You must parse (-p) again.
+
+* There is a yet unresolved bug with the -s option. Use with care.
 
 Output files
 ------------

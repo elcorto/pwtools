@@ -1,3 +1,7 @@
+# mpl.py
+# 
+# Plotting stuff for matplotlib: layouts, predefined markers etc.
+
 import itertools
 import sys
 import os
@@ -142,13 +146,14 @@ def set_plot_layout_phdth(pyl_obj):
     pyl_obj.rc('savefig', dpi=100)
 
 #-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 
 if __name__ == '__main__':
     from matplotlib import pyplot as plt
     import numpy as np
 
     plt.figure(0)
-    # All combiinations of color and marker
+    # All combinations of color and marker
     for col_mark in colors_markers: 
         plt.plot(np.random.rand(10), col_mark+'-')
         # The same

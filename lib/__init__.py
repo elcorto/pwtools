@@ -1,6 +1,7 @@
 
 __all__ = [\
-    '_flib', 
+    '_flib',
+    'batch',
     'comb', 
     'common', 
     'constants', 

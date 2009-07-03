@@ -4,7 +4,6 @@
 
 # 
 # Copyright (c) 2008-2009, Steve Schmerler <mefx@gmx.net>.
-# The pydos package. 
 # 
 
 """
@@ -2028,9 +2027,11 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
     
     args:
     -----
-    R : array with coordinates in old coord sys `old`. 
-        The last dim must be the number of coordinates, i.e. R.shape[-1] == 3
-        for normal 3-dim x,y,z.
+    R : array (d0, d1, ..., M), Array of arbitrary rank with coordinates
+        (M-vectors) in old coord sys `old`. The only shape resiriction is that
+        the last dim must equal the number of coordinates (R.shape[-1] == M ==
+        3 for normal 3-dim x,y,z). See "shape of `R`" in the notes section
+        below for examples.
     old, new : 2d arrays
         matrices with the old and new basis vectors as rows or cols
     copy : bool, optional
@@ -2098,24 +2099,22 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
         v_Y ... column vector v in basis Y, shape: (3,1)
         v_I ... column vector v in basis I, shape: (3,1)
 
-        "." denotes matrix multiplication:
-        
-        Y . v_Y = X . v_X = I . v_I = v_I
-        v_Y = Y^-1 . X . v_X == A . v_X
-        v_Y^T = (A . v_X)^T  # in general: (A . B)^T = B^T . A^T 
-              = v_X^T . A^T
-        
-        Numpy:
-
-        In numpy, v^T == v, and so no "vector" needs to be transposed:
-            v_Y^T = v_X^T . A^T 
-        becomes
-            v_Y = v_X . A^T 
-        and that is the form implemented here.            
+        "." denotes matrix multiplication (i.e. dot() in numpy).
+            Y . v_Y = X . v_X = I . v_I = v_I
+            v_Y = Y^-1 . X . v_X = A . v_X
+        And some general linalg:
+            (A . B)^T = B^T . A^T
+        With this:
+            v_Y^T = (A . v_X)^T = v_X^T . A^T
+        In numpy, v^T == v, and so no "vector" needs to be transposed.
         That's because a vector is a 1d array, e.g. v = array([1,2,3]) with
         shape (3,) and rank 1 instead of column or row vector ((3,1) or (1,3))
         and rank 2. Transposing is not defined: v.T == v .  The dot() function
         knows that and performs the correct multiplication accordingly. 
+        So, we then have finally
+            v_Y = A . v_X
+                = v_X . A^T 
+        The latter form is implemented here.            
 
         Example:
         
@@ -2126,23 +2125,21 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
             vectors (basis vectors) a0, a1, a2, each shape (3,)
         new:                
         Y = cartesian, i.e. the components a0[i], a1[i], a2[i] of the 
-            crystal basis vectors are cartesian:
+            basis vectors are cartesian:
                 a0 = a0[0]*[1,0,0] + a0[1]*[0,1,0] + a0[2]*[0,0,1]
                 a1 = a1[0]*[1,0,0] + a1[1]*[0,1,0] + a1[2]*[0,0,1]
                 a2 = a2[0]*[1,0,0] + a2[1]*[0,1,0] + a2[2]*[0,0,1]
         v = shape (3,) vec in the hexagonal lattice ("crystal
             coordinates")
         
-        We have 
-            
+        We have Y == I and I^-1 == I, so
             A = (Y^-1 . X) = X
-        
-        since Y == I and I^-1 == I.
-
+        and
             v_Y = v_I = X . v_X = A . v_X
-        
-        Let the a's be the *rows* of the transformation matrix. In general,
-        it's more practical to use dot(v,A.T) instead of dot(A,v). See below.
+        Let the a's be the *rows* of the transformation matrix. In general, if
+        we don't have one vector `v` but an array R of row vectors, 
+        it's more practical to use dot(R,A.T) instead of dot(A,R) b/c of numpy
+        array broadcasting. See below.
             
             A^T == A.T = [[--- a0 ---], 
                           [--- a1 ---], 

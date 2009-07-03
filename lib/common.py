@@ -1,12 +1,16 @@
 # common.py
 #
-# File operations and common system utils.
+# File operations, common system utils and other handy tools that could as well
+# live in the std lib.
+#
+# Steve Schmerler 2009 <mefx@gmx.net>
 #
 
 import types
 import os
 import subprocess
 import re
+import shutil
 
 def assert_cond(cond, string=None):
     """Use this instead of `assert cond, string`. It's been said on
@@ -72,9 +76,9 @@ def fileo(val, mode='r', force=False):
 
 def file_read(fn):
     """Open file with name `fn`, return open(fn).read()."""
-    fh = open(fn, 'r')
-    txt = fh.read()
-    fh.close()
+    fd = open(fn, 'r')
+    txt = fd.read()
+    fd.close()
     return txt
 
 #-----------------------------------------------------------------------------
@@ -82,18 +86,18 @@ def file_read(fn):
 def file_write(fn, txt):
     """Write string `txt` to file with name `fn`. No check is made wether the
     file exists and/or is nonempty. Yah shalleth know whath thy is doingth.  
-    Intended as replacement for shell: $ echo $string > $file """
-    fh = open(fn, 'w')
-    print >>fh, txt 
-    fh.close()
+    shell$ echo $string > $file """
+    fd = open(fn, 'w')
+    print >>fd, txt 
+    fd.close()
 
 #-----------------------------------------------------------------------------
 
 def file_readlines(fn):
     """Open file with name `fn`, return open(fn).readlines()."""
-    fh = open(fn, 'r')
-    lst = fh.readlines()
-    fh.close()
+    fd = open(fn, 'r')
+    lst = fd.readlines()
+    fd.close()
     return lst
 
 #-----------------------------------------------------------------------------
@@ -132,19 +136,19 @@ def igrep(pat_or_rex, iterable, func='search'):
     c    7  8   9   4 5
     lol 2
     foo
-    >>> fh=open('test.txt')
-    >>> for m in igrep(r'(([ ]+[0-9]+){3}?)', fh, 'search'): print m.group(1).strip() 
+    >>> fd=open('test.txt')
+    >>> for m in igrep(r'(([ ]+[0-9]+){3}?)', fd, 'search'): print m.group(1).strip() 
     11  2   3
     4  5   667
     7  8   9
-    >>> fh.seek(0)
+    >>> fd.seek(0)
     # Put numbers directly into numpy array.
-    >>> ret=igrep(r'(([ ]+[0-9]+){3}?)', fh, 'search') 
+    >>> ret=igrep(r'(([ ]+[0-9]+){3}?)', fd, 'search') 
     >>> array([m.group(1).split() for m in ret], dtype=float)
     array([[  11.,    2.,    3.],
            [   4.,    5.,  667.],
            [   7.,    8.,    9.]])
-    >>> fh.close()
+    >>> fd.close()
     
     notes:
     ------
@@ -157,9 +161,9 @@ def igrep(pat_or_rex, iterable, func='search'):
     complicated situations. The advantage here is obviously that it's pure
     Python. We don't need any temp files as in
         os.system('grep ... > tmp')
-        fh=open('tmp')
-        print fh.read()
-        fh.close()
+        fd=open('tmp')
+        print fd.read()
+        fd.close()
     One possilbe other way w/o tempfiles would be to call grep(1) & friends thru
         p = subprocess.Popen('grep ...', stdout=PIPE) 
         print p.stdout.read()
@@ -185,15 +189,16 @@ def grep(*args):
     
 #-----------------------------------------------------------------------------
 
-def template_replace(dct, txt):
+def raw_template_replace(dct, txt, conv=False, warn_found=False):
     """Replace placeholders dct.keys() with string values dct.values() in a
     text string. 
     
     args:
     -----
-    dct : dictionary with *string* values, no type conversion to string is
-        done, you are forced to properly format the strings by yourself
+    dct : dictionary 
     txt : string
+    conv : bool, convert values to strings with str()
+    warn_found : bool, warning if a key is found multiple times in a file
     
     returns:
     --------
@@ -201,9 +206,9 @@ def template_replace(dct, txt):
 
     notes:
     ------
-    `txt` us usually a read text file (txt=fh.read()).  Although we use
+    `txt` us usually a read text file (txt=fd.read()).  Although we use
     txt.replace(), this method ~ 4 times faster then looping
-    over lines in fh. But: only as long as `txt` fits entirely into memory.
+    over lines in fd. But: only as long as `txt` fits entirely into memory.
     """
     # This is a pointer. Each txt.replace() returns a copy.
     new_txt = txt
@@ -212,30 +217,63 @@ def template_replace(dct, txt):
             if val is None:
                 print "template_replace: value for key '%s' is None, skipping" %key
                 continue
+            if conv:
+                val = str(val)
             if not isinstance(val, types.StringType):
                 raise StandardError("dict vals must be strings: key: '%s', val: " %key + \
                     str(type(val)))
-            cnt = txt.count(key)
-            if cnt > 1:
-                print("template_replace: warning: key '%s' found %i times"
-                %(key, cnt))
+            if warn_found:                    
+                cnt = txt.count(key)
+                if cnt > 1:
+                    print("template_replace: warning: key '%s' found %i times"
+                    %(key, cnt))
             new_txt = new_txt.replace(key, val)                                          
         else:
             print "template_replace: key not found: %s" %key
     return new_txt
 
 #-----------------------------------------------------------------------------
+
+def template_replace(dct, txt):
+    return raw_template_replace(dct, txt, conv=True, warn_found=True)
+
+#-----------------------------------------------------------------------------
+
+def file_template_replace(fn, dct, bak=''):
+    """
+    dct = {'xxx': 'foo', 'yyy': 'bar'}
+    fn = bla.txt
+    file_template_replace(fn, dct, '.bak')
+
+    shell$ sed -i.bak -r -e 's/xxx/foo/g -e 's/yyy/bar/g' bla.txt"""
+    txt = template_replace(dct, file_read(fn))
+    if bak != '':
+        shutil.copy(fn, fn + bak)                
+    file_write(fn, txt)
+
+#-----------------------------------------------------------------------------
+
+def print_dct(dct):
+    for key, val in dct.iteritems():
+        print "%s: %s" %(key, str(val))
+
+
+#-----------------------------------------------------------------------------
 # Child processes & shell calls
 #-----------------------------------------------------------------------------
 
-def system(call):
-    """
-    Primitive os.system() replacement. stdout and stderr go to the shell. Only
-    diff: Waits until child process is complete. 
-
+def system(call, wait=True):
+    """Fire up shell commamd line `call`. 
+    
     args:
-    ----
-    call : string (example: 'ls -l')
+    -----
+    call: str (example: 'ls -l')
+    wait : bool
+        False: Don't wait for `call` to terminate.
+            This can be used to spawn multiple processes concurrently. This is
+            identical to calling os.system(call) (as opposed to ret=os.system(call).
+        True: This is identical to calling ret=os.system(call).
     """
     p = subprocess.Popen(call, shell=True)
-    os.waitpid(p.pid, 0)
+    if wait:
+        os.waitpid(p.pid, 0)
