@@ -4,7 +4,10 @@ import tempfile
 
 class ClassBase(object):
     """Abstract base class defining some general routines for convenient access
-    to public data members."""
+    to public data members. Most member functions implement an interface to
+    extract the names and values of all data members (NOT methods) in certain
+    formats in an automatic fashion. This is planned to be used to
+    automatically fill a database with informations about jobs."""
     
     def __init__(self):
         
@@ -125,8 +128,8 @@ class ClassBase(object):
     
     def merge(self, obj):
         """Merge namespace of an arbitrary classinstance (obj.__dict__) into
-        our namespace."""
-
+        our namespace (self.__dict__)."""
+        self.__dict__.update(obj.__dict__)
 
 #-----------------------------------------------------------------------------
 
@@ -214,7 +217,7 @@ class MachineDeimos(MachineBase):
     def __init__(self, **kwargs):
         MachineBase.__init__(self,
             machine_name = 'deimos',
-            ncpu_max = 2000, # FIXME check this when up again
+            ncpu_max = 256,
             mpirun = 'mpirun.lsf',
             jobfile_name = 'job.lsf',
             outdir='/fastfs/schmerle',
@@ -246,10 +249,15 @@ class MachineFG(MachineBase):
             queue_com = 'qsub',
             **kwargs)
         
+        # Attempt to automatically select nodes on the FG cluster. This will
+        # probably never work :) Either we know the load of the cluster BEFORE
+        # and request only free nodes (well .. that's the job of the batch
+        # system) OR we request ALL nodes and leave the selection to the batch
+        # system.
         nwood = self.nodes.count(':wood')
         nquad = self.nodes.count(':quad')
         nfquad = self.nodes.count(':fquad')
-
+        
         if self.nhosts is None:
             nh_quad = 1
             while nh*8 < self.ncpu and nquad > 0:
@@ -264,6 +272,19 @@ class MachineFG(MachineBase):
 #-----------------------------------------------------------------------------
 
 class Calc(ClassBase):
+    """Class that holds all informations about a job. 
+    
+    TODO:
+    The most elegant way to write job- and input files is to define (as we do
+    already) template files. But to get fully automatic, we should set up a
+    naming convention for the placeholders, e.g. XXXNAME, and `name` must be
+    the name of a data member of this class. Then, go thru an arbitrary
+    template file and replace all placeholders matching a data member name.
+    This avoids writing a "replacement rules dictionary" in each input file
+    generation script. What's left to do is to write loops over the parameters
+    to vary and create a list of instances of this class, each one representing
+    a caclulation with all information.
+    """
     def __init__(self,
                  ncpu = 1,
                  npool = 1,
@@ -294,10 +315,11 @@ class Calc(ClassBase):
         else:
             self.prefix = rand_suffix
         
+        # Merge information about the job: calculation-specific (this class) +
+        # machine-specific.
         if self.machine is not None:
-            # XXX: HACK: add self.machine.__dict__ 
-            self.__dict__.update(self.machine.__dict__)
             self.machine.init_queue(self.ncpu)
+            self.merge(self.machine)
         
         self._skip += [r'.*_templ_txt$', r'^machine$']
         self.set_internal_keys()

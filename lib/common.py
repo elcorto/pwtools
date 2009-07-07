@@ -88,7 +88,7 @@ def file_write(fn, txt):
     file exists and/or is nonempty. Yah shalleth know whath thy is doingth.  
     shell$ echo $string > $file """
     fd = open(fn, 'w')
-    print >>fd, txt 
+    fd.write(txt)
     fd.close()
 
 #-----------------------------------------------------------------------------
@@ -105,6 +105,11 @@ def file_readlines(fn):
 def fullpath(s):
     """Complete path: absolute path + $HOME expansion."""
     return os.path.abspath(os.path.expanduser(s))
+
+#-----------------------------------------------------------------------------
+
+def fullpathjoin(*args):
+    return fullpath(os.path.join(*args))
 
 #-----------------------------------------------------------------------------
 
@@ -277,3 +282,10 @@ def system(call, wait=True):
     p = subprocess.Popen(call, shell=True)
     if wait:
         os.waitpid(p.pid, 0)
+
+#-----------------------------------------------------------------------------
+# aliases
+#-----------------------------------------------------------------------------
+
+fpj = fullpathjoin
+
