@@ -1,4 +1,6 @@
 import types
+import gzip
+from common import fullpath
 
 def open_and_close(func):
     """Decorator for all parsing functions that originally got a file name and
@@ -31,13 +33,22 @@ def open_and_close(func):
     >>>
     >>> print file_txt_content('my_file.txt')
     """
-    def wrapper(*args):
+    def wrapper(*args, **kwargs):
         largs = list(args)
         if isinstance(largs[0], types.FileType):
-            return func(*args)
+            return func(*args, **kwargs)
         elif isinstance(largs[0], types.StringType):
-            largs[0] = open(largs[0], 'r')
-            ret = func(*tuple(largs))
+            fn = largs[0]
+            if fn.endswith('.gz'):
+                _open = gzip.open
+            else:
+                _open = open
+            fd = _open(fn, 'r')
+            # Files opened with gzip don't have a 'name' attr.
+            if not hasattr(fd, 'name'):
+                fd.name = fullpath(fn)
+            largs[0] = fd
+            ret = func(*tuple(largs), **kwargs)
             largs[0].close()
             return ret         
         else:

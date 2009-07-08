@@ -147,6 +147,7 @@ import constants
 import _flib
 from common import assert_cond as _assert
 from common import fileo, system, fullpath
+from decorators import open_and_close
 
 # save stdlib's repr
 _repr = repr 
@@ -203,10 +204,10 @@ INPUT_PW_CARDS = [\
 ##            np.savetxt(fileo, slicetake())
 
 # quick'n'dirty for 3d arrays
-def writetxt(fl, arr, axis=-1):
+def writetxt(fn, arr, axis=-1):
     maxdim=3
     _assert(arr.ndim <= maxdim, 'no rank > 3 arrays supported')
-    fl = fileo(fl, 'w')
+    fd = open(fn, 'w')
     # 1d and 2d case
     if arr.ndim < maxdim:
         np.savetxt(fl, arr)
@@ -216,11 +217,11 @@ def writetxt(fl, arr, axis=-1):
         for ind in range(arr.shape[axis]):
             sl[axis] = ind
             np.savetxt(fl, arr[sl])
-    fl.close()        
+    fd.close()        
     
 #-----------------------------------------------------------------------------
 
-def writearr(fl, arr, order='C', endian='<', comment=None, info=None,
+def writearr(fn, arr, order='C', endian='<', comment=None, info=None,
              type='bin', axis=-1):
     """Write `arr` to binary (*.dat) or text file (*.txt) `fl` and also save
     the shape, endian etc.  in a cfg-style file "`fl`.info".
@@ -228,7 +229,8 @@ def writearr(fl, arr, order='C', endian='<', comment=None, info=None,
     args:
     -----
     arr : numpy ndarrray
-    fl : str or open fileobject
+    fl : str,
+        Filename
     comment : string
         a comment which will be written to the .info file (must start with '#')
     info : dict of dicts 
@@ -255,22 +257,18 @@ def writearr(fl, arr, order='C', endian='<', comment=None, info=None,
         axis : axis kwarg for writetxt()
     """
     _assert(type in ['bin', 'txt'], "`type` must be 'bin' or 'txt'")
-    if isinstance(fl, types.StringType):
-        fname = fl
-    else:
-        fname = fl.name
-    verbose("[writearr] writing: %s" %fname)
+    verbose("[writearr] writing: %s" %fn)
     verbose("[writearr]     shape: %s" %repr(arr.shape))
     if type == 'bin':
         # here, perm could be anything, will be changed in npfile() anyway
         perm = 'wb'
-        fl = fileo(fl, mode=perm, force=True)
-        npf = npfile(fl, order=order, endian=endian, permission=perm)
+        fd = fileo(fn, mode=perm, force=True)
+        npf = npfile(fd, order=order, endian=endian, permission=perm)
         npf.write_array(arr)
-        # closes also `fl`
+        # closes also `fd`
         npf.close()
     else:
-        writetxt(fl, arr, axis=axis)
+        writetxt(fn, arr, axis=axis)
     
     # --- .info file ------------------
     c = PydosConfigParser()
@@ -283,7 +281,7 @@ def writearr(fl, arr, order='C', endian='<', comment=None, info=None,
         c.set(sec, 'dtype', str(arr.dtype))
     if info is not None:
         c = _add_info(c, info) 
-    f = open(fname + '.info', 'w')
+    f = open(fn + '.info', 'w')
     if comment is not None:
         print >>f, comment
     c.write(f)
@@ -303,7 +301,7 @@ def _add_info(config, info):
 
 def readbin(fn):
     """Read binary file `fn` array according the information in
-    in a txt file "`fn`.shape".
+    in a txt file "`fn`.info".
 
     args
     -----
@@ -657,12 +655,13 @@ def scan_until_pat2(fh, rex, err=True, retmatch=False):
 # infile) each time b/c the cards can be in arbitrary order in the input file.
 # Therefore, we can't take an open fileobject as argumrent, but use the
 # filename.
-def atomic_species(fn):
+@open_and_close
+def atomic_species(fh):
     """Parses ATOMIC_SPECIES card in a pw.x input file.
 
     args:
     -----
-    fn : filename of pw.x input file
+    fn : fileobj of pw.x input file
 
     returns:
     --------
@@ -687,8 +686,7 @@ def atomic_species(fn):
         N 14.0067 N.LDA.fhi.UPF
         [...]
     """
-    verbose('[atomic_species] reading ATOMIC_SPECIES from %s' %fn)
-    fh = open(fn)
+    verbose('[atomic_species] reading ATOMIC_SPECIES from %s' %fh.name)
     # rex: for the pseudo name, we include possible digits 0-9 
     rex = re.compile(r'\s*([a-zA-Z]+)\s+([0-9eEdD+-\.]+)\s+([0-9a-zA-Z\.]*)')
     fh, flag = scan_until_pat(fh, pat='atomic_species')
@@ -707,12 +705,12 @@ def atomic_species(fn):
     atoms = ar[:,0].tolist()
     masses = np.asarray(ar[:,1], dtype=float)
     pseudos = ar[:,2].tolist()
-    fh.close()
     return {'atoms': atoms, 'masses': masses, 'pseudos': pseudos}
 
 #-----------------------------------------------------------------------------
 
-def cell_parameters(fn):
+@open_and_close
+def cell_parameters(fh):
     """Parses CELL_PARAMETERS card in a pw.x input file. Extract primitive
     lattice vectors.
 
@@ -743,8 +741,7 @@ def cell_parameters(fn):
         
         In a.u. = Rydberg atomic units (see constants.py).
     """
-    verbose('[cell_parameters] reading CELL_PARAMETERS from %s' %fn)
-    fh = open(fn)
+    verbose('[cell_parameters] reading CELL_PARAMETERS from %s' %fh.name)
     rex = re.compile(r'\s*((\s*-*[0-9eEdD+-\.]+){3})\s*')
     fh, flag = scan_until_pat(fh, pat="cell_parameters")
     line = next_line(fh)
@@ -757,7 +754,6 @@ def cell_parameters(fn):
         lst.append(match.group(1).strip().split())
         line = next_line(fh)
         match = rex.match(line)
-    fh.close()
     cp = np.array(lst, dtype=float)
     _assert(cp.shape[0] == cp.shape[1], "dimentions of `cp` don't match")
     return cp
@@ -765,12 +761,13 @@ def cell_parameters(fn):
 
 #-----------------------------------------------------------------------------
 
-def atomic_positions(fn, atspec=None):
+@open_and_close
+def atomic_positions(fh, atspec=None):
     """Parse ATOMIC_POSITIONS card in pw.x input file.
     
     args:
     -----
-    fn : filename of pw.x input file
+    fh : fileobj of pw.x input file
     atspec : optional, dict returned by atomic_species()
     
     returns:
@@ -799,11 +796,10 @@ def atomic_positions(fn, atspec=None):
 
         <unit> is a string: 'alat', 'crystal' etc.
     """
-    verbose("[atomic_positions] reading ATOMIC_POSITIONS from %s" %fn)
+    verbose("[atomic_positions] reading ATOMIC_POSITIONS from %s" %fh.name)
     if atspec is None:
         atspec = atomic_species(fn)
     rex = re.compile(r'\s*([a-zA-Z]+)((\s+-*[0-9eEdD+-\.]+){3})\s*')
-    fh = open(fn)
     fh, flag, line = scan_until_pat(fh, pat="atomic_positions", retline=True)
     line = line.strip().lower().split()
     if len(line) > 1:
@@ -830,7 +826,6 @@ def atomic_positions(fn, atspec=None):
     masses = atspec['masses']
     atoms = atspec['atoms']
     massvec = np.array([masses[atoms.index(s)] for s in symbols], dtype=float)
-    fh.close()
     return {'R0': R0, 'natoms': natoms, 'massvec': massvec, 'symbols':
         symbols, 'unit': unit}
 
@@ -949,13 +944,14 @@ def atomic_positions_out2(fh, natoms, work):
 
 #-----------------------------------------------------------------------------
 
-def conf_namelists(f, cardnames=INPUT_PW_CARDS):
+@open_and_close
+def conf_namelists(fh, cardnames=INPUT_PW_CARDS):
     """
     Parse "namelist" part of a pw.x input file.
 
     args:
     -----
-    f : open fileobject or filename, if fileobject, it will not be closed
+    fh : open fileobject or filename, if fileobject, it will not be closed
 
     notes:
     ------
@@ -1000,7 +996,6 @@ def conf_namelists(f, cardnames=INPUT_PW_CARDS):
         intkey    = int(d['namelist1']['intkey'])
         boolkey   = tobool(d['namelist1']['boolkey'])
     """
-    fh = fileo(f)
     verbose("[conf_namelists] parsing %s" %fh.name)
     dct = {}   
     for line in fh:
@@ -1033,30 +1028,17 @@ def conf_namelists(f, cardnames=INPUT_PW_CARDS):
 
 #-----------------------------------------------------------------------------
 
-# XXX finish me ....
-class Array(object):
-    """Class to represent arrays T, P, R, ...
-    """
-    def __init__(self, shape=None, timeaxis=0, sliceaxis=None):
-        self.array = np.empty(shape, dtype=float)
-        self.timeaxis = timeaxis
-        if sliceaxis is None:
-            self.sliceaxis = self.timeaxis
-        else:
-            self.sliceaxis = sliceaxis
-
-#-----------------------------------------------------------------------------
-
-def parse_pwout(fn_out, pwin_nl=None, atspec=None, atpos_in=None):
+@open_and_close
+def parse_pwout(fh, pwin_nl=None, atspec=None, atpos_in=None):
     """
     args:
     -----
-    fn_out : filename of the pw.x output file
+    fn : fileobj of the pw.x output file
     pwin_nl : dict returned by conf_namelists()
     atspec : dict returned by atomic_species()
     atpos_in : dict returned by atomic_positions()
     """
-    verbose("[parse_pwout] parsing %s" %(fn_out))
+    verbose("[parse_pwout] parsing %s" %(fh.name))
     nstep = int(pwin_nl['control']['nstep'])
     # Start temperature of MD run. Can also grep it from .out file, pattern for
     # re.search() (untested):
@@ -1089,7 +1071,6 @@ def parse_pwout(fn_out, pwin_nl=None, atspec=None, atpos_in=None):
     # pressure array
     P = np.empty((nstep+1,), dtype=float)
 
-    fh = fileo(fn_out)
     # R[:,0,:] = Rold, fill R[:,1:,:]
     j=1
     scan_atpos_rex = re.compile(r'^ATOMIC_POSITIONS\s*')
@@ -1166,12 +1147,11 @@ def parse_pwout(fn_out, pwin_nl=None, atspec=None, atpos_in=None):
         j += 1
     endj = j-1
     if endj != nstep:
-        verbose("WARNING: file '%s' seems to short" %fn_out)
+        verbose("WARNING: file '%s' seems to short" %fh.name)
         verbose("    nstep = %s" %nstep)
         verbose("    iters in file = %s" %endj)
         verbose("    rest of output arrays (R, T, P) and all arrays depending "
               "on them will be zero or numpy.empty()")
-    fh.close()     
 ##    DBG.pt('parse-output')
     return {'R': R, 'T': T, 'P': P, 'skipend': nstep-endj}
 
@@ -1180,7 +1160,7 @@ def parse_pwout_ia(pwifn, pwofn):
     pwin_nl = conf_namelists(pwifn)
     atspec = atomic_species(pwifn)
     atpos_in = atomic_positions(pwifn, atspec)
-    pwout = parse_pwout(fn_out=pwofn,
+    pwout = parse_pwout(pwofn,
                         pwin_nl=pwin_nl, 
                         atspec=atspec,
                         atpos_in=atpos_in)
@@ -2310,33 +2290,6 @@ def atpos_str(symbols, coords, fmt="%.10f"):
     return txt        
 
 #-----------------------------------------------------------------------------
-
-def _test_atpos(R, pw_fn='SiAlON.example_md.out'):
-    """
-    Use this script and perl, parse THE SAME `pw_fn`, write the result to
-    files, load them in IPython and compare them.
-    
-    args:
-    -----
-    R : 3D array of read atomic coords,  shape (natoms, nstep, 3)
-    """
-    DBG.t('_test_atpos')
-    os.unlink('out.python')
-    os.unlink('out.perl')
-    verbose("perl extract + write ...")
-    system("perl -ne 'print \"$2\n\" if /(Al|O|Si|N)((\s+-*[0-9]+\.*[0-9]*){3})/'"
-           " < %s > out.perl" %pw_fn)
-    verbose("python write ...")
-    fhout = open('out.python', 'a')
-    # loop over nstep
-    for j in xrange(R.shape[1]):
-        np.savetxt(fhout, R[:,j,:])
-    verbose((R == 0.0).any())
-    verbose(R.shape)
-    fhout.close()
-    DBG.pt('_test_atpos')
-
-#-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
 
 def main(opts):
@@ -2411,7 +2364,7 @@ def main(opts):
         # plan to use a class Parser one day which will have all these
         # individual functions as methods. Individual output args will be
         # shared via data members. Stay tuned.
-        pwout = parse_pwout(fn_out=opts.pwofn,
+        pwout = parse_pwout(opts.pwofn,
                             pwin_nl=pwin_nl, 
                             atspec=atspec,
                             atpos_in=atpos_in)
