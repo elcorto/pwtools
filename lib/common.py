@@ -251,8 +251,9 @@ def raw_template_replace(txt, dct, conv=False, warn_mult_found=True,
     over lines in fd. But: only as long as `txt` fits entirely into memory.
     """
     if isinstance(txt, types.DictType):
-        raise ValueError("1st arg is a dict. You probably use the old syntax.
-        The new syntax in func(txt, dct) instead of func(dct, txt)")
+        raise ValueError("1st arg is a dict. You probably use the old syntax. "
+                         "The new syntax in func(txt, dct) instead of "
+                         "func(dct, txt)")
     # This is a pointer. Each txt.replace() returns a copy.
     new_txt = txt
     for key, val in dct.iteritems():
@@ -263,8 +264,8 @@ def raw_template_replace(txt, dct, conv=False, warn_mult_found=True,
             if conv:
                 val = str(val)
             if not isinstance(val, types.StringType):
-                raise StandardError("dict vals must be strings: key: '%s', val: " %key + \
-                    str(type(val)))
+                raise StandardError("dict vals must be strings: "
+                                    "key: '%s', val: " %key + str(type(val)))
             if warn_mult_found:                    
                 cnt = txt.count(key)
                 if cnt > 1:
@@ -284,8 +285,9 @@ def template_replace(txt, dct, warn=True):
     """Replce placeholders in `txt`. Print only successful replaces and
     warnings (unless warn = False, then don't print warnings)."""
     if isinstance(txt, types.DictType):
-        raise ValueError("1st arg is a dict. You probably use the old syntax.
-        The new syntax in func(txt, dct) instead of func(dct, txt)")
+        raise ValueError("1st arg is a dict. You probably use the old syntax. "
+                         "The new syntax in func(txt, dct) instead of "
+                         "func(dct, txt)")
     return raw_template_replace(txt, dct, conv=True, warn_mult_found=warn,
         warn_not_found=warn, disp=True)
 
@@ -313,7 +315,7 @@ def file_template_replace(fn, dct, bak='', **kwargs):
     
     This the same as:
     shell$ sed -i.bak -r -e 's/xxx/foo/g -e 's/yyy/bar/g' bla.txt"""
-    txt = template_replace(dct, file_read(fn), **kwargs)
+    txt = template_replace(file_read(fn), dct, **kwargs)
     if bak != '':
         shutil.copy(fn, fn + bak)                
     file_write(fn, txt)
