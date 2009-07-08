@@ -132,6 +132,42 @@ def igrep(pat_or_rex, iterable, func='search'):
     --------
     generator object which yields Match objects
 
+    notes:
+    ------
+    This function could also live in Python's itertools module.
+
+    Similar to the shell grep(1) utility, but there is a subtle but important
+    difference:
+    grep(1) returns the whole line, not the match itself. If you want
+    that, use "^.*<patter>.*$" to explicitly match the whole line. The group()
+    method of Match Objects returns ONLY the match itself!
+        
+        $ egrep <pattern> file.txt
+        >>> for m in igrep(^.*<pattern>.*$, open('file.txt')): print m.group()
+
+    One can also directly access match groups. 
+        
+        $ egrep -o <pattern> file.txt
+        >>> for m in igrep(<pattern>, open('file.txt')): print m.group()
+    
+    or more explicitly        
+        
+        >>> for m in igrep((<pattern>), open('file.txt')): print m.group(1)
+                           ^         ^                                   ^ 
+    One possilbe other way would be to call grep(1) & friends thru
+        print subprocess.Popen("egrep -o '(\s+[0-9]+){3}?' test.txt", shell=True,
+                                stdout=PIPE).communicate()[0] 
+    But that's not really pythonic, eh? :)
+    
+    speed:
+    to get as fast as grep(1), use the idiom
+        for m in igrep(<pattern>, open(<file>), 'match'):
+            [do stuff with m]
+    * 'match' is faster than 'search'
+    * iterating over lines = file_readlines(<file>) instead of
+      open(<file>) can speed things up if files are small, there is no benefit
+      for big files
+
     example:
     --------
     # If a line contains at least three numbers, grep the first three.
@@ -141,38 +177,28 @@ def igrep(pat_or_rex, iterable, func='search'):
     c    7  8   9   4 5
     lol 2
     foo
+    >>> !egrep -o '(\s+[0-9]+){3}?' test.txt
+    11  2   3
+       4  5   667
+       7  8   9
     >>> fd=open('test.txt')
-    >>> for m in igrep(r'(([ ]+[0-9]+){3}?)', fd, 'search'): print m.group(1).strip() 
+    >>> for m in igrep(r'(\s+[0-9]+){3}?', fd, 'search'): print m.group().strip() 
+    11  2   3
+    4  5   667
+    7  8   9
+    >>> fd.seek(0)
+    >>> for m in igrep(r'((\s+[0-9]+){3}?)', fd, 'search'): print m.group(1).strip() 
     11  2   3
     4  5   667
     7  8   9
     >>> fd.seek(0)
     # Put numbers directly into numpy array.
-    >>> ret=igrep(r'(([ ]+[0-9]+){3}?)', fd, 'search') 
-    >>> array([m.group(1).split() for m in ret], dtype=float)
+    >>> ret=igrep(r'(\s+[0-9]+){3}?', fd, 'search') 
+    >>> array([m.group().split() for m in ret], dtype=float)
     array([[  11.,    2.,    3.],
            [   4.,    5.,  667.],
            [   7.,    8.,    9.]])
     >>> fd.close()
-    
-    notes:
-    ------
-    This function could also live in Python's itertools module.
-
-    Similar to the shell grep(1) utility, one can directly access match
-    groups. In the previous example, this is the same as 
-        $ egrep -o '([ ]+[0-9]+){3}?' test.txt
-    or `grep ...  | sed ...` or `grep ... | awk` or `awk ...` in more
-    complicated situations. The advantage here is obviously that it's pure
-    Python. We don't need any temp files as in
-        os.system('grep ... > tmp')
-        fd=open('tmp')
-        print fd.read()
-        fd.close()
-    One possilbe other way w/o tempfiles would be to call grep(1) & friends thru
-        p = subprocess.Popen('grep ...', stdout=PIPE) 
-        print p.stdout.read()
-    But that's not really pythonic, eh? :)
     """
     if isinstance(pat_or_rex, types.StringType):
         rex = re.compile(pat_or_rex)
@@ -188,22 +214,31 @@ def igrep(pat_or_rex, iterable, func='search'):
 
 #-----------------------------------------------------------------------------
 
-def grep(*args):
-    """Like igrep, but returns a list of Match objects."""
-    return [m for m in igrep(*args)]
-    
+def mgrep(*args,  **kwargs):
+    """Like igrep, but returns a list of Match Objects."""
+    return [m for m in igrep(*args, **kwargs)]
+
 #-----------------------------------------------------------------------------
 
-def raw_template_replace(dct, txt, conv=False, warn_found=False):
+def tgrep(*args,  **kwargs):
+    """Like igrep, but returns a list of text strings, each is a match."""
+    return [m.group() for m in igrep(*args, **kwargs)]
+
+#-----------------------------------------------------------------------------
+
+def raw_template_replace(txt, dct, conv=False, warn_mult_found=True,
+                         warn_not_found=True, disp=True):
     """Replace placeholders dct.keys() with string values dct.values() in a
     text string. 
     
     args:
     -----
-    dct : dictionary 
     txt : string
+    dct : dictionary 
     conv : bool, convert values to strings with str()
-    warn_found : bool, warning if a key is found multiple times in a file
+    warn_mult_found : bool, warning if a key is found multiple times in a file
+    warn_not_found : bool, warning if a key is NOT found in a file
+    disp : tell which keys hav been replaced
     
     returns:
     --------
@@ -215,6 +250,9 @@ def raw_template_replace(dct, txt, conv=False, warn_found=False):
     txt.replace(), this method ~ 4 times faster then looping
     over lines in fd. But: only as long as `txt` fits entirely into memory.
     """
+    if isinstance(txt, types.DictType):
+        raise ValueError("1st arg is a dict. You probably use the old syntax.
+        The new syntax in func(txt, dct) instead of func(dct, txt)")
     # This is a pointer. Each txt.replace() returns a copy.
     new_txt = txt
     for key, val in dct.iteritems():
@@ -227,31 +265,55 @@ def raw_template_replace(dct, txt, conv=False, warn_found=False):
             if not isinstance(val, types.StringType):
                 raise StandardError("dict vals must be strings: key: '%s', val: " %key + \
                     str(type(val)))
-            if warn_found:                    
+            if warn_mult_found:                    
                 cnt = txt.count(key)
                 if cnt > 1:
                     print("template_replace: warning: key '%s' found %i times"
                     %(key, cnt))
-            new_txt = new_txt.replace(key, val)                                          
+            new_txt = new_txt.replace(key, val)
+            if disp:
+                print("template_replace: %s -> %s" %(key, val))
         else:
-            print "template_replace: key not found: %s" %key
+            if warn_not_found:
+                print "template_replace: key not found: %s" %key
     return new_txt
 
 #-----------------------------------------------------------------------------
 
-def template_replace(dct, txt):
-    return raw_template_replace(dct, txt, conv=True, warn_found=True)
+def template_replace(txt, dct, warn=True):
+    """Replce placeholders in `txt`. Print only successful replaces and
+    warnings (unless warn = False, then don't print warnings)."""
+    if isinstance(txt, types.DictType):
+        raise ValueError("1st arg is a dict. You probably use the old syntax.
+        The new syntax in func(txt, dct) instead of func(dct, txt)")
+    return raw_template_replace(txt, dct, conv=True, warn_mult_found=warn,
+        warn_not_found=warn, disp=True)
 
 #-----------------------------------------------------------------------------
 
-def file_template_replace(fn, dct, bak=''):
-    """
-    dct = {'xxx': 'foo', 'yyy': 'bar'}
-    fn = bla.txt
-    file_template_replace(fn, dct, '.bak')
+def file_template_replace(fn, dct, bak='', **kwargs):
+    """Replace placeholders in file `fn`.
 
+    args:
+    -----
+    fn : str
+        Filename
+    dct : dict
+        Replacement rules
+    bak : str
+        '' : no backup is done
+        '<str>' : `fn` is backed up to "fn<str>"
+    kwargs : kwargs to template_replace()
+
+    example:
+    --------
+    dct = {'xxx': 'foo', 'yyy': 'bar'}
+    fn = 'bla.txt'
+    file_template_replace(fn, dct, '.bak')
+    
+    This the same as:
     shell$ sed -i.bak -r -e 's/xxx/foo/g -e 's/yyy/bar/g' bla.txt"""
-    txt = template_replace(dct, file_read(fn))
+    txt = template_replace(dct, file_read(fn), **kwargs)
     if bak != '':
         shutil.copy(fn, fn + bak)                
     file_write(fn, txt)
@@ -288,4 +350,5 @@ def system(call, wait=True):
 #-----------------------------------------------------------------------------
 
 fpj = fullpathjoin
-
+# backw. compat
+grep = mgrep 
