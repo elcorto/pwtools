@@ -30,14 +30,16 @@ def _swap(a, i, j):
     """Swap a[i] <-> a[j]. Return i-j-swapped copy of `a`.
     
     args:
-        a -- 1D numpy array
+    -----
+    a : 1D numpy array
     
     notes:
-        `a` is global in permute() and is the current permutation. Must use
-        copy() b/c in-place operation on `a` would reflect to *all* other `a`
-        arrays which are already in `lst`. Think of `a` as a pointer like in C.
-        Stuff like `for i in range(..): lst.append(a)` would result in a "list
-        of pointers" which all point to the same array.
+    ------
+    `a` is global in permute() and is the current permutation. Must use copy()
+    b/c in-place operation on `a` would reflect to *all* other `a` arrays which
+    are already in `lst`. Think of `a` as a pointer like in C. Stuff like `for
+    i in range(..): lst.append(a)` would result in a "list of pointers" which
+    all point to the same array.
     """        
     aa = a.copy()
     tmp = aa[i]
@@ -51,16 +53,19 @@ def permute(a, id=True):
     """Store all N! permutations of `a` in a list.
     
     args:
-        a -- 1D numpy array, list, ...
-        id -- bool: if False, store all perms but not the identity (i.e. a
-              itself), so len(lst) = N!-1
+    -----
+    a : 1D numpy array, list, ...
+    id : bool 
+        False : store all perms but not the identity (i.e. a
+            itself), so len(lst) = N!-1
     notes:
-        We use the Countdown QuickPerm Algorithm [1]. Works like Heap's
-        Algorithm [2,3] so it's a nonrecursive version of it. Uses N!-1 swaps.
-     
-        [1] http://www.geocities.com/permute_it/ 
-        [2] www.cs.princeton.edu/~rs/talks/perms.pdf, page 12
-        [3] http://www.cut-the-knot.org/do_you_know/AllPerm.shtml
+    ------
+    We use the Countdown QuickPerm Algorithm [1]. Works like Heap's Algorithm
+    [2,3] so it's a nonrecursive version of it. Uses N!-1 swaps.
+ 
+    [1] http://www.geocities.com/permute_it/ 
+    [2] www.cs.princeton.edu/~rs/talks/perms.pdf, page 12
+    [3] http://www.cut-the-knot.org/do_you_know/AllPerm.shtml
     """
     a = np.asarray(a)
     if id:
@@ -85,6 +90,104 @@ def permute(a, id=True):
             i += 1
     return lst
 
+
+#-----------------------------------------------------------------------------
+
+def nested_loops(lists, ret_all=False):
+    """Nonrecursive version of nested loops of arbitrary depth. Pure Python
+    version (no numpy).
+    
+    args:
+    -----
+    lists : list of lists 
+        The objects to permute. len(lists) is == the depth (nesting levels) of
+        the equivalent nested loops. Individual lists may be of different
+        length and type (e.g. [['a', 'b'], [Foo(), Bar(), Baz()],
+        [1,2,3,4,5,6,7]]).
+    ret_all : bool
+        True: return cur, cur_idxs
+        False: return cur
+    
+    returns:
+    --------
+    cur : list of lists with permuted objects
+    cur_idxs : list of lists with indices of the permutation
+
+    example:
+    --------
+    >>> a=[1,2]; b=[3,4]; c=[5,6];
+    >>> cur=[]
+    >>> for aa in a:
+    ....:   for bb in b:
+    ....:       for cc in c:
+    ....:           cur.append([aa,bb,cc])
+    ....:             
+    >>> cur
+    [[1, 3, 5],
+     [1, 3, 6],
+     [1, 4, 5],
+     [1, 4, 6],
+     [2, 3, 5],
+     [2, 3, 6],
+     [2, 4, 5],
+     [2, 4, 6]]
+    >>> nested_loops([a,b,c], ret_all=True)
+    ([[1, 3, 5],
+      [1, 3, 6],
+      [1, 4, 5],
+      [1, 4, 6],
+      [2, 3, 5],
+      [2, 3, 6],
+      [2, 4, 5],
+      [2, 4, 6]],
+     [[0, 0, 0],
+      [0, 0, 1],
+      [0, 1, 0],
+      [0, 1, 1],
+      [1, 0, 0],
+      [1, 0, 1],
+      [1, 1, 0],
+      [1, 1, 1]])
+    >>> nested_loops([[1,2], ['a','b','c'], [sin, cos]])
+    [[1, 'a', <ufunc 'sin'>],
+     [1, 'a', <ufunc 'cos'>],
+     [1, 'b', <ufunc 'sin'>],
+     [1, 'b', <ufunc 'cos'>],
+     [1, 'c', <ufunc 'sin'>],
+     [1, 'c', <ufunc 'cos'>],
+     [2, 'a', <ufunc 'sin'>],
+     [2, 'a', <ufunc 'cos'>],
+     [2, 'b', <ufunc 'sin'>],
+     [2, 'b', <ufunc 'cos'>],
+     [2, 'c', <ufunc 'sin'>],
+     [2, 'c', <ufunc 'cos'>]]
+    """
+    lens = map(len, lists)
+    mx_idxs = [x - 1 for x in lens]
+    # nperms = numpy.prod(lens)
+    nperms = reduce(lambda x,y: x*y, lens)
+    nlevels = len(lists)
+    idxs = [0]*nlevels
+    cur_idxs = []
+    cur = []
+    # e.g. [2,1,0]
+    rev_rlevels = range(nlevels)[::-1]
+    for i in range(nperms):         
+        for pos in rev_rlevels:
+            if idxs[pos] > mx_idxs[pos]:
+                idxs[pos] = 0
+                # pos - 1 never gets < 0 before all possible `nlevels`
+                # permutations are generated.
+                idxs[pos-1] += 1
+        # [:] to append a copy                
+        cur_idxs.append(idxs[:])
+        perm_vals = [lists[j][k] for j,k in enumerate(idxs)]
+        cur.append(perm_vals)
+        idxs[-1] += 1
+    if ret_all:
+        return cur, cur_idxs
+    else:
+        return cur
 
 #-----------------------------------------------------------------------------
 
@@ -119,44 +222,6 @@ def kron(a, b):
         z = np.zeros(len(tmp), dtype=int)
         z[tmp==0] = 1
     return z
-
-#-----------------------------------------------------------------------------
-
-##def nest(lst, limit, i, cnt):
-##    
-##    cnt += 1
-##    if cnt > 27:
-##        return
-##    
-##
-##    if lst == limit:
-##        return
-##    
-##    if i > len(lst)-1:
-##        i=0 
-##    
-##    if lst[i] == limit[i]:
-##        lst[i] = 0
-##        if i < len(lst)-1:
-##            lst[i+1] += 1
-##        nest(lst, limit, i+1, cnt)
-##    else:
-##        lst[i] += 1
-##        nest(lst, limit, i, cnt)
-
-##def nest():
-##    for i in range(2):
-##        for j in range(2):
-##            for k in range(2):
-##                print i,j,k
-##
-##def nest2(lev):
-##    if lev <= 0:
-##        print lev
-##    else:
-##        for i in range(2):
-##            nest2(lev-1)
-##
 
 #-----------------------------------------------------------------------------
 

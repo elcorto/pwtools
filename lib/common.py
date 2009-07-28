@@ -113,7 +113,7 @@ def fullpathjoin(*args):
 
 #-----------------------------------------------------------------------------
 
-def igrep(pat_or_rex, iterable, func='search'):
+def igrep(pat_or_rex, iterable, func='match'):
     """
     Grep thru strings provided by iterable.next() calls. On each match, yield a
     Match object.
@@ -142,18 +142,18 @@ def igrep(pat_or_rex, iterable, func='search'):
     that, use "^.*<patter>.*$" to explicitly match the whole line. The group()
     method of Match Objects returns ONLY the match itself!
         
-        $ egrep <pattern> file.txt
-        >>> for m in igrep(^.*<pattern>.*$, open('file.txt')): print m.group()
+        $ egrep '<pattern>' file.txt
+        >>> for m in igrep('^.*<pattern>.*$', open('file.txt')): print m.group()
 
     One can also directly access match groups. 
         
-        $ egrep -o <pattern> file.txt
-        >>> for m in igrep(<pattern>, open('file.txt')): print m.group()
+        $ egrep -o '<pattern>' file.txt
+        >>> for m in igrep('<pattern>', open('file.txt')): print m.group()
     
     or more explicitly        
         
-        >>> for m in igrep((<pattern>), open('file.txt')): print m.group(1)
-                           ^         ^                                   ^ 
+        >>> for m in igrep('(<pattern>)', open('file.txt')): print m.group(1)
+                            ^         ^                                   ^ 
     One possilbe other way would be to call grep(1) & friends thru
         print subprocess.Popen("egrep -o '(\s+[0-9]+){3}?' test.txt", shell=True,
                                 stdout=PIPE).communicate()[0] 
@@ -235,9 +235,9 @@ def raw_template_replace(txt, dct, conv=False, warn_mult_found=True,
     -----
     txt : string
     dct : dictionary 
-    conv : bool, convert values to strings with str()
-    warn_mult_found : bool, warning if a key is found multiple times in a file
-    warn_not_found : bool, warning if a key is NOT found in a file
+    conv : bool, convert `dct` values to strings with str()
+    warn_mult_found : bool, warning if a key is found multiple times in `txt`
+    warn_not_found : bool, warning if a key is NOT found in `txt`
     disp : tell which keys hav been replaced
     
     returns:
@@ -282,7 +282,7 @@ def raw_template_replace(txt, dct, conv=False, warn_mult_found=True,
 #-----------------------------------------------------------------------------
 
 def template_replace(txt, dct, warn=True):
-    """Replce placeholders in `txt`. Print only successful replaces and
+    """Replace placeholders in `txt`. Print only successful replaces and
     warnings (unless warn = False, then don't print warnings)."""
     if isinstance(txt, types.DictType):
         raise ValueError("1st arg is a dict. You probably use the old syntax. "
@@ -321,11 +321,48 @@ def file_template_replace(fn, dct, bak='', **kwargs):
     file_write(fn, txt)
 
 #-----------------------------------------------------------------------------
+# Dictionary tricks
+#-----------------------------------------------------------------------------
 
 def print_dct(dct):
     for key, val in dct.iteritems():
         print "%s: %s" %(key, str(val))
 
+#-----------------------------------------------------------------------------
+# Sequence tricks
+#-----------------------------------------------------------------------------
+
+def is_seq(seq):
+    """Test if `seq` is some kind of sequence."""
+    # Exclude cases which are iterable but that we still don't like. In fact,
+    # we wish to catch list, tuple, numpy array.
+    if isinstance(seq, types.StringType) or \
+       isinstance(seq, types.FileType):
+       return False
+    else:        
+        try:
+            x=iter(seq)
+            return True
+        except:
+            return False
+
+#-----------------------------------------------------------------------------
+
+def iflatten(seq):
+    """Flatten a sequence. After
+    matplotlib.cbook.flatten(). Returns an generator object."""
+    for item in seq:
+        if not is_seq(item):
+            yield item
+        else:
+            for subitem in flatten(item):
+                yield subitem
+
+#-----------------------------------------------------------------------------
+
+def flatten(seq):
+    """Same as iflatten(), but returns a list."""
+    return [x for x in iflatten(seq)]
 
 #-----------------------------------------------------------------------------
 # Child processes & shell calls

@@ -93,7 +93,7 @@ class ClassBase(object):
         If set (i.e. not None), self._keys is used to extract values out of
         self.__dict__ .
    
-        If at any point in time ypou want to "fix" the list of keys and thus
+        If at any point in time you want to "fix" the list of keys and thus
         the output of get_keys(), get_values() etc, call this function. After
         that, self._keys is set and fixed.
         
