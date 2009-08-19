@@ -100,7 +100,7 @@ def nested_loops(lists, ret_all=False):
     args:
     -----
     lists : list of lists 
-        The objects to permute. len(lists) is == the depth (nesting levels) of
+        The objects to permute. len(lists) == the depth (nesting levels) of
         the equivalent nested loops. Individual lists may be of different
         length and type (e.g. [['a', 'b'], [Foo(), Bar(), Baz()],
         [1,2,3,4,5,6,7]]).

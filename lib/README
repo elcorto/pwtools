@@ -31,7 +31,7 @@ openSuSE 10.3
 path issues (.bashrc/.profile)
 ------------------------------
 
-Suppose all pwtools files) are in
+Suppose all pwtools files are in
 /home/foo/pwtools/ and the exe pydos.py in /home/foo/pwtools/lib/
     
     # makes "import pwtools" possible

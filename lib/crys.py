@@ -173,6 +173,5 @@ def crys_const2cp(cryst_const):
 ##    print "sgroup: cy", cy
     cz = sqrt(c**2 - cy**2 - cx**2)
 ##    print "sgroup: cz", cz
-
     vc = np.array([cx, cy, cz])
     return np.array([va, vb, vc])

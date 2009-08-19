@@ -7,7 +7,7 @@ __all__ = [\
     'constants', 
     'decorators', 
     'pydos', 
-    'utils',
+    'crys',
     ]
 
 
