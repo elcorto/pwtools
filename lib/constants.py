@@ -1,10 +1,5 @@
 # vim:ts=4:sw=4:et
 
-# 
-# Copyright (c) 2008, Steve Schmerler <mefx@gmx.net>.
-# The pydos package. 
-# 
-
 #-----------------------------------------------------------------------------
 # Atomic units and constants
 #-----------------------------------------------------------------------------
@@ -24,7 +19,7 @@
 # c0    = speed of light (exact)
 # eps0  = electric field constant (exact)
 #
-# Bohr radius:
+# Bohr radius (also "Bohr" as length unit):
 #   a0 = 4*pi*eps0*hbar**2/(m0*e0**2)
 # 
 # fine structute constant:

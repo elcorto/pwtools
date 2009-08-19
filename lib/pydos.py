@@ -2008,7 +2008,7 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
     args:
     -----
     R : array (d0, d1, ..., M), Array of arbitrary rank with coordinates
-        (M-vectors) in old coord sys `old`. The only shape resiriction is that
+        (length M vectors) in old coord sys `old`. The only shape resiriction is that
         the last dim must equal the number of coordinates (R.shape[-1] == M ==
         3 for normal 3-dim x,y,z). See "shape of `R`" in the notes section
         below for examples.
@@ -2057,7 +2057,7 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
     
     # these do the same: A, B have vecs as rows
     >>> RB1=coord_trans(Rold, old=old, new=new, align='rows') 
-    >>> RB2=coord_trans(Rold, old=old.T, new=new.T) 
+    >>> RB2=coord_trans(Rold, old=old.T, new=new.T, align='cols') 
     >>> np.testing.assert_almost_equal(Rold, Rold2)
 
     refs:
@@ -2188,10 +2188,8 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
                 newR[:,j,:] = dot(R[:,j,:],A.T)
     
     """
-    _assert(old.shape[0] == new.shape[0], "dim 0 of `old` and `new` "
-        "doesn't match")
-    _assert(old.shape[1] == new.shape[1], "dim 1 of `old` and `new` "
-        "doesn't match")
+    _assert(old.ndim == new.ndim == 2, "`old` and `new` must be rank 2 arrays")
+    _assert(old.shape == new.shape, "`old` and `new` must have th same shape")
     msg = ''        
     if align == 'rows':
         old = old.T

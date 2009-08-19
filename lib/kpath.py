@@ -45,8 +45,9 @@ def kpath(vecs, N):
     
     todo:
     -----
-    Don't generate uniform spacing over the whole path. Instead, calculate an
-    equal number of points for each distance vector between 2 vertices.
+    Don't generate uniform spacing over the whole path. Instead, calculate 
+    the number of points for each distance vector between 2 vertices such that
+    every two points of the fine path have approximately the same distance.
     """
     nvecs = vecs.shape[0]
     nnew = (nvecs-1)*N+1
