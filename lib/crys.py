@@ -5,6 +5,7 @@
 
 import numpy as np
 from math import acos, pi, sin, cos, sqrt
+from common import assert_cond
 
 #-----------------------------------------------------------------------------
 
@@ -12,9 +13,9 @@ from math import acos, pi, sin, cos, sqrt
 ##norm = np.linalg.norm
 def norm(a):
     """2-norm for real vectors."""
-    _assert(len(a.shape) == 1, "input must be 1d array")
+    assert_cond(len(a.shape) == 1, "input must be 1d array")
     # math.sqrt is faster then np.sqrt for scalar args
-    return math.sqrt(np.dot(a,a))
+    return sqrt(np.dot(a,a))
 
 #-----------------------------------------------------------------------------
 
@@ -45,19 +46,61 @@ def _add_doc(func):
 #-----------------------------------------------------------------------------
 
 @_add_doc
-def volume(arr, align='cols'):
-    """Volume of unit cell. Calculates the triple product 
-    np.dot(np.cross(a,b), c) of the basis vectors a,b,c contained 
-    in `arr`.
+def volume_cp(arr):
+    """Volume of the unit cell from CELL_PARAMETERS. Calculates the triple
+    product 
+        np.dot(np.cross(a,b), c) 
+    of the basis vectors a,b,c contained in `arr`. Note that (mathematically)
+    the vectors can be either the rows or the cols of `arr`.
     
     args:
     -----
     %(arr_doc)s
-    %(align_doc)s
+
+    example:
+    --------
+    >>> a = [1,0,0]; b = [2,3,0]; c = [1,2,3.];
+    >>> m = np.array([a,b,c])
+    >>> volume(m)
+    9.0
+    >>> m = rand(3,3)
+    >>> volume(m)
+    0.34119414123070052
+    >>> volume(m.T)
+    0.34119414123070052
+
+    notes:
+    ------
+    $(notes_cp_crys_const)s
     """    
-    if align == 'cols':
-        arr = arr.T
+    assert_cond(arr.shape == (3,3), "input must be (3,3) array")
     return np.dot(np.cross(arr[0,:], arr[1,:]), arr[2,:])        
+
+#-----------------------------------------------------------------------------
+
+def volume_cc(cryst_const):
+    """Volume of the unit cell from crystallographic constants [1].
+    
+    args:
+    -----
+    %(cryst_const_doc)s
+    
+    notes:
+    ------
+    $(notes_cp_crys_const)s
+
+    refs:
+    -----
+    [1] http://en.wikipedia.org/wiki/Parallelepiped
+    """
+    a = cryst_const[0]
+    b = cryst_const[1]
+    c = cryst_const[2]
+    alpha = cryst_const[3]*pi/180
+    beta = cryst_const[4]*pi/180
+    gamma = cryst_const[5]*pi/180
+    return a*b*c*sqrt(1+ 2*cos(alpha)*cos(beta)*cos(gamma) -\
+          cos(alpha)**2 - cos(beta)**2 - cos(gamma)**2 )
 
 #-----------------------------------------------------------------------------
 
@@ -75,7 +118,7 @@ def angle(x,y):
 #-----------------------------------------------------------------------------
 
 @_add_doc
-def cp2crys_const(arr, align='rows'):
+def cp2cc(arr, align='rows'):
     """From CELL_PARAMETERS to crystallographic constants a, b, c, alpha, beta,
     gamma.
     
@@ -114,7 +157,7 @@ def cp2crys_const(arr, align='rows'):
 #-----------------------------------------------------------------------------
 
 @_add_doc
-def crys_const2cp(cryst_const):
+def cc2cp(cryst_const):
     """From crystallographic constants a, b, c, alpha, beta,
     gamma to CELL_PARAMETERS.
     
@@ -131,9 +174,9 @@ def crys_const2cp(cryst_const):
     ------
     %(notes_cp_crys_const)s
     """
-    a = crys_const[0]
-    b = crys_const[1]
-    c = crys_const[2]
+    a = cryst_const[0]
+    b = cryst_const[1]
+    c = cryst_const[2]
     alpha = cryst_const[3]*pi/180
     beta = cryst_const[4]*pi/180
     gamma = cryst_const[5]*pi/180
@@ -152,23 +195,23 @@ def crys_const2cp(cryst_const):
     cx = c*cos(beta)
     
     # Now need cy and cz ...
-    #
-    # Maxima solution
-    #   
-    # # volume of the unit cell, see http://en.wikipedia.org/wiki/Parallelepiped
-    # vol = a*b*c*sqrt(1+ 2*cos(alpha)*cos(beta)*cos(gamma) -\
-    #       cos(alpha)**2 - cos(beta)**2 - cos(gamma)**2 )
-    # print "Maxima: vol", vol
-    # cz = vol / (a*b*sin(gamma))
-    # print "Maxima: cz", cz
-    # cy = sqrt(a**2 * b**2 * c**2 * sin(beta)**2 * sin(gamma)**2 - \
-    #     vol**2) / (a*b*sin(gamma))
-    # print "Maxima: cy", cy
-    # cy = sqrt(c**2 - cx**2 - cz**2)
-    # print "Pythagoras: cy", cy
+
+##    #
+##    # Maxima solution
+##    #   
+##    # volume of the unit cell 
+##    vol = volume_cc(cryst_const)
+##    print "Maxima: vol", vol
+##    cz = vol / (a*b*sin(gamma))
+##    print "Maxima: cz", cz
+##    cy = sqrt(a**2 * b**2 * c**2 * sin(beta)**2 * sin(gamma)**2 - \
+##        vol**2) / (a*b*sin(gamma))
+##    print "Maxima: cy", cy
+##    cy = sqrt(c**2 - cx**2 - cz**2)
+##    print "Pythagoras: cy", cy
     
     # PWscf , WIEN2K's sgroup, results are the same as with Maxima but the
-    # formulas are shorter.
+    # formulas are shorter :)
     cy = c*(cos(alpha) - cos(beta)*cos(gamma))/sin(gamma)
 ##    print "sgroup: cy", cy
     cz = sqrt(c**2 - cy**2 - cx**2)
