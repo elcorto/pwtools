@@ -1,6 +1,6 @@
 # crys.py
 #
-# Crystal and unit-cell related tools tools.
+# Crystal and unit-cell related tools.
 #
 
 import numpy as np
@@ -136,7 +136,7 @@ def cp2cc(arr, align='rows'):
     %(notes_cp_crys_const)s
     """
     arr = np.asarray(arr)
-    assert arr.shape == (3,3), "arr must be (3,3) array"
+    assert_cond(arr.shape == (3,3), "arr must be (3,3) array")
     if align == 'cols':
         arr = arr.T
 ##    print "spat volume:", volume(arr)

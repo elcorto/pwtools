@@ -113,7 +113,7 @@ def fullpathjoin(*args):
 
 #-----------------------------------------------------------------------------
 
-def igrep(pat_or_rex, iterable, func='match'):
+def igrep(pat_or_rex, iterable, func='search'):
     """
     Grep thru strings provided by iterable.next() calls. On each match, yield a
     Match object.
@@ -126,7 +126,7 @@ def igrep(pat_or_rex, iterable, func='match'):
         general anything that can be iterated over and yields a string (i.e. an
         object that has a next() method)
     func : string, the used re function for matching, e.g. 'match' for re.match
-        functionallity
+        functionallity, 'search' for re.search
 
     returns:
     --------
@@ -135,63 +135,91 @@ def igrep(pat_or_rex, iterable, func='match'):
     notes:
     ------
     This function could also live in Python's itertools module.
-
-    Similar to the shell grep(1) utility, but there is a subtle but important
-    difference:
-    grep(1) returns the whole line, not the match itself. If you want
-    that, use "^.*<patter>.*$" to explicitly match the whole line. The group()
-    method of Match Objects returns ONLY the match itself!
-        
-        $ egrep '<pattern>' file.txt
-        >>> for m in igrep('^.*<pattern>.*$', open('file.txt')): print m.group()
-
-    One can also directly access match groups. 
-        
-        $ egrep -o '<pattern>' file.txt
-        >>> for m in igrep('<pattern>', open('file.txt')): print m.group()
     
-    or more explicitly        
+    Difference to grep(1):
+        Similar to the shell grep(1) utility, but there is a subtle but
+        important difference: grep(1) returns the whole line, not the match
+        itself, while the group() method of Match Objects returns ONLY the
+        match itself. If you want default grep(1) behavior, use
+        "^.*<pattern>.*$" to explicitly match the whole line.         
         
-        >>> for m in igrep('(<pattern>)', open('file.txt')): print m.group(1)
-                            ^         ^                                   ^ 
-    One possilbe other way would be to call grep(1) & friends thru
-        print subprocess.Popen("egrep -o '(\s+[0-9]+){3}?' test.txt", shell=True,
-                                stdout=PIPE).communicate()[0] 
-    But that's not really pythonic, eh? :)
-    
-    speed:
-    to get as fast as grep(1), use the idiom
-        for m in igrep(<pattern>, open(<file>), 'match'):
-            [do stuff with m]
-    * 'match' is faster than 'search'
-    * iterating over lines = file_readlines(<file>) instead of
-      open(<file>) can speed things up if files are small, there is no benefit
-      for big files
+            $ egrep -o '<pattern>' file.txt
+            >>> for m in igrep(r'<pattern>', open('file.txt'), 'search'): print m.group()
+        
+            $ egrep '<pattern>' file.txt
+            >>> for m in igrep(r'^.*<pattern>.*$', open('file.txt'), 'search'): print m.group()
+   
+    Match, Search and grouping:
+        In the latter example, 'match' would also work since you are matching
+        the whole line anyway. 
+        
+        From the python re module docs:
+            match(string[, pos[, endpos]])
+                If zero or more characters at the beginning of string match
+                this regular expression, return a corresponding MatchObject
+                instance. Return None if the string does not match the pattern;
+                note that this is different from a zero-length match.
+
+                Note: If you want to locate a match anywhere in string, use
+                search() instead. 
+
+        One can directly access match groups, like grep -o:
+            
+            $ egrep -o '<pattern>' file.txt
+            >>> for m in igrep(r'<pattern>', open('file.txt'), 'search'): print m.group()
+        
+        More explicitly, but no gain here:
+
+            >>> for m in igrep(r'(<pattern>)', open('file.txt'), 'search'): print m.group(1)
+                                 ^         ^                                             ^^^ 
+        If you want to extract a substring using 'match', you have to match the
+        whole line and group the pattern with ()'s to access it.       
+            
+            >>> for m in igrep(r'^.*(<pattern>).*$', open('file.txt'), 'match'): print m.group(1)
+
+        One possilbe other way would be to call grep(1) & friends thru
+            print subprocess.Popen("egrep -o '<pattern>' file.txt", shell=True,
+                                    stdout=PIPE).communicate()[0] 
+        But that's not really pythonic, eh? :)
+        
+        It's generally a good idoa to use raw strings: r'<pattern>' instead of
+        'pattern'.
+
+    Speed:
+        * to get as fast as grep(1), use the idiom
+            for m in igrep(r'<pattern>', open('file.txt)', 'match'):
+                [do stuff with m]
+        * 'match' is (much) faster than 'search', so if you want speed, your
+          regexes might have to get more complicated in order for 'match' to work
+        * reading in the whole file first, i.e. iterating over lines =
+          file_readlines('file.txt') instead of open('file.txt') can speed things
+          up if files are small, there is no benefit for big files
 
     example:
     --------
     # If a line contains at least three numbers, grep the first three.
-    >>> !cat test.txt
+    >>> !cat file.txt
     a b 11  2   3   xy
     b    4  5   667
     c    7  8   9   4 5
     lol 2
     foo
-    >>> !egrep -o '(\s+[0-9]+){3}?' test.txt
-    11  2   3
-       4  5   667
-       7  8   9
-    >>> fd=open('test.txt')
-    >>> for m in igrep(r'(\s+[0-9]+){3}?', fd, 'search'): print m.group().strip() 
-    11  2   3
-    4  5   667
-    7  8   9
-    >>> fd.seek(0)
-    >>> for m in igrep(r'((\s+[0-9]+){3}?)', fd, 'search'): print m.group(1).strip() 
+    >>> !egrep -o '(\s+[0-9]+){3}?' file.txt | tr -s ' '
+     11 2 3
+     4 5 667
+     7 8 9
+    >>> for m in igrep(r'(\s+[0-9]+){3}?', open('file.txt'), 'search'): print m.group().strip() 
     11  2   3
     4  5   667
     7  8   9
-    >>> fd.seek(0)
+    >>> for m in igrep(r'((\s+[0-9]+){3}?)', open('file.txt'), 'search'): print m.group(1).strip() 
+    11  2   3
+    4  5   667
+    7  8   9
+    >>> for m in igrep(r'^.*((\s+[0-9]+){3}?).*$', open('file.txt'), 'match'): print m.group(1).strip()
+    11  2   3
+    4  5   667
+    7  8   9
     # Put numbers directly into numpy array.
     >>> ret=igrep(r'(\s+[0-9]+){3}?', fd, 'search') 
     >>> array([m.group().split() for m in ret], dtype=float)
