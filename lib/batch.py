@@ -23,7 +23,7 @@ class ClassBase(object):
             (types.FloatType, 'REAL'),
             (types.StringType, 'TEXT'),
             (types.UnicodeType, 'TEXT'),
-            (types.BufferType, 'BLOB'),
+            (types.BufferType, 'BLOB'), # e.g. numpy array raw data
             ]
         
         # see _get_keys()
@@ -129,6 +129,8 @@ class ClassBase(object):
     def merge(self, obj):
         """Merge namespace of an arbitrary classinstance (obj.__dict__) into
         our namespace (self.__dict__)."""
+        #FIXME: what hapens if we have self.foo and obj.foo? Does self.foo get
+        # overwritten?
         self.__dict__.update(obj.__dict__)
 
 #-----------------------------------------------------------------------------
@@ -221,7 +223,7 @@ class MachineDeimos(MachineBase):
             mpirun = 'mpirun.lsf',
             jobfile_name = 'job.lsf',
             outdir='/fastfs/schmerle',
-            queue_com = 'bsub <',
+            queue_com = 'bsub -a openmpi <',
             **kwargs)
     
     def init_queue(self, ncpu):
@@ -293,6 +295,8 @@ class Calc(ClassBase):
                  machine=None,
                  infile_templ_txt=None,
                  infile_templ_fn=None,
+                 # XXX
+##                 value_to_vary= value_to_vary
                  ):
         
         ClassBase.__init__(self)
@@ -323,3 +327,61 @@ class Calc(ClassBase):
         
         self._skip += [r'.*_templ_txt$', r'^machine$']
         self.set_internal_keys()
+
+#-----------------------------------------------------------------------------
+
+class Entry(object):
+    def __init__(self, name, val):
+        """Class representing a key = value and the associated placeholder in
+        a file (pw.x input file).
+        
+        args:
+        -----
+        name : name of a valid input file identifier, used to construct the
+            placeholder
+        val : it's value
+
+        example
+        -------
+        >>> entry = Entry('ecutwfc', 35)
+        >>> entry.ph
+        XXXECUTWFC
+        >>> entry.val
+        35
+        >>> entry.str_val
+        '35'
+        """
+        # 'ecutwfc'
+        self.name = name
+        # 35
+        self.val = val
+        # XXXECUTWFC
+        self.ph = self.get_ph()
+        self.str_val = self.get_str_val()
+
+    def get_str_val(self):
+        """Return a string representation of self.val as it should appear in
+        the input file when self.ph is replaced."""
+        return str(self.val)
+
+    def get_ph(self):
+        return 'XXX' + self.name.upper()
+
+#-----------------------------------------------------------------------------
+
+class Kpoints(Entry):
+    def __init__(self, name, val):
+        Entry.__init__(self, name, val)
+    
+    def get_str_val(self):
+        """
+        example:
+        --------
+        >>> k=Kpoints('k_points', 2)
+        >>> k.ph
+        XXXK_POINTS
+        >>> k.str_val
+        '2 2 2 0 0 0'
+        """
+        return ' '.join([str(self.val)]*3) + ' 0 0 0'
+

@@ -798,7 +798,10 @@ def atomic_positions(fh, atspec=None):
     """
     verbose("[atomic_positions] reading ATOMIC_POSITIONS from %s" %fh.name)
     if atspec is None:
-        atspec = atomic_species(fn)
+        atspec = atomic_species(fh)
+        # XXX HACK >>>>>>>>>>>>>>>>>>>>>>>>>
+        fh.seek(0)
+        # XXX HACK <<<<<<<<<<<<<<<<<<<<<<<<<
     rex = re.compile(r'\s*([a-zA-Z]+)((\s+-*[0-9eEdD+-\.]+){3})\s*')
     fh, flag, line = scan_until_pat(fh, pat="atomic_positions", retline=True)
     line = line.strip().lower().split()
@@ -1966,8 +1969,7 @@ def scell(R0, cp, mask, symbols):
 
     notes:
     ------
-    `R0` and `cp` must be in the same coordinate system and unit!! Here, `cp` is in
-    cartesian coords and in alat or a.u. unit.
+    This is tested for R0 in 'crystal' coords, i.e. in units of `cp`.
     """
     sc_symbols = []
     Rsc = np.empty((mask.shape[0]*R0.shape[0], 3), dtype=float)
@@ -1978,7 +1980,7 @@ def scell(R0, cp, mask, symbols):
             # supercell, i.e. copy unit cell N times. Actually, N-1, since
             # n1=n2=n3=0 is the unit cell itself.
             # mask[j,:] = [n1, n2, n3], ni = integers (floats actually, but
-            #   floor(ni) == ni)
+            #   mod(ni, floor(ni)) == 0.0)
             # cp = [[-- a1 --]
             #       [-- a2 --]
             #       [-- a3 --]]
@@ -1996,8 +1998,16 @@ def scell(R0, cp, mask, symbols):
 
 def scell2(coords, cp, dims, symbols):
     mask = scell_mask(*tuple(dims))
+    # in crystal coords w.r.t the *old* cell, i.e. the entries are not in [0,1]
     scell_out = scell(coords, cp, mask, symbols)
-    new_cp = cp * np.asarray(dims)[:,np.newaxis] # FIXME: bogus
+    # scale new cp acording to sc dims
+    new_cp = cp * np.asarray(dims)[:,np.newaxis]
+    # Rescale crystal coords to new_cp (coord_trans actually) -> all values in
+    # [0,1] again
+    # FIXME, this is hackish, let scell & friends return dicts, not tuples!
+    scell_out[1][:,0] /= dims[0]
+    scell_out[1][:,1] /= dims[1]
+    scell_out[1][:,2] /= dims[2]
     return scell_out + (new_cp,)
 
 #-----------------------------------------------------------------------------

@@ -262,7 +262,7 @@ def raw_template_replace(txt, dct, conv=False, warn_mult_found=True,
     args:
     -----
     txt : string
-    dct : dictionary 
+    dct : dictionary with placeholders
     conv : bool, convert `dct` values to strings with str()
     warn_mult_found : bool, warning if a key is found multiple times in `txt`
     warn_not_found : bool, warning if a key is NOT found in `txt`
@@ -271,12 +271,25 @@ def raw_template_replace(txt, dct, conv=False, warn_mult_found=True,
     returns:
     --------
     new string
+    
+    example:
+    --------
+    >>> txt = file_read('file.txt')
+    >>> new_txt = raw_template_replace(txt, {'one': 1, 'two': 2}, conv=True)
 
     notes:
     ------
-    `txt` us usually a read text file (txt=fd.read()).  Although we use
-    txt.replace(), this method ~ 4 times faster then looping
-    over lines in fd. But: only as long as `txt` fits entirely into memory.
+    Speed:
+        `txt` us usually a read text file (txt=fd.read()).  Although we use
+        txt.replace(), this method ~ 4 times faster then looping
+        over lines in fd. But: only as long as `txt` fits entirely into memory.
+    Placeholderes:
+        Placeholders can be arbitrary strings. Note that even the special Python 
+        %(<string>)s dictionary string replacement placeholders are treated as
+        ordinary strings, i.e. we still use `txt.replace()' instead of 
+        `txt % dct'.
+        If you don't need the bells and whistles of this function, simply use
+        `newtxt = txt % dct'.
     """
     if isinstance(txt, types.DictType):
         raise ValueError("1st arg is a dict. You probably use the old syntax. "
