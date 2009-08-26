@@ -100,10 +100,10 @@ def nested_loops(lists, ret_all=False):
     args:
     -----
     lists : list of lists 
-        The objects to permute. len(lists) == the depth (nesting levels) of
-        the equivalent nested loops. Individual lists may be of different
-        length and type (e.g. [['a', 'b'], [Foo(), Bar(), Baz()],
-        [1,2,3,4,5,6,7]]).
+        The objects to permute. len(lists) == the depth (nesting levels) of the
+        equivalent nested loops. Individual lists may contain a mix of
+        different types/objects, e.g. [['a', 'b'], [Foo(), Bar(), Baz()],
+        [1,2,3,4,5,6,7]].
     ret_all : bool
         True: return cur, cur_idxs
         False: return cur

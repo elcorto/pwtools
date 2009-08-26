@@ -44,8 +44,8 @@ PDOS obtained the VACF way (V -> VACF -> FFT(VACF)) and the direct way
 (direct_pdos()) differ a bit. Dunno why yet. Probably numerical errors due to
 FFT. But using different FFT algos for the two methods changes nothing (very
 good). The numerical difference *within each method* between
-scipy.fftpack.fft() and dft() (and dft_axis()) are much much smaller then the
-difference between the two methods itself.
+scipy.fftpack.fft() and fft.dft() (and fft.dft_axis()) are much much smaller
+then the difference between the two methods itself.
 
 TODO
 ----
@@ -95,29 +95,14 @@ TODO
 
 - Implement the maximum entropy method.
 
-- make everything a python package, so that we can
-    import pydos.constants
-  and stuff  
-
-- make all parsing functions deal with Fortran style strings, e.g. 3D+3, 1d0,
-  etc., maybe map(_float, <list_of_strings>) or so ...
-  Check all regexes, we have in a hurry replaced all '0-9\.' by '0-9eE+-\.'
-
-- There may be problems when the ATOMIC_POSITIONS unit is given in braces:
-  "(alat)" instead of "alat". Check this.
-
 - All parsing functions which get and return a fileobject (e.g.
   atomic_positions_out2()) are technically not required to return it. The object
   is modified in place when it's .next() method is called inside the function.
   We use this e.g. in next_line().
-
-assert -> _assert()
--------------------
-:%s/assert\s*\(.*\)\s*,\s*[(]\?\([ `'"a-zA-Z0-9]\+\)[)]\?/_assert(\1, \2)/gc
 """
 
-from debug import Debug
-DBG = Debug()
+##from debug import Debug
+##DBG = Debug()
 
 # timing of the imports
 ##DBG.t('import')
@@ -133,19 +118,20 @@ import textwrap
 
 import numpy as np
 norm = np.linalg.norm
-# faster import, copied file from scipy sources
+# faster import, copied file from scipy sources, seems deprecated as of 
+# scipy 0.7
 ##from scipy.io.npfile import npfile
 from scipy_npfile import npfile
 
-# slow import time !!!
-from scipy.fftpack import fft, ifft
+# slow import time for these
+from scipy.fftpack import fft
 from scipy.linalg import inv
 from scipy.integrate import simps
 
 # own modules
 import constants
 import _flib
-from common import assert_cond as _assert
+from common import assert_cond
 from common import fileo, system, fullpath
 from decorators import open_and_close
 
@@ -174,23 +160,30 @@ INPUT_PW_CARDS = [\
     'constraints',
     'collective_vars']
 
+# Regex that matched every conveivable form of a float number
+# 1
+# 1.0
+# +1.0
+# -1.0
+# 1.0e3
+# 1.0e+03
+# 1.0E-003
+# -.1D03
+# ...
+FLOAT_RE = r'[+-]*[0-9eEdD+-\.]+'
 
 #-----------------------------------------------------------------------------
 # file handling
-#-----------------------------------------------------------------------------
 
 
 # This should become a general save-nd-array-to-txt-file function. We can only write 
 # 1d or 2d arrays to file with np.savetxt. `axes` specifies the axes which form
 # the 2d arrays. Loop over all permutations of the remaining axes and write all
 # 2d arrays to open file. For the permutations to be general, we want nested
-# loops of variable depth, i.e. we must use recursion. This would be also nice
-# for scell_mask(), which also uses hard-coded nested loops of fixed depth (3
-# there) now. Although it's not necessary there (no 4-dim crystals :)), it
-# would be nice to know how it's done.
+# loops of variable depth, i.e. we must use recursion or so.. 
 
 ##def writetxtnd(fn, a, axes=(0,1)):
-##    _assert(lan(axes)==2, "`axes` must be length 2")
+##    assert_cond(len(axes)==2, "`axes` must be length 2")
 ##    remain_axes=[]
 ##    for ax in range(a.ndim):
 ##        if ax not in axes:
@@ -206,17 +199,17 @@ INPUT_PW_CARDS = [\
 # quick'n'dirty for 3d arrays
 def writetxt(fn, arr, axis=-1):
     maxdim=3
-    _assert(arr.ndim <= maxdim, 'no rank > 3 arrays supported')
+    assert_cond(arr.ndim <= maxdim, 'no rank > 3 arrays supported')
     fd = open(fn, 'w')
     # 1d and 2d case
     if arr.ndim < maxdim:
-        np.savetxt(fl, arr)
+        np.savetxt(fn, arr)
     # 3d        
     else:        
         sl = [slice(None)]*arr.ndim
         for ind in range(arr.shape[axis]):
             sl[axis] = ind
-            np.savetxt(fl, arr[sl])
+            np.savetxt(fn, arr[sl])
     fd.close()        
     
 #-----------------------------------------------------------------------------
@@ -256,7 +249,7 @@ def writearr(fn, arr, order='C', endian='<', comment=None, info=None,
     only type == 'txt'
         axis : axis kwarg for writetxt()
     """
-    _assert(type in ['bin', 'txt'], "`type` must be 'bin' or 'txt'")
+    assert_cond(type in ['bin', 'txt'], "`type` must be 'bin' or 'txt'")
     verbose("[writearr] writing: %s" %fn)
     verbose("[writearr]     shape: %s" %repr(arr.shape))
     if type == 'bin':
@@ -359,7 +352,7 @@ def toslice(val):
     >>> toslice('1:5')
     slice(1, 5, None)
     """
-    _assert(isinstance(val, types.StringType), "input must be string")
+    assert_cond(isinstance(val, types.StringType), "input must be string")
     # FIXME
     # np.s_ doesn't work for slices starting at end, like
     # >>> a = array([1,2,3,4,5,6])
@@ -436,7 +429,7 @@ def _float(st):
     --------
     float
     """
-    _assert(isinstance(st, types.StringType), "`st` must be string")
+    assert_cond(isinstance(st, types.StringType), "`st` must be string")
     st = st.lower()
     if not 'd' in st:
         return float(st)
@@ -448,7 +441,7 @@ def _float(st):
         # >>> m.groups()
         # ('40.0', '', '02', '  ')
         #
-        rex = re.compile(r'\s*([0-9\.]+)d([+-]*)([0-9]+)([_]*.*)')
+        rex = re.compile(r'\s*([+-]*[0-9\.]+)d([+-]*)([0-9]+)([_]*.*)')
         m = rex.match(st)
         if m is None:
             raise ValueError("no match on string '%s'" %st)
@@ -461,8 +454,8 @@ def _float(st):
 #-----------------------------------------------------------------------------
 
 def repr(var, ffmt="%.16e"):
-    """Similar to Python's repr(), but return floats formated
-    with `ffmt`. Python's repr() handles also var = None.
+    """Similar to Python's repr(), but return floats formated with `ffmt` if
+    `var` is a float. Python's repr() handles also var = None.
     
     args:
     -----
@@ -656,7 +649,7 @@ def scan_until_pat2(fh, rex, err=True, retmatch=False):
 # Therefore, we can't take an open fileobject as argumrent, but use the
 # filename.
 @open_and_close
-def atomic_species(fh):
+def pwin_atomic_species(fh):
     """Parses ATOMIC_SPECIES card in a pw.x input file.
 
     args:
@@ -686,9 +679,9 @@ def atomic_species(fh):
         N 14.0067 N.LDA.fhi.UPF
         [...]
     """
-    verbose('[atomic_species] reading ATOMIC_SPECIES from %s' %fh.name)
+    verbose('[pwin_atomic_species] reading ATOMIC_SPECIES from %s' %fh.name)
     # rex: for the pseudo name, we include possible digits 0-9 
-    rex = re.compile(r'\s*([a-zA-Z]+)\s+([0-9eEdD+-\.]+)\s+([0-9a-zA-Z\.]*)')
+    rex = re.compile(r'\s*([a-zA-Z]+)\s+(' + FLOAT_RE + ')\s+([0-9a-zA-Z\.]*)')
     fh, flag = scan_until_pat(fh, pat='atomic_species')
     line = next_line(fh)
     while line == '':
@@ -710,7 +703,7 @@ def atomic_species(fh):
 #-----------------------------------------------------------------------------
 
 @open_and_close
-def cell_parameters(fh):
+def pwin_cell_parameters(fh):
     """Parses CELL_PARAMETERS card in a pw.x input file. Extract primitive
     lattice vectors.
 
@@ -741,8 +734,8 @@ def cell_parameters(fh):
         
         In a.u. = Rydberg atomic units (see constants.py).
     """
-    verbose('[cell_parameters] reading CELL_PARAMETERS from %s' %fh.name)
-    rex = re.compile(r'\s*((\s*-*[0-9eEdD+-\.]+){3})\s*')
+    verbose('[pwin_cell_parameters] reading CELL_PARAMETERS from %s' %fh.name)
+    rex = re.compile(r'\s*((' + FLOAT_RE + '){3})\s*')
     fh, flag = scan_until_pat(fh, pat="cell_parameters")
     line = next_line(fh)
     while line == '':
@@ -755,20 +748,20 @@ def cell_parameters(fh):
         line = next_line(fh)
         match = rex.match(line)
     cp = np.array(lst, dtype=float)
-    _assert(cp.shape[0] == cp.shape[1], "dimentions of `cp` don't match")
+    assert_cond(cp.shape[0] == cp.shape[1], "dimensions of `cp` don't match")
     return cp
 
 
 #-----------------------------------------------------------------------------
 
 @open_and_close
-def atomic_positions(fh, atspec=None):
+def pwin_atomic_positions(fh, atspec=None):
     """Parse ATOMIC_POSITIONS card in pw.x input file.
     
     args:
     -----
     fh : fileobj of pw.x input file
-    atspec : optional, dict returned by atomic_species()
+    atspec : optional, dict returned by pwin_atomic_species()
     
     returns:
     --------
@@ -796,17 +789,17 @@ def atomic_positions(fh, atspec=None):
 
         <unit> is a string: 'alat', 'crystal' etc.
     """
-    verbose("[atomic_positions] reading ATOMIC_POSITIONS from %s" %fh.name)
+    verbose("[pwin_atomic_positions] reading ATOMIC_POSITIONS from %s" %fh.name)
     if atspec is None:
-        atspec = atomic_species(fh)
+        atspec = pwin_atomic_species(fh)
         # XXX HACK >>>>>>>>>>>>>>>>>>>>>>>>>
         fh.seek(0)
         # XXX HACK <<<<<<<<<<<<<<<<<<<<<<<<<
-    rex = re.compile(r'\s*([a-zA-Z]+)((\s+-*[0-9eEdD+-\.]+){3})\s*')
+    rex = re.compile(r'\s*([a-zA-Z]+)((\s+' + FLOAT_RE + '){3})\s*')
     fh, flag, line = scan_until_pat(fh, pat="atomic_positions", retline=True)
     line = line.strip().lower().split()
     if len(line) > 1:
-        unit = line[1]
+        unit = re.sub(r'[{\(\)}]', '', line[1])
     else:
         unit = ''
     line = next_line(fh)
@@ -869,14 +862,14 @@ def atomic_positions_out(fh, rex, work):
     - With this implementstion, `rex` must be:
         
         With scan_until_pat*(), we need to know that we extract 3 numbers:
-        >>> pat =  r'\s*[A-Za-z]+((\s+-*[0-9eEdD+-\.]+){3})'
+        >>> pat =  r'\s*[A-Za-z]+((\s+[+-]*[0-9eEdD+-\.]+){3})'
         >>> rex = re.compile(pat)
     
         For scanning the whole file w/o the usage of scan_until_pat*() first,
         we have to know the atom symbols. We would use this kind of pattern if
         we'd parse the file with perl & friends:
         >>> atoms = ['Si', 'O', 'Al', 'N']
-        >>> pat =  r'(%s)' %r'|'.join(atoms) + r'((\s+-*[0-9eEdD+-\.]+){3})'
+        >>> pat =  r'(%s)' %r'|'.join(atoms) + r'((\s+[+-]*[0-9eEdD+-\.]+){3})'
         >>> rex = re.compile(pat)
         
     - Is a *little* bit slower than atomic_positions_out2.
@@ -942,13 +935,8 @@ def atomic_positions_out2(fh, natoms, work):
 
 #-----------------------------------------------------------------------------
 
-##def stress_tensor_out(fh, rex, work):
-    
-
-#-----------------------------------------------------------------------------
-
 @open_and_close
-def conf_namelists(fh, cardnames=INPUT_PW_CARDS):
+def pwin_namelists(fh, cardnames=INPUT_PW_CARDS):
     """
     Parse "namelist" part of a pw.x input file.
 
@@ -999,7 +987,7 @@ def conf_namelists(fh, cardnames=INPUT_PW_CARDS):
         intkey    = int(d['namelist1']['intkey'])
         boolkey   = tobool(d['namelist1']['boolkey'])
     """
-    verbose("[conf_namelists] parsing %s" %fh.name)
+    verbose("[pwin_namelists] parsing %s" %fh.name)
     dct = {}   
     for line in fh:
         # '   A = b, c=d,' -> 'A=b,c=d'
@@ -1036,10 +1024,10 @@ def parse_pwout(fh, pwin_nl=None, atspec=None, atpos_in=None):
     """
     args:
     -----
-    fn : fileobj of the pw.x output file
-    pwin_nl : dict returned by conf_namelists()
-    atspec : dict returned by atomic_species()
-    atpos_in : dict returned by atomic_positions()
+    fh : fileobj of the pw.x output file
+    pwin_nl : dict returned by pwin_namelists()
+    atspec : dict returned by pwin_atomic_species()
+    atpos_in : dict returned by pwin_atomic_positions()
     """
     verbose("[parse_pwout] parsing %s" %(fh.name))
     nstep = int(pwin_nl['control']['nstep'])
@@ -1077,8 +1065,8 @@ def parse_pwout(fh, pwin_nl=None, atspec=None, atpos_in=None):
     # R[:,0,:] = Rold, fill R[:,1:,:]
     j=1
     scan_atpos_rex = re.compile(r'^ATOMIC_POSITIONS\s*')
-    scan_temp_rex = re.compile(r'\s+temperature\s+=\s+([0-9eEdD+-\.]+)\s+K')
-    scan_stress_rex = re.compile(r'\s+total\s+stress\s+.*P.*=\s*(-*[0-9eEdD+-\.]+)')
+    scan_temp_rex = re.compile(r'\s+temperature\s+=\s+(' + FLOAT_RE + ')\s+K')
+    scan_stress_rex = re.compile(r'\s+total\s+stress\s+.*P.*=\s*(' + FLOAT_RE + ')')
     while True:
         
         # --- stress -----------------
@@ -1107,7 +1095,6 @@ def parse_pwout(fh, pwin_nl=None, atspec=None, atpos_in=None):
             # Rw: no copy, pointer to work array (view of slice), in-place
             # modification in function atomic_positions_out*()
             Rw = R[:,j,:]
-    ##        fh = atomic_positions_out(fh, atpos_rex, Rw)
             fh = atomic_positions_out2(fh, natoms, Rw)
         
         # --- temperature -------------
@@ -1122,31 +1109,6 @@ def parse_pwout(fh, pwin_nl=None, atspec=None, atpos_in=None):
         else:            
             T[j] = _float(match.group(1))
         
-        # --- method 1: compute velocities here ------------------------------
-        # 
-        # For this method, this function must return V instead of R. Not
-        # used ATM. If we really can't afford the temporary array made in
-        # velocity(), i.e. R is really, really big, then we should allocate R
-        # in F-order, use f2py and do the loop over R[:,j,:] in Fortran.
-        # Allocate R in F-order, b/c f2py will make a copy anyway if R is
-        # C-cont.
-        # 
-        # plus:  small 2D temp arrays Rtmp
-        # minus: no R array after loop for easy dumping
-        # 
-        # Note: If we decide to use method 1, then we could:
-        #   - R shape: (natoms, nstep, 3), NOT (natoms, nstep+1, 3)
-        #   - loop starts at j=0, not j=1
-        #   - NO R[:,0,:] = Rold necessary
-        #
-        # uncomment + comment method 2 to use this! This leaves R shape at
-        # (natoms, nstep+1, 3) and R[:,0,:] is not used.
-        #
-        ## Rtmp = Rw.copy()
-        ## Rw -= Rold
-        ## Rold = Rtmp
-        ## # velocity
-        ## Rw /= dt
         j += 1
     endj = j-1
     if endj != nstep:
@@ -1160,9 +1122,9 @@ def parse_pwout(fh, pwin_nl=None, atspec=None, atpos_in=None):
 
 # Convenience wrapper for interactive usage. 
 def parse_pwout_ia(pwifn, pwofn):
-    pwin_nl = conf_namelists(pwifn)
-    atspec = atomic_species(pwifn)
-    atpos_in = atomic_positions(pwifn, atspec)
+    pwin_nl = pwin_namelists(pwifn)
+    atspec = pwin_atomic_species(pwifn)
+    atpos_in = pwin_atomic_positions(pwifn, atspec)
     pwout = parse_pwout(pwofn,
                         pwin_nl=pwin_nl, 
                         atspec=atspec,
@@ -1173,83 +1135,17 @@ def parse_pwout_ia(pwifn, pwofn):
 # computational
 #-----------------------------------------------------------------------------
 
-def fftsample(a, b, mode='f', mirr=False):
-    """Convert size and resolution between time and frequency domain.
-    
-    Convert between maximal frequency to sample + desired frequency
-    resolution and the needed number of sample points and the time step.
-    
-    The maximal frequency is also called the Nyquist frequency and is
-    1/2*samplerate.
-    
-    args:
-    -----
-    a, b: see below
-    mode : string, {'f', 's'}
-        f : frequency mode
-        t : time mode
-    mirr: bool, consider signal mirroring of the signal
-
-    f-mode:
-        a : fmax, max. freq to sample [Hz] == Nyquist freq. == 1/2 samplerate
-        b : df, desired freq. resolution [Hz]
-    t-mode:
-        a : dt
-        b : N
-
-    returns:
-    --------
-    f-mode:
-        dt : time step, unit is [s] (or in general 1/unit_of_fmax)
-        N : number of samples
-    t-mode:
-        fmax
-        df
-    
-    notes:
-    ------
-    These relations hold ("v" - down, "^" - up):
-        size                resolution
-        N [t] ^     <->     df [f] v
-        fmax [f] ^  <->     dt [t] v
-
-    If you know that the signal in the time domain will be mirrored before FFT
-    (N -> 2*N), you will get 1/2*df (double fine resolution), so 1/2*N is
-    sufficient to get the desired df.
-    """
-    if mode == 'f':
-        fmax, df = a,b
-        if mirr:
-            df *= 2
-        dt = 0.5/fmax
-        N = 1.0/(df*dt)
-        return dt, int(N)
-    elif mode == 't':
-        dt, N = a, b
-        if mirr:
-            N *= 2
-        fmax = 0.5/dt
-        df = 1.0/(N*dt)
-        return fmax, df    
-    else:
-        raise ValueError("illegal mode, allowed: t, f")
-
-#-----------------------------------------------------------------------------
-
-
-# "!>>>" in the docstring so that it won't get picked up by doctest, which
-# looks for ">>>".
 def normalize(a):
     """Normalize array by it's max value. Works also for complex arrays.
 
     example:
     --------
-    !>>> a=np.array([3+4j, 5+4j])
-    !>>> a
+    >>> a=np.array([3+4j, 5+4j])
+    >>> a
     array([ 3.+4.j,  5.+4.j])
-    !>>> a.max()
+    >>> a.max()
     (5.0+4.0j)
-    !>>> a/a.max()
+    >>> a/a.max()
     array([ 0.75609756+0.19512195j,  1.00000000+0.j ])
     """
     return a / a.max()
@@ -1304,106 +1200,6 @@ def velocity(R, dt=None, copy=True, rslice=slice(None)):
 
 #-----------------------------------------------------------------------------
 
-def acorr(v, method=6):
-    """Normalized autocorrelation function (ACF) for 1d arrys: 
-    c(t) = <v(0) v(t)> / <v(0)**2>. 
-    The x-axis is the offset "t" (or "lag" in Digital Signal Processing lit.).
-
-    Several Python and Fortran implememtations. The Python versions are mostly
-    for reference. For large arrays, only the pure numpy and Fortran versions
-    fast and useful.
-
-    args:
-    -----
-    v : 1d array
-    method : int
-        1: Python loops
-        2: Python loops, zero-padded
-        3: method 1, numpy vectorized
-        4: uses numpy.correlate()
-        5: fft, Wiener-Khinchin Theorem
-        6: Fortran version of 1
-        7: Fortran version of 3
-    
-    returns:
-    --------
-    c : numpy 1d array
-        c[0]  <=> lag = 0
-        c[-1] <=> lag = len(v)
-    
-    notes:
-    ------
-    speed:
-        methods 1 ...  are loosely ordered slow .. fast
-    methods:
-       All methods, besides the FFT, are "exact", they use variations of loops
-       in the time domain, i.e. norm(acorr(v,1) - acorr(v,6)) = 0.0. 
-       The FFT method introduces small numerical noise, norm(acorr(v,1) -
-       acorr(v,4)) = 4e-16 or so.
-
-    signature of the Fortran extension _flib.acorr
-        acorr - Function signature:
-          c = acorr(v,c,method,[nstep])
-        Required arguments:
-          v : input rank-1 array('d') with bounds (nstep)
-          c : input rank-1 array('d') with bounds (nstep)
-          method : input int
-        Optional arguments:
-          nstep := len(v) input int
-        Return objects:
-          c : rank-1 array('d') with bounds (nstep)
-    
-    refs:
-    -----
-    [1] Numerical Recipes in Fortran, 2nd ed., ch. 13.2
-    [2] http://mathworld.wolfram.com/FourierTransform.html
-    [3] http://mathworld.wolfram.com/Cross-CorrelationTheorem.html
-    [4] http://mathworld.wolfram.com/Wiener-KhinchinTheorem.html
-    [5] http://mathworld.wolfram.com/Autocorrelation.html
-    """#%_flib.acorr.__doc__
-    nstep = v.shape[0]
-    c = np.zeros((nstep,), dtype=float)
-    if method == 1:
-        for t in xrange(nstep):    
-            for j in xrange(nstep-t):
-                c[t] += v[j]*v[j+t] 
-    elif method == 2:
-        vv = np.concatenate((v, np.zeros((nstep,),dtype=float)))
-        for t in xrange(nstep):    
-            for j in xrange(nstep):
-                c[t] += v[j]*vv[j+t] 
-    elif method == 3: 
-        for t in xrange(nstep):
-            c[t] = (v[:(nstep-t)] * v[t:]).sum()
-    elif method == 4: 
-        c = np.correlate(v, v, mode='full')[nstep-1:]
-    elif method == 5: 
-##        verbose("doing import: from scipy import fft, ifft")
-##        from scipy import fft, ifft
-        # Correlation via fft. After ifft, the imaginary part is (in theory) =
-        # 0, in practise < 1e-16.
-        # Cross-Correlation Theorem:
-        #   corr(a,b)(t) = Int(-oo, +oo) a(tau)*conj(b)(tau+t) dtau   
-        #                = ifft(fft(a)*fft(b).conj())
-        # If a == b (like here), then this reduces to the special case of the 
-        # Wiener-Khinchin Theorem (autocorrelation of `a`):
-        #   corr(a,a) = ifft(np.abs(fft(a))**2)
-        # Both theorems assume *periodic* data, i.e. `a` and `b` repeat after
-        # `nstep` points. To deal with non-periodic data, we use zero-padding
-        # at the end of `a` [1]. The result `c` contains the correlations for
-        # positive and negative lags. Since in the ACF is symmetric around
-        # lag=0, we return 0 ... +lag.
-        vv = np.concatenate((v, np.zeros((nstep,),dtype=float)))
-        c = ifft(np.abs(fft(vv))**2.0)[:nstep].real
-    elif method == 6: 
-        return _flib.acorr(v, c, 1)
-    elif method == 7: 
-        return _flib.acorr(v, c, 2)
-    else:
-        raise ValueError('unknown method: %s' %method)
-    return c / c[0]
-
-#-----------------------------------------------------------------------------
 
 def pyvacf(V, m=None, method=3):
     """
@@ -1576,7 +1372,7 @@ def direct_pdos(V, dt=1.0, m=None, full_out=False, natoms=1.0):
     # array of V.shape, axis=1 is the fft of the arrays along axis 1 of V
     fftv = np.abs(fft(V, axis=time_axis))**2.0
     if massvec is not None:
-        _assert(len(massvec) == V.shape[0], "len(massvec) != V.shape[0]")
+        assert_cond(len(massvec) == V.shape[0], "len(massvec) != V.shape[0]")
         fftv *= massvec[:,np.newaxis, np.newaxis]
     # average remaining axes        
     full_pdos = fftv.sum(axis=0).sum(axis=1)        
@@ -1585,6 +1381,7 @@ def direct_pdos(V, dt=1.0, m=None, full_out=False, natoms=1.0):
     faxis = full_faxis[:split_idx]
     pdos = full_pdos[:split_idx]
     
+    #FIXME : 3*natoms or 1 ??? Check with other functions.
 ##    default_out = (faxis, norm_int(pdos, faxis, area=3.0*natoms))
     default_out = (faxis, norm_int(pdos, faxis, area=1.0))
     extra_out = (full_faxis, full_pdos, split_idx)
@@ -1644,83 +1441,6 @@ def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False, natoms=1.0):
         return default_out + (extra_out,)
     else:
         return default_out
-
-
-#-----------------------------------------------------------------------------
-
-def dft(a, method='loop'):
-    """Simple straightforward complex DFT algo.
-    
-    args:
-    -----
-    a : numpy 1d array
-    method : string, {'matmul', 'loop'}
-    
-    returns: 
-    --------
-    (len(a),) array
-
-    examples:
-    ---------
-    >>> from scipy.fftpack import fft
-    >>> a=np.random.rand(100)
-    >>> sfft=fft(a)
-    >>> dfft1=dft(a, method='loop')
-    >>> dfft2=dft(a, method='matmul')
-    >>> np.testing.assert_array_almost_equal(sfft, dfft1)
-    >>> np.testing.assert_array_almost_equal(sfft, dfft2)
-
-    notes:
-    ------
-    This is only a reference implementation and has it's limitations.
-        'loop': runs looong
-        'matmul': memory limit
-        => use only with medium size arrays
-
-    N = len(a)
-    sqrt(-1) == np.sqrt(1.0 + 0.0*j) = 1.0j
-
-    Forward DFT, see [2,3], scipy.fftpack.fft():
-        y[k] = sum(n=0...N-1) a[n] * exp(-2*pi*n*k*sqrt(-1)/N)
-        k = 0 ... N-1
-    
-    Backward DFT, see [1] eq. 12.1.6, 12.2.2:
-        y[k] = sum(n=0...N-1) a[n] * exp(2*pi*n*k*sqrt(-1)/N)
-        k = 0 ... N-1
-
-    The algo for method=='matmul' is the matrix mult from [1], but as Forward
-    DFT for comparison with scipy. The difference between FW and BW DFT is that
-    the imaginary parts are mirrored around y=0. 
-
-    [1] Numerical Recipes in Fortran, Second Edition, 1992
-    [2] http://www.fftw.org/doc/The-1d-Real_002ddata-DFT.html
-    [3] http://mathworld.wolfram.com/FourierTransform.html
-    """
-    pi = constants.pi
-    N = a.shape[0]
-    # n and k run from 0 ... N-1
-    nk = np.linspace(0.0, float(N), endpoint=False, num=N)
-
-    if method == 'loop':
-        fta = np.empty((N,), dtype=complex)
-        for k in nk:
-            fta[k] = np.sum(a*np.exp(-2.0*pi*1.0j*k*nk/float(N)))
-    elif method == 'matmul':
-        # `mat` is the matrix with elements W**(n*k) in [1], eq. 12.2.2
-        nkmat = nk*nk[:,np.newaxis]
-        mat = np.exp(-2.0*pi*1.0j*nkmat/float(N))
-        fta = np.dot(mat, a)
-    else:
-        raise ValueError("illegal method '%s'" %method)
-    return fta            
-
-
-#-----------------------------------------------------------------------------
-
-def dft_axis(arr, axis=-1):
-    """Same as scipy.fftpack.fft(arr, axis=axis), but *much* slower."""
-    return np.apply_along_axis(dft, axis, arr)
- 
 
 #-----------------------------------------------------------------------------
 
@@ -1886,129 +1606,6 @@ def sliceput(a, b, sl, axis=None):
 ##    a[tuple(tmp)] = b
     a[tmp] = b
     return a
-
-#-----------------------------------------------------------------------------
-# crystal structure
-#-----------------------------------------------------------------------------
-
-def scell_mask(dim1, dim2, dim3):
-    """Build a mask for the creation of a dim1 x dim2 x dim3 supercell (for 3d
-    coordinates).  Return all possible permutations with repitition of the
-    integers n1, n2,  n3, and n1, n2, n3 = 0, ..., dim1-1, dim2-1, dim3-1 .
-
-    args:
-    -----
-    dim1, dim2, dim3 : int
-
-    returns:
-    --------
-    mask : 2d array, shape (dim1*dim2*dim3, 3)
-
-    example:
-    --------
-    >>> # 2x2x2 supercell
-    >>> scell_mask(2,2,2)
-    array([[ 0.,  0.,  0.],
-           [ 0.,  0.,  1.],
-           [ 0.,  1.,  0.],
-           [ 0.,  1.,  1.],
-           [ 1.,  0.,  0.],
-           [ 1.,  0.,  1.],
-           [ 1.,  1.,  0.],
-           [ 1.,  1.,  1.]])
-    >>> # a "plane" of 4 cells           
-    >>> scell_mask(2,2,1)
-    array([[ 0.,  0.,  0.],
-           [ 0.,  1.,  0.],
-           [ 1.,  0.,  0.],
-           [ 1.,  1.,  0.]])
-    
-    notes:
-    ------
-    If dim1 == dim2 == dim3 == n, then we have a permutation with repetition
-    (german: Variation mit Wiederholung):  select r elements out of n with
-    rep. In gerneral, n >= r or n < r possible. There are always n**r
-    possibilities.
-    Here r = 3 always (select x,y,z direction):
-    example:
-    n=2 : {0,1}   <=> 2x2x2 supercell: 
-      all 3-tuples out of {0,1}   -> n**r = 2**3 = 8
-    n=3 : {0,1,2} <=> 3x3x3 supercell:
-      all 3-tuples out of {0,1,2} -> n**r = 3**3 = 27
-    Computationally, we need `r` nested loops (or recursion of depth 3), one
-    per dim.  
-    """
-    b = [] 
-    for n1 in xrange(dim1):
-        for n2 in xrange(dim2):
-            for n3 in xrange(dim3):
-                b.append([n1,n2,n3])
-    return np.array(b, dtype=float)
-
-#-----------------------------------------------------------------------------
-
-def scell(R0, cp, mask, symbols):
-    """Build supercell based on `mask`.
-
-    args:
-    -----
-    R0 : 2d array, (natoms, 3) with atomic coords, these represent the initial
-        single unit cell
-    cp : 2d array, (3, 3)
-        cell parameters, lattice vecs as *rows* (see
-        cell_parameters())
-    mask : what scell_mask() returns, (N, 3)
-    symbols : list of strings with atom symbols, (natoms,), must match with the
-        rows of R0
-
-    returns:
-    --------
-    (sc_symbols, Rsc)
-    Rsc : array (N*natoms, 3)
-    sc_symbols : list of strings with atom symbols, (N*natoms,)
-
-    notes:
-    ------
-    This is tested for R0 in 'crystal' coords, i.e. in units of `cp`.
-    """
-    sc_symbols = []
-    Rsc = np.empty((mask.shape[0]*R0.shape[0], 3), dtype=float)
-    k = 0
-    for i in xrange(R0.shape[0]):
-        for j in xrange(mask.shape[0]):
-            # Build supercell. Place each atom N=dim1*dim2*dim3 times in the
-            # supercell, i.e. copy unit cell N times. Actually, N-1, since
-            # n1=n2=n3=0 is the unit cell itself.
-            # mask[j,:] = [n1, n2, n3], ni = integers (floats actually, but
-            #   mod(ni, floor(ni)) == 0.0)
-            # cp = [[-- a1 --]
-            #       [-- a2 --]
-            #       [-- a3 --]]
-            # dot(...) = n1*a1 + n2*a2 + n3*a3
-            # R0[i,:] = r_i = position vect of atom i in the unit cell
-            # r_i_in_supercell = r_i + n1*a1 + n2*a2 + n3*a3
-            #   for all permutations (see scell_mask()) of n1, n2, n3.
-            #   ni = 0, ..., dimi-1
-            Rsc[k,:] = R0[i,:] + np.dot(mask[j,:], cp)
-            sc_symbols.append(symbols[i])
-            k += 1
-    return sc_symbols, Rsc
-
-#-----------------------------------------------------------------------------
-
-def scell2(coords, cp, dims, symbols):
-    mask = scell_mask(*tuple(dims))
-    # in crystal coords w.r.t the *old* cell, i.e. the entries are not in [0,1]
-    scell_out = scell(coords, cp, mask, symbols)
-    # scale new cp acording to sc dims
-    new_cp = cp * np.asarray(dims)[:,np.newaxis]
-    # Rescale crystal coords to new_cp (coord_trans actually) -> all values in
-    # [0,1] again
-    # FIXME, this is hackish, let scell & friends return dicts, not tuples!
-    scell_out[1][:,0] /= dims[0]
-    scell_out[1][:,1] /= dims[1]
-    scell_out[1][:,2] /= dims[2]
-    return scell_out + (new_cp,)
 
 #-----------------------------------------------------------------------------
 
@@ -2198,22 +1795,19 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
                 newR[:,j,:] = dot(R[:,j,:],A.T)
     
     """
-    _assert(old.ndim == new.ndim == 2, "`old` and `new` must be rank 2 arrays")
-    _assert(old.shape == new.shape, "`old` and `new` must have th same shape")
+    assert_cond(old.ndim == new.ndim == 2, "`old` and `new` must be rank 2 arrays")
+    assert_cond(old.shape == new.shape, "`old` and `new` must have th same shape")
     msg = ''        
     if align == 'rows':
         old = old.T
         new = new.T
         msg = 'after transpose, '
-    _assert(R.shape[-1] == old.shape[0], "%slast dim of `R` must match first dim"
+    assert_cond(R.shape[-1] == old.shape[0], "%slast dim of `R` must match first dim"
         " of `old` and `new`" %msg)
     if copy:
         tmp = R.copy()
     else:
         tmp = R
-    # move import to module level if needed regularly
-##    verbose("[coord_trans] doing import: from scipy.linalg import inv") 
-##    from scipy.linalg import inv
     # must use `tmp[:] = ...`, just `tmp = ...` is a new array
     tmp[:] = np.dot(tmp, np.dot(inv(new), old).T)
     return tmp
@@ -2273,7 +1867,7 @@ def str_arr(arr, fmt='%.15g', delim=' '*4):
 def atpos_str(symbols, coords, fmt="%.10f"):
     """Convenience function to make a string for the ATOMIC_POSITIONS section
     of a pw.x input file. Usually, this can be used to process the output of
-    scell().
+    crys.scell().
     
     args:
     -----
@@ -2358,16 +1952,16 @@ def main(opts):
     pdosfn = pjoin(opts.outdir, fn_body + '.pdos' + file_suffix)
     
     # needed in 'parse' and 'dos'
-    pwin_nl = conf_namelists(opts.pwifn)
+    pwin_nl = pwin_namelists(opts.pwifn)
     
     # --- parse and write ----------------------------------------------------
     
     if opts.parse:
-        atspec = atomic_species(opts.pwifn)
-        atpos_in = atomic_positions(opts.pwifn, atspec)
+        atspec = pwin_atomic_species(opts.pwifn)
+        atpos_in = pwin_atomic_positions(opts.pwifn, atspec)
         
         # This is a bit messy: call every single parse function (atomic_*(),
-        # conf_namelists()) and pass their output as args to parse_pwout(). Why
+        # pwin_namelists()) and pass their output as args to parse_pwout(). Why
         # not make a big function that does all that under the hood? Because we
         # plan to use a class Parser one day which will have all these
         # individual functions as methods. Individual output args will be
@@ -2465,9 +2059,11 @@ def main(opts):
         # if celldm(1) present  -> CELL_PARAMETERS in alat -> crystal alat
         # if not                -> CELL_PARAMETERS in a.u. -> crystal a.u.
         # 
+        #FIXME: don't do coord trans if not necessary, what did we want to
+        #       achieve by that anyway??
         if unit == 'crystal' and opts.coord_trans:
             if ibrav == 0:
-                cp = cell_parameters(opts.pwifn)
+                cp = pwin_cell_parameters(opts.pwifn)
                 # CELL_PARAMETERS in alat
                 if pwin_nl['system'].has_key('celldm(1)'):
                     alat = _float(pwin_nl['system']['celldm(1)'])

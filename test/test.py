@@ -6,7 +6,7 @@
 import subprocess as sp
 import os
 import shutil
-
+import textwrap
 
 
 def system(call):
@@ -16,8 +16,12 @@ def system(call):
 
 if __name__ == '__main__':
     
-    print("*"*78)
-    print("testing cmd line")
+    print('\n' + "*"*78)
+    print(textwrap.dedent(
+    """\
+    Testing cmd line. There should some text output but NO ERROR MESSAGES. If
+    in doubt, run `./test.py 2>&1 | egrep -i 'error|warn'`\
+        """))
     print("*"*78)
 
     infile = "AlN.md.in"
@@ -29,8 +33,11 @@ if __name__ == '__main__':
     calls =[]
     calls.append("%s -i %s -o %s -x %s -p" %(exe, infile, outfile_gz, outdir) )
     calls.append("%s -i %s -o %s -x %s -d -m -M" %(exe, infile, outfile_gz, outdir))
+    calls.append("%s -i %s -o %s -x %s -p -d -m -M -f txt" %(exe, infile, outfile_gz, outdir))
+    calls.append("%s -i %s -o %s -x %s -d -m -M -t 'direct'" %(exe, infile, outfile_gz, outdir))
 
     for call in calls:
+        print('\n'+ '+'*78)
         system(call)
 
     if os.path.exists(outdir):
@@ -38,11 +45,11 @@ if __name__ == '__main__':
     
     #------------------------------------------------------------------------
 
-    print("*"*78)
+    print('\n' + "*"*78)
     print("testing import of pwtools package")
     print("*"*78)
     
-    # Modify PYTHONPATH so that we import from the current branch.
+    # Modify PYTHONPATH so that we import from the current dir.
     os.environ['PYTHONPATH'] = os.path.abspath('../../')
     print "modified os.environ['PYTHONPATH']:", os.environ['PYTHONPATH']
     system('cd $HOME && python -c "import pwtools"')
