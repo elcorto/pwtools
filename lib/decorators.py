@@ -1,6 +1,7 @@
 import types
 import gzip
-from common import fullpath
+import textwrap
+import os
 
 def open_and_close(func):
     """Decorator for all parsing functions that originally got a file name and
@@ -46,7 +47,7 @@ def open_and_close(func):
             fd = _open(fn, 'r')
             # Files opened with gzip don't have a 'name' attr.
             if not hasattr(fd, 'name'):
-                fd.name = fullpath(fn)
+                fd.name = os.path.abspath(os.path.expanduser(fn))
             largs[0] = fd
             ret = func(*tuple(largs), **kwargs)
             largs[0].close()
@@ -60,3 +61,12 @@ def open_and_close(func):
     wrapper.__doc__ = _doc
     wrapper.__name__ = func.__name__            
     return wrapper        
+
+#------------------------------------------------------------------------------
+
+def add_func_doc(func, doc_func=None):
+    """Add the docstring of the function object `doc_func` to func's doc
+    string."""
+    func.__doc__ += '\n\n' + textwrap.dedent(doc_func.__doc__)
+    return func
+

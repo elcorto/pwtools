@@ -186,6 +186,8 @@ class MachineBase(ClassBase):
         """Select queue on machine based on the number of requested cpus."""
         # str
         self.queue = None
+   
+    
     
 #-----------------------------------------------------------------------------
     

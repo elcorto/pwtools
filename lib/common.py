@@ -11,6 +11,12 @@ import os
 import subprocess
 import re
 import shutil
+import re
+import hashlib
+
+from decorators import add_func_doc
+
+#-----------------------------------------------------------------------------
 
 def assert_cond(cond, string=None):
     """Use this instead of `assert cond, string`. It's been said on
@@ -254,19 +260,33 @@ def tgrep(*args,  **kwargs):
 
 #-----------------------------------------------------------------------------
 
-def raw_template_replace(txt, dct, conv=False, warn_mult_found=True,
-                         warn_not_found=True, disp=True):
+def template_replace(txt, dct, conv=False, warn_mult_found=True,
+                     warn_not_found=True, disp=True, mode='dct'):
     """Replace placeholders dct.keys() with string values dct.values() in a
-    text string. 
+    text string. This function adds some bells and whistles such as warnings
+    in case of not-found placeholders and whatnot. 
     
     args:
     -----
     txt : string
-    dct : dictionary with placeholders
+    dct : dictionary with placeholders (keys) and values to replace them
     conv : bool, convert `dct` values to strings with str()
     warn_mult_found : bool, warning if a key is found multiple times in `txt`
     warn_not_found : bool, warning if a key is NOT found in `txt`
     disp : tell which keys hav been replaced
+    mode: str, {'dct', 'txt'}, placeholder mode
+        'dct' : Dictionary mode. Placeholders are of special Python dictionary
+            string replacement form: '%(<name>)<format_str>', e.g. '%(foo)s'
+            and dct.keys() must be normal strings, e.g. 'foo'.
+            dct.values() can be anything. The conversion to a string is done at
+            replacement time and determined by the <format_str>. This
+            effecticly does `txt % dct`. This method is faster, uses Python
+            standard syntax and is therefore default.
+        'txt' : Text mode. Placeholders in `txt` and keys in `dct` are the
+            exact same arbitrary string (e.g. 'XXXFOO' in both). Here,
+            dct.values() must be strings. If not, use conv=True to
+            automatically convert them to strings, but note that this is
+            limited since only str(<val>) is used.
     
     returns:
     --------
@@ -274,63 +294,71 @@ def raw_template_replace(txt, dct, conv=False, warn_mult_found=True,
     
     example:
     --------
-    >>> txt = file_read('file.txt')
-    >>> new_txt = raw_template_replace(txt, {'one': 1, 'two': 2}, conv=True)
-
-    notes:
-    ------
-    Speed:
-        `txt` us usually a read text file (txt=fd.read()).  Although we use
-        txt.replace(), this method ~ 4 times faster then looping
-        over lines in fd. But: only as long as `txt` fits entirely into memory.
-    Placeholderes:
-        Placeholders can be arbitrary strings. Note that even the special Python 
-        %(<string>)s dictionary string replacement placeholders are treated as
-        ordinary strings, i.e. we still use `txt.replace()' instead of 
-        `txt % dct'.
-        If you don't need the bells and whistles of this function, simply use
-        `newtxt = txt % dct'.
+    >>> txt = file_read('file.txt') 
+    >>> dct = {'XXXONE': 1, 'XXXPI': '%.16e' %math.pi}
+    >>> new_txt = template_replace(txt, dct, conv=True, mode='txt')
+    >>>
+    >>> txt = 'XXXONE  XXXPI'                            
+    >>> dct = {'XXXONE': '1', 'XXXPI': '%.16e' %math.pi}
+    >>> template_replace(txt, dct, mode='txt')
+    >>> '1  3.1415926535897931e+00'
+    >>>
+    >>> txt = '%(one)s  %(pi).16e'; dct = {'one': 1, 'pi': math.pi}
+    >>> template_replace(txt, dct)
+    >>> '1  3.1415926535897931e+00'
+    >>> txt % dct
+    >>> '1  3.1415926535897931e+00'
     """
     if isinstance(txt, types.DictType):
         raise ValueError("1st arg is a dict. You probably use the old syntax. "
                          "The new syntax in func(txt, dct) instead of "
                          "func(dct, txt)")
-    # This is a pointer. Each txt.replace() returns a copy.
-    new_txt = txt
+    is_txt_mode = False
+    is_dct_mode = False
+    if mode == 'dct':
+        is_dct_mode = True
+        if conv:
+            print("template_replace: Warning: `conv=True` is ignored if "
+                  "mode=='dct'")
+    elif mode == 'txt':
+        is_txt_mode = True
+    else:
+        raise StandardError("mode must be 'txt' or 'dct'")
+    
+    # This is a copy. Each txt.replace() returns an additional copy. We need
+    # that if we loop over dct.iteritems() and sucessively replace averything.
+    if is_txt_mode: 
+        new_txt = txt
     for key, val in dct.iteritems():
-        if key in new_txt:
-            if val is None:
-                print "template_replace: value for key '%s' is None, skipping" %key
-                continue
-            if conv:
-                val = str(val)
-            if not isinstance(val, types.StringType):
-                raise StandardError("dict vals must be strings: "
+        if is_dct_mode:
+            # The key is '%(foo)s', but searching for '%(foo)' must suffice,
+            # since we don't know the format string, in this case 's', in
+            # `txt`.
+            tst_key = '%'+ '(%s)' %key
+        else:
+            tst_key = key
+        if tst_key in txt:
+            if is_txt_mode:
+                if conv:
+                    val = str(val)
+                if not isinstance(val, types.StringType):
+                    raise StandardError("dict vals must be strings: "
                                     "key: '%s', val: " %key + str(type(val)))
             if warn_mult_found:                    
-                cnt = txt.count(key)
+                cnt = txt.count(tst_key)
                 if cnt > 1:
                     print("template_replace: warning: key '%s' found %i times"
-                    %(key, cnt))
-            new_txt = new_txt.replace(key, val)
+                    %(tst_key, cnt))
+            if is_txt_mode:                    
+                new_txt = new_txt.replace(key, val)
             if disp:
                 print("template_replace: %s -> %s" %(key, val))
         else:
             if warn_not_found:
-                print "template_replace: key not found: %s" %key
+                print "template_replace: key not found: %s" %tst_key
+    if is_dct_mode:
+        new_txt = txt % dct
     return new_txt
-
-#-----------------------------------------------------------------------------
-
-def template_replace(txt, dct, warn=True):
-    """Replace placeholders in `txt`. Print only successful replaces and
-    warnings (unless warn = False, then don't print warnings)."""
-    if isinstance(txt, types.DictType):
-        raise ValueError("1st arg is a dict. You probably use the old syntax. "
-                         "The new syntax in func(txt, dct) instead of "
-                         "func(dct, txt)")
-    return raw_template_replace(txt, dct, conv=True, warn_mult_found=warn,
-        warn_not_found=warn, disp=True)
 
 #-----------------------------------------------------------------------------
 
@@ -352,7 +380,7 @@ def file_template_replace(fn, dct, bak='', **kwargs):
     --------
     dct = {'xxx': 'foo', 'yyy': 'bar'}
     fn = 'bla.txt'
-    file_template_replace(fn, dct, '.bak')
+    file_template_replace(fn, dct, '.bak', mode='txt')
     
     This the same as:
     shell$ sed -i.bak -r -e 's/xxx/foo/g -e 's/yyy/bar/g' bla.txt"""
@@ -360,6 +388,140 @@ def file_template_replace(fn, dct, bak='', **kwargs):
     if bak != '':
         shutil.copy(fn, fn + bak)                
     file_write(fn, txt)
+
+#-----------------------------------------------------------------------------
+
+# template hash function
+def hash(txt, mod_funcs=[], skip_funcs=[]):
+    """
+    Calculate a line-order-independent md5 hash of a text file. Do it in a
+    special way so that only the hash of the "information contained in the
+    file" is computed, not of the whole file. For instance, in most input
+    files, whitespaces or the order in which lines appear is not important. 
+    
+    To get a hash that is independent of the order of the lines, we loop over
+    each line, compute it's hash, sum up all hashes and at the end return the
+    hash of this sum. 
+    
+    Additionally, we allow user-defined functions to modify lines (mod_funcs)
+    and functions that analyze a line and tell if it should be skipped over. In
+    that way, only (possibly modified) lines contribute to the hash. 
+    
+    In short, we do
+        * loop over the lines of the file
+        * for each function in `mod_funcs`, apply line=func(line), e.g. remove
+          whitespace etc.
+        * for each function in `skip_funcs`, apply func(line), if it returns
+          True, then that line is skipped (useful to skip over comment lines or
+          empty lines)
+    args:
+    -----
+    txt : a string (most likely open(<file>).read())
+    mod_funcs : list of functions that take one arg: a string (the line) and
+        return a string
+    skip_funcs : list of functions that take one arg: a string (the line) and
+        return True or False
+    
+    mod_funcs and skip_funcs shall NOT assume to get lines that are alraedy
+    modified in are way. They shall expect lines as read from the file.
+
+    returns:
+    --------
+    hex string, the hash
+
+    notes:
+    ------
+    Integer representations of the hex strings of each line, e.g.  
+        int(hashlib.md5(...), 16)
+    yield large integers. If the result is > sys.maxint, then a long int (as
+    opposed to a plain int) is automatically returned. But we use long() right
+    away and work only with long. Luckily, these have unlimited precision, so
+    there won't be any overflows if we add them up for large files (many
+    lines). [1]
+
+    We have no idea if the whole procedure is even mathematically correct etc.
+    Use with care.
+    
+    This function is slow. Don't use on MB-sized files. Especially the usage
+    idiom
+        hash(file_read(<filename>)) 
+    is far from efficient. It reads the whole file into memory and then calls
+    txt.splitlines(), which consumes additional memory. This is only important
+    for very big files (~5 min for a 650 MB test file). We focus only on
+    convenience and correctness right now.
+
+    refs:
+    -----
+    [1] http://docs.python.org/library/stdtypes.html#numeric-types-int-float-long-complex
+    """
+    sm = 0
+    for line in txt.splitlines():
+        skip = False
+        for func in skip_funcs:
+            if func(line):
+                skip=True
+                break
+        if not skip:
+            for func in mod_funcs:
+                line = func(line)
+            # long(..., 16) converts the kex string into a (long) int
+            sm += long(hashlib.md5(line).hexdigest(), 16)
+    return hashlib.md5(str(sm)).hexdigest()        
+
+def _add_hash_func_doc(func):
+    return add_func_doc(func, doc_func=hash)
+
+
+# Helper functions which define the "grammar" of the file, i.e. what can be
+# removed and skipped over.
+
+# line modifiers
+
+def _rem_ws(line, rex=re.compile(r'\s')):
+    r"""Remove whitespace [ \t\n\r\f\v] ."""
+    return rex.sub('', line)
+
+def _pwin_rem_comma(line, rex=re.compile(r'(.*),$')):
+    """Remove comma at the end of the line."""
+    return rex.sub(r'\1', line)
+
+def _pwin_to_lower(line):
+    """Even though some identifiers in pw.x input files MUST be upper-case
+    (e.g. ATOMIC_POSITIONS), we convert everything to lower for the hash, since
+    must identifiers are (as Fortran itself is) case-insensitive."""
+    return line.lower()
+
+# skippers, should assume to get lines as read from the file, i.e. NOT already
+# modified (e.g. whitespace removed or anything)
+
+def _pwin_match_comment(line, cmt=['!']):
+    """Return True if the line starts with one of the strings in
+    `cmt`. Here, some compilers allow Fortran 90 comments in the input and
+    ignore them. We also do that."""
+    if line.strip()[0] in cmt:
+        return True
+    else:
+        return False
+
+def _match_empty(line):
+    """Return True if the line contains only whitespace."""
+    if line.strip() == '':
+        return True
+    else:
+        return False
+
+@_add_hash_func_doc
+def pwin_hash(txt, mod_funcs=[_rem_ws, _pwin_rem_comma, _pwin_to_lower], 
+                   skip_funcs=[_pwin_match_comment, _match_empty]):
+    """Hash for pw.x input files."""                   
+    return hash(txt, mod_funcs=mod_funcs, skip_funcs=skip_funcs)                   
+
+@_add_hash_func_doc
+def generic_hash(txt, mod_funcs=[_rem_ws], 
+                   skip_funcs=[_match_empty]):
+    """Generic hash for text files. Irgores: line order, all whitespaces and
+    newlines."""                   
+    return hash(txt, mod_funcs=mod_funcs, skip_funcs=skip_funcs)
 
 #-----------------------------------------------------------------------------
 # Dictionary tricks
