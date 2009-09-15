@@ -3,6 +3,7 @@
 ! The pydos package. 
 ! 
 
+
 subroutine vacf(v, m, c, method, natoms, nstep, use_m)
     
     ! Normalized vacf: c_vv(t) = C_vv(t) / C_vv(0)
@@ -10,6 +11,10 @@ subroutine vacf(v, m, c, method, natoms, nstep, use_m)
     ! method=1: loops
     ! method=2: vectorized, but makes a copy of `v`
          
+    
+    use omp_lib
+    !f2py threadsafe
+
     implicit none
     integer :: natoms, nstep, t, i, j, k, method, use_m
     double precision, intent(in) :: v(0:natoms-1, 0:nstep-1, 0:2)
@@ -30,7 +35,11 @@ subroutine vacf(v, m, c, method, natoms, nstep, use_m)
         ! inner loop.
         ! The other possibility, an if-condition in the inner loop, seems
         ! stupid.
+
+
         if (use_m == 1) then
+            !$omp parallel num_threads(4)
+            !$omp do
             do t = 0,nstep-1
                 do j = 0,nstep - t - 1
                     do i = 0,natoms-1
@@ -41,7 +50,11 @@ subroutine vacf(v, m, c, method, natoms, nstep, use_m)
                     end do                    
                 end do                    
             end do
+            !$omp end do
+            !$omp end parallel
         else if (use_m == 0) then
+            !$omp parallel num_threads(4)
+            !$omp do
             do t = 0,nstep-1
                 do j = 0,nstep - t - 1
                     do i = 0,natoms-1
@@ -52,6 +65,8 @@ subroutine vacf(v, m, c, method, natoms, nstep, use_m)
                     end do                    
                 end do                    
             end do
+            !$omp end do
+            !$omp end parallel
         else
             call error("_flib.so, vacf", "illegal value for 'use_m'")
             return
@@ -76,11 +91,15 @@ subroutine vacf(v, m, c, method, natoms, nstep, use_m)
         ! vv(i,j,:) . vv(i,j+t,:), we get m(i) back.
         
         if (use_m == 1) then
+            !$omp parallel num_threads(4)
+            !$omp do
             do j = 0,nstep-1
                 do k = 0,2
                     vv(:,j,k) = dsqrt(m) * v(:,j,k)
                 end do    
             end do
+            !$omp end do
+            !$omp end parallel
             call vect_loops(vv, natoms, nstep, c)
         else if (use_m == 0) then        
             call vect_loops(v, natoms, nstep, c)
@@ -100,16 +119,25 @@ end subroutine vacf
 
 subroutine vect_loops(v, natoms, nstep, c)
     
+    use omp_lib
     implicit none
+    
+    !f2py threadsafe
+    
     integer :: t, nstep, natoms
     ! v(:, :, :) and v(0:, 0:, 0:) results in c = [NaN, ..., NaN]. 
     ! v(0:, 0:nstep-1, 0:) is not allowed (at least, ifort complains).
 !!    double precision, intent(in) :: v(:, :, :)
     double precision, intent(in) :: v(0:natoms-1, 0:nstep-1, 0:2)
     double precision, intent(out) :: c(0:nstep-1)
+    
+    !$omp parallel num_threads(4)
+    !$omp do
     do t = 0,nstep-1
         c(t) = sum(v(:,:(nstep-t-1),:) * v(:,t:,:))
     end do
+    !$omp end do
+    !$omp end parallel
 
 end subroutine vect_loops
 

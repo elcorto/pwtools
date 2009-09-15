@@ -83,8 +83,8 @@
 #     For compiler details, run 'config_fc --verbose' setup command.
 # 
 # So it has correctly found my ifort 9.1 and uses that by default. If you want
-# another compiler, e.g.  gfortran, modify F2PY_FLAGS to use
-# "--fcompiler=gnu95".    
+# another compiler, e.g. gfortran, modify F2PY_FLAGS to use
+# --fcompiler=gnu95 or set --f90exec=/usr/bin/gfortran directly.     
 # 
 # There is also a pythonic way to build the extension: setup.py (i.e. using
 # Python's distutils).  See
@@ -93,6 +93,23 @@
 #     $ python setup.py build --help-fcompiler
 #
 # and comments in setup.py .
+#
+# OpenMP: We tried to speed up the calculations by sprinkling some OpenMP
+# pragmas in flib.f90. This works pretty good. If you wanna try, uncomment 
+# F2PY_OMP_FLAGS below. If all went well, _flib.so should be linked to libgomp
+# (or libiomp for ifort). Check with
+# 	$ ldd _flib.so
+# But its disabled by default b/c we have currently (August 2009) no idea how
+# to set the number of threads. 
+# 	$ export OMP_NUM_THREADS=2
+# or so doesn't work. It works for normal Fortran programs, but not for f2py
+# extensions. Maybe Fortran processes started from Python don't look into the
+# environment vars? 
+# If we don't use 'num_threads(2)' in
+# 	!$omp parallel num_threads(2)
+# then we always get 4. Is this determined by the total number of cores 
+# available?
+
 
 #--- variables ---------------------------------------------------------------
 
@@ -104,22 +121,31 @@ EXE=$(FILE).x
 EXT_MODULE=_$(FILE)
 SO=$(EXT_MODULE).so
 
+# For OpenMP.
+# -fopenmp -lgomp for gfortran, -openmp -liomp for ifort
+#
+##F2PY_OMP_FLAGS=--f90flags='-fopenmp' -lgomp
+F2PY_OMP_FLAGS=
+
 # f2py stuff
 #
 # numpy.distutils has default -03 for fcompiler. --f90flags="-02" does NOT
-# override this. We get "-O3 -O2" and a compiler warning.
-# On cartman (AMD X4 Phenom), the numpy.distutils falsely sets "-march=k6-2".
-F2PY_FLAGS=--opt='-O2' \
+# override this. We get "-O3 -O2" and a compiler warning. We have to use f2py's
+# --opt= flag.
+# 
+# On cartman (AMD X4 Phenom), numpy.distutils falsely sets "-march=k6-2".
+# So we set f2py's --arch flag manually.
+F2PY_FLAGS=--opt='-O3' \
 			-DF2PY_REPORT_ON_ARRAY_COPY=1 \
 			--f90exec=/usr/bin/gfortran \
-			--arch='-mmmx -m3dnow -msse2 -msse -msse3'
+			--arch='-mmmx -m3dnow -msse2 -msse -msse3' $(F2PY_OMP_FLAGS)
 
 
 # compiler 
 #
 # It is NOT needed for buiding the extension. No need to change that unless you
-# want to compile $(EXE).
-F90=ifort
+# want to compile $(EXE), see below.
+F90=gfortran
 
 #--- targets ----------------------------------------------------------------
 

@@ -101,6 +101,9 @@ TODO
   We use this e.g. in next_line().
 """
 
+# FIXME We assume that the ATOMIC_POSITIONS unit (crystal, alat, angstrom) in
+# pw.in and that of the parsed out ones from pw.out are the same. Check this!
+
 ##from debug import Debug
 ##DBG = Debug()
 
@@ -131,8 +134,7 @@ from scipy.integrate import simps
 # own modules
 import constants
 import _flib
-from common import assert_cond
-from common import fileo, system, fullpath
+from common import assert_cond, file_write, fileo, system, fullpath
 from decorators import open_and_close
 
 # save stdlib's repr
@@ -205,11 +207,16 @@ def writetxt(fn, arr, axis=-1):
     if arr.ndim < maxdim:
         np.savetxt(fn, arr)
     # 3d        
-    else:        
+    else:
+        # purge file content
+        file_write(fn, '')
+        fh = open(fn, 'a')
+        # write 2d arrays, one by one
         sl = [slice(None)]*arr.ndim
         for ind in range(arr.shape[axis]):
             sl[axis] = ind
-            np.savetxt(fn, arr[sl])
+            np.savetxt(fh, arr[sl])
+        fh.close()            
     fd.close()        
     
 #-----------------------------------------------------------------------------
@@ -272,6 +279,8 @@ def writearr(fn, arr, order='C', endian='<', comment=None, info=None,
         c.set(sec, 'order', order)
         c.set(sec, 'endian', endian)
         c.set(sec, 'dtype', str(arr.dtype))
+    elif type == 'txt':
+        c.set(sec, 'axis', axis)
     if info is not None:
         c = _add_info(c, info) 
     f = open(fn + '.info', 'w')
@@ -1020,7 +1029,7 @@ def pwin_namelists(fh, cardnames=INPUT_PW_CARDS):
 #-----------------------------------------------------------------------------
 
 @open_and_close
-def parse_pwout(fh, pwin_nl=None, atspec=None, atpos_in=None):
+def parse_pwout_md(fh, pwin_nl=None, atspec=None, atpos_in=None, nstep=None):
     """
     args:
     -----
@@ -1028,9 +1037,17 @@ def parse_pwout(fh, pwin_nl=None, atspec=None, atpos_in=None):
     pwin_nl : dict returned by pwin_namelists()
     atspec : dict returned by pwin_atomic_species()
     atpos_in : dict returned by pwin_atomic_positions()
+    nstep : number of time steps in pw.out file (if None then it will be read
+        from pwin_fn -> control:nstep)
     """
-    verbose("[parse_pwout] parsing %s" %(fh.name))
-    nstep = int(pwin_nl['control']['nstep'])
+    verbose("[parse_pwout_md] parsing %s" %(fh.name))
+    stop_at_nstep = False
+    if nstep is None:
+        nstep = int(pwin_nl['control']['nstep'])
+        verbose("[parse_pwout_md] using 'nstep' from input file")
+    else:
+        verbose("[parse_pwout_md] using nstep = %i" %nstep)
+        stop_at_nstep = True
     # Start temperature of MD run. Can also grep it from .out file, pattern for
     # re.search() (untested):
     # r'Starting temperature\s+=\s+([0-9eEdD+-\.])+\s+K'. Comes before the first 
@@ -1078,7 +1095,7 @@ def parse_pwout(fh, pwin_nl=None, atspec=None, atpos_in=None):
         fh, flag, match = scan_until_pat2(fh, scan_stress_rex, err=False,
                                           retmatch=True)
         if flag == 0:
-            verbose("[parse_pwout] stress scan: end of file "
+            verbose("[parse_pwout_md] stress scan: end of file "
                 "'%s'" %fh.name)
             break
         else:            
@@ -1088,7 +1105,7 @@ def parse_pwout(fh, pwin_nl=None, atspec=None, atpos_in=None):
         
         fh, flag = scan_until_pat2(fh, scan_atpos_rex, err=False)
         if flag == 0:
-            verbose("[parse_pwout] atomic positions scan: end of file "
+            verbose("[parse_pwout_md] atomic positions scan: end of file "
                 "'%s'" %fh.name)
             break
         else:            
@@ -1103,13 +1120,17 @@ def parse_pwout(fh, pwin_nl=None, atspec=None, atpos_in=None):
         fh, flag, match = scan_until_pat2(fh, scan_temp_rex, err=False,
                                           retmatch=True)
         if flag == 0:
-            verbose("[parse_pwout] temperature scan: end of file "
+            verbose("[parse_pwout_md] temperature scan: end of file "
                 "'%s'" %fh.name)
             break
         else:            
             T[j] = _float(match.group(1))
         
         j += 1
+        if j == nstep+1 and stop_at_nstep:
+            verbose("[parse_pwout_md] nstep reached, stopping parsing")
+            break
+    
     endj = j-1
     if endj != nstep:
         verbose("WARNING: file '%s' seems to short" %fh.name)
@@ -1120,16 +1141,139 @@ def parse_pwout(fh, pwin_nl=None, atspec=None, atpos_in=None):
 ##    DBG.pt('parse-output')
     return {'R': R, 'T': T, 'P': P, 'skipend': nstep-endj}
 
+#-----------------------------------------------------------------------------
+
 # Convenience wrapper for interactive usage. 
-def parse_pwout_ia(pwifn, pwofn):
+def parse_pwout_md_ia(pwifn, pwofn):
     pwin_nl = pwin_namelists(pwifn)
     atspec = pwin_atomic_species(pwifn)
     atpos_in = pwin_atomic_positions(pwifn, atspec)
-    pwout = parse_pwout(pwofn,
+    pwout = parse_pwout_md(pwofn,
                         pwin_nl=pwin_nl, 
                         atspec=atspec,
                         atpos_in=atpos_in)
     return pwout                        
+
+#-----------------------------------------------------------------------------
+
+@open_and_close
+def parse_pwout_vc_md(fh, pwin_nl=None, atspec=None, atpos_in=None, nstep=None):
+    """
+    args:
+    -----
+    fh : fileobj of the pw.x output file
+    pwin_nl : dict returned by pwin_namelists()
+    atspec : dict returned by pwin_atomic_species()
+    atpos_in : dict returned by pwin_atomic_positions()
+    nstep : number of time steps in pw.out file (if None then it will be read
+        from pwin_fn -> control:nstep)
+    """
+    verbose("[parse_pwout_vc_md] parsing %s" %(fh.name))
+    stop_at_nstep = False
+    if nstep is None:
+        nstep = int(pwin_nl['control']['nstep'])
+        verbose("[parse_pwout_vc_md] using 'nstep' from input file")
+    else:
+        verbose("[parse_pwout_vc_md] using nstep = %i" %nstep)
+        stop_at_nstep = True
+        
+    # Start temperature of MD run. Can also grep it from .out file, pattern for
+    # re.search() (untested):
+    # r'Starting temperature\s+=\s+([0-9eEdD+-\.])+\s+K'. Comes before the first 
+    # 'ATOMIC_POSITIONS' and belongs to Rold.
+    tempw = _float(pwin_nl['ions']['tempw'])
+    
+    # Rold: (natoms x 3)
+    Rold = atpos_in['R0']
+    # Or: natoms = pwin_nl['system']['nat']
+    natoms = atpos_in['natoms']
+    
+##    DBG.t('parse-output')
+    
+    # Allocate R to store atomic coords.
+    #
+    # i = atom index: 0 ... natoms-1
+    # j = time index: 0 ... nstep (NOTE: R.shape[1] = nstep+1 b/c j=0 -> Rold)
+    # k = velocity or component index: x -> k=0, y -> k=1, z -> k=3
+    # R[:,j,:] = (natoms x 3) array, atomic positions
+    #
+    Rshape = (natoms, nstep+1, 3)
+    R = np.empty(Rshape, dtype=float)
+    R[:,0,:] = Rold
+    
+    # temperature array
+    T = np.empty((nstep+1,), dtype=float)
+    T[0] = tempw
+    
+    # pressure array
+    P = np.empty((nstep+1,), dtype=float)
+
+    # R[:,0,:] = Rold, fill R[:,1:,:]
+    j=1
+    scan_atpos_rex = re.compile(r'^ATOMIC_POSITIONS\s*')
+    scan_ekin_temp_etot_rex = \
+        re.compile(r'\s+Ekin\s+=\s+(' + FLOAT_RE + ')\s+Ry\s+'
+                     'T\s+=\s+(' + FLOAT_RE + ')\s+K\s+'
+                     'Etot\s+=\s+(' + FLOAT_RE + ')')
+    scan_stress_rex = re.compile(r'\s+total\s+stress\s+.*P.*=\s*(' + FLOAT_RE + ')')
+    while True:
+        
+        # --- stress -----------------
+
+        # Stress information for the *previous*, i.e. (j-1)th, iteration. P[0]
+        # is the starting stress before the 1st MD iter. We do it this way b/c
+        # we can't assign P[0] = p0 before the loop b/c we simply just don't 
+        # know p0 from nowhere but the outfile.
+        fh, flag, match = scan_until_pat2(fh, scan_stress_rex, err=False,
+                                          retmatch=True)
+        if flag == 0:
+            verbose("[parse_pwout_vc_md] stress scan: end of file "
+                "'%s'" %fh.name)
+            break
+        else:            
+            P[j-1] = _float(match.group(1))
+        
+        # --- temperature -------------
+        
+        fh, flag, match = scan_until_pat2(fh, scan_ekin_temp_etot_rex, err=False,
+                                          retmatch=True)
+        if flag == 0:
+            verbose("[parse_pwout_vc_md] temperature scan: end of file "
+                "'%s'" %fh.name)
+            break
+        else:
+            T[j] = _float(match.group(2))
+        
+        # --- CELL_PARAMETERS --------
+
+        # --- ATOMIC_POSITIONS --------
+        
+        fh, flag = scan_until_pat2(fh, scan_atpos_rex, err=False)
+        if flag == 0:
+            verbose("[parse_pwout_vc_md] atomic positions scan: end of file "
+                "'%s'" %fh.name)
+            break
+        else:            
+            # Rw: no copy, pointer to work array (view of slice), in-place
+            # modification in function atomic_positions_out*()
+            Rw = R[:,j,:]
+            fh = atomic_positions_out2(fh, natoms, Rw)
+        
+        j += 1
+        if j == nstep+1 and stop_at_nstep:
+            verbose("[parse_pwout_vc_md] nstep reached, stopping parsing")
+            break
+    
+    endj = j-1
+    if endj != nstep:
+        verbose("WARNING: file '%s' seems to short" %fh.name)
+        verbose("    nstep = %s" %nstep)
+        verbose("    iters in file = %s" %endj)
+        verbose("    rest of output arrays (R, T, P) and all arrays depending "
+              "on them will be zero or numpy.empty()")
+##    DBG.pt('parse-output')
+    return {'R': R, 'T': T, 'P': P, 'skipend': nstep-endj}
+
 
 #-----------------------------------------------------------------------------
 # computational
@@ -1941,8 +2085,12 @@ def main(opts):
     elif opts.file_type == 'txt':
         file_suffix = '.txt'
     else:
-        raise StandardError("wrong opts.file_type")
-    verbose("fn_body: %s" %fn_body        )
+        raise StandardError("wrong file_type: %s"  %opts.file_type)
+    verbose("fn_body: %s" %fn_body)
+    #TODO: parse for ekin, etot, etc. But don't fix file names here. Instead,
+    # depending of what can be parsed out of a data file (e.g. P, T. Etot,
+    # etc), generate file names automagically. -> We need that Parser calss
+    # really bad :)
     vfn = pjoin(opts.outdir, fn_body + '.v' + file_suffix)
     rfn = pjoin(opts.outdir, fn_body + '.r' + file_suffix)
     mfn = pjoin(opts.outdir, fn_body + '.m' + file_suffix)
@@ -1961,15 +2109,22 @@ def main(opts):
         atpos_in = pwin_atomic_positions(opts.pwifn, atspec)
         
         # This is a bit messy: call every single parse function (atomic_*(),
-        # pwin_namelists()) and pass their output as args to parse_pwout(). Why
+        # pwin_namelists()) and pass their output as args to parse_pwout_md(). Why
         # not make a big function that does all that under the hood? Because we
         # plan to use a class Parser one day which will have all these
         # individual functions as methods. Individual output args will be
         # shared via data members. Stay tuned.
+        if opts.calc_type == 'md':
+            parse_pwout = parse_pwout_md
+        elif opts.calc_type == 'vc-md':            
+            parse_pwout = parse_pwout_vc_md
+        else:
+            raise StandardError("illegal calc_type, allowed: md, vc-md")
         pwout = parse_pwout(opts.pwofn,
                             pwin_nl=pwin_nl, 
                             atspec=atspec,
-                            atpos_in=atpos_in)
+                            atpos_in=atpos_in,
+                            nstep=opts.nstep)
         
         massvec = atpos_in['massvec']
         Rfull = pwout['R']
@@ -2131,7 +2286,7 @@ def main(opts):
         # v_x(t)> = 1/dt^2 <dx(0) dx(t)> ) which cancels in the normalization.
         # dt is not needed in the velocity calculation.
         V = velocity(R, copy=False)
-        writearr(vfn, V, axis=1, type=opts.file_type)
+        writearr(vfn, V, type=opts.file_type, axis=1)
 
         # in s
         dt = _float(pwin_nl['control']['dt']) * constants.tryd
@@ -2180,7 +2335,9 @@ def main(opts):
             # Integral normalized to 1.0: int(pdos, f) = 1.0 
             # f [Hz]  pdos
             """)
-            
+        else:
+            raise StandardError("illegal dos_method: %s" %opts.dos_method)
+
         df1 = full_faxis[1]-full_faxis[0]
         df2 = 1.0/len(full_faxis)/dt
         # f axis in in order 1e12, so small `decimal` values are sufficient
@@ -2349,6 +2506,17 @@ def get_parser():
     parser.add_argument('-t', '--dos-method', 
         default='vacf',
         help="""{'vacf', 'direct'} method to calculate PDOS  [%(default)s]""",
+        )
+    parser.add_argument('-C', '--calc-type', 
+        default='md',
+        help="""{'md', 'vc-md'} calculation method of the md in pw.x [%(default)s]""",
+        )
+    parser.add_argument('-n', '--nstep', 
+        type=int,
+        default=None,
+        help="""int, if for some reason the number of steps in PWINFN
+        (control:nstep) does not match the actual number if iterations in
+        PWOFN, use this to set the value [%(default)s]""",
         )
     return parser
 
