@@ -8,6 +8,7 @@ __all__ = [\
     'decorators', 
     'pydos', 
     'crys',
+    'mpl',
     ]
 
 

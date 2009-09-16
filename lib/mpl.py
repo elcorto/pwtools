@@ -155,7 +155,7 @@ def set_plot_layout_phdth(pyl_obj):
 #----------------------------------------------------------------------------
 
 def new_axis(fig, hostax, off=50, loc='bottom', ticks=None, ws_add=0.1,
-             label='', share=False):
+             label='', sharex=False, sharey=False):
     """Make a new axis line using mpl_toolkits.axes_grid's SubplotHost and
     ParasiteAxes. The new axis line will be an instance of ParasiteAxes
     attached to `hostax`. You can do twinx()/twiny() type axis (off=0) or
@@ -175,15 +175,23 @@ def new_axis(fig, hostax, off=50, loc='bottom', ticks=None, ws_add=0.1,
         axis line (only useful if off != 0). The number is a relative unit
         and is used to change the bounding box: hostax.get_position().
     label : str, xlabel (ylabel) for 'top','bottom' ('left', 'right')
-    share : bool, share xaxis (yaxis) with `hostax` for 'left', 'right'
-        ('top','bottom')      
+    sharex, sharey : bool, share xaxis (yaxis) with `hostax`
+    
+    returns:
+    --------
+    (fig, hostax, parax)
+    fig : the Figure
+    hostax : the hostax
+    parax : the new ParasiteAxes instance
     """
 
     # Create ParasiteAxes, an ax which overlays hostax.
-    if loc in ['top', 'bottom'] and share:
-        parax = ParasiteAxes(hostax, sharey=hostax)
-    elif loc in ['left', 'right'] and share:        
+    if sharex and sharey:
+        parax = ParasiteAxes(hostax, sharex=hostax, sharey=hostax)
+    elif sharex:        
         parax = ParasiteAxes(hostax, sharex=hostax)
+    elif sharey:        
+        parax = ParasiteAxes(hostax, sharey=hostax)
     else:        
         parax = ParasiteAxes(hostax)
     hostax.parasites.append(parax)
@@ -240,6 +248,13 @@ def new_axis(fig, hostax, off=50, loc='bottom', ticks=None, ws_add=0.1,
 #-----------------------------------------------------------------------------
 
 def make_axes_grid_fig(num=None):
+    """Create an mpl Figure and add to it an axes_grid.SubplotHost subplot
+    (`hostax`).
+    
+    returns:
+    --------
+    fig, hostax
+    """
     if num is not None:
         fig = plt.figure(num)
     else:        
