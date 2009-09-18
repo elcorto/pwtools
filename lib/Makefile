@@ -121,7 +121,7 @@ EXE=$(FILE).x
 EXT_MODULE=_$(FILE)
 SO=$(EXT_MODULE).so
 
-# For OpenMP.
+# Wanny try OpenMP? Then uncomment below.
 # -fopenmp -lgomp for gfortran, -openmp -liomp for ifort
 #
 ##F2PY_OMP_FLAGS=--f90flags='-fopenmp' -lgomp

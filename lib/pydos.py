@@ -302,7 +302,7 @@ def _add_info(config, info):
 #-----------------------------------------------------------------------------
 
 def readbin(fn):
-    """Read binary file `fn` array according the information in
+    """Read binary file `fn` array according to the information in
     in a txt file "`fn`.info".
 
     args
@@ -1472,7 +1472,6 @@ def norm_int(y, x, area=1.0):
     # Not sure if this is necessary.
     fx = 1.0 / np.abs(x).max()
     fy = 1.0 / np.abs(y).max()
-    # scaled vals
     sx = fx*x
     sy = fy*y
 ##    # Don't scale.
@@ -2104,6 +2103,7 @@ def main(opts):
     
     # --- parse and write ----------------------------------------------------
     
+    _already_sliced = False
     if opts.parse:
         atspec = pwin_atomic_species(opts.pwifn)
         atpos_in = pwin_atomic_positions(opts.pwifn, atspec)
@@ -2154,7 +2154,6 @@ def main(opts):
         
         # Slice arrays if -s option was used. This does not affect the "full"
         # arrays. Slices are only views.
-        _already_sliced = False
         if opts.slice is not None:
             verbose("slicing arrays")
             verbose("    R: old shape: %s" %str(Rfull.shape))
@@ -2167,7 +2166,7 @@ def main(opts):
             verbose("    T: new shape: %s" %str(T.shape))
             verbose("    P: new shape: %s" %str(P.shape))
 # HACK >>>>>>>>>>>>>>>>>>>>>>>>>
-##           _already_sliced = True
+            _already_sliced = True
 # HACK <<<<<<<<<<<<<<<<<<<<<<<<<
         else:
             R = Rfull
@@ -2262,24 +2261,27 @@ def main(opts):
     if opts.dos: 
 
 # HACK >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-## 
-##        # now -s works also if opts.parse == False
-##
-##        if opts.slice is not None and (not _already_sliced):
-##            verbose("slicing arrays")
-##            verbose("    R: old shape: %s" %str(Rfull.shape))
-##            verbose("    T: old shape: %s" %str(Tfull.shape))
-##            verbose("    P: old shape: %s" %str(Pfull.shape))
-##            R = slicetake(Rfull, opts.slice, axis=1)
-##            T = slicetake(Tfull, opts.slice, axis=0)
-##            P = slicetake(Pfull, opts.slice, axis=0)
-##            verbose("    R: new shape: %s" %str(R.shape))
-##            verbose("    T: new shape: %s" %str(T.shape))
-##            verbose("    P: new shape: %s" %str(P.shape))
-##        else:
-##            R = Rfull
-##            T = Tfull
-##            P = Pfull
+        # now -s works also if opts.parse == False
+        Rfull = readbin(rfn)
+        massvec = readbin(mfn)
+        Tfull = readbin(tfn)
+        Pfull = readbin(pfn)
+
+        if opts.slice is not None and (not _already_sliced):
+            verbose("slicing arrays")
+            verbose("    R: old shape: %s" %str(Rfull.shape))
+            verbose("    T: old shape: %s" %str(Tfull.shape))
+            verbose("    P: old shape: %s" %str(Pfull.shape))
+            R = slicetake(Rfull, opts.slice, axis=1)
+            T = slicetake(Tfull, opts.slice, axis=0)
+            P = slicetake(Pfull, opts.slice, axis=0)
+            verbose("    R: new shape: %s" %str(R.shape))
+            verbose("    T: new shape: %s" %str(T.shape))
+            verbose("    P: new shape: %s" %str(P.shape))
+        else:
+            R = Rfull
+            T = Tfull
+            P = Pfull
 # HACK <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
         # If we compute the *normalized* VCAF, then dt is a factor ( <v_x(0)
