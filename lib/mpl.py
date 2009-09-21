@@ -144,7 +144,7 @@ def set_tickline_width(ax, xmin=1.0, xmaj=1.5, ymin=1.0, ymaj=1.5):
 #-----------------------------------------------------------------------------
 
 def set_plot_layout_phdth(pyl_obj):
-    set_plot_layout_steve(pyl_obj)
+    set_plot_layout(pyl_obj)
     pyl_obj.rc('legend', pad=0.2)
     # figure
     pyl_obj.rc('figure', figsize=(11,10))

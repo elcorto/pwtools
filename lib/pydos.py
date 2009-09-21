@@ -16,7 +16,7 @@ outfile. Since we exploit the knowledge of the order for performance reasons,
 supporting different orders requires a little rewrite/generalisation of the
 code in parse_pwout().
 
-Tested with QE 3.2.3 and 4.0.1. 
+Tested with QE 3.2.3, 4.0.x, 4.1. 
 
 Units
 ------
@@ -172,7 +172,7 @@ INPUT_PW_CARDS = [\
 # 1.0E-003
 # -.1D03
 # ...
-FLOAT_RE = r'[+-]*[0-9eEdD+-\.]+'
+FLOAT_RE = r'[+-]*[\.0-9eEdD+-]+'
 
 #-----------------------------------------------------------------------------
 # file handling
@@ -744,7 +744,7 @@ def pwin_cell_parameters(fh):
         In a.u. = Rydberg atomic units (see constants.py).
     """
     verbose('[pwin_cell_parameters] reading CELL_PARAMETERS from %s' %fh.name)
-    rex = re.compile(r'\s*((' + FLOAT_RE + '){3})\s*')
+    rex = re.compile(r'\s*((' + FLOAT_RE + '\s*){3})\s*')
     fh, flag = scan_until_pat(fh, pat="cell_parameters")
     line = next_line(fh)
     while line == '':
@@ -757,6 +757,7 @@ def pwin_cell_parameters(fh):
         line = next_line(fh)
         match = rex.match(line)
     cp = np.array(lst, dtype=float)
+    assert_cond(len(cp.shape) == 2, "`cp` is no 2d array")
     assert_cond(cp.shape[0] == cp.shape[1], "dimensions of `cp` don't match")
     return cp
 
@@ -1486,7 +1487,7 @@ def norm_int(y, x, area=1.0):
 
 def direct_pdos(V, dt=1.0, m=None, full_out=False, natoms=1.0):
     """Compute PDOS without the VACF by direct FFT of the atomic velocities.
-    We call this Direct Method. Integral area is normalized to 3*natoms.
+    We call this Direct Method. Integral area is normalized 1.0.
     
     args:
     -----
@@ -1537,7 +1538,7 @@ def direct_pdos(V, dt=1.0, m=None, full_out=False, natoms=1.0):
 
 def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False, natoms=1.0):
     """Compute PDOS by FFT of the VACF. Integral area is normalized to
-    3*natoms.
+    1.0.
     
     args:
     -----
@@ -1576,9 +1577,10 @@ def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False, natoms=1.0):
     faxis = full_faxis[:split_idx]
     pdos = full_pdos[:split_idx]
 
+    # FIXME
+    # area must be == 3*atoms in unit cell, NOT supercell
 ##    default_out = (faxis, norm_int(pdos, faxis, area=3.0*natoms))
     default_out = (faxis, norm_int(pdos, faxis, area=1.0))
-    # area must be == 3*atoms in unit cell, NOT supercell
     extra_out = (full_faxis, fftcc, split_idx, c)
     if full_out:
         return default_out + (extra_out,)
