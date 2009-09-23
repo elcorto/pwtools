@@ -1,31 +1,64 @@
 ! 
-! Copyright (c) 2008, Steve Schmerler <mefx@gmx.net>.
-! The pydos package. 
+! Copyright (c) 2008-2009, Steve Schmerler <mefx@gmx.net>.
+! The pwtools package. 
 ! 
 
-
-subroutine vacf(v, m, c, method, natoms, nstep, use_m)
+subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
     
     ! Normalized vacf: c_vv(t) = C_vv(t) / C_vv(0)
     !
     ! method=1: loops
     ! method=2: vectorized, but makes a copy of `v`
          
-    
+#ifdef __OPENMP    
     use omp_lib
     !f2py threadsafe
+#endif    
 
     implicit none
-    integer :: natoms, nstep, t, i, j, k, method, use_m
+    integer, intent(in) :: natoms, nstep, method, use_m
+    integer, intent(in), optional ::  nthreads
+    integer ::  t, i, j, k
     double precision, intent(in) :: v(0:natoms-1, 0:nstep-1, 0:2)
     double precision, intent(in) :: m(0:natoms-1)
     double precision, intent(out) :: c(0:nstep-1)
+    character(len=*), parameter :: this="[_flib.so, vacf] "
     
     ! for mass vector stuff in method 2
     double precision :: vv(0:natoms-1, 0:nstep-1, 0:2)
         
     !f2py intent(in, out) c
     
+
+#ifdef __OPENMP
+    ! Check if env vars are recognized. This seems to work.
+    ! getenv() is implemented in gfortran and ifort.
+    !
+    !! character(100) :: OMP_NUM_THREADS
+    !! call getenv('OMP_NUM_THREADS', OMP_NUM_THREADS)
+    !! write(*,*) 'OMP_NUM_THREADS: ', OMP_NUM_THREADS
+    
+    ! With f2py, "if (present(nthreads)) then ..." doesn't work for 'optional'
+    ! input args. nthreads is alawys present. When it is not
+    ! supplied, the if clause *should* evaluate to .false. . Instead, 
+    ! nthreads is simply 0. This is not very pretty ...
+    write(*,*) this, "nthreads input: ", nthreads
+    
+    if (nthreads /= 0) then
+        write(*,*) this, "setting nthreads to ", nthreads
+        call omp_set_num_threads(nthreads)
+    else        
+        write(*,*) this, "number of threads controlled by OMP_NUM_THREADS or &
+        number of cores"        
+    end if        
+    write(*,*) this, "num threads:", omp_get_max_threads()
+#else
+    if (nthreads /= 0) then
+        write(*,*) this, "warning: nthreads is ignored, not compiled with &
+        OpenMP support"
+    end if
+#endif    
+
     if (method == 1) then 
         
         ! Code dup b/c of use_m doesn't look like good practice. But this way
@@ -38,7 +71,7 @@ subroutine vacf(v, m, c, method, natoms, nstep, use_m)
 
 
         if (use_m == 1) then
-            !$omp parallel num_threads(4)
+            !$omp parallel
             !$omp do
             do t = 0,nstep-1
                 do j = 0,nstep - t - 1
@@ -53,7 +86,7 @@ subroutine vacf(v, m, c, method, natoms, nstep, use_m)
             !$omp end do
             !$omp end parallel
         else if (use_m == 0) then
-            !$omp parallel num_threads(4)
+            !$omp parallel
             !$omp do
             do t = 0,nstep-1
                 do j = 0,nstep - t - 1
@@ -68,7 +101,7 @@ subroutine vacf(v, m, c, method, natoms, nstep, use_m)
             !$omp end do
             !$omp end parallel
         else
-            call error("_flib.so, vacf", "illegal value for 'use_m'")
+            write(0,*) this, "ERROR: illegal value for 'use_m'"
             return
         end if
         c = c / c(0)
@@ -91,7 +124,7 @@ subroutine vacf(v, m, c, method, natoms, nstep, use_m)
         ! vv(i,j,:) . vv(i,j+t,:), we get m(i) back.
         
         if (use_m == 1) then
-            !$omp parallel num_threads(4)
+            !$omp parallel
             !$omp do
             do j = 0,nstep-1
                 do k = 0,2
@@ -104,13 +137,13 @@ subroutine vacf(v, m, c, method, natoms, nstep, use_m)
         else if (use_m == 0) then        
             call vect_loops(v, natoms, nstep, c)
         else
-            call error("_flib.so, vacf", "illegal value for 'use_m'")
+            write(0,*) this, "ERROR: illegal value for 'use_m'"
             return
         end if
         c = c / c(0)
         return
     else        
-        call error("_flib.so, vacf", "illegal value for 'method'")
+        write(0,*) this, "ERROR: illegal value for 'method'"
         return
     end if
 end subroutine vacf
@@ -131,7 +164,7 @@ subroutine vect_loops(v, natoms, nstep, c)
     double precision, intent(in) :: v(0:natoms-1, 0:nstep-1, 0:2)
     double precision, intent(out) :: c(0:nstep-1)
     
-    !$omp parallel num_threads(4)
+    !$omp parallel
     !$omp do
     do t = 0,nstep-1
         c(t) = sum(v(:,:(nstep-t-1),:) * v(:,t:,:))
@@ -143,20 +176,10 @@ end subroutine vect_loops
 
 !-----------------------------------------------------------------------------
 
-subroutine error(what, msg)
-    
-    implicit none
-    character(len=*) :: msg, what
-    
-    write(unit=0,fmt=*) "******* [", what, "] ERROR: ", msg    
-
-end subroutine error
-
-!-----------------------------------------------------------------------------
-
 subroutine acorr(v, c, nstep, method)
     
-    ! Normalized vacf: c_vv(t) = C_vv(t) / C_vv(0)
+    ! Normalized 1d-vacf: c_vv(t) = C_vv(t) / C_vv(0)
+    ! This is a reference implementation.
     
     implicit none
     integer :: nstep, t, j, method
@@ -185,4 +208,27 @@ subroutine acorr(v, c, nstep, method)
     end if
 
 end subroutine acorr
+
+!-----------------------------------------------------------------------------
+
+subroutine msg(this, txt)
+    
+    implicit none
+    character(len=*) :: this, txt
+    
+    write(*,*) "[", this, "] ", txt
+
+end subroutine msg
+
+!-----------------------------------------------------------------------------
+
+subroutine error(this, txt)
+    
+    implicit none
+    character(len=*) :: this, txt
+    
+    write(unit=0,fmt=*) "******* [", this, "] ERROR: ", txt    
+
+end subroutine error
+
 

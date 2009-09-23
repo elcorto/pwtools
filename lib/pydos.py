@@ -1404,7 +1404,7 @@ def pyvacf(V, m=None, method=3):
 
 #-----------------------------------------------------------------------------
 
-def fvacf(V, m=None, method=2):
+def fvacf(V, m=None, method=2, nthreads=None):
     """
     5+ times faster than pyvacf. Only 5 times b/c pyvacf is already
     partially numpy-optimized.
@@ -1413,7 +1413,7 @@ def fvacf(V, m=None, method=2):
     ------
     $ python -c "import _flib; print _flib.vacf.__doc__"
     vacf - Function signature:
-      c = vacf(v,m,c,method,use_m,[natoms,nstep])
+      c = vacf(v,m,c,method,use_m,[nthreads,natoms,nstep])
     Required arguments:
       v : input rank-3 array('d') with bounds (natoms,nstep,3)
       m : input rank-1 array('d') with bounds (natoms)
@@ -1421,6 +1421,7 @@ def fvacf(V, m=None, method=2):
       method : input int
       use_m : input int
     Optional arguments:
+      nthreads : input int
       natoms := shape(v,0) input int
       nstep := shape(v,1) input int
     Return objects:
@@ -1443,7 +1444,17 @@ def fvacf(V, m=None, method=2):
     # allocate the array in F order in the first place.
 ##    c = _flib.vacf(np.array(V, order='F'), m, c, method, use_m)
     verbose("calling _flib.vacf ...")
-    c = _flib.vacf(V, m, c, method, use_m)
+    if nthreads is None:
+        # possible f2py bug workaround: catch OMP_NUM_THREADS here and set
+        # number of threads
+        key = 'OMP_NUM_THREADS'
+        if os.environ.has_key(key):
+            nthreads = int(os.environ[key])
+            c = _flib.vacf(V, m, c, method, use_m, nthreads)
+        else:            
+            c = _flib.vacf(V, m, c, method, use_m)
+    else:        
+        c = _flib.vacf(V, m, c, method, use_m, nthreads)
     verbose("... ready")
     return c
 

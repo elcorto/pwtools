@@ -94,22 +94,30 @@
 #
 # and comments in setup.py .
 #
-# OpenMP: We tried to speed up the calculations by sprinkling some OpenMP
+# OpenMP 
+# ------
+# We managed to speed up the calculations by sprinkling some OpenMP
 # pragmas in flib.f90. This works pretty good. If you wanna try, uncomment 
-# F2PY_OMP_FLAGS below. If all went well, _flib.so should be linked to libgomp
+# *OMP_F90_FLAGS below. If all went well, _flib.so should be linked to libgomp
 # (or libiomp for ifort). Check with
+# 	
 # 	$ ldd _flib.so
-# But its disabled by default b/c we have currently (August 2009) no idea how
-# to set the number of threads. 
+# 
+# Setting the number of threads:  
+# 	
 # 	$ export OMP_NUM_THREADS=2
-# or so doesn't work. It works for normal Fortran programs, but not for f2py
-# extensions. Maybe Fortran processes started from Python don't look into the
-# environment vars? 
-# If we don't use 'num_threads(2)' in
-# 	!$omp parallel num_threads(2)
-# then we always get 4. Is this determined by the total number of cores 
-# available?
-
+# 	$ pydos.py ...
+# 
+# does work. If this env var is NOT set, then OpenMP uses all available cores
+# (e.g. 4 on a quad-core box).
+# 
+# IMPORTANT: 
+# 	Note that we may have found an f2py bug (see test/test_f2py_flib_openmp.py)
+# 	re. OMP_NUM_THREADS. We have a workaround for that in pydos.fvacf().
+#
+# There is also an optional arg 'nthreads' to _flib.vacf(). If this is
+# supplied, then it will override OMP_NUM_THREADS. Currently, this is the
+# safest way to set the number of threads.
 
 #--- variables ---------------------------------------------------------------
 
@@ -121,11 +129,27 @@ EXE=$(FILE).x
 EXT_MODULE=_$(FILE)
 SO=$(EXT_MODULE).so
 
-# Wanny try OpenMP? Then uncomment below.
-# -fopenmp -lgomp for gfortran, -openmp -liomp for ifort
+F90=gfortran
+F90FLAGS=-x f95-cpp-input 
+ARCH=-mmmx -m3dnow -msse2 -msse -msse3
 #
-##F2PY_OMP_FLAGS=--f90flags='-fopenmp' -lgomp
-F2PY_OMP_FLAGS=
+##F90=ifort
+##F90FLAGS=-fpp
+##ARCH=-xSSE3
+
+# Wanny try OpenMP? Then uncomment below.
+#
+# gfortran
+OMP_F90_FLAGS=-fopenmp -D__OPENMP
+F2PY_OMP_F90_FLAGS=-lgomp
+#
+# ifort 11.1
+##OMP_F90_FLAGS=-openmp -D__OPENMP 
+##F2PY_OMP_F90_FLAGS=-liomp5
+#
+# no OpenMP
+##OMP_F90_FLAGS=
+##F2PY_OMP_F90_FLAGS=
 
 # f2py stuff
 #
@@ -137,15 +161,9 @@ F2PY_OMP_FLAGS=
 # So we set f2py's --arch flag manually.
 F2PY_FLAGS=--opt='-O3' \
 			-DF2PY_REPORT_ON_ARRAY_COPY=1 \
-			--f90exec=/usr/bin/gfortran \
-			--arch='-mmmx -m3dnow -msse2 -msse -msse3' $(F2PY_OMP_FLAGS)
-
-
-# compiler 
-#
-# It is NOT needed for buiding the extension. No need to change that unless you
-# want to compile $(EXE), see below.
-F90=gfortran
+			--f90exec=$(F90) \
+			--arch="$(ARCH)" \
+			--f90flags="$(F90FLAGS) $(OMP_F90_FLAGS)" $(F2PY_OMP_F90_FLAGS)
 
 #--- targets ----------------------------------------------------------------
 
