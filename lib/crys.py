@@ -1,26 +1,27 @@
 # crys.py
 #
-# Crystal and unit-cell related tools.
+# Crystal and unit-cell related tools. Converters between file formats.
 #
 
-import numpy as np
 from math import acos, pi, sin, cos, sqrt
+from itertools import izip
+import re
+
+import numpy as np
+
+try:
+    import CifFile  
+except ImportError:
+    print("%s: Cannot import CifFile from the PyCIFRW package. " 
+    "Some functions in this module will not work." %__file__)
+
 from common import assert_cond
-
-#-----------------------------------------------------------------------------
-
-# np.linalg.norm handles also complex arguments, but we don't need that here. 
-##norm = np.linalg.norm
-def norm(a):
-    """2-norm for real vectors."""
-    assert_cond(len(a.shape) == 1, "input must be 1d array")
-    # math.sqrt is faster then np.sqrt for scalar args
-    return sqrt(np.dot(a,a))
+import constants as con
 
 #-----------------------------------------------------------------------------
 
 def _add_doc(func):
-    """Decorator to add common docstrings to functions."""
+    """Decorator to add common docstrings to functions in this module."""
     dct = {}
     dct['align_doc'] = \
     """align: str
@@ -44,6 +45,53 @@ def _add_doc(func):
     return func
 
 #-----------------------------------------------------------------------------
+# misc math
+#-----------------------------------------------------------------------------
+
+# np.linalg.norm handles also complex arguments, but we don't need that here. 
+##norm = np.linalg.norm
+def norm(a):
+    """2-norm for real vectors."""
+    assert_cond(len(a.shape) == 1, "input must be 1d array")
+    # math.sqrt is faster then np.sqrt for scalar args
+    return sqrt(np.dot(a,a))
+
+#-----------------------------------------------------------------------------
+
+def angle(x,y):
+    """Angle between vectors `x' and `y' in degrees.
+    
+    args:
+    -----
+    x,y : 1d numpy arrays
+    """
+    # Numpy's `acos' is "acrcos", but we take the one from math for scalar
+    # args.
+    return acos(np.dot(x,y)/norm(x)/norm(y))*180.0/pi
+
+#------------------------------------------------------------------------------
+
+def floor_eps(arg, copy=True):
+    """sin(180 * pi/180.) == 1e-17, we want 0.0"""
+    eps = np.finfo(np.float).eps
+    if np.isscalar(arg):
+        return 0.0 if abs(arg) < eps else arg
+    else:
+        if copy:
+            _arg = np.asarray(arg).copy()
+        else:            
+            _arg = np.asarray(arg)
+        _arg[np.abs(_arg) < eps] = 0.0
+        return _arg
+
+#------------------------------------------------------------------------------
+
+def deg2rad(x):
+    return x * pi/180.0
+
+#-----------------------------------------------------------------------------
+# crystallographic constants and basis vectors
+#-----------------------------------------------------------------------------
 
 @_add_doc
 def volume_cp(cp):
@@ -52,10 +100,15 @@ def volume_cp(cp):
         np.dot(np.cross(a,b), c) 
     of the basis vectors a,b,c contained in `cp`. Note that (mathematically)
     the vectors can be either the rows or the cols of `cp`.
+
     
     args:
     -----
     %(cp_doc)s
+
+    returns:
+    --------
+    volume, unit: [a]**3
 
     example:
     --------
@@ -71,13 +124,14 @@ def volume_cp(cp):
 
     notes:
     ------
-    $(notes_cp_crys_const)s
+    %(notes_cp_crys_const)s
     """    
     assert_cond(cp.shape == (3,3), "input must be (3,3) array")
     return np.dot(np.cross(cp[0,:], cp[1,:]), cp[2,:])        
 
 #-----------------------------------------------------------------------------
 
+@_add_doc
 def volume_cc(cryst_const):
     """Volume of the unit cell from crystallographic constants [1].
     
@@ -85,9 +139,13 @@ def volume_cc(cryst_const):
     -----
     %(cryst_const_doc)s
     
+    returns:
+    --------
+    volume, unit: [a]**3
+    
     notes:
     ------
-    $(notes_cp_crys_const)s
+    %(notes_cp_crys_const)s
 
     refs:
     -----
@@ -102,18 +160,6 @@ def volume_cc(cryst_const):
     return a*b*c*sqrt(1+ 2*cos(alpha)*cos(beta)*cos(gamma) -\
           cos(alpha)**2 - cos(beta)**2 - cos(gamma)**2 )
 
-#-----------------------------------------------------------------------------
-
-def angle(x,y):
-    """Angle between vectors `x' and `y' in degrees.
-    
-    args:
-    -----
-    x,y : 1d numpy arrays
-    """
-    # Numpy's `acos' is "acrcos", but we take the one from math for scalar
-    # args.
-    return acos(np.dot(x,y)/norm(x)/norm(y))*180.0/pi
 
 #-----------------------------------------------------------------------------
 
@@ -129,7 +175,8 @@ def cp2cc(cp, align='rows'):
 
     returns:
     --------
-    %(cryst_const_doc)s
+    %(cryst_const_doc)s, 
+        unit: [a]**3
 
     notes:
     ------
@@ -169,10 +216,20 @@ def cc2cp(cryst_const):
     --------
     %(cp_doc)s
         Basis vecs are the rows.
+        unit: [a]**3
     
     notes:
     ------
-    %(notes_cp_crys_const)s
+    * %(notes_cp_crys_const)s
+    
+    * Basis vectors fulfilling the crystallographic constants are arbitrary
+      w.r.t. their orientation in space. We choose the common convention that
+        va : along x axis
+        vb : in the x-y plane
+      Then, vc is fixed. 
+      cp = [[-- va --],
+            [-- vb --],
+            [-- vc --]]
     """
     a = cryst_const[0]
     b = cryst_const[1]
@@ -181,16 +238,10 @@ def cc2cp(cryst_const):
     beta = cryst_const[4]*pi/180
     gamma = cryst_const[5]*pi/180
     
-    # Basis vectors fulfilling the crystallographic constants are arbitrary
-    # w.r.t. their orientation in space. We choose (as others also do):
-    #
-    # va along x axis
     va = np.array([a,0,0])
-    # vb in x-y plane
     vb = np.array([b*cos(gamma), b*sin(gamma), 0])
     
     # vc must be calculated ...
-    
     # projection onto x axis (va)
     cx = c*cos(beta)
     
@@ -219,6 +270,9 @@ def cc2cp(cryst_const):
     vc = np.array([cx, cy, cz])
     return np.array([va, vb, vc])
 
+
+#-----------------------------------------------------------------------------
+# super cell building
 #-----------------------------------------------------------------------------
 
 def scell_mask(dim1, dim2, dim3):
@@ -370,4 +424,182 @@ def scell(coords, cp, dims, symbols, align='rows'):
     Rsc[:,2] /= dims[2]
     return (symbols_sc, Rsc, cp_sc)
 
+#-----------------------------------------------------------------------------
+# file parsers / converters
+#-----------------------------------------------------------------------------
+
+@_add_doc
+def wien_sgroup_input(lat_symbol, symbols, atpos_crystal, cryst_const):
+    """Generate input for WIEN2K's sgroup tool.
+
+    args:
+    -----
+    lat_symbol : str, e.g. 'P'
+    symbols : list of strings with atom symbols, (atpos_crystal.shape[0],)
+    atpos_crystal : array_like (natoms, 3), crystal ("fractional") atomic
+        coordinates
+    %(cryst_const_doc)s
+
+    notes:
+    ------
+    From sgroup's README:
+
+    / ------------------------------------------------------------
+    / in input file symbol "/" means a comment
+    / and trailing characters are ignored by the program
+
+    / empty lines are allowed
+
+    P  /type of lattice; choices are P,F,I,C,A
+
+    /  parameters of cell:
+    /  lengths of the basis vectors and
+    /  angles (degree unit is used)  alpha=b^c  beta=a^c  gamma=a^b
+    /   |a|  |b|   |c|               alpha  beta  gamma
+
+       1.0   1.1   1.2                90.   91.    92.
+
+    /Number of atoms in the cell
+    4
+
+    /List of atoms
+    0.1 0.2 0.3  / <-- Atom positions in units of the vectors a b c
+    Al           / <-- name of this atom
+
+    0.1 0.2 0.4  /....
+    Al1
+
+    0.2 0.2 0.3
+    Fe
+
+    0.1 0.3 0.3
+    Fe
+
+    / ------------------------------------------------------------------
+    """
+    atpos_crystal = np.asarray(atpos_crystal)
+    assert_cond(len(symbols) == atpos_crystal.shape[0], 
+        "len(symbols) != atpos_crystal.shape[0]")
+    empty = '\n\n'
+    txt = "/ lattice type symbol\n%s" %lat_symbol
+    txt += empty
+    txt += "/ a b c alpha beta gamma\n"
+    txt += " ".join(["%.15g"]*6) % tuple(cryst_const)
+    txt += empty
+    txt += "/ number of atoms\n%i" %len(symbols)
+    txt += empty
+    txt += "/ atom list (crystal cooords)\n"
+    fmt = ' '.join(['%.15g']*3)
+    for sym, coord in izip(symbols, atpos_crystal):
+        txt += fmt % tuple(coord) + '\n' + sym + '\n'
+    return txt
+
+#-----------------------------------------------------------------------------
+
+def cif_str2float(st):
+    """'7.3782(7)' -> 7.3782"""
+    if '(' in st:
+        st = re.match(r'([0-9eEdD+-\.]+)(\(.*)', st).group(1)
+##    return floor_eps(float(st))
+    return float(st)
+
+#------------------------------------------------------------------------------
+
+def cif_label(st, rex=re.compile(r'([a-zA-Z]+)([0-9]*)')):
+    """Remove digits from atom names. 
+    
+    example:
+    -------
+    >>> cif_label('Al1')
+    'Al'
+    """
+    return rex.match(st).group(1)
+    
+#------------------------------------------------------------------------------
+
+def cif2pw(filename, block=None, fac=1.0/con.a0_to_A):
+    """Extract cell parameters and atomic positions from Cif files. This data
+    can be directly included in a pw.x input file. 
+
+    args:
+    -----
+    filename : str, name of the *cif file
+    block : data block name (i.e. 'data_foo' in the Cif file -> 'foo' here). If
+        None then the first data block in the file is used.
+    fac : conversion factor Angstrom -> Bohr (approx. 1/0.52).        
+    
+    returns:
+    --------
+    {'celldm': celldm, 'symbols': symbols, 'atpos': atpos,
+        'cif_dct': cif_dct, 'cryst_const': cryst_const}
+    celldm : array (6,), PWscf celldm, !!! a,b,c in Bohr !!!
+    symbols : list of strings with atom symbols
+    atpos : array (natoms, 3), crystal coords
+    cif_dct : dct with 'a','b','c' in Angstrom (as parsed from the Cif file) and 
+        'alpha', 'beta', 'gamma'
+    %(cryst_const_doc)s, same as cif_dct, but as array
+
+    notes:
+    ------
+    cif parsing:
+        We expect PyCifRW [1] to be installed, which provides the CifFile
+        module.
+    cell dimensions:
+        We extract
+        _cell_length_a
+        _cell_length_b
+        _cell_length_c
+        _cell_angle_alpha
+        _cell_angle_beta
+        _cell_angle_gamma
+        and transform them to pwscf-style celldm. Note that celldm(4-6) in
+        PWscf are the cos() of the angles. See ibrav [2]. 
+    atom positions:
+        Cif files contain "fractional" coords, which is just 
+        "ATOMIC_POSITIONS crystal" in PWscf.
+    
+    Since we return also `cryst_const`, one could also easily obtain the
+    CELL_PARAMETERS by pwtools.crys.cc2cp(cryst_const) and wouldn't need
+    celldm(1..6) at all.
+
+    refs:
+    -----
+    [1] http://pycifrw.berlios.de/
+    [2] http://www.quantum-espresso.org/input-syntax/INPUT_PW.html#id53713
+    """
+    cf = CifFile.ReadCif(filename)
+    if block is None:
+        cif_block = cf.first_block()
+    else:
+        cif_block = cf['data_' + name]
+    
+    # celldm from a,b,c and alpha,beta,gamma
+    # alpha = angbe between b,c
+    # beta  = angbe between a,c
+    # gamma = angbe between a,b
+    cif_dct = {}
+    for x in ['a', 'b', 'c']:
+        what = '_cell_length_' + x
+        cif_dct[x] = cif_str2float(cif_block[what])
+    for x in ['alpha', 'beta', 'gamma']:
+        what = '_cell_angle_' + x
+        cif_dct[x] = cif_str2float(cif_block[what])
+    celldm = []
+    # ibrav 14, celldm(1) ... celldm(6)
+    celldm.append(cif_dct['a']*fac) # Angstrom -> Bohr
+    celldm.append(cif_dct['b']/cif_dct['a'])
+    celldm.append(cif_dct['c']/cif_dct['a'])
+    celldm.append(cos(deg2rad(cif_dct['alpha'])))
+    celldm.append(cos(deg2rad(cif_dct['beta'])))
+    celldm.append(cos(deg2rad(cif_dct['gamma'])))
+    celldm = np.asarray(celldm)
+    symbols = map(cif_label, cif_block['_atom_site_label'])
+    atpos = np.array([map(cif_str2float, [x,y,z]) for x,y,z in izip(
+                               cif_block['_atom_site_fract_x'],
+                               cif_block['_atom_site_fract_y'],
+                               cif_block['_atom_site_fract_z'])])
+    cryst_const = np.array([cif_dct[key] for key in \
+        ['a', 'b', 'c', 'alpha', 'beta', 'gamma']])
+    return {'celldm': celldm, 'symbols': symbols, 'atpos': atpos,
+        'cif_dct': cif_dct, 'cryst_const': cryst_const}
 

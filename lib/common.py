@@ -18,6 +18,25 @@ from decorators import add_func_doc
 
 #-----------------------------------------------------------------------------
 
+def dict2class(dct, name='Dummy'):
+    """
+    >>> dct={'a':1, 'b':2}
+    >>> dct2class(dct, 'Foo')
+    <Foo instance at 0x3615ab8>
+    >>> dct2class(dct, 'Bar')
+    <Bar instance at 0x3615b48>
+    >>> dct2class(dct, 'Bar').__dict__
+    {'a':1, 'b':2}
+    """
+    class Dummy:
+        pass
+    cl = Dummy()
+    cl.__dict__.update(dct)
+    cl.__class__.__name__ = name
+    return cl
+
+#-----------------------------------------------------------------------------
+
 def assert_cond(cond, string=None):
     """Use this instead of `assert cond, string`. It's been said on
     numpy-discussions that the assert statement shouldn't be used to test user

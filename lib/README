@@ -16,8 +16,8 @@ www.python.org. Have a nice day.
 Add-on packages
 ---------------
 
-We use numpy and scipy. Tested was numpy 1.1.0 and scipy 0.6.0 (on openSUSE
-10.3 and Debian lenny, but the Linux distro shouldn't matter).
+We use numpy and scipy. Tested was numpy 1.1.0, 1.2.1 and scipy 0.6.0, 0.7.0
+(on openSUSE 10.3 and Debian lenny, but the Linux distro shouldn't matter).
 
 Debian:
     # apt-get install python-numpy python-scipy
@@ -27,6 +27,7 @@ openSuSE 10.3
       http://download.opensuse.org/repositories/science/openSUSE_10.3
     - install python-numpy, python-scipy
 
+PyCifRW (http://pycifrw.berlios.de) is needed in pwtools.lib.crys .
 
 path issues (.bashrc/.profile)
 ------------------------------
@@ -114,7 +115,7 @@ Filenames:
     nstep : Number of time steps in the MD run (see *.in file). 
         To construct a time axis, the time _step_ can be found in the
         pw.x *.in file in Rydberg time units or in seconds in *pdos*.info)
-    natoms: Number of atoms in the supercell.
+    natoms: Number of atoms in the unit cell.
 
     *vacf*  VACF, velocity autocorrelation function, 1d array, (nstep,)
     *pdos*  frequency axis and PDOS, 2d array
@@ -124,10 +125,11 @@ Filenames:
             FFT results in a spectrum mirrored around f=0 and a frequency axis
             going from -fn ... 0 ... +fn, where fn is the Nyquist frequency. We
             output only the 0 ... +fn part of the spectrum.
-    *m*     1d array with atom masses, extracted from *.in, (nstep,)
+    *m*     1d array with atom masses, extracted from *.in, (natoms,)
     *p*     1d array with pressure, (nstep,), from pw.x outfile
     *temp*  1d array with temperature, (nstep,), from pw.x outfile
-    *r*     atomic coords
+    *r*     atomic coords in the unit of ATOMIC_POSITIONS in the parsed output
+            file 
             binary: 3d array (natoms, nstep+1, 3)
             text:   2d array (natoms*(nstep+1), 3)
     *v*     atomic velocities
