@@ -421,7 +421,7 @@ def tobool(val):
 
 #-----------------------------------------------------------------------------
 
-def _float(st):
+def ffloat(st):
     """Convert strings representing numbers to Python floats using
     float(). The returned value is a double (or whatever the float() of your
     Python installation  returns). 
@@ -455,7 +455,7 @@ def _float(st):
         if m is None:
             raise ValueError("no match on string '%s'" %st)
         if m.group(4).strip() != '':
-            verbose("[_float] WARNING: skipping kind '%s' in string '%s'" 
+            verbose("[ffloat] WARNING: skipping kind '%s' in string '%s'" 
                 %(m.group(4), st))
         ss = "%se%s%s" %m.groups()[:-1]
         return float(ss)
@@ -775,10 +775,10 @@ def pwin_atomic_positions(fh, atspec=None):
     
     returns:
     --------
-        {'R0': R0, 'natoms': natoms, 'massvec': massvec, 'symbols':
+        {'coords': coords, 'natoms': natoms, 'massvec': massvec, 'symbols':
         symbols, 'unit': unit}
         
-        R0 : ndarray,  (natoms, 3)
+        coords : ndarray,  (natoms, 3)
         natoms : int
         massvec : 1d array, (natoms,)
         symbols : list of strings, (natoms,), ['Al', 'A', 'Si', ...]
@@ -826,13 +826,13 @@ def pwin_atomic_positions(fh, atspec=None):
         match = rex.match(line)
     ar = np.array(lst)
     symbols = ar[:,0].tolist()
-    # same as R0 = np.asarray(ar[:,1:], dtype=float)
-    R0 = ar[:,1:].astype(float)
-    natoms = R0.shape[0]
+    # same as coords = np.asarray(ar[:,1:], dtype=float)
+    coords = ar[:,1:].astype(float)
+    natoms = coords.shape[0]
     masses = atspec['masses']
     atoms = atspec['atoms']
     massvec = np.array([masses[atoms.index(s)] for s in symbols], dtype=float)
-    return {'R0': R0, 'natoms': natoms, 'massvec': massvec, 'symbols':
+    return {'coords': coords, 'natoms': natoms, 'massvec': massvec, 'symbols':
         symbols, 'unit': unit}
 
 #-----------------------------------------------------------------------------
@@ -952,7 +952,7 @@ def pwin_namelists(fh, cardnames=INPUT_PW_CARDS):
 
     args:
     -----
-    fh : open fileobject or filename, if fileobject, it will not be closed
+    fh : open fileobject
 
     notes:
     ------
@@ -991,27 +991,36 @@ def pwin_namelists(fh, cardnames=INPUT_PW_CARDS):
         
     All keys are converted to lowercase! All values are strings and must be
     converted.
-
-        floatkey  = _float(d['namelist1']['floatkey'])
-        stringkey = d['namelist1']['stringkey']
-        intkey    = int(d['namelist1']['intkey'])
-        boolkey   = tobool(d['namelist1']['boolkey'])
+    >>> d = pwin_namelists(...)
+    >>> floatkey  = ffloat(d['namelist1']['floatkey'])
+    >>> stringkey = d['namelist1']['stringkey']
+    >>> intkey    = int(d['namelist1']['intkey'])
+    >>> boolkey   = tobool(d['namelist1']['boolkey'])
     """
     verbose("[pwin_namelists] parsing %s" %fh.name)
-    dct = {}   
+    dct = {}
+    nl_kvps = None
     for line in fh:
         # '   A = b, c=d,' -> 'A=b,c=d'
         line = line.strip().strip(',').replace(' ', '')
+        # Start of namelist.
         if line.startswith('&'):
             # namelist key value pairs
             nl_kvps = []
+            # '&CONTROL' -> 'control'
             nl = line[1:].lower()
-        elif line == '':
-            line = f.next().strip().strip(',').replace(' ', '')
+        # End of namelist.            
         elif line == '/':
-            # nl = 'x', enter dict for namelist `nl` in `dct` under name 'x'.
-            # [['a', 'b'], ['c', 'd']] -> dct = {'x': {'a': 'b', 'c': 'd'}, ...}
-            dct[nl] = dict(nl_kvps)
+            # nl = 'control', enter dict for namelist 'control' in `dct` under
+            # name 'control'.
+            # [['a', 'b'], ['c', 'd']] -> dct = {'control': {'a': 'b', 'c': 'd'}, ...}
+            if nl_kvps is not None: 
+                dct[nl] = dict(nl_kvps)
+                nl_kvps = None
+            else:
+                dct[nl] = {}
+        elif line == '':
+            continue
         # end of namelist part
         elif line.lower() in cardnames:
             break
@@ -1053,7 +1062,7 @@ def parse_pwout_md(fh, pwin_nl=None, atspec=None, atpos_in=None, nstep=None):
     # re.search() (untested):
     # r'Starting temperature\s+=\s+([0-9eEdD+-\.])+\s+K'. Comes before the first 
     # 'ATOMIC_POSITIONS' and belongs to Rold.
-    tempw = _float(pwin_nl['ions']['tempw'])
+    tempw = ffloat(pwin_nl['ions']['tempw'])
     
     # Rold: (natoms x 3)
     Rold = atpos_in['R0']
@@ -1100,7 +1109,7 @@ def parse_pwout_md(fh, pwin_nl=None, atspec=None, atpos_in=None, nstep=None):
                 "'%s'" %fh.name)
             break
         else:            
-            P[j-1] = _float(match.group(1))
+            P[j-1] = ffloat(match.group(1))
         
         # --- ATOMIC_POSITIONS --------
         
@@ -1125,7 +1134,7 @@ def parse_pwout_md(fh, pwin_nl=None, atspec=None, atpos_in=None, nstep=None):
                 "'%s'" %fh.name)
             break
         else:            
-            T[j] = _float(match.group(1))
+            T[j] = ffloat(match.group(1))
         
         j += 1
         if j == nstep+1 and stop_at_nstep:
@@ -1182,7 +1191,7 @@ def parse_pwout_vc_md(fh, pwin_nl=None, atspec=None, atpos_in=None, nstep=None):
     # re.search() (untested):
     # r'Starting temperature\s+=\s+([0-9eEdD+-\.])+\s+K'. Comes before the first 
     # 'ATOMIC_POSITIONS' and belongs to Rold.
-    tempw = _float(pwin_nl['ions']['tempw'])
+    tempw = ffloat(pwin_nl['ions']['tempw'])
     
     # Rold: (natoms x 3)
     Rold = atpos_in['R0']
@@ -1232,7 +1241,7 @@ def parse_pwout_vc_md(fh, pwin_nl=None, atspec=None, atpos_in=None, nstep=None):
                 "'%s'" %fh.name)
             break
         else:            
-            P[j-1] = _float(match.group(1))
+            P[j-1] = ffloat(match.group(1))
         
         # --- temperature -------------
         
@@ -1243,7 +1252,7 @@ def parse_pwout_vc_md(fh, pwin_nl=None, atspec=None, atpos_in=None, nstep=None):
                 "'%s'" %fh.name)
             break
         else:
-            T[j] = _float(match.group(2))
+            T[j] = ffloat(match.group(2))
         
         # --- CELL_PARAMETERS --------
 
@@ -2233,7 +2242,7 @@ def main(opts):
                 cp = pwin_cell_parameters(opts.pwifn)
                 # CELL_PARAMETERS in alat
                 if pwin_nl['system'].has_key('celldm(1)'):
-                    alat = _float(pwin_nl['system']['celldm(1)'])
+                    alat = ffloat(pwin_nl['system']['celldm(1)'])
                     verbose("alat:", alat)
                     verbose("assuming CELL_PARAMETERS in alat")
                     new_unit = 'alat'
@@ -2304,7 +2313,7 @@ def main(opts):
         writearr(vfn, V, type=opts.file_type, axis=1)
 
         # in s
-        dt = _float(pwin_nl['control']['dt']) * constants.tryd
+        dt = ffloat(pwin_nl['control']['dt']) * constants.tryd
         verbose("dt: %s seconds" %dt)
         if (opts.slice is not None) and (opts.slice.step is not None):
             verbose("scaling dt with slice step: %s" %opts.slice.step)

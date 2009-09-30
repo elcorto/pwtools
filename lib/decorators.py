@@ -53,11 +53,12 @@ def open_and_close(func):
             largs[0].close()
             return ret         
         else:
-            raise ValueError("illegal arg type of '%s', expect file object or "
-                             "filename"%repr(largs[0]))
-    _doc = func.__doc__            
-    _doc = _doc.replace('@args_fh_extra_doc@', "If fh is a file object, it "
-        "will not be closed.")
+            raise ValueError("illegal type of 1st arg in '%s', expect file object or "
+                             "filename"%repr(largs))
+    _doc = func.__doc__
+    if _doc is not None:
+        _doc = _doc.replace('@args_fh_extra_doc@', "If fh is a file object, it "
+            "will not be closed.")
     wrapper.__doc__ = _doc
     wrapper.__name__ = func.__name__            
     return wrapper        
