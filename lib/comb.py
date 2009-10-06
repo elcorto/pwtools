@@ -105,24 +105,24 @@ def nested_loops(lists, ret_all=False):
         different types/objects, e.g. [['a', 'b'], [Foo(), Bar(), Baz()],
         [1,2,3,4,5,6,7]].
     ret_all : bool
-        True: return cur, cur_idxs
-        False: return cur
+        True: return perms, perm_idxs
+        False: return perms
     
     returns:
     --------
-    cur : list of lists with permuted objects
-    cur_idxs : list of lists with indices of the permutation
+    perms : list of lists with permuted objects
+    perm_idxs : list of lists with indices of the permutation
 
     example:
     --------
     >>> a=[1,2]; b=[3,4]; c=[5,6];
-    >>> cur=[]
+    >>> perms=[]
     >>> for aa in a:
     ....:   for bb in b:
     ....:       for cc in c:
-    ....:           cur.append([aa,bb,cc])
+    ....:           perms.append([aa,bb,cc])
     ....:             
-    >>> cur
+    >>> perms
     [[1, 3, 5],
      [1, 3, 6],
      [1, 4, 5],
@@ -166,10 +166,13 @@ def nested_loops(lists, ret_all=False):
     mx_idxs = [x - 1 for x in lens]
     # nperms = numpy.prod(lens)
     nperms = reduce(lambda x,y: x*y, lens)
+    # number of nesting levels
     nlevels = len(lists)
+    # index into `lists`: lists[i][j] -> lists[i][idxs[i]], i.e.
+    # idxs[i] is the index into the ith list
     idxs = [0]*nlevels
-    cur_idxs = []
-    cur = []
+    perm_idxs = []
+    perms = []
     # e.g. [2,1,0]
     rev_rlevels = range(nlevels)[::-1]
     for i in range(nperms):         
@@ -180,14 +183,13 @@ def nested_loops(lists, ret_all=False):
                 # permutations are generated.
                 idxs[pos-1] += 1
         # [:] to append a copy                
-        cur_idxs.append(idxs[:])
-        perm_vals = [lists[j][k] for j,k in enumerate(idxs)]
-        cur.append(perm_vals)
+        perm_idxs.append(idxs[:])
+        perms.append([lists[j][k] for j,k in enumerate(idxs)])
         idxs[-1] += 1
     if ret_all:
-        return cur, cur_idxs
+        return perms, perm_idxs
     else:
-        return cur
+        return perms
 
 #-----------------------------------------------------------------------------
 
