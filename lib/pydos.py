@@ -1050,8 +1050,8 @@ def parse_pwout_md(fh, pwin_nl=None, atspec=None, atpos_in=None, nstep=None):
         from pwin_fn -> control:nstep)
     """
     verbose("[parse_pwout_md] parsing %s" %(fh.name))
-    stop_at_nstep = False
     if nstep is None:
+        stop_at_nstep = False
         nstep = int(pwin_nl['control']['nstep'])
         verbose("[parse_pwout_md] using 'nstep' from input file")
     else:
@@ -1178,8 +1178,8 @@ def parse_pwout_vc_md(fh, pwin_nl=None, atspec=None, atpos_in=None, nstep=None):
         from pwin_fn -> control:nstep)
     """
     verbose("[parse_pwout_vc_md] parsing %s" %(fh.name))
-    stop_at_nstep = False
     if nstep is None:
+        stop_at_nstep = False
         nstep = int(pwin_nl['control']['nstep'])
         verbose("[parse_pwout_vc_md] using 'nstep' from input file")
     else:
@@ -2082,7 +2082,6 @@ def main(opts):
     The disadvantage is that you must set *all* opts.<attribute>, since `opts`
     is supposed to contain all of them.
     """
-
     # print options
     verbose("options:")
     # opts.__dict__: a dict with options and values {'opt1': val1, 'opt2':
@@ -2118,9 +2117,34 @@ def main(opts):
     vacffn = pjoin(opts.outdir, fn_body + '.vacf' + file_suffix)
     pfn = pjoin(opts.outdir, fn_body + '.p' + file_suffix)
     pdosfn = pjoin(opts.outdir, fn_body + '.pdos' + file_suffix)
-    
+    timefn = pjoin(opts.outdir, fn_body + '.time' + file_suffix)
+
     # needed in 'parse' and 'dos'
     pwin_nl = pwin_namelists(opts.pwifn)
+    
+    # time axis in sec
+    # 
+    timestep = ffloat(pwin_nl['control']['dt']) * constants.tryd
+    verbose("dt: %s seconds" %timestep)
+    # get number of steps in pw.out         
+    if opts.nstep is not None:
+        nstep = opts.nstep
+        parse_inp_nstep = nstep
+        verbose("nstep from cmd line: %i" %nstep)
+    else:        
+        parse_inp_nstep = None
+        nstep = int(pwin_nl['control']['nstep'])
+        verbose("nstep from input file: %i" %nstep)
+    time = np.linspace(0, timestep*nstep, nstep+1)      
+    # If we take, say, only every 10's point, we must scale dt*10 to
+    # preserve the correct time axis.
+    if (opts.slice is not None) and (opts.slice.step is not None):
+        verbose("scaling dt with slice step: %s" %opts.slice.step)
+        timestep *= float(opts.slice.step)
+        verbose("    scaled dt: %s seconds" %timestep)
+        # This would be the correct time axis. But since we also always write
+        # Rfull etc, we don't slice the time axis.
+        ## time = time[opts.slice]
     
     # --- parse and write ----------------------------------------------------
     
@@ -2145,7 +2169,7 @@ def main(opts):
                             pwin_nl=pwin_nl, 
                             atspec=atspec,
                             atpos_in=atpos_in,
-                            nstep=opts.nstep)
+                            nstep=parse_inp_nstep)
         
         massvec = atpos_in['massvec']
         Rfull = pwout['R']
@@ -2186,9 +2210,7 @@ def main(opts):
             verbose("    R: new shape: %s" %str(R.shape))
             verbose("    T: new shape: %s" %str(T.shape))
             verbose("    P: new shape: %s" %str(P.shape))
-# HACK >>>>>>>>>>>>>>>>>>>>>>>>>
             _already_sliced = True
-# HACK <<<<<<<<<<<<<<<<<<<<<<<<<
         else:
             R = Rfull
             T = Tfull
@@ -2263,34 +2285,20 @@ def main(opts):
         writearr(tfn, Tfull,     type=opts.file_type)
         writearr(rfn, Rfull,     type=opts.file_type, axis=1)
         writearr(pfn, Pfull,     type=opts.file_type)
+        writearr(timefn, time, type=opts.file_type)
         
-    # ---  read --------------------------------------------------------------
-    
-    if opts.dos and not opts.parse:
-        # Reload the only data that we get from parsing the in- and outfile. We
-        # could, in some cases, also reload `V`, `c` and so on, but it's easier
-        # to re-compute them as long as the calculations run only seconds.
-        R = readbin(rfn)
-        massvec = readbin(mfn)
-        
-        # XXX If we return ret
-        T = readbin(tfn)
-        P = readbin(pfn)
-    
     # --- dos ----------------------------------------------------------------
     
     if opts.dos: 
-
-# HACK >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-# Code dup here ....
-#
+        
+        # Read if we did not parse before.
         if not opts.parse:   
-            # now -s works also if opts.parse == False
             Rfull = readbin(rfn)
             massvec = readbin(mfn)
             Tfull = readbin(tfn)
             Pfull = readbin(pfn)
 
+        # XXX: Code duplication here .......
         if opts.slice is not None and (not _already_sliced):
             verbose("slicing arrays")
             verbose("    R: old shape: %s" %str(Rfull.shape))
@@ -2306,24 +2314,15 @@ def main(opts):
             R = Rfull
             T = Tfull
             P = Pfull
-# HACK <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        # ....... to here            
 
-        # If we compute the *normalized* VCAF, then dt is a factor ( <v_x(0)
-        # v_x(t)> = 1/dt^2 <dx(0) dx(t)> ) which cancels in the normalization.
-        # dt is not needed in the velocity calculation.
+        # If we compute the *normalized* VCAF, then dt is a factor: 
+        #     <v_x(0) v_x(t)> = 1/dt^2 <dx(0) dx(t)> 
+        # which cancels in the normalization. dt is not needed in the velocity
+        # calculation.
         V = velocity(R, copy=False)
         writearr(vfn, V, type=opts.file_type, axis=1)
 
-        # in s
-        timestep = ffloat(pwin_nl['control']['dt']) * constants.tryd
-        verbose("dt: %s seconds" %timestep)
-        # If we take, say, only every 10's point, we must scale dt*10 to
-        # preserve the correct time axis.
-        if (opts.slice is not None) and (opts.slice.step is not None):
-            verbose("scaling dt with slice step: %s" %opts.slice.step)
-            timestep *= float(opts.slice.step)
-            verbose("    scaled dt: %s seconds" %timestep)
-        
         if not opts.mass:
             massvec = None
         else:
@@ -2566,5 +2565,5 @@ if __name__ == '__main__':
     
     parser = get_parser()
     opts = parser.parse_args()    
-    ret=main(opts)
+    ret = main(opts)
     sys.exit()

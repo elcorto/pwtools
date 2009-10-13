@@ -42,11 +42,11 @@ if __name__ == '__main__':
     # delete, parse, write txt
     calls.append("%s %s -i %s -o %s -x %s -p -d -m -M -f txt" %(delete_cmd, exe, infile, outfile_gz, outdir))
     
-    system("[ -d %s ] && rm %s/*" %(outdir, outdir))
+    if os.path.exists(outdir):
+        shutil.rmtree(outdir)
     for call in calls:
         print('\n'+ '+'*78)
         system(call)
-
     if os.path.exists(outdir):
         shutil.rmtree(outdir)
     
