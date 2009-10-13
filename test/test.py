@@ -28,14 +28,21 @@ if __name__ == '__main__':
     outfile = "AlN.md.out"
     outfile_gz = outfile + '.gz'
     outdir = "/tmp/test_pdos"
-    exe = '../lib/pydos.py'
+
+    delete_cmd = 'rm -rf %s/* &&' %outdir
+    exe = ' ../lib/pydos.py'
 
     calls =[]
+    # parse, write bin
     calls.append("%s -i %s -o %s -x %s -p" %(exe, infile, outfile_gz, outdir) )
+    # read written data, calculate dos
     calls.append("%s -i %s -o %s -x %s -d -m -M" %(exe, infile, outfile_gz, outdir))
-    calls.append("%s -i %s -o %s -x %s -p -d -m -M -f txt" %(exe, infile, outfile_gz, outdir))
-    calls.append("%s -i %s -o %s -x %s -d -m -M -t 'direct'" %(exe, infile, outfile_gz, outdir))
-
+    # read written data, calculate dos direct, no mirroring
+    calls.append("%s -i %s -o %s -x %s -d -m 0 -M -t 'direct'" %(exe, infile, outfile_gz, outdir))
+    # delete, parse, write txt
+    calls.append("%s %s -i %s -o %s -x %s -p -d -m -M -f txt" %(delete_cmd, exe, infile, outfile_gz, outdir))
+    
+    system("[ -d %s ] && rm %s/*" %(outdir, outdir))
     for call in calls:
         print('\n'+ '+'*78)
         system(call)
