@@ -49,10 +49,6 @@ then the difference between the two methods itself.
 
 TODO
 ----
-- Drop some line.strip(), extend REs where possible to use faster re.match()
-  instead of re.search(). But possibly low performance gain since re.* is alraedy
-  very fast.
-
 - Turn on Fortran order by default in array constructors (or wherever) in
   numpy to avoid copies by f2py extensions which operate on rank>2 arrays. 
 
@@ -70,9 +66,6 @@ TODO
 
 - class Array with read, write methods ...
 
-- Optional spline interpolation of R trajectories for each atom i and
-  coordinate k: R[i,:,k]
-
 - Test suite. We have some primitive doctests now but hey ...
 
 - setup.py, real pythonic install, no fiddling with PYTHONPATH etc,
@@ -83,7 +76,7 @@ TODO
   format
 
 - unify vacf_pdos(), direct_pdos(), thay have almost the same signature and
-  functionallity, use 'method' kwarg or so, OR make a base class Vacf, derive 2
+  functionallity, use 'method' kwarg or so, OR make a base class Pdos, derive 2
   special-case classes ... 
 
 - If pydos.main(opts) is called in a script, find a way to define defaults in
@@ -137,9 +130,6 @@ import _flib
 from common import assert_cond, file_write, fileo, system, fullpath
 from decorators import open_and_close
 
-# save stdlib's repr
-_repr = repr 
-
 # aliases
 pjoin = os.path.join
 
@@ -176,7 +166,7 @@ FLOAT_RE = r'[+-]*[\.0-9eEdD+-]+'
 
 #-----------------------------------------------------------------------------
 # file handling
-
+#-----------------------------------------------------------------------------
 
 # This should become a general save-nd-array-to-txt-file function. We can only write 
 # 1d or 2d arrays to file with np.savetxt. `axes` specifies the axes which form
@@ -258,7 +248,7 @@ def writearr(fn, arr, order='C', endian='<', comment=None, info=None,
     """
     assert_cond(type in ['bin', 'txt'], "`type` must be 'bin' or 'txt'")
     verbose("[writearr] writing: %s" %fn)
-    verbose("[writearr]     shape: %s" %repr(arr.shape))
+    verbose("[writearr]     shape: %s" %frepr(arr.shape))
     if type == 'bin':
         # here, perm could be anything, will be changed in npfile() anyway
         perm = 'wb'
@@ -327,7 +317,7 @@ def readbin(fn):
     npf = npfile(fn, order=order, endian=endian, permission='rb')
     arr = npf.read_array(dtype, shape=shape)
     npf.close()
-    verbose("[readbin]     shape: %s" %repr(arr.shape))
+    verbose("[readbin]     shape: %s" %frepr(arr.shape))
     return arr
 
 
@@ -416,7 +406,7 @@ def tobool(val):
         or (got_int and (val == 0)):
         ret = False
     else:
-        raise StandardError("illegal input value '%s'" %repr(val))
+        raise StandardError("illegal input value '%s'" %frepr(val))
     return ret
 
 #-----------------------------------------------------------------------------
@@ -462,9 +452,11 @@ def ffloat(st):
 
 #-----------------------------------------------------------------------------
 
-def repr(var, ffmt="%.16e"):
-    """Similar to Python's repr(), but return floats formated with `ffmt` if
-    `var` is a float. Python's repr() handles also var = None.
+def frepr(var, ffmt="%.16e"):
+    """Similar to Python's repr(), but 
+    * Return floats formated with `ffmt` if `var` is a float.
+    * If `var` is a string, e.g. 'lala', it returns 'lala' not "'lala'" as
+      Python's repr() does.
     
     args:
     -----
@@ -483,7 +475,7 @@ def repr(var, ffmt="%.16e"):
     elif isinstance(var, types.StringType):
         return var
     else:
-        return _repr(var)
+        return repr(var)
 
 #-----------------------------------------------------------------------------
 
@@ -505,14 +497,14 @@ def str2tup(s, func=int):
 
 class PydosConfigParser(ConfigParser.SafeConfigParser):
     """All values passed as `arg` to self.set(self, section, option, arg) are
-    converted to a string with repr(). get*() methods are the usual ones
+    converted to a string with frepr(). get*() methods are the usual ones
     provided by the base class ConfigParser.SafeConfigParser: get(), getint(),
     getfloat(), getboolean(). Option keys are case-sensitive.
     """
     # make keys case-sensitive
     ConfigParser.SafeConfigParser.optionxform = str
     def set(self, section, option, arg):
-        ConfigParser.SafeConfigParser.set(self, section, option, repr(arg))
+        ConfigParser.SafeConfigParser.set(self, section, option, frepr(arg))
 
 #-----------------------------------------------------------------------------
 
@@ -945,8 +937,15 @@ def atomic_positions_out2(fh, natoms, work):
 
 #-----------------------------------------------------------------------------
 
+def _is_cardname(line, cardnames=INPUT_PW_CARDS):
+    line = line.lower()
+    for string in cardnames:
+        if line.startswith(string):
+            return True
+    return False            
+
 @open_and_close
-def pwin_namelists(fh, cardnames=INPUT_PW_CARDS):
+def pwin_namelists(fh):
     """
     Parse "namelist" part of a pw.x input file.
 
@@ -1009,7 +1008,7 @@ def pwin_namelists(fh, cardnames=INPUT_PW_CARDS):
             nl_kvps = []
             # '&CONTROL' -> 'control'
             nl = line[1:].lower()
-        # End of namelist.            
+        # End of namelist. Enter infos from last namelist into `dct`.           
         elif line == '/':
             # nl = 'control', enter dict for namelist 'control' in `dct` under
             # name 'control'.
@@ -1022,7 +1021,7 @@ def pwin_namelists(fh, cardnames=INPUT_PW_CARDS):
         elif line == '':
             continue
         # end of namelist part
-        elif line.lower() in cardnames:
+        elif _is_cardname(line):
             break
         else:
             # 'A=b,c=d' -> ['A=b', 'c=d'] -> 
@@ -1065,7 +1064,7 @@ def parse_pwout_md(fh, pwin_nl=None, atspec=None, atpos_in=None, nstep=None):
     tempw = ffloat(pwin_nl['ions']['tempw'])
     
     # Rold: (natoms x 3)
-    Rold = atpos_in['R0']
+    Rold = atpos_in['coords']
     # Or: natoms = pwin_nl['system']['nat']
     natoms = atpos_in['natoms']
     
@@ -1194,7 +1193,7 @@ def parse_pwout_vc_md(fh, pwin_nl=None, atspec=None, atpos_in=None, nstep=None):
     tempw = ffloat(pwin_nl['ions']['tempw'])
     
     # Rold: (natoms x 3)
-    Rold = atpos_in['R0']
+    Rold = atpos_in['coords']
     # Or: natoms = pwin_nl['system']['nat']
     natoms = atpos_in['natoms']
     
@@ -1347,7 +1346,7 @@ def velocity(R, dt=None, copy=True, rslice=slice(None)):
     tmp[:,1:,:] =  tmp[:,1:,:] - tmp[:,:-1,:]
     # (natoms, nstep, 3), view only, skip j=0 <=> Rold
     V = tmp[:,1:,:]
-    verbose("[velocity] V.shape: %s" %repr(V.shape))
+    verbose("[velocity] V.shape: %s" %frepr(V.shape))
     if dt is not None:
         V /= dt
     return V
@@ -2089,7 +2088,7 @@ def main(opts):
     # opts.__dict__: a dict with options and values {'opt1': val1, 'opt2':
     # val2, ...}
     for key, val in opts.__dict__.iteritems():
-        verbose("    %s: %s" %(key, repr(val)))
+        verbose("    %s: %s" %(key, frepr(val)))
     
     # make outdir
     if not os.path.exists(opts.outdir):
@@ -2283,11 +2282,14 @@ def main(opts):
     if opts.dos: 
 
 # HACK >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        # now -s works also if opts.parse == False
-        Rfull = readbin(rfn)
-        massvec = readbin(mfn)
-        Tfull = readbin(tfn)
-        Pfull = readbin(pfn)
+# Code dup here ....
+#
+        if not opts.parse:   
+            # now -s works also if opts.parse == False
+            Rfull = readbin(rfn)
+            massvec = readbin(mfn)
+            Tfull = readbin(tfn)
+            Pfull = readbin(pfn)
 
         if opts.slice is not None and (not _already_sliced):
             verbose("slicing arrays")
@@ -2313,12 +2315,14 @@ def main(opts):
         writearr(vfn, V, type=opts.file_type, axis=1)
 
         # in s
-        dt = ffloat(pwin_nl['control']['dt']) * constants.tryd
-        verbose("dt: %s seconds" %dt)
+        timestep = ffloat(pwin_nl['control']['dt']) * constants.tryd
+        verbose("dt: %s seconds" %timestep)
+        # If we take, say, only every 10's point, we must scale dt*10 to
+        # preserve the correct time axis.
         if (opts.slice is not None) and (opts.slice.step is not None):
             verbose("scaling dt with slice step: %s" %opts.slice.step)
-            dt *= float(opts.slice.step)
-            verbose("    scaled dt: %s seconds" %dt)
+            timestep *= float(opts.slice.step)
+            verbose("    scaled dt: %s seconds" %timestep)
         
         if not opts.mass:
             massvec = None
@@ -2328,7 +2332,7 @@ def main(opts):
         if opts.dos_method == 'vacf':
             faxis, pdos, extra = vacf_pdos(
                 V, 
-                dt=dt, 
+                dt=timestep, 
                 m=massvec,
                 mirr=opts.mirror, 
                 full_out=True, 
@@ -2344,9 +2348,11 @@ def main(opts):
             # f [Hz]  abs(fft(vacf))  fft(vacf).real  fft(vacf).imag 
             """)
         elif opts.dos_method == 'direct':
+            if opts.mirror:
+                verbose("note: opts.mirror useless for direct method")
             faxis, pdos, extra = direct_pdos(
                 V, 
-                dt=dt, 
+                dt=timestep, 
                 m=massvec,
                 full_out=True, 
                 natoms=float(pwin_nl['system']['nat']),
@@ -2363,7 +2369,7 @@ def main(opts):
             raise StandardError("illegal dos_method: %s" %opts.dos_method)
 
         df1 = full_faxis[1]-full_faxis[0]
-        df2 = 1.0/len(full_faxis)/dt
+        df2 = 1.0/len(full_faxis)/timestep
         # f axis in in order 1e12, so small `decimal` values are sufficient
         np.testing.assert_almost_equal(df1, df2, decimal=0)
         df = df1
@@ -2374,9 +2380,9 @@ def main(opts):
             pdos_out[:,2] = normalize(fftcc[:split_idx].real)
             pdos_out[:,3] = normalize(fftcc[:split_idx].imag)
         info = dict()
-        info['nyquist_freq'] = "%e" %(0.5/dt),
+        info['nyquist_freq'] = "%e" %(0.5/timestep),
         info['freq_resolution'] = "%e" %df,
-        info['dt'] = "%e" %dt,
+        info['dt'] = "%e" %timestep,
         if real_imag_ratio is not None:
             info['real_imag_ratio'] = "%e" %real_imag_ratio,
         pdos_info = {'fft': info}
@@ -2394,7 +2400,7 @@ def main(opts):
             T=T,
             P=P,
             V=V,
-            dt=dt,
+            dt=timestep,
             df=df,
             m=massvec,
             ) 
@@ -2412,30 +2418,22 @@ def get_parser():
     # argparse supports optional arguments. We use this for our bool valued
     # options.
     #
-    # cases:
-    #   no -d       -> default
-    #      -d       -> const
-    #      -d VAL   -> tobool(VAL)
-    #
-    # For bool opts, all our "const" values are True, i.e. if the option is
-    # used w/o argument, then it is True.
-    
     epilog=textwrap.dedent("""
     bool options
     ------------
-    Examples use the '-d' option.  All bool options have default values. If an
-    option is NOT given, the default is used. If the option is used and NO
-    argument is given (e.g. just "-d"), then the corresponding variable is
-    True. With arguments, e.g. "-d VAL", VAL can be
-        
-        1, true,  on,  yes -> True
-        0, false, off, no  -> False
-     
-    Only disadvantage: You cannot use
-      -dpm 
-    must be 
-      -d -p -m
+    Bool options have optional arguments: In gereral: pydos.py ... [-p [ARG]]
     
+    Example with the -p option:
+
+    * NO -p -> the default [False] is used automatically
+    * -p    -> the "const" value [True] is used (switch -p "on")
+    * with argument:
+        -p 1 | true | on | yes -> True
+        -p 0 | false | off | no  -> False
+    
+    For bool opts, all "const" values are True, i.e. if the option is
+    used w/o argument, then it is [True].
+
     examples
     --------
     See the README file.
@@ -2539,7 +2537,7 @@ def get_parser():
         type=int,
         default=None,
         help="""int, if for some reason the number of steps in PWINFN
-        (control:nstep) does not match the actual number if iterations in
+        (control:nstep) does not match the actual number of iterations in
         PWOFN, use this to set the value [%(default)s]""",
         )
     return parser

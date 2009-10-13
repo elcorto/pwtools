@@ -50,6 +50,7 @@ if __name__ == '__main__':
     print("*"*78)
     
     # Modify PYTHONPATH so that we import from the current dir.
-    os.environ['PYTHONPATH'] = os.path.abspath('../../')
-    print "modified os.environ['PYTHONPATH']:", os.environ['PYTHONPATH']
+##    delim = '' if os.environ['PYTHONPATH'].strip().startswith(':') else ':'
+##    os.environ['PYTHONPATH'] = os.path.abspath('../../') + delim + os.environ['PYTHONPATH']
+##    print "modified os.environ['PYTHONPATH']:", os.environ['PYTHONPATH']
     system('cd $HOME && python -c "import pwtools"')

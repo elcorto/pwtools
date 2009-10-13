@@ -53,6 +53,19 @@ See for cmd line opts, see
     
     $ pydos.py -h
 
+Methology
+---------
+
+There are two ways of computing the PDOS (V is is array of atomic velocities,
+see pydos.py for details). 
+    (1) vacf way: FFT of the velocity autocorrelation function (vacf):
+        V -> VACF -> FFT(VACF) = PDOS, see pydos.vacf_pdos()
+    (2) direct way: |FFT(V)**2| = PDOS, see pydos.direct_pdos()
+If you mirror the VACF before the FFT (-m option), then you get double
+frequency resolution. Appart from that, both methods give the same results (up
+to numerical noise).
+
+
 Eexamples
 --------
 1)  $ pydos.py -i AlN.md.in -o AlN.md.out -p -d
@@ -71,6 +84,7 @@ Eexamples
 4)  $ pydos.py -i Si.md.in -o Si.md.out -p -d -s 300: -x pdos.Si -f txt -t direct
         The same, but now write txt files instead of binary files and use the
         Direct Method to compute the PDOS.
+
 
 Known issues
 ------------
