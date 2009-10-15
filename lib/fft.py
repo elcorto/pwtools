@@ -18,10 +18,11 @@ def fftsample(a, b, mode='f', mirr=False):
     args:
     -----
     a, b: see below
-    mode : string, {'f', 's'}
+    mode : string, {'f', 't'}
         f : frequency mode
         t : time mode
-    mirr: bool, consider signal mirroring of the signal
+    mirr: bool, consider mirroring of the signal at t=0 before Fourier
+        transform
 
     f-mode:
         a : fmax, max. freq to sample [Hz] == Nyquist freq. == 1/2 samplerate

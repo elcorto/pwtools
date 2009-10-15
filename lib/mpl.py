@@ -47,8 +47,17 @@ def check_ax_obj(ax):
 
 
 def set_plot_layout(py, layout='latex_hs'):
-    """Set up the pylab plotting subsystem for a specific task.
-    py : somethiig w/ an rc() method
+    """Set mpl rc parameters.
+    
+    args:
+    -----
+    py : something with an rc() method
+    
+    example:
+    ------
+    >>> from matplotlib import pyplot as plt
+    >>> set_plot_layout(plt)
+    >>> plt.plot(...)
     """
     
     if not hasattr(py, 'rc'):
@@ -108,7 +117,7 @@ def set_plot_layout(py, layout='latex_hs'):
 
 #-----------------------------------------------------------------------------
 
-def _set_tickline_width(ax, xmin=1.0,xmaj=1.5,ymin=1.0,ymaj=1.5):
+def set_tickline_width(ax, xmin=1.0,xmaj=1.5,ymin=1.0,ymaj=1.5):
     """Set the ticklines (minors and majors) to the given values.
      Looks more professional in Papers and is an Phys.Rev.B. like Style.
 
@@ -137,12 +146,6 @@ def _set_tickline_width(ax, xmin=1.0,xmaj=1.5,ymin=1.0,ymaj=1.5):
 
 #-----------------------------------------------------------------------------
 
-def set_tickline_width(ax, xmin=1.0, xmaj=1.5, ymin=1.0, ymaj=1.5):
-    check_ax_obj(ax)
-    _set_tickline_width(ax, xmin=xmin, xmaj=xmaj, ymin=ymin, ymaj=ymaj) 
-
-#-----------------------------------------------------------------------------
-
 def set_plot_layout_phdth(pyl_obj):
     set_plot_layout(pyl_obj)
     pyl_obj.rc('legend', pad=0.2)
@@ -154,6 +157,7 @@ def set_plot_layout_phdth(pyl_obj):
 # new axis line
 #----------------------------------------------------------------------------
 
+# works with mpl 0.99
 def new_axis(fig, hostax, off=50, loc='bottom', ticks=None, ws_add=0.1,
              label='', sharex=False, sharey=False):
     """Make a new axis line using mpl_toolkits.axes_grid's SubplotHost and
@@ -165,13 +169,13 @@ def new_axis(fig, hostax, off=50, loc='bottom', ticks=None, ws_add=0.1,
     -----
     fig : mpl Figure
     hostax : Instance of matplotlib.axes.HostAxesSubplot. This is the subplot
-        if the figure `fig` w.r.t which all new axis lines are placed. See
+        of the figure `fig` w.r.t which all new axis lines are placed. See
         make_axes_grid_fig().
     off : offset in points, used with parax.get_grid_helper().new_fixed_axis
     loc : one of 'left', 'right', 'top', 'bottom', where to place the new axis
         line
     ticks : sequence of ticks (numbers)
-    ws_add : Whitespace to add at the locatopn `loc` to make space for the new
+    ws_add : Whitespace to add at the location `loc` to make space for the new
         axis line (only useful if off != 0). The number is a relative unit
         and is used to change the bounding box: hostax.get_position().
     label : str, xlabel (ylabel) for 'top','bottom' ('left', 'right')
@@ -183,6 +187,10 @@ def new_axis(fig, hostax, off=50, loc='bottom', ticks=None, ws_add=0.1,
     fig : the Figure
     hostax : the hostax
     parax : the new ParasiteAxes instance
+
+    notes:
+    ------
+    * The sharex/sharey thing may not work correctly.
     """
 
     # Create ParasiteAxes, an ax which overlays hostax.
@@ -241,6 +249,7 @@ def new_axis(fig, hostax, off=50, loc='bottom', ticks=None, ws_add=0.1,
         new_ws = old_pos - ws_add
     else:
         new_ws = old_pos + ws_add
+    # hack ...        
     cmd = "fig.subplots_adjust(%s=%f)" %(loc, new_ws)
     eval(cmd)
     return fig, hostax, parax
@@ -289,8 +298,11 @@ if __name__ == '__main__':
     #-------------------------------------------------------------------------
     # new axis lines, works with mpl 0.99 
     #-------------------------------------------------------------------------
-
-    from pwtools.lib.common import flatten
+    
+    try:
+        from pwtools.lib.common import flatten
+    except ImportError:
+        from matplotlib.cbook import flatten
     
     # Demo w/ all possible axis lines.
     
@@ -311,7 +323,7 @@ if __name__ == '__main__':
         loc, off, ws_add = tuple(flatten(val))
         fig3, hostax, parax = new_axis(fig3, hostax=hostax, 
                                        loc=loc, off=off, label=loc, 
-                                       share=True, ws_add=ws_add)
+                                       ws_add=ws_add)
         parax.plot(x*n, y**n)
     
     new_axis(fig3, hostax=hostax, loc='right', off=0, ws_add=0, 
