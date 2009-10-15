@@ -9,7 +9,8 @@ __all__ = [\
     'pydos', 
     'crys',
     'mpl',
-    'fft'
+    'fft',
+    'regex'
     ]
 
 

@@ -168,14 +168,14 @@ def igrep(pat_or_rex, iterable, func='search'):
         match itself. If you want default grep(1) behavior, use
         "^.*<pattern>.*$" to explicitly match the whole line.         
         
-            $ egrep -o '<pattern>' file.txt
-            >>> for m in igrep(r'<pattern>', open('file.txt'), 'search'): print m.group()
-        
             $ egrep '<pattern>' file.txt
             >>> for m in igrep(r'^.*<pattern>.*$', open('file.txt'), 'search'): print m.group()
+            
+            $ egrep -o '<pattern>' file.txt
+            >>> for m in igrep(r'<pattern>', open('file.txt'), 'search'): print m.group()
    
     Match, Search and grouping:
-        In the latter example, 'match' would also work since you are matching
+        In the first example, 'match' would also work since you are matching
         the whole line anyway. 
         
         From the python re module docs:
@@ -207,7 +207,7 @@ def igrep(pat_or_rex, iterable, func='search'):
                                     stdout=PIPE).communicate()[0] 
         But that's not really pythonic, eh? :)
         
-        It's generally a good idoa to use raw strings: r'<pattern>' instead of
+        It's generally a good idea to use raw strings: r'<pattern>' instead of
         'pattern'.
 
     Speed:

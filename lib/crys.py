@@ -10,13 +10,15 @@ import re
 import numpy as np
 
 try:
-    import CifFile  
+    import CifFile as pycifrw_CifFile
 except ImportError:
-    print("%s: Cannot import CifFile from the PyCIFRW package. " 
+    print("%s: Cannot import CifFile from the PyCifRW package. " 
     "Some functions in this module will not work." %__file__)
 
 from common import assert_cond
+import common
 import constants as con
+import regex
 
 #-----------------------------------------------------------------------------
 
@@ -496,110 +498,172 @@ def wien_sgroup_input(lat_symbol, symbols, atpos_crystal, cryst_const):
 
 #-----------------------------------------------------------------------------
 
-def cif_str2float(st):
-    """'7.3782(7)' -> 7.3782"""
-    if '(' in st:
-        st = re.match(r'([0-9eEdD+-\.]+)(\(.*)', st).group(1)
-##    return floor_eps(float(st))
-    return float(st)
+class CifFile(object):
+    def __init__(self, fn, block=None, a0_to_A=con.a0_to_A):
+        """Extract cell parameters and atomic positions from Cif files. This
+        data can be directly included in a pw.x input file. 
 
+        args:
+        -----
+        fn : str, name of the *cif file
+        block : data block name (i.e. 'data_foo' in the Cif file -> 'foo'
+            here). If None then the first data block in the file is used.
+        ao_to_A : conversion factor Bohr -> Angstrom  (approx. 0.52).        
+        
+        members:
+        --------
+        celldm : array (6,), PWscf celldm, !!! a,b,c in Bohr !!!
+        symbols : list of strings with atom symbols
+        coords : array (natoms, 3), crystal coords
+        cif_dct : dct with 'a','b','c' in Angstrom (as parsed from the Cif
+            file) and 'alpha', 'beta', 'gamma'
+        %(cryst_const_doc)s, same as cif_dct, but as array
+
+        notes:
+        ------
+        cif parsing:
+            We expect PyCifRW [1] to be installed, which provides the CifFile
+            module.
+        cell dimensions:
+            We extract
+            _cell_length_a
+            _cell_length_b
+            _cell_length_c
+            _cell_angle_alpha
+            _cell_angle_beta
+            _cell_angle_gamma
+            and transform them to pwscf-style celldm. Note that celldm(4-6) in
+            PWscf are the cos() of the angles. See ibrav [2]. 
+        atom positions:
+            Cif files contain "fractional" coords, which is just 
+            "ATOMIC_POSITIONS crystal" in PWscf.
+        
+        Since we return also `cryst_const`, one could also easily obtain the
+        CELL_PARAMETERS by pwtools.crys.cc2cp(cryst_const) and wouldn't need
+        celldm(1..6) at all.
+
+        refs:
+        -----
+        [1] http://pycifrw.berlios.de/
+        [2] http://www.quantum-espresso.org/input-syntax/INPUT_PW.html#id53713
+        """
+        self.fn = fn
+        self.a0_to_A = a0_to_A
+        self.block = block
+        self.parse()
+    
+    def cif_str2float(self, st):
+        """'7.3782(7)' -> 7.3782"""
+        if '(' in st:
+            st = re.match(r'([0-9eEdD+-\.]+)(\(.*)', st).group(1)
+    ##    return floor_eps(float(st))
+        return float(st)
+
+    def cif_label(self, st, rex=re.compile(r'([a-zA-Z]+)([0-9]*)')):
+        """Remove digits from atom names. 
+        
+        example:
+        -------
+        >>> cif_label('Al1')
+        'Al'
+        """
+        return rex.match(st).group(1)
+    
+    def parse(self):        
+        cf = pycifrw_CifFile.ReadCif(self.fn)
+        if self.block is None:
+            cif_block = cf.first_block()
+        else:
+            cif_block = cf['data_' + name]
+        
+        # celldm from a,b,c and alpha,beta,gamma
+        # alpha = angbe between b,c
+        # beta  = angbe between a,c
+        # gamma = angbe between a,b
+        self.cif_dct = {}
+        for x in ['a', 'b', 'c']:
+            what = '_cell_length_' + x
+            self.cif_dct[x] = self.cif_str2float(cif_block[what])
+        for x in ['alpha', 'beta', 'gamma']:
+            what = '_cell_angle_' + x
+            self.cif_dct[x] = self.cif_str2float(cif_block[what])
+        self.celldm = []
+        # ibrav 14, celldm(1) ... celldm(6)
+        self.celldm.append(self.cif_dct['a']/self.a0_to_A) # Angstrom -> Bohr
+        self.celldm.append(self.cif_dct['b']/self.cif_dct['a'])
+        self.celldm.append(self.cif_dct['c']/self.cif_dct['a'])
+        self.celldm.append(cos(deg2rad(self.cif_dct['alpha'])))
+        self.celldm.append(cos(deg2rad(self.cif_dct['beta'])))
+        self.celldm.append(cos(deg2rad(self.cif_dct['gamma'])))
+        self.celldm = np.asarray(self.celldm)
+        
+        self.symbols = map(cif_label, cif_block['_atom_site_label'])
+        
+        self.coords = np.array([map(cif_str2float, [x,y,z]) for x,y,z in izip(
+                                   cif_block['_atom_site_fract_x'],
+                                   cif_block['_atom_site_fract_y'],
+                                   cif_block['_atom_site_fract_z'])])
+        self.cryst_const = np.array([self.cif_dct[key] for key in \
+            ['a', 'b', 'c', 'alpha', 'beta', 'gamma']])
+        
 #------------------------------------------------------------------------------
 
-def cif_label(st, rex=re.compile(r'([a-zA-Z]+)([0-9]*)')):
-    """Remove digits from atom names. 
-    
-    example:
-    -------
-    >>> cif_label('Al1')
-    'Al'
-    """
-    return rex.match(st).group(1)
-    
-#------------------------------------------------------------------------------
+class PDBFile(object):
+    @_add_doc
+    def __init__(self, fn, a0_to_A=con.a0_to_A):
+        """
+        Very very simple pdb file parser. Extract only ATOM/HETATM and CRYST1
+        (if present) records.
+        
+        If you want smth serious, check biopython. 
+        
+        We convert all Angstrom numbers to Bohr.
 
-def cif2pw(filename, block=None, fac=1.0/con.a0_to_A):
-    """Extract cell parameters and atomic positions from Cif files. This data
-    can be directly included in a pw.x input file. 
+        args:
+        -----
+        pdb_file : filename
+        a0_to_A : conversion factor Bohr -> Angstrom
 
-    args:
-    -----
-    filename : str, name of the *cif file
-    block : data block name (i.e. 'data_foo' in the Cif file -> 'foo' here). If
-        None then the first data block in the file is used.
-    fac : conversion factor Angstrom -> Bohr (approx. 1/0.52).        
-    
-    returns:
-    --------
-    {'celldm': celldm, 'symbols': symbols, 'atpos': atpos,
-        'cif_dct': cif_dct, 'cryst_const': cryst_const}
-    celldm : array (6,), PWscf celldm, !!! a,b,c in Bohr !!!
-    symbols : list of strings with atom symbols
-    atpos : array (natoms, 3), crystal coords
-    cif_dct : dct with 'a','b','c' in Angstrom (as parsed from the Cif file) and 
-        'alpha', 'beta', 'gamma'
-    %(cryst_const_doc)s, same as cif_dct, but as array
+        members:
+        --------
+        coords : atomic coords in Bohr
+        symbols : list of strings with atom symbols
+        %(cryst_const_doc)s 
+            If no CRYST1 record is found, this is None.
+        
+        notes:
+        ------
+        We use regexes which may not work for more complicated ATOM records. We
+        don't use the strict column numbers for each field as stated in the PDB
+        spec.
+        """
+        self.fn = fn
+        self.a0_to_A = a0_to_A
+        self.parse()
 
-    notes:
-    ------
-    cif parsing:
-        We expect PyCifRW [1] to be installed, which provides the CifFile
-        module.
-    cell dimensions:
-        We extract
-        _cell_length_a
-        _cell_length_b
-        _cell_length_c
-        _cell_angle_alpha
-        _cell_angle_beta
-        _cell_angle_gamma
-        and transform them to pwscf-style celldm. Note that celldm(4-6) in
-        PWscf are the cos() of the angles. See ibrav [2]. 
-    atom positions:
-        Cif files contain "fractional" coords, which is just 
-        "ATOMIC_POSITIONS crystal" in PWscf.
-    
-    Since we return also `cryst_const`, one could also easily obtain the
-    CELL_PARAMETERS by pwtools.crys.cc2cp(cryst_const) and wouldn't need
-    celldm(1..6) at all.
-
-    refs:
-    -----
-    [1] http://pycifrw.berlios.de/
-    [2] http://www.quantum-espresso.org/input-syntax/INPUT_PW.html#id53713
-    """
-    cf = CifFile.ReadCif(filename)
-    if block is None:
-        cif_block = cf.first_block()
-    else:
-        cif_block = cf['data_' + name]
-    
-    # celldm from a,b,c and alpha,beta,gamma
-    # alpha = angbe between b,c
-    # beta  = angbe between a,c
-    # gamma = angbe between a,b
-    cif_dct = {}
-    for x in ['a', 'b', 'c']:
-        what = '_cell_length_' + x
-        cif_dct[x] = cif_str2float(cif_block[what])
-    for x in ['alpha', 'beta', 'gamma']:
-        what = '_cell_angle_' + x
-        cif_dct[x] = cif_str2float(cif_block[what])
-    celldm = []
-    # ibrav 14, celldm(1) ... celldm(6)
-    celldm.append(cif_dct['a']*fac) # Angstrom -> Bohr
-    celldm.append(cif_dct['b']/cif_dct['a'])
-    celldm.append(cif_dct['c']/cif_dct['a'])
-    celldm.append(cos(deg2rad(cif_dct['alpha'])))
-    celldm.append(cos(deg2rad(cif_dct['beta'])))
-    celldm.append(cos(deg2rad(cif_dct['gamma'])))
-    celldm = np.asarray(celldm)
-    symbols = map(cif_label, cif_block['_atom_site_label'])
-    atpos = np.array([map(cif_str2float, [x,y,z]) for x,y,z in izip(
-                               cif_block['_atom_site_fract_x'],
-                               cif_block['_atom_site_fract_y'],
-                               cif_block['_atom_site_fract_z'])])
-    cryst_const = np.array([cif_dct[key] for key in \
-        ['a', 'b', 'c', 'alpha', 'beta', 'gamma']])
-    return {'celldm': celldm, 'symbols': symbols, 'atpos': atpos,
-        'cif_dct': cif_dct, 'cryst_const': cryst_const}
+    def parse(self):
+        # Grep atom symbols and coordinates in Angstrom ([A]) from PDB file.
+        fh = open(self.fn)
+        ret = common.igrep(r'(ATOM|HETATM)[\s0-9]+([A-Za-z]+)[\sa-zA-Z0-9]*'
+            '[\s0-9]+((\s+'+ regex.float_re +'){3}?)', fh)
+        # array of string type            
+        coords_data = np.array([[m.group(2)] + m.group(3).split() for m in ret])
+        # list of strings (system:nat,)
+        self.symbols = list(coords_data[:,0])
+        # float array, (system:nat, 3) in Bohr
+        self.coords = coords_data[:,1:].astype(float) /self.a0_to_A        
+        
+        # grep CRYST1 record, extract only crystallographic constants
+        # example:
+        # CRYST1   52.000   58.600   61.900  90.00  90.00  90.00  P 21 21 21   8
+        #          a        b        c       alpha  beta   gamma  |space grp|  z-value
+        fh.seek(0)
+        match = common.mgrep('CRYST1\s+((\s+'+ regex.float_re +'){6}).*$', fh)[0]
+        fh.close()
+        if match is not None:
+            self.cryst_const = np.array(match.group(1).split()).astype(float)
+            self.cryst_const[:3] /= self.a0_to_A
+        else:
+            self.cryst_const = None
+        
 
