@@ -658,12 +658,14 @@ class PDBFile(object):
         # CRYST1   52.000   58.600   61.900  90.00  90.00  90.00  P 21 21 21   8
         #          a        b        c       alpha  beta   gamma  |space grp|  z-value
         fh.seek(0)
-        match = common.mgrep('CRYST1\s+((\s+'+ regex.float_re +'){6}).*$', fh)[0]
+        ret = common.mgrep('CRYST1\s+((\s+'+ regex.float_re +'){6}).*$', fh)
         fh.close()
-        if match is not None:
+        if len(ret) == 1:
+            match = ret[0]
             self.cryst_const = np.array(match.group(1).split()).astype(float)
             self.cryst_const[:3] /= self.a0_to_A
-        else:
+        elif len(ret) == 0:
             self.cryst_const = None
-        
+        else:
+            raise StandardError("found CRYST1 record more then once")       
 
