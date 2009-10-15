@@ -129,6 +129,7 @@ import constants
 import _flib
 from common import assert_cond, file_write, fileo, system, fullpath
 from decorators import open_and_close
+import regex
 
 # aliases
 pjoin = os.path.join
@@ -152,17 +153,7 @@ INPUT_PW_CARDS = [\
     'constraints',
     'collective_vars']
 
-# Regex that matched every conveivable form of a float number
-# 1
-# 1.0
-# +1.0
-# -1.0
-# 1.0e3
-# 1.0e+03
-# 1.0E-003
-# -.1D03
-# ...
-FLOAT_RE = r'[+-]*[\.0-9eEdD+-]+'
+FLOAT_RE = regex.float_re
 
 #-----------------------------------------------------------------------------
 # file handling
