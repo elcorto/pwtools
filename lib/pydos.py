@@ -2390,21 +2390,6 @@ def main(opts):
         if opts.dos_method == 'vacf':
             writearr(vacffn, vacf_data, type=opts.file_type)
        
-        # XXX Don't return stuff here. 
-        # - It's only done when opts.dos == True. 
-        # If we want to return R, then call `V = velocity(..., copy=True)`.
-        ret = dict(
-            faxis=faxis,
-            pdos=pdos,
-            T=T,
-            P=P,
-            V=V,
-            dt=timestep,
-            df=df,
-            m=massvec,
-            ) 
-        return ret
-
 #------------------------------------------------------------------------------
 
 def get_parser():
