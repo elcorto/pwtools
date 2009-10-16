@@ -498,8 +498,38 @@ def wien_sgroup_input(lat_symbol, symbols, atpos_crystal, cryst_const):
 
 #-----------------------------------------------------------------------------
 
+class StructureFileParser(object):
+    def __init__(self, fn):
+        """Abstract base class for all structure file parsing classes. Can
+        house common code like unit conversion etc.
+        
+        Not used atm.
+        """
+        # Current lenth unit. After parsing, it is the unit of legth of the
+        # parsed file (i.e. Angstrom for Cif and PDB). The variable is altered by 
+        # self.ang_to_bohr() etc. 
+        #
+        # With this state variable, we essentially
+        # implement a physical quantity: number * unit ...
+        self.length_unit = None
+        self.fn = fn
+    
+    def parse(self):
+        pass
+    
+    def ang_to_bohr(self):
+        pass
+    
+    def bohr_to_and(self):
+        pass
+
+    def to_bohr(self):
+        pass
+         
+#-----------------------------------------------------------------------------
+
 class CifFile(object):
-    def __init__(self, fn, block=None, a0_to_A=con.a0_to_A):
+    def __init__(self, fn, block=None):
         """Extract cell parameters and atomic positions from Cif files. This
         data can be directly included in a pw.x input file. 
 
@@ -508,11 +538,12 @@ class CifFile(object):
         fn : str, name of the *cif file
         block : data block name (i.e. 'data_foo' in the Cif file -> 'foo'
             here). If None then the first data block in the file is used.
-        ao_to_A : conversion factor Bohr -> Angstrom  (approx. 0.52).        
         
         members:
         --------
-        celldm : array (6,), PWscf celldm, !!! a,b,c in Bohr !!!
+        celldm : array (6,), PWscf celldm, see [2]
+            [a, b/a, c/a, cos(alpha), cos(beta), cos(gamma)]
+            **** NOTE: 'a' is always in Bohr! ****
         symbols : list of strings with atom symbols
         coords : array (natoms, 3), crystal coords
         cif_dct : dct with 'a','b','c' in Angstrom (as parsed from the Cif
@@ -532,8 +563,7 @@ class CifFile(object):
             _cell_angle_alpha
             _cell_angle_beta
             _cell_angle_gamma
-            and transform them to pwscf-style celldm. Note that celldm(4-6) in
-            PWscf are the cos() of the angles. See ibrav [2]. 
+            and transform them to pwscf-style celldm. 
         atom positions:
             Cif files contain "fractional" coords, which is just 
             "ATOMIC_POSITIONS crystal" in PWscf.
@@ -548,7 +578,7 @@ class CifFile(object):
         [2] http://www.quantum-espresso.org/input-syntax/INPUT_PW.html#id53713
         """
         self.fn = fn
-        self.a0_to_A = a0_to_A
+        self.a0_to_A = con.a0_to_A
         self.block = block
         self.parse()
     
@@ -556,7 +586,6 @@ class CifFile(object):
         """'7.3782(7)' -> 7.3782"""
         if '(' in st:
             st = re.match(r'([0-9eEdD+-\.]+)(\(.*)', st).group(1)
-    ##    return floor_eps(float(st))
         return float(st)
 
     def cif_label(self, st, rex=re.compile(r'([a-zA-Z]+)([0-9]*)')):
@@ -610,19 +639,17 @@ class CifFile(object):
 
 class PDBFile(object):
     @_add_doc
-    def __init__(self, fn, a0_to_A=con.a0_to_A):
+    def __init__(self, fn):
         """
         Very very simple pdb file parser. Extract only ATOM/HETATM and CRYST1
         (if present) records.
         
-        If you want smth serious, check biopython. 
+        If you want smth serious, check biopython. No unit conversion up to
+        now.
         
-        We convert all Angstrom numbers to Bohr.
-
         args:
         -----
-        pdb_file : filename
-        a0_to_A : conversion factor Bohr -> Angstrom
+        fn : filename
 
         members:
         --------
@@ -638,7 +665,7 @@ class PDBFile(object):
         spec.
         """
         self.fn = fn
-        self.a0_to_A = a0_to_A
+        ##self.a0_to_A = con.a0_to_A
         self.parse()
 
     def parse(self):
@@ -651,7 +678,8 @@ class PDBFile(object):
         # list of strings (system:nat,)
         self.symbols = list(coords_data[:,0])
         # float array, (system:nat, 3) in Bohr
-        self.coords = coords_data[:,1:].astype(float) /self.a0_to_A        
+        ##self.coords = coords_data[:,1:].astype(float) /self.a0_to_A        
+        self.coords = coords_data[:,1:].astype(float)        
         
         # grep CRYST1 record, extract only crystallographic constants
         # example:
@@ -663,7 +691,7 @@ class PDBFile(object):
         if len(ret) == 1:
             match = ret[0]
             self.cryst_const = np.array(match.group(1).split()).astype(float)
-            self.cryst_const[:3] /= self.a0_to_A
+            ##self.cryst_const[:3] /= self.a0_to_A
         elif len(ret) == 0:
             self.cryst_const = None
         else:
