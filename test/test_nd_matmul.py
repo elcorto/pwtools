@@ -1,4 +1,5 @@
 import numpy as np
+from pwtools import pydos
 
 # some random 3d array
 natoms = 5

@@ -1,0 +1,14 @@
+TITLE     some_random_atoms
+REMARK    THIS IS A SIMULATION BOX
+CRYST1   10.678   10.678   10.678  90.00  90.00  90.00 P 1           1
+MODEL        1
+HETATM    1  C           1       5.759   5.581   5.339  1.00  0.00
+ATOM      2  O           1       5.759   6.951   5.339  1.00  0.00
+ATOM      3  O           1       6.980   4.876   5.339  1.00  0.00
+ATOM      8  Na          1       7.406   6.575   5.339  1.00  0.00
+HETATM    9  H   HOH     2       5.701   2.442   7.733  1.00  0.00
+HETATM   10  H   HOH     2       5.908   0.887   7.280  1.00  0.00
+ATOM     11  O   HOH     2       6.008   1.840   6.996  1.00  0.00
+ATOM     12  O   HOH    20       2.880   7.979   2.600  1.00  0.00
+TER
+ENDMDL
