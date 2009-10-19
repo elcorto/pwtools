@@ -118,7 +118,7 @@ def dft(a, method='loop'):
     [2] http://www.fftw.org/doc/The-1d-Real_002ddata-DFT.html
     [3] http://mathworld.wolfram.com/FourierTransform.html
     """
-    pi = constants.pi
+    pi = np.pi
     N = a.shape[0]
     # n and k run from 0 ... N-1
     nk = np.linspace(0.0, float(N), endpoint=False, num=N)

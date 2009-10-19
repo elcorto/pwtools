@@ -585,7 +585,7 @@ class CifFile(object):
     def cif_str2float(self, st):
         """'7.3782(7)' -> 7.3782"""
         if '(' in st:
-            st = re.match(r'([0-9eEdD+-\.]+)(\(.*)', st).group(1)
+            st = re.match(r'(' + regex.float_re  + r')(\(.*)', st).group(1)
         return float(st)
 
     def cif_label(self, st, rex=re.compile(r'([a-zA-Z]+)([0-9]*)')):
@@ -626,9 +626,9 @@ class CifFile(object):
         self.celldm.append(cos(deg2rad(self.cif_dct['gamma'])))
         self.celldm = np.asarray(self.celldm)
         
-        self.symbols = map(cif_label, cif_block['_atom_site_label'])
+        self.symbols = map(self.cif_label, cif_block['_atom_site_label'])
         
-        self.coords = np.array([map(cif_str2float, [x,y,z]) for x,y,z in izip(
+        self.coords = np.array([map(self.cif_str2float, [x,y,z]) for x,y,z in izip(
                                    cif_block['_atom_site_fract_x'],
                                    cif_block['_atom_site_fract_y'],
                                    cif_block['_atom_site_fract_z'])])
@@ -672,7 +672,7 @@ class PDBFile(object):
         # Grep atom symbols and coordinates in Angstrom ([A]) from PDB file.
         fh = open(self.fn)
         ret = common.igrep(r'(ATOM|HETATM)[\s0-9]+([A-Za-z]+)[\sa-zA-Z0-9]*'
-            '[\s0-9]+((\s+'+ regex.float_re +'){3}?)', fh)
+            r'[\s0-9]+((\s+'+ regex.float_re + r'){3}?)', fh)
         # array of string type            
         coords_data = np.array([[m.group(2)] + m.group(3).split() for m in ret])
         # list of strings (system:nat,)
@@ -686,7 +686,7 @@ class PDBFile(object):
         # CRYST1   52.000   58.600   61.900  90.00  90.00  90.00  P 21 21 21   8
         #          a        b        c       alpha  beta   gamma  |space grp|  z-value
         fh.seek(0)
-        ret = common.mgrep('CRYST1\s+((\s+'+ regex.float_re +'){6}).*$', fh)
+        ret = common.mgrep(r'CRYST1\s+((\s+'+ regex.float_re + r'){6}).*$', fh)
         fh.close()
         if len(ret) == 1:
             match = ret[0]

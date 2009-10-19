@@ -10,7 +10,8 @@ __all__ = [\
     'crys',
     'mpl',
     'fft',
-    'regex'
+    'regex',
+    'corr'
     ]
 
 

@@ -1,8 +1,8 @@
 # regex.py
 #
-# Definition of useful regexes thatwe may use for parsing here and there.
+# Definition of useful regexes that we may use for parsing here and there.
 
-# Regex that matched every conveivable form of a float number, also Fortran 
+# Regex that matches every conveivable form of a float number, also Fortran 
 # 1
 # 1.0
 # +1.0
