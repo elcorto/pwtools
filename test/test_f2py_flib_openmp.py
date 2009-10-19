@@ -1,6 +1,7 @@
 import numpy as np
 from pwtools.lib import _flib
 from pwtools.lib.pydos import fvacf
+from pwtools.lib.common import system
 import os
 import sys
 
@@ -11,6 +12,8 @@ def omp_num_threads(action='check', num=1, omp_dct=OMP_DCT, err=False):
     if action == 'check':
         if has_key:
             print "[omp_num_threads] os.environ['%s']: %s" %(key, os.environ[key])
+            print "[omp_num_threads] shell$ echo %s" %(key)
+            system('echo $%s' %key)
             if err and os.environ[key] != '3':
                 return 'err'
         else:

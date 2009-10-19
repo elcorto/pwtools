@@ -1,13 +1,13 @@
 import numpy as np
 from math import pi, sqrt
 from matplotlib import pyplot as plt
-import pydos
+from pwtools import fft as pydos_fft
+from pwtools import corr
 from scipy.fftpack import fft
-##fft = pydos.dft
 
 y = np.random.rand(1000)
 print "pydos fft ..."
-pydos_ffty = pydos.dft(y)
+pydos_ffty = pydos_fft.dft(y)
 print "scipy fft ..."
 scipy_ffty = fft(y)
 print "assert ..."
@@ -81,9 +81,9 @@ runner.run(yy, '-', 'fft(yy)', title)
 #-------------------------------------------------------
 
 # VACF, for now don't mirror <y(0)y(t)> at t=0
-title =  "fft(c), using c=pydos.acorr(v, method=6)"
+title =  "fft(c), using c=corr.acorr(v, method=6)"
 v = y[1:]-y[:-1]
-c = pydos.acorr(v, method=6)
+c = corr.acorr(v, method=6)
 ##c = pydos.fvacf1d(y)
 runner.run(c, '-', 'fft(c)', title)
 plt.figure()
