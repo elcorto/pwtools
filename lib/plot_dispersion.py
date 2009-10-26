@@ -52,11 +52,11 @@ def parse_dis(fn_freq, fn_kpath_def=None):
 
     `fn_freq` has the form
         <header>
-            <k-point, (3,)>
-            <frequencies,(nbnd,)
-            <k-point, (3,)>
-            <frequencies,(nbnd,)
-            ...
+        <k-point, (3,)>
+        <frequencies,(nbnd,)
+        <k-point, (3,)>
+        <frequencies,(nbnd,)
+        ...
 
         example:        
         -------------------------------------------------------------
@@ -80,14 +80,16 @@ def parse_dis(fn_freq, fn_kpath_def=None):
 
         example:
         -------------------------------------------------------------
-        0    0    0     # Gamma
+        0    0    0     # $\Gamma$
         0.75 0.75 0     # K
         1 0.5 0         # W
         1 0 0           # X
-        0 0 0           # Gamma
+        0 0 0           # $\Gamma$
         .5 .5 .5        # L
         -------------------------------------------------------------
-    
+    Note that you can put special matplotlib math text in this file. Everything
+    after `#' is treated as a Python raw string.
+
     For correct plotting, the k-points defined in `fn_kpath_def` MUST of course
     be on the exact same k-path as the k-points listed in `fn_freq`.
     """
@@ -131,7 +133,7 @@ def parse_dis(fn_freq, fn_kpath_def=None):
             spl = line.strip().split()
             special_points.append(
                 SpecialPoint(np.array(spl[:3], dtype=float), 
-                    spl[-1].replace('#', '')))
+                    r'%s' %spl[-1].replace('#', '')))
         fhk.close()
         special_points_path = SpecialPointsPath(special_points)
     else:
