@@ -667,7 +667,7 @@ class PDBFile(object):
         self.fn = fn
         ##self.a0_to_A = con.a0_to_A
         self.parse()
-
+    
     def parse(self):
         # Grep atom symbols and coordinates in Angstrom ([A]) from PDB file.
         fh = open(self.fn)
@@ -675,8 +675,13 @@ class PDBFile(object):
             r'[\s0-9]+((\s+'+ regex.float_re + r'){3}?)', fh)
         # array of string type            
         coords_data = np.array([[m.group(2)] + m.group(3).split() for m in ret])
-        # list of strings (system:nat,)
-        self.symbols = list(coords_data[:,0])
+        # list of strings (system:nat,), fix atom names, e.g. "AL" -> Al
+        self.symbols = []
+        for sym in coords_data[:,0]:
+            if len(sym) == 2:
+                self.symbols.append(sym[0] + sym[1].lower())
+            else:
+                self.symbols.append(sym)
         # float array, (system:nat, 3) in Bohr
         ##self.coords = coords_data[:,1:].astype(float) /self.a0_to_A        
         self.coords = coords_data[:,1:].astype(float)        

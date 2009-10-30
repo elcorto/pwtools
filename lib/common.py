@@ -338,7 +338,8 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
         is_dct_mode = True
         if conv:
             print("template_replace: Warning: `conv=True` is ignored if "
-                  "mode=='dct'")
+                  "mode=='dct', instead use proper format strings in your "
+                  "placeholders")
     elif mode == 'txt':
         is_txt_mode = True
     else:
@@ -442,7 +443,7 @@ def hash(txt, mod_funcs=[], skip_funcs=[]):
         return True or False
     
     mod_funcs and skip_funcs shall NOT assume to get lines that are alraedy
-    modified in are way. They shall expect lines as read from the file.
+    modified in any way. They shall expect lines as read from the file.
 
     returns:
     --------
