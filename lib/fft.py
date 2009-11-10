@@ -33,12 +33,13 @@ def fftsample(a, b, mode='f', mirr=False):
 
     returns:
     --------
+    array([x,y])
     f-mode:
-        dt : time step, unit is [s] (or in general 1/unit_of_fmax)
-        N : number of samples
+        x: dt : time step, unit is [s] (or in general 1/unit_of_fmax)
+        y: N : number of samples
     t-mode:
-        fmax
-        df
+        x: fmax
+        y: df
     
     notes:
     ------
@@ -57,14 +58,14 @@ def fftsample(a, b, mode='f', mirr=False):
             df *= 2
         dt = 0.5/fmax
         N = 1.0/(df*dt)
-        return dt, int(N)
+        return np.array([dt, N])
     elif mode == 't':
         dt, N = a, b
         if mirr:
             N *= 2
         fmax = 0.5/dt
         df = 1.0/(N*dt)
-        return fmax, df    
+        return np.array([fmax, df])
     else:
         raise ValueError("illegal mode, allowed: t, f")
 
