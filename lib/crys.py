@@ -168,7 +168,11 @@ def volume_cc(cryst_const):
 @_add_doc
 def cp2cc(cp, align='rows'):
     """From CELL_PARAMETERS to crystallographic constants a, b, c, alpha, beta,
-    gamma.
+    gamma. 
+    This mapping is unique in the sense that multiple `cp`s will have
+    the same` cryst_const`, i.e. the representation of the cell in
+    `cryst_const` is independent from the spacial orientation of the cell
+    w.r.t. a cartesian coord sys.
     
     args:
     -----
@@ -209,6 +213,9 @@ def cp2cc(cp, align='rows'):
 def cc2cp(cryst_const):
     """From crystallographic constants a, b, c, alpha, beta,
     gamma to CELL_PARAMETERS.
+    This mapping not NOT unique in the sense that one set of `cryst_const` can
+    have arbitrarily many representations in terms of `cp`s. We stick to a
+    common convention. See notes below.
     
     args:
     -----
