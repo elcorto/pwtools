@@ -7,10 +7,11 @@
 import numpy as np
 
 def fftsample(a, b, mode='f', mirr=False):
-    """Convert size and resolution between time and frequency domain.
+    """Convert size and resolution between frequency and time domain.
     
-    Convert between maximal frequency to sample + desired frequency
-    resolution and the needed number of sample points and the time step.
+    Convert between maximal frequency to sample (fmax) + desired frequency
+    resolution (df) and the needed number of sample points (N) + time
+    step (dt).
     
     The maximal frequency is also called the Nyquist frequency and is
     1/2*samplerate.
