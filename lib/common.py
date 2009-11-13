@@ -13,6 +13,7 @@ import re
 import shutil
 import re
 import hashlib
+import sys
 
 from decorators import add_func_doc
 
@@ -606,6 +607,22 @@ def system(call, wait=True):
     p = subprocess.Popen(call, shell=True)
     if wait:
         os.waitpid(p.pid, 0)
+
+#-----------------------------------------------------------------------------
+
+def backtick(call):
+    """Convenient shell backtick replacement with gentle error handling.
+
+    example:
+    --------
+    >>> print backtick('ls -l')
+    """
+    out,err = subprocess.Popen(call, shell=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+    if err.strip() != '':
+        raise StandardError("Error calling command: '%s'\nError message "
+            "follows:\n%s" %(call, err))
+    return out            
 
 #-----------------------------------------------------------------------------
 # aliases
