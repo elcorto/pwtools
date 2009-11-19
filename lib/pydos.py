@@ -929,9 +929,9 @@ def atomic_positions_out2(fh, natoms, work):
 #-----------------------------------------------------------------------------
 
 def _is_cardname(line, cardnames=INPUT_PW_CARDS):
-    line = line.lower()
     for string in cardnames:
-        if line.startswith(string):
+        # matches "occupations", but not "occupations='semaring'"
+        if re.match(r'^\s*%s\s*([^=].*$|$)' %string, line.lower()):
             return True
     return False            
 
