@@ -13,7 +13,6 @@ import re
 import shutil
 import re
 import hashlib
-import sys
 
 from decorators import add_func_doc
 
@@ -629,5 +628,6 @@ def backtick(call):
 #-----------------------------------------------------------------------------
 
 fpj = fullpathjoin
+pj = os.path.join
 # backw. compat
 grep = mgrep 

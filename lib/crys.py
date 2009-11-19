@@ -103,7 +103,6 @@ def volume_cp(cp):
     of the basis vectors a,b,c contained in `cp`. Note that (mathematically)
     the vectors can be either the rows or the cols of `cp`.
 
-    
     args:
     -----
     %(cp_doc)s
@@ -287,7 +286,7 @@ def cc2cp(cryst_const):
 def scell_mask(dim1, dim2, dim3):
     """Build a mask for the creation of a dim1 x dim2 x dim3 supercell (for 3d
     coordinates).  Return all possible permutations with repitition of the
-    integers n1, n2,  n3, and n1, n2, n3 = 0, ..., dim1-1, dim2-1, dim3-1 .
+    integers n1, n2, n3, and n1, n2, n3 = 0, ..., dim1-1, dim2-1, dim3-1 .
 
     args:
     -----
@@ -677,12 +676,58 @@ class PDBFile(object):
     
     def parse(self):
         # Grep atom symbols and coordinates in Angstrom ([A]) from PDB file.
+        #
+        # XXX Note that for the atom symbols, we do NOT use the columns 77-78
+        #     ("Element symbol), b/c that is apparently not present in all the
+        #     files which we currently use. Instead, we use the columns 13-16,
+        #     i.e. "Atom name". Note that in general this is not the element
+        #     symbol.
+        #
+        # From the PDB spec v3.20:
+        #
+        # ATOM record:
+        #
+        # COLUMNS       DATA  TYPE    FIELD        DEFINITION
+        # -------------------------------------------------------------------------------------
+        #  1 -  6       Record name   "ATOM  "
+        #  7 - 11       Integer       serial       Atom  serial number.
+        #  13 - 16      Atom          name         Atom name.
+        #  17           Character     altLoc       Alternate location indicator.
+        #  18 - 20      Residue name  resName      Residue name.
+        #  22           Character     chainID      Chain identifier.
+        #  23 - 26      Integer       resSeq       Residue sequence number.
+        #  27           AChar         iCode        Code for insertion of residues.
+        #  31 - 38      Real(8.3)     x            Orthogonal coordinates for X in Angstroms.
+        #  39 - 46      Real(8.3)     y            Orthogonal coordinates for Y in Angstroms.
+        #  47 - 54      Real(8.3)     z            Orthogonal coordinates for Z in Angstroms.
+        #  55 - 60      Real(6.2)     occupancy    Occupancy.
+        #  61 - 66      Real(6.2)     tempFactor   Temperature  factor.
+        #  77 - 78      LString(2)    element      Element symbol, right-justified.
+        #  79 - 80      LString(2)    charge       Charge  on the atom.
+        #
+        # CRYST1 record:
+        # 
+        # COLUMNS       DATA  TYPE    FIELD          DEFINITION
+        # -------------------------------------------------------------
+        #  1 -  6       Record name   "CRYST1"
+        #  7 - 15       Real(9.3)     a              a (Angstroms).
+        # 16 - 24       Real(9.3)     b              b (Angstroms).
+        # 25 - 33       Real(9.3)     c              c (Angstroms).
+        # 34 - 40       Real(7.2)     alpha          alpha (degrees).
+        # 41 - 47       Real(7.2)     beta           beta (degrees).
+        # 48 - 54       Real(7.2)     gamma          gamma (degrees).
+        # 56 - 66       LString       sGroup         Space  group.
+        # 67 - 70       Integer       z              Z value.
+        #
+        #
         fh = open(self.fn)
         ret = common.igrep(r'(ATOM|HETATM)[\s0-9]+([A-Za-z]+)[\sa-zA-Z0-9]*'
             r'[\s0-9]+((\s+'+ regex.float_re + r'){3}?)', fh)
         # array of string type            
         coords_data = np.array([[m.group(2)] + m.group(3).split() for m in ret])
-        # list of strings (system:nat,), fix atom names, e.g. "AL" -> Al
+        # list of strings (system:nat,) 
+        # Fix atom names, e.g. "AL" -> Al. Note that this is only needed b/c we
+        # use the "wrong" column "Atom name".
         self.symbols = []
         for sym in coords_data[:,0]:
             if len(sym) == 2:
