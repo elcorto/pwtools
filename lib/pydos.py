@@ -223,9 +223,18 @@ def _write_header_config(fh, config, comment='#'):
 #-----------------------------------------------------------------------------
 
 def writetxt(fn, arr, axis=-1):
-    """Write 1d, 2d or 3d arrays to txt file. If 3d, write as 2d chunks. Take
-    the 2d chunks along `axis`. Writes a commented out header in the file with
-    infos needed by readtxt() to restore the right shape."""
+    """Write 1d, 2d or 3d arrays to txt file. 
+    
+    If 3d, write as 2d chunks. Take the 2d chunks along `axis`. Write a
+    commented out ini-style header in the file with infos needed by readtxt()
+    to restore the right shape.
+    
+    args:
+    -----
+    fn : filename
+    arr : array (max 3d)
+    axis : axis along which 2d chunks are written
+    """
     maxdim=3
     assert_cond(arr.ndim <= maxdim, 'no rank > %i arrays supported' %maxdim)
     fh = open(fn, 'w+')
@@ -250,13 +259,33 @@ def writetxt(fn, arr, axis=-1):
 #-----------------------------------------------------------------------------
 
 @open_and_close
-def readtxt(fh):
-    """Read arrays from .txt files written by writetxt()."""
+def readtxt(fh, axis=None, shape=None):
+    """Read arrays from .txt files using np.loadtxt(). 
+    
+    If the file stores a 3d array as consecutive 2d arrays, the file header
+    (see writetxt()) is used to determine the shape of the original 3d array
+    and the arry is reshaped accordingly.
+    If `axis` or `shape` is not None, then this is used instead of the
+    header value. This has the potential to shoot yourself in the foot :)
+    
+    args:
+    -----
+    fh : file_like
+    axis : int
+    shape : tuple
+
+    returns:
+    --------
+    nd array
+    """
     maxdim = 3
-    c = _read_header_config(fh)
-    sec = 'array'
-    shape = str2tup(c.get(sec, 'shape'))
-    axis = int(c.get(sec, 'axis'))
+    if shape is None or axis is None:
+        c = _read_header_config(fh)
+        sec = 'array'
+        if shape is None:
+            shape = str2tup(c.get(sec, 'shape'))
+        if axis is None:            
+            axis = int(c.get(sec, 'axis'))
     ndim = len(shape)
     # axis = -1 means the last dim
     if axis == -1:

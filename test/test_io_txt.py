@@ -16,6 +16,16 @@ def write_read_check(fn, arr, type='txt', axis=-1):
     else:
         print "... FAIL!"
 
+def write_read_check_raw(fn, arr, axis=None, shape=None):
+    print fn + ' ...'
+    pd.writetxt(fn, arr, axis=axis)
+    # ignore file header
+    a = pd.readtxt(fn, axis=axis, shape=shape)
+    if (a == arr).all():
+        print "... ok"
+    else:
+        print "... FAIL!"
+
 dir = '/tmp/pwtools_test'
 if not os.path.exists(dir):
     os.makedirs(dir)
@@ -44,4 +54,8 @@ write_read_check(fn, a, axis=2)
 
 fn = pj(dir, 'a3dm1.txt')
 write_read_check(fn, a, axis=-1)
+
+fn = pj(dir, 'a3d0r.txt')
+write_read_check_raw(fn, a, axis=0, shape=(10,20,30))
+
 
