@@ -36,9 +36,7 @@ def open_and_close(func):
     """
     def wrapper(*args, **kwargs):
         largs = list(args)
-        if isinstance(largs[0], types.FileType):
-            return func(*args, **kwargs)
-        elif isinstance(largs[0], types.StringType):
+        if isinstance(largs[0], types.StringType):
             fn = largs[0]
             if fn.endswith('.gz'):
                 _open = gzip.open
@@ -51,10 +49,15 @@ def open_and_close(func):
             largs[0] = fd
             ret = func(*tuple(largs), **kwargs)
             largs[0].close()
-            return ret         
+            return ret
         else:
-            raise ValueError("illegal type of 1st arg in '%s', expect file object or "
-                             "filename"%repr(largs))
+            # File object case. Don't explicitly test for types.FileType b/c
+            # that does not work for StringIO.StringIO instances. 
+            #
+            # Also, the 'name' attribute can be set (largs[0].name = ...) for
+            # StringIO.StringIO, but NOT for cStringIO.StringIO.
+            return func(*args, **kwargs)
+
     _doc = func.__doc__
     if _doc is not None:
         _doc = _doc.replace('@args_fh_extra_doc@', "If fh is a file object, it "

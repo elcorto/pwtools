@@ -249,10 +249,10 @@ def writetxt(fn, arr, axis=-1):
 
 #-----------------------------------------------------------------------------
 
-def readtxt(fn):
+@open_and_close
+def readtxt(fh):
     """Read arrays from .txt files written by writetxt()."""
     maxdim = 3
-    fh = open(fn)
     c = _read_header_config(fh)
     sec = 'array'
     shape = str2tup(c.get(sec, 'shape'))
@@ -276,13 +276,12 @@ def readtxt(fn):
         arr = np.empty(shape)
         # read_arr: (50*1000, 3)
         assert_cond(read_arr.shape == (shape_2d_chunk[0]*shape[axis],) + \
-            shape_2d_chunk[1:], "read 2d array from '%s' has not the correct "
-                                "shape" %fn)
+            shape_2d_chunk[1:], "read 2d array has not the correct "
+                                "shape")
         sl = [slice(None)]*ndim
         for ind in range(shape[axis]):
             sl[axis] = ind
             arr[sl] = read_arr[ind*shape_2d_chunk[0]:(ind+1)*shape_2d_chunk[0], :]
-    fh.close()            
     return arr
 
 #-----------------------------------------------------------------------------
