@@ -1028,7 +1028,7 @@ def pwin_namelists(fh):
                 nl_kvps = None
             else:
                 dct[nl] = {}
-        elif line == '':
+        elif line == '' or line.startswith('!'):
             continue
         # end of namelist part
         elif _is_cardname(line):
