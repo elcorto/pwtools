@@ -40,7 +40,11 @@ if __name__ == '__main__':
     # read written data, calculate dos direct, no mirroring
     calls.append("%s -i %s -o %s -x %s -d -m 0 -M -t 'direct'" %(exe, infile, outfile_gz, outdir))
     # delete, parse, write txt
-    calls.append("%s %s -i %s -o %s -x %s -p -d -m -M -f txt" %(delete_cmd, exe, infile, outfile_gz, outdir))
+    calls.append("%s %s -i %s -o %s -x %s -p -f txt" %(delete_cmd, exe, infile, outfile_gz, outdir))
+    # read txt, calculate dos
+    calls.append("%s -i %s -o %s -x %s -d -f txt" %(exe, infile, outfile_gz, outdir))
+    # delete, parse, write bin, dos in one run
+    calls.append("%s %s -i %s -o %s -x %s -p -d -f txt" %(delete_cmd, exe, infile, outfile_gz, outdir))
     
     if os.path.exists(outdir):
         shutil.rmtree(outdir)
