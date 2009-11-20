@@ -94,8 +94,9 @@ TODO
   We use this e.g. in next_line().
 """
 
-# FIXME We assume that the ATOMIC_POSITIONS unit (crystal, alat, angstrom) in
+# We assume that the ATOMIC_POSITIONS unit (crystal, alat, angstrom) in
 # pw.in and that of the parsed out ones from pw.out are the same. Check this!
+# For example, it is NOT the same for cp.x!
 
 ##from debug import Debug
 ##DBG = Debug()
@@ -159,31 +160,13 @@ FLOAT_RE = regex.float_re
 # file handling
 #-----------------------------------------------------------------------------
 
-# This should become a general save-nd-array-to-txt-file function. We can only write 
-# 1d or 2d arrays to file with np.savetxt. `axes` specifies the axes which form
-# the 2d arrays. Loop over all permutations of the remaining axes and write all
-# 2d arrays to open file. For the permutations to be general, we want nested
-# loops of variable depth, i.e. we must use recursion or so.. 
-
-##def writetxtnd(fn, a, axes=(0,1)):
-##    assert_cond(len(axes)==2, "`axes` must be length 2")
-##    remain_axes=[]
-##    for ax in range(a.ndim):
-##        if ax not in axes:
-##            remain_axes.append(ax)
-##    fileo=open(fn, 'w')
-##    sl = [0]*a.ndim
-##    for ax in axes:
-##        sl[ax] = slice(None)
-##    for ax in remain_axes:
-##        for index in a.shape[ax]:
-##            np.savetxt(fileo, slicetake())
-
-# quick'n'dirty for 3d arrays
 def writetxt(fn, arr, axis=-1):
+    """Write 1d, 2d or 3d arrays to txt file. 
+    If 3d, write as 2d chunks. Take the 2d chunks along `axis`.
+    Writes `fn`.info file with infos that are needed to reshape the array into 
+    it's 3d shape."""
     maxdim=3
-    assert_cond(arr.ndim <= maxdim, 'no rank > 3 arrays supported')
-    fd = open(fn, 'w')
+    assert_cond(arr.ndim <= maxdim, 'no rank > %i arrays supported' %maxdim)
     # 1d and 2d case
     if arr.ndim < maxdim:
         np.savetxt(fn, arr)
@@ -198,14 +181,92 @@ def writetxt(fn, arr, axis=-1):
             sl[axis] = ind
             np.savetxt(fh, arr[sl])
         fh.close()            
-    fd.close()        
     
+#-----------------------------------------------------------------------------
+
+def readtxt(fn):
+    """Read arrays from .txt files written by writearr(..., type='txt').
+    Needs the .info file written by writearr()."""
+    maxdim = 3
+    c = PydosConfigParser()
+    f = open(fn + '.info')
+    c.readfp(f)
+    f.close()
+    sec = 'array'
+    shape = str2tup(c.get(sec, 'shape'))
+    axis = int(c.get(sec, 'axis'))
+    ndim = len(shape)
+    assert_cond(ndim <= maxdim, 'no rank > %i arrays supported' %maxdim)
+    # 1d and 2d
+    if ndim <= 2:
+        return np.loadtxt(fn)
+    # 3d        
+    else:
+        # axis = 1
+        # shape = (50, 1000, 3)
+        # shape_2d_chunk =  (50, 3)
+        shape_2d_chunk = shape[:axis] + shape[(axis+1):]
+        # (50, 1000, 3)
+        arr = np.empty(shape)
+        # (50*1000, 3)
+        read_arr = np.loadtxt(fn)
+        assert_cond(read_arr.shape == (shape_2d_chunk[0]*shape[axis],) + \
+            shape_2d_chunk[1:], "read 2d array from '%s' has not the correct "
+                                "shape" %fn)
+        sl = [slice(None)]*ndim
+        for ind in range(shape[axis]):
+            sl[axis] = ind
+            arr[sl] = read_arr[ind*shape_2d_chunk[0]:(ind+1)*shape_2d_chunk[0], :]
+    return arr
+
+#-----------------------------------------------------------------------------
+
+def readbin(fn):
+    """Read binary file `fn` array according to the information in
+    in a txt file "`fn`.info".
+
+    args
+    -----
+    fn : str
+    
+    returns:
+    --------
+    numpy ndarray 
+    """
+    verbose("[readbin] reading: %s" %fullpath(fn))
+    c = PydosConfigParser()
+    f = open(fn + '.info')
+    c.readfp(f)
+    f.close()
+    sec = 'array'
+    shape = str2tup(c.get(sec, 'shape'))
+    order = c.get(sec, 'order')
+    endian = c.get(sec, 'endian')
+    dtype = np.dtype(c.get(sec, 'dtype'))
+    
+    npf = npfile(fn, order=order, endian=endian, permission='rb')
+    arr = npf.read_array(dtype, shape=shape)
+    npf.close()
+    verbose("[readbin]     shape: %s" %frepr(arr.shape))
+    return arr
+
+#-----------------------------------------------------------------------------
+
+def readarr(fn, type='bin'):
+    "Read bin or txt array from `fn`."""
+    if type == 'bin':
+        return readbin(fn)
+    elif type == 'txt':
+        return readtxt(fn)
+    else:
+        raise StandardError("illegal type: %s" %type)
+
 #-----------------------------------------------------------------------------
 
 def writearr(fn, arr, order='C', endian='<', comment=None, info=None,
              type='bin', axis=-1):
-    """Write `arr` to binary (*.dat) or text file (*.txt) `fl` and also save
-    the shape, endian etc.  in a cfg-style file "`fl`.info".
+    """Write `arr` to binary (*.dat) or text file (*.txt) `fn` and also save
+    the shape, endian etc.  in a cfg-style file "`fn`.info".
 
     args:
     -----
@@ -269,48 +330,6 @@ def writearr(fn, arr, order='C', endian='<', comment=None, info=None,
         print >>f, comment
     c.write(f)
     f.close()
-
-#-----------------------------------------------------------------------------
-
-def _add_info(config, info):
-    for sec, dct in info.iteritems():
-        config.add_section(sec)
-        for key, val in dct.iteritems():
-            config.set(sec, key, val)
-    return config
-
-
-#-----------------------------------------------------------------------------
-
-def readbin(fn):
-    """Read binary file `fn` array according to the information in
-    in a txt file "`fn`.info".
-
-    args
-    -----
-    fn : str
-    
-    returns:
-    --------
-    numpy ndarray 
-    """
-    verbose("[readbin] reading: %s" %fullpath(fn))
-    c = PydosConfigParser()
-    f = open(fn + '.info')
-    c.readfp(f)
-    f.close()
-    sec = 'array'
-    shape = str2tup(c.get(sec, 'shape'))
-    order = c.get(sec, 'order')
-    endian = c.get(sec, 'endian')
-    dtype = np.dtype(c.get(sec, 'dtype'))
-    
-    npf = npfile(fn, order=order, endian=endian, permission='rb')
-    arr = npf.read_array(dtype, shape=shape)
-    npf.close()
-    verbose("[readbin]     shape: %s" %frepr(arr.shape))
-    return arr
-
 
 
 #-----------------------------------------------------------------------------
@@ -1971,6 +1990,15 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
 # misc
 #-----------------------------------------------------------------------------
 
+def _add_info(config, info):
+    for sec, dct in info.iteritems():
+        config.add_section(sec)
+        for key, val in dct.iteritems():
+            config.set(sec, key, val)
+    return config
+
+#-----------------------------------------------------------------------------
+
 def verbose(msg):
     if VERBOSE:
         print(msg)
@@ -2272,11 +2300,11 @@ def main(opts):
                 "CELL_PARAMETERS, no coord transformation") 
 
         # write R here if it's overwritten in velocity()
-        writearr(mfn, massvec,  type=opts.file_type)
-        writearr(tfn, Tfull,     type=opts.file_type)
-        writearr(rfn, Rfull,     type=opts.file_type, axis=1)
-        writearr(pfn, Pfull,     type=opts.file_type)
-        writearr(timefn, time, type=opts.file_type)
+        writearr(mfn,    massvec,   type=opts.file_type)
+        writearr(tfn,    Tfull,     type=opts.file_type)
+        writearr(rfn,    Rfull,     type=opts.file_type, axis=1)
+        writearr(pfn,    Pfull,     type=opts.file_type)
+        writearr(timefn, time,      type=opts.file_type)
         
     # --- dos ----------------------------------------------------------------
     
@@ -2284,10 +2312,11 @@ def main(opts):
         
         # Read if we did not parse before.
         if not opts.parse:   
-            Rfull = readbin(rfn)
-            massvec = readbin(mfn)
-            Tfull = readbin(tfn)
-            Pfull = readbin(pfn)
+            massvec = readarr(mfn, type=opts.file_type)
+            Rfull   = readarr(rfn, type=opts.file_type)
+            Tfull   = readarr(tfn, type=opts.file_type)
+            Pfull   = readarr(pfn, type=opts.file_type)
+
 
         # XXX: Code duplication here .......
         if opts.slice is not None and (not _already_sliced):
