@@ -89,10 +89,6 @@ Eexamples
 Known issues
 ------------
 
-* When you write .txt files (-f txt), you cannot re-load them for a subsequent
-calculation like in example (2). This is not yet implemented for text files.
-You must parse (-p) again.
-
 * There is a yet unresolved bug with the -s option. Use with care.
 
 Output files
