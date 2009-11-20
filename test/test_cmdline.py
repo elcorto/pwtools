@@ -51,17 +51,12 @@ if __name__ == '__main__':
     for call in calls:
         print('\n'+ '+'*78)
         system(call)
-    if os.path.exists(outdir):
-        shutil.rmtree(outdir)
+##    if os.path.exists(outdir):
+##        shutil.rmtree(outdir)
     
     #------------------------------------------------------------------------
 
     print('\n' + "*"*78)
     print("testing import of pwtools package")
     print("*"*78)
-    
-    # Modify PYTHONPATH so that we import from the current dir.
-##    delim = '' if os.environ['PYTHONPATH'].strip().startswith(':') else ':'
-##    os.environ['PYTHONPATH'] = os.path.abspath('../../') + delim + os.environ['PYTHONPATH']
-##    print "modified os.environ['PYTHONPATH']:", os.environ['PYTHONPATH']
     system('cd $HOME && python -c "import pwtools"')

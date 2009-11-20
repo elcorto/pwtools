@@ -10,8 +10,8 @@
 Parse and post-process molecular dynamics data produced by the Quantum
 Espresso package (quantum-espresso.org). 
 
-Currently, pw.x and "calculation='md'" type data is supported (e.g. NOT
-'vc-md').  Other calulation types write results in different order to the
+Currently, pw.x and "calculation='md'" type data is supported as well as
+'vc-md'.  Other calulation types write results in different order to the
 outfile. Since we exploit the knowledge of the order for performance reasons,
 supporting different orders requires a little rewrite/generalisation of the
 code in parse_pwout().
@@ -66,14 +66,11 @@ TODO
 
 - class Array with read, write methods ...
 
-- Test suite. We have some primitive doctests now but hey ...
+- Nose-integrated test suite.
 
 - setup.py, real pythonic install, no fiddling with PYTHONPATH etc,
   you can also install in $HOME dir using `setup.py install
   --prefix=~/some/path/`, but it's probably overkill for this little project
-
-- {write|read}bin_array(): use new numpy.save(), numpy.load() -> .npy/.npz
-  format
 
 - unify vacf_pdos(), direct_pdos(), thay have almost the same signature and
   functionallity, use 'method' kwarg or so, OR make a base class Pdos, derive 2
@@ -92,11 +89,12 @@ TODO
   atomic_positions_out2()) are technically not required to return it. The object
   is modified in place when it's .next() method is called inside the function.
   We use this e.g. in next_line().
+
+- We assume that the ATOMIC_POSITIONS unit (crystal, alat, angstrom) in
+  pw.in and that of the parsed out ones from pw.out are the same. Check this!
+  For example, it is NOT the same for cp.x!
 """
 
-# We assume that the ATOMIC_POSITIONS unit (crystal, alat, angstrom) in
-# pw.in and that of the parsed out ones from pw.out are the same. Check this!
-# For example, it is NOT the same for cp.x!
 
 ##from debug import Debug
 ##DBG = Debug()
@@ -112,13 +110,10 @@ import types
 import subprocess as S
 import ConfigParser
 import textwrap
+from cStringIO import StringIO
 
 import numpy as np
 norm = np.linalg.norm
-# faster import, copied file from scipy sources, seems deprecated as of 
-# scipy 0.7
-##from scipy.io.npfile import npfile
-from scipy_npfile import npfile
 
 # slow import time for these
 from scipy.fftpack import fft
@@ -160,46 +155,117 @@ FLOAT_RE = regex.float_re
 # file handling
 #-----------------------------------------------------------------------------
 
+@open_and_close
+def _read_header_config(fh, maxlines=20, comment='#'):
+    """Read a ini-style file from the header of a text file. Return a
+    PydosConfigParser object.
+
+    args:
+    -----
+    fh : file handle, readable
+    maxlines : max lines to read dwon from top of the file
+    comment : comment sign w/ which the header must be prefixed
+    
+    returns:
+    --------
+    PydosConfigParser object
+
+    example:
+    --------
+    >>> !cat foo.txt
+    # [array]
+    # shape = 3
+    # axis = -1
+    1
+    2
+    3
+    >>> _get_header_config('foo.txt')
+    <pwtools.lib.pydos.PydosConfigParser instance at 0x2c52320>
+    """
+    header = ''
+    for i in range(maxlines):
+        try:
+            line = fh.next().strip()
+        except StopIteration:
+            break
+        if line.startswith(comment):
+            header += line.replace(comment, '').strip() + '\n'
+    # Read one more line to see if the header is bigger than maxlines.
+    try:
+        if fh.next().strip().startswith(comment):
+            print "[_read_header_config] WARNING: header seems to be > "\
+                + "maxlines"
+    except StopIteration:
+        pass
+    c = PydosConfigParser()
+    c.readfp(StringIO(header))
+    # If maxlines > header size, we read beyond the header into the data. That
+    # causes havoc for all functions that read fh afterwards.
+    fh.seek(0)
+    return c
+
+#-----------------------------------------------------------------------------
+
+# the open_and_close decorator cannot be used here b/c it currently works only
+# for opening files
+def _write_header_config(fh, config, comment='#'):
+    """Write ini-style config file from `config` prefixed with `comment` to
+    file handle `fh`."""
+    # write config to dummy file
+    ftmp = StringIO()
+    config.write(ftmp)
+    # write with comment signs to actual file
+    ftmp.seek(0)
+    for line in ftmp.readlines():
+        fh.write(comment + ' ' + line)
+    ftmp.close()
+
+#-----------------------------------------------------------------------------
+
 def writetxt(fn, arr, axis=-1):
-    """Write 1d, 2d or 3d arrays to txt file. 
-    If 3d, write as 2d chunks. Take the 2d chunks along `axis`.
-    Writes `fn`.info file with infos that are needed to reshape the array into 
-    it's 3d shape."""
+    """Write 1d, 2d or 3d arrays to txt file. If 3d, write as 2d chunks. Take
+    the 2d chunks along `axis`. Writes a commented out header in the file with
+    infos needed by readtxt() to restore the right shape."""
     maxdim=3
     assert_cond(arr.ndim <= maxdim, 'no rank > %i arrays supported' %maxdim)
+    fh = open(fn, 'w+')
+    c = PydosConfigParser()
+    sec = 'array'
+    c.add_section(sec)
+    c.set(sec, 'shape', tup2str(arr.shape))
+    c.set(sec, 'axis', axis)
+    _write_header_config(fh, c)
     # 1d and 2d case
     if arr.ndim < maxdim:
-        np.savetxt(fn, arr)
+        np.savetxt(fh, arr)
     # 3d        
     else:
-        # purge file content
-        file_write(fn, '')
-        fh = open(fn, 'a')
         # write 2d arrays, one by one
         sl = [slice(None)]*arr.ndim
         for ind in range(arr.shape[axis]):
             sl[axis] = ind
             np.savetxt(fh, arr[sl])
-        fh.close()            
-    
+    fh.close()
+
 #-----------------------------------------------------------------------------
 
 def readtxt(fn):
-    """Read arrays from .txt files written by writearr(..., type='txt').
-    Needs the .info file written by writearr()."""
+    """Read arrays from .txt files written by writetxt()."""
     maxdim = 3
-    c = PydosConfigParser()
-    f = open(fn + '.info')
-    c.readfp(f)
-    f.close()
+    fh = open(fn)
+    c = _read_header_config(fh)
     sec = 'array'
     shape = str2tup(c.get(sec, 'shape'))
     axis = int(c.get(sec, 'axis'))
     ndim = len(shape)
+    # axis = -1 means the last dim
+    if axis == -1:
+        axis = ndim - 1
     assert_cond(ndim <= maxdim, 'no rank > %i arrays supported' %maxdim)
+    read_arr = np.loadtxt(fh)
     # 1d and 2d
     if ndim <= 2:
-        return np.loadtxt(fn)
+        return read_arr
     # 3d        
     else:
         # axis = 1
@@ -208,8 +274,7 @@ def readtxt(fn):
         shape_2d_chunk = shape[:axis] + shape[(axis+1):]
         # (50, 1000, 3)
         arr = np.empty(shape)
-        # (50*1000, 3)
-        read_arr = np.loadtxt(fn)
+        # read_arr: (50*1000, 3)
         assert_cond(read_arr.shape == (shape_2d_chunk[0]*shape[axis],) + \
             shape_2d_chunk[1:], "read 2d array from '%s' has not the correct "
                                 "shape" %fn)
@@ -217,66 +282,41 @@ def readtxt(fn):
         for ind in range(shape[axis]):
             sl[axis] = ind
             arr[sl] = read_arr[ind*shape_2d_chunk[0]:(ind+1)*shape_2d_chunk[0], :]
+    fh.close()            
     return arr
 
 #-----------------------------------------------------------------------------
 
 def readbin(fn):
-    """Read binary file `fn` array according to the information in
-    in a txt file "`fn`.info".
-
-    args
-    -----
-    fn : str
-    
-    returns:
-    --------
-    numpy ndarray 
-    """
-    verbose("[readbin] reading: %s" %fullpath(fn))
-    c = PydosConfigParser()
-    f = open(fn + '.info')
-    c.readfp(f)
-    f.close()
-    sec = 'array'
-    shape = str2tup(c.get(sec, 'shape'))
-    order = c.get(sec, 'order')
-    endian = c.get(sec, 'endian')
-    dtype = np.dtype(c.get(sec, 'dtype'))
-    
-    npf = npfile(fn, order=order, endian=endian, permission='rb')
-    arr = npf.read_array(dtype, shape=shape)
-    npf.close()
-    verbose("[readbin]     shape: %s" %frepr(arr.shape))
-    return arr
+    raise NotImplementedError("We use np.load() now.")
 
 #-----------------------------------------------------------------------------
 
 def readarr(fn, type='bin'):
-    "Read bin or txt array from `fn`."""
+    """Read bin or txt array from file `fn`."""
+    verbose("[readarr] reading: %s" %fn)
+    assert_cond(type in ['bin', 'txt'], "`type` must be 'bin' or 'txt'")
     if type == 'bin':
-        return readbin(fn)
+        return np.load(fn)
     elif type == 'txt':
         return readtxt(fn)
-    else:
-        raise StandardError("illegal type: %s" %type)
 
 #-----------------------------------------------------------------------------
 
-def writearr(fn, arr, order='C', endian='<', comment=None, info=None,
+def writearr(fn, arr, comment=None, info=None,
              type='bin', axis=-1):
-    """Write `arr` to binary (*.dat) or text file (*.txt) `fn` and also save
-    the shape, endian etc.  in a cfg-style file "`fn`.info".
-
+    """Write `arr` to binary (*.npy) or text file (*.txt) `fn`. Optionally,
+    write a file `fn`.info with some misc information from `comment` and
+    `info`. 
+    
     args:
     -----
     arr : numpy ndarrray
-    fl : str,
-        Filename
+    fn : str, filename
     comment : string
         a comment which will be written to the .info file (must start with '#')
     info : dict of dicts 
-        addtional sections for the .info file        
+        sections for the .info file        
         example:
             {'foo': {'rofl1': 1, 'rofl2': 2},
              'bar': {'lol1': 5, 'lol2': 7}
@@ -290,11 +330,6 @@ def writearr(fn, arr, order='C', endian='<', comment=None, info=None,
             lol1 = 5
             lol2 = 7
     type : str, {bin,txt)
-    only type == 'bin'
-        order : str, {'C','F'}
-            'C' - row major, 'F' - column major
-        endian : str, {'<', '>'}
-            '<' - little, '>' - big
     only type == 'txt'
         axis : axis kwarg for writetxt()
     """
@@ -302,35 +337,19 @@ def writearr(fn, arr, order='C', endian='<', comment=None, info=None,
     verbose("[writearr] writing: %s" %fn)
     verbose("[writearr]     shape: %s" %frepr(arr.shape))
     if type == 'bin':
-        # here, perm could be anything, will be changed in npfile() anyway
-        perm = 'wb'
-        fd = fileo(fn, mode=perm, force=True)
-        npf = npfile(fd, order=order, endian=endian, permission=perm)
-        npf.write_array(arr)
-        # closes also `fd`
-        npf.close()
+        np.save(fn, arr)
     else:
         writetxt(fn, arr, axis=axis)
-    
-    # --- .info file ------------------
-    c = PydosConfigParser()
-    sec = 'array'
-    c.add_section(sec)
-    c.set(sec, 'shape', tup2str(arr.shape))
-    if type == 'bin':
-        c.set(sec, 'order', order)
-        c.set(sec, 'endian', endian)
-        c.set(sec, 'dtype', str(arr.dtype))
-    elif type == 'txt':
-        c.set(sec, 'axis', axis)
-    if info is not None:
-        c = _add_info(c, info) 
-    f = open(fn + '.info', 'w')
-    if comment is not None:
-        print >>f, comment
-    c.write(f)
-    f.close()
-
+    # .info file
+    if comment is not None or info is not None:
+        f = open(fn + '.info', 'w')
+        if comment is not None:
+            print >>f, comment
+        if info is not None:
+            c = PydosConfigParser()
+            c = _add_to_config(c, info) 
+            c.write(f)
+        f.close()
 
 #-----------------------------------------------------------------------------
 # parsing 
@@ -1520,7 +1539,7 @@ def direct_pdos(V, dt=1.0, m=None, full_out=False, natoms=1.0):
     
     args:
     -----
-    V : (natoms, nstep, 3)
+    V : velocity array (natoms, nstep, 3)
     dt : time step in seconds
     m : 1d array (natoms,), atomic mass array, if None then mass=1.0 for all
         atoms is used  
@@ -1747,7 +1766,7 @@ def sliceput(a, b, sl, axis=None):
         axis=<int>
             one slice object for *that* axis
         axis=None 
-            `sl` is a list of tuple of slice objects, one for each axis. 
+            `sl` is a list or tuple of slice objects, one for each axis. 
             It must index the whole array, i.e. len(sl) == len(a.shape).
     axis : {None, int}
     
@@ -1990,7 +2009,18 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
 # misc
 #-----------------------------------------------------------------------------
 
-def _add_info(config, info):
+def _add_to_config(config, info):
+    """Add sections and key-val paris in `info` to `config`.
+    
+    args:
+    -----
+    config : ConfigParser object
+    info : dict of dicts, see writearr()
+
+    returns:
+    --------
+    modified config
+    """
     for sec, dct in info.iteritems():
         config.add_section(sec)
         for key, val in dct.iteritems():
@@ -2043,7 +2073,7 @@ def str_arr(arr, fmt='%.15g', delim=' '*4):
         lst = [_fmt % tuple(row) for row in arr]
         return '\n'.join(lst)
     else:
-        raise ValueError('array dims > 2 not supported')
+        raise ValueError('rank > 2 arrays not supported')
 
 #-----------------------------------------------------------------------------
 
@@ -2119,7 +2149,7 @@ def main(opts):
     else:
         fn_body = os.path.basename(opts.pwofn)
     if opts.file_type == 'bin':
-        file_suffix = '.dat'
+        file_suffix = '.npy'
     elif opts.file_type == 'txt':
         file_suffix = '.txt'
     else:
@@ -2235,6 +2265,8 @@ def main(opts):
             T = Tfull
             P = Pfull
         
+        # Coord trans of atomic positons for testing only.
+        #
         # If 
         #   ibrav=0 
         #   CELL_PARAMETERS is present
@@ -2243,10 +2275,9 @@ def main(opts):
         # -> cartesian.
         #
         # If the pw.x calc went fine, then the VACF calculated with R in
-        # cartesian alat|bohr|angstrom or crystal must be the same. The
-        # coord trans here is actually not necessary at all and serves only for
+        # cartesian alat|bohr|angstrom or crystal must be the same. The coord
+        # trans here is actually not necessary at all and serves only for
         # testing/verification purposes.
-        # 
         #
         # allowed ATOMIC_POSITIONS units (from the Pwscf help):
         #    alat    : atomic positions are in cartesian coordinates,
@@ -2275,8 +2306,6 @@ def main(opts):
         # if celldm(1) present  -> CELL_PARAMETERS in alat -> crystal alat
         # if not                -> CELL_PARAMETERS in a.u. -> crystal a.u.
         # 
-        #FIXME: don't do coord trans if not necessary, what did we want to
-        #       achieve by that anyway??
         if unit == 'crystal' and opts.coord_trans:
             if ibrav == 0:
                 cp = pwin_cell_parameters(opts.pwifn)
@@ -2289,7 +2318,7 @@ def main(opts):
                 # CELL_PARAMETERS in a.u.
                 else:
                     verbose("celldm(1) not present" )
-                    verbose("assuming CELL_PARAMETERS in Rydberg a.u.")
+                    verbose("assuming CELL_PARAMETERS Bohr (Rydberg a.u.)")
                     new_unit = 'a.u.'
                 verbose("doing coord transformation: %s -> %s" %('crystal',
                     'cartesian' + new_unit))
@@ -2380,7 +2409,7 @@ def main(opts):
             real_imag_ratio = None
             pdos_out = np.empty((split_idx, 2), dtype=float)
             pdos_comment = textwrap.dedent("""
-            # Direct PDOS
+            # Direct PDOS by FFT of atomic velocities
             # Integral normalized to 1.0: int(pdos, f) = 1.0 
             # f [Hz]  pdos
             """)
