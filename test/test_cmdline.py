@@ -26,37 +26,56 @@ if __name__ == '__main__':
 
     infile = "AlN.md.in"
     outfile = "AlN.md.out"
-    outfile_gz = outfile + '.gz'
     outdir = "/tmp/test_pdos"
 
-    delete_cmd = 'rm -rf %s/* &&' %outdir
     exe = ' ../lib/pydos.py'
+    
+    # We do no longer support reading .gz files directly.
+    system('gunzip ' + outfile + '.gz')
 
     calls =[]
     # parse, write bin
-    calls.append("%s -i %s -o %s -x %s -p" %(exe, infile, outfile_gz, outdir) )
+    idx = 0
+    calls.append("%s -i %s -o %s -p -x %s" %(exe, infile, outfile, \
+        os.path.join(outdir, str(idx))))
+    
     # read written data, calculate dos
-    calls.append("%s -i %s -o %s -x %s -d -m -M" %(exe, infile, outfile_gz, outdir))
+    calls.append("%s -i %s -o %s -d -m -M -x %s" %(exe, infile, outfile,\
+        os.path.join(outdir, str(idx))))
+    
     # read written data, calculate dos direct, no mirroring
-    calls.append("%s -i %s -o %s -x %s -d -m 0 -M -t 'direct'" %(exe, infile, outfile_gz, outdir))
-    # delete, parse, write txt
-    calls.append("%s %s -i %s -o %s -x %s -p -f txt" %(delete_cmd, exe, infile, outfile_gz, outdir))
+    calls.append("%s -i %s -o %s -d -m 0 -M -t 'direct' -x %s" %(exe, infile,\
+        outfile, os.path.join(outdir, str(idx))))
+    
+    # new dir, parse, write txt
+    idx += 1
+    calls.append("%s -i %s -o %s -p -f txt -x %s" %(exe, infile, outfile,\
+        os.path.join(outdir, str(idx))))
+    
     # read txt, calculate dos
-    calls.append("%s -i %s -o %s -x %s -d -f txt" %(exe, infile, outfile_gz, outdir))
-    # delete, parse, write bin, dos in one run
-    calls.append("%s %s -i %s -o %s -x %s -p -d -f txt" %(delete_cmd, exe, infile, outfile_gz, outdir))
+    calls.append("%s -i %s -o %s -d -f txt -x %s" %(exe, infile, outfile,\
+        os.path.join(outdir, str(idx))))
+    
+    # new dir, parse, write bin, dos in one run
+    idx += 1
+    calls.append("%s -i %s -o %s -p -d -f txt -x %s" %(exe, infile, outfile,\
+            os.path.join(outdir, str(idx))))
     
     if os.path.exists(outdir):
         shutil.rmtree(outdir)
+    
     for call in calls:
         print('\n'+ '+'*78)
         system(call)
-##    if os.path.exists(outdir):
-##        shutil.rmtree(outdir)
     
+    if os.path.exists(outdir):
+        shutil.rmtree(outdir)
+    
+    system('gzip ' + outfile)
+
     #------------------------------------------------------------------------
 
-    print('\n' + "*"*78)
-    print("testing import of pwtools package")
-    print("*"*78)
-    system('cd $HOME && python -c "import pwtools"')
+##    print('\n' + "*"*78)
+##    print("testing import of pwtools package")
+##    print("*"*78)
+##    system('cd $HOME && python -c "import pwtools"')

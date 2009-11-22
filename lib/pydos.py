@@ -16,6 +16,8 @@ outfile. Since we exploit the knowledge of the order for performance reasons,
 supporting different orders requires a little rewrite/generalisation of the
 code in parse_pwout().
 
+XXX Changed implementation using sed/grep/awk -> order independent parsing
+
 Tested with QE 3.2.3, 4.0.x, 4.1. 
 
 Units
@@ -35,17 +37,28 @@ Default in all functions is that
   and closed inside the function. 
 - In case of fileobjects, they will NOT be closed
   but returned, i.e. they must be opened and closed outside of a function.
-- In case they accept both, the file will be closed inside in any case.  
+- Most functions are decoratd with decorators.open_and_close by now. 
+- All parsing functions which get and also return a fileobject are
+  technically not required to return it. The object is modified in place when
+  it's .next() method is called inside the function. We use this e.g. in
+  next_line().
+
+Filenames:
+----------
+Many functions which accept a file handle (mostly named "fh", file-like object)
+use fh.name (the filename) in error messages etc. Most of these functions are
+decorated w/ decorators.open_and_close. We try hard to make sure that each fh
+has the 'name' attribute. Some file-like objects don't have fh.name and never
+will (see decorators.py for details). In that case, avoid using fh.name or use
+fn = _get_filename(fh) early in the function. There is no other way.
 
 Calculation of the PDOS
 -----------------------
 
 PDOS obtained the VACF way (V -> VACF -> FFT(VACF)) and the direct way
-(direct_pdos()) differ a bit. Dunno why yet. Probably numerical errors due to
-FFT. But using different FFT algos for the two methods changes nothing (very
-good). The numerical difference *within each method* between
-scipy.fftpack.fft() and fft.dft() (and fft.dft_axis()) are much much smaller
-then the difference between the two methods itself.
+(direct_pdos()) differ by a very smal ammount. Probably numerical error due to
+fft. Note that in order to compare both methods, you must NOT mirror the VACF
+before FFT in order to get the double frequency resolution.
 
 TODO
 ----
@@ -58,13 +71,6 @@ TODO
   numpy.core.multiarray functions with kwarg "order={'C','F'}".
 
   => Best would be to subclass numpy.ndarray and redefind array() etc.
-
-- Make a Parser class which holds all parsing functions for in- and outfile.
-  The class also holds all arrays constructed from parsing (R, T, P) and also
-  all parsing results which are dicts --> no need to pass them around as
-  function args. 
-
-- class Array with read, write methods ...
 
 - Nose-integrated test suite.
 
@@ -85,16 +91,31 @@ TODO
 
 - Implement the maximum entropy method.
 
-- All parsing functions which get and return a fileobject (e.g.
-  atomic_positions_out2()) are technically not required to return it. The object
-  is modified in place when it's .next() method is called inside the function.
-  We use this e.g. in next_line().
-
 - We assume that the ATOMIC_POSITIONS unit (crystal, alat, angstrom) in
   pw.in and that of the parsed out ones from pw.out are the same. Check this!
-  For example, it is NOT the same for cp.x!
-"""
+  For example, it is seems to be NOT the same for cp.x!
 
+- Separate parsing and calculation in this tool. Skip the cmd-line stuff
+  completely. Make a toolkit with plugin-type functionallity for extracting
+  atomic pos etc from "any kind" of simulation data. Read these infos into an
+  internal format (our 3D arrays for coords and velocitys seem fine). 
+  Then, pass those infos to a class or function that calculates stuff.
+  Essentially, replace Unix working style: grep/sed/awk into files (parsing) +
+  apply some Fortran code to files (calculation) with flexible short Python
+  scripts which call function and pass data arround ONLY IN MEMORY (or as
+  binary files).
+  
+  As for the workflow: We replace writing shell scripts with writing Python
+  scripts + out-of-the-box binary file writing by default. 
+
+  Inventing an "internal format" is not bad. In fact, it is even necessary if
+  we want to do math here. And if we have to invent one, then let's use numpy
+  ndarrays and save them to disk *exactly in that form", i.e. use numpy binary
+  arrays. That way we don't have to parse our own slow text file format all 
+  the time (as xcrysden does with XSF :)
+
+  If numpy arrays won't do it anymore, use NetCDF or HDF5.
+"""
 
 ##from debug import Debug
 ##DBG = Debug()
@@ -111,6 +132,7 @@ import subprocess as S
 import ConfigParser
 import textwrap
 from cStringIO import StringIO
+##from StringIO import StringIO
 
 import numpy as np
 norm = np.linalg.norm
@@ -124,6 +146,7 @@ from scipy.integrate import simps
 import constants
 import _flib
 from common import assert_cond, file_write, fileo, system, fullpath
+import common as com
 from decorators import open_and_close
 import regex
 
@@ -136,7 +159,8 @@ pjoin = os.path.join
 # globals 
 #-----------------------------------------------------------------------------
 
-VERBOSE=True
+# Used only in verbose().
+VERBOSE = False
 
 # All card names that may follow the namelist section in a pw.x input file.
 INPUT_PW_CARDS = [\
@@ -153,6 +177,18 @@ FLOAT_RE = regex.float_re
 
 #-----------------------------------------------------------------------------
 # file handling
+#-----------------------------------------------------------------------------
+
+def _get_filename(fh):
+    """Try to get the `name` attribute from file-like objects. If it fails
+    (fh=cStringIO.StringIO(), fh=StringIO.StringIO(), fh=gzip.open(), ...), 
+    then return a dummy name."""
+    try:
+        name = fh.name
+    except AttributeError:
+        name = 'object_%s_pwtools_dummy_filename' %str(fh)
+    return name        
+
 #-----------------------------------------------------------------------------
 
 @open_and_close
@@ -182,6 +218,8 @@ def _read_header_config(fh, maxlines=20, comment='#'):
     >>> _get_header_config('foo.txt')
     <pwtools.lib.pydos.PydosConfigParser instance at 0x2c52320>
     """
+    fn = _get_filename(fh)
+    verbose("[_read_header_config]: reading header from '%s'" %fn)
     header = ''
     for i in range(maxlines):
         try:
@@ -193,8 +231,8 @@ def _read_header_config(fh, maxlines=20, comment='#'):
     # Read one more line to see if the header is bigger than maxlines.
     try:
         if fh.next().strip().startswith(comment):
-            print "[_read_header_config] WARNING: header seems to be > "\
-                + "maxlines"
+            verbose("[_read_header_config] WARNING: header seems to be > "\
+                + "maxlines")
     except StopIteration:
         pass
     c = PydosConfigParser()
@@ -206,11 +244,13 @@ def _read_header_config(fh, maxlines=20, comment='#'):
 
 #-----------------------------------------------------------------------------
 
-# the open_and_close decorator cannot be used here b/c it currently works only
-# for opening files
+# the open_and_close decorator cannot be used here b/c it only opens
+# files in read mode, not for writing
 def _write_header_config(fh, config, comment='#'):
     """Write ini-style config file from `config` prefixed with `comment` to
     file handle `fh`."""
+    fn = _get_filename(fh)
+    verbose("[_write_header_config]: writing header to '%s'" %fn)
     # write config to dummy file
     ftmp = StringIO()
     config.write(ftmp)
@@ -235,6 +275,7 @@ def writetxt(fn, arr, axis=-1):
     arr : array (max 3d)
     axis : axis along which 2d chunks are written
     """
+    verbose("[writetxt] writing '%s'" %fn)
     maxdim=3
     assert_cond(arr.ndim <= maxdim, 'no rank > %i arrays supported' %maxdim)
     fh = open(fn, 'w+')
@@ -278,6 +319,10 @@ def readtxt(fh, axis=None, shape=None):
     --------
     nd array
     """
+    fn = _get_filename(fh)
+    verbose("[readtxt] reading: %s" %fn)
+    verbose("[readtxt]    axis: %s" %str(axis))
+    verbose("[readtxt]    shape: %s" %str(shape))
     maxdim = 3
     if shape is None or axis is None:
         c = _read_header_config(fh)
@@ -304,9 +349,12 @@ def readtxt(fh, axis=None, shape=None):
         # (50, 1000, 3)
         arr = np.empty(shape)
         # read_arr: (50*1000, 3)
-        assert_cond(read_arr.shape == (shape_2d_chunk[0]*shape[axis],) + \
-            shape_2d_chunk[1:], "read 2d array has not the correct "
-                                "shape")
+        expect_shape = (shape_2d_chunk[0]*shape[axis],) + (shape_2d_chunk[1],)
+        assert_cond(read_arr.shape == expect_shape, 
+                    "read 2d array from '%s' has not the correct "
+                    "shape, got %s, expect %s" %(fn, 
+                                                 str(read_arr.shape),
+                                                 str(expect_shape)))
         sl = [slice(None)]*ndim
         for ind in range(shape[axis]):
             sl[axis] = ind
@@ -569,11 +617,6 @@ def next_line(fh):
     """
     Will raise StopIteration at end of file.
     """
-##    try:
-##        return fh.next().strip()
-##    except StopIteration:
-##        verbose("[next_line] End of file %s" %fh)
-##        return None
     return fh.next().strip()
 
 #-----------------------------------------------------------------------------
@@ -737,7 +780,8 @@ def pwin_atomic_species(fh):
         N 14.0067 N.LDA.fhi.UPF
         [...]
     """
-    verbose('[pwin_atomic_species] reading ATOMIC_SPECIES from %s' %fh.name)
+    fn = _get_filename(fh)
+    verbose('[pwin_atomic_species] reading ATOMIC_SPECIES from %s' %fn)
     # rex: for the pseudo name, we include possible digits 0-9 
     rex = re.compile(r'\s*([a-zA-Z]+)\s+(' + FLOAT_RE + ')\s+([0-9a-zA-Z\.]*)')
     fh, flag = scan_until_pat(fh, pat='atomic_species')
@@ -760,6 +804,7 @@ def pwin_atomic_species(fh):
 
 #-----------------------------------------------------------------------------
 
+# XXX much easier: sed -nre '/CELL_P/,3p' | grep -v CELL_P
 @open_and_close
 def pwin_cell_parameters(fh):
     """Parses CELL_PARAMETERS card in a pw.x input file. Extract primitive
@@ -792,7 +837,8 @@ def pwin_cell_parameters(fh):
         
         In a.u. = Rydberg atomic units (see constants.py).
     """
-    verbose('[pwin_cell_parameters] reading CELL_PARAMETERS from %s' %fh.name)
+    fn = _get_filename(fh)
+    verbose('[pwin_cell_parameters] reading CELL_PARAMETERS from %s' %fn)
     rex = re.compile(r'\s*((' + FLOAT_RE + '\s*){3})\s*')
     fh, flag = scan_until_pat(fh, pat="cell_parameters")
     line = next_line(fh)
@@ -848,12 +894,12 @@ def pwin_atomic_positions(fh, atspec=None):
 
         <unit> is a string: 'alat', 'crystal' etc.
     """
-    verbose("[pwin_atomic_positions] reading ATOMIC_POSITIONS from %s" %fh.name)
+    fn = _get_filename(fh)
+    verbose("[pwin_atomic_positions] reading ATOMIC_POSITIONS from %s" %fn)
     if atspec is None:
         atspec = pwin_atomic_species(fh)
-        # XXX HACK >>>>>>>>>>>>>>>>>>>>>>>>>
+        # need to seek to start of file here
         fh.seek(0)
-        # XXX HACK <<<<<<<<<<<<<<<<<<<<<<<<<
     rex = re.compile(r'\s*([a-zA-Z]+)((\s+' + FLOAT_RE + '){3})\s*')
     fh, flag, line = scan_until_pat(fh, pat="atomic_positions", retline=True)
     line = line.strip().lower().split()
@@ -886,120 +932,14 @@ def pwin_atomic_positions(fh, atspec=None):
 
 #-----------------------------------------------------------------------------
 
-def atomic_positions_out(fh, rex, work):
-    """Parse ATOMIC_POSITIONS card in pw.x output file.
-
-    args:
-    -----
-    fh : open file (pw.x output file)
-    rex : compiled regular expression object with pattern for rex.search()
-    work : 2D array (natoms x 3)
-    
-    returns:
-    --------
-    fh
-        
-    usage:
-    ------
-    while ..
-        fh = scan_until_pat(fh, ...)
-        fh = atomic_positions_out(fh, r, w)
-    
-    notes:
-    ------
-    - scan for:
-        [...]
-        ATOMIC_POSITIONS|atomic_positions
-        [0 or more empty lines]
-        Al       4.482670384  -0.021685570   4.283770714
-        Al       2.219608875   1.302084775   8.297440557
-        ...
-        Si       2.134975048   1.275864192  -0.207552657
-        [empty or nonempty line that does not match the RE]
-        [...]
-    
-    - With this implementstion, `rex` must be:
-        
-        With scan_until_pat*(), we need to know that we extract 3 numbers:
-        >>> pat =  r'\s*[A-Za-z]+((\s+[+-]*[0-9eEdD+-\.]+){3})'
-        >>> rex = re.compile(pat)
-    
-        For scanning the whole file w/o the usage of scan_until_pat*() first,
-        we have to know the atom symbols. We would use this kind of pattern if
-        we'd parse the file with perl & friends:
-        >>> atoms = ['Si', 'O', 'Al', 'N']
-        >>> pat =  r'(%s)' %r'|'.join(atoms) + r'((\s+[+-]*[0-9eEdD+-\.]+){3})'
-        >>> rex = re.compile(pat)
-        
-    - Is a *little* bit slower than atomic_positions_out2.
-    
-    - In-place modification of `work`!!!!!
-    """
-    line = next_line(fh)
-    while line == '':
-        line = next_line(fh)
-    c = -1
-    match = rex.search(line)
-    while match is not None:
-        c += 1
-        work[c,:] = np.array(match.group(2).strip().split()).astype(float)
-        line = next_line(fh)
-        match = rex.search(line)
-    return fh
-
-#-----------------------------------------------------------------------------
-
-def atomic_positions_out2(fh, natoms, work):
-    """Parse ATOMIC_POSITIONS card in pw.x output file.
-
-    args:
-    -----
-    fh : open file
-    natoms : number of atoms (i.e. number of rows of the table to read)
-    work : 2D array (natoms x 3)
-    
-    returns:
-    --------
-    fh
-        
-    usage:
-    ------
-    while ..
-        fh = scan_until_pat(fh, ...)
-        fh = atomic_positions_out2(fh, n, w)
-    
-    notes:
-    ------
-    scan for:
-        [...] 
-        ATOMIC_POSITIONS|atomic_positions
-        [0 or more empty lines]
-        Al       4.482670384  -0.021685570   4.283770714    |
-        Al       2.219608875   1.302084775   8.297440557    | natoms
-        ...                                                 | rows
-        Si       2.134975048   1.275864192  -0.207552657    |
-        [anything else here]
-        [...]
-        
-    In-place modification of `work`!!!!!
-    """
-    line = next_line(fh)
-    while line == '':
-        line = next_line(fh)
-    # natoms count instead of RE matching        
-    for i in xrange(natoms):
-        work[i,:] = np.array(line.split()[1:]).astype(float)
-        line = next_line(fh)
-    return fh
-
-#-----------------------------------------------------------------------------
-
 def _is_cardname(line, cardnames=INPUT_PW_CARDS):
     for string in cardnames:
         # matches "occupations", but not "occupations='semaring'"
         if re.match(r'^\s*%s\s*([^=].*$|$)' %string, line.lower()):
             return True
     return False            
+
+#-----------------------------------------------------------------------------
 
 @open_and_close
 def pwin_namelists(fh):
@@ -1053,7 +993,8 @@ def pwin_namelists(fh):
     >>> intkey    = int(d['namelist1']['intkey'])
     >>> boolkey   = tobool(d['namelist1']['boolkey'])
     """
-    verbose("[pwin_namelists] parsing %s" %fh.name)
+    fn = _get_filename(fh)
+    verbose("[pwin_namelists] parsing %s" %fn)
     dct = {}
     nl_kvps = None
     for line in fh:
@@ -1094,252 +1035,80 @@ def pwin_namelists(fh):
 
 #-----------------------------------------------------------------------------
 
-@open_and_close
-def parse_pwout_md(fh, pwin_nl=None, atspec=None, atpos_in=None, nstep=None):
-    """
-    args:
-    -----
-    fh : fileobj of the pw.x output file
-    pwin_nl : dict returned by pwin_namelists()
-    atspec : dict returned by pwin_atomic_species()
-    atpos_in : dict returned by pwin_atomic_positions()
-    nstep : number of time steps in pw.out file (if None then it will be read
-        from pwin_fn -> control:nstep)
-    """
-    verbose("[parse_pwout_md] parsing %s" %(fh.name))
+def parse_pwout_md(fn, natoms=None, nstep=None, **kwargs):
+    verbose("[parse_pwout_md] parsing %s" %fn)
+    verbose("[parse_pwout_md] input:")
+    verbose("[parse_pwout_md]     natoms: %s" %str(natoms))
+    verbose("[parse_pwout_md]     nstep: %s" %str(nstep))
+    verbose("[parse_pwout_md]     kwargs.keys(): %s" %str(kwargs.keys()))
+    
+    #########################################################################
+    # Unlike the old parse_pwout_md, we IGNORE the first coords
+    # (the one from input), temperature (which is printed is "Starting
+    # temperature") in md and vc-md. We grep only for nstep occurrences, NOT
+    # nstep+1 !!! 
+    #########################################################################
+    
+    # FIXME It MAY be that with the grep-type approch, we grep the last coords
+    # twice for relax runs b/c they are printes twice.
+    #
+    # TODO 
+    # * get also etot
+    # * Check if this grepping also works for scf runs, where we have in
+    #   principle nstep=1
+    # * Test getting CELL_PARAMETERS from cp.x put files
+    # * temperature is stored completely different in cp.x outfiles, maybe use
+    #   the files it writes to 'outdir', i.e. scratch
+    
+    # fallbacks, may be slow
     if nstep is None:
-        stop_at_nstep = False
-        nstep = int(pwin_nl['control']['nstep'])
-        verbose("[parse_pwout_md] using 'nstep' from input file")
-    else:
-        verbose("[parse_pwout_md] using nstep = %i" %nstep)
-        stop_at_nstep = True
-    # Start temperature of MD run. Can also grep it from .out file, pattern for
-    # re.search() (untested):
-    # r'Starting temperature\s+=\s+([0-9eEdD+-\.])+\s+K'. Comes before the first 
-    # 'ATOMIC_POSITIONS' and belongs to Rold.
-    tempw = ffloat(pwin_nl['ions']['tempw'])
+        verbose("[parse_pwout_md] using fallback for nstep")
+        nstep = int(com.backtick('grep ATOMIC_POSITIONS %s | wc -l' %fn))
+    if natoms is None:
+        verbose("[parse_pwout_md] using fallback for natoms")
+        # tail ... b/c this line appears multiple times if output file
+        # is a concatenation of multiple smaller files
+        natoms = int(com.backtick(r"egrep 'number[ ]+of[ ]+atoms' %s | \
+            sed -re 's/.*=(.*)$/\1/' | tail -n1" %fn))
+    verbose("[parse_pwout_md] natoms: %s" %str(natoms))
+    verbose("[parse_pwout_md] nstep: %s" %str(nstep))
     
-    # Rold: (natoms x 3)
-    Rold = atpos_in['coords']
-    # Or: natoms = pwin_nl['system']['nat']
-    natoms = atpos_in['natoms']
+    # pressure
+    verbose("[parse_pwout_md] getting pressure")
+    pressure_str = com.backtick(r"grep P= %s | awk '{print $6}'" %fn)
+    pressure = np.loadtxt(StringIO(pressure_str))
+     
+    # temperature
+    verbose("[parse_pwout_md] getting temperature")
+    cmd = r"egrep 'temperature\s*=' %s " %fn + "| sed -re 's/.*temp.*=\s*(" + FLOAT_RE + \
+          r")\s*K/\1/'"
+    temperature_str = com.backtick(cmd)
+    temperature = np.loadtxt(StringIO(temperature_str))
     
-##    DBG.t('parse-output')
-    
-    # Allocate R to store atomic coords.
-    #
-    # i = atom index: 0 ... natoms-1
-    # j = time index: 0 ... nstep (NOTE: R.shape[1] = nstep+1 b/c j=0 -> Rold)
-    # k = velocity or component index: x -> k=0, y -> k=1, z -> k=3
-    # R[:,j,:] = (natoms x 3) array, atomic positions
-    #
-    Rshape = (natoms, nstep+1, 3)
-    R = np.empty(Rshape, dtype=float)
-    R[:,0,:] = Rold
-    
-    # temperature array
-    T = np.empty((nstep+1,), dtype=float)
-    T[0] = tempw
-    
-    # pressure array
-    P = np.empty((nstep+1,), dtype=float)
+    # atomic positions
+    verbose("[parse_pwout_md] atomic positions")
+    key = 'ATOMIC_POSITIONS'
+    cmd = "sed -nre '/%s/,+%ip' %s | grep -v %s | \
+          awk '{printf $2\"  \"$3\"  \"$4\"\\n\"}'" %(key, natoms, fn, key)
+    coords_str = com.backtick(cmd)          
+    coords = readtxt(StringIO(coords_str), axis=1, shape=(natoms, nstep, 3))
 
-    # R[:,0,:] = Rold, fill R[:,1:,:]
-    j=1
-    scan_atpos_rex = re.compile(r'^ATOMIC_POSITIONS\s*')
-    scan_temp_rex = re.compile(r'\s+temperature\s+=\s+(' + FLOAT_RE + ')\s+K')
-    scan_stress_rex = re.compile(r'\s+total\s+stress\s+.*P.*=\s*(' + FLOAT_RE + ')')
-    while True:
-        
-        # --- stress -----------------
-
-        # Stress information for the *previous*, i.e. (j-1)th, iteration. P[0]
-        # is the starting stress before the 1st MD iter. We do it this way b/c
-        # we can't assign P[0] = p0 before the loop b/c we simply just don't 
-        # know p0 from nowhere but the outfile.
-        fh, flag, match = scan_until_pat2(fh, scan_stress_rex, err=False,
-                                          retmatch=True)
-        if flag == 0:
-            verbose("[parse_pwout_md] stress scan: end of file "
-                "'%s'" %fh.name)
-            break
-        else:            
-            P[j-1] = ffloat(match.group(1))
-        
-        # --- ATOMIC_POSITIONS --------
-        
-        fh, flag = scan_until_pat2(fh, scan_atpos_rex, err=False)
-        if flag == 0:
-            verbose("[parse_pwout_md] atomic positions scan: end of file "
-                "'%s'" %fh.name)
-            break
-        else:            
-            # Rw: no copy, pointer to work array (view of slice), in-place
-            # modification in function atomic_positions_out*()
-            Rw = R[:,j,:]
-            fh = atomic_positions_out2(fh, natoms, Rw)
-        
-        # --- temperature -------------
-        
-        # usually, temperature appears after ATOMIC_POSITIONS
-        fh, flag, match = scan_until_pat2(fh, scan_temp_rex, err=False,
-                                          retmatch=True)
-        if flag == 0:
-            verbose("[parse_pwout_md] temperature scan: end of file "
-                "'%s'" %fh.name)
-            break
-        else:            
-            T[j] = ffloat(match.group(1))
-        
-        j += 1
-        if j == nstep+1 and stop_at_nstep:
-            verbose("[parse_pwout_md] nstep reached, stopping parsing")
-            break
+    # XXX does not work if there are no CELL_PARAMETERS in the outfile at all
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>     
+##    # cell parameters
+##    key = 'CELL_PARARAMETERS'
+##    cmd = "sed -nre '/%s/,+3p' %s | grep -v %s" %(key, fn, key)
+##    cps_str = com.backtick(cmd)
+##    cps = readtxt(StringIO(cps_str), axis=1, shape=(3, nstep, 3))
+#----------------------------------
+    cps = None
+#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<     
     
-    endj = j-1
-    if endj != nstep:
-        verbose("WARNING: file '%s' seems to short" %fh.name)
-        verbose("    nstep = %s" %nstep)
-        verbose("    iters in file = %s" %endj)
-        verbose("    rest of output arrays (R, T, P) and all arrays depending "
-              "on them will be zero or numpy.empty()")
-##    DBG.pt('parse-output')
-    return {'R': R, 'T': T, 'P': P, 'skipend': nstep-endj}
-
-#-----------------------------------------------------------------------------
-
-# Convenience wrapper for interactive usage. 
-def parse_pwout_md_ia(pwifn, pwofn):
-    pwin_nl = pwin_namelists(pwifn)
-    atspec = pwin_atomic_species(pwifn)
-    atpos_in = pwin_atomic_positions(pwifn, atspec)
-    pwout = parse_pwout_md(pwofn,
-                        pwin_nl=pwin_nl, 
-                        atspec=atspec,
-                        atpos_in=atpos_in)
-    return pwout                        
-
-#-----------------------------------------------------------------------------
-
-@open_and_close
-def parse_pwout_vc_md(fh, pwin_nl=None, atspec=None, atpos_in=None, nstep=None):
-    """
-    args:
-    -----
-    fh : fileobj of the pw.x output file
-    pwin_nl : dict returned by pwin_namelists()
-    atspec : dict returned by pwin_atomic_species()
-    atpos_in : dict returned by pwin_atomic_positions()
-    nstep : number of time steps in pw.out file (if None then it will be read
-        from pwin_fn -> control:nstep)
-    """
-    verbose("[parse_pwout_vc_md] parsing %s" %(fh.name))
-    if nstep is None:
-        stop_at_nstep = False
-        nstep = int(pwin_nl['control']['nstep'])
-        verbose("[parse_pwout_vc_md] using 'nstep' from input file")
-    else:
-        verbose("[parse_pwout_vc_md] using nstep = %i" %nstep)
-        stop_at_nstep = True
-        
-    # Start temperature of MD run. Can also grep it from .out file, pattern for
-    # re.search() (untested):
-    # r'Starting temperature\s+=\s+([0-9eEdD+-\.])+\s+K'. Comes before the first 
-    # 'ATOMIC_POSITIONS' and belongs to Rold.
-    tempw = ffloat(pwin_nl['ions']['tempw'])
-    
-    # Rold: (natoms x 3)
-    Rold = atpos_in['coords']
-    # Or: natoms = pwin_nl['system']['nat']
-    natoms = atpos_in['natoms']
-    
-##    DBG.t('parse-output')
-    
-    # Allocate R to store atomic coords.
-    #
-    # i = atom index: 0 ... natoms-1
-    # j = time index: 0 ... nstep (NOTE: R.shape[1] = nstep+1 b/c j=0 -> Rold)
-    # k = velocity or component index: x -> k=0, y -> k=1, z -> k=3
-    # R[:,j,:] = (natoms x 3) array, atomic positions
-    #
-    Rshape = (natoms, nstep+1, 3)
-    R = np.empty(Rshape, dtype=float)
-    R[:,0,:] = Rold
-    
-    # temperature array
-    T = np.empty((nstep+1,), dtype=float)
-    T[0] = tempw
-    
-    # pressure array
-    P = np.empty((nstep+1,), dtype=float)
-
-    # R[:,0,:] = Rold, fill R[:,1:,:]
-    j=1
-    scan_atpos_rex = re.compile(r'^ATOMIC_POSITIONS\s*')
-    scan_ekin_temp_etot_rex = \
-        re.compile(r'\s+Ekin\s+=\s+(' + FLOAT_RE + ')\s+Ry\s+'
-                     'T\s+=\s+(' + FLOAT_RE + ')\s+K\s+'
-                     'Etot\s+=\s+(' + FLOAT_RE + ')')
-    scan_stress_rex = re.compile(r'\s+total\s+stress\s+.*P.*=\s*(' + FLOAT_RE + ')')
-    while True:
-        
-        # --- stress -----------------
-
-        # Stress information for the *previous*, i.e. (j-1)th, iteration. P[0]
-        # is the starting stress before the 1st MD iter. We do it this way b/c
-        # we can't assign P[0] = p0 before the loop b/c we simply just don't 
-        # know p0 from nowhere but the outfile.
-        fh, flag, match = scan_until_pat2(fh, scan_stress_rex, err=False,
-                                          retmatch=True)
-        if flag == 0:
-            verbose("[parse_pwout_vc_md] stress scan: end of file "
-                "'%s'" %fh.name)
-            break
-        else:            
-            P[j-1] = ffloat(match.group(1))
-        
-        # --- temperature -------------
-        
-        fh, flag, match = scan_until_pat2(fh, scan_ekin_temp_etot_rex, err=False,
-                                          retmatch=True)
-        if flag == 0:
-            verbose("[parse_pwout_vc_md] temperature scan: end of file "
-                "'%s'" %fh.name)
-            break
-        else:
-            T[j] = ffloat(match.group(2))
-        
-        # --- CELL_PARAMETERS --------
-
-        # --- ATOMIC_POSITIONS --------
-        
-        fh, flag = scan_until_pat2(fh, scan_atpos_rex, err=False)
-        if flag == 0:
-            verbose("[parse_pwout_vc_md] atomic positions scan: end of file "
-                "'%s'" %fh.name)
-            break
-        else:            
-            # Rw: no copy, pointer to work array (view of slice), in-place
-            # modification in function atomic_positions_out*()
-            Rw = R[:,j,:]
-            fh = atomic_positions_out2(fh, natoms, Rw)
-        
-        j += 1
-        if j == nstep+1 and stop_at_nstep:
-            verbose("[parse_pwout_vc_md] nstep reached, stopping parsing")
-            break
-    
-    endj = j-1
-    if endj != nstep:
-        verbose("WARNING: file '%s' seems to short" %fh.name)
-        verbose("    nstep = %s" %nstep)
-        verbose("    iters in file = %s" %endj)
-        verbose("    rest of output arrays (R, T, P) and all arrays depending "
-              "on them will be zero or numpy.empty()")
-##    DBG.pt('parse-output')
-    return {'R': R, 'T': T, 'P': P, 'skipend': nstep-endj}
-
+    # XXX HACK: disable skipend stuff. This can be removed anyway since we do
+    # not allocate R, T etc in advance, so they only contain the actual data
+    # present in the out files.
+    return {'R': coords, 'T': temperature, 'P': pressure, 'cps':cps, 
+            'skipend': 0}
 
 #-----------------------------------------------------------------------------
 # computational
@@ -1389,12 +1158,8 @@ def velocity(R, dt=None, copy=True, rslice=slice(None)):
     unavoidable.
                         
     """
-    # --- method 2: compute velocities after loop  ---------------------------
-    #
-    # plus:  easy to dump R array if needed
-    # minus: R[:,1:,:] - R[:,:-1,:] may be a large 3D temp (if nstep very
-    #        large) But so far: nstep = 12000 -> R is 8 MB or so -> OK
-    # note: R[:,0,:] must be == Rold !!        
+    # XXX We assume that the time axis the axis=1 in R. This not safe should we
+    # ever change that.
     if copy:
         tmp = R.copy()[:,rslice,:]
     else:
@@ -1561,6 +1326,7 @@ def norm_int(y, x, area=1.0):
 
 #-----------------------------------------------------------------------------
 
+# XXX Freeuency in f, not 2*pi*f as in all the paper formulas! Check this.
 def direct_pdos(V, dt=1.0, m=None, full_out=False, natoms=1.0):
     """Compute PDOS without the VACF by direct FFT of the atomic velocities.
     We call this Direct Method. Integral area is normalized 1.0.
@@ -2169,7 +1935,7 @@ def main(opts):
     # make outdir
     if not os.path.exists(opts.outdir):
         verbose("creating outdir: %s" %opts.outdir)
-        os.mkdir(opts.outdir)
+        os.makedirs(opts.outdir)
     
     # make filenames
     if opts.pwofn.endswith('.out'):
@@ -2236,10 +2002,8 @@ def main(opts):
         # plan to use a class Parser one day which will have all these
         # individual functions as methods. Individual output args will be
         # shared via data members. Stay tuned.
-        if opts.calc_type == 'md':
+        if opts.calc_type in ['md', 'vc-md']:
             parse_pwout = parse_pwout_md
-        elif opts.calc_type == 'vc-md':            
-            parse_pwout = parse_pwout_vc_md
         else:
             raise StandardError("illegal calc_type, allowed: md, vc-md")
         pwout = parse_pwout(opts.pwofn,
@@ -2405,6 +2169,7 @@ def main(opts):
         else:
             verbose("mass-weighting VACF")
         
+        # XXX Frequency in f, not 2*pi*f as in all the paper formulas! Check this.
         if opts.dos_method == 'vacf':
             faxis, pdos, extra = vacf_pdos(
                 V, 
@@ -2423,6 +2188,7 @@ def main(opts):
             # Integral normalized to 1.0: int(abs(fft(vacf)), f) = 1.0 
             # f [Hz]  abs(fft(vacf))  fft(vacf).real  fft(vacf).imag 
             """)
+        # XXX Frequency in f, not 2*pi*f as in all the paper formulas! Check this.
         elif opts.dos_method == 'direct':
             if opts.mirror:
                 verbose("note: opts.mirror useless for direct method")
@@ -2623,6 +2389,7 @@ if __name__ == '__main__':
 ##    import doctest
 ##    doctest.testmod(verbose=True)
     
+    # Be chatty only ion cmd line mode.
     VERBOSE = True
     
     parser = get_parser()
