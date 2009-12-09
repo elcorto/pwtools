@@ -89,7 +89,8 @@ Eexamples
 Known issues
 ------------
 
-* There is a yet unresolved bug with the -s option. Use with care.
+* Some forms of slices (-s option) don't work in numpy. An exception is raised
+  in that case.
 
 Output files
 ------------

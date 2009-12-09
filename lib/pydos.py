@@ -175,6 +175,10 @@ INPUT_PW_CARDS = [\
 
 FLOAT_RE = regex.float_re
 
+HEADER_MAXLINES = 20
+HEADER_COMMENT = '#'
+TXT_MAXDIM = 3
+
 #-----------------------------------------------------------------------------
 # file handling
 #-----------------------------------------------------------------------------
@@ -189,18 +193,18 @@ def _get_filename(fh):
         name = 'object_%s_pwtools_dummy_filename' %str(fh)
     return name        
 
-#-----------------------------------------------------------------------------
 
 @open_and_close
-def _read_header_config(fh, maxlines=20, comment='#'):
+def _read_header_config(fh, header_maxlines=HEADER_MAXLINES, 
+                        header_comment=HEADER_COMMENT):
     """Read a ini-style file from the header of a text file. Return a
     PydosConfigParser object.
 
     args:
     -----
     fh : file handle, readable
-    maxlines : max lines to read dwon from top of the file
-    comment : comment sign w/ which the header must be prefixed
+    header_maxlines : max lines to read down from top of the file
+    header_comment : comment sign w/ which the header must be prefixed
     
     returns:
     --------
@@ -221,33 +225,33 @@ def _read_header_config(fh, maxlines=20, comment='#'):
     fn = _get_filename(fh)
     verbose("[_read_header_config]: reading header from '%s'" %fn)
     header = ''
-    for i in range(maxlines):
+    for i in range(header_maxlines):
         try:
             line = fh.next().strip()
         except StopIteration:
             break
-        if line.startswith(comment):
-            header += line.replace(comment, '').strip() + '\n'
-    # Read one more line to see if the header is bigger than maxlines.
+        if line.startswith(header_comment):
+            header += line.replace(header_comment, '').strip() + '\n'
+    # Read one more line to see if the header is bigger than header_maxlines.
     try:
-        if fh.next().strip().startswith(comment):
-            verbose("[_read_header_config] WARNING: header seems to be > "\
-                + "maxlines")
+        if fh.next().strip().startswith(header_comment):
+            raise StandardError("header seems to be > header_maxlines (%i)"
+                %header_maxlines)
     except StopIteration:
         pass
     c = PydosConfigParser()
     c.readfp(StringIO(header))
-    # If maxlines > header size, we read beyond the header into the data. That
+    # If header_maxlines > header size, we read beyond the header into the data. That
     # causes havoc for all functions that read fh afterwards.
     fh.seek(0)
     return c
 
-#-----------------------------------------------------------------------------
 
 # the open_and_close decorator cannot be used here b/c it only opens
 # files in read mode, not for writing
-def _write_header_config(fh, config, comment='#'):
-    """Write ini-style config file from `config` prefixed with `comment` to
+def _write_header_config(fh, config, header_comment=HEADER_COMMENT,
+                         header_maxlines=HEADER_MAXLINES):
+    """Write ini-style config file from `config` prefixed with `header_comment` to
     file handle `fh`."""
     fn = _get_filename(fh)
     verbose("[_write_header_config]: writing header to '%s'" %fn)
@@ -256,13 +260,16 @@ def _write_header_config(fh, config, comment='#'):
     config.write(ftmp)
     # write with comment signs to actual file
     ftmp.seek(0)
-    for line in ftmp.readlines():
-        fh.write(comment + ' ' + line)
+    lines = ftmp.readlines()
+    assert_cond(len(lines) <= header_maxlines, 
+                "header has more then header_maxlines (%i) lines" \
+                %header_maxlines)
+    for line in lines:
+        fh.write(header_comment + ' ' + line)
     ftmp.close()
 
-#-----------------------------------------------------------------------------
 
-def writetxt(fn, arr, axis=-1):
+def writetxt(fn, arr, axis=-1, maxdim=TXT_MAXDIM):
     """Write 1d, 2d or 3d arrays to txt file. 
     
     If 3d, write as 2d chunks. Take the 2d chunks along `axis`. Write a
@@ -274,9 +281,9 @@ def writetxt(fn, arr, axis=-1):
     fn : filename
     arr : array (max 3d)
     axis : axis along which 2d chunks are written
+    maxdim : highest number of dims that `arr` is allowed to have
     """
     verbose("[writetxt] writing '%s'" %fn)
-    maxdim=3
     assert_cond(arr.ndim <= maxdim, 'no rank > %i arrays supported' %maxdim)
     fh = open(fn, 'w+')
     c = PydosConfigParser()
@@ -297,18 +304,23 @@ def writetxt(fn, arr, axis=-1):
             np.savetxt(fh, arr[sl])
     fh.close()
 
-#-----------------------------------------------------------------------------
 
 @open_and_close
-def readtxt(fh, axis=None, shape=None):
-    """Read arrays from .txt files using np.loadtxt(). 
+def readtxt(fh, axis=None, shape=None, header_maxlines=HEADER_MAXLINES,
+            header_comment=HEADER_COMMENT, maxdim=TXT_MAXDIM):
+    """Read arrays from .txt file using np.loadtxt(). 
     
     If the file stores a 3d array as consecutive 2d arrays, the file header
     (see writetxt()) is used to determine the shape of the original 3d array
-    and the arry is reshaped accordingly.
+    and the array is reshaped accordingly.
     If `axis` or `shape` is not None, then this is used instead of the
-    header value. This has the potential to shoot yourself in the foot :)
+    header value. This has the potential to shoot yourself in the foot, as the
+    header information in the file is ignored then. Use with care.
     
+    Note: If `axis` and `shape` are None, then this function does not work with
+    normal text files which have no special header. Use np.loadtxt() in this
+    case.
+
     args:
     -----
     fh : file_like
@@ -332,19 +344,37 @@ def readtxt(fh, axis=None, shape=None):
         if axis is None:            
             axis = int(c.get(sec, 'axis'))
     ndim = len(shape)
+    assert_cond(ndim <= maxdim, 'no rank > %i arrays supported' %maxdim)
     # axis = -1 means the last dim
     if axis == -1:
         axis = ndim - 1
-    assert_cond(ndim <= maxdim, 'no rank > %i arrays supported' %maxdim)
-    read_arr = np.loadtxt(fh)
+    
+    # handle empty files (no data, only special header or nothing at all)
+    header_lines = []
+    for i in range(header_maxlines):
+        try:
+            line = fh.next().strip()
+            if not line.startswith(header_comment) and line != '':
+                header_lines.append(line)
+        except StopIteration:
+            break
+    fh.seek(0)
+    if header_lines == []:
+        verbose("[readtxt] WARNING: empty file: %s" %fn)
+        return np.array([])
+    else:
+        fh.seek(0)
+        read_arr = np.loadtxt(fh)
+    
     # 1d and 2d
     if ndim <= 2:
         return read_arr
     # 3d        
     else:
-        # axis = 1
-        # shape = (50, 1000, 3)
-        # shape_2d_chunk =  (50, 3)
+        # example:
+        #   axis = 1
+        #   shape = (50, 1000, 3)
+        #   shape_2d_chunk =  (50, 3)
         shape_2d_chunk = shape[:axis] + shape[(axis+1):]
         # (50, 1000, 3)
         arr = np.empty(shape)
@@ -361,12 +391,10 @@ def readtxt(fh, axis=None, shape=None):
             arr[sl] = read_arr[ind*shape_2d_chunk[0]:(ind+1)*shape_2d_chunk[0], :]
     return arr
 
-#-----------------------------------------------------------------------------
 
 def readbin(fn):
     raise NotImplementedError("We use np.load() now.")
 
-#-----------------------------------------------------------------------------
 
 def readarr(fn, type='bin'):
     """Read bin or txt array from file `fn`."""
@@ -377,7 +405,6 @@ def readarr(fn, type='bin'):
     elif type == 'txt':
         return readtxt(fn)
 
-#-----------------------------------------------------------------------------
 
 def writearr(fn, arr, comment=None, info=None,
              type='bin', axis=-1):
@@ -427,6 +454,7 @@ def writearr(fn, arr, comment=None, info=None,
             c.write(f)
         f.close()
 
+
 #-----------------------------------------------------------------------------
 # parsing 
 #-----------------------------------------------------------------------------
@@ -466,12 +494,11 @@ def toslice(val):
     # array([], dtype=int64)
     # >>> np.s_[-2:]
     # slice(9223372036854775805, None, None)
-    if '-' in val:
-        verbose("[toslice]: WARNING: minus slines not supported, check your results!")
+    if val.stip().startswith('-'):
+        raise StandardError("Some minus slices (e.g -2:) not supported")
     # This eval() trick works but seems hackish. Better ideas, anyone?
     return eval('np.s_[%s]' %val)
 
-#-----------------------------------------------------------------------------
 
 def tobool(val):
     """Convert `val` to boolean value True or False.
@@ -514,7 +541,6 @@ def tobool(val):
         raise StandardError("illegal input value '%s'" %frepr(val))
     return ret
 
-#-----------------------------------------------------------------------------
 
 def ffloat(st):
     """Convert strings representing numbers to Python floats using
@@ -555,7 +581,6 @@ def ffloat(st):
         ss = "%se%s%s" %m.groups()[:-1]
         return float(ss)
 
-#-----------------------------------------------------------------------------
 
 def frepr(var, ffmt="%.16e"):
     """Similar to Python's repr(), but 
@@ -582,7 +607,6 @@ def frepr(var, ffmt="%.16e"):
     else:
         return repr(var)
 
-#-----------------------------------------------------------------------------
 
 def tup2str(t):
     """
@@ -590,7 +614,6 @@ def tup2str(t):
     """
     return " ".join(map(str, t))
 
-#-----------------------------------------------------------------------------
 
 def str2tup(s, func=int):
     """
@@ -598,7 +621,6 @@ def str2tup(s, func=int):
     """
     return tuple(map(func, s.split()))
 
-#-----------------------------------------------------------------------------
 
 class PydosConfigParser(ConfigParser.SafeConfigParser):
     """All values passed as `arg` to self.set(self, section, option, arg) are
@@ -611,26 +633,19 @@ class PydosConfigParser(ConfigParser.SafeConfigParser):
     def set(self, section, option, arg):
         ConfigParser.SafeConfigParser.set(self, section, option, frepr(arg))
 
-#-----------------------------------------------------------------------------
 
 def next_line(fh):
-    """
-    Will raise StopIteration at end of file.
-    """
+    """Will raise StopIteration at end of file ."""
     return fh.next().strip()
 
-#-----------------------------------------------------------------------------
 
 def next_nonempty_line(fh):
-    """
-    Will raise StopIteration at end of file.
-    """
+    """Will raise StopIteration at end of file. """
     line = next_line()
     while line == '':
         line = next_line(fh)
     return line        
 
-#-----------------------------------------------------------------------------
 
 # cannot use:
 #
@@ -698,7 +713,6 @@ def scan_until_pat(fh, pat="atomic_positions", err=True, retline=False):
         return fh, 0, line
     return fh, 0
 
-#-----------------------------------------------------------------------------
 
 def scan_until_pat2(fh, rex, err=True, retmatch=False):
     """
@@ -743,7 +757,6 @@ def scan_until_pat2(fh, rex, err=True, retmatch=False):
         return fh, 0, match
     return fh, 0
 
-#-----------------------------------------------------------------------------
 
 # Must parse for ATOMIC_SPECIES and ATOMIC_POSITIONS separately (open, close
 # infile) each time b/c the cards can be in arbitrary order in the input file.
@@ -802,7 +815,6 @@ def pwin_atomic_species(fh):
     pseudos = ar[:,2].tolist()
     return {'atoms': atoms, 'masses': masses, 'pseudos': pseudos}
 
-#-----------------------------------------------------------------------------
 
 # XXX much easier: sed -nre '/CELL_P/,3p' | grep -v CELL_P
 @open_and_close
@@ -856,8 +868,6 @@ def pwin_cell_parameters(fh):
     assert_cond(cp.shape[0] == cp.shape[1], "dimensions of `cp` don't match")
     return cp
 
-
-#-----------------------------------------------------------------------------
 
 @open_and_close
 def pwin_atomic_positions(fh, atspec=None):
@@ -930,7 +940,6 @@ def pwin_atomic_positions(fh, atspec=None):
     return {'coords': coords, 'natoms': natoms, 'massvec': massvec, 'symbols':
         symbols, 'unit': unit}
 
-#-----------------------------------------------------------------------------
 
 def _is_cardname(line, cardnames=INPUT_PW_CARDS):
     for string in cardnames:
@@ -939,7 +948,6 @@ def _is_cardname(line, cardnames=INPUT_PW_CARDS):
             return True
     return False            
 
-#-----------------------------------------------------------------------------
 
 @open_and_close
 def pwin_namelists(fh):
@@ -1033,7 +1041,6 @@ def pwin_namelists(fh):
                 nl_kvps.append(tmp)
     return dct
 
-#-----------------------------------------------------------------------------
 
 def parse_pwout_md(fn, natoms=None, nstep=None, **kwargs):
     verbose("[parse_pwout_md] parsing %s" %fn)
@@ -1050,13 +1057,13 @@ def parse_pwout_md(fn, natoms=None, nstep=None, **kwargs):
     #########################################################################
     
     # FIXME It MAY be that with the grep-type approch, we grep the last coords
-    # twice for relax runs b/c they are printes twice.
+    # twice for relax runs b/c they are printed twice.
     #
     # TODO 
     # * get also etot
     # * Check if this grepping also works for scf runs, where we have in
     #   principle nstep=1
-    # * Test getting CELL_PARAMETERS from cp.x put files
+    # * Test getting CELL_PARAMETERS from cp.x out files
     # * temperature is stored completely different in cp.x outfiles, maybe use
     #   the files it writes to 'outdir', i.e. scratch
     
@@ -1075,34 +1082,30 @@ def parse_pwout_md(fn, natoms=None, nstep=None, **kwargs):
     
     # pressure
     verbose("[parse_pwout_md] getting pressure")
-    pressure_str = com.backtick(r"grep P= %s | awk '{print $6}'" %fn)
-    pressure = np.loadtxt(StringIO(pressure_str))
+    ret_str = com.backtick(r"grep P= %s | awk '{print $6}'" %fn)
+    pressure = np.loadtxt(StringIO(ret_str))
      
     # temperature
     verbose("[parse_pwout_md] getting temperature")
     cmd = r"egrep 'temperature\s*=' %s " %fn + "| sed -re 's/.*temp.*=\s*(" + FLOAT_RE + \
           r")\s*K/\1/'"
-    temperature_str = com.backtick(cmd)
-    temperature = np.loadtxt(StringIO(temperature_str))
+    ret_str = com.backtick(cmd)
+    temperature = np.loadtxt(StringIO(ret_str))
     
     # atomic positions
-    verbose("[parse_pwout_md] atomic positions")
+    verbose("[parse_pwout_md] getting atomic positions")
     key = 'ATOMIC_POSITIONS'
     cmd = "sed -nre '/%s/,+%ip' %s | grep -v %s | \
           awk '{printf $2\"  \"$3\"  \"$4\"\\n\"}'" %(key, natoms, fn, key)
-    coords_str = com.backtick(cmd)          
-    coords = readtxt(StringIO(coords_str), axis=1, shape=(natoms, nstep, 3))
+    ret_str = com.backtick(cmd)          
+    coords = readtxt(StringIO(ret_str), axis=1, shape=(natoms, nstep, 3))
 
-    # XXX does not work if there are no CELL_PARAMETERS in the outfile at all
-#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>     
-##    # cell parameters
-##    key = 'CELL_PARARAMETERS'
-##    cmd = "sed -nre '/%s/,+3p' %s | grep -v %s" %(key, fn, key)
-##    cps_str = com.backtick(cmd)
-##    cps = readtxt(StringIO(cps_str), axis=1, shape=(3, nstep, 3))
-#----------------------------------
-    cps = None
-#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<     
+    # cell parameters
+    verbose("[parse_pwout_md] getting cell parameters")
+    key = 'CELL_PARARAMETERS'
+    cmd = "sed -nre '/%s/,+3p' %s | grep -v %s" %(key, fn, key)
+    cps_str = com.backtick(cmd)
+    cps = readtxt(StringIO(cps_str), axis=1, shape=(3, nstep, 3))
     
     # XXX HACK: disable skipend stuff. This can be removed anyway since we do
     # not allocate R, T etc in advance, so they only contain the actual data
@@ -1129,7 +1132,6 @@ def normalize(a):
     """
     return a / a.max()
 
-#-----------------------------------------------------------------------------
 
 def velocity(R, dt=None, copy=True, rslice=slice(None)):
     """Compute V from R. Essentially, time-next-neighbor-differences are
@@ -1156,9 +1158,8 @@ def velocity(R, dt=None, copy=True, rslice=slice(None)):
     ------
     Even with copy=False, a temporary copy of R in the calculation is
     unavoidable.
-                        
     """
-    # XXX We assume that the time axis the axis=1 in R. This not safe should we
+    # FIXME We assume that the time axis the axis=1 in R. This not safe should we
     # ever change that.
     if copy:
         tmp = R.copy()[:,rslice,:]
@@ -1172,8 +1173,6 @@ def velocity(R, dt=None, copy=True, rslice=slice(None)):
     if dt is not None:
         V /= dt
     return V
-
-#-----------------------------------------------------------------------------
 
 
 def pyvacf(V, m=None, method=3):
@@ -1232,7 +1231,7 @@ def pyvacf(V, m=None, method=3):
     c = c / c[0]
     return c
 
-#-----------------------------------------------------------------------------
+
 
 def fvacf(V, m=None, method=2, nthreads=None):
     """
@@ -1291,7 +1290,7 @@ def fvacf(V, m=None, method=2, nthreads=None):
 # alias
 vacf = fvacf
 
-#-----------------------------------------------------------------------------
+
 
 def norm_int(y, x, area=1.0):
     """Normalize integral area of y(x) to `area`.
@@ -1324,7 +1323,7 @@ def norm_int(y, x, area=1.0):
     _area = simps(sy, sx) / (fx*fy)
     return y*area/_area
 
-#-----------------------------------------------------------------------------
+
 
 # XXX Freeuency in f, not 2*pi*f as in all the paper formulas! Check this.
 def direct_pdos(V, dt=1.0, m=None, full_out=False, natoms=1.0):
@@ -1376,7 +1375,7 @@ def direct_pdos(V, dt=1.0, m=None, full_out=False, natoms=1.0):
     else:
         return default_out
 
-#-----------------------------------------------------------------------------
+
 
 def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False, natoms=1.0):
     """Compute PDOS by FFT of the VACF. Integral area is normalized to
@@ -1429,13 +1428,13 @@ def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False, natoms=1.0):
     else:
         return default_out
 
-#-----------------------------------------------------------------------------
+
 
 def mirror(a):
     # len(aa) = 2*len(a) - 1
     return np.concatenate((a[::-1],a[1:]))
 
-#-----------------------------------------------------------------------------
+
 
 def slicetake(a, sl, axis=None, copy=False):
     """The equivalent of numpy.take(a, ..., axis=<axis>), but accepts slice
@@ -1547,7 +1546,7 @@ def slicetake(a, sl, axis=None, copy=False):
     else:        
         return a[slices]
 
-#-----------------------------------------------------------------------------
+
 
 def sliceput(a, b, sl, axis=None):
     """The equivalent of a[<slice or index>]=b, but accepts slices objects
@@ -1594,7 +1593,7 @@ def sliceput(a, b, sl, axis=None):
     a[tmp] = b
     return a
 
-#-----------------------------------------------------------------------------
+
 
 def coord_trans(R, old=None, new=None, copy=True, align='cols'):
     """Coordinate transformation.
@@ -1821,13 +1820,13 @@ def _add_to_config(config, info):
             config.set(sec, key, val)
     return config
 
-#-----------------------------------------------------------------------------
+
 
 def verbose(msg):
     if VERBOSE:
         print(msg)
 
-#-----------------------------------------------------------------------------
+
 
 def str_arr(arr, fmt='%.15g', delim=' '*4):
     """Convert array `arr` to nice string representation for printing.
@@ -1869,7 +1868,7 @@ def str_arr(arr, fmt='%.15g', delim=' '*4):
     else:
         raise ValueError('rank > 2 arrays not supported')
 
-#-----------------------------------------------------------------------------
+
 
 def atpos_str(symbols, coords, fmt="%.10f"):
     """Convenience function to make a string for the ATOMIC_POSITIONS section
@@ -1898,8 +1897,8 @@ def atpos_str(symbols, coords, fmt="%.10f"):
         for i,row in enumerate(coords))
     return txt        
 
-#-----------------------------------------------------------------------------
-#-----------------------------------------------------------------------------
+
+
 
 def main(opts):
     """Main function.
@@ -2233,7 +2232,7 @@ def main(opts):
         if opts.dos_method == 'vacf':
             writearr(vacffn, vacf_data, type=opts.file_type)
        
-#------------------------------------------------------------------------------
+
 
 def get_parser():
     """Create argparse.ArgumentParser instance with default values."""
@@ -2369,7 +2368,7 @@ def get_parser():
         )
     return parser
 
-#-----------------------------------------------------------------------------
+
 
 def get_default_opts():
     """Return a class argparse.Namespace with all default options."""
@@ -2378,9 +2377,6 @@ def get_default_opts():
 # module level variable for convenience
 default_opts = get_default_opts()
 
-#-----------------------------------------------------------------------------
-# main
-#-----------------------------------------------------------------------------
 
 if __name__ == '__main__':
     
