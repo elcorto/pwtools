@@ -104,5 +104,3 @@ def acorr(v, method=6):
         raise ValueError('unknown method: %s' %method)
     return c / c[0]
 
-#-----------------------------------------------------------------------------
-

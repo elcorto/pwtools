@@ -678,7 +678,7 @@ class PDBFile(object):
         # Grep atom symbols and coordinates in Angstrom ([A]) from PDB file.
         #
         # XXX Note that for the atom symbols, we do NOT use the columns 77-78
-        #     ("Element symbol), b/c that is apparently not present in all the
+        #     ("Element symbol"), b/c that is apparently not present in all the
         #     files which we currently use. Instead, we use the columns 13-16,
         #     i.e. "Atom name". Note that in general this is not the element
         #     symbol.

@@ -13,29 +13,11 @@ import re
 import shutil
 import re
 import hashlib
+import ConfigParser
 
 from decorators import add_func_doc
 
-#-----------------------------------------------------------------------------
 
-def dict2class(dct, name='Dummy'):
-    """
-    >>> dct={'a':1, 'b':2}
-    >>> dct2class(dct, 'Foo')
-    <Foo instance at 0x3615ab8>
-    >>> dct2class(dct, 'Bar')
-    <Bar instance at 0x3615b48>
-    >>> dct2class(dct, 'Bar').__dict__
-    {'a':1, 'b':2}
-    """
-    class Dummy:
-        pass
-    cl = Dummy()
-    cl.__dict__.update(dct)
-    cl.__class__.__name__ = name
-    return cl
-
-#-----------------------------------------------------------------------------
 
 def assert_cond(cond, string=None):
     """Use this instead of `assert cond, string`. It's been said on
@@ -58,9 +40,225 @@ def assert_cond(cond, string=None):
     if not cond:
         raise AssertionError(string)
 
+
+#-----------------------------------------------------------------------------
+# Config file stuff
+#-----------------------------------------------------------------------------
+
+class PydosConfigParser(ConfigParser.SafeConfigParser):
+    """All values passed as `arg` to self.set(self, section, option, arg) are
+    converted to a string with frepr(). get*() methods are the usual ones
+    provided by the base class ConfigParser.SafeConfigParser: get(), getint(),
+    getfloat(), getboolean(). Option keys are case-sensitive.
+    """
+    # make keys case-sensitive
+    ConfigParser.SafeConfigParser.optionxform = str
+    def set(self, section, option, arg):
+        ConfigParser.SafeConfigParser.set(self, section, option, frepr(arg))
+
+
+def add_to_config(config, info):
+    """Add sections and key-val paris in `info` to `config`.
+    
+    args:
+    -----
+    config : ConfigParser object
+    info : dict of dicts, see io.writearr()
+
+    returns:
+    --------
+    modified config
+    """
+    for sec, dct in info.iteritems():
+        config.add_section(sec)
+        for key, val in dct.iteritems():
+            config.set(sec, key, val)
+    return config
+
+
+#-----------------------------------------------------------------------------
+# Type converters
+#-----------------------------------------------------------------------------
+
+def toslice(val):
+    """A simple wrapper around numpy.s_() taking strings as argument. 
+    Convert strings representing Python/numpy slice to slice
+    objects.
+    
+    args:
+    -----
+    val : string
+
+    examples:
+    ---------
+    '3'     -> 3
+    '3:'    -> slice(3, None, None)
+    '3:7'   -> slice(3, 7, None)
+    '3:7:2' -> slice(3, 7, 2)
+    '3::2'  -> slice(3, None, 2)
+    '::2'   -> slice(None, None, 2)
+    '::-1'  -> slice(None, None, -1)
+
+    >>> import numpy as np
+    >>> np.s_[1:5]
+    slice(1, 5, None)
+    >>> toslice('1:5')
+    slice(1, 5, None)
+    """
+    assert_cond(isinstance(val, types.StringType), "input must be string")
+    # FIXME
+    # np.s_ doesn't work for slices starting at end, like
+    # >>> a = array([1,2,3,4,5,6])
+    # >>> a[-2:]
+    # array([5, 6])
+    # >>> a[np.s_[-2:]]
+    # array([], dtype=int64)
+    # >>> np.s_[-2:]
+    # slice(9223372036854775805, None, None)
+    if val.stip().startswith('-'):
+        raise StandardError("Some minus slices (e.g -2:) not supported")
+    # This eval() trick works but seems hackish. Better ideas, anyone?
+    return eval('np.s_[%s]' %val)
+
+
+def tobool(val):
+    """Convert `val` to boolean value True or False.
+        
+    args:
+    -----
+    val : bool, string, integer
+        '.true.', '1', 'true',  'on',  'yes', integers != 0 -> True
+        '.false.','0', 'false', 'off', 'no',  integers == 0 -> False
+    
+    returns:
+    --------
+    True or False
+
+    notes:
+    ------
+    All string vals are case-insensitive.
+    """
+    if isinstance(val, types.BooleanType):
+        if val == True:
+            return True
+        else:
+            return False
+    got_str = False
+    got_int = False
+    if isinstance(val, types.StringType):
+        got_str = True
+        val = val.lower()
+    elif isinstance(val, types.IntType):
+        got_int = True
+    else:
+        raise StandardError, "input value must be string or integer"
+    if (got_str and (val in ['.true.', 'true', 'on', 'yes', '1'])) \
+        or (got_int and (val != 0)):
+        ret = True
+    elif (got_str and (val in ['.false.', 'false', 'off', 'no', '0'])) \
+        or (got_int and (val == 0)):
+        ret = False
+    else:
+        raise StandardError("illegal input value '%s'" %frepr(val))
+    return ret
+
+
+def ffloat(st):
+    """Convert strings representing numbers to Python floats using
+    float(). The returned value is a double (or whatever the float() of your
+    Python installation  returns). 
+    
+    Especially, strings representing Fortran floats are handled. Fortran Reals
+    (= single) are converted to doubles. Kind parameters (like '_10' in
+    '3.0d5_10') are NOT supported, they are ignored.
+
+    args:
+    -----
+    st : string
+
+    returns:
+    --------
+    float
+    """
+    assert_cond(isinstance(st, types.StringType), "`st` must be string")
+    st = st.lower()
+    if not 'd' in st:
+        return float(st)
+    else:
+        # >>> s='  40.0d+02_10  '
+        # >>> m.groups()
+        # ('40.0', '+', '02', '_10  ')
+        # >>> s='  40.0d02  '
+        # >>> m.groups()
+        # ('40.0', '', '02', '  ')
+        #
+        rex = re.compile(r'\s*([+-]*[0-9\.]+)d([+-]*)([0-9]+)([_]*.*)')
+        m = rex.match(st)
+        if m is None:
+            raise ValueError("no match on string '%s'" %st)
+        if m.group(4).strip() != '':
+            verbose("[ffloat] WARNING: skipping kind '%s' in string '%s'" 
+                %(m.group(4), st))
+        ss = "%se%s%s" %m.groups()[:-1]
+        return float(ss)
+
+
+def frepr(var, ffmt="%.16e"):
+    """Similar to Python's repr(), but 
+    * Return floats formated with `ffmt` if `var` is a float.
+    * If `var` is a string, e.g. 'lala', it returns 'lala' not "'lala'" as
+      Python's repr() does.
+    
+    args:
+    -----
+    var : almost anything (str, None, int, float)
+    ffmt : format specifier for float values
+    
+    examples:
+    ---------
+    1     -> '1'
+    1.0   -> '1.000000000000000e+00' 
+    None  -> 'None'
+    'abc' -> 'abc' (repr() does: 'abc' -> "'abc'")
+    """
+    if isinstance(var, types.FloatType):
+        return ffmt %var
+    elif isinstance(var, types.StringType):
+        return var
+    else:
+        return repr(var)
+
+
+def tup2str(t):
+    """
+    (1,2,3) -> "1 2 3"
+    """
+    return " ".join(map(str, t))
+
+
+def str2tup(s, func=int):
+    """
+    "1 2 3" -> (func('1'), func('2'), func('3')) 
+    """
+    return tuple(map(func, s.split()))
+
+
+
 #-----------------------------------------------------------------------------
 # Some handy file operations.
 #-----------------------------------------------------------------------------
+
+
+def get_filename(fh):
+    """Try to get the `name` attribute from file-like objects. If it fails
+    (fh=cStringIO.StringIO(), fh=StringIO.StringIO(), fh=gzip.open(), ...), 
+    then return a dummy name."""
+    try:
+        name = fh.name
+    except AttributeError:
+        name = 'object_%s_pwtools_dummy_filename' %str(fh)
+    return name        
+
 
 def fileo(val, mode='r', force=False):
     """Return open file object with mode `mode`. Handles also gzip'ed files.
@@ -97,7 +295,6 @@ def fileo(val, mode='r', force=False):
                 %(val.name, val.mode, mode))
         return val
 
-#-----------------------------------------------------------------------------
 
 def file_read(fn):
     """Open file with name `fn`, return open(fn).read()."""
@@ -106,7 +303,6 @@ def file_read(fn):
     fd.close()
     return txt
 
-#-----------------------------------------------------------------------------
 
 def file_write(fn, txt):
     """Write string `txt` to file with name `fn`. No check is made wether the
@@ -116,7 +312,6 @@ def file_write(fn, txt):
     fd.write(txt)
     fd.close()
 
-#-----------------------------------------------------------------------------
 
 def file_readlines(fn):
     """Open file with name `fn`, return open(fn).readlines()."""
@@ -125,18 +320,15 @@ def file_readlines(fn):
     fd.close()
     return lst
 
-#-----------------------------------------------------------------------------
 
 def fullpath(s):
     """Complete path: absolute path + $HOME expansion."""
     return os.path.abspath(os.path.expanduser(s))
 
-#-----------------------------------------------------------------------------
 
 def fullpathjoin(*args):
     return fullpath(os.path.join(*args))
 
-#-----------------------------------------------------------------------------
 
 def igrep(pat_or_rex, iterable, func='search'):
     """
@@ -265,19 +457,16 @@ def igrep(pat_or_rex, iterable, func='search'):
         if match is not None:
             yield match
 
-#-----------------------------------------------------------------------------
 
 def mgrep(*args,  **kwargs):
     """Like igrep, but returns a list of Match Objects."""
     return [m for m in igrep(*args, **kwargs)]
 
-#-----------------------------------------------------------------------------
 
 def tgrep(*args,  **kwargs):
     """Like igrep, but returns a list of text strings, each is a match."""
     return [m.group() for m in igrep(*args, **kwargs)]
 
-#-----------------------------------------------------------------------------
 
 def template_replace(txt, dct, conv=False, warn_mult_found=True,
                      warn_not_found=True, disp=True, mode='dct'):
@@ -380,7 +569,6 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
         new_txt = txt % dct
     return new_txt
 
-#-----------------------------------------------------------------------------
 
 def file_template_replace(fn, dct, bak='', **kwargs):
     """Replace placeholders in file `fn`.
@@ -409,7 +597,6 @@ def file_template_replace(fn, dct, bak='', **kwargs):
         shutil.copy(fn, fn + bak)                
     file_write(fn, txt)
 
-#-----------------------------------------------------------------------------
 
 # template hash function
 def hash(txt, mod_funcs=[], skip_funcs=[]):
@@ -543,6 +730,7 @@ def generic_hash(txt, mod_funcs=[_rem_ws],
     newlines."""                   
     return hash(txt, mod_funcs=mod_funcs, skip_funcs=skip_funcs)
 
+
 #-----------------------------------------------------------------------------
 # Dictionary tricks
 #-----------------------------------------------------------------------------
@@ -550,6 +738,29 @@ def generic_hash(txt, mod_funcs=[_rem_ws],
 def print_dct(dct):
     for key, val in dct.iteritems():
         print "%s: %s" %(key, str(val))
+
+
+def dict2class(dct, name='Dummy'):
+    """
+    Convert a dict to a class.
+
+    example:
+    --------
+    >>> dct={'a':1, 'b':2}
+    >>> dct2class(dct, 'Foo')
+    <Foo instance at 0x3615ab8>
+    >>> dct2class(dct, 'Bar')
+    <Bar instance at 0x3615b48>
+    >>> dct2class(dct, 'Bar').__dict__
+    {'a':1, 'b':2}
+    """
+    class Dummy:
+        pass
+    cl = Dummy()
+    cl.__dict__.update(dct)
+    cl.__class__.__name__ = name
+    return cl
+
 
 #-----------------------------------------------------------------------------
 # Sequence tricks
@@ -569,7 +780,6 @@ def is_seq(seq):
         except:
             return False
 
-#-----------------------------------------------------------------------------
 
 def iflatten(seq):
     """Flatten a sequence. After
@@ -581,7 +791,6 @@ def iflatten(seq):
             for subitem in flatten(item):
                 yield subitem
 
-#-----------------------------------------------------------------------------
 
 def flatten(seq):
     """Same as iflatten(), but returns a list."""
@@ -607,7 +816,6 @@ def system(call, wait=True):
     if wait:
         os.waitpid(p.pid, 0)
 
-#-----------------------------------------------------------------------------
 
 def backtick(call):
     """Convenient shell backtick replacement with gentle error handling.

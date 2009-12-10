@@ -40,8 +40,8 @@ if __name__ == '__main__':
     print(textwrap.dedent(
     """\
     Testing cmd line. There should some text output but NO ERROR MESSAGES. If
-    in doubt, run `./test.py 2>&1 | egrep -i 'error|warn'`\
-        """))
+    in doubt, run `python %s 2>&1 | egrep -i 'error|warn'`\
+        """ %__file__))
     print("*"*78)
 
     
