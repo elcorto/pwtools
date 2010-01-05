@@ -129,13 +129,14 @@ EXE=$(FILE).x
 EXT_MODULE=_$(FILE)
 SO=$(EXT_MODULE).so
 
+# ARCH below is for Intel Core i7
 F90=gfortran
 F90FLAGS=-x f95-cpp-input 
-ARCH=-mmmx -m3dnow -msse2 -msse -msse3
+ARCH=-mmmx -msse4.2 
 #
 ##F90=ifort
 ##F90FLAGS=-fpp
-##ARCH=-xSSE3
+##ARCH=-xSSE4.2
 
 # Wanny try OpenMP? Then uncomment below.
 #
