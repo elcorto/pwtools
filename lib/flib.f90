@@ -1,11 +1,12 @@
 ! 
-! Copyright (c) 2008-2009, Steve Schmerler <mefx@gmx.net>.
+! Copyright (c) 2008-2010, Steve Schmerler <mefx@gmx.net>.
 ! The pwtools package. 
 ! 
 
 subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
     
-    ! Normalized vacf: c_vv(t) = C_vv(t) / C_vv(0)
+    ! Normalized vacf: c_vv(t) = C_vv(t) / C_vv(0) for atomic velocities stored
+    ! in 3d array `v`.
     !
     ! method=1: loops
     ! method=2: vectorized, but makes a copy of `v`
@@ -120,7 +121,7 @@ subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
         !
         ! Clever multiplication with the mass vector:
         ! Element-wise multiply each vector of length `natoms` vv(:,j,k) with
-        ! the sqrt(m). In the dot product of the velocities
+        ! sqrt(m). In the dot product of the velocities
         ! vv(i,j,:) . vv(i,j+t,:), we get m(i) back.
         
         if (use_m == 1) then
@@ -148,15 +149,15 @@ subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
     end if
 end subroutine vacf
 
-!-----------------------------------------------------------------------------
 
 subroutine vect_loops(v, natoms, nstep, c)
-    
+
+#ifdef __OPENMP
     use omp_lib
-    implicit none
-    
     !f2py threadsafe
-    
+#endif    
+
+    implicit none
     integer :: t, nstep, natoms
     ! v(:, :, :) and v(0:, 0:, 0:) results in c = [NaN, ..., NaN]. 
     ! v(0:, 0:nstep-1, 0:) is not allowed (at least, ifort complains).
@@ -174,7 +175,6 @@ subroutine vect_loops(v, natoms, nstep, c)
 
 end subroutine vect_loops
 
-!-----------------------------------------------------------------------------
 
 subroutine acorr(v, c, nstep, method)
     
@@ -209,7 +209,6 @@ subroutine acorr(v, c, nstep, method)
 
 end subroutine acorr
 
-!-----------------------------------------------------------------------------
 
 subroutine msg(this, txt)
     
@@ -220,7 +219,6 @@ subroutine msg(this, txt)
 
 end subroutine msg
 
-!-----------------------------------------------------------------------------
 
 subroutine error(this, txt)
     
