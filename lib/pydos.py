@@ -3,7 +3,7 @@
 # vim:ts=4:sw=4:et
 
 # 
-# Copyright (c) 2008-2009, Steve Schmerler <mefx@gmx.net>.
+# Copyright (c) 2008-2010, Steve Schmerler <mefx@gmx.net>.
 # 
 
 """
@@ -115,6 +115,10 @@ TODO
   the time (as xcrysden does with XSF :)
 
   If numpy arrays won't do it anymore, use NetCDF or HDF5.
+
+- PDOS normalization. ATM we normalize so that int(faxis, pdos) = area = 1.0. 
+  But there may be others, like area = 3*natoms in the unit cell (not
+  supercell), ...
 """
 
 ##from debug import Debug
@@ -135,7 +139,7 @@ norm = np.linalg.norm
 # slow import time for these
 from scipy.fftpack import fft
 from scipy.linalg import inv
-from scipy.integrate import simps
+from scipy.integrate import simps, trapz
 
 # own modules
 import constants
@@ -158,511 +162,125 @@ pjoin = os.path.join
 # Used only in verbose().
 VERBOSE = False
 
-# All card names that may follow the namelist section in a pw.x input file.
-INPUT_PW_CARDS = [\
-    'atomic_species',
-    'atomic_positions',
-    'k_points',
-    'cell_parameters',
-    'occupations',
-    'climbing_images',
-    'constraints',
-    'collective_vars']
-
 FLOAT_RE = regex.float_re
 
 
 #-----------------------------------------------------------------------------
-# parsing 
+# computational
 #-----------------------------------------------------------------------------
 
-
-def next_line(fh):
-    """Will raise StopIteration at end of file ."""
-    return fh.next().strip()
-
-
-def next_nonempty_line(fh):
-    """Will raise StopIteration at end of file. """
-    line = next_line()
-    while line == '':
-        line = next_line(fh)
-    return line        
-
-
-# cannot use:
-#
-#   >>> fh, flag = scan_until_pat(fh, ...)
-#   # do something with the current line
-#   >>> line = fh.readline()
-#   <type 'exceptions.ValueError'>: Mixing iteration and read methods would
-#   lose data
-# 
-# Must return line at file position instead.
-
-def scan_until_pat(fh, pat="atomic_positions", err=True, retline=False):
-    """
-    Go to pattern `pat` in file `fh` and return `fh` at this position. Usually
-    this is a header followed by a table in a pw.x input or output file.
-
+def pad_zeros(arr, axis=0, where='end', nadd=None, upto=None, tonext=None,
+              tonext_min=None):
+    """Pad an nd-array with zeros. Default is to append an array of zeros of 
+    the same shape as `arr` to arr's end along `axis`.
+    
     args:
-    ----
-    fh : file like object
-    pat : string, pattern in lower case
-    err : bool, raise error at end of file b/c pattern was not found
-    retline : bool, return current line
+    -----
+    arr :  nd array
+    axis : the axis along which to pad
+    where : string {'end', 'start'}, pad at the end ("append to array") or 
+        start ("prepend to array") of `axis`
+    nadd : number of items to padd (i.e. nadd=3 means padd w/ 3 zeros in case
+        of an 1d array)
+    upto : pad until arr.shape[axis] == upto
+    tonext : bool, pad up to the next power of two (pad so that the padded 
+        array has a length of power of two)
+    tonext_min : int, when using `tonext`, pad the array to the next possible
+        power of two for which the resulting array length along `axis` is at
+        least `tonext_min`; the default is tonext_min = arr.shape[axis]
+
+    Use only one of nadd, upto, tonext.
     
     returns:
     --------
-    fh : file like object
-    flag : int
-    {line : current line}
-    
-    notes:
-    ------
-    Currently all lines in the file are converted to lowercase before scanning.
+    padded array
 
     examples:
     ---------
-    example file (pw.x input):
-        
-        [...]
-        CELL_PARAMETERS
-           4.477898982  -0.031121661   0.004594438
-          -2.231322621   3.882493243  -0.004687159
-           0.012261087  -0.006915066  12.050227607
-        ATOMIC_SPECIES
-        Si 28.0855 Si.LDA.fhi.UPF
-        O 15.9994 O.LDA.fhi.UPF   
-        Al 26.981538 Al.LDA.fhi.UPF
-        N 14.0067 N.LDA.fhi.UPF
-        ATOMIC_POSITIONS alat                              <---- fh at this pos
-        Al       4.482670384  -0.021685570   4.283770714         returned
-        Al       2.219608875   1.302084775   8.297440557
-        Si      -0.015470487  -0.023393016   1.789590196
-        Si       2.194751751   1.364416814   5.817547157
-        [...]
+    # 1d 
+    >>> pad_zeros(a)
+    array([1, 2, 3, 0, 0, 0])
+    >>> pad_zeros(a, nadd=3)
+    array([1, 2, 3, 0, 0, 0])
+    >>> pad_zeros(a, upto=6)
+    array([1, 2, 3, 0, 0, 0])
+    >>> pad_zeros(a, nadd=1)
+    array([1, 2, 3, 0])
+    >>> pad_zeros(a, nadd=1, where='start')
+    array([0, 1, 2, 3])
+    # 2d
+    >>> a=arange(9).reshape(3,3)
+    >>> pad_zeros(a, nadd=1, axis=0)
+    array([[0, 1, 2],
+           [3, 4, 5],
+           [6, 7, 8],
+           [0, 0, 0]])
+    >>> pad_zeros(a, nadd=1, axis=1)
+    array([[0, 1, 2, 0],
+           [3, 4, 5, 0],
+           [6, 7, 8, 0]])
+    # up to next power of two           
+    >>> 2**arange(10)
+    array([  1,   2,   4,   8,  16,  32,  64, 128, 256, 512])
+    >>> pydos.pad_zeros(arange(9), tonext=True).shape
+    (16,)
     """
-    for line in fh:
-        if line.strip().lower().startswith(pat):
-            if retline:
-                return fh, 1, line
-            return fh, 1
-    if err:
-        raise StandardError("end of file '%s', pattern "
-            "'%s' not found" %(fh, pat))
-    # nothing found = end of file
-    if retline:
-        return fh, 0, line
-    return fh, 0
-
-
-def scan_until_pat2(fh, rex, err=True, retmatch=False):
-    """
-    *Slightly* faster than scan_until_pat().
-
-    args:
-    ----
-    fh : file like object
-    rex : Regular Expression Object with compiled pattern for re.match().
-    err : bool, raise error at end of file b/c pattern was not found
-    retmatch : bool, return current Match Object
-    
-    returns:
-    --------
-    fh : file like object
-    flag : int
-    {match : re Match Object}
-
-    notes:
-    ------
-    For this function to be fast, you must pass in a compiled re object. 
-        rex = re.compile(...)
-        fh, flag = scan_until_pat2(fh, rex)
-    or 
-        fh, flag = scan_until_pat2(fh, re.compile(...))
-    BUT, if you call this function often (e.g. in a loop) with the same
-    pattern, use the first form, b/c otherwise re.compile(...) is evaluated in
-    each loop pass. Then, this would essentially be the same as using
-    re.match() directly.
-    """
-    for line in fh:
-        match = rex.match(line)
-        if match is not None:
-            if retmatch:
-                return fh, 1, match
-            return fh, 1
-    if err:
-        raise StandardError("end of file '%s', pattern "
-            "not found" %fh)
-    # nothing found = end of file, rex.match(line) should be == None
-    if retmatch:
-        return fh, 0, match
-    return fh, 0
-
-
-# Must parse for ATOMIC_SPECIES and ATOMIC_POSITIONS separately (open, close
-# infile) each time b/c the cards can be in arbitrary order in the input file.
-# Therefore, we can't take an open fileobject as argumrent, but use the
-# filename.
-@open_and_close
-def pwin_atomic_species(fh):
-    """Parses ATOMIC_SPECIES card in a pw.x input file.
-
-    args:
-    -----
-    fn : fileobj of pw.x input file
-
-    returns:
-    --------
-        {'atoms': atoms, 'masses': masses, 'pseudos': pseudos}
-        
-        atoms : list of strings, (number_of_atomic_species,), 
-            ['Si', 'O', 'Al', 'N']
-        masses : 1d arary, (number_of_atomic_species,)
-            array([28.0855, 15.9994, 26.981538, 14.0067])
-        pseudos : list of strings, (number_of_atomic_species,)
-            ['Si.LDA.fhi.UPF', 'O.LDA.fhi.UPF', 'Al.LDA.fhi.UPF',
-            'N.LDA.fhi.UPF']
-    notes:
-    ------
-    scan for:
-        [...]
-        ATOMIC_SPECIES|atomic_species
-        [possible empty lines]
-        Si 28.0855 Si.LDA.fhi.UPF
-        O 15.9994 O.LDA.fhi.UPF   
-        Al 26.981538 Al.LDA.fhi.UPF
-        N 14.0067 N.LDA.fhi.UPF
-        [...]
-    """
-    fn = com.get_filename(fh)
-    verbose('[pwin_atomic_species] reading ATOMIC_SPECIES from %s' %fn)
-    # rex: for the pseudo name, we include possible digits 0-9 
-    rex = re.compile(r'\s*([a-zA-Z]+)\s+(' + FLOAT_RE + ')\s+([0-9a-zA-Z\.]*)')
-    fh, flag = scan_until_pat(fh, pat='atomic_species')
-    line = next_line(fh)
-    while line == '':
-        line = next_line(fh)
-    match = rex.match(line)
-    lst = []
-    while match is not None:
-        # match.groups: tuple ('Si', '28.0855', 'Si.LDA.fhi.UPF')
-        lst.append(list(match.groups()))
-        line = next_line(fh)
-        match = rex.match(line)
-    # numpy string array :)
-    ar = np.array(lst)
-    atoms = ar[:,0].tolist()
-    masses = np.asarray(ar[:,1], dtype=float)
-    pseudos = ar[:,2].tolist()
-    return {'atoms': atoms, 'masses': masses, 'pseudos': pseudos}
-
-
-@open_and_close
-def pwin_cell_parameters(fh):
-    """Parses CELL_PARAMETERS card in a pw.x input file. Extract primitive
-    lattice vectors.
-
-    notes:
-    ------
-    From the PWscf help:
-        
-        --------------------------------------------------------------------
-        Card: CELL_PARAMETERS { cubic | hexagonal }
-        
-        Optional card, needed only if ibrav = 0 is specified, ignored
-        otherwise!
-        
-        Flag "cubic" or "hexagonal" specify if you want to look for symmetries
-        derived from the cubic symmetry group (default) or from the hexagonal
-        symmetry group (assuming c axis as the z axis, a axis along the x
-        axis).
-        
-        v1, v2, v3  REAL
-
-            Crystal lattice vectors:
-            v1(1)  v1(2)  v1(3)    ... 1st lattice vector
-            v2(1)  v2(2)  v2(3)    ... 2nd lattice vector
-            v3(1)  v3(2)  v3(3)    ... 3rd lattice vector
-
-            In alat units if celldm(1) was specified or in a.u. otherwise.
-        --------------------------------------------------------------------
-        
-        In a.u. = Rydberg atomic units (see constants.py).
-    """
-    fn = com.get_filename(fh)
-    verbose('[pwin_cell_parameters] reading CELL_PARAMETERS from %s' %fn)
-##>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    rex = re.compile(r'\s*((' + FLOAT_RE + '\s*){3})\s*')
-    fh, flag = scan_until_pat(fh, pat="cell_parameters")
-    line = next_line(fh)
-    while line == '':
-        line = next_line(fh)
-    match = rex.match(line)
-    lst = []
-    while match is not None:
-        # match.groups(): ('1.3 0 3.0', ' 3.0')
-        lst.append(match.group(1).strip().split())
-        line = next_line(fh)
-        match = rex.match(line)
-    cp = np.array(lst, dtype=float)
-#----------------------------------------------------------
-##    cmd = "sed -nre '/CELL_PARAMETERS/,+3p' %s | tail -n3" %fn
-##    cp = np.loadtxt(StringIO(com.backtick(cmd)))
-#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    com.assert_cond(len(cp.shape) == 2, "`cp` is no 2d array")
-    com.assert_cond(cp.shape[0] == cp.shape[1], "dimensions of `cp` don't match")
-    return cp
-
-
-@open_and_close
-def pwin_atomic_positions(fh, atspec=None):
-    """Parse ATOMIC_POSITIONS card in pw.x input file.
-    
-    args:
-    -----
-    fh : fileobj of pw.x input file
-    atspec : optional, dict returned by pwin_atomic_species()
-    
-    returns:
-    --------
-        {'coords': coords, 'natoms': natoms, 'massvec': massvec, 'symbols':
-        symbols, 'unit': unit}
-        
-        coords : ndarray,  (natoms, 3)
-        natoms : int
-        massvec : 1d array, (natoms,)
-        symbols : list of strings, (natoms,), ['Al', 'A', 'Si', ...]
-        unit : string, 'alat', 'crystal', etc.
-
-    notes:
-    ------
-    scan for:
-        [...]
-        ATOMIC_POSITIONS|atomic_positions [<unit>]
-        [0 or more empty lines]
-        Al       4.482670384  -0.021685570   4.283770714
-        Al       2.219608875   1.302084775   8.297440557
-        ...
-        Si       2.134975048   1.275864192  -0.207552657
-        [empty or nonempty line that does not match the RE]
-        [...]
-
-        <unit> is a string: 'alat', 'crystal' etc.
-    """
-    fn = com.get_filename(fh)
-    verbose("[pwin_atomic_positions] reading ATOMIC_POSITIONS from %s" %fn)
-    if atspec is None:
-        atspec = pwin_atomic_species(fh)
-        # need to seek to start of file here
-        fh.seek(0)
-    rex = re.compile(r'\s*([a-zA-Z]+)((\s+' + FLOAT_RE + '){3})\s*')
-    fh, flag, line = scan_until_pat(fh, pat="atomic_positions", retline=True)
-    line = line.strip().lower().split()
-    if len(line) > 1:
-        unit = re.sub(r'[{\(\)}]', '', line[1])
-    else:
-        unit = ''
-    line = next_line(fh)
-    while line == '':
-        line = next_line(fh)
-    lst = []
-    # Must use REs here b/c we don't know natoms. 
-    match = rex.match(line)
-    while match is not None:
-        # match.groups():
-        # ('Al', '       4.482670384  -0.021685570   4.283770714', '    4.283770714')
-        lst.append([match.group(1)] + match.group(2).strip().split())
-        line = next_line(fh)
-        match = rex.match(line)
-    ar = np.array(lst)
-    symbols = ar[:,0].tolist()
-    # same as coords = np.asarray(ar[:,1:], dtype=float)
-    coords = ar[:,1:].astype(float)
-    natoms = coords.shape[0]
-    masses = atspec['masses']
-    atoms = atspec['atoms']
-    massvec = np.array([masses[atoms.index(s)] for s in symbols], dtype=float)
-    return {'coords': coords, 'natoms': natoms, 'massvec': massvec, 'symbols':
-        symbols, 'unit': unit}
-
-
-def _is_cardname(line, cardnames=INPUT_PW_CARDS):
-    for string in cardnames:
-        # matches "occupations", but not "occupations='semaring'"
-        if re.match(r'^\s*%s\s*([^=].*$|$)' %string, line.lower()):
-            return True
-    return False            
-
-
-@open_and_close
-def pwin_namelists(fh):
-    """
-    Parse "namelist" part of a pw.x input file.
-
-    args:
-    -----
-    fh : open fileobject
-
-    notes:
-    ------
-    file to parse:
-        [...]
-        &namelist1
-            FLOATKEY = 1.0d0, stringkey = 'foo' [,]
-            boolkey = .true. [,]
-            intkey = 10 [,]
-            ...
-        /
-        &namelist2
-            floatkey = 2.0d0, stringkey = 'bar' [,]
-            boolkey = .false. [,]
-            intkey = -10 [,]
-            ...
-        /
-        ...
-
-        [CARD SECTION]
-        ATOMIC_SPECIES
-        [...]
-        
-    
-    returns: 
-    --------
-    dict of dicts:
-        
-        {namelist1:
-            {'floatkey': '1.0d0', 'stringkey': "'foo'",
-              boolkey = '.true.', intkey = '10'},
-         namelist2:
-            {'floatkey': '2.0d0', 'stringkey': "'bar'",
-              boolkey = '.false.', intkey = '-10'},
-        }
-        
-    All keys are converted to lowercase! All values are strings and must be
-    converted.
-    >>> d = pwin_namelists(...)
-    >>> floatkey  = com.ffloat(d['namelist1']['floatkey'])
-    >>> stringkey = d['namelist1']['stringkey']
-    >>> intkey    = int(d['namelist1']['intkey'])
-    >>> boolkey   = com.tobool(d['namelist1']['boolkey'])
-    """
-    fn = com.get_filename(fh)
-    verbose("[pwin_namelists] parsing %s" %fn)
-    dct = {}
-    nl_kvps = None
-    for line in fh:
-        # '   A = b, c=d,' -> 'A=b,c=d'
-        line = line.strip().strip(',').replace(' ', '')
-        # Start of namelist.
-        if line.startswith('&'):
-            # namelist key value pairs
-            nl_kvps = []
-            # '&CONTROL' -> 'control'
-            nl = line[1:].lower()
-        # End of namelist. Enter infos from last namelist into `dct`.           
-        elif line == '/':
-            # nl = 'control', enter dict for namelist 'control' in `dct` under
-            # name 'control'.
-            # [['a', 'b'], ['c', 'd']] -> dct = {'control': {'a': 'b', 'c': 'd'}, ...}
-            if nl_kvps is not None: 
-                dct[nl] = dict(nl_kvps)
-                nl_kvps = None
+    if tonext == False:
+        tonext = None
+    lst = [nadd, upto, tonext]
+    com.assert_cond((lst.count(None) in [2,3]), \
+        "`nadd`, `upto` and `tonext` must be all None or only one of "
+        "them not None")
+    if nadd is None:
+        if upto is None:
+            if (tonext is None) or (not tonext):
+                # default
+                nadd = arr.shape[axis]
             else:
-                dct[nl] = {}
-        elif line == '' or line.startswith('!'):
-            continue
-        # end of namelist part
-        elif _is_cardname(line):
-            break
+                tonext_min = arr.shape[axis] if (tonext_min is None) \
+                             else tonext_min
+                # beware of int overflows starting w/ 2**arange(64), but we
+                # will never have such long arrays anyway
+                two_powers = 2**np.arange(30)
+                if tonext_min > two_powers[-1]:
+                    print "[pad_zeros]: WARNING: required array length longer \
+                           than highest power of two, will not pad"
+                    nadd = 0
+                else:
+                    power = two_powers[np.searchsorted(two_powers,
+                                                      tonext_min)]
+                    nadd = power - arr.shape[axis]                                                       
         else:
-            # 'A=b,c=d' -> ['A=b', 'c=d'] -> 
-            # nl_kvps = [..., ['a', 'b'], ['c', 'd']]
-            for p in line.split(','):
-                tmp = p.split('=')
-                tmp[0] = tmp[0].lower()
-                # HACK: remove nested quotes: "'foo'" -> 'foo'
-                if tmp[1][0] == "'" and tmp[1][-1] == "'":
-                    tmp[1] = eval(tmp[1])
-                nl_kvps.append(tmp)
-    return dct
+            nadd = upto - arr.shape[axis]
+    if nadd == 0:
+        return arr
+    add_shape = list(arr.shape)
+    add_shape[axis] = nadd
+    add_shape = tuple(add_shape)
+    if where == 'end':
+        return np.concatenate((arr, np.zeros(add_shape, dtype=arr.dtype)), axis=axis)
+    elif where == 'start':        
+        return np.concatenate((np.zeros(add_shape, dtype=arr.dtype), arr), axis=axis)
+    else:
+        raise StandardError("illegal `where` arg: %s" %where)
 
 
-def parse_pwout_md(fn, natoms=None, nstep=None, **kwargs):
-    verbose("[parse_pwout_md] parsing %s" %fn)
-    verbose("[parse_pwout_md] input:")
-    verbose("[parse_pwout_md]     natoms: %s" %str(natoms))
-    verbose("[parse_pwout_md]     nstep: %s" %str(nstep))
-    verbose("[parse_pwout_md]     kwargs.keys(): %s" %str(kwargs.keys()))
-    
-    #########################################################################
-    # Unlike the old parse_pwout_md, we IGNORE the first coords
-    # (the one from input), temperature (which is printed is "Starting
-    # temperature") in md and vc-md. We grep only for nstep occurrences, NOT
-    # nstep+1 !!! 
-    #########################################################################
-    
-    # FIXME It MAY be that with the grep-type approch, we grep the last coords
-    # twice for relax runs b/c they are printed twice.
-    #
-    # TODO 
-    # * get also etot
-    # * Check if this grepping also works for scf runs, where we have in
-    #   principle nstep=1
-    # * Test getting CELL_PARAMETERS from cp.x out files
-    # * temperature is stored completely different in cp.x outfiles, maybe use
-    #   the files it writes to 'outdir', i.e. scratch
-    
-    # fallbacks, may be slow
-    if nstep is None:
-        verbose("[parse_pwout_md] using fallback for nstep")
-        nstep = int(com.backtick('grep ATOMIC_POSITIONS %s | wc -l' %fn))
-    if natoms is None:
-        verbose("[parse_pwout_md] using fallback for natoms")
-        # tail ... b/c this line appears multiple times if output file
-        # is a concatenation of multiple smaller files
-        natoms = int(com.backtick(r"egrep 'number[ ]+of[ ]+atoms' %s | \
-            sed -re 's/.*=(.*)$/\1/' | tail -n1" %fn))
-    verbose("[parse_pwout_md] natoms: %s" %str(natoms))
-    verbose("[parse_pwout_md] nstep: %s" %str(nstep))
-    
-    # pressure
-    verbose("[parse_pwout_md] getting pressure")
-    ret_str = com.backtick(r"grep P= %s | awk '{print $6}'" %fn)
-    pressure = np.loadtxt(StringIO(ret_str))
-     
-    # temperature
-    verbose("[parse_pwout_md] getting temperature")
-    cmd = r"egrep 'temperature\s*=' %s " %fn + "| sed -re 's/.*temp.*=\s*(" + FLOAT_RE + \
-          r")\s*K/\1/'"
-    ret_str = com.backtick(cmd)
-    temperature = np.loadtxt(StringIO(ret_str))
-    
-    # atomic positions
-    verbose("[parse_pwout_md] getting atomic positions")
-    key = 'ATOMIC_POSITIONS'
-    cmd = "sed -nre '/%s/,+%ip' %s | grep -v %s | \
-          awk '{printf $2\"  \"$3\"  \"$4\"\\n\"}'" %(key, natoms, fn, key)
-    ret_str = com.backtick(cmd)          
-    coords = io.readtxt(StringIO(ret_str), axis=1, shape=(natoms, nstep, 3))
+def welch(M, sym=1):
+    """Welch window. Function skeleton shamelessly stolen from
+    scipy.signal.bartlett() and others."""
+    if M < 1:
+        return np.array([])
+    if M == 1:
+        return np.ones(1,dtype=float)
+    odd = M % 2
+    if not sym and not odd:
+        M = M+1
+    n = np.arange(0,M)
+    w = 1.0-((n-0.5*(M-1))/(0.5*(M-1)))**2.0
+    if not sym and not odd:
+        w = w[:-1]
+    return w
 
-    # cell parameters
-    verbose("[parse_pwout_md] getting cell parameters")
-    key = 'CELL_PARARAMETERS'
-    cmd = "sed -nre '/%s/,+3p' %s | grep -v %s" %(key, fn, key)
-    cps_str = com.backtick(cmd)
-    cps = io.readtxt(StringIO(cps_str), axis=1, shape=(3, nstep, 3))
-    
-    # XXX HACK: disable skipend stuff. This can be removed anyway since we do
-    # not allocate R, T etc in advance, so they only contain the actual data
-    # present in the out files.
-    return {'R': coords, 'T': temperature, 'P': pressure, 'cps':cps, 
-            'skipend': 0}
-
-#-----------------------------------------------------------------------------
-# computational
-#-----------------------------------------------------------------------------
 
 def normalize(a):
     """Normalize array by it's max value. Works also for complex arrays.
@@ -686,14 +304,14 @@ def velocity(R, dt=None, copy=True, rslice=slice(None)):
         
     args:
     -----
-    R : 3D array, shape (natoms, nstep+1, 3)
-        atomic coords with initial coords (Rold) at R[:,0,:]
+    R : 3D array, shape (natoms, nstep, 3) or (natoms, nstep+1, 3) or ...,
+        atomic coords
     dt: float
         time step
     copy : bool
         If False, then we do in-place modification of R to save memory and
-        avoid array copies. Use only if you don't use R after calling this
-        function.
+        avoid array copies. A view into the modified R is returned.
+        Use only if you don't use R after calling this function.
     rslice : slice object, defaults to slice(None), i.e. take all
         a slice for the 2nd axis (time axis) of R  
     
@@ -703,8 +321,8 @@ def velocity(R, dt=None, copy=True, rslice=slice(None)):
 
     notes:
     ------
-    Even with copy=False, a temporary copy of R in the calculation is
-    unavoidable.
+    Even with copy=False, a temporary copy of R in the calculation made by 
+    numpy is unavoidable.
     """
     # FIXME We assume that the time axis the axis=1 in R. This not safe should we
     # ever change that.
@@ -713,6 +331,8 @@ def velocity(R, dt=None, copy=True, rslice=slice(None)):
     else:
         # view into R
         tmp = R[:,rslice,:]
+    #FIXME hardcoded time axis
+    # Same as tmp[:,1:,:] =  np.diff(tmp, n=1, axis=1).
     tmp[:,1:,:] =  tmp[:,1:,:] - tmp[:,:-1,:]
     # (natoms, nstep, 3), view only, skip j=0 <=> Rold
     V = tmp[:,1:,:]
@@ -723,9 +343,8 @@ def velocity(R, dt=None, copy=True, rslice=slice(None)):
 
 
 def pyvacf(V, m=None, method=3):
-    """
-    Reference implementation. We do some crazy numpy vectorization here
-    for speedups.
+    """Reference implementation of the VACF of velocities in 3d array `V`. See
+    velocity(). We do some numpy vectorization here.
     """
     natoms = V.shape[0]
     nstep = V.shape[1]
@@ -762,16 +381,17 @@ def pyvacf(V, m=None, method=3):
         
         # Multiply with mass-vector m:
         # method A: 
-        # DON'T USE!! IT WILL OVERWRITE V !!!
         # Multiply whole V (each vector V[:,j,k]) with sqrt(m), m =
-        # sqrt(m)*sqrt(m) in the dot product, then. 3x faster than method B. 
+        # sqrt(m)*sqrt(m) in the dot product, then. 3x faster than method B.
+        # Note: You need to make a copy of V first.
         #   m[:,np.newaxis,np.newaxis] -> (natoms, 1, 1)
         #   V                        -> (natoms, nstep, 3)
-        ## V *= np.sqrt(m[:,np.newaxis,np.newaxis])
+        # Vc = V.copy()  
+        # Vc *= np.sqrt(m[:,np.newaxis,np.newaxis])
+        # ... use Vc instead of V ...
         for t in xrange(nstep):
             # method B: like in method 2, but extended to 3D
             c[t] = (V[:,:(nstep-t),:] * V[:,t:,:]*m[:,np.newaxis,np.newaxis]).sum()
-##            c[t] = (V[:,:(nstep-t),:] * V[:,t:,:]).sum()
     else:
         raise ValueError('unknown method: %s' %method)
     # normalize to unity
@@ -779,11 +399,9 @@ def pyvacf(V, m=None, method=3):
     return c
 
 
-
 def fvacf(V, m=None, method=2, nthreads=None):
-    """
-    5+ times faster than pyvacf. Only 5 times b/c pyvacf is already
-    partially numpy-optimized.
+    """Interface to Fortran function _flib.vacf(). Otherwise same
+    functionallity as pyvacf(). Use this for production calculations.
 
     notes:
     ------
@@ -815,14 +433,17 @@ def fvacf(V, m=None, method=2, nthreads=None):
         use_m = 0
     else:
         use_m = 1
-    # With "order='F'", we convert V to F-order and a copy is made. If we don't
-    # do it, the wrapper code does. This copy is unavoidable, unless we
-    # allocate the array in F order in the first place.
-##    c = _flib.vacf(np.array(V, order='F'), m, c, method, use_m)
+    # With V = np.asarray(V, order='F'), we convert V to F-order and a copy is
+    # made. If we don't do it, the f2py wrapper code does. This copy is
+    # unavoidable, unless we allocate the array V in F-order in the first
+    # place.
+    ## c = _flib.vacf(np.asarray(V, order='F'), m, c, method, use_m)
     verbose("calling _flib.vacf ...")
     if nthreads is None:
-        # possible f2py bug workaround: catch OMP_NUM_THREADS here and set
-        # number of threads
+        # Possible f2py bug workaround: The f2py extension does not always set
+        # the number of threads correctly according to OMP_NUM_THREADS. Catch
+        # OMP_NUM_THREADS here and set number of threads using the "nthreads"
+        # arg.
         key = 'OMP_NUM_THREADS'
         if os.environ.has_key(key):
             nthreads = int(os.environ[key])
@@ -836,7 +457,6 @@ def fvacf(V, m=None, method=2, nthreads=None):
 
 # alias
 vacf = fvacf
-
 
 
 def norm_int(y, x, area=1.0):
@@ -857,23 +477,21 @@ def norm_int(y, x, area=1.0):
     stick to the order used in the scipy.integrate routines.
     """
     # First, scale x and y to the same order of magnitude before integration.
-    # Not sure if this is necessary.
+    # This may be necessary to avoid numerical trouble if x and y have very
+    # different scales.
     fx = 1.0 / np.abs(x).max()
     fy = 1.0 / np.abs(y).max()
     sx = fx*x
     sy = fy*y
 ##    # Don't scale.
 ##    fx = fy = 1.0
-##    sx=x
-##    sy=y
+##    sx, sy = x, y
     # Area under unscaled y(x).
     _area = simps(sy, sx) / (fx*fy)
     return y*area/_area
 
 
-
-# XXX Freeuency in f, not 2*pi*f as in all the paper formulas! Check this.
-def direct_pdos(V, dt=1.0, m=None, full_out=False, natoms=1.0):
+def direct_pdos(V, dt=1.0, m=None, full_out=False, natoms=1.0, window=True):
     """Compute PDOS without the VACF by direct FFT of the atomic velocities.
     We call this Direct Method. Integral area is normalized 1.0.
     
@@ -885,6 +503,8 @@ def direct_pdos(V, dt=1.0, m=None, full_out=False, natoms=1.0):
         atoms is used  
     full_out : bool
     natoms : float, number of atoms
+    window : bool, use Welch windowing on data before FFT (reduces leaking
+        effect, recommended)
 
     returns:
     --------
@@ -899,32 +519,58 @@ def direct_pdos(V, dt=1.0, m=None, full_out=False, natoms=1.0):
     -----
     [1] Phys Rev B 47(9) 1993
     """
-    massvec=m 
-    time_axis=1
-    # array of V.shape, axis=1 is the fft of the arrays along axis 1 of V
-    fftv = np.abs(fft(V, axis=time_axis))**2.0
-    if massvec is not None:
-        com.assert_cond(len(massvec) == V.shape[0], "len(massvec) != V.shape[0]")
-        fftv *= massvec[:,np.newaxis, np.newaxis]
-    # average remaining axes        
-    full_pdos = fftv.sum(axis=0).sum(axis=1)        
-    full_faxis = np.fft.fftfreq(V.shape[time_axis], dt)
+    # XXX Frequency in f, not 2*pi*f
+    massvec = m 
+    # FIXME hardcoded time axis
+    time_axis = 1
+    # fftv: array of VV.shape, axis=1 is the fft of the arrays along axis 1 of
+    # VV
+    # Pad velocities w/ zeros along `time_axis`.
+    # XXX possible optimization: always pad up to the next power of 2
+    if window:
+        # newaxis stuff
+        #   # 1d
+        #   >>> a = welch(...)
+        #   # tranform to 3d, broadcast to axis 0 and 2
+        #   >>> a[None, :, None] 
+        sl = [None]*V.ndim
+        sl[time_axis] = slice(None)
+        VV = V*(welch(V.shape[time_axis])[sl])
+    else:
+        VV = V
+    VV = pad_zeros(VV, nadd=VV.shape[time_axis]-1, axis=time_axis)
+    print "fft ..."
+    full_fftv = np.abs(fft(VV, axis=time_axis))**2.0
+    print "...ready"
+    full_faxis = np.fft.fftfreq(VV.shape[time_axis], dt)
     split_idx = len(full_faxis)/2
     faxis = full_faxis[:split_idx]
-    pdos = full_pdos[:split_idx]
-    
-    #FIXME : 3*natoms or 1 ??? Check with other functions.
-##    default_out = (faxis, norm_int(pdos, faxis, area=3.0*natoms))
+    # first split the array, then multiply by `massvec` and average
+    fftv = slicetake(full_fftv, slice(0, split_idx), axis=time_axis)
+    if massvec is not None:
+        com.assert_cond(len(massvec) == VV.shape[0], "len(massvec) != VV.shape[0]")
+        fftv *= massvec[:,np.newaxis, np.newaxis]
+                                 
+    # average remaining axes        
+    pdos = fftv.sum(axis=0).sum(axis=1)        
     default_out = (faxis, norm_int(pdos, faxis, area=1.0))
-    extra_out = (full_faxis, full_pdos, split_idx)
     if full_out:
+        # have to re-calculate this here b/c we never calculate the full_pdos
+        # normally
+        if massvecc is not None:
+            full_pdos = (full_fftv * \
+                         massvec[:,np.newaxis, np.newaxis]\
+                         ).sum(axis=0).sum(axis=1)
+        else:                              
+            full_pdos = full_fftv.sum(axis=0).sum(axis=1)
+        extra_out = (full_faxis, full_pdos, split_idx)
         return default_out + (extra_out,)
     else:
         return default_out
 
 
-
-def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False, natoms=1.0):
+def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False, natoms=1.0,
+              window=True):
     """Compute PDOS by FFT of the VACF. Integral area is normalized to
     1.0.
     
@@ -949,38 +595,37 @@ def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False, natoms=1.0):
         ffttc : 1d complex array, result of fft(c) or fft(mirror(c))
         c : 1d array, the VACF
     """
-    massvec=m 
-    c = vacf(V, m=massvec)
+    # XXX Frequency in f, not 2*pi*f
+    massvec = m 
+    time_axis = 1
+    if window:
+        sl = [None]*V.ndim
+        sl[time_axis] = slice(None)
+        VV = V*(welch(V.shape[time_axis])[sl])
+    else:
+        VV = V
+    c = vacf(VV, m=massvec)
     if mirr:
         verbose("[vacf_pdos] mirror VACF at t=0")
-        cc = mirror(c)
+        fftc = fft(mirror(c))
     else:
-        cc = c
-       
-    fftcc = fft(cc)
-    # in Hz
-    full_faxis = np.fft.fftfreq(fftcc.shape[0], dt)
-    full_pdos = np.abs(fftcc)
+        fftc = fft(c)
+    full_faxis = np.fft.fftfreq(fftc.shape[0], dt)
+    full_pdos = np.abs(fftc)
     split_idx = len(full_faxis)/2
     faxis = full_faxis[:split_idx]
     pdos = full_pdos[:split_idx]
-
-    # FIXME
-    # area must be == 3*atoms in unit cell, NOT supercell
-##    default_out = (faxis, norm_int(pdos, faxis, area=3.0*natoms))
     default_out = (faxis, norm_int(pdos, faxis, area=1.0))
-    extra_out = (full_faxis, fftcc, split_idx, c)
+    extra_out = (full_faxis, fftc, split_idx, c)
     if full_out:
         return default_out + (extra_out,)
     else:
         return default_out
 
 
-
-def mirror(a):
-    # len(aa) = 2*len(a) - 1
-    return np.concatenate((a[::-1],a[1:]))
-
+def mirror(arr):
+    """Mirror 1d array `arr`. Length of the returned array is 2*len(arr)-1 ."""
+    return np.concatenate((arr[::-1],arr[1:]))
 
 
 def slicetake(a, sl, axis=None, copy=False):
@@ -995,14 +640,14 @@ def slicetake(a, sl, axis=None, copy=False):
         axis=<int>
             one slice object for *that* axis
         axis=None 
-            `sl` is a list of tuple of slice objects, one for each axis. 
+            `sl` is a list or tuple of slice objects, one for each axis. 
             It must index the whole array, i.e. len(sl) == len(a.shape).
     axis : {None, int}
-    copy : return a copy instead of a view
+    copy : bool, return a copy instead of a view
     
     returns:
     --------
-    A view into `a`.
+    A view into `a` or copy of a slice of `a`.
 
     examples:
     ---------
@@ -1017,87 +662,87 @@ def slicetake(a, sl, axis=None, copy=False):
     True
     >>> (b3 == b1).all()
     True
-
-    notes:
-    ------
-    
-    1) Why do we need that:
-    
-    # no problem
-    a[5:10:2]
-    
-    # the same, more general
-    sl = slice(5,10,2)
-    a[sl]
-
-    But we want to:
-     - Define (type in) a slice object only once.
-     - Take the slice of different arrays along different axes.
-    Since numpy.take() and a.take() don't handle slice objects, one would have
-    to use direct slicing and pay attention to the shape of the array:
-          a[sl], b[:,:,sl,:], etc ... not practical.
-    
-    Example of things that don't work with numpy-only tools:
-
-        R = R[:,sl,:]
-        T = T[sl]
-        P = P[sl]
-    
-    This is not generic. We want to use an 'axis' keyword instead. np.r_()
-    generates index arrays from slice objects (e.g r_[1:5] == r_[s_[1:5]
-    ==r_[slice(1,5,None)]). Since we need index arrays for numpy.take(), maybe
-    we can use that?
-        
-        R = R.take(np.r_[sl], axis=1)
-        T = T.take(np.r_[sl], axis=0)
-        P = P.take(np.r_[sl], axis=0)
-    
-    But it does not work alawys:         
-    np.r_[slice(...)] does not work for all slice types. E.g. not for
-        
-        r_[s_[::5]] == r_[slice(None, None, 5)] == array([], dtype=int32)
-        r_[::5]                                 == array([], dtype=int32)
-        r_[s_[1:]]  == r_[slice(1, None, None)] == array([0])
-        r_[1:]
-            ValueError: dimensions too large.
-    
-    The returned index arrays are wrong (or we even get an exception).
-    The reason is that s_ translates a fancy index (1:, ::5, 1:10:2,
-    ...) to a slice object. This always works. But since take()
-    accepts only index arrays, we use r_[s_[<fancy_index>]], where r_
-    translates the slice object prodced by s_ to an index array.
-    THAT works only if start and stop of the slice are known. r_ has
-    no way of knowing the dimensions of the array to be sliced and so
-    it can't transform a slice object into a correct index arry in case
-    of slice(<number>, None, None) or slice(None, None, <number>).
-
-    2) Slice vs. copy
-    
-    numpy.take(a, array([0,1,2,3])) or a[array([0,1,2,3])] return a copy of `a` b/c
-    that's "fancy indexing". But a[slice(0,4,None)], which is the same as
-    indexing (slicing) a[:4], return *views*. 
     """
-    # numpy.s_[:] == slice(0, None, None). The same works with  
-    # slice(None) == slice(None, None, None).
+    # The long story
+    # --------------
+    # 
+    # 1) Why do we need that:
+    # 
+    # # no problem
+    # a[5:10:2]
+    # 
+    # # the same, more general
+    # sl = slice(5,10,2)
+    # a[sl]
+    #
+    # But we want to:
+    #  - Define (type in) a slice object only once.
+    #  - Take the slice of different arrays along different axes.
+    # Since numpy.take() and a.take() don't handle slice objects, one would
+    # have to use direct slicing and pay attention to the shape of the array:
+    #       
+    #     a[sl], b[:,:,sl,:], etc ...
+    # 
+    # We want to use an 'axis' keyword instead. np.r_() generates index arrays
+    # from slice objects (e.g r_[1:5] == r_[s_[1:5] ==r_[slice(1,5,None)]).
+    # Since we need index arrays for numpy.take(), maybe we can use that? Like
+    # so:
+    #     
+    #     a.take(r_[sl], axis=0)
+    #     b.take(r_[sl], axis=2)
+    # 
+    # Here we have what we want: slice object + axis kwarg.
+    # But r_[slice(...)] does not work for all slice types. E.g. not for
+    #     
+    #     r_[s_[::5]] == r_[slice(None, None, 5)] == array([], dtype=int32)
+    #     r_[::5]                                 == array([], dtype=int32)
+    #     r_[s_[1:]]  == r_[slice(1, None, None)] == array([0])
+    #     r_[1:]
+    #         ValueError: dimensions too large.
+    # 
+    # The returned index arrays are wrong (or we even get an exception).
+    # The reason is given below. 
+    # Bottom line: We need this function.
+    #
+    # The reason for r_[slice(...)] gererating sometimes wrong index arrays is
+    # that s_ translates a fancy index (1:, ::5, 1:10:2, ...) to a slice
+    # object. This *always* works. But since take() accepts only index arrays,
+    # we use r_[s_[<fancy_index>]], where r_ translates the slice object
+    # prodced by s_ to an index array. THAT works only if start and stop of the
+    # slice are known. r_ has no way of knowing the dimensions of the array to
+    # be sliced and so it can't transform a slice object into a correct index
+    # array in case of slice(<number>, None, None) or slice(None, None,
+    # <number>).
+    #
+    # 2) Slice vs. copy
+    # 
+    # numpy.take(a, array([0,1,2,3])) or a[array([0,1,2,3])] return a copy of
+    # `a` b/c that's "fancy indexing". But a[slice(0,4,None)], which is the
+    # same as indexing (slicing) a[:4], return *views*. 
+    
     if axis is None:
         slices = sl
-    else:        
-        slices = [slice(None)]*len(a.shape)
+    else: 
+        # Note that these are equivalent:
+        #   a[:]
+        #   a[s_[:]] 
+        #   a[slice(None)] 
+        #   a[slice(None, None, None)]
+        #   a[slice(0, None, None)]   
+        slices = [slice(None)]*a.ndim
         slices[axis] = sl
     # a[...] can take a tuple or list of slice objects
     # a[x:y:z, i:j:k] is the same as
     # a[(slice(x,y,z), slice(i,j,k))] == a[[slice(x,y,z), slice(i,j,k)]]
-##    return a[tuple(slices)]
     if copy:
         return a[slices].copy()
     else:        
         return a[slices]
 
 
-
 def sliceput(a, b, sl, axis=None):
     """The equivalent of a[<slice or index>]=b, but accepts slices objects
-    instead of array indices (e.g. a[:,1:]).
+    instead of array indices or fancy indexing (e.g. a[:,1:]).
     
     args:
     -----
@@ -1136,10 +781,8 @@ def sliceput(a, b, sl, axis=None):
         # [slice(...), slice(...), ...]
         tmp = [slice(None)]*len(a.shape)
         tmp[axis] = sl
-##    a[tuple(tmp)] = b
     a[tmp] = b
     return a
-
 
 
 def coord_trans(R, old=None, new=None, copy=True, align='cols'):
@@ -1147,11 +790,15 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
     
     args:
     -----
-    R : array (d0, d1, ..., M), Array of arbitrary rank with coordinates
-        (length M vectors) in old coord sys `old`. The only shape resiriction is that
-        the last dim must equal the number of coordinates (R.shape[-1] == M ==
-        3 for normal 3-dim x,y,z). See "shape of `R`" in the notes section
-        below for examples.
+    R : array (d0, d1, ..., M) 
+        Array of arbitrary rank with coordinates (length M vectors) in old
+        coord sys `old`. The only shape resiriction is that the last dim must
+        equal the number of coordinates (R.shape[-1] == M == 3 for normal 3-dim
+        x,y,z). 
+            1d : OK trivial, transform that vector (length M)
+            2d : The matrix must have shape (N,M), i.e. the vectors to be
+                transformed are the *rows*.
+            3d : R must have the shape (..., M)                 
     old, new : 2d arrays
         matrices with the old and new basis vectors as rows or cols
     copy : bool, optional
@@ -1203,131 +850,120 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
     refs:
     [1] http://www.mathe.tu-freiberg.de/~eiermann/Vorlesungen/HM/index_HM2.htm
         Kapitel 6
-    
-    notes:
-    ------
-    Coordinate transformation:
-        
-        Mathematical formulation:
-        X, Y square matrices with basis vecs as *columns*.
-
-        X ... old, shape: (3,3)
-        Y ... new, shape: (3,3)
-        I ... identity matrix, basis vecs of cartesian system, shape: (3,3)
-        A ... transformation matrix, shape(3,3)
-        v_X ... column vector v in basis X, shape: (3,1)
-        v_Y ... column vector v in basis Y, shape: (3,1)
-        v_I ... column vector v in basis I, shape: (3,1)
-
-        "." denotes matrix multiplication (i.e. dot() in numpy).
-            Y . v_Y = X . v_X = I . v_I = v_I
-            v_Y = Y^-1 . X . v_X = A . v_X
-        And some general linalg:
-            (A . B)^T = B^T . A^T
-        With this:
-            v_Y^T = (A . v_X)^T = v_X^T . A^T
-        In numpy, v^T == v, and so no "vector" needs to be transposed.
-        That's because a vector is a 1d array, e.g. v = array([1,2,3]) with
-        shape (3,) and rank 1 instead of column or row vector ((3,1) or (1,3))
-        and rank 2. Transposing is not defined: v.T == v .  The dot() function
-        knows that and performs the correct multiplication accordingly. 
-        So, we then have finally
-            v_Y = A . v_X
-                = v_X . A^T 
-        The latter form is implemented here.            
-
-        Example:
-        
-        Transformation from crystal to cartesian coords.
-
-        old:
-        X = coord sys for a hexagonal lattice with primitive lattice
-            vectors (basis vectors) a0, a1, a2, each shape (3,)
-        new:                
-        Y = cartesian, i.e. the components a0[i], a1[i], a2[i] of the 
-            basis vectors are cartesian:
-                a0 = a0[0]*[1,0,0] + a0[1]*[0,1,0] + a0[2]*[0,0,1]
-                a1 = a1[0]*[1,0,0] + a1[1]*[0,1,0] + a1[2]*[0,0,1]
-                a2 = a2[0]*[1,0,0] + a2[1]*[0,1,0] + a2[2]*[0,0,1]
-        v = shape (3,) vec in the hexagonal lattice ("crystal
-            coordinates")
-        
-        We have Y == I and I^-1 == I, so
-            A = (Y^-1 . X) = X
-        and
-            v_Y = v_I = X . v_X = A . v_X
-        Let the a's be the *rows* of the transformation matrix. In general, if
-        we don't have one vector `v` but an array R of row vectors, 
-        it's more practical to use dot(R,A.T) instead of dot(A,R) b/c of numpy
-        array broadcasting. See below.
-            
-            A^T == A.T = [[--- a0 ---], 
-                          [--- a1 ---], 
-                          [--- a2 ---]] 
-        and let
-            
-            v == v_X. 
-        
-        Every product X . v_X is actually an expansion of v_X in the basis
-        vectors contained in X.
-        We expand v_X in terms of the crystal basis (X):         
-            
-            v_Y = 
-              = v[0]*a0       + v[1]*a1       + v[2]*a2
-              
-              = v[0]*A.T[0,:] + v[1]*A.T[1,:] + v[2]*A.T[2,:]
-              
-              = [v[0]*A.T[0,0] + v[1]*A.T[1,0] + v[2]*A.T[2,0],
-                 v[0]*A.T[0,1] + v[1]*A.T[1,1] + v[2]*A.T[2,1],
-                 v[0]*A.T[0,2] + v[1]*A.T[1,2] + v[2]*A.T[2,2]]
-              
-              = dot(v, A.T)       <=> v[j] = sum(i=0..2) v[i]*A[i,j]
-              = dot(A, v)         <=> v[i] = sum(j=0..2) A[i,j]*v[j]
-         
-        If this dot product is actually computed, we get v in cartesian coords
-        (Y).  
-    
-    shape of `R`:
-        
-        If we want to use fast numpy array broadcasting to transform many `v`
-        vectors at once, we must use the form dot(R,A.T).
-        The shape of `R` doesn't matter, as long as the last dimension matches
-        the dimensions of A (e.g. R: (n,m,3), A: (3,3), dot(R,A.T): (n,m,3)).
-         
-        1d: R.shape = (3,)
-        R == v = [x,y,z] 
-        -> dot(A, v) == dot(v,A.T) = [x', y', z']
-
-        2d: R.shape = (N,3)
-        Array of coords of N atoms, R[i,:] = coord of i-th atom. The dot
-        product is broadcast along the first axis of R (i.e. *each* row of R is
-        dot()'ed with A.T).
-        R = 
-        [[x0,       y0,     z0],
-         [x1,       y1,     z1],
-          ...
-         [x(N-1),   y(N-1), z(N-1)]]
-        -> dot(R,A.T) = 
-        [[x0',     y0',     z0'],
-         [x1',     y1',     z1'],
-          ...
-         [x(N-1)', y(N-1)', z(N-1)']]
-        
-        3d: R.shape = (natoms, nstep, 3) 
-        R[i,j,:] is the shape (3,) vec of coords for atom i at time step j.
-        Broadcasting along the first and second axis. 
-        These loops have the same result as newR=dot(R, A.T):
-            # New coords in each (nstep, 3) matrix R[i,...] containing coords
-            # of atom i for each time step. Again, each row is dot()'ed.
-            for i in xrange(R.shape[0]):
-                newR[i,...] = dot(R[i,...],A.T)
-            
-            # same as example with 2d array: R[:,j,:] is a matrix with atom
-            # coord on each row at time step j
-            for j in xrange(R.shape[1]):
-                newR[:,j,:] = dot(R[:,j,:],A.T)
-    
-    """
+    """ 
+    # Coordinate transformation:
+    # --------------------------
+    #     
+    # Mathematical formulation:
+    # X, Y square matrices with basis vecs as *columns*.
+    #
+    # X ... old, shape: (3,3)
+    # Y ... new, shape: (3,3)
+    # I ... identity matrix, basis vecs of cartesian system, shape: (3,3)
+    # A ... transformation matrix, shape(3,3)
+    # v_X ... column vector v in basis X, shape: (3,1)
+    # v_Y ... column vector v in basis Y, shape: (3,1)
+    # v_I ... column vector v in basis I, shape: (3,1)
+    #
+    # "." denotes matrix multiplication (i.e. dot() in numpy).
+    #     
+    #     Y . v_Y = X . v_X = I . v_I = v_I
+    #     v_Y = Y^-1 . X . v_X = A . v_X
+    # 
+    # So every product X . v_X, Y . v_Y, v_I . I (in general v_[basis] .
+    # [basis]) is actually an expansion of v_{X,Y,...} in the basis vectors
+    # contained in X,Y,... . If the dot product is computed, we always get v in
+    # cartesian coords. 
+    # 
+    # Remember:
+    # v is s column vector (M,1) and A is (M,M) with the basis vecs as columns!
+    #
+    # Some general linalg:
+    #     
+    #     (A . B)^T = B^T . A^T
+    # 
+    # With this, 
+    #     
+    #     v_Y^T = (A . v_X)^T = v_X^T . A^T
+    # 
+    # This form is implemented here (see below for why). With
+    #     
+    #     A^T == A.T = [[--- a0 ---], 
+    #                   [--- a1 ---], 
+    #                   [--- a2 ---]] 
+    # 
+    # we have
+    #
+    #     v_Y^T = (A . v_X)^T = v_X^T . A^T = 
+    #
+    #       = v_X[0]*a0       + v_X[1]*a1       + v_X[2]*a2
+    #       
+    #       = v_X[0]*A.T[0,:] + v_X[1]*A.T[1,:] + v_X[2]*A.T[2,:]
+    #       
+    #       = [v_X[0]*A.T[0,0] + v_X[1]*A.T[1,0] + v_X[2]*A.T[2,0],
+    #          v_X[0]*A.T[0,1] + v_X[1]*A.T[1,1] + v_X[2]*A.T[2,1],
+    #          v_X[0]*A.T[0,2] + v_X[1]*A.T[1,2] + v_X[2]*A.T[2,2]]
+    #       
+    #       = dot(A, v_X)         <=> v_Y[i] = sum(j=0..2) A[i,j]*v_X[j]
+    #       = dot(v_X, A.T)       <=> v_Y[j] = sum(i=0..2) v_X[i]*A[i,j]
+    # 
+    # Note that in numpy `v` is actually an 1d array for which v.T == v, i.e.
+    # the transpose is not defined and so dot(A, v_X) == dot(v_X, A.T).
+    #
+    # In general, if we don't have one vector `v` but an array R (N,M) of row
+    # vectors:
+    #     
+    #     R = [[--- r0 ---],
+    #          [--- r1 ---],
+    #          ...
+    #          [-- rN-1 --]]
+    #
+    # it's more practical to use dot(R,A.T) instead of dot(A,R) b/c of numpy
+    # array broadcasting.
+    #         
+    # shape of `R`:
+    # -------------
+    #     
+    # If we want to use fast numpy array broadcasting to transform many `v`
+    # vectors at once, we must use the form dot(R,A.T) (or, well, transform R
+    # to have the vectors as cols and then use dot(A,R)).
+    # The shape of `R` doesn't matter, as long as the last dimension matches
+    # the dimensions of A (e.g. R: shape = (n,m,3), A: (3,3), dot(R,A.T): shape
+    # = (n,m,3)).
+    #  
+    # 1d: R.shape = (3,)
+    # R == v = [x,y,z] 
+    # -> dot(A, v) == dot(v,A.T) = [x', y', z']
+    #
+    # 2d: R.shape = (N,3)
+    # Array of coords of N atoms, R[i,:] = coord of i-th atom. The dot
+    # product is broadcast along the first axis of R (i.e. *each* row of R is
+    # dot()'ed with A.T).
+    # R = 
+    # [[x0,       y0,     z0],
+    #  [x1,       y1,     z1],
+    #   ...
+    #  [x(N-1),   y(N-1), z(N-1)]]
+    # -> dot(R,A.T) = 
+    # [[x0',     y0',     z0'],
+    #  [x1',     y1',     z1'],
+    #   ...
+    #  [x(N-1)', y(N-1)', z(N-1)']]
+    # 
+    # 3d: R.shape = (natoms, nstep, 3) 
+    # R[i,j,:] is the shape (3,) vec of coords for atom i at time step j.
+    # Broadcasting along the first and second axis. 
+    # These loops have the same result as newR=dot(R, A.T):
+    #     # New coords in each (nstep, 3) matrix R[i,...] containing coords
+    #     # of atom i for each time step. Again, each row is dot()'ed.
+    #     for i in xrange(R.shape[0]):
+    #         newR[i,...] = dot(R[i,...],A.T)
+    #     
+    #     # same as example with 2d array: R[:,j,:] is a matrix with atom
+    #     # coord on each row at time step j
+    #     for j in xrange(R.shape[1]):
+    #             newR[:,j,:] = dot(R[:,j,:],A.T)
+                 
     com.assert_cond(old.ndim == new.ndim == 2, "`old` and `new` must be rank 2 arrays")
     com.assert_cond(old.shape == new.shape, "`old` and `new` must have th same shape")
     msg = ''        

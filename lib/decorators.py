@@ -69,11 +69,37 @@ def open_and_close(func):
     wrapper.__name__ = func.__name__            
     return wrapper        
 
-#------------------------------------------------------------------------------
 
 def add_func_doc(func, doc_func=None):
     """Add the docstring of the function object `doc_func` to func's doc
     string."""
     func.__doc__ += '\n\n' + textwrap.dedent(doc_func.__doc__)
     return func
+
+
+def crys_add_doc(func):
+    """Decorator to add common docstrings to functions with crystal/unit cell
+    related functionallity."""
+    dct = {}
+    dct['align_doc'] = \
+    """align: str
+        'rows' : basis vecs are the rows of `cp`
+        'cols' : basis vecs are the columns of `cp`"""
+    dct['cp_doc'] = \
+    """cp: array_like, shape (3,3)
+        Matrix with basis vectors."""
+    dct['cryst_const_doc'] = \
+    """cryst_const: array_like, shape (6,)
+        [a, b, c, alpha, beta, gamma]"""
+    dct['notes_cp_crys_const'] = \
+    """We use PWscf notation.
+    CELL_PARAMETERS == (matrix of) primitime basis vectors elsewhere
+    crystallographic constants a,b,c,alpha,beta,gamma == cell parameters 
+        elsewhere"""
+    # Use dictionary string replacement:
+    # >>> '%(lala)i %(xxx)s' %{'lala': 3, 'xxx': 'grrr'}
+    # '3 grrr'
+    func.__doc__ = func.__doc__ % dct 
+    return func
+
 

@@ -1,6 +1,6 @@
 # crys.py
 #
-# Crystal and unit-cell related tools. Converters between file formats.
+# Crystal and unit-cell related tools.
 #
 
 from math import acos, pi, sin, cos, sqrt
@@ -9,42 +9,11 @@ import re
 
 import numpy as np
 
-try:
-    import CifFile as pycifrw_CifFile
-except ImportError:
-    print("%s: Cannot import CifFile from the PyCifRW package. " 
-    "Some functions in this module will not work." %__file__)
-
 from common import assert_cond
 import common
 import constants as con
 import regex
-
-#-----------------------------------------------------------------------------
-
-def _add_doc(func):
-    """Decorator to add common docstrings to functions in this module."""
-    dct = {}
-    dct['align_doc'] = \
-    """align: str
-        'rows' : basis vecs are the rows of `cp`
-        'cols' : basis vecs are the columns of `cp`"""
-    dct['cp_doc'] = \
-    """cp: array_like, shape (3,3)
-        Matrix with basis vectors."""
-    dct['cryst_const_doc'] = \
-    """cryst_const: array_like, shape (6,)
-        [a, b, c, alpha, beta, gamma]"""
-    dct['notes_cp_crys_const'] = \
-    """We use PWscf notation.
-    CELL_PARAMETERS == (matrix of) primitime basis vectors elsewhere
-    crystallographic constants a,b,c,alpha,beta,gamma == cell parameters 
-        elsewhere"""
-    # Use dictionary string replacement:
-    # >>> '%(lala)i %(xxx)s' %{'lala': 3, 'xxx': 'grrr'}
-    # '3 grrr'
-    func.__doc__ = func.__doc__ % dct 
-    return func
+from decorators import crys_add_doc
 
 #-----------------------------------------------------------------------------
 # misc math
@@ -58,7 +27,6 @@ def norm(a):
     # math.sqrt is faster then np.sqrt for scalar args
     return sqrt(np.dot(a,a))
 
-#-----------------------------------------------------------------------------
 
 def angle(x,y):
     """Angle between vectors `x' and `y' in degrees.
@@ -71,7 +39,6 @@ def angle(x,y):
     # args.
     return acos(np.dot(x,y)/norm(x)/norm(y))*180.0/pi
 
-#------------------------------------------------------------------------------
 
 def floor_eps(arg, copy=True):
     """sin(180 * pi/180.) == 1e-17, we want 0.0"""
@@ -86,7 +53,6 @@ def floor_eps(arg, copy=True):
         _arg[np.abs(_arg) < eps] = 0.0
         return _arg
 
-#------------------------------------------------------------------------------
 
 def deg2rad(x):
     return x * pi/180.0
@@ -95,7 +61,7 @@ def deg2rad(x):
 # crystallographic constants and basis vectors
 #-----------------------------------------------------------------------------
 
-@_add_doc
+@crys_add_doc
 def volume_cp(cp):
     """Volume of the unit cell from CELL_PARAMETERS. Calculates the triple
     product 
@@ -132,7 +98,7 @@ def volume_cp(cp):
 
 #-----------------------------------------------------------------------------
 
-@_add_doc
+@crys_add_doc
 def volume_cc(cryst_const):
     """Volume of the unit cell from crystallographic constants [1].
     
@@ -164,7 +130,7 @@ def volume_cc(cryst_const):
 
 #-----------------------------------------------------------------------------
 
-@_add_doc
+@crys_add_doc
 def cp2cc(cp, align='rows'):
     """From CELL_PARAMETERS to crystallographic constants a, b, c, alpha, beta,
     gamma. 
@@ -206,9 +172,8 @@ def cp2cc(cp, align='rows'):
     cryst_const[5] = angle(va,vb)
     return cryst_const
 
-#-----------------------------------------------------------------------------
 
-@_add_doc
+@crys_add_doc
 def cc2cp(cryst_const):
     """From crystallographic constants a, b, c, alpha, beta,
     gamma to CELL_PARAMETERS.
@@ -339,7 +304,7 @@ def scell_mask(dim1, dim2, dim3):
 
 #-----------------------------------------------------------------------------
 
-@_add_doc
+@crys_add_doc
 def raw_scell(R0, cp, mask, symbols, align='rows'):
     """Build supercell based on `mask`.
 
@@ -393,7 +358,7 @@ def raw_scell(R0, cp, mask, symbols, align='rows'):
 
 #-----------------------------------------------------------------------------
 
-@_add_doc
+@crys_add_doc
 def scell(coords, cp, dims, symbols, align='rows'):
     """Convenience function. Uses raw_scell() and scell_mask(). It scales the
     unit cell to the dims of the super cell and returns crystal atomic
@@ -436,7 +401,7 @@ def scell(coords, cp, dims, symbols, align='rows'):
 # file parsers / converters
 #-----------------------------------------------------------------------------
 
-@_add_doc
+@crys_add_doc
 def wien_sgroup_input(lat_symbol, symbols, atpos_crystal, cryst_const):
     """Generate input for WIEN2K's sgroup tool.
 
@@ -504,253 +469,4 @@ def wien_sgroup_input(lat_symbol, symbols, atpos_crystal, cryst_const):
 
 #-----------------------------------------------------------------------------
 
-class StructureFileParser(object):
-    def __init__(self, fn):
-        """Abstract base class for all structure file parsing classes. Can
-        house common code like unit conversion etc.
-        
-        Not used atm.
-        """
-        # Current lenth unit. After parsing, it is the unit of legth of the
-        # parsed file (i.e. Angstrom for Cif and PDB). The variable is altered by 
-        # self.ang_to_bohr() etc. 
-        #
-        # With this state variable, we essentially
-        # implement a physical quantity: number * unit ...
-        self.length_unit = None
-        self.fn = fn
-    
-    def parse(self):
-        pass
-    
-    def ang_to_bohr(self):
-        pass
-    
-    def bohr_to_and(self):
-        pass
-
-    def to_bohr(self):
-        pass
-         
-#-----------------------------------------------------------------------------
-
-class CifFile(object):
-    def __init__(self, fn, block=None):
-        """Extract cell parameters and atomic positions from Cif files. This
-        data can be directly included in a pw.x input file. 
-
-        args:
-        -----
-        fn : str, name of the *cif file
-        block : data block name (i.e. 'data_foo' in the Cif file -> 'foo'
-            here). If None then the first data block in the file is used.
-        
-        members:
-        --------
-        celldm : array (6,), PWscf celldm, see [2]
-            [a, b/a, c/a, cos(alpha), cos(beta), cos(gamma)]
-            **** NOTE: 'a' is always in Bohr! ****
-        symbols : list of strings with atom symbols
-        coords : array (natoms, 3), crystal coords
-        cif_dct : dct with 'a','b','c' in Angstrom (as parsed from the Cif
-            file) and 'alpha', 'beta', 'gamma'
-        %(cryst_const_doc)s, same as cif_dct, but as array
-
-        notes:
-        ------
-        cif parsing:
-            We expect PyCifRW [1] to be installed, which provides the CifFile
-            module.
-        cell dimensions:
-            We extract
-            _cell_length_a
-            _cell_length_b
-            _cell_length_c
-            _cell_angle_alpha
-            _cell_angle_beta
-            _cell_angle_gamma
-            and transform them to pwscf-style celldm. 
-        atom positions:
-            Cif files contain "fractional" coords, which is just 
-            "ATOMIC_POSITIONS crystal" in PWscf.
-        
-        Since we return also `cryst_const`, one could also easily obtain the
-        CELL_PARAMETERS by pwtools.crys.cc2cp(cryst_const) and wouldn't need
-        celldm(1..6) at all.
-
-        refs:
-        -----
-        [1] http://pycifrw.berlios.de/
-        [2] http://www.quantum-espresso.org/input-syntax/INPUT_PW.html#id53713
-        """
-        self.fn = fn
-        self.a0_to_A = con.a0_to_A
-        self.block = block
-        self.parse()
-    
-    def cif_str2float(self, st):
-        """'7.3782(7)' -> 7.3782"""
-        if '(' in st:
-            st = re.match(r'(' + regex.float_re  + r')(\(.*)', st).group(1)
-        return float(st)
-
-    def cif_label(self, st, rex=re.compile(r'([a-zA-Z]+)([0-9]*)')):
-        """Remove digits from atom names. 
-        
-        example:
-        -------
-        >>> cif_label('Al1')
-        'Al'
-        """
-        return rex.match(st).group(1)
-    
-    def parse(self):        
-        cf = pycifrw_CifFile.ReadCif(self.fn)
-        if self.block is None:
-            cif_block = cf.first_block()
-        else:
-            cif_block = cf['data_' + name]
-        
-        # celldm from a,b,c and alpha,beta,gamma
-        # alpha = angbe between b,c
-        # beta  = angbe between a,c
-        # gamma = angbe between a,b
-        self.cif_dct = {}
-        for x in ['a', 'b', 'c']:
-            what = '_cell_length_' + x
-            self.cif_dct[x] = self.cif_str2float(cif_block[what])
-        for x in ['alpha', 'beta', 'gamma']:
-            what = '_cell_angle_' + x
-            self.cif_dct[x] = self.cif_str2float(cif_block[what])
-        self.celldm = []
-        # ibrav 14, celldm(1) ... celldm(6)
-        self.celldm.append(self.cif_dct['a']/self.a0_to_A) # Angstrom -> Bohr
-        self.celldm.append(self.cif_dct['b']/self.cif_dct['a'])
-        self.celldm.append(self.cif_dct['c']/self.cif_dct['a'])
-        self.celldm.append(cos(deg2rad(self.cif_dct['alpha'])))
-        self.celldm.append(cos(deg2rad(self.cif_dct['beta'])))
-        self.celldm.append(cos(deg2rad(self.cif_dct['gamma'])))
-        self.celldm = np.asarray(self.celldm)
-        
-        self.symbols = map(self.cif_label, cif_block['_atom_site_label'])
-        
-        self.coords = np.array([map(self.cif_str2float, [x,y,z]) for x,y,z in izip(
-                                   cif_block['_atom_site_fract_x'],
-                                   cif_block['_atom_site_fract_y'],
-                                   cif_block['_atom_site_fract_z'])])
-        self.cryst_const = np.array([self.cif_dct[key] for key in \
-            ['a', 'b', 'c', 'alpha', 'beta', 'gamma']])
-        
-#------------------------------------------------------------------------------
-
-class PDBFile(object):
-    @_add_doc
-    def __init__(self, fn):
-        """
-        Very very simple pdb file parser. Extract only ATOM/HETATM and CRYST1
-        (if present) records.
-        
-        If you want smth serious, check biopython. No unit conversion up to
-        now.
-        
-        args:
-        -----
-        fn : filename
-
-        members:
-        --------
-        coords : atomic coords in Bohr
-        symbols : list of strings with atom symbols
-        %(cryst_const_doc)s 
-            If no CRYST1 record is found, this is None.
-        
-        notes:
-        ------
-        We use regexes which may not work for more complicated ATOM records. We
-        don't use the strict column numbers for each field as stated in the PDB
-        spec.
-        """
-        self.fn = fn
-        ##self.a0_to_A = con.a0_to_A
-        self.parse()
-    
-    def parse(self):
-        # Grep atom symbols and coordinates in Angstrom ([A]) from PDB file.
-        #
-        # XXX Note that for the atom symbols, we do NOT use the columns 77-78
-        #     ("Element symbol"), b/c that is apparently not present in all the
-        #     files which we currently use. Instead, we use the columns 13-16,
-        #     i.e. "Atom name". Note that in general this is not the element
-        #     symbol.
-        #
-        # From the PDB spec v3.20:
-        #
-        # ATOM record:
-        #
-        # COLUMNS       DATA  TYPE    FIELD        DEFINITION
-        # -------------------------------------------------------------------------------------
-        #  1 -  6       Record name   "ATOM  "
-        #  7 - 11       Integer       serial       Atom  serial number.
-        #  13 - 16      Atom          name         Atom name.
-        #  17           Character     altLoc       Alternate location indicator.
-        #  18 - 20      Residue name  resName      Residue name.
-        #  22           Character     chainID      Chain identifier.
-        #  23 - 26      Integer       resSeq       Residue sequence number.
-        #  27           AChar         iCode        Code for insertion of residues.
-        #  31 - 38      Real(8.3)     x            Orthogonal coordinates for X in Angstroms.
-        #  39 - 46      Real(8.3)     y            Orthogonal coordinates for Y in Angstroms.
-        #  47 - 54      Real(8.3)     z            Orthogonal coordinates for Z in Angstroms.
-        #  55 - 60      Real(6.2)     occupancy    Occupancy.
-        #  61 - 66      Real(6.2)     tempFactor   Temperature  factor.
-        #  77 - 78      LString(2)    element      Element symbol, right-justified.
-        #  79 - 80      LString(2)    charge       Charge  on the atom.
-        #
-        # CRYST1 record:
-        # 
-        # COLUMNS       DATA  TYPE    FIELD          DEFINITION
-        # -------------------------------------------------------------
-        #  1 -  6       Record name   "CRYST1"
-        #  7 - 15       Real(9.3)     a              a (Angstroms).
-        # 16 - 24       Real(9.3)     b              b (Angstroms).
-        # 25 - 33       Real(9.3)     c              c (Angstroms).
-        # 34 - 40       Real(7.2)     alpha          alpha (degrees).
-        # 41 - 47       Real(7.2)     beta           beta (degrees).
-        # 48 - 54       Real(7.2)     gamma          gamma (degrees).
-        # 56 - 66       LString       sGroup         Space  group.
-        # 67 - 70       Integer       z              Z value.
-        #
-        #
-        fh = open(self.fn)
-        ret = common.igrep(r'(ATOM|HETATM)[\s0-9]+([A-Za-z]+)[\sa-zA-Z0-9]*'
-            r'[\s0-9]+((\s+'+ regex.float_re + r'){3}?)', fh)
-        # array of string type            
-        coords_data = np.array([[m.group(2)] + m.group(3).split() for m in ret])
-        # list of strings (system:nat,) 
-        # Fix atom names, e.g. "AL" -> Al. Note that this is only needed b/c we
-        # use the "wrong" column "Atom name".
-        self.symbols = []
-        for sym in coords_data[:,0]:
-            if len(sym) == 2:
-                self.symbols.append(sym[0] + sym[1].lower())
-            else:
-                self.symbols.append(sym)
-        # float array, (system:nat, 3) in Bohr
-        ##self.coords = coords_data[:,1:].astype(float) /self.a0_to_A        
-        self.coords = coords_data[:,1:].astype(float)        
-        
-        # grep CRYST1 record, extract only crystallographic constants
-        # example:
-        # CRYST1   52.000   58.600   61.900  90.00  90.00  90.00  P 21 21 21   8
-        #          a        b        c       alpha  beta   gamma  |space grp|  z-value
-        fh.seek(0)
-        ret = common.mgrep(r'CRYST1\s+((\s+'+ regex.float_re + r'){6}).*$', fh)
-        fh.close()
-        if len(ret) == 1:
-            match = ret[0]
-            self.cryst_const = np.array(match.group(1).split()).astype(float)
-            ##self.cryst_const[:3] /= self.a0_to_A
-        elif len(ret) == 0:
-            self.cryst_const = None
-        else:
-            raise StandardError("found CRYST1 record more then once")       
 
