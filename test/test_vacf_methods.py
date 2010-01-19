@@ -3,8 +3,8 @@
 import numpy as N
 import math
 
-import pydos
-reload(pydos)
+from pwtools import pydos
+##reload(pydos)
 
 def dif(a, b):
 	"""Norm of the diff between 1d arrays. Could also use

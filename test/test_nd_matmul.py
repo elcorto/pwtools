@@ -11,7 +11,8 @@ for j in xrange(a.shape[1]):
 
 print "-----------------------"
 
-# transformation matrix
+# transformation matrix b, transform from cartesian with basis vecs
+# np.identity(3) to b
 #
 # primitive lattice vectors (rows):
 # a1 = b[0,:]

@@ -75,8 +75,8 @@ if __name__ == '__main__':
     #-------------------------------------------------------------------------
     
     # exec tests
-    infile = "AlN.md.in"
-    outfile = "AlN.md.out"
+    infile = "files/pw.md.in"
+    outfile = "files/pw.md.out"
     outdir = "/tmp/test_pdos"
     exe = '../lib/pydos.py'
     

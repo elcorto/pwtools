@@ -71,9 +71,9 @@ print bar + '\n'
 #-----------------------------------------------------------------------------
 
 print bar
-nthr = 2
-print "testing _flib.vacf(v,m,c,1,1,nthr), setting nthr = %i" %nthr
-c = _flib.vacf(v,m,c,1,1,nthr)
+nthreads = 2
+print "testing _flib.vacf(v,m,c,1,1,nthreads), setting nthreads = %i" %nthreads
+c = _flib.vacf(v,m,c,1,1,nthreads)
 print bar + '\n'
 
 #-----------------------------------------------------------------------------
@@ -85,7 +85,7 @@ print """!!! POSSIBLE F2PY BUG !!!
 After calling omp_set_num_threads() in the last test, OMP_NUM_THREADS is no
 longer recognized on the Fortran side!!! nthreads is still at the value from
 the last test: %s, that is WRONG
-!!! POSSIBLE F2PY BUG !!!""" %nthr
+!!! POSSIBLE F2PY BUG !!!""" %nthreads
 print "*" * 70
 omp_num_threads('check')
 c = _flib.vacf(v,m,c,1,1)
@@ -95,9 +95,9 @@ print bar + '\n'
 
 print bar
 nthr = 2
-print """testing pydos.fvacf(v, m=m, nthreads=nthr), setting nthr = %i --
-override any OMP_NUM_THREADS setting""" %nthr
-c = fvacf(v, m=m, nthreads=nthr)
+print """testing pydos.fvacf(v, m=m, nthreads=%i) --
+override any OMP_NUM_THREADS setting in the environment AND os.environ""" %nthreads
+c = fvacf(v, m=m, nthreads=nthreads)
 print bar + '\n'
 
 #-----------------------------------------------------------------------------

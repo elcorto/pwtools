@@ -1,6 +1,7 @@
-from pwtools.lib.crys import PDBFile
+from pwtools.lib.parse import PDBFile
 from pwtools import common
 
-p = PDBFile('pdb_struct.pdb')
+p = PDBFile('files/pdb_struct.pdb')
+p.parse()
 
 common.print_dct(p.__dict__)
