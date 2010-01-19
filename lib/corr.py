@@ -1,6 +1,6 @@
 # corr.py
 #
-# (Auto)correlation stuff. Reference implementations and units.
+# (Auto)correlation stuff. Reference implementations.
 #
 
 from scipy.fftpack import fft, ifft
@@ -37,12 +37,12 @@ def acorr(v, method=6):
     notes:
     ------
     speed:
-        methods 1 ...  are loosely ordered slow .. fast
+        methods 1 ...  are loosely ordered slow ... fast
     methods:
        All methods, besides the FFT, are "exact", they use variations of loops
        in the time domain, i.e. norm(acorr(v,1) - acorr(v,6)) = 0.0. 
        The FFT method introduces small numerical noise, norm(acorr(v,1) -
-       acorr(v,4)) = 4e-16 or so.
+       acorr(v,4)) = O(1e-16) or so.
 
     signature of the Fortran extension _flib.acorr
         acorr - Function signature:

@@ -290,7 +290,7 @@ def fileo(val, mode='r', force=False):
     elif isinstance(val, types.FileType):
         if val.closed:
             raise StandardError("need an open file") 
-        elif not val.mode == mode:
+        elif val.mode != mode:
             raise ValueError("mode of file '%s' is '%s', must be '%s'" 
                 %(val.name, val.mode, mode))
         return val

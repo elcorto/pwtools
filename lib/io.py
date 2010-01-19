@@ -17,7 +17,6 @@ HEADER_COMMENT = '#'
 TXT_MAXDIM = 3
 
 
-
 @open_and_close
 def _read_header_config(fh, header_maxlines=HEADER_MAXLINES, 
                         header_comment=HEADER_COMMENT):
@@ -107,7 +106,7 @@ def writetxt(fn, arr, axis=-1, maxdim=TXT_MAXDIM):
     axis : axis along which 2d chunks are written
     maxdim : highest number of dims that `arr` is allowed to have
     """
-    verbose("[writetxt] writing '%s'" %fn)
+    verbose("[writetxt] writing: %s" %fn)
     com.assert_cond(arr.ndim <= maxdim, 'no rank > %i arrays supported' %maxdim)
     fh = open(fn, 'w+')
     c = PydosConfigParser()
@@ -192,7 +191,7 @@ def readtxt(fh, axis=None, shape=None, header_maxlines=HEADER_MAXLINES,
     
     # 1d and 2d
     if ndim <= 2:
-        return read_arr
+        arr = read_arr
     # 3d        
     else:
         # example:
@@ -213,6 +212,7 @@ def readtxt(fh, axis=None, shape=None, header_maxlines=HEADER_MAXLINES,
         for ind in range(shape[axis]):
             sl[axis] = ind
             arr[sl] = read_arr[ind*shape_2d_chunk[0]:(ind+1)*shape_2d_chunk[0], :]
+    verbose("[readtxt]    returning shape: %s" %str(arr.shape))
     return arr
 
 
@@ -263,6 +263,8 @@ def writearr(fn, arr, comment=None, info=None,
     com.assert_cond(type in ['bin', 'txt'], "`type` must be 'bin' or 'txt'")
     verbose("[writearr] writing: %s" %fn)
     verbose("[writearr]     shape: %s" %repr(arr.shape))
+    if type == 'txt':
+        verbose("[writearr]     axis: %i" %axis)
     if type == 'bin':
         np.save(fn, arr)
     else:

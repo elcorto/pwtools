@@ -26,20 +26,20 @@ def fftsample(a, b, mode='f', mirr=False):
         transform
 
     f-mode:
-        a : fmax, max. freq to sample [Hz] == Nyquist freq. == 1/2 samplerate
-        b : df, desired freq. resolution [Hz]
+        a : fmax  
+        b : df 
     t-mode:
-        a : dt
+        a : dt 
         b : N
 
     returns:
     --------
     array([x,y])
     f-mode:
-        x: dt : time step, unit is [s] (or in general 1/unit_of_fmax)
-        y: N : number of samples
+        x: dt  
+        y: N
     t-mode:
-        x: fmax
+        x: fmax 
         y: df
     
     notes:
@@ -48,10 +48,13 @@ def fftsample(a, b, mode='f', mirr=False):
         size                resolution
         N [t] ^     <->     df [f] v
         fmax [f] ^  <->     dt [t] v
-
+    
     If you know that the signal in the time domain will be mirrored before FFT
     (N -> 2*N), you will get 1/2*df (double fine resolution), so 1/2*N is
     sufficient to get the desired df.
+
+    Units:
+    In general frequency_unit = 1/time_unit, need not be Hz and s.
     """
     if mode == 'f':
         fmax, df = a,b

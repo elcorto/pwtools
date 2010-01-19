@@ -11,9 +11,8 @@ __all__ = [\
     'mpl',
     'fft',
     'regex',
-    'corr'
+    'corr',
+    'parse',
+    'periodic_table',
+    'io'
     ]
-
-
-
-
