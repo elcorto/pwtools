@@ -205,12 +205,12 @@ class FileParser(object):
         if (self.file is not None) and (not self.file.closed):
             self.file.close()
     
-    def dump(self, filename):
+    def dump(self, dump_filename):
         # Dumping with protocol "2" is supposed to be the fastest binary format
         # writing method. Probably, this is platform-specific.
-        cPickle.dump(self, open(filename, 'wb'), 2)
+        cPickle.dump(self, open(dump_filename, 'wb'), 2)
 
-    def load(self, filename):
+    def load(self, dump_filename):
         # does not work:
         #   self = cPickle.load(...)
         # 
@@ -224,7 +224,7 @@ class FileParser(object):
         # >>> xx.load('foo.pk')
         # # method 2, probably easier :)
         # >>> xx = cPickle.load(open('foo.pk'))
-        self.__dict__.update(cPickle.load(open(filename, 'rb')).__dict__)
+        self.__dict__.update(cPickle.load(open(dump_filename, 'rb')).__dict__)
     
     def parse(self):
         pass
@@ -265,6 +265,9 @@ class StructureFileParser(FileParser):
         FileParser.__init__(self, filename)
         # API
         self.coords = None
+        # Note: If a file lists the atom numbers (e.g. 1 for H etc) and not
+        # atom symbols (e.g. 'H'), we can get the mapping number -> symbol from
+        # periodic_table.py .
         self.symbols = None
         self.cell_parameters = None
         self.cryst_const = None
@@ -279,6 +282,7 @@ class CifFile(StructureFileParser):
 
         args:
         -----
+        filename : name of the input file
         block : data block name (i.e. 'data_foo' in the Cif file -> 'foo'
             here). If None then the first data block in the file is used.
         
@@ -388,6 +392,10 @@ class PDBFile(StructureFileParser):
         If you want smth serious, check biopython. No unit conversion up to
         now.
         
+        args:
+        -----
+        filename : name of the input file
+
         members:
         --------
         coords : atomic coords in Bohr
@@ -1034,8 +1042,9 @@ class PwOutputFile(FileParser):
     def get_cell_parameters(self):
         verbose("getting cell parameters")
         # nstep
-        key = 'CELL_PARARAMETERS'
+        key = 'CELL_PARAMETERS'
         cmd = 'grep %s %s | wc -l' %(key, self.filename)
+        print cmd
         ret_str = com.backtick(cmd)
         if ret_str.strip() == '':
             nstep = 0
@@ -1043,6 +1052,7 @@ class PwOutputFile(FileParser):
             nstep = int(ret_str)
         # cell_parameters            
         cmd = "sed -nre '/%s/,+3p' %s | grep -v %s" %(key, self.filename, key)
+        print cmd
         ret_str = com.backtick(cmd)
         if ret_str.strip() == '':
             return None
