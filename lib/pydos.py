@@ -132,6 +132,7 @@ import os
 import textwrap
 from cStringIO import StringIO
 ##from StringIO import StringIO
+from itertools import izip
 
 import numpy as np
 norm = np.linalg.norm
@@ -1055,6 +1056,25 @@ def atpos_str(symbols, coords, fmt="%.10f"):
     return txt        
 
 
+def atspec_str(symbols, masses, pseudos):
+    """Convenience function to make a string for the ATOMIC_SPECIES section
+    of a pw.x input file.
+    
+    args:
+    -----
+    symbols : sequence of strings with atom symbols, (natoms,)
+    masses : sequence if floats (natoms,) w/ atom masses
+    pseudos : sequence of strings (natoms,) w/ pseudopotential file names
+
+    returns:
+    --------
+    string
+    """
+    assert len(symbols) == len(masses) == len(pseudos), \
+        "len(symbols) != len(masses) != len(pseudos)"
+    txt = '\n'.join(["%s\t%s\t%s" %(sym, str(mass), pp) for sym, mass, pp in
+    izip(symbols, masses, pseudos)])        
+    return txt        
 
 
 def main(opts):

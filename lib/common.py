@@ -481,7 +481,7 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
     conv : bool, convert `dct` values to strings with str()
     warn_mult_found : bool, warning if a key is found multiple times in `txt`
     warn_not_found : bool, warning if a key is NOT found in `txt`
-    disp : tell which keys hav been replaced
+    disp : tell which keys have been replaced
     mode: str, {'dct', 'txt'}, placeholder mode
         'dct' : Dictionary mode. Placeholders are of special Python dictionary
             string replacement form: '%(<name>)<format_str>', e.g. '%(foo)s'
