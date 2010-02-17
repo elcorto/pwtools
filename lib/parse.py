@@ -11,7 +11,8 @@
 #   ...
 # 
 # Notes:
-# * Some functions/methods are Python-only, but most of them actually call
+# * Some functions/methods are Python-only (mostly for historical reasons ..
+#   code was written once and still works), but most of them actually call
 #   grep/sed/awk. This may not be pythonic, but hey ... these tools rock and
 #   the cmd lines are short.
 # * pwtools.com.backtick() takes "long" to create a child process. So for small
@@ -34,11 +35,20 @@ import cPickle
 import types
 
 import numpy as np
+
+# Cif parser
 try:
     import CifFile as pycifrw_CifFile
 except ImportError:
-    print("%s: Cannot import CifFile from the PyCifRW package. " 
-    "Some functions in this module will not work." %__file__)
+    print("%s: Warning: Cannot import CifFile from the PyCifRW package. " 
+    "Parsing Cif files will not work." %__file__)
+
+# XML parser
+try:
+    from BeautifulSoup import BeautifulStoneSoup
+except ImportError:
+    print("%s: Warning: Cannot import BeautifulSoup. " 
+    "Parsing XML/HTML/CML files will not work." %__file__)
 
 import io
 import common as com
@@ -206,11 +216,13 @@ class FileParser(object):
             self.file.close()
     
     def dump(self, dump_filename):
+        """Pickle (write to binary file) the whole object."""
         # Dumping with protocol "2" is supposed to be the fastest binary format
         # writing method. Probably, this is platform-specific.
         cPickle.dump(self, open(dump_filename, 'wb'), 2)
 
     def load(self, dump_filename):
+        """Load pickled object."""
         # does not work:
         #   self = cPickle.load(...)
         # 
@@ -226,6 +238,38 @@ class FileParser(object):
         # >>> xx = cPickle.load(open('foo.pk'))
         self.__dict__.update(cPickle.load(open(dump_filename, 'rb')).__dict__)
     
+    def is_set_attr(self, attr):
+        """Check if self has the attribute self.<attr> and if it is _not_ None.
+
+        args:
+        -----
+        attr : str
+            Attrubiute name, e.g. 'foo' for self.foo
+        
+        returns:
+        --------
+        True : `attr` is defined and not None
+        False : not defined or None
+        """
+        if hasattr(self, attr): 
+            return (getattr(self, attr) is not None)
+        else:
+            return False
+    
+    def check_get_attr(self, attr):
+        """If self.<attr> does not exist or is None, then invoke an
+        appropirately named getter as if this command would be executed:
+        
+        self.foo = self.get_foo()
+        self._foo = self._get_foo()
+        """
+        if not self.is_set_attr(attr):
+            if attr.startswith('_'):
+                get = '_get'
+            else:
+                get = 'get_'
+            setattr(self, attr, eval('self.%s%s()' %(get, attr))) 
+
     def parse(self):
         pass
     
@@ -261,18 +305,96 @@ class StructureFileParser(FileParser):
     Unless explicitly stated, we DO NOT DO any unit conversions with the data
     parsed out of the files. It is up to the user to handle that. 
     """
+    # Notes for derived classes:
+    #
+    # In this class we define a number of members (self.member1, self.member2,
+    # ...) which _must_ be set by the parse() method. We call this the "API".
+    #
+    # There are 3 ways of doing it:
+    #
+    # 1) Put all code in parse(). 
+    #    Con: One might forget to implement the setting of a member.
+    # 
+    # 2) Implement parse() so that for each data member of the API, we have
+    #       self.member1 = self.get_member1()
+    #       self.member2 = self.get_member2()
+    #       ...
+    #    and put the code for each member in a separate getter. This is good
+    #    coding style, but often data needs to be shared between getters (e.g.
+    #    get_member1() needs member2, which is the result of `self.member2 =
+    #    self.get_member2(). This means that in general the calling order
+    #    of the getters is important and is different in each parse() of each
+    #    derived class.
+    #    Con: One might forget to call a getter in parse() and/or in the wrong 
+    #         order.
+    # 
+    # 3) Implement all getters such that they can be called in arbitrary order.
+    #    Then in each parse(), one does exactly the same:
+    #
+    #        attr_lst = ['member1', 'member2', ...]
+    #        for attr in attr_lst:
+    #            self.check_get_attr(attr)
+    #    
+    #    This code (the "getting" of all API members) can then be moved to the
+    #    *base* class's parse() and thereby forcing all derived classes to
+    #    conform to the API. 
+    #
+    #    If again one getter needs a return value of another getter, one has to
+    #    transform
+    #    
+    #       def get_member1(self):
+    #           return do_stuff(self.member2)
+    #    to 
+    #       
+    #       def get_member1(self):
+    #           self.check_get_attr('member2')                <<<<<<<<<<<<
+    #           return do_stuff(self.member2)
+    #
+    #    If one does
+    #        self.member1 = self.get_member1()
+    #        self.member2 = self.get_member2()
+    #        ....
+    #    then some calls may in fact be redundant b/c e.g. get_member1() has
+    #    alreadey been called inside get_member2(). There is NO big overhead in
+    #    this approach b/c in each getter we test with check_get_attr() if a
+    #    needed other member is already set
+    #    
+    #    This way we get a flexible and easily extensible framework to
+    #    implement new parsers and modify existing ones (just implement another
+    #    getter get_newmember() in each class and extend the list of API
+    #    members by 'newmember').
+    #
+    #    Note: Beware of cyclic dependencies (i.e. get_member2 -> get_member1 ->
+    #    get_member2 -> ...). Always test the implementation!
+    
     def __init__(self, filename=None):
         FileParser.__init__(self, filename)
-        # API
-        self.coords = None
+    
+    def parse(self):
+        # At least these members must be "gotten" in parse() of derived
+        # classes. The calling order can be overridden.
+        attr_lst = ['coords', 'symbols', 'cryst_const', 'cell_parameters',
+                    'natoms']
+        for attr in attr_lst:
+            self.check_get_attr(attr)
+
+    def get_coords(self):
+        pass
+    
+    def get_symbols(self):
         # Note: If a file lists the atom numbers (e.g. 1 for H etc) and not
         # atom symbols (e.g. 'H'), we can get the mapping number -> symbol from
         # periodic_table.py .
-        self.symbols = None
-        self.cell_parameters = None
-        self.cryst_const = None
-        self.natoms = None
-
+        pass
+    
+    def get_cryst_const(self):
+        pass
+    
+    def get_cell_parameters(self):
+        pass
+    
+    def get_natoms(self):
+        pass
 
 
 class CifFile(StructureFileParser):
@@ -295,9 +417,11 @@ class CifFile(StructureFileParser):
         coords : array (natoms, 3), crystal coords
         cif_dct : dct with 'a','b','c' in Angstrom (as parsed from the Cif
             file) and 'alpha', 'beta', 'gamma'
-        %(cryst_const_doc)s, same as cif_dct, but as array
+        %(cryst_const_doc)s
         cell_parameters : primitive lattice vectors obtained from cryst_const
             with crys.cc2cp()
+        cryst_const
+        natoms
 
         notes:
         ------
@@ -341,49 +465,78 @@ class CifFile(StructureFileParser):
         """
         return rex.match(st).group(1)
     
-    def parse(self):        
+    def _get_cif_dct(self):
+        # celldm from a,b,c and alpha,beta,gamma
+        # alpha = angbe between b,c
+        # beta  = angbe between a,c
+        # gamma = angbe between a,b
+        self.check_get_attr('_cif_block')
+        cif_dct = {}
+        for x in ['a', 'b', 'c']:
+            what = '_cell_length_' + x
+            cif_dct[x] = self.cif_str2float(self._cif_block[what])
+        for x in ['alpha', 'beta', 'gamma']:
+            what = '_cell_angle_' + x
+            cif_dct[x] = self.cif_str2float(self._cif_block[what])
+        return cif_dct
+    
+    def _get_cif_block(self):
         cf = pycifrw_CifFile.ReadCif(self.filename)
         if self.block is None:
             cif_block = cf.first_block()
         else:
             cif_block = cf['data_' + self.block]
+        return cif_block
+    
+    def get_coords(self):
+        self.check_get_attr('_cif_block')
+        return np.array([map(self.cif_str2float, [x,y,z]) for x,y,z in izip(
+                                   self._cif_block['_atom_site_fract_x'],
+                                   self._cif_block['_atom_site_fract_y'],
+                                   self._cif_block['_atom_site_fract_z'])])
         
-        # celldm from a,b,c and alpha,beta,gamma
-        # alpha = angbe between b,c
-        # beta  = angbe between a,c
-        # gamma = angbe between a,b
-        self.cif_dct = {}
-        for x in ['a', 'b', 'c']:
-            what = '_cell_length_' + x
-            self.cif_dct[x] = self.cif_str2float(cif_block[what])
-        for x in ['alpha', 'beta', 'gamma']:
-            what = '_cell_angle_' + x
-            self.cif_dct[x] = self.cif_str2float(cif_block[what])
-        self.celldm = []
-        # ibrav 14, celldm(1) ... celldm(6)
-        self.celldm.append(self.cif_dct['a']/self.a0_to_A) # Angstrom -> Bohr
-        self.celldm.append(self.cif_dct['b']/self.cif_dct['a'])
-        self.celldm.append(self.cif_dct['c']/self.cif_dct['a'])
-        self.celldm.append(cos(self.cif_dct['alpha']*pi/180))
-        self.celldm.append(cos(self.cif_dct['beta']*pi/180))
-        self.celldm.append(cos(self.cif_dct['gamma']*pi/180))
-        self.celldm = np.asarray(self.celldm)
-        
-        self.symbols = map(self.cif_label, cif_block['_atom_site_label'])
-        
-        self.coords = np.array([map(self.cif_str2float, [x,y,z]) for x,y,z in izip(
-                                   cif_block['_atom_site_fract_x'],
-                                   cif_block['_atom_site_fract_y'],
-                                   cif_block['_atom_site_fract_z'])])
-        self.cryst_const = np.array([self.cif_dct[key] for key in \
+
+    def get_symbols(self):
+        self.check_get_attr('_cif_block')
+        return map(self.cif_label, self._cif_block['_atom_site_label'])
+    
+    def get_cryst_const(self):
+        self.check_get_attr('_cif_dct')
+        return np.array([self._cif_dct[key] for key in \
             ['a', 'b', 'c', 'alpha', 'beta', 'gamma']])
-        self.cell_parameters = crys.cc2cp(self.cryst_const)
-        self.natoms = len(self.symbols)
+    
+    def get_cell_parameters(self):
+        self.check_get_attr('cryst_const')
+        return crys.cc2cp(self.cryst_const)
+
+    def get_natoms(self):
+        self.check_get_attr('symbols')
+        return len(self.symbols)
+    
+    def get_celldm(self):
+        self.check_get_attr('_cif_dct')
+        celldm = []
+        # ibrav 14, celldm(1) ... celldm(6)
+        celldm.append(self._cif_dct['a']/self.a0_to_A) # Angstrom -> Bohr
+        celldm.append(self._cif_dct['b']/self._cif_dct['a'])
+        celldm.append(self._cif_dct['c']/self._cif_dct['a'])
+        celldm.append(cos(self._cif_dct['alpha']*pi/180))
+        celldm.append(cos(self._cif_dct['beta']*pi/180))
+        celldm.append(cos(self._cif_dct['gamma']*pi/180))
+        celldm = np.asarray(self.celldm)
+        return celldm
+
+    def parse(self):        
+        StructureFileParser.parse(self)
+        ## self.coords = self.get_coords()
+        ## self.symbols = self.get_symbols()
+        ## self.cryst_const = self.get_cryst_const()
+        ## self.cell_parameters = self.get_cell_parameters() 
+        ## self.natoms = self.get_natoms()
         self.close_file()
 
 
 class PDBFile(StructureFileParser):
-    @crys_add_doc
     def __init__(self, filename=None):
         """
         Very very simple pdb file parser. Extract only ATOM/HETATM and CRYST1
@@ -398,13 +551,15 @@ class PDBFile(StructureFileParser):
 
         members:
         --------
-        coords : atomic coords in Bohr
-        symbols : list of strings with atom symbols
-        %(cryst_const_doc)s 
+        self.coords : ndarray (natoms, 3) with atom coords
+        self.symbols : list (natoms,) with strings of atom symbols
+        self.cell_parameters : 3x3 array with primitive basis vectors as rows
+            obtained from cryst_const with crys.cc2cp()
+        self.cryst_const : array (6,) with crystallographic costants
+            [a,b,c,alpha,beta,gamma]
             If no CRYST1 record is found, this is None.
-        cell_parameters : primitive lattice vectors obtained from cryst_const
-            with crys.cc2cp()
-
+        self.natoms : number of atoms
+        
         notes:
         ------
         We use regexes which may not work for more complicated ATOM records. We
@@ -458,39 +613,56 @@ class PDBFile(StructureFileParser):
         # 56 - 66       LString       sGroup         Space  group.
         # 67 - 70       Integer       z              Z value.
         #
-        #
+        StructureFileParser.parse(self)
+        self.close_file()
+    
+    def _get_coords_data(self):
+        self.file.seek(0)
         ret = com.igrep(r'(ATOM|HETATM)[\s0-9]+([A-Za-z]+)[\sa-zA-Z0-9]*'
             r'[\s0-9]+((\s+'+ regex.float_re + r'){3}?)', self.file)
         # array of string type            
-        coords_data = np.array([[m.group(2)] + m.group(3).split() for m in ret])
+        return np.array([[m.group(2)] + m.group(3).split() for m in ret])
+    
+    def get_symbols(self):
         # list of strings (system:nat,) 
         # Fix atom names, e.g. "AL" -> Al. Note that this is only needed b/c we
         # use the "wrong" column "Atom name".
-        self.symbols = []
-        for sym in coords_data[:,0]:
+        self.check_get_attr('_coords_data')
+        symbols = []
+        for sym in self._coords_data[:,0]:
             if len(sym) == 2:
-                self.symbols.append(sym[0] + sym[1].lower())
+                symbols.append(sym[0] + sym[1].lower())
             else:
-                self.symbols.append(sym)
+                symbols.append(sym)
+        return symbols
+
+    def get_coords(self):
+        self.check_get_attr('_coords_data')
         # float array, (system:nat, 3)
-        self.coords = coords_data[:,1:].astype(float)        
-        
+        return self._coords_data[:,1:].astype(float)        
+    
+    def get_cryst_const(self):
         # grep CRYST1 record, extract only crystallographic constants
         # example:
         # CRYST1   52.000   58.600   61.900  90.00  90.00  90.00  P 21 21 21   8
         #          a        b        c       alpha  beta   gamma  |space grp|  z-value
         self.file.seek(0)
         ret = com.mgrep(r'CRYST1\s+((\s+'+ regex.float_re + r'){6}).*$', self.file)
-        self.close_file()
         if len(ret) == 1:
             match = ret[0]
-            self.cryst_const = np.array(match.group(1).split()).astype(float)
-            self.cell_parameters = crys.cc2cp(self.cryst_const)            
+            return np.array(match.group(1).split()).astype(float)
         elif len(ret) == 0:
-            self.cryst_const = None
+            return None
         else:
-            raise StandardError("found CRYST1 record more then once")       
-        self.natoms = len(self.symbols)
+            raise StandardError("found CRYST1 record more then once")
+    
+    def get_cell_parameters(self):
+        self.check_get_attr('cryst_const')
+        return crys.cc2cp(self.cryst_const)            
+    
+    def get_natoms(self):
+        self.check_get_attr('symbols')
+        return len(self.symbols)
 
 
 class PwInputFile(StructureFileParser):
@@ -507,7 +679,8 @@ class PwInputFile(StructureFileParser):
             'climbing_images',
             'constraints',
             'collective_vars']
-
+    
+    # TODO implement API style getters
     def parse(self):
         self.atspec = self.get_atomic_species()
         self.atpos = self.get_atomic_positions()
@@ -874,16 +1047,7 @@ class PwOutputFile(FileParser):
         """
 
         FileParser.__init__(self, filename)
-        self.infile_inp = infile
-        com.assert_cond(infile is not None, "infile is None")
-        if isinstance(infile, types.StringType):
-            self.infile = PwInputFile(infile)
-            self.infile.parse()
-        elif isinstance(infile, PwInputFile):
-            self.infile = infile
-        else:
-            raise ValueError("infile must be string or instance of "
-                             "PwInputFile")
+        self._infile = infile
 
         verbose("parsing %s" %self.filename)
         
@@ -901,16 +1065,13 @@ class PwOutputFile(FileParser):
         # twice for relax runs b/c they are printed twice.
         
         # TODO 
-        # * Check if this grepping also works for scf runs, where we have in
-        #   principle nstep=1
         # * introduce new variable (int): self.time_axis to contruct slice
         #   stuff for reading "3d arrays", dont hard-code axis=1 everywhere
-        # * implement array-write methods 
         
     def parse(self):
-        # Must be first. self.natoms needed in several functions below
-        self.natoms = self.get_natoms()
-
+        # This list of calls is supposed to be order-independent.  
+        self.infile = self.get_infile()
+        self.nstep = self.get_nstep()
         self.etot = self.get_etot()
         self.ekin = self.get_ekin()
         self.stresstensor = self.get_stresstensor()
@@ -918,23 +1079,37 @@ class PwOutputFile(FileParser):
         self.temperature = self.get_temperature()
         self.coords = self.get_coords()
         self.cell_parameters = self.get_cell_parameters()
-        
-        # this depends on self.coords
-        self.nstep = self.get_nstep()
+        self.natoms = self.get_natoms()
 
         # sanity check
-        com.assert_cond(self.coords.shape[0] == self.infile.natoms, 
-                    "natoms from infile (%s: %i)  and outfile (%s: %i) don't "
-                    "match" %(self.infile.filename, self.infile.natoms,
-                    self.filename, self.coords.shape[0]))
+        if self.coords is not None:
+            com.assert_cond(self.coords.shape[0] == self.infile.natoms, 
+                            "natoms from infile (%s: %i)  and outfile "
+                            "(%s: %i) don't match" \
+                            %(self.infile.filename, self.infile.natoms,
+                              self.filename, self.coords.shape[0]))
         if self.infile.namelists['system'].has_key('nstep'):
             if self.nstep != self.infile.namelists['system']['nstep']:
                 print("WARNING: nstep from infile (%s) and outfile (%s) "
                       "don't match" %(self.infile.filename, self.filename))
         self.close_file()
     
+    def get_infile(self):
+        verbose("getting infile")
+        """Return a PwInputFile instance """
+        if isinstance(self._infile, types.StringType):
+            infile = PwInputFile(self._infile)
+            infile.parse()
+        elif isinstance(self._infile, PwInputFile):
+            infile = self._infile
+        else:
+            raise ValueError("infile must be string or instance of "
+                             "PwInputFile, is: %s" %str(self._infile))
+        return infile
+    
     def get_nstep(self):
         verbose("getting nstep")
+        self.check_get_attr('coords')
         if self.coords is not None:
             # XXX time axis hardcoded!
             return self.coords.shape[1]
@@ -942,6 +1117,8 @@ class PwOutputFile(FileParser):
             return None
     
     def get_natoms(self):
+        verbose("getting natoms")
+        self.check_get_attr('infile')
         return self.infile.natoms
 
     def get_stresstensor(self):
@@ -1001,25 +1178,10 @@ class PwOutputFile(FileParser):
             return np.loadtxt(StringIO(ret_str))
     
     def get_coords(self):
-        verbose("getting atomic positions")
-#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>        
-##        # natoms
-##        #
-##        # tail ... b/c this line appears multiple times if the output file
-##        # is a concatenation of multiple smaller files
-##        cmd = r"egrep 'number[ ]+of[ ]+atoms' %s | \
-##                sed -re 's/.*=(.*)$/\1/' | tail -n1" %self.filename
-##        ret_str = com.backtick(cmd)
-##        if ret_str.strip() == '':
-##            natoms = 0
-##        else:            
-##            natoms = int(ret_str)
-#--------------------------------------------------
+        verbose("getting coords")
+        self.check_get_attr('natoms')
         natoms = self.natoms
-#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        # nstep 
-        #
-        # get it from outfile b/c the value in any input file will be
+        # nstep: get it from outfile b/c the value in any input file will be
         # wrong if the output file is a concatenation of multiple smaller files
         key = 'ATOMIC_POSITIONS'
         cmd = 'grep %s %s | wc -l' %(key, self.filename)
@@ -1032,7 +1194,7 @@ class PwOutputFile(FileParser):
         cmd = "sed -nre '/%s/,+%ip' %s | grep -v %s | \
               awk '{printf $2\"  \"$3\"  \"$4\"\\n\"}'" \
               %(key, natoms, self.filename, key)
-        ret_str = com.backtick(cmd)          
+        ret_str = com.backtick(cmd)
         if ret_str.strip() == '':
             return None
         else:
@@ -1044,7 +1206,6 @@ class PwOutputFile(FileParser):
         # nstep
         key = 'CELL_PARAMETERS'
         cmd = 'grep %s %s | wc -l' %(key, self.filename)
-        print cmd
         ret_str = com.backtick(cmd)
         if ret_str.strip() == '':
             nstep = 0
@@ -1052,7 +1213,6 @@ class PwOutputFile(FileParser):
             nstep = int(ret_str)
         # cell_parameters            
         cmd = "sed -nre '/%s/,+3p' %s | grep -v %s" %(key, self.filename, key)
-        print cmd
         ret_str = com.backtick(cmd)
         if ret_str.strip() == '':
             return None
@@ -1119,6 +1279,11 @@ class CPOutputFile(PwOutputFile):
     file.
     """
     def __init__(self, filename=None, infile=None, evpfilename=None):
+        
+        # XXX This class has not been tested yet!!
+        raise NotImplementedError("test code first, dont use now")
+
+
         PwOutputFile.__init__(self, filename, infile)
         self.evpfilename = evpfilename
         # columns of self.evpfilename
@@ -1190,3 +1355,55 @@ class CPOutputFile(PwOutputFile):
         return self.evp_data[:, self.evp_order.index('tempp')]
     
 
+class CMLFile(StructureFileParser):
+    def __init__(self, filename=None):
+        StructureFileParser.__init__(self, filename)
+    
+    def parse(self):
+        StructureFileParser.parse(self)
+
+    def _get_soup(self):
+        return BeautifulStoneSoup(open(self.filename).read())        
+
+    def _get_atomarray(self):
+        self.check_get_attr('_soup')
+        # ret: list of Tag objects:
+        # <atomarray>
+        #    <atom id="a1" ...>
+        #    <atom id="a2" ...>
+        #    ...
+        # </atomarray>
+        # ==>
+        # [<atom id="a1" ...>, <atom id="a2" ...>, ...]
+        return self._soup.find('atomarray').findAll('atom')
+    
+    def get_coords(self):
+        self.check_get_attr('_atomarray')
+        return np.array([[float(entry.get('xfract')), 
+                          float(entry.get('yfract')),
+                          float(entry.get('zfract'))] \
+                          for entry in self._atomarray])
+    
+    def get_symbols(self):
+        self.check_get_attr('_atomarray')
+        return [str(entry.get('elementtype')) for entry in self._atomarray]
+    
+    def get_cryst_const(self):
+        self.check_get_attr('_soup')
+        crystal = self._soup.find('crystal')            
+        return np.array([crystal.find('scalar', title="a").string,
+                         crystal.find('scalar', title="b").string,
+                         crystal.find('scalar', title="c").string,
+                         crystal.find('scalar', title="alpha").string,
+                         crystal.find('scalar', title="beta").string,
+                         crystal.find('scalar', title="gamma").string]\
+                         ).astype(float)
+    
+    def get_cell_parameters(self):
+        self.check_get_attr('cryst_const')
+        return crys.cc2cp(self.cryst_const)
+
+    def get_natoms(self):
+        self.check_get_attr('symbols')
+        return len(self.symbols)            
+        
