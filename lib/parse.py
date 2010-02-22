@@ -372,7 +372,9 @@ class StructureFileParser(FileParser):
     
     def parse(self):
         # At least these members must be "gotten" in parse() of derived
-        # classes. The calling order can be overridden.
+        # classes. The calling order can be overridden. Additional members may
+        # be added, as long as all members of this list are beeing set in
+        # parse() of the derived class.
         attr_lst = ['coords', 'symbols', 'cryst_const', 'cell_parameters',
                     'natoms']
         for attr in attr_lst:
@@ -410,9 +412,6 @@ class CifFile(StructureFileParser):
         
         members:
         --------
-        celldm : array (6,), PWscf celldm, see [2]
-            [a, b/a, c/a, cos(alpha), cos(beta), cos(gamma)]
-            **** NOTE: 'a' is always in Bohr! ****
         symbols : list of strings with atom symbols
         coords : array (natoms, 3), crystal coords
         cif_dct : dct with 'a','b','c' in Angstrom (as parsed from the Cif
@@ -422,6 +421,11 @@ class CifFile(StructureFileParser):
             with crys.cc2cp()
         cryst_const
         natoms
+
+        extra members:
+        celldm : array (6,), PWscf celldm, see [2]
+            [a, b/a, c/a, cos(alpha), cos(beta), cos(gamma)]
+            **** NOTE: 'a' is always in Bohr! ****
 
         notes:
         ------
@@ -455,12 +459,12 @@ class CifFile(StructureFileParser):
             st = re.match(r'(' + regex.float_re  + r')(\(.*)', st).group(1)
         return float(st)
 
-    def cif_label(self, st, rex=re.compile(r'([a-zA-Z]+)([0-9]*)')):
-        """Remove digits from atom names. 
+    def cif_clear_atom_symbol(self, st, rex=re.compile(r'([a-zA-Z]+)([0-9+-]*)')):
+        """Remove digits and "+,-" from atom names. 
         
         example:
         -------
-        >>> cif_label('Al1')
+        >>> cif_clear_atom_symbol('Al1')
         'Al'
         """
         return rex.match(st).group(1)
@@ -498,7 +502,11 @@ class CifFile(StructureFileParser):
 
     def get_symbols(self):
         self.check_get_attr('_cif_block')
-        return map(self.cif_label, self._cif_block['_atom_site_label'])
+        try_lst = ['_atom_site_type_symbol', '_atom_site_label']
+        for entry in try_lst:
+            if self._cif_block.has_key(entry):
+                return map(self.cif_clear_atom_symbol, self._cif_block[entry])
+        return None                
     
     def get_cryst_const(self):
         self.check_get_attr('_cif_dct')
@@ -523,8 +531,7 @@ class CifFile(StructureFileParser):
         celldm.append(cos(self._cif_dct['alpha']*pi/180))
         celldm.append(cos(self._cif_dct['beta']*pi/180))
         celldm.append(cos(self._cif_dct['gamma']*pi/180))
-        celldm = np.asarray(self.celldm)
-        return celldm
+        return np.asarray(celldm)
 
     def parse(self):        
         StructureFileParser.parse(self)
@@ -533,6 +540,7 @@ class CifFile(StructureFileParser):
         ## self.cryst_const = self.get_cryst_const()
         ## self.cell_parameters = self.get_cell_parameters() 
         ## self.natoms = self.get_natoms()
+        self.celldm = self.get_celldm()
         self.close_file()
 
 
