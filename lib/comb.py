@@ -161,6 +161,17 @@ def nested_loops(lists, ret_all=False):
      [2, 'b', <ufunc 'cos'>],
      [2, 'c', <ufunc 'sin'>],
      [2, 'c', <ufunc 'cos'>]]
+    # if values of different lists should be varied together
+    >>> nested_loops([zip([1,2], ['a', 'b']), [88, 99]])
+    [[(1, 'a'), 88], [(1, 'a'), 99], [(2, 'b'), 88], [(2, 'b'), 99]]
+    >>> from pwtools import common
+    >>> for x in nested_loops([zip([1,2], ['a', 'b']), [88, 99]]): 
+    ...     print common.flatten(x)
+    ...
+    [1, 'a', 88]
+    [1, 'a', 99]
+    [2, 'b', 88]
+    [2, 'b', 99]
     """
     lens = map(len, lists)
     mx_idxs = [x - 1 for x in lens]
