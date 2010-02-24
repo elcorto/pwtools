@@ -14,5 +14,6 @@ __all__ = [\
     'corr',
     'parse',
     'periodic_table',
-    'io'
+    'io',
+    'sql'
     ]
