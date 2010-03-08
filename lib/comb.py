@@ -15,16 +15,14 @@ def fac(n):
         return 1
     return n * fac(n-1) 
 
-#-----------------------------------------------------------------------------
 
 def binom(n, k):
-    """Binomial coefficient.
+    """Binomial coefficient ("n over k").
     fac(n)/(fac(k)*fac(n-k))
     """
     _assert(n >= k >= 0, 'illegal input, only n >= k >= 0')
     return fac(n)/(fac(k)*fac(n-k))
 
-#-----------------------------------------------------------------------------
 
 def _swap(a, i, j):
     """Swap a[i] <-> a[j]. Return i-j-swapped copy of `a`.
@@ -47,7 +45,6 @@ def _swap(a, i, j):
     aa[j] = tmp
     return aa
 
-#-----------------------------------------------------------------------------
 
 def permute(a, id=True):
     """Store all N! permutations of `a` in a list.
@@ -91,7 +88,42 @@ def permute(a, id=True):
     return lst
 
 
-#-----------------------------------------------------------------------------
+def unique2d(arr, what='row'):
+    """Reduce 2d array `arr` to a 2d array with unique rows (or cols).
+
+    args:
+    -----
+    arr : 2d-like
+    what : str
+        {'row', 'col'}
+
+    example:
+    --------
+    >>> a=array([[1,2,3], [1,2,3], [1,2,4]])
+    >>> reduce_equal(a, 'row')
+    array([[1, 2, 3],
+           [1, 2, 4]])
+    """
+    if what == 'row':
+        arr = np.asarray(arr)
+    elif what == 'col':
+        arr = np.asarray(arr).T
+    else:
+        raise ValueError("illegal value of 'what': %s" %what)
+    uniq = [arr[0,:]]
+    for row_a in arr:
+        is_in = False
+        for row_u in uniq:
+            if (row_a == row_u).all():
+                is_in = True
+                break
+        if not is_in:
+            uniq.append(row_a)
+    if what == 'row':            
+        return np.asarray(uniq)            
+    else:        
+        return np.asarray(uniq).T
+
 
 def nested_loops(lists, ret_all=False):
     """Nonrecursive version of nested loops of arbitrary depth. Pure Python
@@ -202,7 +234,6 @@ def nested_loops(lists, ret_all=False):
     else:
         return perms
 
-#-----------------------------------------------------------------------------
 
 def kron(a, b):
     """Kronecker symbol for scalars and arrays.
@@ -236,7 +267,6 @@ def kron(a, b):
         z[tmp==0] = 1
     return z
 
-#-----------------------------------------------------------------------------
 
 def main():
     a = np.array([0,1,2])
@@ -244,7 +274,6 @@ def main():
     for aa in lst:
         print aa
 
-#-----------------------------------------------------------------------------
 
 if __name__ == '__main__':
     import sys

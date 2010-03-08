@@ -2,8 +2,8 @@ import sqlite3
 
 class SQLEntry(object):
     def __init__(self, sql_type, sql_val, file_val=None):
-        """Represent an entry in an SQL database. An entry is one single value
-        of one column and record (record = row). 
+        """Represent an entry in an SQLite database. An entry is one single
+        value of one column and record (record = row). 
         
         This class is ment to be used in parameter studies where a lot of
         parameters are vaired (e.g. in pw.x input files) and entered in a
@@ -84,6 +84,7 @@ class SQLiteDB(object):
         self.db_fn = db_fn
         self.conn = sqlite3.connect(db_fn)
         self.cur = self.conn.cursor()
+            
     
     def execute(self, cmd):
         """
@@ -95,7 +96,8 @@ class SQLiteDB(object):
         return self.cur.execute(cmd)
 
     def has_column(self, table, col):
-        """
+        """Check if table `table` already has the column `col`.
+
         args:
         -----
         table : str
