@@ -23,54 +23,75 @@ def binom(n, k):
     _assert(n >= k >= 0, 'illegal input, only n >= k >= 0')
     return fac(n)/(fac(k)*fac(n-k))
 
-
-def _swap(a, i, j):
-    """Swap a[i] <-> a[j]. Return i-j-swapped copy of `a`.
+def _swap(arr, i, j):
+    """Swap arr[i] <-> arr[j]. Return i-j-swapped copy of `arr`.
     
     args:
     -----
-    a : 1D numpy array
+    arr : 1d list
     
     notes:
     ------
-    `a` is global in permute() and is the current permutation. Must use copy()
-    b/c in-place operation on `a` would reflect to *all* other `a` arrays which
-    are already in `lst`. Think of `a` as a pointer like in C. Stuff like `for
-    i in range(..): lst.append(a)` would result in a "list of pointers" which
-    all point to the same array.
+    Must return a copy of arr b/c the swap is an in-place operation and lists
+    are mutable.
     """        
-    aa = a.copy()
+    # aa = a.copy() for np arrays
+    # aa = a[:]     for lists
+    aa = a[:]
     tmp = aa[i]
     aa[i] = aa[j]
     aa[j] = tmp
     return aa
 
 
-def permute(a, id=True):
-    """Store all N! permutations of `a` in a list.
+def permute(a, id=True, skip_equal=False):
+    """Store permutations of `a` in a list.
     
     args:
     -----
-    a : 1D numpy array, list, ...
+    a : 1d list to permute
     id : bool 
         False : store all perms but not the identity (i.e. a
-            itself), so len(lst) = N!-1
+            itself), max. N!-1 perms are returned
+    skip_equal : bool
+        True : skip permuations which occur multiple times
+
+    returns:
+    --------
+    list of lists with permutations
+
     notes:
     ------
-    We use the Countdown QuickPerm Algorithm [1]. Works like Heap's Algorithm
-    [2,3] so it's a nonrecursive version of it. Uses N!-1 swaps.
- 
+    Algo:
+        We use the Countdown QuickPerm Algorithm [1]. Works like Heap's
+        Algorithm [2,3] so it's a nonrecursive version of it. Uses N!-1 swaps.
+    
+    Number of perms:
+        Ordinary permutations yield len(a)! == N! permutations. But if one
+        wants to permute a list, where not all elements are unique 
+            a = [1,2,3,4,5,6]
+        but there are m=1,...,M groups, each of which has p_m equal members
+            a = [1,3,3,5,5,5]  p_1 = 1 [1x 1], p_2 = 2 [2x 3], p_3 = 3 [3x 5]
+        then the number of perms reduces to 
+            N! / (p_1! * p_2! *... * p_M!)
+            p_1 + ... + p_M = N
+        This function just takes a list and permutes it, yielding N! perms.
+        With sikp_equal, you can skip equal permutations out of the N!, which
+        occur of `a` has the above form.
+
+    refs:
     [1] http://www.geocities.com/permute_it/ 
     [2] www.cs.princeton.edu/~rs/talks/perms.pdf, page 12
     [3] http://www.cut-the-knot.org/do_you_know/AllPerm.shtml
     """
-    a = np.asarray(a)
+    # copy input
+    aa = list(a)[:]
     if id:
-        lst = [a]
+        lst = [aa]
     else:
         lst = []
-    n = len(a)
-    p = np.arange(n+1)
+    n = len(aa)
+    p = range(n+1)
     i = 1
     while i < n:
         p[i] -= 1
@@ -78,8 +99,17 @@ def permute(a, id=True):
             j = p[i]
         else:
             j = 0
-        a = _swap(a, j, i)
-        lst.append(a)
+        # swap a[i] <-> a[j]
+        tmp = aa[i]
+        aa[i] = aa[j]
+        aa[j] = tmp
+        if skip_equal:
+            if not (aa in lst):
+                # aa[:] -> append a *copy*, only "aa" would append a pointer to
+                # the current "aa", and that is changed in the next loop 
+                lst.append(aa[:])
+        else:            
+            lst.append(aa[:])
         # restore p to start value [0, 1, ..., n]
         i = 1
         while p[i] == 0:
@@ -96,13 +126,23 @@ def unique2d(arr, what='row'):
     arr : 2d-like
     what : str
         {'row', 'col'}
+    
+    returns:
+    --------
+    numpy 2d array
 
     example:
     --------
     >>> a=array([[1,2,3], [1,2,3], [1,2,4]])
-    >>> reduce_equal(a, 'row')
+    >>> unique2d(a, 'row')
     array([[1, 2, 3],
            [1, 2, 4]])
+    
+    notes:
+    ------
+    # These do the same:
+    >>> unique2d(permute(a)) # uses more memory, slower
+    >>> permute(a, skip_equal=True))
     """
     if what == 'row':
         arr = np.asarray(arr)
