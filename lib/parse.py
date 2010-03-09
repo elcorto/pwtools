@@ -296,8 +296,10 @@ class StructureFileParser(FileParser):
     member must be None.
 
     self.coords : ndarray (natoms, 3) with atom coords
-    self.symbols : list (natoms,) with strings of atom symbols
-    self.cell_parameters : 3x3 array with primitive basis vectors as rows
+    self.symbols : list (natoms,) with strings of atom symbols, must match the
+        order of the rows of self.coords
+    self.cell_parameters : 3x3 array with primitive basis vectors as rows, for
+        PWscf, the array is in units of (= divided by) alat == self.cryst_const[0]
     self.cryst_const : array (6,) with crystallographic costants
         [a,b,c,alpha,beta,gamma]
     self.natoms : number of atoms
@@ -379,6 +381,8 @@ class StructureFileParser(FileParser):
                     'natoms']
         for attr in attr_lst:
             self.check_get_attr(attr)
+    
+    # Default dummy getters. They all return None.
 
     def get_coords(self):
         pass
@@ -400,55 +404,50 @@ class StructureFileParser(FileParser):
 
 
 class CifFile(StructureFileParser):
-    def __init__(self, filename=None, block=None):
-        """Extract cell parameters and atomic positions from Cif files. This
-        data can be directly included in a pw.x input file. 
+    """Extract cell parameters and atomic positions from Cif files. This
+    data can be directly included in a pw.x input file. 
 
+    members:
+    --------
+    See StructureFileParser
+
+    extra members:
+    --------------
+    celldm : array (6,), PWscf celldm, see [2]
+        [a, b/a, c/a, cos(alpha), cos(beta), cos(gamma)]
+        NOTE: 'a' IS ALWAYS IN BOHR, NOT ANGSTROM!!
+    
+    notes:
+    ------
+    cif parsing:
+        We expect PyCifRW [1] to be installed, which provides the CifFile
+        module.
+    cell dimensions:
+        We extract
+        _cell_length_a
+        _cell_length_b
+        _cell_length_c
+        _cell_angle_alpha
+        _cell_angle_beta
+        _cell_angle_gamma
+        and transform them to pwscf-style celldm. 
+    atom positions:
+        Cif files contain "fractional" coords, which is just 
+        "ATOMIC_POSITIONS crystal" in PWscf.
+    
+    refs:
+    -----
+    [1] http://pycifrw.berlios.de/
+    [2] http://www.quantum-espresso.org/input-syntax/INPUT_PW.html#id53713
+    """        
+    def __init__(self, filename=None, block=None):
+        """        
         args:
         -----
         filename : name of the input file
         block : data block name (i.e. 'data_foo' in the Cif file -> 'foo'
             here). If None then the first data block in the file is used.
         
-        members:
-        --------
-        symbols : list of strings with atom symbols
-        coords : array (natoms, 3), crystal coords
-        cif_dct : dct with 'a','b','c' in Angstrom (as parsed from the Cif
-            file) and 'alpha', 'beta', 'gamma'
-        %(cryst_const_doc)s
-        cell_parameters : primitive lattice vectors obtained from cryst_const
-            with crys.cc2cp()
-        cryst_const
-        natoms
-
-        extra members:
-        celldm : array (6,), PWscf celldm, see [2]
-            [a, b/a, c/a, cos(alpha), cos(beta), cos(gamma)]
-            **** NOTE: 'a' is always in Bohr! ****
-
-        notes:
-        ------
-        cif parsing:
-            We expect PyCifRW [1] to be installed, which provides the CifFile
-            module.
-        cell dimensions:
-            We extract
-            _cell_length_a
-            _cell_length_b
-            _cell_length_c
-            _cell_angle_alpha
-            _cell_angle_beta
-            _cell_angle_gamma
-            and transform them to pwscf-style celldm. 
-        atom positions:
-            Cif files contain "fractional" coords, which is just 
-            "ATOMIC_POSITIONS crystal" in PWscf.
-        
-        refs:
-        -----
-        [1] http://pycifrw.berlios.de/
-        [2] http://www.quantum-espresso.org/input-syntax/INPUT_PW.html#id53713
         """
         StructureFileParser.__init__(self, filename)
         self.block = block
@@ -545,34 +544,31 @@ class CifFile(StructureFileParser):
 
 
 class PDBFile(StructureFileParser):
-    def __init__(self, filename=None):
-        """
-        Very very simple pdb file parser. Extract only ATOM/HETATM and CRYST1
-        (if present) records.
+    """Very very simple pdb file parser. Extract only ATOM/HETATM and CRYST1
+    (if present) records.
         
-        If you want smth serious, check biopython. No unit conversion up to
-        now.
-        
-        args:
-        -----
-        filename : name of the input file
+    If you want smth serious, check biopython. No unit conversion up to
+    now.
+    
+    members:
+    --------
+    See StructureFileParser
 
-        members:
-        --------
-        self.coords : ndarray (natoms, 3) with atom coords
-        self.symbols : list (natoms,) with strings of atom symbols
-        self.cell_parameters : 3x3 array with primitive basis vectors as rows
-            obtained from cryst_const with crys.cc2cp()
-        self.cryst_const : array (6,) with crystallographic costants
-            [a,b,c,alpha,beta,gamma]
-            If no CRYST1 record is found, this is None.
-        self.natoms : number of atoms
-        
-        notes:
-        ------
+    notes:
+    ------
+    self.cryst_const :
+        If no CRYST1 record is found, this is None.
+    
+    parsing:
         We use regexes which may not work for more complicated ATOM records. We
         don't use the strict column numbers for each field as stated in the PDB
         spec.
+    """
+    def __init__(self, filename=None):
+        """
+        args:
+        -----
+        filename : name of the input file
         """
         StructureFileParser.__init__(self, filename)
     
@@ -674,6 +670,22 @@ class PDBFile(StructureFileParser):
 
 
 class PwInputFile(StructureFileParser):
+    """Parse Pwscf input file.
+
+    members:
+    --------
+    See StructureFileParser
+    
+    extra members:
+    --------------
+    atspec : dict 
+        see self.get_atomic_species()
+    atpos : dict 
+        see self.get_atomic_positions()
+    namelist : dict
+        see self.get_namelists()
+    """
+
     def __init__(self, filename=None):
         StructureFileParser.__init__(self, filename)
         # All card names that may follow the namelist section in a pw.x input
@@ -688,21 +700,34 @@ class PwInputFile(StructureFileParser):
             'constraints',
             'collective_vars']
     
-    # TODO implement API style getters
     def parse(self):
-        self.atspec = self.get_atomic_species()
-        self.atpos = self.get_atomic_positions()
-        self.namelists = self.get_namelists()
-
-        # API
-        self.coords = self.atpos['coords']
-        self.symbols = self.atpos['symbols']
-        self.cell_parameters = self.get_cell_parameters()
-        if self.cell_parameters is not None:
-            self.cryst_const = crys.cp2cc(self.cell_parameters)
-        self.natoms = int(self.namelists['system']['nat'])
+        StructureFileParser.parse(self)
         self.close_file()
-        
+    
+    def get_atspec(self):
+        return self.get_atomic_species()
+    
+    def get_atpos(self):
+        return self.get_atomic_positions()
+
+    def get_symbols(self):
+        self.check_get_attr('atpos')
+        return None if (self.atpos is None) else self.atpos['symbols']
+
+    def get_coords(self):
+        self.check_get_attr('atpos')
+        return None if (self.atpos is None) else self.atpos['coords']
+
+    def get_natoms(self):
+        self.check_get_attr('namelists')
+        return None if (self.namelists is None) else \
+               int(self.namelists['system']['nat'])
+
+    def get_cryst_const(self):
+        self.check_get_attr('cell_parameters')
+        return None if (self.cell_parameters is None) else \
+               crys.cp2cc(self.cell_parameters)
+
     def get_atomic_species(self):
         """Parses ATOMIC_SPECIES card in a pw.x input file.
 
@@ -858,12 +883,13 @@ class PwInputFile(StructureFileParser):
 
         <unit> is a string: 'alat', 'crystal' etc.
         """
+        self.check_get_attr('atspec')
         self.file.seek(0)
         verbose("[get_atomic_positions] reading ATOMIC_POSITIONS from %s" %self.filename)
-        if self.atspec is None:
-            self.atspec = self.get_atomic_species()
-            # need to seek to start of file here
-            self.file.seek(0)
+##        if self.atspec is None:
+##            self.atspec = self.get_atomic_species()
+##            # need to seek to start of file here
+##            self.file.seek(0)
         rex = re.compile(r'\s*([a-zA-Z]+)((\s+' + regex.float_re + '){3})\s*')
         self.file, flag, line = scan_until_pat(self.file, 
                                                pat="atomic_positions", 
@@ -1005,10 +1031,42 @@ class PwInputFile(StructureFileParser):
 
 
 class PwOutputFile(FileParser):
+    """Parse a pw.x output file. This class is primarily geared towards
+    pw.x MD runs but should also work for other calculation types.
+    
+    members:
+    --------
+    etot : 1d array (nstep,)
+    ekin : 1d array (nstep,)
+    stresstensor : 3d array (3, nstep, 3), stress tensor for each step 
+        XXX time axis hardcoded!
+    pressure : 1d array (nstep,), this is parsed from the "P= ... kbar"
+        lines and the value is actually 1/3*trace(stress tensor)
+    temperature : 1d array (nstep,)
+    coords : 3d array (natoms, nstep, 3) XXX time axis hardcoded!
+    cell_parameters : 3d array (3, nstep, 3), prim. basis vectors for each 
+        step
+    nstep : number of MD steps
+    natoms : number of atoms
+    
+    Members, whose corresponding data in the file is not present, are None.
+    E.g. if there are no CELL_PARAMETERS printed in the output file, then
+    self.cell_parameters == None.
+
+    notes:
+    ------
+    Why do we need the input file anyway? For pw.x MDs, normally all infos
+    are contained in the output file alone. Also often, the output file is
+    actually a concatenation of smaller files ("$ cat pw.out.r* >
+    pw.out.all"). In that case, things line "nstep" are of course wrong if
+    taken from an input file. 
+    
+    But certain quantinies must be the same (e.g. "nat" == natoms) in
+    input- and output file. This can be used to sanity-check the parsed
+    results. Also, they are often easier extracted from an input file.
+    """        
     def __init__(self, filename=None, infile=None):
-        """Parse a pw.x output file. This class is primarily geared towards
-        pw.x MD runs.
-        
+        """
         args:
         -----
         filename : file to parse
@@ -1021,39 +1079,7 @@ class PwOutputFile(FileParser):
             >>> pwout = PwOutputFile('pw.out', 'pw.in')
             In case it is a filename, the "pwin" object will be constructed
             here in the way shown above.
-        
-        members:
-        --------
-        etot : 1d array (nstep,)
-        ekin : 1d array (nstep,)
-        stresstensor : 3d array (3, nstep, 3), stress tensor for each step 
-            XXX time axis hardcoded!
-        pressure : 1d array (nstep,), this is parsed from the "P= ... kbar"
-            lines and the value is actually 1/3*trace(stress tensor)
-        temperature : 1d array (nstep,)
-        coords : 3d array (natoms, nstep, 3) XXX time axis hardcoded!
-        cell_parameters : 3d array (3, nstep, 3), prim. basis vectors for each 
-            step
-        nstep : number of MD steps
-        natoms : number of atoms
-        
-        Members, whose corresponding data in the file is not present, are None.
-        E.g. there are no CELL_PARAMETERS printed in the output file, so
-        self.cell_parameters == None.
-
-        notes:
-        ------
-        Why do we need the input file anyway? For pw.x MDs, normally all infos
-        are contained in the output file alone. Also often, the output file is
-        actually a concatenation of smaller files ("$ cat pw.out.r* >
-        pw.out.all"). In that case, things line "nstep" are of course wrong if
-        taken from an input file. 
-        
-        But certain quantinies must be the same (e.g. "nat" == natoms) in
-        input- and output file. This can be used to sanity-check the parsed
-        results. Also, they are often easier extracted from an input file.
-        """
-
+        """        
         FileParser.__init__(self, filename)
         self._infile = infile
 
@@ -1364,6 +1390,8 @@ class CPOutputFile(PwOutputFile):
     
 
 class CMLFile(StructureFileParser):
+    """Parse Chemical Markup Language files (XML-ish format). This file format
+    is used by avogadro."""
     def __init__(self, filename=None):
         StructureFileParser.__init__(self, filename)
     
