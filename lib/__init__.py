@@ -15,5 +15,6 @@ __all__ = [\
     'parse',
     'periodic_table',
     'io',
-    'sql'
+    'sql',
+    'kpath'
     ]
