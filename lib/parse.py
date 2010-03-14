@@ -684,6 +684,14 @@ class PwInputFile(StructureFileParser):
         see self.get_atomic_positions()
     namelist : dict
         see self.get_namelists()
+    
+    notes:
+    ------
+    self.cell_parameters (CELL_PARAMETERS) in pw.in is units of alat. If we
+    have an entry in pw.in to determine alat: system:celldm(1) or sysetm:A,
+    then the cell parameters will be multiplied with that for the calculation
+    of self.cryst_const, otherwise [a,b,c] = cryst_const[:3] will be wrong! A
+    warning will be issued.
     """
 
     def __init__(self, filename=None):
@@ -725,8 +733,21 @@ class PwInputFile(StructureFileParser):
 
     def get_cryst_const(self):
         self.check_get_attr('cell_parameters')
+        self.check_get_attr('namelists')
+        alat_dct = {'celldm(1)': 1,
+                    'A': 1/constants.a0_to_A}
+        _sys = self.namelists['system']
+        alat_found = False
+        for key, conv_fac in alat_dct.iteritems():                    
+            if _sys.has_key(key):
+                celldm1 = float(_sys[key])*conv_fac
+                alat_found = True
+                break
+        if not alat_found:
+            print "[PwInputFile:get_cryst_const] Warning: no alat found"
+            celldm1 = 1.0
         return None if (self.cell_parameters is None) else \
-               crys.cp2cc(self.cell_parameters)
+               crys.cp2cc(self.cell_parameters*celldm1)
 
     def get_atomic_species(self):
         """Parses ATOMIC_SPECIES card in a pw.x input file.
@@ -737,7 +758,7 @@ class PwInputFile(StructureFileParser):
         
         symbols : list of strings, (number_of_atomic_species,), 
             ['Si', 'O', 'Al', 'N']
-        masses : 1d arary, (number_of_atomic_species,)
+        masses : 1d array, (number_of_atomic_species,)
             array([28.0855, 15.9994, 26.981538, 14.0067])
         pseudos : list of strings, (number_of_atomic_species,)
             ['Si.LDA.fhi.UPF', 'O.LDA.fhi.UPF', 'Al.LDA.fhi.UPF',
@@ -820,10 +841,13 @@ class PwInputFile(StructureFileParser):
         --------------------------------------------------------------------
         
         In a.u. = Rydberg atomic units (see constants.py).
+
+        This would also work:
+            >>> cmd = r"sed -nre '/CELL_PARAMETERS/,+3p' %s | tail -n3" %self.filename
+            >>> cp = np.loadtxt(StringIO(com.backtick(cmd)))
         """
         self.file.seek(0)
         verbose('[get_cell_parameters] reading CELL_PARAMETERS from %s' %self.filename)
-    ##>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         rex = re.compile(r'\s*((' + regex.float_re + '\s*){3})\s*')
         self.file, flag = scan_until_pat(self.file, pat="cell_parameters",
                                          err=False)
@@ -845,10 +869,6 @@ class PwInputFile(StructureFileParser):
             verbose("[get_cell_parameters]: WARNING: nothing found")
             return None
         cp = np.array(lst, dtype=float)
-    #----------------------------------------------------------
-    ##    cmd = "sed -nre '/CELL_PARAMETERS/,+3p' %s | tail -n3" %self.filename
-    ##    cp = np.loadtxt(StringIO(com.backtick(cmd)))
-    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         com.assert_cond(len(cp.shape) == 2, "`cp` is no 2d array")
         com.assert_cond(cp.shape[0] == cp.shape[1], "dimensions of `cp` don't match")
         return cp
@@ -886,10 +906,6 @@ class PwInputFile(StructureFileParser):
         self.check_get_attr('atspec')
         self.file.seek(0)
         verbose("[get_atomic_positions] reading ATOMIC_POSITIONS from %s" %self.filename)
-##        if self.atspec is None:
-##            self.atspec = self.get_atomic_species()
-##            # need to seek to start of file here
-##            self.file.seek(0)
         rex = re.compile(r'\s*([a-zA-Z]+)((\s+' + regex.float_re + '){3})\s*')
         self.file, flag, line = scan_until_pat(self.file, 
                                                pat="atomic_positions", 
