@@ -25,7 +25,7 @@ class SQLEntry(object):
             If not None, then this is the value of the entry that it has in
             another context (actually used in the input file). If None, then
             file_val = val. 
-            Example: K_POINTS in pw.x inout file:
+            Example: K_POINTS in pw.x input file:
                 sql_val: '2 2 2 0 0 0'
                 file_val: 'K_POINTS automatic\n2 2 2 0 0 0'
 
@@ -85,7 +85,6 @@ class SQLiteDB(object):
         self.conn = sqlite3.connect(db_fn)
         self.cur = self.conn.cursor()
             
-    
     def execute(self, cmd):
         """
         args:

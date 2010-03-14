@@ -445,6 +445,9 @@ def igrep(pat_or_rex, iterable, func='search'):
            [   7.,    8.,    9.]])
     >>> fd.close()
     """
+    if not hasattr(iterable, 'next'):
+        raise ValueError("input has no next() method, try iter(...)")
+
     if isinstance(pat_or_rex, types.StringType):
         rex = re.compile(pat_or_rex)
     else:
