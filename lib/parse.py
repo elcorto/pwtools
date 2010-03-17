@@ -1490,3 +1490,76 @@ class CMLFile(StructureFileParser):
         self.check_get_attr('symbols')
         return len(self.symbols)            
 
+
+class Grep(object):
+    """Maximum felxibility!
+    Define your re.<func> and know what it will return, e.g. MatchObject for
+    search()/match() or list for findall(). Then define a handle (function),
+    that takes the output and returns something (string, list, whatever) for
+    further processing.
+
+    usage idea:
+    (1) define Grep objects
+    
+    patterns = { 
+        "nelec_out"  : Grep(sql_type = 'FLOAT',
+                            regex = re.compile(r'number.*electr.*=\s*(.*)\s*'),
+                            basename = 'pw.out'),
+        "ecutwfc"  : Grep(sql_type = 'FLOAT',
+                          regex = re.compile(r'kinetic.*ener.*=\s*(.*)\s+Ry'),
+                          basename = 'pw.out'),
+        "ecutrho"  : Grep(sql_type = 'FLOAT',
+                          regex = re.compile(r'charge\s*density\s*cut.*=\s*(.*)\s+Ry'),
+                          basename = 'pw.out'),
+        "diag": Grep(sql_type='TEXT',
+                     regex = re.compile(r"diagonal.*=\s*'(.*)'\s*"),
+                     basename = 'pw.in'),
+        "finished": Grep(sql_type='TEXT', 
+                         regex = re.compile(r'end.*bfgs', re.I),
+                         handle = lambda m: m if m is None else 'yes' ,
+                         basename='pw.out'),
+        "kpoints": Grep(sql_type='TEXT', 
+                        regex = re.compile(r"K_POINTS.*\n(.*)"),
+                        basename = 'pw.in'),
+               } 
+    (2) loop over result dirs calc/0 calc/1 ... and grep for stuff in
+        pw.{in,out}
+    
+    # name can be the name of a column in an SQL db etc ...
+    for name, grep in patterns.iteritems():
+        for idx in range(0,20):
+            dir = os.path.join('calc', idx)
+            ret = grep.grep(dir)
+    """
+    def __init__(self, sql_type, regex, basename, 
+                 handle = lambda m: m.group(1), 
+                 func = re.search):
+        # str: 'TEXT', 'FLOAT', ...                  
+        self.sql_type = sql_type
+        # str or compiled regex
+        self.regex = regex
+        # 'pw.in' for calc/0/pw.in etc.
+        self.basename = basename
+        # function that gets the output of re.<func> and returns a string
+        # or whatever for further processing
+        self.handle = handle
+        # re.<func>
+        self.func = func
+    
+    def _handle(self, arg):
+        """Wrapper for self.handle that takes care of arg=None (common case if
+        a MatchObject is None b/c there was no match) so no self.handle()
+        has to deal with that."""
+        if arg is None:
+            print "No match"
+            return None
+        else:
+            return self.handle(arg)
+
+    def grep(self, dir):
+        # dir: calc/0/
+        fn = pj(dir, self.basename)
+        print fn
+        m = self.func(self.regex, open(fn).read())
+        return self._handle(m)
+
