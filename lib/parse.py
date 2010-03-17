@@ -189,7 +189,8 @@ def scan_until_pat2(fh, rex, err=True, retmatch=False):
 class FileParser(object):
     """Base class for file parsers.
     
-    Classes derived from this one must at least override self.parse().
+    Classes derived from this one must at least override 
+    self.attr_list by using set_attr_lst().
     """
     def __init__(self, filename=None):
         """
@@ -205,7 +206,18 @@ class FileParser(object):
             self.file = open(filename)
         else:
             self.file = None
- 
+        
+        # List of attributes (strings) ['foo', 'bar', '_baz', ...]. For each
+        # attr, there must exist a getter self.get_foo(), self.get_bar(),
+        # self._get_baz(), ... which is called in self.parse().
+        self.set_attr_lst([])
+    
+    def set_attr_lst(self, attr_lst):
+        """Set self.attr_lst and init each attr to None."""
+        self.attr_lst = attr_lst
+        for attr in self.attr_lst:
+            setattr(self, 'attr', None)
+
     def __del__(self):
         """Destructor. If self.file has not been closed yet (in self.parse()),
         then do it here, eventually."""
@@ -269,21 +281,13 @@ class FileParser(object):
             else:
                 get = 'get_'
             setattr(self, attr, eval('self.%s%s()' %(get, attr))) 
-
+    
     def parse(self):
-        pass
+        for attr in self.attr_lst:
+            self.check_get_attr(attr)
     
-    def ang_to_bohr(self):
-        pass
-    
-    def bohr_to_ang(self):
-        pass
-
-    def to_bohr(self):
-        pass
-         
-    def to_ang(self):
-        pass
+    def get_txt(self):
+        return open(self.filename).read().strip()
 
 
 class StructureFileParser(FileParser):
@@ -371,19 +375,18 @@ class StructureFileParser(FileParser):
     
     def __init__(self, filename=None):
         FileParser.__init__(self, filename)
-    
-    def parse(self):
         # At least these members must be "gotten" in parse() of derived
         # classes. The calling order can be overridden. Additional members may
         # be added, as long as all members of this list are beeing set in
         # parse() of the derived class.
-        attr_lst = ['coords', 'symbols', 'cryst_const', 'cell_parameters',
-                    'natoms']
-        for attr in attr_lst:
-            self.check_get_attr(attr)
-    
-    # Default dummy getters. They all return None.
+        self.set_attr_lst(['coords', 'symbols', 'cryst_const', 'cell_parameters',
+                         'natoms'])
 
+    def parse(self):
+        FileParser.parse(self)
+
+    # Default dummy getters. They all return None.
+    
     def get_coords(self):
         pass
     
@@ -451,6 +454,7 @@ class CifFile(StructureFileParser):
         """
         StructureFileParser.__init__(self, filename)
         self.block = block
+        self.set_attr_lst(self.attr_lst + ['celldm'])
     
     def cif_str2float(self, st):
         """'7.3782(7)' -> 7.3782"""
@@ -534,12 +538,6 @@ class CifFile(StructureFileParser):
 
     def parse(self):        
         StructureFileParser.parse(self)
-        ## self.coords = self.get_coords()
-        ## self.symbols = self.get_symbols()
-        ## self.cryst_const = self.get_cryst_const()
-        ## self.cell_parameters = self.get_cell_parameters() 
-        ## self.natoms = self.get_natoms()
-        self.celldm = self.get_celldm()
         self.close_file()
 
 
@@ -684,6 +682,8 @@ class PwInputFile(StructureFileParser):
         see self.get_atomic_positions()
     namelist : dict
         see self.get_namelists()
+    kpoints : dict
+        see self.get_kpoints()
     
     notes:
     ------
@@ -707,6 +707,7 @@ class PwInputFile(StructureFileParser):
             'climbing_images',
             'constraints',
             'collective_vars']
+        self.set_attr_lst(self.attr_lst + ['kpoints'])
     
     def parse(self):
         StructureFileParser.parse(self)
@@ -1045,6 +1046,25 @@ class PwInputFile(StructureFileParser):
             return None
         return dct
 
+    def get_kpoints(self):
+        self.check_get_attr('txt')
+        rex = re.compile(r'^\s*K_POINTS\s*(.*?)\s*\n\s*^\s*(.*?)\s*$', 
+                         re.M)
+        m = rex.search(self.txt)                             
+        return {'mode': m.group(1),
+                'val': m.group(2)}
+            
+
+# XXX Possible optimization: 
+# --------------------------
+# Use get_txt() to read in the file to parse and use only python's re module.
+# Would spare us spawning child processes for grep/sed/awk. But GNU sed is
+# probably faster for large files and has some very nice features, too.
+#
+# TODO 
+# ----
+# * introduce new variable (int): self.time_axis to contruct slice
+#   stuff for reading "3d arrays", dont hard-code axis=1 everywhere
 
 class PwOutputFile(FileParser):
     """Parse a pw.x output file. This class is primarily geared towards
@@ -1064,6 +1084,7 @@ class PwOutputFile(FileParser):
         step
     nstep : number of MD steps
     natoms : number of atoms
+    volume : 1d array (nstep,)
     
     Members, whose corresponding data in the file is not present, are None.
     E.g. if there are no CELL_PARAMETERS printed in the output file, then
@@ -1098,50 +1119,38 @@ class PwOutputFile(FileParser):
         """        
         FileParser.__init__(self, filename)
         self._infile = infile
-
+        
+        # This list of calls is supposed to be order-independent.
+        self.set_attr_lst([\
+        'infile', 
+        'nstep', 
+        'etot', 
+        'ekin', 
+        'stresstensor', 
+        'pressure', 
+        'temperature', 
+        'coords', 
+        'cell_parameters', 
+        'natoms', 
+        'volume'])
+        
         verbose("parsing %s" %self.filename)
         
-        #########################################################################
-        # Unlike the old parse_pwout_md, we IGNORE the first coords (the one
-        # from input) as well as the first temperature (which is printed is
-        # "Starting temperature") in md and vc-md. We grep only for nstep
-        # occurrences, NOT nstep+1 !!! 
-        #
-        # But, w/ the current approach, we get nstep+1 pressure values, the
-        # ones for the MD are then self.pressure[1:]
-        #########################################################################
-        
-        # FIXME It MAY be that with the grep-type approch, we grep the last coords
-        # twice for relax runs b/c they are printed twice.
-        
-        # TODO 
-        # * introduce new variable (int): self.time_axis to contruct slice
-        #   stuff for reading "3d arrays", dont hard-code axis=1 everywhere
-        
     def parse(self):
-        # This list of calls is supposed to be order-independent.  
-        self.infile = self.get_infile()
-        self.nstep = self.get_nstep()
-        self.etot = self.get_etot()
-        self.ekin = self.get_ekin()
-        self.stresstensor = self.get_stresstensor()
-        self.pressure = self.get_pressure()
-        self.temperature = self.get_temperature()
-        self.coords = self.get_coords()
-        self.cell_parameters = self.get_cell_parameters()
-        self.natoms = self.get_natoms()
+        FileParser.parse(self) 
 
         # sanity check
-        if self.coords is not None:
+        if self.is_set_attr('coords'):
             com.assert_cond(self.coords.shape[0] == self.infile.natoms, 
                             "natoms from infile (%s: %i)  and outfile "
                             "(%s: %i) don't match" \
                             %(self.infile.filename, self.infile.natoms,
                               self.filename, self.coords.shape[0]))
-        if self.infile.namelists['system'].has_key('nstep'):
-            if self.nstep != self.infile.namelists['system']['nstep']:
-                print("WARNING: nstep from infile (%s) and outfile (%s) "
-                      "don't match" %(self.infile.filename, self.filename))
+        if self.is_set_attr('nstep') and self.is_set_attr('infile'):
+            if self.infile.namelists['system'].has_key('nstep'):
+                if self.nstep != self.infile.namelists['system']['nstep']:
+                    print("WARNING: nstep from infile (%s) and outfile (%s) "
+                          "don't match" %(self.infile.filename, self.filename))
         self.close_file()
     
     def get_infile(self):
@@ -1269,7 +1278,29 @@ class PwOutputFile(FileParser):
         else:
             # XXX time axis hardcoded!
             return io.readtxt(StringIO(ret_str), axis=1, shape=(3, nstep, 3))
-
+    
+    def get_volume(self):
+        """For vc-relax, vc-md, pw.x prints stuff like
+            ,----------
+            | unit-cell volume          =    1725.5120 (a.u.)^3
+            | new unit-cell volume =   1921.49226 a.u.^3 (   284.73577 Ang^3 )
+            | new unit-cell volume =   1873.15813 a.u.^3 (   277.57339 Ang^3 )
+            | new unit-cell volume =   1836.54519 a.u.^3 (   272.14792 Ang^3 )
+            | ...
+            `----------
+        i.e. the vol of the start cell and then all new cells until
+        convergence. Here, we only grep for the NEW cell values, which should
+        occur nstep times.
+        """
+        verbose("getting volume")
+        ret_str = com.backtick(r"grep 'new.*volume' %s | sed -re \
+                                's/.*volume\s*=\s*(.*?)\s*a.u..*/\1/'"
+                                %self.filename)
+        if ret_str.strip() == '':
+            return None
+        else:            
+            return np.loadtxt(StringIO(ret_str))
+        
 
 class CPOutputFile(PwOutputFile):
     """
@@ -1458,4 +1489,4 @@ class CMLFile(StructureFileParser):
     def get_natoms(self):
         self.check_get_attr('symbols')
         return len(self.symbols)            
-        
+
