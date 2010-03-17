@@ -243,7 +243,6 @@ def cc2cp(cryst_const):
     vc = np.array([cx, cy, cz])
     return np.array([va, vb, vc])
 
-
 #-----------------------------------------------------------------------------
 # super cell building
 #-----------------------------------------------------------------------------
@@ -305,56 +304,58 @@ def scell_mask(dim1, dim2, dim3):
 #-----------------------------------------------------------------------------
 
 @crys_add_doc
-def raw_scell(R0, cp, mask, symbols, align='rows'):
-    """Build supercell based on `mask`.
+def raw_scell(R0, mask, symbols):
+    """Build supercell based on `mask`. This function does only translate the
+    atomic coords. it does NOT do anything with the crystal axes. See scell()
+    for that.
 
     args:
     -----
-    R0 : 2d array, (natoms, 3) with atomic positions in *crystal* coordinates
-        (i.e. in units of the basis vecs in `cp`), these represent the initial
-        single unit cell
-    %(cp_doc)s        
+    R0 : 2d array, (natoms, 3) with atomic positions in *crystal* (fractional)
+        coordinates (i.e. in units of the basis vecs in `cp`, for instance in .cif
+        files _atom_site_fract_*), these represent the initial single unit cell
     mask : what scell_mask() returns, (N, 3)
     symbols : list of strings with atom symbols, (natoms,), must match with the
         rows of R0
-    %(align_doc)s
 
     returns:
     --------
-    (symbols_sc, Rsc)
-    symbols_sc : list of strings with atom symbols, (N*natoms,)
-    Rsc : array (N*natoms, 3)
-        Atomic crystal coords in the super cell w.r.t `cp`, i.e. the numbers
-        are not in [0,1], but in [0, max(dims)].
+    {symbols, coords)
+    symbols : list of strings with atom symbols, (N*natoms,)
+    coords : array (N*natoms, 3)
+        Atomic crystal coords in the super cell w.r.t the original cell, 
+        i.e. the numbers are not in [0,1], but in [0, max(dims)].
 
     notes:
     ------
     This is tested for R0 in 'crystal' coords, i.e. in units of `cp`.
     """
-    if align == 'cols':
-        cp = cp.T
+    # Build supercell 
+    # ---------------
+    # Place each atom N = dim1*dim2*dim3 times in the
+    # supercell, i.e. copy unit cell N times. Actually, N-1, since
+    # n1=n2=n3=0 is the unit cell itself.
+    #
+    # mask[j,:] = [n1, n2, n3], ni = integers (floats actually, but
+    #   mod(ni, floor(ni)) == 0.0)
+    #
+    # original cell:
+    # R0[i,:] = r_i = position vect of atom i in the unit cell in *crystal*
+    #           coords!!
+    # 
+    # super cell:
+    # r*_i = r_i + [n1, n2, n3]
+    #   for all permutations (see scell_mask()) of n1, n2, n3.
+    #   ni = 0, ..., dim_i - 1, i = 1,2,3
     symbols_sc = []
     Rsc = np.empty((mask.shape[0]*R0.shape[0], 3), dtype=float)
     k = 0
     for iatom in range(R0.shape[0]):
         for j in range(mask.shape[0]):
-            # Build supercell. Place each atom N=dim1*dim2*dim3 times in the
-            # supercell, i.e. copy unit cell N times. Actually, N-1, since
-            # n1=n2=n3=0 is the unit cell itself.
-            # mask[j,:] = [n1, n2, n3], ni = integers (floats actually, but
-            #   mod(ni, floor(ni)) == 0.0)
-            # cp = [[-- a1 --]
-            #       [-- a2 --]
-            #       [-- a3 --]]
-            # dot(...) = n1*a1 + n2*a2 + n3*a3
-            # R0[i,:] = r_i = position vect of atom i in the unit cell
-            # r_i_in_supercell = r_i + n1*a1 + n2*a2 + n3*a3
-            #   for all permutations (see scell_mask()) of n1, n2, n3.
-            #   ni = 0, ..., dimi-1
-            Rsc[k,:] = R0[iatom,:] + np.dot(mask[j,:], cp)
+            Rsc[k,:] = R0[iatom,:] + mask[j,:]
             symbols_sc.append(symbols[iatom])
             k += 1
-    return symbols_sc, Rsc
+    return {'symbols': symbols_sc, 'coords': Rsc}
 
 #-----------------------------------------------------------------------------
 
@@ -377,25 +378,25 @@ def scell(coords, cp, dims, symbols, align='rows'):
 
     returns:
     --------
-    (symbols_sc, Rsc_scaled, cp_sc)
-    symbols_sc : list of strings with atom symbols for the supercell, (N*natoms,)
-    Rsc_scaled : array (N*natoms, 3)
+    {symbols, coords, cell_parameters}
+    symbols : list of strings with atom symbols for the supercell, (N*natoms,)
+    ocoords : array (N*natoms, 3)
         Atomic crystal coords in the super cell w.r.t `cp_sc`, i.e. the numbers
         are in [0,1].
-    cp_sc : array (3,3), basis vecs of the super cell        
+    cell_parameters : array (3,3), basis vecs of the super cell        
     """
     mask = scell_mask(*tuple(dims))
-    # in crystal coords w.r.t the *old* cell, i.e. the entries are in
+    # Rsc : crystal coords w.r.t the *old* cell, i.e. the entries are in
     # [0,(max(dims))], not [0,1]
-    symbols_sc, Rsc = raw_scell(coords, cp, mask, symbols, align=align)
+    symbols_sc, Rsc = raw_scell(coords, mask, symbols)
     # scale cp acording to super cell dims
     cp_sc = cp * np.asarray(dims)[:,np.newaxis]
-    # Rescale crystal coords to cp_sc (coord_trans actually) -> all values in
-    # [0,1] again
+    # Rescale crystal coords to new bigger cell_parameters (coord_trans
+    # actually) -> all values in [0,1] again
     Rsc[:,0] /= dims[0]
     Rsc[:,1] /= dims[1]
     Rsc[:,2] /= dims[2]
-    return (symbols_sc, Rsc, cp_sc)
+    return {'symbols': symbols_sc, 'coords': Rsc, 'cell_parameters': cp_sc}
 
 #-----------------------------------------------------------------------------
 # file parsers / converters
