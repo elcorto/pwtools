@@ -426,15 +426,16 @@ def scell(coords, cp, dims, symbols, align='rows'):
     mask = scell_mask(*tuple(dims))
     # Rsc : crystal coords w.r.t the *old* cell, i.e. the entries are in
     # [0,(max(dims))], not [0,1]
-    symbols_sc, Rsc = raw_scell(coords, mask, symbols)
+    sc = raw_scell(coords, mask, symbols)
     # scale cp acording to super cell dims
     cp_sc = cp * np.asarray(dims)[:,np.newaxis]
     # Rescale crystal coords to new bigger cell_parameters (coord_trans
     # actually) -> all values in [0,1] again
-    Rsc[:,0] /= dims[0]
-    Rsc[:,1] /= dims[1]
-    Rsc[:,2] /= dims[2]
-    return {'symbols': symbols_sc, 'coords': Rsc, 'cell_parameters': cp_sc}
+    sc['coords'][:,0] /= dims[0]
+    sc['coords'][:,1] /= dims[1]
+    sc['coords'][:,2] /= dims[2]
+    return {'symbols': sc['symbols'], 'coords': sc['coords'], 
+            'cell_parameters': cp_sc}
 
 #-----------------------------------------------------------------------------
 # file parsers / converters
