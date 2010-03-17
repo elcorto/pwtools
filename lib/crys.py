@@ -243,6 +243,44 @@ def cc2cp(cryst_const):
     vc = np.array([cx, cy, cz])
     return np.array([va, vb, vc])
 
+
+@crys_add_doc
+def recip_cp(cp, align='rows'):
+    """Reciprocal lattice vectors.
+        {a,b,c}* = 2*pi / V * {b,c,a} x {c, a, b}
+    
+    The volume is calculated using `cp`, so make sure that all units match.
+
+    args:
+    -----
+    %(cp_doc)s
+    %(align_doc)s
+
+    returns:
+    --------
+    Shape (3,3) numpy array with reciprocal vectors as rows.
+
+    notes:
+    ------
+    %(notes_cp_crys_const)s
+
+    The unit of the recip. vecs is 1/[cp] and the unit of the volume is
+    [cp]**3.
+    """
+    cp = np.asarray(cp)
+    assert_cond(cp.shape == (3,3), "cp must be (3,3) array")
+    if align == 'cols':
+        cp = cp.T
+    cp_recip = np.empty_like(cp)
+    vol = volume_cp(cp)
+    a = cp[0,:]
+    b = cp[1,:]
+    c = cp[2,:]
+    cp_recip[0,:] = 2*pi/vol * np.cross(b,c)
+    cp_recip[1,:] = 2*pi/vol * np.cross(c,a)
+    cp_recip[2,:] = 2*pi/vol * np.cross(a,b)
+    return cp_recip
+
 #-----------------------------------------------------------------------------
 # super cell building
 #-----------------------------------------------------------------------------
