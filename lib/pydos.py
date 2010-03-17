@@ -986,7 +986,25 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
 # misc
 #-----------------------------------------------------------------------------
 
-def str_arr(arr, fmt='%.15g', delim=' '*4):
+def fix_eps(arr, eps=np.finfo(float).eps):
+    """Set values of arr to zero where abs(arr) <= eps.
+    This always returns a copy.
+
+    args:
+    ----
+    arr : numpy nd array
+    eps : float eps
+
+    returns:
+    --------
+    numpy nd array (copy)
+    """
+    _arr = np.asarray(arr).copy()
+    _arr[np.abs(_arr) <= eps] = 0.0
+    return _arr
+
+
+def str_arr(arr, fmt='%.15g', delim=' '*4, zero_eps=True):
     """Convert array `arr` to nice string representation for printing.
     
     args:
@@ -994,6 +1012,8 @@ def str_arr(arr, fmt='%.15g', delim=' '*4):
     arr : array_like, 1d or 2d array
     fmt : string, format specifier, all entries of arr are formatted with that
     delim : string, delimiter
+    zero_eps : bool
+        Print values as 0.0 where |value| < eps
 
     returns:
     --------
@@ -1017,18 +1037,18 @@ def str_arr(arr, fmt='%.15g', delim=' '*4):
     Essentially, we replicate the core part of np.savetxt.
     """
     arr = np.asarray(arr)
-    if arr.ndim == 1:
-        return delim.join([fmt]*arr.size) % tuple(arr)
-    elif arr.ndim == 2:
-        _fmt = delim.join([fmt]*arr.shape[1])
-        lst = [_fmt % tuple(row) for row in arr]
+    _arr = fix_eps(arr) if zero_eps else arr
+    if _arr.ndim == 1:
+        return delim.join([fmt]*_arr.size) % tuple(_arr)
+    elif _arr.ndim == 2:
+        _fmt = delim.join([fmt]*_arr.shape[1])
+        lst = [_fmt % tuple(row) for row in _arr]
         return '\n'.join(lst)
     else:
         raise ValueError('rank > 2 arrays not supported')
 
 
-
-def atpos_str(symbols, coords, fmt="%.10f"):
+def atpos_str(symbols, coords, fmt="%.10f", zero_eps=True):
     """Convenience function to make a string for the ATOMIC_POSITIONS section
     of a pw.x input file. Usually, this can be used to process the output of
     crys.scell().
@@ -1038,6 +1058,8 @@ def atpos_str(symbols, coords, fmt="%.10f"):
     symbols : list of strings with atom symbols, (natoms,), must match with the
         rows of coords
     coords : array (natoms, 3) with atomic coords
+    zero_eps : bool
+        Print values as 0.0 where |value| < eps
 
     returns:
     --------
@@ -1051,8 +1073,9 @@ def atpos_str(symbols, coords, fmt="%.10f"):
     """
     coords = np.asarray(coords)
     assert len(symbols) == coords.shape[0], "len(symbols) != coords.shape[0]"
+    _coords = fix_eps(coords) if zero_eps else coords
     txt = '\n'.join(symbols[i] + '\t' +  str_arr(row, fmt=fmt) \
-        for i,row in enumerate(coords))
+        for i,row in enumerate(_coords))
     return txt        
 
 
