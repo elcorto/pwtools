@@ -198,8 +198,6 @@ class FileParser(object):
         -----
         filename : str, name of the file to parse
         """
-        # Bohr -> Angstrom
-        self.a0_to_A = constants.a0_to_A
         
         self.filename = filename
         if self.filename is not None:
@@ -381,6 +379,7 @@ class StructureFileParser(FileParser):
         # parse() of the derived class.
         self.set_attr_lst(['coords', 'symbols', 'cryst_const', 'cell_parameters',
                          'natoms'])
+        self.a0_to_A = constants.a0_to_A
 
     def parse(self):
         FileParser.parse(self)
