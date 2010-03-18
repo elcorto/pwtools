@@ -9,6 +9,13 @@ import re
 
 import numpy as np
 
+# Cif parser
+try:
+    import CifFile as pycifrw_CifFile
+except ImportError:
+    print("%s: Warning: Cannot import CifFile from the PyCifRW package. " 
+    "Parsing Cif files will not work." %__file__)
+
 from common import assert_cond
 import common
 import constants as con
@@ -507,6 +514,66 @@ def wien_sgroup_input(lat_symbol, symbols, atpos_crystal, cryst_const):
         txt += fmt % tuple(coord) + '\n' + sym + '\n'
     return txt
 
-#-----------------------------------------------------------------------------
 
+@crys_add_doc
+def write_cif(filename, coords, symbols, cryst_const, fac=con.a0_to_A, conv=False):
+    """Q'n'D Cif writer. Should be a method of parse.StructureFileParser ....
+    stay tuned.
+    
+    args:
+    -----
+    filename : str
+        name of output .cif file
+    coords : array (natoms, 3)
+        crystal (fractional) coords
+    symbols : list of strings
+        atom symbols
+    %(cryst_const_doc)s
+    fac : conv factor Bohr -> Ang (.cif wants Angstrom)
+    conv: bool
+        Convert cryst_const[:3] to Ang
+    """
+    cf = pycifrw_CifFile.CifFile()
+    block = pycifrw_CifFile.CifBlock()
+    symbols = list(symbols)
+
+    # Bohr -> A
+    if conv:
+        # nasty trick, make local var with same name, otherwise, 'cryst_const'
+        # in global scope (module level= gets changed!
+        cryst_const = cryst_const.copy()
+        cryst_const[:3] *= fac
+    # cell
+    #
+    # dunno why I have to use str() here, assigning floats does not work
+    block['_cell_length_a'] = str(cryst_const[0])
+    block['_cell_length_b'] = str(cryst_const[1])
+    block['_cell_length_c'] = str(cryst_const[2])
+    block['_cell_angle_alpha'] = str(cryst_const[3])
+    block['_cell_angle_beta'] = str(cryst_const[4])
+    block['_cell_angle_gamma'] = str(cryst_const[5])
+    block['_symmetry_space_group_name_H-M'] = 'P 1'
+    block['_symmetry_Int_Tables_number'] = 1
+    # assigning a list produces a "loop_"
+    block['_symmetry_equiv_pos_as_xyz'] = ['x,y,z']
+    
+    # atoms
+    #
+    # _atom_site_label: We just use symbols, which is then =
+    #   _atom_site_type_symbol, but we *could* use that to number atoms of each
+    #   specie, e.g. Si1, Si2, ..., Al1, Al2, ...
+    data_names = ['_atom_site_label', 
+                  '_atom_site_fract_x',
+                  '_atom_site_fract_y',
+                  '_atom_site_fract_z',
+                  '_atom_site_type_symbol']
+    data = [symbols, 
+            coords[:,0].tolist(), 
+            coords[:,1].tolist(), 
+            coords[:,2].tolist(),
+            symbols]
+    # "loop_" with multiple columns            
+    block.AddCifItem([[data_names], [data]])                
+    cf['pwtools'] = block
+    common.file_write(filename, str(cf))
 
