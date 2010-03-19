@@ -430,6 +430,10 @@ def scell(coords, cp, dims, symbols, align='rows'):
         are in [0,1].
     cell_parameters : array (3,3), basis vecs of the super cell        
     """
+    cp = np.asarray(cp)
+    assert_cond(cp.shape == (3,3), "cp must be (3,3) array")
+    if align == 'cols':
+        cp = cp.T
     mask = scell_mask(*tuple(dims))
     # Rsc : crystal coords w.r.t the *old* cell, i.e. the entries are in
     # [0,(max(dims))], not [0,1]
