@@ -871,9 +871,9 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
     #     Y . v_Y = X . v_X = I . v_I = v_I
     #     v_Y = Y^-1 . X . v_X = A . v_X
     # 
-    # So every product X . v_X, Y . v_Y, v_I . I (in general v_[basis] .
-    # [basis]) is actually an expansion of v_{X,Y,...} in the basis vectors
-    # contained in X,Y,... . If the dot product is computed, we always get v in
+    # So every product X . v_X, Y . v_Y, v_I . I (in general [basis] .
+    # v_[basis]) is actually an expansion of v_{X,Y,...} in the basis vectors
+    # vontained in X,Y,... . If the dot product is computed, we always get v in
     # cartesian coords. 
     # 
     # Remember:
@@ -887,6 +887,7 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
     #     
     #     v_Y^T = (A . v_X)^T = v_X^T . A^T
     # 
+    # Note that v_X^T is a row(!) vector (1,M).
     # This form is implemented here (see below for why). With
     #     
     #     A^T == A.T = [[--- a0 ---], 
@@ -1057,7 +1058,8 @@ def atpos_str(symbols, coords, fmt="%.10f", zero_eps=True):
     -----
     symbols : list of strings with atom symbols, (natoms,), must match with the
         rows of coords
-    coords : array (natoms, 3) with atomic coords
+    coords : array (natoms, 3) with atomic coords, can also be (natoms, >3) to
+        add constraints on atomic forces in PWscf
     zero_eps : bool
         Print values as 0.0 where |value| < eps
 
