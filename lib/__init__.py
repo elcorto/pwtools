@@ -16,5 +16,6 @@ __all__ = [\
     'periodic_table',
     'io',
     'sql',
-    'kpath'
+    'kpath',
+    'version'
     ]
