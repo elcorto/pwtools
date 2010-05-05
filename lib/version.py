@@ -1,31 +1,24 @@
-from distutils import version
+# version.py
+#
+# Simple utils to do version checking. It is up to the user to do that.
+# 
+# Examples
+# --------
+#
+# >>> from pwtools import version as ver
+#
+# >>> assert ver.version > ver.tov('0.5.2'), "must use > 0.5.2"
+# 
+# >>> assert ver.tov('0.5.2') < ver.version < ver.tov('0.6.0b1'), \
+# "use version between 0.5.2 and 0.6.0b1"
+
+from distutils.version import StrictVersion
+
+def toversion(v1):
+    return StrictVersion(v1)
+
+# alias 
+tov = toversion
 
 # The highest version number produced by "hg tags".
-current_version = "0.5.4"
-
-def _convert(v1, v2):
-    _v1 = version.StrictVersion(v1)
-    _v2 = version.StrictVersion(v2)
-    return _v1, _v2     
-
-def greater_equal(v1, v2):
-    _v1, _v2 = _convert(v1, v2)
-    return _v1 >= _v2
-
-def greater(v1, v2):
-    _v1, _v2 = _convert(v1, v2)
-    return _v1 > _v2
-
-def lower_equal(v1, v2):
-    _v1, _v2 = _convert(v1, v2)
-    return _v1 <= _v2
-
-def lower(v1, v2):
-    _v1, _v2 = _convert(v1, v2)
-    return _v1 < _v2
-
-def require(v1, v2=current_version):
-    if lower(v1, v2):
-        raise StandardError("version %s required, %s given" %(v2, v1))
-    else:
-        pass
+version = toversion("0.5.4")
