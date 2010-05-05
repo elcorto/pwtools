@@ -581,3 +581,34 @@ def write_cif(filename, coords, symbols, cryst_const, fac=con.a0_to_A, conv=Fals
     cf['pwtools'] = block
     common.file_write(filename, str(cf))
 
+
+#XXX implement PBC!
+def rmsd(coords_cart, ref_idx=0):
+    """Root mean square distance of an MD trajectory of a whole atomic
+    structure. For now, use the 3d array R (as used in pydos.py) with time 
+    axis = 1.
+    
+    args:
+    -----
+    coords_cart : 3d array with atom coords, time axis = 1
+    ref_idx : timr index of the reference structure 
+    """
+    R = coords_cart.copy()
+##    for j in range(R.shape[1]):
+##        R[:,j,:] -= R[:,ref_idx,:]
+    R -= R[:,ref_idx,:][:,np.newaxis,:]
+    R = R**2.0
+    N = float(R.shape[0])
+    return np.sqrt(R.sum(axis=2).sum(axis=0)/N)
+
+#XXX check ME!!!
+def max_displacement(coords_cart):
+    R = coords_cart
+    md = np.empty((R.shape[0], R.shape[2]), dtype=float)
+    # iatom
+    for i in range(R.shape[0]):
+        # x,y,z
+        for j in range(R.shape[2]):
+            md[i,j] = R[i,:,j].max() - R[i,:,j].min()
+    return md            
+
