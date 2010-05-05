@@ -57,6 +57,7 @@ from verbose import verbose
 import regex
 import crys
 from decorators import crys_add_doc
+from pydos import atpos_str
 
 
 #TODO Get atom masses from periodic_table.py, not from the input file (pw.in).
@@ -377,12 +378,21 @@ class StructureFileParser(FileParser):
         # classes. The calling order can be overridden. Additional members may
         # be added, as long as all members of this list are beeing set in
         # parse() of the derived class.
+        # 
+        # Note:
+        # atpos_str is NOT an attr which is parsed out of the file but rather a
+        # convenience combination of other attrs
         self.set_attr_lst(['coords', 'symbols', 'cryst_const', 'cell_parameters',
-                         'natoms'])
+                         'natoms', 'atpos_str'])
         self.a0_to_A = constants.a0_to_A
-
+    
     def parse(self):
         FileParser.parse(self)
+
+    def get_atpos_str(self):
+        self.check_get_attr('coords')
+        self.check_get_attr('symbols')
+        return atpos_str(self.symbols, self.coords)
 
     # Default dummy getters. They all return None.
     
