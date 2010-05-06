@@ -1,7 +1,7 @@
 import sqlite3
 
 class SQLEntry(object):
-    def __init__(self, sql_type, sql_val, file_val=None):
+    def __init__(self, sql_type, sql_val, file_val=None, key=None):
         """Represent an entry in an SQLite database. An entry is one single
         value of one column and record (record = row). 
         
@@ -21,13 +21,20 @@ class SQLEntry(object):
             If it is a string, it is automatically quoted to match SQLite
             syntax rules, e.g. 'lala' -> "'lala'", which appears as 'lala' in
             the db.
-        file_val : {None, <anything>}
+        file_val : optional, {None, <anything>}
             If not None, then this is the value of the entry that it has in
             another context (actually used in the input file). If None, then
             file_val = val. 
             Example: K_POINTS in pw.x input file:
                 sql_val: '2 2 2 0 0 0'
                 file_val: 'K_POINTS automatic\n2 2 2 0 0 0'
+        key : optional, {None, str}
+            An optional key. This key should refer to the column name in the 
+            database table, as in:
+                % create table calc (key1 sql_type1, key2    sql_type2, ...)
+            For example:
+                % create table calc (idx  integer,   ecutwfc float,     ...)
+
 
         notes:
         ------
@@ -45,6 +52,7 @@ class SQLEntry(object):
         self.sql_type = sql_type
         self.file_val = sql_val if file_val is None else file_val
         self.sql_val = self._fix_sql_val(sql_val)
+        self.key = key
     
     def _fix_sql_val(self, sql_val):
         if isinstance(sql_val, str):
