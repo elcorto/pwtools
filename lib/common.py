@@ -601,6 +601,117 @@ def file_template_replace(fn, dct, bak='', **kwargs):
     file_write(fn, txt)
 
 
+class FileTemplate(object):
+    """Class to represent a template file in parameter studies.
+    
+    example
+    -------
+
+    This will take a template file calc.templ/pw.in, replace the placeholders
+    "@prefix@" and "@ecutwfc@" with some values and write the file to
+    calc/0/pw.in .
+
+    >>> templ = FileTemplate(basename='pw.in',
+    >>>                      keys=['prefix', 'ecutwfc'],
+    >>>                      dir='calc.templ',
+    >>>                      phfunc=lambda x: "@%s@" %x)
+    >>>
+    >>> dct = {}
+    >>> dct['prefix'] = 'foo_run_1'
+    >>> dct['ecutwfc'] = 23.0
+    >>> templ.write(dct, 'calc/0')
+    >>>
+    # or with SQL foo in a parameter study
+    >>>
+    >>> from sql import SQLEntry
+    >>> dct = {}                     
+    >>> dct['prefix']  = SQLEntry(sql_type='text',  sql_val='foo_run_1')
+    >>> sct['ecutwfc'] = SQLEntry(sql_type='float', sql_val=23.0)
+    >>> templ.writesql(dct, 'calc/0')
+    
+    placeholders
+    ------------
+    The default placeholder is "XXX<KEY>", where <KEY> is the upercase version
+    of an entry in `keys`. See _default_get_placeholder().
+    """
+    
+    # "keys" is needed if several templates exist whose write*() methods are
+    # called with the same "dct" or "sql_record". This is common in parameter
+    # studies, where we have ONE sql_record holding all parameters which are
+    # vaired in the current run, but the parameters are spread across several
+    # template files.
+    #
+    # If needed, implement that "keys" in __init__ is optional. Then, if
+    # keys=None, write*() should simply write all entries in "dct" or
+    # "sql_record". 
+    
+    def __init__(self, keys, basename, dir='calc.templ',
+                 phfunc=None):
+        """
+        args
+        ----
+        keys : list of strings
+            Each string is a key. Each key is connected to a placeholder in the
+            template. See phfunc.
+        basename : string
+            The name of the template file and target file.
+            example: basename = pw.in
+                template = calc.templ/pw.in
+                target   = calc/0/pw.in
+        dir : dir where the template lives (e.g. calc.templ)
+        phfunc : callable
+            A function which takes a string (key) and returns a string, which
+            is the placeholder corresponding to that key.
+            example: (this is actually default)
+                key = "lala"
+                placeholder = "XXXLALA"
+                phfunc = lambda x: "XXX" + x.upper()
+        """
+        self.keys = keys
+        self.dir = dir
+        
+        # We hardcode the convention that template and target files live in
+        # different dirs and have the same name ("basename") there.
+        #   template = <dir>/<basename>
+        #   target   = <calc_dir>/<basename>
+        # e.g.
+        #   template = calc.templ/pw.in
+        #   target   = calc/0/pw.in
+        # Something like
+        #   template = ./pw.in.templ
+        #   target   = ./pw.in
+        # is not possible.
+        self.basename = basename
+        self.filename = pj(self.dir, self.basename)
+        
+        self._get_placeholder = self._default_get_placeholder if phfunc is None \
+                                else phfunc
+            
+        self.txt = self._get_txt()
+    
+    def _default_get_placeholder(self, key):
+        return 'XXX' + key.upper()
+
+    def _get_txt(self):
+        return file_read(self.filename)
+    
+    def writesql(self, sql_record, calc_dir='calc'):
+        rules = {}
+        for key in self.keys:
+            rules[self._get_placeholder(key)] = sql_record[key].file_val
+        file_write(pj(calc_dir, self.basename),
+                   template_replace(self.txt, rules, mode='txt',
+                                    conv=True))
+    
+    def write(self, dct, calc_dir='calc'):
+        rules = {}
+        for key in self.keys:
+            rules[self._get_placeholder(key)] = dct[key]
+        file_write(pj(calc_dir, self.basename),
+                   template_replace(self.txt, rules, mode='txt',
+                                    conv=True))
+
+
 # template hash function
 def hash(txt, mod_funcs=[], skip_funcs=[]):
     """
