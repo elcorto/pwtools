@@ -613,7 +613,7 @@ class FileTemplate(object):
     >>> templ = FileTemplate(basename='pw.in',
     >>>                      keys=['prefix', 'ecutwfc'],
     >>>                      dir='calc.templ',
-    >>>                      phfunc=lambda x: "@%s@" %x)
+    >>>                      func=lambda x: "@%s@" %x)
     >>>
     >>> dct = {}
     >>> dct['prefix'] = 'foo_run_1'
@@ -645,27 +645,37 @@ class FileTemplate(object):
     # "sql_record". 
     
     def __init__(self, keys, basename, dir='calc.templ',
-                 phfunc=None):
+                 func=None, phfunc=None):
         """
         args
         ----
         keys : list of strings
             Each string is a key. Each key is connected to a placeholder in the
-            template. See phfunc.
+            template. See func.
         basename : string
             The name of the template file and target file.
             example: basename = pw.in
                 template = calc.templ/pw.in
                 target   = calc/0/pw.in
         dir : dir where the template lives (e.g. calc.templ)
-        phfunc : callable
+        func : callable
             A function which takes a string (key) and returns a string, which
             is the placeholder corresponding to that key.
             example: (this is actually default)
                 key = "lala"
                 placeholder = "XXXLALA"
-                phfunc = lambda x: "XXX" + x.upper()
+                func = lambda x: "XXX" + x.upper()
         """
+        # For backward compat. Remove later.
+        if phfunc is not None:
+            print("Grep: Warning: 'phfunc' kwarg renamed to 'func'. Use that "
+                  "in the future.")
+            if func is None:
+                func = phfunc
+            else:
+                raise StandardError("got 'func' and 'phfunc' kwargs, cannot "
+                                    "use both")
+
         self.keys = keys
         self.dir = dir
         
@@ -683,8 +693,8 @@ class FileTemplate(object):
         self.basename = basename
         self.filename = pj(self.dir, self.basename)
         
-        self._get_placeholder = self._default_get_placeholder if phfunc is None \
-                                else phfunc
+        self._get_placeholder = self._default_get_placeholder if func is None \
+                                else func
             
         self.txt = self._get_txt()
     
