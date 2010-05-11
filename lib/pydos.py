@@ -18,7 +18,7 @@ code in parse_pwout().
 
 XXX Changed implementation using sed/grep/awk -> order independent parsing
 
-Tested with QE 3.2.3, 4.0.x, 4.1. 
+Tested with QE 3.2.3, 4.0.x, 4.1.x
 
 Units
 ------
@@ -453,9 +453,6 @@ def fvacf(V, m=None, method=2, nthreads=None):
     verbose("... ready")
     return c
 
-# alias
-vacf = fvacf
-
 
 def norm_int(y, x, area=1.0):
     """Normalize integral area of y(x) to `area`.
@@ -581,6 +578,8 @@ def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False, natoms=1.0,
     mirr : bool, mirror VACF at t=0 before fft
     full_out : bool
     natoms : float, number of atoms
+    window : bool, use Welch windowing on data before FFT (reduces leaking
+        effect, recommended)
 
     returns:
     --------
@@ -1125,8 +1124,6 @@ def main(opts):
     """
     # print options
     verbose("options:")
-    # opts.__dict__: a dict with options and values {'opt1': val1, 'opt2':
-    # val2, ...}
     for key, val in opts.__dict__.iteritems():
         verbose("    %s: %s" %(key, com.frepr(val)))
     
@@ -1577,6 +1574,17 @@ def get_default_opts():
 default_opts = get_default_opts()
 
 
+#-----------------------------------------------------------------------------
+# aliases
+#-----------------------------------------------------------------------------
+
+vacf = fvacf
+
+
+#-----------------------------------------------------------------------------
+# main -- cmd line interface entry point
+#-----------------------------------------------------------------------------
+
 if __name__ == '__main__':
     
     import sys
@@ -1585,7 +1593,7 @@ if __name__ == '__main__':
 ##    import doctest
 ##    doctest.testmod(verbose=True)
     
-    # Be chatty only ion cmd line mode.
+    # Be chatty only in cmd line mode.
     VERBOSE = True
     
     parser = get_parser()
