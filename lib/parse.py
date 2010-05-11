@@ -215,7 +215,7 @@ class FileParser(object):
         """Set self.attr_lst and init each attr to None."""
         self.attr_lst = attr_lst
         for attr in self.attr_lst:
-            setattr(self, 'attr', None)
+            setattr(self, attr, None)
 
     def __del__(self):
         """Destructor. If self.file has not been closed yet (in self.parse()),
