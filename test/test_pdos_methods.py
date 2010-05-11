@@ -15,7 +15,7 @@ methods:
 they are mathematically equivalent and are implemented to produce the same
 frequency resolution.
 (3) must match in principle w.r.t. peak positions and relative peak heights. It
-can't match exactly b/c it has lower frequency resolution.
+can't match exactly b/c it has lower frequency resolution (no mirroring).
 
 For 3d arrays with real velocity data, (1) is much slower b/c ATM the VACF is
 calculated directly via loops. Possible optimization: calc the autocorrelation
@@ -103,7 +103,7 @@ def cut_norm(full_y, dt, area=1.0):
 
 # Axel Kohlmeyer's fourier.x tool from the CPMD contrib sources. The tool reads
 # from stdin (interactive use or we pipe an input file to it).
-fourier_exe = common.fullpath('~/tmp/fourier/fourier.x')
+fourier_exe = common.fullpath('~/soft/lib/fourier/fourier.x')
 fourier_dir = '/tmp/fourier_test'
 use_fourier = os.path.exists(fourier_exe)
 if use_fourier:
