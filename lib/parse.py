@@ -1502,12 +1502,18 @@ class CMLFile(StructureFileParser):
 
 class Grep(object):
     """Maximum felxibility!
+    
+    If the predefined parsers are not enough, use this (or shell scripting
+    with grep/sed/awk).
+
     Define your re.<func> and know what it will return, e.g. MatchObject for
     search()/match() or list for findall(). Then define a handle (function),
     that takes the output and returns something (string, list, whatever) for
     further processing.
+    
+    example
+    -------
 
-    usage idea:
     (1) define Grep objects
     
     patterns = { 
@@ -1531,28 +1537,55 @@ class Grep(object):
                         regex = re.compile(r"K_POINTS.*\n(.*)"),
                         basename = 'pw.in'),
                } 
-    (2) loop over result dirs calc/0 calc/1 ... and grep for stuff in
-        pw.{in,out}
     
-    # name can be the name of a column in an SQL db etc ...
+    (2) Loop over result dirs calc/0 calc/1 ... calc/20 and grep for stuff in
+    pw.{in,out}. In the example below, we assume that `sql` is an sqlite db
+    with a table named "calc" and that this table already has a column named
+    "idx" and maybe some other columns, too.
+    
+    idx  foo   
+    0    'xx'   
+    1    'yy'
+    ...  ...
+    20   'qq'
+    
+    Note that `sql_type` is an optional kwarg. It is only used to automagically
+    add a column to the db table.
+    
+    sql = SQLiteDB(...)
     for name, grep in patterns.iteritems():
+        if not sql.has_column('calc', name):
+            sql.execute("ALTER TABLE calc ADD COLUMN %s %s" \
+                        %(name, grep.sql_type))
         for idx in range(0,20):
             dir = os.path.join('calc', idx)
             ret = grep.grep(dir)
+            sql.execute("UPDATE calc SET %s=%s WHERE idx==%s" \
+                        %(name, ret, idx))
     """
-    def __init__(self, sql_type, regex, basename, 
+    def __init__(self, regex, basename, 
                  handle = lambda m: m.group(1), 
-                 func = re.search):
-        # str: 'TEXT', 'FLOAT', ...                  
+                 func = re.search,
+                 sql_type=None):
+        """
+        args:
+        -----
+        regex : str or compiled regex
+            For speed, it is recommended to use regex = re.compile(...)
+        basename : str
+            'pw.in' for calc/0/pw.in etc.
+        handle : callable
+            gets the output of re.<func> and returns a string
+            or whatever for further processing
+        func : function object
+            re module function re.<func>
+        sql_type : str, optional
+            'TEXT', 'FLOAT', ...
+        """
         self.sql_type = sql_type
-        # str or compiled regex
         self.regex = regex
-        # 'pw.in' for calc/0/pw.in etc.
         self.basename = basename
-        # function that gets the output of re.<func> and returns a string
-        # or whatever for further processing
         self.handle = handle
-        # re.<func>
         self.func = func
     
     def _handle(self, arg):
@@ -1566,7 +1599,7 @@ class Grep(object):
             return self.handle(arg)
 
     def grep(self, dir):
-        # dir: calc/0/
+        # dir: calc/0/, calc/1/ ...
         fn = pj(dir, self.basename)
         print fn
         m = self.func(self.regex, open(fn).read())
