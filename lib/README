@@ -1,6 +1,6 @@
 The pwtools package.
 
-Copyright (c) 2008-2009, Steve Schmerler <mefx@gmx.net>.
+Copyright (c) 2008-2010, Steve Schmerler <mefx@gmx.net>.
 
 Installation
 ============
@@ -27,7 +27,13 @@ openSuSE 10.3
       http://download.opensuse.org/repositories/science/openSUSE_10.3
     - install python-numpy, python-scipy
 
-PyCifRW (http://pycifrw.berlios.de) is needed in pwtools.lib.crys .
+Optional functionallity in pwtools.lib.parse:
+    PyCifRW (http://pycifrw.berlios.de)
+    BeautifulSoup (http://www.crummy.com/software/BeautifulSoup/)
+    
+    Without these, you will get warnings and some parsing classes will not
+    work (Cif and CML parsing currently). If you wish, uncomment the warnings
+    at the top of lib/parse.py .
 
 path issues (.bashrc/.profile)
 ------------------------------
@@ -61,9 +67,13 @@ see pydos.py for details).
     (1) vacf way: FFT of the velocity autocorrelation function (vacf):
         V -> VACF -> FFT(VACF) = PDOS, see pydos.vacf_pdos()
     (2) direct way: |FFT(V)**2| = PDOS, see pydos.direct_pdos()
-If you mirror the VACF before the FFT (-m option), then you get double
-frequency resolution. Appart from that, both methods give the same results (up
-to numerical noise).
+- If you mirror the VACF before the FFT (-m option), then you get double
+  frequency resolution. 
+- By default, direct_pdos() uses zero padding to get the same frequency
+  resolution as you would get with mirroring the signal in vacf_pdos().
+- Both methods use Welch windowing by default to reduce "leakage" from
+  neighboring peaks. See also test/test_pdos_methods.py 
+- Both methods must produce exactly the same results (up to numerical noise).
 
 
 Eexamples
