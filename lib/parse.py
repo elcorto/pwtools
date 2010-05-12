@@ -360,17 +360,17 @@ class StructureFileParser(FileParser):
     #        self.member2 = self.get_member2()
     #        ....
     #    then some calls may in fact be redundant b/c e.g. get_member1() has
-    #    alreadey been called inside get_member2(). There is NO big overhead in
+    #    already been called inside get_member2(). There is NO big overhead in
     #    this approach b/c in each getter we test with check_get_attr() if a
-    #    needed other member is already set
+    #    needed other member is already set.
     #    
     #    This way we get a flexible and easily extensible framework to
     #    implement new parsers and modify existing ones (just implement another
     #    getter get_newmember() in each class and extend the list of API
     #    members by 'newmember').
     #
-    #    Note: Beware of cyclic dependencies (i.e. get_member2 -> get_member1 ->
-    #    get_member2 -> ...). Always test the implementation!
+    #    One drawback: Beware of cyclic dependencies (i.e. get_member2 ->
+    #    get_member1 -> get_member2 -> ...). Always test the implementation!
     
     def __init__(self, filename=None):
         FileParser.__init__(self, filename)
@@ -686,13 +686,16 @@ class PwInputFile(StructureFileParser):
     extra members:
     --------------
     atspec : dict 
-        see self.get_atomic_species()
+        see self.get_atspec()
     atpos : dict 
-        see self.get_atomic_positions()
-    namelist : dict
+        see self.get_atpos()
+    namelists : dict
         see self.get_namelists()
     kpoints : dict
         see self.get_kpoints()
+    massvec : 1d array (natoms,)
+        Convenience member. Array of masses of all atoms in the order listed in
+        ATOMIC_POSITIONS. This is actually self.atpos['massvec'].
     
     notes:
     ------
@@ -716,30 +719,31 @@ class PwInputFile(StructureFileParser):
             'climbing_images',
             'constraints',
             'collective_vars']
-        self.set_attr_lst(self.attr_lst + ['kpoints'])
+        self.set_attr_lst(self.attr_lst + ['atspec', \
+                                           'atpos', \
+                                           'namelists', \
+                                           'kpoints', \
+                                           'massvec'])
     
     def parse(self):
         StructureFileParser.parse(self)
         self.close_file()
     
-    def get_atspec(self):
-        return self.get_atomic_species()
-    
-    def get_atpos(self):
-        return self.get_atomic_positions()
+    def get_massvec(self):
+        self.check_get_attr('atpos')
+        return self.atpos['massvec']
 
     def get_symbols(self):
         self.check_get_attr('atpos')
-        return None if (self.atpos is None) else self.atpos['symbols']
+        return self.atpos['symbols']
 
     def get_coords(self):
         self.check_get_attr('atpos')
-        return None if (self.atpos is None) else self.atpos['coords']
+        return self.atpos['coords']
 
     def get_natoms(self):
         self.check_get_attr('namelists')
-        return None if (self.namelists is None) else \
-               int(self.namelists['system']['nat'])
+        return int(self.namelists['system']['nat'])
 
     def get_cryst_const(self):
         self.check_get_attr('cell_parameters')
@@ -759,7 +763,7 @@ class PwInputFile(StructureFileParser):
         return None if (self.cell_parameters is None) else \
                crys.cp2cc(self.cell_parameters*celldm1)
 
-    def get_atomic_species(self):
+    def get_atspec(self):
         """Parses ATOMIC_SPECIES card in a pw.x input file.
 
         returns:
@@ -883,7 +887,7 @@ class PwInputFile(StructureFileParser):
         com.assert_cond(cp.shape[0] == cp.shape[1], "dimensions of `cp` don't match")
         return cp
 
-    def get_atomic_positions(self):
+    def get_atpos(self):
         """Parse ATOMIC_POSITIONS card in pw.x input file.
         
         returns:
@@ -1061,7 +1065,7 @@ class PwInputFile(StructureFileParser):
                          re.M)
         m = rex.search(self.txt)                             
         return {'mode': m.group(1),
-                'val': m.group(2)}
+                'kpoints': m.group(2)}
             
 
 # XXX Possible optimization: 
