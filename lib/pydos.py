@@ -6,120 +6,23 @@
 # Copyright (c) 2008-2010, Steve Schmerler <mefx@gmx.net>.
 # 
 
-"""
-Parse and post-process molecular dynamics data produced by the Quantum
-Espresso package (quantum-espresso.org). 
 
-Currently, pw.x and "calculation='md'" type data is supported as well as
-'vc-md'.  Other calulation types write results in different order to the
-outfile. Since we exploit the knowledge of the order for performance reasons,
-supporting different orders requires a little rewrite/generalisation of the
-code in parse_pwout().
+# Post-process molecular dynamics data produced by the Quantum
+# Espresso package (quantum-espresso.org). 
+# 
+# This module implements the functionallity to calculate the phonon DOS from MD
+# trajectories. For parsing output files into a format which is used here, see
+# parse.py and test/* for examples.
+# 
+# Units
+# ------
+# From http://www.quantum-espresso.org/input-syntax/INPUT_PW.html
+# 
+#     All quantities whose dimensions are not explicitly specified are in
+#     RYDBERG ATOMIC UNITS
+# 
+# See constants.py
 
-XXX Changed implementation using sed/grep/awk -> order independent parsing
-
-Tested with QE 3.2.3, 4.0.x, 4.1.x
-
-Units
-------
-From http://www.quantum-espresso.org/input-syntax/INPUT_PW.html
-
-    All quantities whose dimensions are not explicitly specified are in
-    RYDBERG ATOMIC UNITS
-
-    See constants.py
-
-File handling:
---------------
-Some functions accept only filenames or only fileobjects. Some accept both.
-Default in all functions is that 
-- in case of filenames, a file will be opened
-  and closed inside the function. 
-- In case of fileobjects, they will NOT be closed
-  but returned, i.e. they must be opened and closed outside of a function.
-- Most functions are decoratd with decorators.open_and_close by now. 
-- All parsing functions which get and also return a fileobject are
-  technically not required to return it. The object is modified in place when
-  it's .next() method is called inside the function. We use this e.g. in
-  next_line().
-
-Filenames:
-----------
-Many functions which accept a file handle (mostly named "fh", file-like object)
-use fh.name (the filename) in error messages etc. Most of these functions are
-decorated w/ decorators.open_and_close. We try hard to make sure that each fh
-has the 'name' attribute. Some file-like objects don't have fh.name and never
-will (see decorators.py for details). In that case, avoid using fh.name or use
-fn = com.get_filename(fh) early in the function. There is no other way.
-
-Calculation of the PDOS
------------------------
-
-PDOS obtained the VACF way (V -> VACF -> FFT(VACF)) and the direct way
-(direct_pdos()) differ by a very smal ammount. Probably numerical error due to
-fft. Note that in order to compare both methods, you must NOT mirror the VACF
-before FFT in order to get the double frequency resolution.
-
-TODO
-----
-- Turn on Fortran order by default in array constructors (or wherever) in
-  numpy to avoid copies by f2py extensions which operate on rank>2 arrays. 
-
-  Changing ndarray.__new__() doesn't help, b/c it's only called in cases `a
-  = ndarray()`, i.e. like __init__() -- call class constructor directly.
-  empty(), array(), etc. are no members of ndarray. They are normal
-  numpy.core.multiarray functions with kwarg "order={'C','F'}".
-
-  => Best would be to subclass numpy.ndarray and redefind array() etc.
-
-- Nose-integrated test suite.
-
-- setup.py, real pythonic install, no fiddling with PYTHONPATH etc,
-  you can also install in $HOME dir using `setup.py install
-  --prefix=~/some/path/`, but it's probably overkill for this little project
-
-- unify vacf_pdos(), direct_pdos(), thay have almost the same signature and
-  functionallity, use 'method' kwarg or so, OR make a base class Pdos, derive 2
-  special-case classes ... 
-
-- If pydos.main(opts) is called in a script, find a way to define defaults in
-  here so that the user doesn't have to provide *all* options. Currently we
-  solve this by creating `opts` as a full argparse.Namepace in the script.
-  This seems overkill although it's very fast. But the advantage is that we
-  could pass pydos.py cmd line opts to any othert script if we wanted to.
-  Python rocks!
-
-- Implement the maximum entropy method.
-
-- We assume that the ATOMIC_POSITIONS unit (crystal, alat, angstrom) in
-  pw.in and that of the parsed out ones from pw.out are the same. Check this!
-  For example, it is seems to be NOT the same for cp.x!
-
-- Separate parsing and calculation in this tool. Skip the cmd-line stuff
-  completely. Make a toolkit with plugin-type functionallity for extracting
-  atomic pos etc from "any kind" of simulation data. Read these infos into an
-  internal format (our 3D arrays for coords and velocitys seem fine). 
-  Then, pass those infos to a class or function that calculates stuff.
-  Essentially, replace Unix working style: grep/sed/awk into files (parsing) +
-  apply some Fortran code to files (calculation) with flexible short Python
-  scripts which call function and pass data arround ONLY IN MEMORY (or as
-  binary files).
-  
-  As for the workflow: We replace writing shell scripts with writing Python
-  scripts + out-of-the-box binary file writing by default. 
-
-  Inventing an "internal format" is not bad. In fact, it is even necessary if
-  we want to do math here. And if we have to invent one, then let's use numpy
-  ndarrays and save them to disk *exactly in that form", i.e. use numpy binary
-  arrays. That way we don't have to parse our own slow text file format all 
-  the time (as xcrysden does with XSF :)
-
-  If numpy arrays won't do it anymore, use NetCDF or HDF5.
-
-- PDOS normalization. ATM we normalize so that int(faxis, pdos) = area = 1.0. 
-  But there may be others, like area = 3*natoms in the unit cell (not
-  supercell), ...
-"""
 
 ##from debug import Debug
 ##DBG = Debug()
@@ -127,11 +30,8 @@ TODO
 # timing of the imports
 ##DBG.t('import')
 
-import re
 import os
 import textwrap
-from cStringIO import StringIO
-##from StringIO import StringIO
 from itertools import izip
 
 import numpy as np
@@ -146,8 +46,6 @@ from scipy.integrate import simps, trapz
 import constants
 import _flib
 import common as com
-from decorators import open_and_close
-import regex
 import io
 from verbose import verbose
 
