@@ -61,6 +61,8 @@ def open_and_close(func):
             # try fiddling with try-except here. There just won't be any
             # filename.
             return func(*args, **kwargs)
+    # TODO: Use functools.wraps() to decorate wrapper() to pass func.__doc__
+    # and func.__name__ along.
     _doc = func.__doc__
     if _doc is not None:
         _doc = _doc.replace('@args_fh_extra_doc@', "If fh is a file object, it "
