@@ -1,0 +1,36 @@
+pydos.py
+--------
+- Remove cmd line stuff. Make some test/* files to show how to calc a PDOS in
+  various ways using parse.py and pydos.py as toolkits.
+
+- unify vacf_pdos(), direct_pdos(), thay have almost the same signature and
+  functionallity, use 'method' kwarg or so, OR make a base class Pdos, derive 2
+  special-case classes ... 
+
+- Implement the maximum entropy method.
+
+- We assume that the ATOMIC_POSITIONS unit (crystal, alat, angstrom) in
+  pw.in and that of the parsed out ones from pw.out are the same. Check this!
+  For example, it is seems to be NOT the same for cp.x!
+
+- PDOS normalization. ATM we normalize so that int(faxis, pdos) = area = 1.0. 
+  But there may be others, like area = 3*natoms in the unit cell (not
+  supercell), ...
+
+- Test PDOS calculation with different ATOMIC_POSITIONS units for the same
+  structure etc. Do they yield the same PDOS .. i.e. is the PDOS invariant
+  under variation of the coordinate system?
+
+parse.py
+--------
+fix get_kpoints if "K_POINTS gamma"
+
+README
+------
+- Remove cmd line stuff
+
+all
+---
+- Drop verbose.py. Use the logging or warnings module.
+- Pythonic test suite (nose etc) instead of test/test_*.py . Most of these
+  tests are actually examples. Move them to a dir examples/.
