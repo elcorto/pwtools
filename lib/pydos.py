@@ -1,10 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*- 
-# vim:ts=4:sw=4:et
-
-# 
-# Copyright (c) 2008-2010, Steve Schmerler <mefx@gmx.net>.
-# 
 
 
 # Post-process molecular dynamics data produced by the Quantum

@@ -1,10 +1,4 @@
 #!/usr/bin/env python
-# vim:ts=4:sw=4:et
-
-# 
-# Copyright (c) 2008, Steve Schmerler <mefx@gmx.net>.
-# The pydos package. 
-# 
 
 # Stolen from [1]. See also [2].
 #

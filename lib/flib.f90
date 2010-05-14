@@ -1,7 +1,5 @@
-! 
-! Copyright (c) 2008-2010, Steve Schmerler <mefx@gmx.net>.
-! The pwtools package. 
-! 
+! Fortran extension module to calculate the velocity autocorrelation function.
+! See Makefile for compilation, pydos.py for usage.
 
 subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
     

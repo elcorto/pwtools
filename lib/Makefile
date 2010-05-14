@@ -1,10 +1,5 @@
 # vim:ts=4:sw=4:noet
 	    
-# 
-# Copyright (c) 2008, Steve Schmerler <mefx@gmx.net>.
-# The pydos package. 
-# 
-
 # Compile Fortran extension (_flib.so).
 # 
 # usage:  

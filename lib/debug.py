@@ -1,12 +1,4 @@
-# vim:ts=4:sw=4:et
-
-# 
-# Copyright (c) 2008, Steve Schmerler <mefx@gmx.net>.
-# The pydos package. 
-# 
-
 from time import time
-##import numpy as np
 
 class Debug:
     """
