@@ -43,8 +43,6 @@ Suppose all pwtools files are in
     
     # makes "import pwtools" possible
     export PYTHONPATH=$PYTHONPATH:/home/foo
-    # to find the executable pydos.py
-    export PATH=/home/foo/pwtools/lib:$PATH
 
 
 Fortran extensions
@@ -53,11 +51,9 @@ Fortran extensions
 See Makefile.
 
 Usage
-=====
+-----
 
-See for cmd line opts, see
-    
-    $ pydos.py -h
+See test/test_*.py for examples.
 
 Methology
 ---------
@@ -75,84 +71,3 @@ see pydos.py for details).
   neighboring peaks. See also test/test_pdos_methods.py 
 - Both methods must produce exactly the same results (up to numerical noise).
 
-
-Eexamples
---------
-1)  $ pydos.py -i AlN.md.in -o AlN.md.out -p -d
-        Parse (-p) pw.x infile and outfile, calculate dos (-p). Write all files
-        to ./pdos/ .
-    
-2)  $ pydos.py -i AlN.md.in -o AlN.md.out -d -M0 -m0
-        Repeat the DOS calculation by first loading the atomic coordinate file
-        from the previous parsing from pdos/. But this time, don't mass-weight
-        the VACF (-M 0) and and don't mirror the VACF before FFT (-m 0).
-
-3)  $ pydos.py -i Si.md.in -o Si.md.out -p -d -s 300: -x pdos.Si
-        Do another analysis on Si md data. Save the output to pdos.Si/ and skip
-        the first 300 time points.
-    
-4)  $ pydos.py -i Si.md.in -o Si.md.out -p -d -s 300: -x pdos.Si -f txt -t direct
-        The same, but now write txt files instead of binary files and use the
-        Direct Method to compute the PDOS.
-
-
-Known issues
-------------
-
-* Some forms of slices (-s option) don't work in numpy. An exception is raised
-  in that case.
-
-Output files
-------------
-
-Example session:
-
-    $ cd ~/work/AlN/calculation
-    
-    $ ls -l
-    -rw-r--r-- 1 schmerler theorie     5510 2008-10-29 15:39 AlN.md.in
-    -rw-r--r-- 1 schmerler theorie 42045748 2008-10-29 15:39 AlN.md.out
-    -rw-r--r-- 1 schmerler theorie      245 2008-10-29 15:39 job.lsf
-    
-    $ pydos.py -i AlN.md.in -o AlN.md.out -p -d
-    
-    $ ls -l pdos
-    -rw-r--r-- 1 schmerler theorie    9600 2008-12-04 13:41 AlN.md.out.vacf.dat
-    -rw-r--r-- 1 schmerler theorie      59 2008-12-04 13:41 AlN.md.out.vacf.dat.info
-    -rw-r--r-- 1 schmerler theorie   76768 2008-12-04 13:41 AlN.md.out.pdos.dat
-    -rw-r--r-- 1 schmerler theorie     251 2008-12-04 13:41 AlN.md.out.pdos.dat.info
-    -rw-r--r-- 1 schmerler theorie     864 2008-12-04 13:41 AlN.md.out.m.dat
-    -rw-r--r-- 1 schmerler theorie      58 2008-12-04 13:41 AlN.md.out.m.dat.info
-    -rw-r--r-- 1 schmerler theorie    9608 2008-12-04 13:41 AlN.md.out.p.dat
-    -rw-r--r-- 1 schmerler theorie      59 2008-12-04 13:41 AlN.md.out.p.dat.info
-    -rw-r--r-- 1 schmerler theorie 3112992 2008-12-04 13:41 AlN.md.out.r.dat
-    -rw-r--r-- 1 schmerler theorie      65 2008-12-04 13:41 AlN.md.out.r.dat.info
-    -rw-r--r-- 1 schmerler theorie    9608 2008-12-04 13:41 AlN.md.out.temp.dat
-    -rw-r--r-- 1 schmerler theorie      59 2008-12-04 13:41 AlN.md.out.temp.dat.info
-    -rw-r--r-- 1 schmerler theorie 3110400 2008-12-04 13:41 AlN.md.out.v.dat
-    -rw-r--r-- 1 schmerler theorie      65 2008-12-04 13:41 AlN.md.out.v.dat.info
-
-Filenames:
-    nstep : Number of time steps in the MD run (see *.in file). 
-        To construct a time axis, the time _step_ can be found in the
-        pw.x *.in file in Rydberg time units or in seconds in *pdos*.info)
-    natoms: Number of atoms in the unit cell.
-
-    *vacf*  VACF, velocity autocorrelation function, 1d array, (nstep,)
-    *pdos*  frequency axis and PDOS, 2d array
-            binary: 4 columns 
-            text: 2 columns
-            see *.info file
-            FFT results in a spectrum mirrored around f=0 and a frequency axis
-            going from -fn ... 0 ... +fn, where fn is the Nyquist frequency. We
-            output only the 0 ... +fn part of the spectrum.
-    *m*     1d array with atom masses, extracted from *.in, (natoms,)
-    *p*     1d array with pressure, (nstep,), from pw.x outfile
-    *temp*  1d array with temperature, (nstep,), from pw.x outfile
-    *r*     atomic coords in the unit of ATOMIC_POSITIONS in the parsed output
-            file 
-            binary: 3d array (natoms, nstep+1, 3)
-            text:   2d array (natoms*(nstep+1), 3)
-    *v*     atomic velocities
-            binary: 3d array (natoms, nstep, 3)
-            text:   2d array (natoms*nstep, 3)            
