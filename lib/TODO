@@ -17,9 +17,15 @@ pydos.py
   But there may be others, like area = 3*natoms in the unit cell (not
   supercell), ...
 
+- PDOS: ckeck if the frequency axis is correct. Currently we use f and not
+  2*pi*f.
+
+- Do something with the hardcoded time axis (axis=1) in all 3d arrays parsed
+  from pw.out files.
+
 - Test PDOS calculation with different ATOMIC_POSITIONS units for the same
   structure etc. Do they yield the same PDOS .. i.e. is the PDOS invariant
-  under variation of the coordinate system?
+  under variation of the coordinate system or coord axis scale?
 
 parse.py
 --------
