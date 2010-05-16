@@ -14,7 +14,7 @@ def acorr(v, method=6):
 
     Several Python and Fortran implememtations. The Python versions are mostly
     for reference. For large arrays, only the pure numpy and Fortran versions
-    fast and useful.
+    are fast and useful.
 
     args:
     -----
@@ -92,7 +92,7 @@ def acorr(v, method=6):
         # Both theorems assume *periodic* data, i.e. `a` and `b` repeat after
         # `nstep` points. To deal with non-periodic data, we use zero-padding
         # at the end of `a` [1]. The result `c` contains the correlations for
-        # positive and negative lags. Since in the ACF is symmetric around
+        # positive and negative lags. Since the ACF is symmetric around
         # lag=0, we return 0 ... +lag.
         vv = np.concatenate((v, np.zeros((nstep,),dtype=float)))
         c = ifft(np.abs(fft(vv))**2.0)[:nstep].real
