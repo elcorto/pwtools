@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*- 
 
 
-# Post-process molecular dynamics data produced by the Quantum
-# Espresso package (quantum-espresso.org). 
+# Post-process molecular dynamics data produced by the Quantum Espresso package
+# (quantum-espresso.org). 
 # 
 # This module implements the functionallity to calculate the phonon DOS from MD
 # trajectories. For parsing output files into a format which is used here, see
@@ -190,12 +190,11 @@ def normalize(a):
 
 
 def velocity(R, dt=None, copy=True, rslice=slice(None)):
-    """Compute V from R. Essentially, time-next-neighbor-differences are
-    calculated.
+    """Compute velocity from 3d array with MD trajectory.
         
     args:
     -----
-    R : 3D array, shape (natoms, nstep, 3) or (natoms, nstep+1, 3) or ...,
+    R : 3D array, shape (natoms, nstep, 3)
         atomic coords
     dt: float
         time step
@@ -266,22 +265,8 @@ def pyvacf(V, m=None, method=3):
                 #   m[:,np.newaxis]    -> (natoms, 1)
                 c[t] += (V[:,j,:] * V[:,j+t,:] * m[:,np.newaxis]).sum()
     elif method == 3:    
-        # replace 2 inner loops, the last loop can't be vectorized (at least I
-        # don't see how), `t' as array of indices doesn't work in numpy and
-        # fortran
-        
-        # Multiply with mass-vector m:
-        # method A: 
-        # Multiply whole V (each vector V[:,j,k]) with sqrt(m), m =
-        # sqrt(m)*sqrt(m) in the dot product, then. 3x faster than method B.
-        # Note: You need to make a copy of V first.
-        #   m[:,np.newaxis,np.newaxis] -> (natoms, 1, 1)
-        #   V                        -> (natoms, nstep, 3)
-        # Vc = V.copy()  
-        # Vc *= np.sqrt(m[:,np.newaxis,np.newaxis])
-        # ... use Vc instead of V ...
+        # replace 2 inner loops
         for t in xrange(nstep):
-            # method B: like in method 2, but extended to 3D
             c[t] = (V[:,:(nstep-t),:] * V[:,t:,:]*m[:,np.newaxis,np.newaxis]).sum()
     else:
         raise ValueError('unknown method: %s' %method)
@@ -445,7 +430,7 @@ def direct_pdos(V, dt=1.0, m=None, full_out=False, natoms=1.0, window=True):
     if full_out:
         # have to re-calculate this here b/c we never calculate the full_pdos
         # normally
-        if massvecc is not None:
+        if massvec is not None:
             full_pdos = (full_fftv * \
                          massvec[:,np.newaxis, np.newaxis]\
                          ).sum(axis=0).sum(axis=1)
