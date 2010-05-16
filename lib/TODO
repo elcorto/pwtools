@@ -1,11 +1,12 @@
 pydos.py
 --------
-- Remove cmd line stuff. Make some test/* files to show how to calc a PDOS in
-  various ways using parse.py and pydos.py as toolkits.
-
 - unify vacf_pdos(), direct_pdos(), thay have almost the same signature and
   functionallity, use 'method' kwarg or so, OR make a base class Pdos, derive 2
-  special-case classes ... 
+  special-case classes ..., remove kwarg natoms, it's not used 
+
+- PDOS normalization. ATM we normalize so that int(faxis, pdos) = area = 1.0. 
+  But there may be others, like area = 3*natoms in the unit cell (not
+  supercell), ...
 
 - Implement the maximum entropy method.
 
@@ -13,19 +14,11 @@ pydos.py
   pw.in and that of the parsed out ones from pw.out are the same. Check this!
   For example, it is seems to be NOT the same for cp.x!
 
-- PDOS normalization. ATM we normalize so that int(faxis, pdos) = area = 1.0. 
-  But there may be others, like area = 3*natoms in the unit cell (not
-  supercell), ...
-
 - PDOS: ckeck if the frequency axis is correct. Currently we use f and not
   2*pi*f.
 
 - Do something with the hardcoded time axis (axis=1) in all 3d arrays parsed
   from pw.out files.
-
-- Test PDOS calculation with different ATOMIC_POSITIONS units for the same
-  structure etc. Do they yield the same PDOS .. i.e. is the PDOS invariant
-  under variation of the coordinate system or coord axis scale?
 
 parse.py
 --------
