@@ -364,7 +364,7 @@ def norm_int(y, x, area=1.0):
     return y*area/_area
 
 
-def direct_pdos(V, dt=1.0, m=None, full_out=False, natoms=1.0, window=True):
+def direct_pdos(V, dt=1.0, m=None, full_out=False, area=1.0, window=True):
     """Compute PDOS without the VACF by direct FFT of the atomic velocities.
     We call this Direct Method. Integral area is normalized 1.0.
     
@@ -375,7 +375,8 @@ def direct_pdos(V, dt=1.0, m=None, full_out=False, natoms=1.0, window=True):
     m : 1d array (natoms,), atomic mass array, if None then mass=1.0 for all
         atoms is used  
     full_out : bool
-    natoms : float, number of atoms
+    area : float
+        normalize area under frequency-PDOS to this value
     window : bool, use Welch windowing on data before FFT (reduces leaking
         effect, recommended)
 
@@ -426,7 +427,7 @@ def direct_pdos(V, dt=1.0, m=None, full_out=False, natoms=1.0, window=True):
                                  
     # average remaining axes        
     pdos = fftv.sum(axis=0).sum(axis=1)        
-    default_out = (faxis, norm_int(pdos, faxis, area=1.0))
+    default_out = (faxis, norm_int(pdos, faxis, area=area))
     if full_out:
         # have to re-calculate this here b/c we never calculate the full_pdos
         # normally
@@ -442,7 +443,7 @@ def direct_pdos(V, dt=1.0, m=None, full_out=False, natoms=1.0, window=True):
         return default_out
 
 
-def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False, natoms=1.0,
+def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False, area=1.0,
               window=True):
     """Compute PDOS by FFT of the VACF. Integral area is normalized to
     1.0.
@@ -455,7 +456,8 @@ def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False, natoms=1.0,
         atoms is used  
     mirr : bool, mirror VACF at t=0 before fft
     full_out : bool
-    natoms : float, number of atoms
+    area : float
+        normalize area under frequency-PDOS to this value
     window : bool, use Welch windowing on data before FFT (reduces leaking
         effect, recommended)
 
@@ -490,7 +492,7 @@ def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False, natoms=1.0,
     split_idx = len(full_faxis)/2
     faxis = full_faxis[:split_idx]
     pdos = full_pdos[:split_idx]
-    default_out = (faxis, norm_int(pdos, faxis, area=1.0))
+    default_out = (faxis, norm_int(pdos, faxis, area=area))
     extra_out = (full_faxis, fftc, split_idx, c)
     if full_out:
         return default_out + (extra_out,)
