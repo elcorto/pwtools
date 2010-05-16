@@ -24,10 +24,6 @@ parse.py
 --------
 fix get_kpoints if "K_POINTS gamma"
 
-README
-------
-- Remove cmd line stuff
-
 all
 ---
 - Drop verbose.py. Use the logging or warnings module.
