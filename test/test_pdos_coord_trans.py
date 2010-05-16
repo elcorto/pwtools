@@ -16,7 +16,7 @@ coords = {}
 # cartesian
 coords['cart'] = rand((10, 200, 3))
 
-# cartesian scaled
+# cartesian scaled, e.g. Angstrom instead of Bohr
 coords['cart2'] = coords['cart']*5
 
 # some other coord sys

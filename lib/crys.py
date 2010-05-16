@@ -5,7 +5,6 @@
 
 from math import acos, pi, sin, cos, sqrt
 from itertools import izip
-import re
 
 import numpy as np
 
@@ -19,7 +18,6 @@ except ImportError:
 from common import assert_cond
 import common
 import constants as con
-import regex
 from decorators import crys_add_doc
 
 #-----------------------------------------------------------------------------
@@ -103,7 +101,6 @@ def volume_cp(cp):
     assert_cond(cp.shape == (3,3), "input must be (3,3) array")
     return np.dot(np.cross(cp[0,:], cp[1,:]), cp[2,:])        
 
-#-----------------------------------------------------------------------------
 
 @crys_add_doc
 def volume_cc(cryst_const):
@@ -134,8 +131,6 @@ def volume_cc(cryst_const):
     return a*b*c*sqrt(1+ 2*cos(alpha)*cos(beta)*cos(gamma) -\
           cos(alpha)**2 - cos(beta)**2 - cos(gamma)**2 )
 
-
-#-----------------------------------------------------------------------------
 
 @crys_add_doc
 def cp2cc(cp, align='rows'):
@@ -346,7 +341,6 @@ def scell_mask(dim1, dim2, dim3):
                 b.append([n1,n2,n3])
     return np.array(b, dtype=float)
 
-#-----------------------------------------------------------------------------
 
 @crys_add_doc
 def raw_scell(R0, mask, symbols):
@@ -402,7 +396,6 @@ def raw_scell(R0, mask, symbols):
             k += 1
     return {'symbols': symbols_sc, 'coords': Rsc}
 
-#-----------------------------------------------------------------------------
 
 @crys_add_doc
 def scell(coords, cp, dims, symbols, align='rows'):
@@ -600,6 +593,7 @@ def rmsd(coords_cart, ref_idx=0):
     R = R**2.0
     N = float(R.shape[0])
     return np.sqrt(R.sum(axis=2).sum(axis=0)/N)
+
 
 #XXX check ME!!!
 def max_displacement(coords_cart):

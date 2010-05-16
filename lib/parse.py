@@ -211,12 +211,6 @@ class FileParser(object):
         # self._get_baz(), ... which is called in self.parse().
         self.set_attr_lst([])
     
-    def set_attr_lst(self, attr_lst):
-        """Set self.attr_lst and init each attr to None."""
-        self.attr_lst = attr_lst
-        for attr in self.attr_lst:
-            setattr(self, attr, None)
-
     def __del__(self):
         """Destructor. If self.file has not been closed yet (in self.parse()),
         then do it here, eventually."""
@@ -226,6 +220,12 @@ class FileParser(object):
         if (self.file is not None) and (not self.file.closed):
             self.file.close()
     
+    def set_attr_lst(self, attr_lst):
+        """Set self.attr_lst and init each attr to None."""
+        self.attr_lst = attr_lst
+        for attr in self.attr_lst:
+            setattr(self, attr, None)
+
     def dump(self, dump_filename):
         """Pickle (write to binary file) the whole object."""
         # Dumping with protocol "2" is supposed to be the fastest binary format
@@ -792,7 +792,7 @@ class PwInputFile(StructureFileParser):
         [...]
         """
         self.file.seek(0)
-        verbose('[get_atomic_species] reading ATOMIC_SPECIES from %s' %self.filename)
+        verbose('[get_atspec] reading ATOMIC_SPECIES from %s' %self.filename)
         # rex: for the pseudo name, we include possible digits 0-9 
         rex = re.compile(r'\s*([a-zA-Z]+)\s+(' + regex.float_re +\
             ')\s+(.*)$')
@@ -800,7 +800,7 @@ class PwInputFile(StructureFileParser):
                                          pat='atomic_species',        
                                          err=False)
         if flag == 0:
-            verbose("[get_atomic_species]: WARNING: start pattern not found")
+            verbose("[get_atspec]: WARNING: start pattern not found")
             return None
         line = next_line(self.file)
         while line == '':
@@ -815,7 +815,7 @@ class PwInputFile(StructureFileParser):
             line = next_line(self.file)
             match = rex.match(line)
         if lst == []:
-            verbose("[get_atomic_species]: WARNING: nothing found")
+            verbose("[get_atspec]: WARNING: nothing found")
             return None
         # numpy string array :)
         ar = np.array(lst)
@@ -919,13 +919,13 @@ class PwInputFile(StructureFileParser):
         """
         self.check_get_attr('atspec')
         self.file.seek(0)
-        verbose("[get_atomic_positions] reading ATOMIC_POSITIONS from %s" %self.filename)
+        verbose("[get_atpos] reading ATOMIC_POSITIONS from %s" %self.filename)
         rex = re.compile(r'\s*([a-zA-Z]+)((\s+' + regex.float_re + '){3})\s*')
         self.file, flag, line = scan_until_pat(self.file, 
                                                pat="atomic_positions", 
                                                retline=True)
         if flag == 0:
-            verbose("[get_atomic_positions]: WARNING: start pattern not found")
+            verbose("[get_atpos]: WARNING: start pattern not found")
             return None
         line = line.strip().lower().split()
         if len(line) > 1:
@@ -946,7 +946,7 @@ class PwInputFile(StructureFileParser):
             line = next_line(self.file)
             match = rex.match(line)
         if lst == []:
-            verbose("[get_atomic_positions]: WARNING: nothing found")
+            verbose("[get_atpos]: WARNING: nothing found")
             return None
         ar = np.array(lst)
         symbols = ar[:,0].tolist()

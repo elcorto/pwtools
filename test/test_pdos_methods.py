@@ -24,20 +24,17 @@ b/c the theorem tells us that in fact method (1) is just a more complicated way
 of doing (2). BTW, (3) is the same as (2) -- direct FFT of velocities.
 
 Let corr(v,v) == VACF == the velocity autocorrelation. We skip all technical
-details like padding etc. See also NR, chap. 12 "Fast Fourier Transform".
+details like zero-padding, mirroring, normalization. See also NR, chap. 12
+"Fast Fourier Transform".
   
   Correlation theorem:
-    corr(v,w) <=> fft(v)*fft(w).conj()
+    fft(corr(v,w)) = fft(v)*fft(w).conj()
  
   Wiener-Khinchin theorem:
-    corr(v,v) <=> fft(v)*fft(v).conj() = |fft(v)|**2
-    
-    =>
-    corr(v,v) = ifft(|fft(v)|^2)
+    fft(corr(v,v)) = fft(v)*fft(v).conj() = |fft(v)|^2
     
     =>
     PSD = fft(corr(v,v))         # (1)
-        = fft(ifft(|fft(v)|^2)) 
         = |fft(v)|^2             # (2), (3)
 
 Note that we skip the factor of 2 from the definition of the "real" power
@@ -50,9 +47,9 @@ all approx. the same height. That's b/c with arr = <velocity>, we are
 integrating (fft-ing) the *derivative* of a time function. Then, with
 integration by parts:
 
-F[v'(t)](f) =             int(t) v' * exp(i*2*pi*f*t) dt 
+F[v'(t)](f) =             Int(t) v' * exp(i*2*pi*f*t) dt 
             = ...
-            = -i*2*pi*f * int(t) v  * exp(i*2*pi*f*t) dt
+            = -i*2*pi*f * Int(t) v  * exp(i*2*pi*f*t) dt
             = -i*2*pi*f * F[v(t)]
 =>
 |F[v'(t)](f)|^2 ~ f^2 * |F[v(t)](f)|^2

@@ -21,7 +21,7 @@ subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
     double precision, intent(in) :: v(0:natoms-1, 0:nstep-1, 0:2)
     double precision, intent(in) :: m(0:natoms-1)
     double precision, intent(out) :: c(0:nstep-1)
-    character(len=*), parameter :: this="[_flib.so, vacf] "
+    character(len=*), parameter :: this='[_flib.so:vacf] '
     
     ! for mass vector stuff in method 2
     double precision :: vv(0:natoms-1, 0:nstep-1, 0:2)
