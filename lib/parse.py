@@ -1060,12 +1060,36 @@ class PwInputFile(StructureFileParser):
         return dct
 
     def get_kpoints(self):
+        """Parse the K_POINTS card. The format is assumed to be
+            K_POINTS <mode>
+            [<kpoints>]
+        
+        example:
+        --------
+        K_POINTS automatic
+        2 2 2 0 0 0
+        => 'K_POINTS automatic\n2 2 2 0 0 0'
+        => mode = 'automatic'
+           kpoints = '2 2 2 0 0 0'
+        
+        # if mode = 'gamma', then we set kpoints ='gamma'    
+        K_POINTS gamma
+        => 'K_POINTS gamma'
+        => mode = 'gamma'
+           kpoints = 'gamma'
+        """           
         self.check_get_attr('txt')
-        rex = re.compile(r'^\s*K_POINTS\s*(.*?)\s*\n\s*^\s*(.*?)\s*$', 
-                         re.M)
-        m = rex.search(self.txt)                             
-        return {'mode': m.group(1),
-                'kpoints': m.group(2)}
+        rex = re.compile(r'^\s*K_POINTS\s*(.*)\s*\n*(.*)$', re.M)
+        m = rex.search(self.txt)
+        mode = m.group(1).strip().lower()
+        kpoints = m.group(2).strip().lower()
+        if mode == 'gamma':
+            if kpoints == '':
+                kpoints = mode
+            else:
+                raise StandardError("K_POINTS mode = 'gamma' but kpoints != ''")
+        return {'mode': mode,
+                'kpoints': kpoints}
             
 
 # XXX Possible optimization: 
