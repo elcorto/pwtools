@@ -1,14 +1,11 @@
 pydos.py
 --------
 - unify vacf_pdos(), direct_pdos(), thay have almost the same signature and
-  functionallity, use 'method' kwarg or so, OR make a base class Pdos, derive 2
-  special-case classes ..., remove kwarg natoms, it's not used 
+  functionallity, use a kwarg 'method' to select the method of calculation
 
-- PDOS normalization. ATM we normalize so that int(faxis, pdos) = area = 1.0. 
+- PDOS normalization. ATM we normalize so that Int(faxis, pdos) = area = 1.0. 
   But there may be others, like area = 3*natoms in the unit cell (not
   supercell), ...
-
-- Implement the maximum entropy method.
 
 - We assume that the ATOMIC_POSITIONS unit (crystal, alat, angstrom) in
   pw.in and that of the parsed out ones from pw.out are the same. Check this!
@@ -17,12 +14,10 @@ pydos.py
 - PDOS: ckeck if the frequency axis is correct. Currently we use f and not
   2*pi*f.
 
-- Do something with the hardcoded time axis (axis=1) in all 3d arrays parsed
+- Do something with the hardcoded time axis (axis=1) in all 3d arrays
   from pw.out files.
 
-parse.py
---------
-fix get_kpoints if "K_POINTS gamma"
+- Implement the maximum entropy method .. or not.
 
 all
 ---
