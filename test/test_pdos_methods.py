@@ -226,10 +226,10 @@ print "plotting ..."
 figs.append(plt.figure())
 axs.append(figs[-1].add_subplot(111))
 axs[-1].set_title('1d arr')
-axs[-1].plot(f1, y1n, label='|fft(arr)|^2, direct')
-axs[-1].plot(f2, y2n, label='|fft(acorr(arr))|, vacf')
+axs[-1].plot(f1, y1n, label='1d |fft(arr)|^2, direct')
+axs[-1].plot(f2, y2n, label='1d |fft(acorr(arr))|, vacf')
 if use_fourier:
-    axs[-1].plot(f3, y3n, label='fourier.x')
+    axs[-1].plot(f3, y3n, label='1d fourier.x')
 axs[-1].legend()
 
 
@@ -302,10 +302,10 @@ if use_fourier:
 figs.append(plt.figure())
 axs.append(figs[-1].add_subplot(111))
 axs[-1].set_title('3d arr, no mass')
-axs[-1].plot(f4, y4n, label='vacf')
-axs[-1].plot(f5, y5n, label='direct')
+axs[-1].plot(f4, y4n, label='3d vacf')
+axs[-1].plot(f5, y5n, label='3d direct')
 if use_fourier:
-    axs[-1].plot(f8, y8n, label='fourier.x')
+    axs[-1].plot(f8, y8n, label='3d fourier.x')
 axs[-1].legend()
 
 figs.append(plt.figure())
