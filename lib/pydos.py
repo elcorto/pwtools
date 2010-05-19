@@ -472,7 +472,7 @@ def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False, area=1.0,
         VV = V*(welch(V.shape[time_axis])[sl])
     else:
         VV = V
-    c = vacf(VV, m=massvec)
+    c = fvacf(VV, m=massvec)
     if mirr:
         verbose("[vacf_pdos] mirror VACF at t=0")
         fftc = fft(mirror(c))
