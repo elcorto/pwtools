@@ -11,9 +11,6 @@ pydos.py
   pw.in and that of the parsed out ones from pw.out are the same. Check this!
   For example, it is seems to be NOT the same for cp.x!
 
-- PDOS: ckeck if the frequency axis is correct. Currently we use f and not
-  2*pi*f.
-
 - Do something with the hardcoded time axis (axis=1) in all 3d arrays
   from pw.out files.
 

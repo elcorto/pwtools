@@ -1,21 +1,47 @@
 # -*- coding: utf-8 -*- 
 
 """
+methods
+-------
+
 Test 3 different methods to calculate the phonon density as the power spectrum
 (PSD) of atomic velocities. We generate random 1d and 3d data containing sums
 of sin()s.
 
-methods:
-
 1) FFT of the VACF (pydos.vacf_pdos())
 2) direct FFT of the velocities (pydos.direct_pdos())
-3) Axel Kohlmeyer's fourier.x tool from the CPMD contrib sources.
+3) Axel Kohlmeyer's fourier.x tool from the CPMD contrib sources. We
+   can use this as a reference to see if we do The Right Thing.
 
 (1) and (2) must produce exactly the same result within numerical noise b/c
 they are mathematically equivalent and are implemented to produce the same
 frequency resolution.
 (3) must match in principle w.r.t. peak positions and relative peak heights. It
-can't match exactly b/c it has lower frequency resolution (no mirroring).
+can't match exactly b/c it has lower frequency resolution (b/c they do not
+zero-padd before fft-ing the velocities).
+
+frequency axis
+--------------
+
+In the literature, the PDOS is defined as depending on omega (angular
+frequency). 
+
+But here, all 3 methods give a frequency axis in f (ordinary cyclic frequency)
+AND NOT IN ANGULAR FREQUENCY (omega)!!!! This is b/c (1) and (2) use scipy.fft
+and numpy.fftfreq() and these tools mostly use the conventions used in
+Numerical Recipes, where we deal with f, not omega:
+
+    f_i = i / (dt * N) , i = -N/2 .. N/2, N = len(data)
+
+We have:
+    (1) : f [Hz]
+    (2) : f [Hz]
+    (3) : f [1/cm] (see below)
+
+You may want to multiply by 2*pi to get an omega-axis.
+
+theory
+------
 
 For 3d arrays with real velocity data, (1) is much slower b/c ATM the VACF is
 calculated directly via loops. Possible optimization: calc the autocorrelation
@@ -60,9 +86,57 @@ http://mathworld.wolfram.com/FourierTransform.html
 Note: Not sure if this applies one to one to FFT (i.e. discrete FT), but the
 idea should be the same.
 
+fourier.x
+---------
+
 You must set the path to fourier.x below. If it is not found, it won't be used
 and the tests will run w/o it. If it is used, some input and output files in a
 dir `fourier_dir` (set below) are produced.
+
+The tool reads from stdin (interactive use or we pipe an input file to it). The
+input is queried in main.f90. These quantities are required in this order:
+
+  - input data file
+  - output data file
+  - dt in Hartree (see below)
+  - temperature (seems not important for pure power spectrum w/o any prefactor, 
+        i.e. the 2nd column of the output data file)
+  - max frequency in 1/cm
+  - frequency increment (always use 1 to do no averaging)
+
+Unfortunately, the code is sparesly commented and hard to understand.
+Nevertheless, we verified that the frequency axis is indeed f, not omega. In
+main.f90, there is a part:
+
+  PRINT *,"give time difference in input file (in atomic units):"
+  PRINT *,"[CAUTION: this is the MD time step times the sampling frequency.]"
+  READ (*,*) data_t
+  wave_fac = 219474.0_dbl/data_t
+
+whete `data_t` is our input dt in Hartree atomic units (dt [s] / constants.th).
+Now WTF is this number 219474.0 !!?? By experiment(!), we found that it is
+    1 / constants.th / (constants.c0*100) / (2*pi)
+
+Some variables in main.f90 and the corresponding value here (main.f90 : here)
+    n : nstep - 1
+        - main.f90: n comes from check_file()
+        - here: nstep-1, -1 b/c we calculate a "velocity" and
+          len(diff(arange(10))) == 9, this is also the number of time values
+          (num. of lines) in the input data file
+    nn : (nstep-1)/2
+    nstep :
+        nstep is the input "frequency increment"
+    nover :
+        Somewhere in main.f90, we have "nover = nstep". Duh.
+
+Looking thru the code, we find that all 2*pi terms eventually cancel at the
+end. The output frequency axis is "t*wave_fac" in write_file() and t == wtrans
+in main.f90. We have 
+
+    f = i / ((n+1) * 100*c0 * dt)
+
+which is just (almost) the definition of the f-axis for DFT, converted to 1/cm. 
+The n+1 might be wrong leading to very slightly shifted frequencies, though.
 """
 
 import os
@@ -98,8 +172,6 @@ def cut_norm(full_y, dt, area=1.0):
 # common settings for 1d and 3d case
 ###############################################################################
 
-# Axel Kohlmeyer's fourier.x tool from the CPMD contrib sources. The tool reads
-# from stdin (interactive use or we pipe an input file to it).
 fourier_exe = common.fullpath('~/soft/lib/fourier/fourier.x')
 fourier_dir = '/tmp/fourier_test'
 use_fourier = os.path.exists(fourier_exe)
@@ -177,14 +249,10 @@ print "y2.shape", y2.shape
 
 # 3) fourier.x
 #
-# Write `arr` in a format suitable for Axel Kohlmeyer's fourier.x tool in 
-# the CPMD contrib sources. The tool reads from stdin (interactive use or we
-# pipe an input file to it).
-# Since we have only 1d data, we do as suggested in the CPMD manual and the
-# fourier.x README file:
-#   awk ’ { print $1, 0.0, 0.0, 0.0, 0.0, 0.0, $2; } ’ ENERGIES > ekinc.dat
-# where ENERGIES is a CPMD output file. From that, only column 1 (time step)
-# and some energy value from column 2 is used.
+# For the 1d case, we write the time trace in a format suggested in the CPMD
+# manual and the fourier.x README file: awk ’ { print $1, 0.0, 0.0, 0.0, 0.0,
+# 0.0, $2; } ’ ENERGIES > ekinc.dat where ENERGIES is a CPMD output file. From
+# that, only column 1 (time step) and some energy value from column 2 is used.
 if use_fourier:
     print "fourier.x ..."
     fourier_in_data = np.zeros((arr.shape[0],7))
@@ -192,15 +260,6 @@ if use_fourier:
     fourier_in_data[:,6] = arr
     fourier_in_data_fn = pj(fourier_dir, 'fourier_in_data_1d.txt')
     fourier_out_data_fn = pj(fourier_dir, 'fourier_out_data_1d.txt')
-    # Input file for fourier.x, the order is the same as for the interactively
-    # queried quantities by the tool:
-    #   input data file
-    #   output data file
-    #   dt in Hartree 
-    #   temperature (seems not important for pure power spectrum, i.e. 
-    #       the 2nd column of fourier_out_data)
-    #   max frequency in 1/cm
-    #   frequency increment (always use 1 to do no averaging)
     fourier_in_fn = pj(fourier_dir, 'fourier_1d.in')
     fourier_in_txt = '%s\n%s\n%.16e\n%f\n%.16e\n%i' %(fourier_in_data_fn,
                                                       fourier_out_data_fn,
@@ -267,7 +326,7 @@ f6, y6nm = pydos.vacf_pdos(arr, dt=dt, m=M, mirr=True)
 f7, y7nm = pydos.direct_pdos(arr, dt=dt, m=M)
 
 if use_fourier:
-    # For each atom, write array (time.shape[0], 3) with coords at all time
+    # For each atom, write an array (time.shape[0], 3) with coords at all time
     # steps, run fourier.x on that, sum up the power spectra. No mass
     # weighting.
     fourier_in_data = np.zeros((arr.shape[1],7))

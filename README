@@ -59,17 +59,24 @@ Methology
 
 There are two ways of computing the PDOS (V is is array of atomic velocities,
 see pydos.velocity(). 
-    (1) vacf way: FFT of the velocity autocorrelation function (vacf):
-        V -> VACF -> FFT(VACF) = PDOS, see pydos.vacf_pdos()
-    (2) direct way: |FFT(V)**2| = PDOS, see pydos.direct_pdos()
+
+(1) vacf way: FFT of the velocity autocorrelation function (vacf):
+    V -> VACF -> FFT(VACF) = PDOS, see pydos.vacf_pdos()
+(2) direct way: |FFT(V)**2| = PDOS, see pydos.direct_pdos()
+
 - If you mirror the VACF before the FFT, then you get double
   frequency resolution. 
+
 - By default, direct_pdos() uses zero padding to get the same frequency
   resolution as you would get with mirroring the signal in vacf_pdos().
+
 - Both methods use Welch windowing by default to reduce "leakage" from
   neighboring peaks. See also test/test_pdos_methods.py 
+
 - Both methods must produce exactly the same results (up to numerical noise).
 
+- The frequency axis of the PDOS is in Hz. It is "f", NOT the angular frequency 
+  2*pi*f. See also test/test_pdos_methods.py .
 
 Format-specific notes
 =====================

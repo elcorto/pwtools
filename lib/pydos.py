@@ -384,7 +384,6 @@ def direct_pdos(V, dt=1.0, m=None, full_out=False, area=1.0, window=True):
     -----
     [1] Phys Rev B 47(9) 1993
     """
-    # XXX Frequency in f, not 2*pi*f
     massvec = m 
     # FIXME hardcoded time axis
     time_axis = 1
@@ -463,7 +462,6 @@ def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False, area=1.0,
         ffttc : 1d complex array, result of fft(c) or fft(mirror(c))
         c : 1d array, the VACF
     """
-    # XXX Frequency in f, not 2*pi*f
     massvec = m 
     time_axis = 1
     if window:
