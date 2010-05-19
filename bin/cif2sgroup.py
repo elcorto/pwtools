@@ -2,8 +2,8 @@
 
 import sys
 
-import parse, crys
-import pydos as pd
+from pwtools import parse, crys
+from pwtools import pydos as pd
 
 fn = sys.argv[1]
 pp = parse.CifFile(fn)
