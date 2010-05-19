@@ -5,11 +5,31 @@ Copyright (c) 2008-2010, Steve Schmerler <mefx@gmx.net>.
 Installation
 ============
 
+There is not installation script. Just copy the whole package somewhere.
+
+path issues (.bashrc/.profile)
+------------------------------
+
+Suppose all pwtools files are in /home/foo/pwtools/.
+    
+    # makes "import pwtools" possible
+    export PYTHONPATH=$PYTHONPATH:/home/foo
+
+If you like, make cmd line tools available.    
+    export PATH=/home/foo/pwtools/bin:$PATH
+
+Fortran extensions
+------------------
+
+To calculate the velocity autocorrelation function, you want to use a Fortran
+extension module. Go to lib/ and compile it. See lib/Makefile.
+Note that this is not necessary for the "Direct Method" (see below).
+
 Python versions
 ---------------
 
 Developed mostly with Python 2.5. Should work with all versions from 2.4 on,
-bot not yet 3.x.
+bot not yet 3.x. Also, python2.6 has not jet been tested.
 
 Add-on packages
 ---------------
@@ -28,20 +48,6 @@ optional:
         at the top of lib/parse.py .
     test/*
         - matplotlib
-
-path issues (.bashrc/.profile)
-------------------------------
-
-Suppose all pwtools files are in /home/foo/pwtools/.
-    
-    # makes "import pwtools" possible
-    export PYTHONPATH=$PYTHONPATH:/home/foo
-
-
-Fortran extensions
-------------------
-
-See Makefile.
 
 Usage
 =====
@@ -71,20 +77,29 @@ Format-specific notes
 Pwscf
 -----
 
-Notes about when you need to transform the atomic coordinates *before* using
-them to calculate the PDOS. See 
+Units:
+
+From http://www.quantum-espresso.org/input-syntax/INPUT_PW.html
+    All quantities whose dimensions are not explicitly specified are in
+    RYDBERG ATOMIC UNITS
+See constants.py
+
+atomic coordinates:
+
+To calculate the PDOS, atomic coordinates from MD trajectories have to be in
+cartesian coordinates. You may have to transform them *before* using them to
+calculate the PDOS. See 
     test/test_pdos.py 
     test/test_pdos_coord_trans.py
 
-If needed, that is the input file (pw.in) has:
+This is necessary if you have 
     ATOMIC_POSITIONS crystal
-    ibrav=0 
-    CELL_PARAMETERS is present
 
-transform to cartesian coords. The scale (or unit: Bohr, Angstrom, ..) does
-not matter, b/c currently the integral area under the PDUS curve is normalized
-in pydos.*_pdos(). But coords MUST be cartesian!
+The scale (or unit: Bohr, Angstrom, ..., defined by celldm(1) or
+CELL_PARAMETERS) does not matter, b/c currently the integral area under the
+PDOS curve is normalized in pydos.*_pdos(). But coords MUST be cartesian!
 
+For your convenience, here is a list of all possible formats:
 
 allowed ATOMIC_POSITIONS units (from the Pwscf help):
    alat    : atomic positions are in cartesian coordinates,
@@ -98,21 +113,22 @@ allowed ATOMIC_POSITIONS units (from the Pwscf help):
 
    crystal : atomic positions are in crystal coordinates, i.e.
              in relative coordinates of the primitive lattice vectors
-             (see below)
 
-Note: crystal cords are also called fractional coordinates (e.g. in Cif files).
+Note: crystal coords are also called fractional coordinates (e.g. in Cif files).
 
-short:
+summary:
 
     ATOMIC_POSITIONS angstrom  -> cartesian angstrom
     ATOMIC_POSITIONS bohr      -> cartesian bohr  [== a.u.] 
     ATOMIC_POSITIONS           -> cartesian alat
     ATOMIC_POSITIONS alat      -> cartesian alat
-    ATOMIC_POSITIONS crystal   -> crystal alat | a.u. 
+    ATOMIC_POSITIONS crystal   -> crystal alat or crystal a.u. 
 
 The unit of CELL_PARAMETERS is only important for ATOMIC_POSITIONS crystal,
-i.e. if one wants to calculate cartesian coords.
+i.e. if one wants to calculate cartesian coords. Note that alat == celldm(1).
     if celldm(1) present  -> CELL_PARAMETERS in alat -> crystal alat
+        => CELL_PARAMETERS = real cell parameter divided by alat
     if not                -> CELL_PARAMETERS in a.u. -> crystal a.u.
+        => CELL_PARAMETERS are in Rydberg atomic units, i.e. in Bohr.
 
 
