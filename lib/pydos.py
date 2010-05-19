@@ -9,15 +9,6 @@
 # trajectories. For parsing output files into a format which is used here, see
 # parse.py and test/* for examples.
 # 
-# Units
-# ------
-# From http://www.quantum-espresso.org/input-syntax/INPUT_PW.html
-# 
-#     All quantities whose dimensions are not explicitly specified are in
-#     RYDBERG ATOMIC UNITS
-# 
-# See constants.py
-
 
 ##from debug import Debug
 ##DBG = Debug()
