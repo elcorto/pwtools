@@ -1,5 +1,5 @@
 ! Fortran extension module to calculate the velocity autocorrelation function.
-! See Makefile for compilation, pydos.py for usage.
+! See Makefile for compilation, pydos.fvacf() for usage.
 
 subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
     
@@ -17,21 +17,19 @@ subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
     implicit none
     integer, intent(in) :: natoms, nstep, method, use_m
     integer, intent(in), optional ::  nthreads
-    integer ::  t, i, j, k
     double precision, intent(in) :: v(0:natoms-1, 0:nstep-1, 0:2)
     double precision, intent(in) :: m(0:natoms-1)
     double precision, intent(out) :: c(0:nstep-1)
     character(len=*), parameter :: this='[_flib.so:vacf] '
-    
+    integer ::  t, i, j, k
     ! for mass vector stuff in method 2
     double precision :: vv(0:natoms-1, 0:nstep-1, 0:2)
         
     !f2py intent(in, out) c
-    
 
 #ifdef __OPENMP
-    ! Check if env vars are recognized. This seems to work.
-    ! getenv() is implemented in gfortran and ifort.
+    ! Check if env vars are recognized. This seems to work (uncomment the lines
+    ! starting with `!!`). getenv() is implemented in gfortran and ifort.
     !
     !! character(100) :: OMP_NUM_THREADS
     !! call getenv('OMP_NUM_THREADS', OMP_NUM_THREADS)
