@@ -28,6 +28,7 @@
 #   "[ ]" instead.
 
 import re
+import os
 from math import acos, pi, sin, cos, sqrt
 from itertools import izip
 from cStringIO import StringIO
@@ -1119,9 +1120,10 @@ class PwOutputFile(FileParser):
     coords : 3d array (natoms, nstep, 3) XXX time axis hardcoded!
     cell_parameters : 3d array (3, nstep, 3), prim. basis vectors for each 
         step
-    nstep : number of MD steps
-    natoms : number of atoms
+    nstep : scalar, number of MD steps
+    natoms : scalar, number of atoms
     volume : 1d array (nstep,)
+    total_force : 1d array (nstep,)
     
     Members, whose corresponding data in the file is not present, are None.
     E.g. if there are no CELL_PARAMETERS printed in the output file, then
@@ -1169,11 +1171,11 @@ class PwOutputFile(FileParser):
         'coords', 
         'cell_parameters', 
         'natoms', 
-        'volume'])
-        
-        verbose("parsing %s" %self.filename)
+        'volume',
+        'total_force'])
         
     def parse(self):
+        verbose("parsing %s" %self.filename)
         FileParser.parse(self) 
 
         # sanity check
@@ -1191,8 +1193,8 @@ class PwOutputFile(FileParser):
         self.close_file()
     
     def get_infile(self):
-        verbose("getting infile")
         """Return a PwInputFile instance """
+        verbose("getting infile")
         if isinstance(self._infile, types.StringType):
             infile = PwInputFile(self._infile)
             infile.parse()
@@ -1337,7 +1339,16 @@ class PwOutputFile(FileParser):
             return None
         else:            
             return np.loadtxt(StringIO(ret_str))
-        
+    
+    def get_total_force(self):
+        verbose("getting total force")
+        ret_str = com.backtick(r"sed -nre \
+            's/^.*Total\s+force\s*=\s*(.*)\s*Total.*/\1/p' %s"
+                               %self.filename)
+        if ret_str.strip() == '':
+            return None
+        else:            
+            return np.loadtxt(StringIO(ret_str))
 
 class CPOutputFile(PwOutputFile):
     """
@@ -1534,25 +1545,28 @@ class Grep(object):
     If the predefined parsers are not enough, use this (or shell scripting
     with grep/sed/awk).
 
-    Define your re.<func> and know what it will return, e.g. MatchObject for
-    search()/match() or list for findall(). Then define a handle (function),
-    that takes the output and returns something (string, list, whatever) for
-    further processing.
+    Define your re.<func> (or anything else that parses a text string/file) and
+    know what it will return, e.g. MatchObject for re.search()/re.match() or
+    list for re.findall(). Then define a handle (function), which takes that
+    output and returns something (string, list, whatever) for further
+    processing.
     
     example
     -------
+    
+    scalar values
+    ~~~~~~~~~~~~~
+    This example uses only "scalar" values, i.e. values that occur only once in
+    the parsed file.
 
     (1) define Grep objects
-    
+
     patterns = { 
         "nelec_out"  : Grep(sql_type = 'FLOAT',
                             regex = re.compile(r'number.*electr.*=\s*(.*)\s*'),
                             basename = 'pw.out'),
         "ecutwfc"  : Grep(sql_type = 'FLOAT',
                           regex = re.compile(r'kinetic.*ener.*=\s*(.*)\s+Ry'),
-                          basename = 'pw.out'),
-        "ecutrho"  : Grep(sql_type = 'FLOAT',
-                          regex = re.compile(r'charge\s*density\s*cut.*=\s*(.*)\s+Ry'),
                           basename = 'pw.out'),
         "diag": Grep(sql_type='TEXT',
                      regex = re.compile(r"diagonal.*=\s*'(.*)'\s*"),
@@ -1561,11 +1575,8 @@ class Grep(object):
                          regex = re.compile(r'end.*bfgs', re.I),
                          handle = lambda m: m if m is None else 'yes' ,
                          basename='pw.out'),
-        "kpoints": Grep(sql_type='TEXT', 
-                        regex = re.compile(r"K_POINTS.*\n(.*)"),
-                        basename = 'pw.in'),
                } 
-    
+
     (2) Loop over result dirs calc/0 calc/1 ... calc/20 and grep for stuff in
     pw.{in,out}. In the example below, we assume that `sql` is an sqlite db
     with a table named "calc" and that this table already has a column named
@@ -1590,6 +1601,31 @@ class Grep(object):
             ret = grep.grep(dir)
             sql.execute("UPDATE calc SET %s=%s WHERE idx==%s" \
                         %(name, ret, idx))
+    
+    array values
+    ~~~~~~~~~~~~
+
+    >>> g=Grep(regex=re.compile(r'.*Total\s+force\s*=\s*(.*?)\s*Total.*'),
+    >>>        basename='pw.out', 
+    >>>        func=lambda x,y: re.findall(x,y,re.M), 
+    >>>        handle=lambda x: x)
+    >>> g.grep('calc/15')
+    ['1.619173',
+     '1.444923',
+     '1.164261',
+     '0.799796',
+     '0.205767',
+     '0.064090',
+     '0.002981',
+     '0.001006']
+    
+    notes
+    -----
+    Currently, if you define `func`, you have know that self.func is called 
+        self.func(regex, open(<filename>).read())
+    and you have to construct `func` in that way. Keep that in mind if you need
+    to pass extra args to func (like re.M if func is a re module function, see
+    "arry values" example).
     """
     def __init__(self, regex, basename, 
                  handle = lambda m: m.group(1), 
