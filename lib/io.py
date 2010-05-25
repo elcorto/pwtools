@@ -137,9 +137,9 @@ def readtxt(fh, axis=None, shape=None, header_maxlines=HEADER_MAXLINES,
     (see writetxt()) is used to determine the shape of the original 3d array
     and the array is reshaped accordingly.
     
-    If `axis` or `shape` is not None, then this is used instead of the
-    header value. This has the potential to shoot yourself in the foot, as the
-    header information in the file is ignored then. Use with care.
+    If `axis` or `shape` is not None, then these are used instead and 
+    the header, if existing, will be ignored. This has the potential to shoot
+    yourself in the foot. Use with care.
     
     If `axis` and `shape` are None, then this function does not work with
     normal text files which have no special header. Use np.loadtxt() in this
@@ -199,7 +199,7 @@ def readtxt(fh, axis=None, shape=None, header_maxlines=HEADER_MAXLINES,
         #   shape = (50, 1000, 3)
         #   shape_2d_chunk =  (50, 3)
         shape_2d_chunk = shape[:axis] + shape[(axis+1):]
-        # (50, 1000, 3)
+        # (50, 1000, 3) : natoms = 50, nstep = 1000, 3 = x,y,z
         arr = np.empty(shape)
         # read_arr: (50*1000, 3)
         expect_shape = (shape_2d_chunk[0]*shape[axis],) + (shape_2d_chunk[1],)
