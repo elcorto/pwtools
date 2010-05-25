@@ -1628,8 +1628,7 @@ class Grep(object):
 
     def grep(self, dir):
         # dir: calc/0/, calc/1/ ...
-        fn = pj(dir, self.basename)
-        print fn
+        fn = os.path.join(dir, self.basename)
         m = self.func(self.regex, open(fn).read())
         return self._handle(m)
 
