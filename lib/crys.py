@@ -86,12 +86,12 @@ def volume_cp(cp):
     --------
     >>> a = [1,0,0]; b = [2,3,0]; c = [1,2,3.];
     >>> m = np.array([a,b,c])
-    >>> volume(m)
+    >>> volume_cp(m)
     9.0
     >>> m = rand(3,3)
-    >>> volume(m)
+    >>> volume_cp(m)
     0.34119414123070052
-    >>> volume(m.T)
+    >>> volume_cp(m.T)
     0.34119414123070052
 
     notes:
@@ -584,7 +584,8 @@ def rmsd(coords_cart, ref_idx=0):
     args:
     -----
     coords_cart : 3d array with atom coords, time axis = 1
-    ref_idx : timr index of the reference structure 
+    ref_idx : time index of the reference structure (i.e. 0 to compare with the
+        start structure).
     """
     R = coords_cart.copy()
 ##    for j in range(R.shape[1]):
