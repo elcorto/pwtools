@@ -695,8 +695,16 @@ class FileTemplate(object):
         
         self._get_placeholder = self._default_get_placeholder if func is None \
                                 else func
-            
-        self.txt = self._get_txt()
+        
+        # copy_only : bypass reading the file and passing the text thru the
+        # replacement machinery and getting the text back, unchanged. While
+        # this works, it is slower and useless.
+        if keys != []:
+            self.txt = self._get_txt()
+            self._copy_only = False
+        else:
+            self.txt = None
+            self._copy_only = True
     
     def _default_get_placeholder(self, key):
         return 'XXX' + key.upper()
@@ -704,21 +712,30 @@ class FileTemplate(object):
     def _get_txt(self):
         return file_read(self.filename)
     
-    def writesql(self, sql_record, calc_dir='calc'):
-        rules = {}
-        for key in self.keys:
-            rules[self._get_placeholder(key)] = sql_record[key].file_val
-        file_write(pj(calc_dir, self.basename),
-                   template_replace(self.txt, rules, mode='txt',
-                                    conv=True))
+    def write(self, dct, calc_dir='calc', type='dct'):
+        assert type in ['dct', 'sql'], "Wrong 'type' kwarg, use 'dct' \
+                                       or 'sql'"
+        tgt = pj(calc_dir, self.basename)
+        if self._copy_only:    
+            verbose("write: ignoring input, just copying file: %s -> %s"
+                    %(self.filename, tgt))
+            shutil.copy(self.filename, tgt)
+        else:            
+            rules = {}
+            for key in self.keys:
+                if type == 'dct':
+                    rules[self._get_placeholder(key)] = dct[key]
+                elif type == 'sql':                    
+                    # dct = sql_record, a list of SQLEntry's
+                    rules[self._get_placeholder(key)] = dct[key].file_val
+                else:
+                    raise StandardError("'type' must be wrong")
+            file_write(tgt, template_replace(self.txt, rules, mode='txt',
+                                             conv=True))
     
-    def write(self, dct, calc_dir='calc'):
-        rules = {}
-        for key in self.keys:
-            rules[self._get_placeholder(key)] = dct[key]
-        file_write(pj(calc_dir, self.basename),
-                   template_replace(self.txt, rules, mode='txt',
-                                    conv=True))
+    def writesql(self, sql_record, calc_dir='calc'):
+        self.write(sql_record, calc_dir=calc_dir, type='sql')
+
 
 
 #-----------------------------------------------------------------------------
