@@ -5,18 +5,20 @@ Copyright (c) 2008-2010, Steve Schmerler <mefx@gmx.net>.
 Installation
 ============
 
-There is not installation script. Just copy the whole package somewhere.
+There is no installation script. Just copy the whole package somewhere, e.g.
+    $ tar -xzf pwtools-0.7.3.tgz
+    $ mv pwtools-0.7.3 $HOME/python/pwtools
 
 path issues (.bashrc/.profile)
 ------------------------------
 
-Suppose all pwtools files are in /home/foo/pwtools/.
+Suppose all pwtools files are in $HOME/python/pwtools/.
     
     # makes "import pwtools" possible
-    export PYTHONPATH=$PYTHONPATH:/home/foo
+    export PYTHONPATH=$PYTHONPATH:$HOME/python
 
 If you like, make cmd line tools available.    
-    export PATH=/home/foo/pwtools/bin:$PATH
+    export PATH=$HOME/python/pwtools/bin:$PATH
 
 Fortran extensions
 ------------------
@@ -37,6 +39,8 @@ Add-on packages
 Must have:
     - numpy 
     - scipy
+    On Debian-based distros, "aptitude install python-numpy python-scipy"
+    should do it.
 
 optional: 
     parse.py:
@@ -52,7 +56,7 @@ optional:
 Usage
 =====
 
-See test/test_*.py for examples.
+See test/test_*.py and examples/ for examples.
 
 Methology
 ---------
