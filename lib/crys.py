@@ -159,7 +159,6 @@ def cp2cc(cp, align='rows'):
     assert_cond(cp.shape == (3,3), "cp must be (3,3) array")
     if align == 'cols':
         cp = cp.T
-##    print "spat volume:", volume(cp)
     cryst_const = np.empty((6,), dtype=float)
     # a = |a|, b = |b|, c = |c|
     cryst_const[:3] = np.sqrt((cp**2.0).sum(axis=1))
@@ -537,7 +536,7 @@ def write_cif(filename, coords, symbols, cryst_const, fac=con.a0_to_A, conv=Fals
     # Bohr -> A
     if conv:
         # nasty trick, make local var with same name, otherwise, 'cryst_const'
-        # in global scope (module level= gets changed!
+        # in global scope (module level) gets changed!
         cryst_const = cryst_const.copy()
         cryst_const[:3] *= fac
     # cell
@@ -576,6 +575,7 @@ def write_cif(filename, coords, symbols, cryst_const, fac=con.a0_to_A, conv=Fals
 
 
 #XXX implement PBC!
+#XXX hardcoded time axis
 def rmsd(coords_cart, ref_idx=0):
     """Root mean square distance of an MD trajectory of a whole atomic
     structure. For now, use the 3d array R (as used in pydos.py) with time 
