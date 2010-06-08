@@ -309,7 +309,8 @@ class StructureFileParser(FileParser):
     self.natoms : number of atoms
 
     Unless explicitly stated, we DO NOT DO any unit conversions with the data
-    parsed out of the files. It is up to the user to handle that. 
+    parsed out of the files. It is up to the user (and derived classes) to
+    handle that. 
     """
     # Notes for derived classes:
     #
@@ -414,6 +415,65 @@ class StructureFileParser(FileParser):
     
     def get_natoms(self):
         pass
+    
+    # write methods for different file formats
+    # XXX Finish me!
+##    def write_cif(self, filename, fac_abc=None, conv_coords=False):
+##        """Cif writer.
+##        
+##        args:
+##        -----
+##        filename : str
+##            name of output .cif file
+##        fac_abc : {None, float}
+##            factor to convert [a,b,c] = self.cryst_const[:3] to Angstrom, if None then no conversion
+##            will be done
+##        conv_coords : bool
+##            convert self.coords to crystal coords using self.cell_parameters, coords
+##        """
+##        cf = pycifrw_CifFile.CifFile()
+##        block = pycifrw_CifFile.CifBlock()
+##        symbols = list(symbols)
+##
+##        # Bohr -> A
+##        if conv:
+##            # nasty trick, make local var with same name, otherwise, 'cryst_const'
+##            # in global scope gets changed!
+##            cryst_const = self.cryst_const.copy()
+##            cryst_const[:3] *= fac
+##        # cell
+##        #
+##        # dunno why I have to use str() here, assigning floats does not work
+##        block['_cell_length_a'] = str(cryst_const[0])
+##        block['_cell_length_b'] = str(cryst_const[1])
+##        block['_cell_length_c'] = str(cryst_const[2])
+##        block['_cell_angle_alpha'] = str(cryst_const[3])
+##        block['_cell_angle_beta'] = str(cryst_const[4])
+##        block['_cell_angle_gamma'] = str(cryst_const[5])
+##        block['_symmetry_space_group_name_H-M'] = 'P 1'
+##        block['_symmetry_Int_Tables_number'] = 1
+##        # assigning a list produces a "loop_"
+##        block['_symmetry_equiv_pos_as_xyz'] = ['x,y,z']
+##        
+##        # atoms
+##        #
+##        # _atom_site_label: We just use symbols, which is then =
+##        #   _atom_site_type_symbol, but we *could* use that to number atoms of each
+##        #   specie, e.g. Si1, Si2, ..., Al1, Al2, ...
+##        data_names = ['_atom_site_label', 
+##                      '_atom_site_fract_x',
+##                      '_atom_site_fract_y',
+##                      '_atom_site_fract_z',
+##                      '_atom_site_type_symbol']
+##        data = [symbols, 
+##                coords[:,0].tolist(), 
+##                coords[:,1].tolist(), 
+##                coords[:,2].tolist(),
+##                symbols]
+##        # "loop_" with multiple columns            
+##        block.AddCifItem([[data_names], [data]])                
+##        cf['pwtools'] = block
+##        com.file_write(filename, str(cf))
 
 
 class CifFile(StructureFileParser):
@@ -549,7 +609,7 @@ class CifFile(StructureFileParser):
     def parse(self):        
         StructureFileParser.parse(self)
         self.close_file()
-
+    
 
 class PDBFile(StructureFileParser):
     """Very very simple pdb file parser. Extract only ATOM/HETATM and CRYST1
@@ -1539,6 +1599,7 @@ class CMLFile(StructureFileParser):
         return len(self.symbols)            
 
 
+# TODO: Implement passing single filename directly instead of dir + basename.
 class Grep(object):
     """Maximum felxibility!
     
