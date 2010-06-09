@@ -410,16 +410,16 @@ def scell(coords, cp, dims, symbols, align='rows'):
     %(cp_doc)s
     dims : tuple (nx, ny, nz) for a N = nx * ny * nz supercell
     symbols : list of strings with atom symbols, (natoms,), must match with the
-        rows of R0
+        rows of coords
     %(align_doc)s
 
     returns:
     --------
     {symbols, coords, cell_parameters}
     symbols : list of strings with atom symbols for the supercell, (N*natoms,)
-    ocoords : array (N*natoms, 3)
-        Atomic crystal coords in the super cell w.r.t `cp_sc`, i.e. the numbers
-        are in [0,1].
+    coords : array (N*natoms, 3)
+        Atomic crystal coords in the super cell w.r.t `cell_parameters`, i.e.
+        the numbers are in [0,1].
     cell_parameters : array (3,3), basis vecs of the super cell        
     """
     cp = np.asarray(cp)
