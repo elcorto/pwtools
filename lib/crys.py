@@ -607,3 +607,44 @@ def max_displacement(coords_cart):
             md[i,j] = R[i,:,j].max() - R[i,:,j].min()
     return md            
 
+
+def pbc_wrap(coords, copy=True, mask=[True]*3, xyz_axis=-1):
+    """Apply periodic boundary conditions. Wrap atoms with fractional coords >
+    1 or < 0 into the cell.
+    
+    args:
+    -----
+    coords : array 2d or 3d
+        fractional coords, if 3d then one axis is assumed to be a time axis and
+        the array is a MD trajectory or such
+    copy : bool
+        Copy coords before applying pbc.     
+    mask : sequence of bools, len = 3 for x,y,z
+        Apply pbc only x, y or z. E.g. [True, True, False] would not wrap the z
+        coordinate.
+    xyz_axis : the axis of `coords` where the indices 0,1,2 pull out the x,y,z
+        coords. For a usual 2d array of coords with shape (natoms,3), 
+        xyz_axis=1 (= last axis = -1). For a 3d array (natoms, nstep, 3),
+        xyz_axis=2 (also -1).
+    
+    returns:
+    --------
+    coords with all values in [0,1] except for those where mask[i] = False.
+
+    notes:
+    ------
+    About the copy arg: If copy=False, then this is an in-place operation and
+    the array in the global scope is modified! In fact, then these do the same:
+    >>> a = pbc_wrap(a, copy=False)
+    >>> pbc_wrap(a, copy=False)
+    """
+    assert coords.shape[xyz_axis] == 3, "dim of xyz_axis of `coords` must be == 3"
+    ndim = coords.ndim
+    assert ndim in [2,3], "coords must be 2d or 3d array"
+    tmp = coords.copy() if copy else coords
+    for i in range(3):
+        if mask[i]:
+            sl = [slice(None)]*ndim
+            sl[xyz_axis] = i
+            tmp[sl] %= 1.0
+    return tmp        
