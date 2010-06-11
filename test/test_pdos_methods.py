@@ -237,7 +237,7 @@ arr = np.diff(coords) # "velocity"
 # frequency resolution (almost factor 2) to exactly the same df as we get for
 # method 2 b/c of the mirroring of the signal there.
 print "|fft(arr)|^2 ..."
-fft_arr = pydos.pad_zeros(arr*pydos.welch(arr.shape[0]), nadd=arr.shape[0]-1)
+fft_arr = pwfft.pad_zeros(arr*pydos.welch(arr.shape[0]), nadd=arr.shape[0]-1)
 y1 = np.abs(fft(fft_arr))**2
 print "y1.shape", y1.shape 
 

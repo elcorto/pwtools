@@ -25,7 +25,6 @@ norm = np.linalg.norm
 
 # slow import time for these
 from scipy.fftpack import fft
-from scipy.linalg import inv
 from scipy.integrate import simps, trapz
 
 # own modules
@@ -34,6 +33,7 @@ import _flib
 import common as com
 import io
 from verbose import verbose
+from fft import pad_zeros, welch
 
 # aliases
 pjoin = os.path.join
@@ -53,118 +53,6 @@ VERBOSE = False
 #-----------------------------------------------------------------------------
 # computational
 #-----------------------------------------------------------------------------
-
-def pad_zeros(arr, axis=0, where='end', nadd=None, upto=None, tonext=None,
-              tonext_min=None):
-    """Pad an nd-array with zeros. Default is to append an array of zeros of 
-    the same shape as `arr` to arr's end along `axis`.
-    
-    args:
-    -----
-    arr :  nd array
-    axis : the axis along which to pad
-    where : string {'end', 'start'}, pad at the end ("append to array") or 
-        start ("prepend to array") of `axis`
-    nadd : number of items to padd (i.e. nadd=3 means padd w/ 3 zeros in case
-        of an 1d array)
-    upto : pad until arr.shape[axis] == upto
-    tonext : bool, pad up to the next power of two (pad so that the padded 
-        array has a length of power of two)
-    tonext_min : int, when using `tonext`, pad the array to the next possible
-        power of two for which the resulting array length along `axis` is at
-        least `tonext_min`; the default is tonext_min = arr.shape[axis]
-
-    Use only one of nadd, upto, tonext.
-    
-    returns:
-    --------
-    padded array
-
-    examples:
-    ---------
-    # 1d 
-    >>> pad_zeros(a)
-    array([1, 2, 3, 0, 0, 0])
-    >>> pad_zeros(a, nadd=3)
-    array([1, 2, 3, 0, 0, 0])
-    >>> pad_zeros(a, upto=6)
-    array([1, 2, 3, 0, 0, 0])
-    >>> pad_zeros(a, nadd=1)
-    array([1, 2, 3, 0])
-    >>> pad_zeros(a, nadd=1, where='start')
-    array([0, 1, 2, 3])
-    # 2d
-    >>> a=arange(9).reshape(3,3)
-    >>> pad_zeros(a, nadd=1, axis=0)
-    array([[0, 1, 2],
-           [3, 4, 5],
-           [6, 7, 8],
-           [0, 0, 0]])
-    >>> pad_zeros(a, nadd=1, axis=1)
-    array([[0, 1, 2, 0],
-           [3, 4, 5, 0],
-           [6, 7, 8, 0]])
-    # up to next power of two           
-    >>> 2**arange(10)
-    array([  1,   2,   4,   8,  16,  32,  64, 128, 256, 512])
-    >>> pydos.pad_zeros(arange(9), tonext=True).shape
-    (16,)
-    """
-    if tonext == False:
-        tonext = None
-    lst = [nadd, upto, tonext]
-    com.assert_cond((lst.count(None) in [2,3]), \
-        "`nadd`, `upto` and `tonext` must be all None or only one of "
-        "them not None")
-    if nadd is None:
-        if upto is None:
-            if (tonext is None) or (not tonext):
-                # default
-                nadd = arr.shape[axis]
-            else:
-                tonext_min = arr.shape[axis] if (tonext_min is None) \
-                             else tonext_min
-                # beware of int overflows starting w/ 2**arange(64), but we
-                # will never have such long arrays anyway
-                two_powers = 2**np.arange(30)
-                if tonext_min > two_powers[-1]:
-                    print "[pad_zeros]: WARNING: required array length longer \
-                           than highest power of two, will not pad"
-                    nadd = 0
-                else:
-                    power = two_powers[np.searchsorted(two_powers,
-                                                      tonext_min)]
-                    nadd = power - arr.shape[axis]                                                       
-        else:
-            nadd = upto - arr.shape[axis]
-    if nadd == 0:
-        return arr
-    add_shape = list(arr.shape)
-    add_shape[axis] = nadd
-    add_shape = tuple(add_shape)
-    if where == 'end':
-        return np.concatenate((arr, np.zeros(add_shape, dtype=arr.dtype)), axis=axis)
-    elif where == 'start':        
-        return np.concatenate((np.zeros(add_shape, dtype=arr.dtype), arr), axis=axis)
-    else:
-        raise StandardError("illegal `where` arg: %s" %where)
-
-
-def welch(M, sym=1):
-    """Welch window. Function skeleton shamelessly stolen from
-    scipy.signal.bartlett() and others."""
-    if M < 1:
-        return np.array([])
-    if M == 1:
-        return np.ones(1,dtype=float)
-    odd = M % 2
-    if not sym and not odd:
-        M = M+1
-    n = np.arange(0,M)
-    w = 1.0-((n-0.5*(M-1))/(0.5*(M-1)))**2.0
-    if not sym and not odd:
-        w = w[:-1]
-    return w
 
 
 def normalize(a):
