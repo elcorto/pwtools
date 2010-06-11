@@ -39,4 +39,7 @@ np.testing.assert_array_almost_equal(dos['cart'], dos['cart2'])
 print ">>> ... ok"
 
 print ">>> this test should fail ..."
-np.testing.assert_array_almost_equal(dos['cart'], dos['cp1'])
+try:
+    np.testing.assert_array_almost_equal(dos['cart'], dos['cp1'])
+except AssertionError:
+    print "OK KNOWNFAIL"
