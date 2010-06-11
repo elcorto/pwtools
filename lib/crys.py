@@ -7,6 +7,7 @@ from math import acos, pi, sin, cos, sqrt
 from itertools import izip
 
 import numpy as np
+from scipy.linalg import inv
 
 # Cif parser
 try:
@@ -834,14 +835,14 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
     #     for j in xrange(R.shape[1]):
     #             newR[:,j,:] = dot(R[:,j,:],A.T)
                  
-    com.assert_cond(old.ndim == new.ndim == 2, "`old` and `new` must be rank 2 arrays")
-    com.assert_cond(old.shape == new.shape, "`old` and `new` must have th same shape")
+    common.assert_cond(old.ndim == new.ndim == 2, "`old` and `new` must be rank 2 arrays")
+    common.assert_cond(old.shape == new.shape, "`old` and `new` must have th same shape")
     msg = ''        
     if align == 'rows':
         old = old.T
         new = new.T
         msg = 'after transpose, '
-    com.assert_cond(R.shape[-1] == old.shape[0], "%slast dim of `R` must match first dim"
+    common.assert_cond(R.shape[-1] == old.shape[0], "%slast dim of `R` must match first dim"
         " of `old` and `new`" %msg)
     if copy:
         tmp = R.copy()
