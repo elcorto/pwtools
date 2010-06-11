@@ -573,6 +573,10 @@ def write_cif(filename, coords, symbols, cryst_const, fac=con.a0_to_A, conv=Fals
     cf['pwtools'] = block
     common.file_write(filename, str(cf))
 
+#-----------------------------------------------------------------------------
+# atomic coords processing / evaluation
+#-----------------------------------------------------------------------------
+
 
 #XXX implement PBC!
 #XXX hardcoded time axis
@@ -648,3 +652,202 @@ def pbc_wrap(coords, copy=True, mask=[True]*3, xyz_axis=-1):
             sl[xyz_axis] = i
             tmp[sl] %= 1.0
     return tmp        
+
+
+def coord_trans(R, old=None, new=None, copy=True, align='cols'):
+    """Coordinate transformation.
+    
+    args:
+    -----
+    R : array (d0, d1, ..., M) 
+        Array of arbitrary rank with coordinates (length M vectors) in old
+        coord sys `old`. The only shape resiriction is that the last dim must
+        equal the number of coordinates (R.shape[-1] == M == 3 for normal 3-dim
+        x,y,z). 
+            1d : OK trivial, transform that vector (length M)
+            2d : The matrix must have shape (N,M), i.e. the vectors to be
+                transformed are the *rows*.
+            3d : R must have the shape (..., M)                 
+    old, new : 2d arrays
+        matrices with the old and new basis vectors as rows or cols
+    copy : bool, optional
+        True: overwrite `R`
+        False: return new array
+    align : string
+        {'cols', 'rows'}
+        cols : basis vecs are columns of `old` and `new`
+        rows : basis vecs are rows    of `old` and `new`
+
+    returns:
+    --------
+    array of shape = R.shape, coordinates in system `new`
+    
+    examples:
+    ---------
+    # Taken from [1].
+    >>> import numpy as np
+    >>> import math
+    >>> v = np.array([1.0,1.5])
+    >>> I = np.identity(2)
+    >>> X = math.sqrt(2)/2.0*np.array([[1,-1],[1,1]])
+    >>> Y = np.array([[1,1],[0,1]])
+    >>> coord_trans(v,I,I)
+    array([ 1. ,  1.5])
+    >>> v_X = coord_trans(v,I,X)
+    >>> v_Y = coord_trans(v,I,Y)
+    >>> v_X
+    array([ 1.76776695,  0.35355339])
+    >>> v_Y
+    array([-0.5,  1.5])
+    >>> coord_trans(v_Y,Y,I)
+    array([ 1. ,  1.5])
+    >>> coord_trans(v_X,X,I)
+    array([ 1. ,  1.5])
+    
+    >>> Rold = np.random.rand(30,200,3)
+    >>> old = np.random.rand(3,3)
+    >>> new = np.random.rand(3,3)
+    >>> Rnew = coord_trans(Rold, old=old, new=new)
+    >>> Rold2 = coord_trans(Rnew, old=new, new=old)
+    >>> np.testing.assert_almost_equal(Rold, Rold2)
+    
+    # these do the same: A, B have vecs as rows
+    >>> RB1=coord_trans(Rold, old=old, new=new, align='rows') 
+    >>> RB2=coord_trans(Rold, old=old.T, new=new.T, align='cols') 
+    >>> np.testing.assert_almost_equal(Rold, Rold2)
+
+    refs:
+    [1] http://www.mathe.tu-freiberg.de/~eiermann/Vorlesungen/HM/index_HM2.htm
+        Kapitel 6
+    """ 
+    # Coordinate transformation:
+    # --------------------------
+    #     
+    # Mathematical formulation:
+    # X, Y square matrices with basis vecs as *columns*.
+    #
+    # X ... old, shape: (3,3)
+    # Y ... new, shape: (3,3)
+    # I ... identity matrix, basis vecs of cartesian system, shape: (3,3)
+    # A ... transformation matrix, shape(3,3)
+    # v_X ... column vector v in basis X, shape: (3,1)
+    # v_Y ... column vector v in basis Y, shape: (3,1)
+    # v_I ... column vector v in basis I, shape: (3,1)
+    #
+    # "." denotes matrix multiplication (i.e. dot() in numpy).
+    #     
+    #     Y . v_Y = X . v_X = I . v_I = v_I
+    #     v_Y = Y^-1 . X . v_X = A . v_X
+    # 
+    # So every product X . v_X, Y . v_Y, v_I . I (in general [basis] .
+    # v_[basis]) is actually an expansion of v_{X,Y,...} in the basis vectors
+    # vontained in X,Y,... . If the dot product is computed, we always get v in
+    # cartesian coords. 
+    # 
+    # Remember:
+    # v is s column vector (M,1) and A is (M,M) with the basis vecs as columns!
+    #
+    # Some general linalg:
+    #     
+    #     (A . B)^T = B^T . A^T
+    # 
+    # With this, 
+    #     
+    #     v_Y^T = (A . v_X)^T = v_X^T . A^T
+    # 
+    # Note that v_X^T is a row(!) vector (1,M).
+    # This form is implemented here (see below for why). With
+    #     
+    #     A^T == A.T = [[--- a0 ---], 
+    #                   [--- a1 ---], 
+    #                   [--- a2 ---]] 
+    # 
+    # we have
+    #
+    #     v_Y^T = (A . v_X)^T = v_X^T . A^T = 
+    #
+    #       = v_X[0]*a0       + v_X[1]*a1       + v_X[2]*a2
+    #       
+    #       = v_X[0]*A.T[0,:] + v_X[1]*A.T[1,:] + v_X[2]*A.T[2,:]
+    #       
+    #       = [v_X[0]*A.T[0,0] + v_X[1]*A.T[1,0] + v_X[2]*A.T[2,0],
+    #          v_X[0]*A.T[0,1] + v_X[1]*A.T[1,1] + v_X[2]*A.T[2,1],
+    #          v_X[0]*A.T[0,2] + v_X[1]*A.T[1,2] + v_X[2]*A.T[2,2]]
+    #       
+    #       = dot(A, v_X)         <=> v_Y[i] = sum(j=0..2) A[i,j]*v_X[j]
+    #       = dot(v_X, A.T)       <=> v_Y[j] = sum(i=0..2) v_X[i]*A[i,j]
+    # 
+    # Note that in numpy `v` is actually an 1d array for which v.T == v, i.e.
+    # the transpose is not defined and so dot(A, v_X) == dot(v_X, A.T).
+    #
+    # In general, if we don't have one vector `v` but an array R (N,M) of row
+    # vectors:
+    #     
+    #     R = [[--- r0 ---],
+    #          [--- r1 ---],
+    #          ...
+    #          [-- rN-1 --]]
+    #
+    # it's more practical to use dot(R,A.T) instead of dot(A,R) b/c of numpy
+    # array broadcasting.
+    #         
+    # shape of `R`:
+    # -------------
+    #     
+    # If we want to use fast numpy array broadcasting to transform many `v`
+    # vectors at once, we must use the form dot(R,A.T) (or, well, transform R
+    # to have the vectors as cols and then use dot(A,R)).
+    # The shape of `R` doesn't matter, as long as the last dimension matches
+    # the dimensions of A (e.g. R: shape = (n,m,3), A: (3,3), dot(R,A.T): shape
+    # = (n,m,3)).
+    #  
+    # 1d: R.shape = (3,)
+    # R == v = [x,y,z] 
+    # -> dot(A, v) == dot(v,A.T) = [x', y', z']
+    #
+    # 2d: R.shape = (N,3)
+    # Array of coords of N atoms, R[i,:] = coord of i-th atom. The dot
+    # product is broadcast along the first axis of R (i.e. *each* row of R is
+    # dot()'ed with A.T).
+    # R = 
+    # [[x0,       y0,     z0],
+    #  [x1,       y1,     z1],
+    #   ...
+    #  [x(N-1),   y(N-1), z(N-1)]]
+    # -> dot(R,A.T) = 
+    # [[x0',     y0',     z0'],
+    #  [x1',     y1',     z1'],
+    #   ...
+    #  [x(N-1)', y(N-1)', z(N-1)']]
+    # 
+    # 3d: R.shape = (natoms, nstep, 3) 
+    # R[i,j,:] is the shape (3,) vec of coords for atom i at time step j.
+    # Broadcasting along the first and second axis. 
+    # These loops have the same result as newR=dot(R, A.T):
+    #     # New coords in each (nstep, 3) matrix R[i,...] containing coords
+    #     # of atom i for each time step. Again, each row is dot()'ed.
+    #     for i in xrange(R.shape[0]):
+    #         newR[i,...] = dot(R[i,...],A.T)
+    #     
+    #     # same as example with 2d array: R[:,j,:] is a matrix with atom
+    #     # coord on each row at time step j
+    #     for j in xrange(R.shape[1]):
+    #             newR[:,j,:] = dot(R[:,j,:],A.T)
+                 
+    com.assert_cond(old.ndim == new.ndim == 2, "`old` and `new` must be rank 2 arrays")
+    com.assert_cond(old.shape == new.shape, "`old` and `new` must have th same shape")
+    msg = ''        
+    if align == 'rows':
+        old = old.T
+        new = new.T
+        msg = 'after transpose, '
+    com.assert_cond(R.shape[-1] == old.shape[0], "%slast dim of `R` must match first dim"
+        " of `old` and `new`" %msg)
+    if copy:
+        tmp = R.copy()
+    else:
+        tmp = R
+    # must use `tmp[:] = ...`, just `tmp = ...` is a new array
+    tmp[:] = np.dot(tmp, np.dot(inv(new), old).T)
+    return tmp
+

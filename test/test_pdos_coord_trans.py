@@ -4,6 +4,7 @@
 
 import numpy as np
 from pwtools import pydos as pd
+from pwtools.lib.crys import coord_trans
 from matplotlib import pyplot as plt
 
 def pdos(coords_arr_3d):
@@ -21,7 +22,7 @@ coords['cart2'] = coords['cart']*5
 
 # some other coord sys
 cp1 = rand((3,3))
-coords['cp1'] = pd.coord_trans(coords['cart'], old=np.identity(3), new=cp1)
+coords['cp1'] = coord_trans(coords['cart'], old=np.identity(3), new=cp1)
 
 dos = {}
 for key, val in coords.iteritems():

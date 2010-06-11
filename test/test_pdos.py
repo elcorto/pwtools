@@ -6,6 +6,7 @@ from pwtools.lib.parse import PwOutputFile
 from pwtools import common
 from pwtools import pydos as pd
 from pwtools import constants
+from pwtools.lib.crys import coord_trans
 
 filename = 'files/pw.md.out'
 infile = 'files/pw.md.in'
@@ -23,8 +24,8 @@ if c_sys == 'crystal':
             print "error: no cell parameters in infile, set manually here"
             sys.exit(1)
         else:        
-            coords = pd.coord_trans(c.coords, old=c.infile.cell_parameters,
-                                    new=np.identity(3)) 
+            coords = coord_trans(c.coords, old=c.infile.cell_parameters,
+                                 new=np.identity(3)) 
     else:
         print "error: ibrav != 0, cannot get cell parameters from infile \
               set manually here"
