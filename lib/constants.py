@@ -88,8 +88,8 @@
 
 
 
-__all__ = ['pi', 'h', 'hbar', 'm0', 'e0', 'mu0', 'c0', 'eps0', 'a0', 'a0_A',\
-           'Eh', 'th', 'kb', 'avo', 'Eryd', 'tryd', 'dyn']
+__all__ = ['pi', 'h', 'hbar', 'm0', 'e0', 'mu0', 'c0', 'eps0', 'a0', \
+           'Eh', 'th', 'kb', 'avo', 'dyn', 'Eryd', 'tryd', 'a0_to_A', 'Ry_to_eV']
 
 from math import pi
 h = 6.62606896e-34          # J*s
