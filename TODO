@@ -19,5 +19,9 @@ pydos.py
 all
 ---
 - Drop verbose.py. Use the logging or warnings module.
+
 - Pythonic test suite (nose etc) instead of test/test_*.py . Most of these
   tests are actually examples. Move them to a dir examples/.
+
+- Remove plt.show() from test_*.py . Instead, save figures to /tmp/pwtools_test
+  if we really need to plot stuff.
