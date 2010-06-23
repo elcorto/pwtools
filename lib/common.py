@@ -9,14 +9,16 @@
 import types
 import os
 import subprocess
-import re
 import shutil
 import re
-import hashlib
 import ConfigParser
+import numpy as np
 
-from decorators import add_func_doc
-
+# slow import time
+#
+# TODO: maybe move functions which need scipy functionality to smth like
+# numutils.py or whatever
+from scipy.integrate import simps
 
 def assert_cond(cond, string=None):
     """Use this instead of `assert cond, string`. It's been said on
@@ -76,7 +78,7 @@ def add_to_config(config, info):
 
 
 #-----------------------------------------------------------------------------
-# Type converters
+# Type converters / light numerical stuff
 #-----------------------------------------------------------------------------
 
 def toslice(val):
@@ -240,6 +242,116 @@ def str2tup(s, func=int):
     "1 2 3" -> (func('1'), func('2'), func('3')) 
     """
     return tuple(map(func, s.split()))
+
+
+def fix_eps(arr, eps=np.finfo(float).eps):
+    """Set values of arr to zero where abs(arr) <= eps.
+    This always returns a copy.
+
+    args:
+    ----
+    arr : numpy nd array
+    eps : float eps
+
+    returns:
+    --------
+    numpy nd array (copy)
+    """
+    _arr = np.asarray(arr).copy()
+    _arr[np.abs(_arr) <= eps] = 0.0
+    return _arr
+
+
+def str_arr(arr, fmt='%.15g', delim=' '*4, zero_eps=True):
+    """Convert array `arr` to nice string representation for printing.
+    
+    args:
+    -----
+    arr : array_like, 1d or 2d array
+    fmt : string, format specifier, all entries of arr are formatted with that
+    delim : string, delimiter
+    zero_eps : bool
+        Print values as 0.0 where |value| < eps
+
+    returns:
+    --------
+    string
+
+    examples:
+    ---------
+    >>> a=rand(3)
+    >>> str_arr(a, fmt='%.2f')
+    '0.26 0.35 0.97'
+    >>> a=rand(2,3)
+    >>> str_arr(a, fmt='%.2f')
+    '0.13 0.75 0.39\n0.54 0.22 0.66'
+
+    >>> print str_arr(a, fmt='%.2f')
+    0.13 0.75 0.39
+    0.54 0.22 0.66
+    
+    notes:
+    ------
+    Essentially, we replicate the core part of np.savetxt.
+    """
+    arr = np.asarray(arr)
+    _arr = fix_eps(arr) if zero_eps else arr
+    if _arr.ndim == 1:
+        return delim.join([fmt]*_arr.size) % tuple(_arr)
+    elif _arr.ndim == 2:
+        _fmt = delim.join([fmt]*_arr.shape[1])
+        lst = [_fmt % tuple(row) for row in _arr]
+        return '\n'.join(lst)
+    else:
+        raise ValueError('rank > 2 arrays not supported')
+
+
+def normalize(a):
+    """Normalize array by it's max value. Works also for complex arrays.
+
+    example:
+    --------
+    >>> a=np.array([3+4j, 5+4j])
+    >>> a
+    array([ 3.+4.j,  5.+4.j])
+    >>> a.max()
+    (5.0+4.0j)
+    >>> a/a.max()
+    array([ 0.75609756+0.19512195j,  1.00000000+0.j ])
+    """
+    return a / a.max()
+
+
+def norm_int(y, x, area=1.0):
+    """Normalize integral area of y(x) to `area`.
+    
+    args:
+    -----
+    x,y : numpy 1d arrays
+    area : float
+
+    returns:
+    --------
+    scaled y
+
+    notes:
+    ------
+    The argument order y,x might be confusing. x,y would be more natural but we
+    stick to the order used in the scipy.integrate routines.
+    """
+    # First, scale x and y to the same order of magnitude before integration.
+    # This may be necessary to avoid numerical trouble if x and y have very
+    # different scales.
+    fx = 1.0 / np.abs(x).max()
+    fy = 1.0 / np.abs(y).max()
+    sx = fx*x
+    sy = fy*y
+##    # Don't scale.
+##    fx = fy = 1.0
+##    sx, sy = x, y
+    # Area under unscaled y(x).
+    _area = simps(sy, sx) / (fx*fy)
+    return y*area/_area
 
 
 

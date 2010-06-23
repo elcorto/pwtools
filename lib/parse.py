@@ -57,7 +57,7 @@ import constants
 from verbose import verbose
 import regex
 import crys
-from pydos import atpos_str
+from pwscf import atpos_str
 
 
 #TODO Get atom masses from periodic_table.py, not from the input file (pw.in).

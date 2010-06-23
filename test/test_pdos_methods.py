@@ -165,7 +165,7 @@ def cut_norm(full_y, dt, area=1.0):
     split_idx = full_faxis.shape[0]/2
     y_out = full_y[:split_idx]
     faxis = full_faxis[:split_idx]
-    return faxis, pydos.norm_int(y_out, faxis, area=area)
+    return faxis, common.norm_int(y_out, faxis, area=area)
 
 
 ###############################################################################
@@ -237,13 +237,13 @@ arr = np.diff(coords) # "velocity"
 # frequency resolution (almost factor 2) to exactly the same df as we get for
 # method 2 b/c of the mirroring of the signal there.
 print "|fft(arr)|^2 ..."
-fft_arr = pwfft.pad_zeros(arr*pydos.welch(arr.shape[0]), nadd=arr.shape[0]-1)
+fft_arr = pwfft.pad_zeros(arr*pwfft.welch(arr.shape[0]), nadd=arr.shape[0]-1)
 y1 = np.abs(fft(fft_arr))**2
 print "y1.shape", y1.shape 
 
 # 2) fft the autocorrelation of `arr`
 print "|fft(acorr(arr))| ..."
-fft_arr = pydos.mirror(corr.acorr(arr*pydos.welch(arr.shape[0]), method=5))
+fft_arr = pydos.mirror(corr.acorr(arr*pwfft.welch(arr.shape[0]), method=5))
 y2 = np.abs(fft(fft_arr))
 print "y2.shape", y2.shape 
 
@@ -273,7 +273,7 @@ if use_fourier:
     common.system(fourier_exe + ' < ' + fourier_in_fn)
     fourier_out_data = np.loadtxt(fourier_out_data_fn)
     f3 = fourier_out_data[:,0]*(constants.c0*100) # 1/cm -> Hz
-    y3n = pydos.norm_int(fourier_out_data[:,1], f3)
+    y3n = common.norm_int(fourier_out_data[:,1], f3)
 
 f1, y1n = cut_norm(y1, dt)
 f2, y2n = cut_norm(y2, dt)
@@ -356,7 +356,7 @@ if use_fourier:
         else:        
             fourier_out_data[:,1:] += fourier_loaded_data[:,1:]
         f8 = fourier_out_data[:,0]*(constants.c0*100)
-        y8n = pydos.norm_int(fourier_out_data[:,1], f8)
+        y8n = common.norm_int(fourier_out_data[:,1], f8)
 
 figs.append(plt.figure())
 axs.append(figs[-1].add_subplot(111))

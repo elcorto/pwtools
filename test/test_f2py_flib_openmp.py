@@ -37,8 +37,8 @@ def omp_num_threads(action='check', num=1, omp_dct=OMP_DCT, err=False):
 
 rand = np.random.rand
 
-nat=100 
-nstep=5000 
+nat=10 
+nstep=500 
 v=rand(nat, nstep, 3)
 m=rand(nat) 
 c=np.zeros((nstep,))

@@ -17,7 +17,6 @@
 ##DBG.t('import')
 
 import os
-import textwrap
 from itertools import izip
 
 import numpy as np
@@ -25,7 +24,6 @@ norm = np.linalg.norm
 
 # slow import time for these
 from scipy.fftpack import fft
-from scipy.integrate import simps, trapz
 
 # own modules
 import constants
@@ -40,8 +38,10 @@ pjoin = os.path.join
 
 ##DBG.pt('import')
 
-# backward compat
+
+# backward compat for older scripts using pwtools, not used here
 from crys import coord_trans
+from pwscf import atpos_str, atspec_str
 
 #-----------------------------------------------------------------------------
 # globals 
@@ -53,23 +53,6 @@ VERBOSE = False
 #-----------------------------------------------------------------------------
 # computational
 #-----------------------------------------------------------------------------
-
-
-def normalize(a):
-    """Normalize array by it's max value. Works also for complex arrays.
-
-    example:
-    --------
-    >>> a=np.array([3+4j, 5+4j])
-    >>> a
-    array([ 3.+4.j,  5.+4.j])
-    >>> a.max()
-    (5.0+4.0j)
-    >>> a/a.max()
-    array([ 0.75609756+0.19512195j,  1.00000000+0.j ])
-    """
-    return a / a.max()
-
 
 def velocity(R, dt=None, copy=True, rslice=slice(None)):
     """Compute velocity from 3d array with MD trajectory.
@@ -214,38 +197,6 @@ def fvacf(V, m=None, method=2, nthreads=None):
     return c
 
 
-def norm_int(y, x, area=1.0):
-    """Normalize integral area of y(x) to `area`.
-    
-    args:
-    -----
-    x,y : numpy 1d arrays
-    area : float
-
-    returns:
-    --------
-    scaled y
-
-    notes:
-    ------
-    The argument order y,x might be confusing. x,y would be more natural but we
-    stick to the order used in the scipy.integrate routines.
-    """
-    # First, scale x and y to the same order of magnitude before integration.
-    # This may be necessary to avoid numerical trouble if x and y have very
-    # different scales.
-    fx = 1.0 / np.abs(x).max()
-    fy = 1.0 / np.abs(y).max()
-    sx = fx*x
-    sy = fy*y
-##    # Don't scale.
-##    fx = fy = 1.0
-##    sx, sy = x, y
-    # Area under unscaled y(x).
-    _area = simps(sy, sx) / (fx*fy)
-    return y*area/_area
-
-
 def direct_pdos(V, dt=1.0, m=None, full_out=False, area=1.0, window=True):
     """Compute PDOS without the VACF by direct FFT of the atomic velocities.
     We call this Direct Method. Integral area is normalized 1.0.
@@ -308,7 +259,7 @@ def direct_pdos(V, dt=1.0, m=None, full_out=False, area=1.0, window=True):
                                  
     # average remaining axes        
     pdos = fftv.sum(axis=0).sum(axis=1)        
-    default_out = (faxis, norm_int(pdos, faxis, area=area))
+    default_out = (faxis, com.norm_int(pdos, faxis, area=area))
     if full_out:
         # have to re-calculate this here b/c we never calculate the full_pdos
         # normally
@@ -372,13 +323,12 @@ def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False, area=1.0,
     split_idx = len(full_faxis)/2
     faxis = full_faxis[:split_idx]
     pdos = full_pdos[:split_idx]
-    default_out = (faxis, norm_int(pdos, faxis, area=area))
+    default_out = (faxis, com.norm_int(pdos, faxis, area=area))
     extra_out = (full_faxis, fftc, split_idx, c)
     if full_out:
         return default_out + (extra_out,)
     else:
         return default_out
-
 
 def mirror(arr):
     """Mirror 1d array `arr`. Length of the returned array is 2*len(arr)-1 ."""
@@ -540,123 +490,4 @@ def sliceput(a, b, sl, axis=None):
         tmp[axis] = sl
     a[tmp] = b
     return a
-
-
-#-----------------------------------------------------------------------------
-# misc
-#-----------------------------------------------------------------------------
-
-def fix_eps(arr, eps=np.finfo(float).eps):
-    """Set values of arr to zero where abs(arr) <= eps.
-    This always returns a copy.
-
-    args:
-    ----
-    arr : numpy nd array
-    eps : float eps
-
-    returns:
-    --------
-    numpy nd array (copy)
-    """
-    _arr = np.asarray(arr).copy()
-    _arr[np.abs(_arr) <= eps] = 0.0
-    return _arr
-
-
-def str_arr(arr, fmt='%.15g', delim=' '*4, zero_eps=True):
-    """Convert array `arr` to nice string representation for printing.
-    
-    args:
-    -----
-    arr : array_like, 1d or 2d array
-    fmt : string, format specifier, all entries of arr are formatted with that
-    delim : string, delimiter
-    zero_eps : bool
-        Print values as 0.0 where |value| < eps
-
-    returns:
-    --------
-    string
-
-    examples:
-    ---------
-    >>> a=rand(3)
-    >>> pydos.str_arr(a, fmt='%.2f')
-    '0.26 0.35 0.97'
-    >>> a=rand(2,3)
-    >>> pydos.str_arr(a, fmt='%.2f')
-    '0.13 0.75 0.39\n0.54 0.22 0.66'
-
-    >>> print pydos.str_arr(a, fmt='%.2f')
-    0.13 0.75 0.39
-    0.54 0.22 0.66
-    
-    notes:
-    ------
-    Essentially, we replicate the core part of np.savetxt.
-    """
-    arr = np.asarray(arr)
-    _arr = fix_eps(arr) if zero_eps else arr
-    if _arr.ndim == 1:
-        return delim.join([fmt]*_arr.size) % tuple(_arr)
-    elif _arr.ndim == 2:
-        _fmt = delim.join([fmt]*_arr.shape[1])
-        lst = [_fmt % tuple(row) for row in _arr]
-        return '\n'.join(lst)
-    else:
-        raise ValueError('rank > 2 arrays not supported')
-
-
-def atpos_str(symbols, coords, fmt="%.10f", zero_eps=True):
-    """Convenience function to make a string for the ATOMIC_POSITIONS section
-    of a pw.x input file. Usually, this can be used to process the output of
-    crys.scell().
-    
-    args:
-    -----
-    symbols : list of strings with atom symbols, (natoms,), must match with the
-        rows of coords
-    coords : array (natoms, 3) with atomic coords, can also be (natoms, >3) to
-        add constraints on atomic forces in PWscf
-    zero_eps : bool
-        Print values as 0.0 where |value| < eps
-
-    returns:
-    --------
-    string
-
-    example:
-    --------
-    >>> print atpos_str(['Al', 'N'], array([[0,0,0], [0,0,1.]]))
-    Al      0.0000000000    0.0000000000    0.0000000000
-    N       0.0000000000    0.0000000000    1.0000000000
-    """
-    coords = np.asarray(coords)
-    assert len(symbols) == coords.shape[0], "len(symbols) != coords.shape[0]"
-    _coords = fix_eps(coords) if zero_eps else coords
-    txt = '\n'.join(symbols[i] + '\t' +  str_arr(row, fmt=fmt) \
-        for i,row in enumerate(_coords))
-    return txt        
-
-
-def atspec_str(symbols, masses, pseudos):
-    """Convenience function to make a string for the ATOMIC_SPECIES section
-    of a pw.x input file.
-    
-    args:
-    -----
-    symbols : sequence of strings with atom symbols, (natoms,)
-    masses : sequence if floats (natoms,) w/ atom masses
-    pseudos : sequence of strings (natoms,) w/ pseudopotential file names
-
-    returns:
-    --------
-    string
-    """
-    assert len(symbols) == len(masses) == len(pseudos), \
-        "len(symbols) != len(masses) != len(pseudos)"
-    txt = '\n'.join(["%s\t%s\t%s" %(sym, str(mass), pp) for sym, mass, pp in
-    izip(symbols, masses, pseudos)])        
-    return txt        
 
