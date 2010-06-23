@@ -7,14 +7,14 @@ from scipy.fftpack import fft, ifft
 import numpy as np
 import _flib
 
-def acorr(v, method=6):
+def acorr(v, method=7):
     """Normalized autocorrelation function (ACF) for 1d arrys: 
     c(t) = <v(0) v(t)> / <v(0)**2>. 
     The x-axis is the offset "t" (or "lag" in Digital Signal Processing lit.).
 
     Several Python and Fortran implememtations. The Python versions are mostly
-    for reference. For large arrays, only the pure numpy and Fortran versions
-    are fast and useful.
+    for reference and are slow, except for fft-based, which is by far the
+    fastet. 
 
     args:
     -----
@@ -24,9 +24,9 @@ def acorr(v, method=6):
         2: Python loops, zero-padded
         3: method 1, numpy vectorized
         4: uses numpy.correlate()
-        5: fft, Wiener-Khinchin Theorem
-        6: Fortran version of 1
-        7: Fortran version of 3
+        5: Fortran version of 1
+        6: Fortran version of 3
+        7: fft, Wiener-Khinchin Theorem
     
     returns:
     --------
@@ -81,6 +81,10 @@ def acorr(v, method=6):
     elif method == 4: 
         c = np.correlate(v, v, mode='full')[nstep-1:]
     elif method == 5: 
+        return _flib.acorr(v, c, 1)
+    elif method == 6: 
+        return _flib.acorr(v, c, 2)
+    elif method == 7: 
         # Correlation via fft. After ifft, the imaginary part is (in theory) =
         # 0, in practise < 1e-16.
         # Cross-Correlation Theorem:
@@ -96,10 +100,6 @@ def acorr(v, method=6):
         # lag=0, we return 0 ... +lag.
         vv = np.concatenate((v, np.zeros((nstep,),dtype=float)))
         c = ifft(np.abs(fft(vv))**2.0)[:nstep].real
-    elif method == 6: 
-        return _flib.acorr(v, c, 1)
-    elif method == 7: 
-        return _flib.acorr(v, c, 2)
     else:
         raise ValueError('unknown method: %s' %method)
     return c / c[0]
