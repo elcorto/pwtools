@@ -1,4 +1,4 @@
-# fft.py
+# signal.py
 #
 # Some general FFT/DFT stuff. Mostly textbook and reference implementations and
 # utilities. FFT helper functions.

@@ -1,19 +1,19 @@
 import numpy as np
 from math import pi, sqrt
 from matplotlib import pyplot as plt
-from pwtools import fft as pydos_fft
+from pwtools import signal
 from pwtools import corr
 from scipy.fftpack import fft
 
 y = np.random.rand(1000)
-print "pydos fft ..."
-pydos_ffty = pydos_fft.dft(y)
+print "pwtools fft ..."
+pwtools_ffty = signal.dft(y)
 print "scipy fft ..."
 scipy_ffty = fft(y)
 print "assert ..."
-np.testing.assert_almost_equal(scipy_ffty, pydos_ffty)
-np.testing.assert_almost_equal(scipy_ffty.real, pydos_ffty.real)
-np.testing.assert_almost_equal(scipy_ffty.imag, pydos_ffty.imag)
+np.testing.assert_almost_equal(scipy_ffty, pwtools_ffty)
+np.testing.assert_almost_equal(scipy_ffty.real, pwtools_ffty.real)
+np.testing.assert_almost_equal(scipy_ffty.imag, pwtools_ffty.imag)
 
 print "sin() test ..."
 print "==============\n"
