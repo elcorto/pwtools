@@ -31,7 +31,7 @@ import _flib
 import common as com
 import io
 from verbose import verbose
-from fft import pad_zeros, welch
+from signal import pad_zeros, welch
 
 # aliases
 pjoin = os.path.join
