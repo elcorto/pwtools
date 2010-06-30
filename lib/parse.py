@@ -1126,6 +1126,7 @@ class PwOutputFile(FileParser):
     natoms : scalar, number of atoms
     volume : 1d array (nstep,)
     total_force : 1d array (nstep,)
+    forces : 3d array (natoms, nstep, 3) XXX time axis hardcoded!
     
     Members, whose corresponding data in the file is not present, are None.
     E.g. if there are no CELL_PARAMETERS printed in the output file, then
@@ -1174,7 +1175,8 @@ class PwOutputFile(FileParser):
         'cell_parameters', 
         'natoms', 
         'volume',
-        'total_force'])
+        'total_force',
+        'forces'])
         
     def parse(self):
         verbose("parsing %s" %self.filename)
@@ -1301,6 +1303,33 @@ class PwOutputFile(FileParser):
             return io.readtxt(StringIO(ret_str), axis=1, 
                               shape=(natoms, nstep, 3))
 
+    def get_forces(self):
+        verbose("getting forces")
+        self.check_get_attr('natoms')
+        natoms = self.natoms
+        # nstep: get it from outfile b/c the value in any input file will be
+        # wrong if the output file is a concatenation of multiple smaller files
+        key = r'Forces\s+acting\s+on\s+atoms.*$'
+        cmd = r"egrep '%s' %s | wc -l" %(key.replace(r'\s', r'[ ]'), self.filename)
+        ret_str = com.backtick(cmd)
+        if ret_str.strip() == '':
+            nstep = 0
+        else:            
+            nstep = int(ret_str)
+        print ">>>> nstep:", nstep
+        # forces
+        #
+        # in the regex: "natoms+1" b/c there is a empty line after the "key"
+        cmd = "sed -nre '/%s/,+%ip' %s | grep -v '^[ ]*$|%s' | \
+              awk '{printf $7\"  \"$8\"  \"$9\"\\n\"}'" \
+              %(key, natoms+1, self.filename, key)
+        ret_str = com.backtick(cmd)
+        if ret_str.strip() == '':
+            return None
+        else:
+            return io.readtxt(StringIO(ret_str), axis=1, 
+                              shape=(natoms, nstep, 3))
+    
     def get_cell_parameters(self):
         verbose("getting cell parameters")
         # nstep
