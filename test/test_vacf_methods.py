@@ -13,8 +13,8 @@ def dif(a, b):
 	d = a-b
 	return math.sqrt(N.dot(d,d))
 
-# random velocity array
-a = N.random.rand(10,50,3) + 1.0
+# random velocity array: 10 atoms, 50 steps, 50 x  (10,3) arrays
+a = N.random.rand(10,3,50) + 1.0
 # random mass vector
 m = N.random.rand(10) * 10.0 + 1.0
 

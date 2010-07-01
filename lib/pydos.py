@@ -60,8 +60,9 @@ def velocity(coords, dt=None, copy=True, tslice=slice(None), axis=-1):
         
     args:
     -----
-    coords : 3d array, shape (natoms, 3, nstep)
-        atomic coords of an MD trajectory
+    coords : 3d array
+        Atomic coords of an MD trajectory. The time axis is defined by "axis". 
+        Along this axis, 2d arrays (natoms,3) are expected.
     dt: optional, float
         time step
     copy : optional, bool
@@ -105,13 +106,25 @@ def velocity(coords, dt=None, copy=True, tslice=slice(None), axis=-1):
     return vel
 
 
-# TODO: adapt to time axis= -1
-def pyvacf(V, m=None, method=3):
-    """Reference implementation of the VACF of velocities in 3d array `V`. See
-    velocity(). We do some numpy vectorization here.
+def pyvacf(vel, m=None, method=3):
+    """Reference implementation of the VACF of velocities in 3d array `vel`.
+    
+    args:
+    -----
+    vel : 3d array, (natoms, 3, nstep)
+        Atomic velocities.
+    m : 1d array (natoms,)
+        Atomic masses.
+    method : int
+        Which method to use.
+    
+    returns:
+    --------
+    c : 1d array (nstep,)
+        VACF
     """
-    natoms = V.shape[0]
-    nstep = V.shape[1]
+    natoms = vel.shape[0]
+    nstep = vel.shape[-1]
     c = np.zeros((nstep,), dtype=float)
     # we add extra multiplications by unity if m is None, but since it's only
     # the ref impl. .. who cares. better than having tons of if's in the loops.
@@ -126,22 +139,20 @@ def pyvacf(V, m=None, method=3):
             # time origins t0 == j
             for j in xrange(nstep-t):
                 for i in xrange(natoms):
-                    c[t] += np.dot(V[i,j,:], V[i,j+t,:]) * m[i]
+                    c[t] += np.dot(vel[i,:,j], vel[i,:,j+t]) * m[i]
     elif method == 2:    
         # replace 1 inner loop
         for t in xrange(nstep):
             for j in xrange(nstep-t):
                 # Multiply with mass-vector m:
-                # Use array broadcasting: each col of V[:,j,:] is element-wise
-                # multiplied with m (or in other words: multiply each of the 3
-                # vectors V[:,j,k] in V[:,j,:] element-wise with m).
-                #   V[:,j,:]          -> (natoms, 3)
-                #   m[:,np.newaxis]    -> (natoms, 1)
-                c[t] += (V[:,j,:] * V[:,j+t,:] * m[:,np.newaxis]).sum()
+                # Use array broadcasting: each col of vel[:,:,j] is element-wise
+                # multiplied with m (or in other words: multiply each of the
+                # k=1,2,3 vectors vel[:,k,j] in vel[:,:,j] element-wise with m).
+                c[t] += (vel[...,j] * vel[...,j+t] * m[:,np.newaxis]).sum()
     elif method == 3:    
         # replace 2 inner loops
         for t in xrange(nstep):
-            c[t] = (V[:,:(nstep-t),:] * V[:,t:,:]*m[:,np.newaxis,np.newaxis]).sum()
+            c[t] = (vel[...,:(nstep-t)] * vel[...,t:]*m[:,np.newaxis,np.newaxis]).sum()
     else:
         raise ValueError('unknown method: %s' %method)
     # normalize to unity
@@ -152,6 +163,24 @@ def pyvacf(V, m=None, method=3):
 def fvacf(vel, m=None, method=2, nthreads=None):
     """Interface to Fortran function _flib.vacf(). Otherwise same
     functionallity as pyvacf(). Use this for production calculations.
+    
+    args:
+    -----
+    vel : 3d array, (natoms, 3, nstep)
+        Atomic velocities.
+    m : 1d array (natoms,)
+        Atomic masses.
+    method : int
+        Which method to use.
+    nthreads : int ot None
+        If int, then use this many OpenMP threads in the Fortran extension.
+        Only useful if the extension was compiled with OpenMP support, of
+        course.
+
+    returns:
+    --------
+    c : 1d array (nstep,)
+        VACF
 
     notes:
     ------
@@ -172,7 +201,7 @@ def fvacf(vel, m=None, method=2, nthreads=None):
       c : rank-1 array('d') with bounds (nstep)
     """
     natoms = vel.shape[0]
-    nstep = vel.shape[axis]
+    nstep = vel.shape[-1]
     # `c` as "intent(in, out)" could be "intent(out), allocatable" or so,
     # makes extension more pythonic, don't pass `c` in, let be allocated on
     # Fortran side
@@ -314,6 +343,7 @@ def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False, area=1.0,
         c : 1d array, the VACF
     """
     massvec = m 
+    #FIXME hardcoded time axis
     time_axis = 1
     if window:
         sl = [None]*V.ndim

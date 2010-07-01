@@ -17,13 +17,13 @@ subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
     implicit none
     integer, intent(in) :: natoms, nstep, method, use_m
     integer, intent(in), optional ::  nthreads
-    double precision, intent(in) :: v(0:natoms-1, 0:nstep-1, 0:2)
+    double precision, intent(in) :: v(0:natoms-1, 0:2, 0:nstep-1)
     double precision, intent(in) :: m(0:natoms-1)
     double precision, intent(out) :: c(0:nstep-1)
     character(len=*), parameter :: this='[_flib.so:vacf] '
     integer ::  t, i, j, k
     ! for mass vector stuff in method 2
-    double precision :: vv(0:natoms-1, 0:nstep-1, 0:2)
+    double precision :: vv(0:natoms-1, 0:2, 0:nstep-1)
         
     !f2py intent(in, out) c
 
@@ -74,9 +74,9 @@ subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
                 do j = 0,nstep - t - 1
                     do i = 0,natoms-1
                         ! poor man's unrolled dot
-                        c(t) = c(t) + ( v(i,j,0) * v(i,j+t,0)  &
-                                    +   v(i,j,1) * v(i,j+t,1)  &
-                                    +   v(i,j,2) * v(i,j+t,2) ) * m(i)
+                        c(t) = c(t) + ( v(i,0,j) * v(i,0,j+t)  &
+                                    +   v(i,1,j) * v(i,1,j+t)  &
+                                    +   v(i,2,j) * v(i,2,j+t) ) * m(i)
                     end do                    
                 end do                    
             end do
@@ -89,9 +89,9 @@ subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
                 do j = 0,nstep - t - 1
                     do i = 0,natoms-1
                         ! poor man's unrolled dot
-                        c(t) = c(t) + ( v(i,j,0) * v(i,j+t,0)  &
-                                    +   v(i,j,1) * v(i,j+t,1)  &
-                                    +   v(i,j,2) * v(i,j+t,2) )
+                        c(t) = c(t) + ( v(i,0,j) * v(i,0,j+t)  &
+                                    +   v(i,1,j) * v(i,1,j+t)  &
+                                    +   v(i,2,j) * v(i,2,j+t) ) 
                     end do                    
                 end do                    
             end do
@@ -125,7 +125,7 @@ subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
             !$omp do
             do j = 0,nstep-1
                 do k = 0,2
-                    vv(:,j,k) = dsqrt(m) * v(:,j,k)
+                    vv(:,k,j) = dsqrt(m) * v(:,k,j)
                 end do    
             end do
             !$omp end do
@@ -158,13 +158,13 @@ subroutine vect_loops(v, natoms, nstep, c)
     ! v(:, :, :) and v(0:, 0:, 0:) results in c = [NaN, ..., NaN]. 
     ! v(0:, 0:nstep-1, 0:) is not allowed (at least, ifort complains).
 !!    double precision, intent(in) :: v(:, :, :)
-    double precision, intent(in) :: v(0:natoms-1, 0:nstep-1, 0:2)
+    double precision, intent(in) :: v(0:natoms-1, 0:2, 0:nstep-1)
     double precision, intent(out) :: c(0:nstep-1)
     
     !$omp parallel
     !$omp do
     do t = 0,nstep-1
-        c(t) = sum(v(:,:(nstep-t-1),:) * v(:,t:,:))
+        c(t) = sum(v(:,:,:(nstep-t-1)) * v(:,:,t:))
     end do
     !$omp end do
     !$omp end parallel
