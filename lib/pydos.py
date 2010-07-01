@@ -26,12 +26,12 @@ norm = np.linalg.norm
 from scipy.fftpack import fft
 
 # own modules
-import constants
-import _flib
-import common as com
-import io
-from verbose import verbose
-from signal import pad_zeros, welch
+from pwtools.lib import constants
+from pwtools.lib import _flib
+from pwtools.lib import common as com
+from pwtools.lib import io
+from pwtools.lib.verbose import verbose
+from pwtools.lib.signal import pad_zeros, welch
 
 # aliases
 pjoin = os.path.join
@@ -54,49 +54,58 @@ VERBOSE = False
 # computational
 #-----------------------------------------------------------------------------
 
-def velocity(R, dt=None, copy=True, rslice=slice(None)):
+
+def velocity(coords, dt=None, copy=True, tslice=slice(None), axis=-1):
     """Compute velocity from 3d array with MD trajectory.
         
     args:
     -----
-    R : 3D array, shape (natoms, nstep, 3)
-        atomic coords
-    dt: float
+    coords : 3d array, shape (natoms, 3, nstep)
+        atomic coords of an MD trajectory
+    dt: optional, float
         time step
-    copy : bool
-        If False, then we do in-place modification of R to save memory and
-        avoid array copies. A view into the modified R is returned.
-        Use only if you don't use R after calling this function.
-    rslice : slice object, defaults to slice(None), i.e. take all
-        a slice for the 2nd axis (time axis) of R  
-    
+    copy : optional, bool
+        If False, then we do in-place modification of coords to save memory and
+        avoid array copies. A view into the modified coords is returned.
+        Use only if you don't use coords after calling this function.
+    tslice : optional, slice object 
+        Defaults to slice(None), i.e. take all entries along the time axis
+        "axis" of "coords".  
+    axis : optional, int
+        Time axis of "coords".
+
     returns:            
     --------
-    V : 3D array, shape (natoms, <determined_by_rslice>, 3)
+    vel : 3D array, shape (natoms, 3, <determined_by_tslice>) 
+        Usally, this is (natoms, 3, netsp-1) for tslice=slice(None), i.e. if
+        vel is computed from all steps.
 
     notes:
     ------
-    Even with copy=False, a temporary copy of R in the calculation made by 
+    Even with copy=False, a temporary copy of coords in the calculation made by 
     numpy is unavoidable.
     """
-    # FIXME We assume that the time axis the axis=1 in R. This not safe should we
-    # ever change that.
+    # View or copy of coords, optionally sliced by "tslice" along "axis".
+    tmpsl = [slice(None)]*3
+    tmpsl[axis] = tslice
     if copy:
-        tmp = R.copy()[:,rslice,:]
+        tmp = coords.copy()[tmpsl]
     else:
-        # view into R
-        tmp = R[:,rslice,:]
-    #FIXME hardcoded time axis
-    # Same as tmp[:,1:,:] =  np.diff(tmp, n=1, axis=1).
-    tmp[:,1:,:] =  tmp[:,1:,:] - tmp[:,:-1,:]
-    # (natoms, nstep, 3), view only, skip j=0 <=> Rold
-    V = tmp[:,1:,:]
-    verbose("[velocity] V.shape: %s" %repr(V.shape))
+        # view
+        ##tmp = coords[tmpsl]
+        tmp = coords
+    # view into tmp       
+    vel = slicetake(tmp, sl=np.s_[1:], axis=axis, copy=False)
+    # vel[:] to put the result into the memory of "vel", otherwise, vel is a
+    # new assignment ans thus a new array
+    vel[:] = np.diff(tmp, n=1, axis=axis)
+    verbose("[velocity] velocity shape: %s" %repr(vel.shape))
     if dt is not None:
-        V /= dt
-    return V
+        vel /= dt
+    return vel
 
 
+# TODO: adapt to time axis= -1
 def pyvacf(V, m=None, method=3):
     """Reference implementation of the VACF of velocities in 3d array `V`. See
     velocity(). We do some numpy vectorization here.
@@ -140,7 +149,7 @@ def pyvacf(V, m=None, method=3):
     return c
 
 
-def fvacf(V, m=None, method=2, nthreads=None):
+def fvacf(vel, m=None, method=2, nthreads=None):
     """Interface to Fortran function _flib.vacf(). Otherwise same
     functionallity as pyvacf(). Use this for production calculations.
 
@@ -162,8 +171,8 @@ def fvacf(V, m=None, method=2, nthreads=None):
     Return objects:
       c : rank-1 array('d') with bounds (nstep)
     """
-    natoms = V.shape[0]
-    nstep = V.shape[1]
+    natoms = vel.shape[0]
+    nstep = vel.shape[axis]
     # `c` as "intent(in, out)" could be "intent(out), allocatable" or so,
     # makes extension more pythonic, don't pass `c` in, let be allocated on
     # Fortran side
@@ -174,11 +183,11 @@ def fvacf(V, m=None, method=2, nthreads=None):
         use_m = 0
     else:
         use_m = 1
-    # With V = np.asarray(V, order='F'), we convert V to F-order and a copy is
+    # With vel = np.asarray(vel, order='F'), we convert vel to F-order and a copy is
     # made. If we don't do it, the f2py wrapper code does. This copy is
-    # unavoidable, unless we allocate the array V in F-order in the first
+    # unavoidable, unless we allocate the array vel in F-order in the first
     # place.
-    ## c = _flib.vacf(np.asarray(V, order='F'), m, c, method, use_m)
+    ## c = _flib.vacf(np.asarray(vel, order='F'), m, c, method, use_m)
     verbose("calling _flib.vacf ...")
     if nthreads is None:
         # Possible f2py bug workaround: The f2py extension does not always set
@@ -188,11 +197,11 @@ def fvacf(V, m=None, method=2, nthreads=None):
         key = 'OMP_NUM_THREADS'
         if os.environ.has_key(key):
             nthreads = int(os.environ[key])
-            c = _flib.vacf(V, m, c, method, use_m, nthreads)
+            c = _flib.vacf(vel, m, c, method, use_m, nthreads)
         else:            
-            c = _flib.vacf(V, m, c, method, use_m)
+            c = _flib.vacf(vel, m, c, method, use_m)
     else:        
-        c = _flib.vacf(V, m, c, method, use_m, nthreads)
+        c = _flib.vacf(vel, m, c, method, use_m, nthreads)
     verbose("... ready")
     return c
 
