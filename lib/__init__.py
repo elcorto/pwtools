@@ -16,5 +16,6 @@ __all__ = [\
     'io',
     'sql',
     'kpath',
-    'version'
+    'version',
+    'verbose',
     ]
