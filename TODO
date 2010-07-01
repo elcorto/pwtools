@@ -25,3 +25,9 @@ all
 
 - Remove plt.show() from test_*.py . Instead, save figures to /tmp/pwtools_test
   if we really need to plot stuff.
+
+- Fix importing. Use full module name "pwtools.foo" instead of "foo" for
+  intra-package imports. 
+  
+- Fix importing all lib.* modules to pwtools.* level. Make "import pwtools.foo
+  as foo" possible as opposed to "import pwtools.lib.foo as foo"
