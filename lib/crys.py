@@ -739,25 +739,16 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
     #     
     #     Y . v_Y = X . v_X = I . v_I = v_I
     #     v_Y = Y^-1 . X . v_X = A . v_X
+    #
+    #     v_Y^T = (A . v_X)^T = v_Y^T . A^T
     # 
-    # So every product X . v_X, Y . v_Y, v_I . I (in general [basis] .
+    # Every product X . v_X, Y . v_Y, v_I . I (in general [basis] .
     # v_[basis]) is actually an expansion of v_{X,Y,...} in the basis vectors
     # vontained in X,Y,... . If the dot product is computed, we always get v in
     # cartesian coords. 
     # 
-    # Remember:
-    # v is s column vector (M,1) and A is (M,M) with the basis vecs as columns!
-    #
-    # Some general linalg:
-    #     
-    #     (A . B)^T = B^T . A^T
-    # 
-    # With this, 
-    #     
-    #     v_Y^T = (A . v_X)^T = v_X^T . A^T
-    # 
-    # Note that v_X^T is a row(!) vector (1,M).
-    # This form is implemented here (see below for why). With
+    # Now, v_X^T is a row(!) vector (1,M). This form is implemented here (see
+    # below for why). With
     #     
     #     A^T == A.T = [[--- a0 ---], 
     #                   [--- a1 ---], 
@@ -765,7 +756,7 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
     # 
     # we have
     #
-    #     v_Y^T = (A . v_X)^T = v_X^T . A^T = 
+    #     v_Y^T = v_X^T . A^T = 
     #
     #       = v_X[0]*a0       + v_X[1]*a1       + v_X[2]*a2
     #       
