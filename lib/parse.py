@@ -1127,7 +1127,9 @@ class PwOutputFile(FileParser):
     volume : 1d array (nstep,)
     total_force : 1d array (nstep,)
     forces : 3d array (natoms, nstep, 3) XXX time axis hardcoded!
-    
+    time_axis : the time axis along which `coords` has 2d arrays with atomic
+        coords
+
     Members, whose corresponding data in the file is not present, are None.
     E.g. if there are no CELL_PARAMETERS printed in the output file, then
     self.cell_parameters == None.
@@ -1162,6 +1164,8 @@ class PwOutputFile(FileParser):
         FileParser.__init__(self, filename)
         self._infile = infile
         
+        self.time_axis = -1
+
         # This list of calls is supposed to be order-independent.
         self.set_attr_lst([\
         'infile', 
@@ -1176,8 +1180,9 @@ class PwOutputFile(FileParser):
         'natoms', 
         'volume',
         'total_force',
-        'forces'])
-        
+        'forces',
+        ])
+    
     def parse(self):
         verbose("parsing %s" %self.filename)
         FileParser.parse(self) 
@@ -1213,8 +1218,7 @@ class PwOutputFile(FileParser):
         verbose("getting nstep")
         self.check_get_attr('coords')
         if self.coords is not None:
-            # XXX time axis hardcoded!
-            return self.coords.shape[1]
+            return self.coords.shape[self.time_axis]
         else:
             return None
     
@@ -1239,8 +1243,8 @@ class PwOutputFile(FileParser):
         if ret_str.strip() == '':
             return None
         else:
-            return io.readtxt(StringIO(ret_str), axis=1, 
-                              shape=(3, nstep, 3))
+            return io.readtxt(StringIO(ret_str), axis=self.time_axis, 
+                              shape=(3, 3, nstep))
 
     def get_etot(self):
         verbose("getting etot")
@@ -1300,8 +1304,8 @@ class PwOutputFile(FileParser):
         if ret_str.strip() == '':
             return None
         else:
-            return io.readtxt(StringIO(ret_str), axis=1, 
-                              shape=(natoms, nstep, 3))
+            return io.readtxt(StringIO(ret_str), axis=self.time_axis, 
+                              shape=(natoms, 3, nstep))
 
     def get_forces(self):
         verbose("getting forces")
@@ -1326,8 +1330,8 @@ class PwOutputFile(FileParser):
         if ret_str.strip() == '':
             return None
         else:
-            return io.readtxt(StringIO(ret_str), axis=1, 
-                              shape=(natoms, nstep, 3))
+            return io.readtxt(StringIO(ret_str), axis=self.time_axis, 
+                              shape=(natoms, 3, nstep))
     
     def get_cell_parameters(self):
         verbose("getting cell parameters")
@@ -1346,7 +1350,8 @@ class PwOutputFile(FileParser):
             return None
         else:
             # XXX time axis hardcoded!
-            return io.readtxt(StringIO(ret_str), axis=1, shape=(3, nstep, 3))
+            return io.readtxt(StringIO(ret_str), axis=self.time_axis, 
+                              shape=(3, 3, nstep))
     
     def get_volume(self):
         """For vc-relax, vc-md, pw.x prints stuff like
@@ -1484,8 +1489,8 @@ class CPOutputFile(PwOutputFile):
         if ret_str.strip() == '':
             return None
         else:
-            return io.readtxt(StringIO(ret_str), axis=1, 
-                              shape=(3, nstep, 3))
+            return io.readtxt(StringIO(ret_str), axis=self.time_axis, 
+                              shape=(3, 3, nstep))
     
     def get_etot(self):
         verbose("getting etot")
