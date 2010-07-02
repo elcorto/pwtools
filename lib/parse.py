@@ -1316,7 +1316,6 @@ class PwOutputFile(FileParser):
             nstep = 0
         else:            
             nstep = int(ret_str)
-        print ">>>> nstep:", nstep
         # forces
         #
         # in the regex: "natoms+1" b/c there is a empty line after the "key"
