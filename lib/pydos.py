@@ -235,21 +235,26 @@ def fvacf(vel, m=None, method=2, nthreads=None):
     return c
 
 
-def direct_pdos(V, dt=1.0, m=None, full_out=False, area=1.0, window=True):
+def direct_pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
+                axis=-1):
     """Compute PDOS without the VACF by direct FFT of the atomic velocities.
-    We call this Direct Method. Integral area is normalized 1.0.
+    We call this Direct Method. Integral area is normalized "area".
     
     args:
     -----
-    V : velocity array (natoms, nstep, 3)
+    vel : 3d array (natoms, 3, nstep)
+        atomic velocities
     dt : time step in seconds
-    m : 1d array (natoms,), atomic mass array, if None then mass=1.0 for all
-        atoms is used  
+    m : 1d array (natoms,), 
+        atomic mass array, if None then mass=1.0 for all atoms is used  
     full_out : bool
     area : float
-        normalize area under frequency-PDOS to this value
-    window : bool, use Welch windowing on data before FFT (reduces leaking
-        effect, recommended)
+        normalize area under frequency-PDOS curve to this value
+    window : bool 
+        use Welch windowing on data before FFT (reduces leaking effect,
+        recommended)
+    axis : int
+        Time axis of "vel".
 
     returns:
     --------
@@ -264,72 +269,75 @@ def direct_pdos(V, dt=1.0, m=None, full_out=False, area=1.0, window=True):
     -----
     [1] Phys Rev B 47(9) 1993
     """
+    # * fft_vel: array of vel2.shape, axis="axis" is the fft of the arrays along
+    #   axis 1 of vel2
+    # * Pad velocities w/ zeros along `axis`.
+    # * Possible optimization: always pad up to the next power of 2.
+    # * using breadcasting for multiplication with Welch window:
+    #   # 1d
+    #   >>> a = welch(...)
+    #   # tranform to 3d, broadcast to axis 0 and 1 (time axis = 2)
+    #   >>> a[None, None, :] # None == np.newaxis
     massvec = m 
-    # FIXME hardcoded time axis
-    time_axis = 1
-    # fftv: array of VV.shape, axis=1 is the fft of the arrays along axis 1 of
-    # VV
-    # Pad velocities w/ zeros along `time_axis`.
-    # XXX possible optimization: always pad up to the next power of 2
     if window:
-        # newaxis stuff
-        #   # 1d
-        #   >>> a = welch(...)
-        #   # tranform to 3d, broadcast to axis 0 and 2
-        #   >>> a[None, :, None] 
-        sl = [None]*V.ndim
-        sl[time_axis] = slice(None)
-        VV = V*(welch(V.shape[time_axis])[sl])
+        sl = [None]*vel.ndim 
+        sl[axis] = slice(None)
+        vel2 = vel*(welch(vel.shape[axis])[sl])
     else:
-        VV = V
-    VV = pad_zeros(VV, nadd=VV.shape[time_axis]-1, axis=time_axis)
-    print "fft ..."
-    full_fftv = np.abs(fft(VV, axis=time_axis))**2.0
-    print "...ready"
-    full_faxis = np.fft.fftfreq(VV.shape[time_axis], dt)
+        vel2 = vel
+    vel2 = pad_zeros(vel2, nadd=vel2.shape[axis]-1, axis=axis)
+    verbose("fft ...")
+    full_fft_vel = np.abs(fft(vel2, axis=axis))**2.0
+    verbose("...ready")
+    full_faxis = np.fft.fftfreq(vel2.shape[axis], dt)
     split_idx = len(full_faxis)/2
     faxis = full_faxis[:split_idx]
     # first split the array, then multiply by `massvec` and average
-    fftv = slicetake(full_fftv, slice(0, split_idx), axis=time_axis)
+    fft_vel = slicetake(full_fft_vel, slice(0, split_idx), axis=axis)
     if massvec is not None:
-        com.assert_cond(len(massvec) == VV.shape[0], "len(massvec) != VV.shape[0]")
-        fftv *= massvec[:,np.newaxis, np.newaxis]
-                                 
-    # average remaining axes        
-    pdos = fftv.sum(axis=0).sum(axis=1)        
+        com.assert_cond(len(massvec) == vel2.shape[0], "len(massvec) != vel2.shape[0]")
+        fft_vel *= massvec[:,np.newaxis, np.newaxis]
+    # average remaining axes (axis 0 and 1), summing is enough b/c
+    # normalization is done below      
+    pdos = fft_vel.sum(axis=0).sum(axis=0)        
     default_out = (faxis, com.norm_int(pdos, faxis, area=area))
     if full_out:
         # have to re-calculate this here b/c we never calculate the full_pdos
         # normally
         if massvec is not None:
-            full_pdos = (full_fftv * \
+            full_pdos = (full_fft_vel * \
                          massvec[:,np.newaxis, np.newaxis]\
-                         ).sum(axis=0).sum(axis=1)
+                         ).sum(axis=0).sum(axis=0)
         else:                              
-            full_pdos = full_fftv.sum(axis=0).sum(axis=1)
+            full_pdos = full_fft_vel.sum(axis=0).sum(axis=0)
         extra_out = (full_faxis, full_pdos, split_idx)
         return default_out + (extra_out,)
     else:
         return default_out
 
 
-def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False, area=1.0,
-              window=True):
+def vacf_pdos(vel, dt=1.0, m=None, mirr=False, full_out=False, area=1.0,
+              window=True, axis=-1):
     """Compute PDOS by FFT of the VACF. Integral area is normalized to
-    1.0.
+    "area".
     
     args:
     -----
-    V : (natoms, nstep, 3)
+    vel : 3d array (natoms, 3, nstep)
+        atomic velocities
     dt : time step in seconds
-    m : 1d array (natoms,), atomic mass array, if None then mass=1.0 for all
-        atoms is used  
-    mirr : bool, mirror VACF at t=0 before fft
+    m : 1d array (natoms,), 
+        atomic mass array, if None then mass=1.0 for all atoms is used  
+    mirr : bool 
+        mirror VACF at t=0 before fft
     full_out : bool
     area : float
-        normalize area under frequency-PDOS to this value
-    window : bool, use Welch windowing on data before FFT (reduces leaking
-        effect, recommended)
+        normalize area under frequency-PDOS curve to this value
+    window : bool 
+        Use Welch windowing on data before FFT (reduces leaking effect,
+        recommended).
+    axis : int
+        Time axis of "vel".
 
     returns:
     --------
@@ -338,36 +346,35 @@ def vacf_pdos(V, dt=1.0, m=None, mirr=False, full_out=False, area=1.0,
         faxis : 1d array, frequency in Hz
         pdos : 1d array, the PDOS
     full_out = True
-        (faxis, pdos, (full_faxis, fftcc, split_idx, c))
-        ffttc : 1d complex array, result of fft(c) or fft(mirror(c))
-        c : 1d array, the VACF
+        (faxis, pdos, (full_faxis, full_pdos, split_idx, vacf, fft_vacf))
+        fft_vacf : 1d complex array, result of fft(vacf) or fft(mirror(vacf))
+        vacf : 1d array, the VACF
     """
     massvec = m 
-    #FIXME hardcoded time axis
-    time_axis = 1
     if window:
-        sl = [None]*V.ndim
-        sl[time_axis] = slice(None)
-        VV = V*(welch(V.shape[time_axis])[sl])
+        sl = [None]*vel.ndim
+        sl[axis] = slice(None)
+        vel2 = vel*(welch(vel.shape[axis])[sl])
     else:
-        VV = V
-    c = fvacf(VV, m=massvec)
+        vel2 = vel
+    vacf = fvacf(vel2, m=massvec)
     if mirr:
         verbose("[vacf_pdos] mirror VACF at t=0")
-        fftc = fft(mirror(c))
+        fft_vacf = fft(mirror(vacf))
     else:
-        fftc = fft(c)
-    full_faxis = np.fft.fftfreq(fftc.shape[0], dt)
-    full_pdos = np.abs(fftc)
+        fft_vacf = fft(vacf)
+    full_faxis = np.fft.fftfreq(fft_vacf.shape[0], dt)
+    full_pdos = np.abs(fft_vacf)
     split_idx = len(full_faxis)/2
     faxis = full_faxis[:split_idx]
     pdos = full_pdos[:split_idx]
     default_out = (faxis, com.norm_int(pdos, faxis, area=area))
-    extra_out = (full_faxis, fftc, split_idx, c)
+    extra_out = (full_faxis, full_pdos, split_idx, vacf, fft_vacf)
     if full_out:
         return default_out + (extra_out,)
     else:
         return default_out
+
 
 def mirror(arr):
     """Mirror 1d array `arr`. Length of the returned array is 2*len(arr)-1 ."""

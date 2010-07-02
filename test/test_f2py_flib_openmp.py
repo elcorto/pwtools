@@ -39,7 +39,7 @@ rand = np.random.rand
 
 nat=10 
 nstep=500 
-v=rand(nat, nstep, 3)
+v=rand(nat, 3, nstep)
 m=rand(nat) 
 c=np.zeros((nstep,))
 

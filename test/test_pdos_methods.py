@@ -296,20 +296,22 @@ axs[-1].legend()
 # 3d arrays
 ###############################################################################
 
+time_axis = -1
+
 # Now, 3d arrays with "real" atomic velocities, test the pydos methods.
 
 # Use most settings (nfreq, ...) from above. Create random array of x,y,z time
 # traces for `natoms` atoms. Each x,y,z trajectory is a sum of sin's (`coords`
 # in the 1d case).
 natoms = 5
-coords = np.empty((natoms, nstep, 3))
+coords = np.empty((natoms, 3, nstep))
 # `nfreq` frequencies for each x,y,z component of each atom
-freqs = rand(natoms, nfreq, 3)*fmax
-for i in range(coords.shape[0]):
-    for k in range(coords.shape[2]):
-        # vector w/ frequencies: freqs[i,:,k] <=> f_j, j=0, ..., nfreq-1
+freqs = rand(natoms, 3, nfreq)*fmax
+for i in range(natoms):
+    for k in range(3):
+        # vector w/ frequencies: freqs[i,k,:] <=> f_j, j=0, ..., nfreq-1
         # sum_j sin(2*pi*f_j*t)
-        coords[i,:,k] = np.sin(2*pi*freqs[i,:,k][:,None]*taxis).sum(axis=0)
+        coords[i,k,:] = np.sin(2*pi*freqs[i,k,:][:,None]*taxis).sum(axis=0)
 
 ##arr = coords
 arr = pydos.velocity(coords, copy=True)
@@ -329,11 +331,13 @@ if use_fourier:
     # For each atom, write an array (time.shape[0], 3) with coords at all time
     # steps, run fourier.x on that, sum up the power spectra. No mass
     # weighting.
-    fourier_in_data = np.zeros((arr.shape[1],7))
-    fourier_in_data[:,0] = np.arange(arr.shape[1])
+    fourier_in_data = np.zeros((arr.shape[time_axis],7))
+    fourier_in_data[:,0] = np.arange(arr.shape[time_axis])
     print "running fourier.x for all atoms ..."
     for iatom in range(arr.shape[0]):
-        fourier_in_data[:,4:] = arr[iatom,...]
+        fourier_in_data[:,4] = arr[iatom,0,:]
+        fourier_in_data[:,5] = arr[iatom,1,:]
+        fourier_in_data[:,6] = arr[iatom,2,:]
         fourier_in_data_fn = pj(fourier_dir, 'fourier_in_data_3d_atom%i.txt'
                                 %iatom)
         fourier_out_data_fn = pj(fourier_dir, 'fourier_out_data_3d_atom%i.txt'
