@@ -650,6 +650,19 @@ def rmsd(coords_cart, ref_idx=0, axis=-1):
         start structure).
     axis : int
         time axis in `coords_cart`
+    
+    returns:
+    --------
+    rmsd : 1d array (coords_cart.shape[axis],)
+
+    examples:
+    ---------
+    # The RMSD w.r.t. the start structure.
+    >>> corrds=rand(10,3,500)
+    >>> rmsd(coords, ref_idx=0, axis=-1)
+    # For a relaxation run, the RMSD w.r.t. the final converged structure. The
+    # RMSD should converge to zero here.
+    >>> rmsd(coords, ref_idx=-1, axis=-1)
     """
     # sl_ref : pull out 2d array of coords of the reference structure
     # sl_newaxis : slice to broadcast (newaxis) this 2d array to 3d for easy
