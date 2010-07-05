@@ -680,16 +680,16 @@ def rmsd(coords_cart, ref_idx=0, axis=-1):
     return rms3d(R, axis=axis, nitems=N)
 
 
-#XXX check ME!!!
-def max_displacement(coords_cart):
-    R = coords_cart
-    md = np.empty((R.shape[0], R.shape[2]), dtype=float)
-    # iatom
-    for i in range(R.shape[0]):
-        # x,y,z
-        for j in range(R.shape[2]):
-            md[i,j] = R[i,:,j].max() - R[i,:,j].min()
-    return md            
+#FIXME implement axis kwarg, get rid of loops
+##def max_displacement(coords_cart):
+##    R = coords_cart
+##    md = np.empty((R.shape[0], R.shape[2]), dtype=float)
+##    # iatom
+##    for i in range(R.shape[0]):
+##        # x,y,z
+##        for j in range(R.shape[2]):
+##            md[i,j] = R[i,:,j].max() - R[i,:,j].min()
+##    return md            
 
 
 def pbc_wrap(coords, copy=True, mask=[True]*3, xyz_axis=-1):
