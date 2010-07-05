@@ -795,6 +795,10 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
     >>> RB1=coord_trans(Rold, old=old, new=new, align='rows') 
     >>> RB2=coord_trans(Rold, old=old.T, new=new.T, align='cols') 
     >>> np.testing.assert_almost_equal(Rold, Rold2)
+    
+    # If you have an array of shape, say (10,3,100), i.e. the last dimension is
+    # NOT 3, then use numpy.swapaxes():
+    >>> coord_trans(arr.swapaxes(1,2)).swapaxes(1,2)
 
     refs:
     [1] http://www.mathe.tu-freiberg.de/~eiermann/Vorlesungen/HM/index_HM2.htm
