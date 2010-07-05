@@ -2,6 +2,7 @@ The pwtools package.
 
 Copyright (c) 2008-2010, Steve Schmerler <mefx@gmx.net>.
 
+============
 Installation
 ============
 
@@ -53,6 +54,7 @@ optional:
     test/*
         - matplotlib
 
+=====
 Usage
 =====
 
@@ -83,20 +85,24 @@ see pydos.velocity().
 - The frequency axis of the PDOS is in Hz. It is "f", NOT the angular frequency 
   2*pi*f. See also test/test_pdos_methods.py .
 
+
+=====================
 Format-specific notes
 =====================
 
 Pwscf
------
+=====
 
-Units:
+Units
+-----
 
 From http://www.quantum-espresso.org/input-syntax/INPUT_PW.html
     All quantities whose dimensions are not explicitly specified are in
     RYDBERG ATOMIC UNITS
 See constants.py
 
-atomic coordinates:
+Atomic coordinates
+------------------
 
 To calculate the PDOS, atomic coordinates from MD trajectories have to be in
 cartesian coordinates. You may have to transform them *before* using them to
@@ -143,7 +149,8 @@ i.e. if one wants to calculate cartesian coords. Note that alat == celldm(1).
     if not                -> CELL_PARAMETERS in a.u. -> crystal a.u.
         => CELL_PARAMETERS are in Rydberg atomic units, i.e. in Bohr.
 
-Total Force:
+Total force on atoms
+--------------------
 
 Pwscf writes a "Total Force" after the "Forces acting on atoms" section . This
 value is kind of an RMS of the force matrix (f_ij, i=1,natoms j=1,2,3) printed.
