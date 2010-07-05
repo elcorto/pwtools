@@ -579,26 +579,92 @@ def write_cif(filename, coords, symbols, cryst_const, fac=con.a0_to_A, conv=Fals
 #-----------------------------------------------------------------------------
 
 
-#XXX implement PBC!
-#XXX hardcoded time axis
-def rmsd(coords_cart, ref_idx=0):
-    """Root mean square distance of an MD trajectory of a whole atomic
-    structure. For now, use the 3d array R (as used in pydos.py) with time 
-    axis = 1.
+def rms(arr, nitems='all'):
+    """RMS of all elements in a ndarray.
     
     args:
     -----
-    coords_cart : 3d array with atom coords, time axis = 1
+    arr : ndarray
+    nitems : {'all', float)
+        normalization constant, the sum of squares is divided by this number,
+        set to unity for no normalization, if 'all' then use nitems = number of
+        elements in the array
+
+    returns:
+    --------
+    rms : scalar
+    """
+    if nitems == 'all':
+        nitems = float(arr.nbytes / arr.itemsize)
+    else:
+        nitems = float(nitems)
+    rms = np.sqrt((arr**2.0).sum() / nitems)
+    return rms        
+
+
+def rms3d(arr, axis=-1, nitems='all'):
+    """RMS of 3d array along `axis`. Sum all elements of all axes != axis.
+    
+    args:
+    -----
+    arr : nd array, max arr.ndim = 3
+    axis : int
+        The axis along which the RMS of all sub-arrays is to be computed.
+    nitems : {'all', float)
+        normalization constant, the sum of squares is divided by this number,
+        set to unity for no normalization, if 'all' then use nitems = number of
+        elements in each sub-array along `axis`
+    
+    returns:
+    --------
+    rms : 1d array, (arr.shape[axis],)
+    """
+    assert -1 <= axis <= 2, "allowed axis values: -1,0,1,2"
+    if axis == -1:
+        axis = arr.ndim - 1
+    if nitems == 'all':
+        sl = [slice(None)]*arr.ndim
+        sl[axis] = 0 # pick out 1st sub-array along axis
+        nitems = float(arr[sl].nbytes / arr.itemsize)
+    else:
+        nitems = float(nitems)
+    if axis == 0:
+        rms =  np.sqrt((arr**2.0).sum(1).sum(1) / nitems)
+    elif axis == 1:
+        rms =  np.sqrt((arr**2.0).sum(0).sum(1) / nitems)
+    elif axis == 2:
+        rms =  np.sqrt((arr**2.0).sum(0).sum(0) / nitems)
+    return rms        
+    
+
+def rmsd(coords_cart, ref_idx=0, axis=-1):
+    """Root mean square distance of an MD trajectory of a whole atomic
+    structure. The normalization constant is the number of atoms
+    (coords_cart.shape[0]).
+    
+    args:
+    -----
+    coords_cart : 3d array 
+        atom coords, time axis `axis`, natoms axis must be 0
     ref_idx : time index of the reference structure (i.e. 0 to compare with the
         start structure).
+    axis : int
+        time axis in `coords_cart`
     """
+    # sl_ref : pull out 2d array of coords of the reference structure
+    # sl_newaxis : slice to broadcast (newaxis) this 2d array to 3d for easy
+    #     substraction
+    assert coords_cart.ndim == 3
+    ndim = 3
     R = coords_cart.copy()
-##    for j in range(R.shape[1]):
-##        R[:,j,:] -= R[:,ref_idx,:]
-    R -= R[:,ref_idx,:][:,np.newaxis,:]
-    R = R**2.0
+    sl_ref = [slice(None)]*ndim
+    sl_ref[axis] = ref_idx
+    sl_newaxis = [slice(None)]*ndim
+    sl_newaxis[axis] = None
+    ref = R[sl_ref].copy()
+    R -= ref[sl_newaxis]
     N = float(R.shape[0])
-    return np.sqrt(R.sum(axis=2).sum(axis=0)/N)
+    return rms3d(R, axis=axis, nitems=N)
 
 
 #XXX check ME!!!
