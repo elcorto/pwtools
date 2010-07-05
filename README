@@ -143,4 +143,13 @@ i.e. if one wants to calculate cartesian coords. Note that alat == celldm(1).
     if not                -> CELL_PARAMETERS in a.u. -> crystal a.u.
         => CELL_PARAMETERS are in Rydberg atomic units, i.e. in Bohr.
 
+Total Force:
 
+Pwscf writes a "Total Force" after the "Forces acting on atoms" section . This
+value is kind of an RMS of the force matrix (f_ij, i=1,natoms j=1,2,3) printed.
+By experiment, we found that the "Total Force" is
+    sqrt(sum_ij f_ij^2)
+But this is not normalized to the number of atoms. Use crys.rms() or
+crys.rms3d() for MD runs where the RMS of each (f_ij) is 
+    sqrt( (sum_ij f_ij^2) / N )
+with N = 3*natoms or N=natoms.   
