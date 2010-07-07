@@ -101,7 +101,8 @@
 # Setting the number of threads:  
 # 	
 # 	$ export OMP_NUM_THREADS=2
-# 	$ pydos.py ...
+# 	$ python -c "import numpy as np; import pwtools; \
+# 	             pwtools.pydos.fvacf(np.random.rand(10,3,200))"
 # 
 # does work. If this env var is NOT set, then OpenMP uses all available cores
 # (e.g. 4 on a quad-core box).
