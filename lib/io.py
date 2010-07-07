@@ -120,6 +120,7 @@ def writetxt(fn, arr, axis=-1, maxdim=TXT_MAXDIM):
         np.savetxt(fh, arr)
     # 3d        
     else:
+        # TODO get rid of loop?                                                 
         # write 2d arrays, one by one
         sl = [slice(None)]*arr.ndim
         for ind in range(arr.shape[axis]):
@@ -208,6 +209,7 @@ def readtxt(fh, axis=None, shape=None, header_maxlines=HEADER_MAXLINES,
                     "shape, got %s, expect %s" %(fn, 
                                                  str(read_arr.shape),
                                                  str(expect_shape)))
+        # TODO get rid of loop?                                                 
         sl = [slice(None)]*ndim
         for ind in range(shape[axis]):
             sl[axis] = ind
