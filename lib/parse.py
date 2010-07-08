@@ -1323,9 +1323,7 @@ class PwOutputFile(FileParser):
         # forces
         #
         # in the regex: "natoms+1" b/c there is a empty line after the "key"
-        cmd = "sed -nre '/%s/,+%ip' %s | grep -v '^[ ]*$|%s' | \
-              awk '{printf $7\"  \"$8\"  \"$9\"\\n\"}'" \
-              %(key, natoms+1, self.filename, key)
+        cmd = r"sed -nre 's/atom.*type.*force\s+=(.*)$/\1/p' %s" %self.filename
         ret_str = com.backtick(cmd)
         if ret_str.strip() == '':
             return None
