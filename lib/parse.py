@@ -1321,8 +1321,6 @@ class PwOutputFile(FileParser):
         else:            
             nstep = int(ret_str)
         # forces
-        #
-        # in the regex: "natoms+1" b/c there is a empty line after the "key"
         cmd = r"sed -nre 's/atom.*type.*force\s+=(.*)$/\1/p' %s" %self.filename
         ret_str = com.backtick(cmd)
         if ret_str.strip() == '':
