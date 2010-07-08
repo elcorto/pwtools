@@ -21,4 +21,4 @@ def toversion(v1):
 tov = toversion
 
 # The highest version number produced by "hg tags".
-version = toversion("0.9.0")
+version = toversion("0.9.1")
