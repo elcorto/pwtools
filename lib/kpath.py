@@ -47,9 +47,15 @@ def kpath(vecs, N):
     --------
     new_vecs : array (N*(K-1)+1,M) with a fine grid of vectors along the path 
         defined by `vecs`
+    
+    notes:
+    ------
+    This is the simplest method one can think of. Points on the "file path" are
+    not equally distributed but with distance prop. to 1/N in every segment
+    conneting two adjacent vertices.
     """
-    nnew = (nvecs-1)*N+1
     nvecs = vecs.shape[0]
+    nnew = (nvecs-1)*N+1
     new_vecs = np.empty((nnew, vecs.shape[1]), dtype=float)
     for i in range(1, nvecs):
         new_vecs[(i-1)*N:i*N, :] = vlinspace(vecs[i-1,:], vecs[i,:], N,
