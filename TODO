@@ -11,9 +11,6 @@ pydos.py
   pw.in and that of the parsed out ones from pw.out are the same. Check this!
   For example, it is seems to be NOT the same for cp.x!
 
-- Do something with the hardcoded time axis (axis=1) in all 3d arrays
-  from pw.out files.
-
 - Implement the maximum entropy method .. or not.
 
 all

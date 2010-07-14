@@ -1,5 +1,5 @@
 # This test shows that scaling the coords does not matter b/c we normalize the
-# integral area in pd.*_pdos(). But using a different coord sys does not work.
+# integral area in pydos.*_pdos(). But using a different coord sys does not work.
 # One must convert coords to cartesian before calculating the PDOS.
 #
 # In the resulting plot, "cart" and "cart2" must be exactly the same. "cp1"

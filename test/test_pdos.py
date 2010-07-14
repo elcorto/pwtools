@@ -15,7 +15,7 @@ common.system('gunzip %s.gz' %filename)
 c = PwOutputFile(filename=filename, infile=infile)
 c.parse()
 
-# Transform coords if needed. See lib/README.
+# Transform coords if needed. See .../pwtools/README .
 ibrav = int(c.infile.namelists['system']['ibrav'])
 c_sys = c.infile.atpos['unit'].lower().strip()
 if c_sys == 'crystal':

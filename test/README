@@ -1,3 +1,5 @@
+To run the tests, use ./run_all.sh . Note the comments in that file.
+
 The file files/pw.md.out.gz comes from a long MD run with nstep=1200. To lower
 the file size, it has been truncated after 120 steps and the variable
 control:nstep in pw.md.in has been set to 120 as well.

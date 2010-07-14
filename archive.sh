@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Build version string and "hg archive".
+# Build version string and "hg archive". This only makes sense inside a
+# Mercurial repository.
 
 # We use some templates to fiddle out version information:
 #
