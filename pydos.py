@@ -26,12 +26,12 @@ norm = np.linalg.norm
 from scipy.fftpack import fft
 
 # own modules
-from pwtools.lib import constants
-from pwtools.lib import _flib
-from pwtools.lib import common as com
-from pwtools.lib import io
-from pwtools.lib.verbose import verbose
-from pwtools.lib.signal import pad_zeros, welch
+from pwtools import constants
+from pwtools import _flib
+from pwtools import common as com
+from pwtools import io
+from pwtools.verbose import verbose
+from pwtools.signal import pad_zeros, welch
 
 # aliases
 pjoin = os.path.join

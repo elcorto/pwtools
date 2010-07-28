@@ -43,7 +43,7 @@ def _read_header_config(fh, header_maxlines=HEADER_MAXLINES,
     2
     3
     >>> _get_header_config('foo.txt')
-    <pwtools.lib.pydos.PydosConfigParser instance at 0x2c52320>
+    <pwtools.pydos.PydosConfigParser instance at 0x2c52320>
     """
     fn = com.get_filename(fh)
     verbose("[_read_header_config]: reading header from '%s'" %fn)

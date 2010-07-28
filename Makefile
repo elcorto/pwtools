@@ -160,7 +160,7 @@ F2PY_FLAGS=--opt='-O3' \
 			-DF2PY_REPORT_ON_ARRAY_COPY=1 \
 			--f90exec=$(F90) \
 			--arch="$(ARCH)" \
-			--f90flags="$(F90FLAGS) $(OMP_F90_FLAGS)" $(F2PY_OMP_F90_FLAGS)
+			--f90flags="$(F90FLAGS) $(OMP_F90_FLAGS)" $(F2PY_OMP_F90_FLAGS) \
 
 #--- targets ----------------------------------------------------------------
 

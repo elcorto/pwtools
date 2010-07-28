@@ -300,7 +300,7 @@ if __name__ == '__main__':
     #-------------------------------------------------------------------------
     
     try:
-        from pwtools.lib.common import flatten
+        from pwtools.common import flatten
     except ImportError:
         from matplotlib.cbook import flatten
     

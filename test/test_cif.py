@@ -1,4 +1,4 @@
-from pwtools.lib.parse import CifFile
+from pwtools.parse import CifFile
 from pwtools import common
 
 c = CifFile('files/cif_struct.cif')

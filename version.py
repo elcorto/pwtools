@@ -38,7 +38,7 @@ tov = toversion
 ##version_str = "0.9.2"
 ##version_str = backtick('hg tags | head -n2').split()[2]
 
-hgtags = os.path.join(pathback(__file__, 2), '.hgtags')
+hgtags = os.path.join(pathback(__file__, 1), '.hgtags')
 if not os.path.exists(hgtags):
     print "warning: %s not found" %hgtags
     version_str = '0.0.0'

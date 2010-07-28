@@ -2,11 +2,11 @@ import sys
 
 import numpy as np
 
-from pwtools.lib.parse import PwOutputFile
+from pwtools.parse import PwOutputFile
 from pwtools import common
 from pwtools import pydos as pd
 from pwtools import constants
-from pwtools.lib.crys import coord_trans
+from pwtools.crys import coord_trans
 
 filename = 'files/pw.md.out'
 infile = 'files/pw.md.in'

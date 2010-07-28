@@ -1,4 +1,4 @@
-from pwtools.lib.parse import CMLFile
+from pwtools.parse import CMLFile
 from pwtools import common
 
 c = CMLFile('files/cml_struct.cml')

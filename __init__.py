@@ -1,5 +1,20 @@
-import lib
-from lib import *
-
-__all__ = []
-__all__.extend(lib.__all__)
+__all__ = [\
+    '_flib',
+    'comb', 
+    'common', 
+    'constants', 
+    'decorators', 
+    'pydos', 
+    'crys',
+    'mpl',
+    'signal',
+    'regex',
+    'corr',
+    'parse',
+    'periodic_table',
+    'io',
+    'sql',
+    'kpath',
+    'version',
+    'verbose',
+    ]

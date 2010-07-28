@@ -1,4 +1,4 @@
-from pwtools.lib.parse import PwInputFile
+from pwtools.parse import PwInputFile
 from pwtools import common
 
 filename = 'files/pw.scf.in.2'

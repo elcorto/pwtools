@@ -7,7 +7,7 @@
 
 import numpy as np
 from pwtools import pydos as pd
-from pwtools.lib.crys import coord_trans
+from pwtools.crys import coord_trans
 from matplotlib import pyplot as plt
 
 def pdos(coords_arr_3d):

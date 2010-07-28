@@ -4,7 +4,7 @@
 
 import numpy as np
 
-from pwtools.lib.parse import PwOutputFile
+from pwtools.parse import PwOutputFile
 from pwtools import common
 from pwtools import pydos as pd
 

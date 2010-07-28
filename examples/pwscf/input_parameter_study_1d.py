@@ -10,7 +10,7 @@ assert version.version >= version.tov('0.6.1')
 
 from pwtools import common as com
 from pwtools import comb as comb
-from pwtools.lib.sql import SQLEntry, SQLiteDB
+from pwtools.sql import SQLEntry, SQLiteDB
 fpj = com.fpj
 
 

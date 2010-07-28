@@ -1,7 +1,7 @@
 import numpy as np
-from pwtools.lib import _flib
-from pwtools.lib.pydos import fvacf
-from pwtools.lib.common import system
+from pwtools import _flib
+from pwtools.pydos import fvacf
+from pwtools.common import system
 import os
 import sys
 

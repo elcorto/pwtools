@@ -1,4 +1,4 @@
-from pwtools.lib.parse import PDBFile
+from pwtools.parse import PDBFile
 from pwtools import common
 
 p = PDBFile('files/pdb_struct.pdb')

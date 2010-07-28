@@ -25,6 +25,3 @@ all
 
 - Fix importing. Use full module name "pwtools.foo" instead of "foo" for
   intra-package imports. 
-  
-- Fix importing all lib.* modules to pwtools.* level. Make "import pwtools.foo
-  as foo" possible as opposed to "import pwtools.lib.foo as foo"

@@ -1,6 +1,6 @@
 import numpy as np
 
-from pwtools.lib.pydos import velocity
+from pwtools.pydos import velocity
 
 a1 = np.arange(2*3*6).reshape(2,3,6)
 a2 = a1.copy()
