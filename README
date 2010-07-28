@@ -25,8 +25,8 @@ Fortran extensions
 ------------------
 
 To calculate the velocity autocorrelation function, you want to use a Fortran
-extension module. Go to lib/ and compile it. See lib/Makefile.
-Note that this is not necessary for the "Direct Method" (see below).
+extension module. See Makefile. Note that this is not necessary for the "Direct
+Method" (see below).
 
 Python versions
 ---------------
@@ -50,7 +50,7 @@ optional:
         
         Without these, you will get warnings and some parsing classes will not
         work (Cif and CML parsing currently). If you wish, uncomment the warnings
-        at the top of lib/parse.py .
+        at the top of parse.py .
     test/*
         - matplotlib
 
