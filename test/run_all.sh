@@ -13,7 +13,7 @@ if env | grep OMP_NUM_THREADS > /dev/null; then
 fi    
 export OMP_NUM_THREADS=3
 
-rm -vf ../lib/*.pyc
+rm -vf $(find ../ -name "*.pyc")  $(find . -name "*.pyc")
 
 # Simple-minded way to run test suite. Yes, we really should use nose.
 for f in $(ls -1 *.py); do 
