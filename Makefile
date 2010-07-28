@@ -125,6 +125,14 @@ EXE=$(FILE).x
 EXT_MODULE=_$(FILE)
 SO=$(EXT_MODULE).so
 
+# f2py executable. On some systems (Debian), you may have
+#	/usr/bin/f2py -> f2py2.6
+#	/usr/bin/f2py2.5
+#	/usr/bin/f2py2.6
+# and such. Here you define the correct executable for your environment.
+# Usually, just "f2py" should be fine.	
+F2PY=f2py2.5
+
 # ARCH below is for Intel Core i7
 F90=gfortran
 F90FLAGS=-x f95-cpp-input 
@@ -180,11 +188,11 @@ main: $(EXE)
 # in one run to create the extension module. But this woudn't keep the .pyf
 # file around.  
 $(PYF): $(FORT)
-	f2py -h $(PYF) $(FORT) -m $(EXT_MODULE) --overwrite-signature
+	$(F2PY) -h $(PYF) $(FORT) -m $(EXT_MODULE) --overwrite-signature
 
 # make shared lib 
 $(SO): $(PYF) $(FORT)
-	f2py -c $(PYF) $(FORT) $(F2PY_FLAGS)
+	$(F2PY) -c $(PYF) $(FORT) $(F2PY_FLAGS)
 
 # In case we have a Fortran main program (e.g. "program main") in the source of
 # the extension for testing.
