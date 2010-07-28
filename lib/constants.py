@@ -89,7 +89,8 @@
 
 
 __all__ = ['pi', 'h', 'hbar', 'm0', 'e0', 'mu0', 'c0', 'eps0', 'a0', \
-           'Eh', 'th', 'kb', 'avo', 'dyn', 'Eryd', 'tryd', 'a0_to_A', 'Ry_to_eV']
+           'Eh', 'th', 'kb', 'avo', 'dyn', 'Eryd', 'tryd', 'R',
+           'a0_to_A', 'Ry_to_eV']
 
 from math import pi
 h = 6.62606896e-34          # J*s
@@ -105,6 +106,7 @@ th = 2.418884326505e-17     # s
 kb = 1.3806504e-23          # J/K
 avo = 6.02214179e23         # 1/mol
 dyn = 1e-5                  # N
+R = 8.314472                # J / (mol*K)
 
 Eryd = 0.5*Eh
 tryd = 2.0*th
