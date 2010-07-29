@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 # Plot a dispersion. This is a simplified (and non-ugly) version of QE's
-# plotband.x . Reads a k-point - frequency file produced by matdyn.x . This is
-# a q'n'd hack. Patches welcome.
+# plotband.x . Reads a k-point - frequency file produced by QE's matdyn.x 
+# See parse_dis().
+#
+# This is a q'n'd hack. Patches welcome.
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,24 +13,55 @@ import sys
 import os
 nrm = np.linalg.norm
 
+
+def get_path_norm(ks):
+    """Like in QE's plotband.f90, path_norm = kx there. Return a sequence of
+    cumulative norms of the difference vectors which connect each two adjacent
+    k-points.
+
+    args:
+    -----
+    ks : array (nks, 3), array with `nks` k-points on the path
+    """
+    dnorms = np.empty(ks.shape[0], dtype=float)
+    dnorms[0] = nrm(ks[0,:])
+    # diff(...): array with difference vecs, norm of each of them
+    dnorms[1:] = np.sqrt((np.diff(ks, axis=0)**2.0).sum(axis=1))
+    # cumulative sum
+    path_norm = dnorms.cumsum(axis=0)
+    return path_norm
+
+
 class SpecialPoint(object):
     def __init__(self, arr, symbol, path_norm=None):
         # (3,) : the k-point
         self.arr = arr
         # symbol, e.g. 'Gamma'
         self.symbol = symbol
+        # don't know what we did with that, apparently only used in
+        # get_special()
+        self.path_norm = path_norm
 
-#-----------------------------------------------------------------------------
 
 class SpecialPointsPath(object):
     def __init__(self, sp_lst):
+        # List of SpecialPoint instances.
         self.sp_lst = sp_lst
-
+        
+        # Array of k-points. (nks, 3)
         self.ks = np.array([sp.arr for sp in self.sp_lst])
+        # 1d array (nks,) of cumulative norms
         self.path_norm = get_path_norm(self.ks)
+        # list (nks,) with a symbol for each special point
         self.symbols = [sp.symbol for sp in self.sp_lst]
 
-#-----------------------------------------------------------------------------
+
+def get_special(special_points):
+    """Utility function. Used by post-processing scripts."""
+    x = [sp.path_norm for sp in special_points]
+    labels = [sp.symbol for sp in special_points]
+    return x, labels
+
 
 def parse_dis(fn_freq, fn_kpath_def=None):
     """Parse frequency file produced by matdyn.x .
@@ -42,13 +75,33 @@ def parse_dis(fn_freq, fn_kpath_def=None):
     returns:
     --------
     path_norm, freqs, special_points_path
-    path_norm : array (nks,), sequence of cummulative norms of the difference
+    path_norm : array (nks,), sequence of cumulative norms of the difference
         vectors which connect each two adjacent k-points
-    freqs : array (nks, nbnd), array with frequencies for each k-point
+    freqs : array (nks, nbnd), array with `nbnd` frequencies for each k-point,
+        nbnd should be = 3*natom (natom = atoms in the unit cell)
     special_points_path : SpecialPointsPath instance or None
 
     notes:
     ------
+
+    matdyn.x must have been instructed to calculate a phonon dispersion along a
+    predefined path in the BZ. e.g. natom=2, nbnd=6, 101 k-points on path
+        
+        example:        
+        -------------------------------------------------------------
+        &input
+            asr='simple',  
+            amass(1)=26.981538,
+            amass(2)=14.00674,
+            flfrc='fc',
+            flfrq='matdyn.freq.disp'
+        /
+        101                                | nks
+        0.000000    0.000000    0.000000   |
+        0.037500    0.037500    0.000000   | List of nks = 101 k-points
+        ....                               |
+        -------------------------------------------------------------
+
 
     `fn_freq` has the form
         <header>
@@ -60,18 +113,12 @@ def parse_dis(fn_freq, fn_kpath_def=None):
 
         example:        
         -------------------------------------------------------------
-         &plot nbnd=  24, nks= 101 /
-                    0.000000  0.000000  0.000000
-            0.0000    0.0000    0.0000  317.0686  317.0686  317.0686
-          317.7174  317.7174  317.7175  426.0882  426.0882  448.7493
-          448.7506  448.7506  510.5841  510.5841  510.5841  519.4584
-          519.4595  519.4595  682.2443  682.2446  682.2446  834.8140
-                    0.037500  0.037500  0.000000
-           24.5592   37.0505   52.1940  317.0261  317.7999  318.0371
-          318.1598  318.4051  321.3352  426.0712  426.9319  448.1832
-          448.5702  448.5711  510.8776  511.4185  512.1953  519.6254
-          520.2085  521.2585  681.7208  682.3864  682.3991  834.5828
-        [...]
+        &plot nbnd=   6, nks= 101 /
+                  0.000000  0.000000  0.000000
+          0.0000    0.0000    0.0000  456.2385  456.2385  871.5931
+                  0.037500  0.037500  0.000000
+         23.8811   37.3033   54.3776  455.7569  457.2338  869.8832
+        ... 
         -------------------------------------------------------------
     
     `fn_kpath_def` : 
@@ -143,26 +190,6 @@ def parse_dis(fn_freq, fn_kpath_def=None):
     path_norm = get_path_norm(ks)
     return path_norm, freqs, special_points_path
 
-#------------------------------------------------------------------------------
-
-def get_path_norm(ks):
-    """Like in plotband.f90, path_norm = kx there.
-    Return a sequence of cummulative norms of the difference vectors which
-    connect each two adjacent k-points.
-
-    args:
-    -----
-    ks : arry (nks, 3), array with k-points on the path
-    """
-    dnorms = np.empty(ks.shape[0], dtype=float)
-    dnorms[0] = nrm(ks[0,:])
-    # diff(...): array with difference vecs, norm of each of them
-    dnorms[1:] = np.sqrt((np.diff(ks, axis=0)**2.0).sum(axis=1))
-    # cummulative sum
-    path_norm = dnorms.cumsum(axis=0)
-    return path_norm
-
-#------------------------------------------------------------------------------
 
 def plot_dis(path_norm, freqs, special_points_path):
     # Plot columns of `freq` against q points (path_norm)
@@ -175,13 +202,6 @@ def plot_dis(path_norm, freqs, special_points_path):
         plt.vlines(x, yl[0], yl[1])
         plt.xticks(x, labels)
     
-#------------------------------------------------------------------------------
-
-def get_special(special_points):
-    x = [sp.path_norm for sp in special_points]
-    labels = [sp.symbol for sp in special_points]
-    return x, labels
-
 
 if __name__ == '__main__':
     
