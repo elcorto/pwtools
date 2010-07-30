@@ -761,8 +761,8 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
             and dct.keys() must be normal strings, e.g. 'foo'.
             dct.values() can be anything. The conversion to a string is done at
             replacement time and determined by the <format_str>. This
-            effecticly does `txt % dct`. This method is faster, uses Python
-            standard syntax and is therefore default.
+            effectively does `txt % dct`. This method is faster, uses Python
+            standard syntax and is therefore default.  
         'txt' : Text mode. Placeholders in `txt` and keys in `dct` are the
             exact same arbitrary string (e.g. 'XXXFOO' in both). Here,
             dct.values() must be strings. If not, use conv=True to
@@ -823,9 +823,10 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
             if is_txt_mode:
                 if conv:
                     val = str(val)
-                if not isinstance(val, types.StringType):
-                    raise StandardError("dict vals must be strings: "
-                                    "key: '%s', val: " %key + str(type(val)))
+                else:                    
+                    if not isinstance(val, types.StringType):
+                        raise StandardError("dict vals must be strings: "
+                                        "key: '%s', val: " %key + str(type(val)))
             if warn_mult_found:                    
                 cnt = txt.count(tst_key)
                 if cnt > 1:
@@ -874,9 +875,16 @@ def file_template_replace(fn, dct, bak='', **kwargs):
 class FileTemplate(object):
     """Class to represent a template file in parameter studies.
     
+    placeholders
+    ------------
+    Each template file is supposed to contain a number of placeholder strings
+    (e.g. XXXFOO or @foo@ or whatever other form). The `dct` passed to
+    self.write() is a dict which contains key-value pairs for replacement (e.g.
+    {'foo': 1.0, 'bar': 'say-what'}, keys=dct.keys()). Each key is converted to
+    a placeholder. See the `func` kwarg.
+    
     example
     -------
-
     This will take a template file calc.templ/pw.in, replace the placeholders
     "@prefix@" and "@ecutwfc@" with some values and write the file to
     calc/0/pw.in .
@@ -891,43 +899,44 @@ class FileTemplate(object):
     >>> dct['ecutwfc'] = 23.0
     >>> templ.write(dct, 'calc/0')
     >>>
+    # Not specifying keys will instruct write() to replace all placeholders in
+    # the template file which match the placeholders defined by dct.keys().
+    >>>
+    >>> templ2 = FileTemplate(basename='pw.in',
+    >>>                       dir='calc.templ', 
+    >>>                       func=lambda x: "@%s@" %x)
+    >>> templ2.writesql(dct, 'calc/0')
+    >>>
     # or with SQL foo in a parameter study
     >>>
     >>> from sql import SQLEntry
     >>> dct = {}                     
     >>> dct['prefix']  = SQLEntry(sql_type='text',  sql_val='foo_run_1')
     >>> sct['ecutwfc'] = SQLEntry(sql_type='float', sql_val=23.0)
-    >>> templ.writesql(dct, 'calc/0')
-    
-    placeholders
-    ------------
-    The default placeholder is "XXX<KEY>", where <KEY> is the upercase version
-    of an entry in `keys`. See _default_get_placeholder().
+    >>> templ2.writesql(dct, 'calc/0')
     """
     
-    # "keys" is needed if several templates exist whose write*() methods are
-    # called with the same "dct" or "sql_record". This is common in parameter
-    # studies, where we have ONE sql_record holding all parameters which are
-    # vaired in the current run, but the parameters are spread across several
-    # template files.
-    #
-    # If needed, implement that "keys" in __init__ is optional. Then, if
-    # keys=None, write*() should simply write all entries in "dct" or
-    # "sql_record". 
-    
-    def __init__(self, keys, basename, dir='calc.templ',
-                 func=None, phfunc=None):
+    def __init__(self, basename='pw.in', keys=None, dir='calc.templ',
+                 func=lambda x:'XXX'+x.upper()):
         """
         args
         ----
-        keys : list of strings
-            Each string is a key. Each key is connected to a placeholder in the
-            template. See func.
         basename : string
             The name of the template file and target file.
             example: basename = pw.in
                 template = calc.templ/pw.in
                 target   = calc/0/pw.in
+        keys : {None, list of strings)
+            keys=None: All keys dct.keys() in self.write() are used. This is
+                useful if you have a dict holding many keys, whose placeholders
+                are spread across files. Then this will just replace every
+                match in each file. This is what most people want.
+            keys=[<key1>, <key2>, ...] : Each string is a key. Each key is
+                connected to a placeholder in the template. See func. This is
+                for binding keys to template files, i.e. replace only these
+                keys.
+            keys=[]: The template file is simply copied to `calc_dir` (see
+                self.write()).
         dir : dir where the template lives (e.g. calc.templ)
         func : callable
             A function which takes a string (key) and returns a string, which
@@ -937,16 +946,6 @@ class FileTemplate(object):
                 placeholder = "XXXLALA"
                 func = lambda x: "XXX" + x.upper()
         """
-        # For backward compat. Remove later.
-        if phfunc is not None:
-            print("Grep: Warning: 'phfunc' kwarg renamed to 'func'. Use that "
-                  "in the future.")
-            if func is None:
-                func = phfunc
-            else:
-                raise StandardError("got 'func' and 'phfunc' kwargs, cannot "
-                                    "use both")
-
         self.keys = keys
         self.dir = dir
         
@@ -963,49 +962,69 @@ class FileTemplate(object):
         # is not possible.
         self.basename = basename
         self.filename = pj(self.dir, self.basename)
+        self.func = func
         
-        self._get_placeholder = self._default_get_placeholder if func is None \
-                                else func
+        self._get_placeholder = self.func
         
+    def write(self, dct, calc_dir='calc', mode='dct', type=None):
+        """Write file self.filename (e.g. calc/0/pw.in) by replacing 
+        placeholders in the template (e.g. calc.templ/pw.in).
+        
+        args:
+        -----
+        dct : dict 
+            key-value pairs, dct.keys() are converted to placeholders
+        calc_dir : str
+            the dir where to write the target file to
+        mode : str, {'dct', 'sql'}
+            mode='dct': replacement values are dct[<key>]
+            mode='sql': replacement values are dct[<key>].file_val and every
+                dct[<key>] is an SQLEntry instance
+        """
+        if type is not None:
+            raise StandardError("FileTemplate.write: warning: kwarg "
+                                "'type' is called 'mode' now")
+        assert mode in ['dct', 'sql'], "Wrong 'mode' kwarg, use 'dct' \
+                                       or 'sql'"
         # copy_only : bypass reading the file and passing the text thru the
         # replacement machinery and getting the text back, unchanged. While
         # this works, it is slower and useless.
-        if keys != []:
-            self.txt = self._get_txt()
-            self._copy_only = False
+        if self.keys == []:
+            _keys = None
+            txt = None
+            copy_only = True
         else:
-            self.txt = None
-            self._copy_only = True
-    
-    def _default_get_placeholder(self, key):
-        return 'XXX' + key.upper()
-
-    def _get_txt(self):
-        return file_read(self.filename)
-    
-    def write(self, dct, calc_dir='calc', type='dct'):
-        assert type in ['dct', 'sql'], "Wrong 'type' kwarg, use 'dct' \
-                                       or 'sql'"
+            if self.keys is None:
+                _keys = dct.iterkeys()
+                warn_not_found = False
+            else:
+                _keys = self.keys
+                warn_not_found = True
+            txt = file_read(self.filename)
+            copy_only = False
+        
         tgt = pj(calc_dir, self.basename)
-        if self._copy_only:    
+        verbose("write: %s" %tgt)
+        if copy_only:    
             verbose("write: ignoring input, just copying file: %s -> %s"
                     %(self.filename, tgt))
             shutil.copy(self.filename, tgt)
         else:            
             rules = {}
-            for key in self.keys:
-                if type == 'dct':
+            for key in _keys:
+                if mode == 'dct':
                     rules[self._get_placeholder(key)] = dct[key]
-                elif type == 'sql':                    
+                elif mode == 'sql':                    
                     # dct = sql_record, a list of SQLEntry's
                     rules[self._get_placeholder(key)] = dct[key].file_val
                 else:
-                    raise StandardError("'type' must be wrong")
-            file_write(tgt, template_replace(self.txt, rules, mode='txt',
-                                             conv=True))
+                    raise StandardError("'mode' must be wrong")
+            file_write(tgt, template_replace(txt, rules, mode='txt',
+                                             conv=True,
+                                             warn_not_found=warn_not_found))
     
     def writesql(self, sql_record, calc_dir='calc'):
-        self.write(sql_record, calc_dir=calc_dir, type='sql')
+        self.write(sql_record, calc_dir=calc_dir, mode='sql')
 
 
 
