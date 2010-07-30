@@ -1,8 +1,6 @@
-#!/usr/bin/env python
-
-#-----------------------------------------------------------------------------
+# comb.py
+#
 # Some combinatorics stuff.
-#-----------------------------------------------------------------------------
 
 import numpy as np
 from common import assert_cond as _assert
@@ -22,6 +20,7 @@ def binom(n, k):
     """
     _assert(n >= k >= 0, 'illegal input, only n >= k >= 0')
     return fac(n)/(fac(k)*fac(n-k))
+
 
 def _swap(arr, i, j):
     """Swap arr[i] <-> arr[j]. Return i-j-swapped copy of `arr`.
@@ -64,7 +63,7 @@ def permute(a, id=True, skip_equal=False):
     ------
     Algo:
         We use the Countdown QuickPerm Algorithm [1]. Works like Heap's
-        Algorithm [2,3] so it's a nonrecursive version of it. Uses N!-1 swaps.
+        Algorithm [2,3], but not recursive. Uses N!-1 swaps.
     
     Number of perms:
         Ordinary permutations yield len(a)! == N! permutations. But if one
