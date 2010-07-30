@@ -20,6 +20,8 @@ import numpy as np
 # numutils.py or whatever
 from scipy.integrate import simps
 
+from pwtools.verbose import verbose
+
 def assert_cond(cond, string=None):
     """Use this instead of `assert cond, string`. It's been said on
     numpy-discussions that the assert statement shouldn't be used to test user
