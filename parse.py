@@ -1588,39 +1588,59 @@ class CMLFile(StructureFileParser):
         return len(self.symbols)            
 
 
-# TODO: Implement passing single filename directly instead of dir + basename.
 class Grep(object):
     """Maximum felxibility!
     
     If the predefined parsers are not enough, use this (or shell scripting
     with grep/sed/awk).
-
-    Define your re.<func> (or anything else that parses a text string/file) and
-    know what it will return, e.g. MatchObject for re.search()/re.match() or
-    list for re.findall(). Then define a handle (function), which takes that
-    output and returns something (string, list, whatever) for further
-    processing.
+    
+    In the constructor, define your a parsing function, e.g. re.<func> from the
+    re module or anything else that parses a text string. You must know
+    what it will return, e.g. MatchObject for re.search()/re.match() or list
+    for re.findall(). Then define a handle (function), which takes that output
+    and returns something (string, list, whatever) for further processing.
     
     example
     -------
     
-    scalar values
-    ~~~~~~~~~~~~~
+    scalar values - single file
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
     This example uses only "scalar" values, i.e. values that occur only once in
     the parsed file.
+    
+    # parse "unit-cell volume          =      87.1541 (a.u.)^3"
+    >>> rex=r'unit-cell volume\s+=\s+([+-]*[\\.0-9eEdD+-]+)\s*.*'
+    >>> re.search(rex, open('pw.out').read()).group(1)
+    '87.1541'
+    >>> g=Grep(rex); g.grepfile('pw.out')
+    '87.1541'
 
+    Here, the default "handle" is used, which is to return the first match
+    group (m.group(1) where m is a MatchObject).
+    
+    array values - single file
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    >>> g=Grep(regex=re.compile(r'.*Total\s+force\s*=\s*(.*?)\s*Total.*'),
+    >>>        func=lambda x,y: re.findall(x,y,re.M), 
+    >>>        handle=lambda x: x)
+    >>> g.grepfile('calc/0/pw.out')
+    ['1.619173',
+     '1.444923',
+     '1.164261',
+     '0.799796',
+     '0.205767',
+     '0.064090',
+     '0.002981',
+     '0.001006']
+    
+    scalar values - loop over dirs
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     (1) define Grep objects
 
     patterns = { 
         "nelec_out"  : Grep(sql_type = 'FLOAT',
                             regex = re.compile(r'number.*electr.*=\s*(.*)\s*'),
                             basename = 'pw.out'),
-        "ecutwfc"  : Grep(sql_type = 'FLOAT',
-                          regex = re.compile(r'kinetic.*ener.*=\s*(.*)\s+Ry'),
-                          basename = 'pw.out'),
-        "diag": Grep(sql_type='TEXT',
-                     regex = re.compile(r"diagonal.*=\s*'(.*)'\s*"),
-                     basename = 'pw.in'),
         "finished": Grep(sql_type='TEXT', 
                          regex = re.compile(r'end.*bfgs', re.I),
                          handle = lambda m: m if m is None else 'yes' ,
@@ -1648,26 +1668,9 @@ class Grep(object):
                         %(name, grep.sql_type))
         for idx in range(0,20):
             dir = os.path.join('calc', idx)
-            ret = grep.grep(dir)
+            ret = grep.grepdir(dir)
             sql.execute("UPDATE calc SET %s=%s WHERE idx==%s" \
                         %(name, ret, idx))
-    
-    array values
-    ~~~~~~~~~~~~
-
-    >>> g=Grep(regex=re.compile(r'.*Total\s+force\s*=\s*(.*?)\s*Total.*'),
-    >>>        basename='pw.out', 
-    >>>        func=lambda x,y: re.findall(x,y,re.M), 
-    >>>        handle=lambda x: x)
-    >>> g.grep('calc/15')
-    ['1.619173',
-     '1.444923',
-     '1.164261',
-     '0.799796',
-     '0.205767',
-     '0.064090',
-     '0.002981',
-     '0.001006']
     
     notes
     -----
@@ -1678,7 +1681,7 @@ class Grep(object):
     to pass extra args to func (like re.M if func is a re module function, see
     "arry values" example).
     """
-    def __init__(self, regex, basename, 
+    def __init__(self, regex, basename=None, 
                  handle = lambda m: m.group(1), 
                  func = re.search,
                  sql_type=None):
@@ -1687,7 +1690,7 @@ class Grep(object):
         -----
         regex : str or compiled regex
             For speed, it is recommended to use regex = re.compile(...)
-        basename : str
+        basename : {None, str}, optional
             'pw.in' for calc/0/pw.in etc.
         handle : callable
             gets the output of re.<func> and returns a string
@@ -1712,10 +1715,31 @@ class Grep(object):
             return None
         else:
             return self.handle(arg)
-
-    def grep(self, dir):
-        # dir: calc/0/, calc/1/ ...
-        fn = os.path.join(dir, self.basename)
+    
+    def _grep(self, fn):
         m = self.func(self.regex, open(fn).read())
         return self._handle(m)
+    
+    def grepdir(self, dir):
+        """
+        dir : str
+            the dir where to search for a file <dir>/self.basename, e.g.
+            dir='calc/0' for 'calc/0/pw.in' and self.basename='pw.in'; this is
+            useful for looping over a lot of dirs and grepping for the same thing
+            in one file in each dir
+        """
+        assert self.basename is not None, "basename is None!"
+        fn = os.path.join(dir, self.basename)
+        return self._grep(fn)
 
+    def grepfile(self, fn):
+        """
+        fn : str
+            full filename, e.g. 'calc/0/pw.in'; use either dir + self.basename
+            and self.grepdir() or fn directly (this method)
+        """
+        return self._grep(fn)
+    
+    def grep(self, dir):
+        #XXX backwards compat only!
+        return self.grepdir(dir)
