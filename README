@@ -154,7 +154,7 @@ Total force on atoms
 
 Pwscf writes a "Total Force" after the "Forces acting on atoms" section . This
 value is kind of an RMS of the force matrix (f_ij, i=1,natoms j=1,2,3) printed.
-By experiment, we found that the "Total Force" is
+According to .../PW/forces.f90, variable "sumfor", the "Total Force" is
     sqrt(sum_ij f_ij^2)
 But this is not normalized to the number of atoms. Use crys.rms() or
 crys.rms3d() for MD runs where the RMS of each (f_ij) is 

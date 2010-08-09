@@ -190,8 +190,19 @@ def scan_until_pat2(fh, rex, err=True, retmatch=False):
 class FileParser(object):
     """Base class for file parsers.
     
-    Classes derived from this one must at least override 
-    self.attr_list by using set_attr_lst().
+    Classes derived from this one must at least override self.attr_list by
+    using self.set_attr_lst().
+
+    self.attr_list is a list of strings, each is the name of a data attribute,
+    e.g. ['foo', 'bar', '_baz', ...]. For each attr, there must exist a getter.
+    We define the convention 
+      self.foo  -> self.get_foo() 
+      self.bar  -> self.get_bar()
+      self._baz -> self._get_baz() 
+      ... 
+    
+    All getters are called in the default self.parse() which can, of course, be
+    overridden in derived classes.
     """
     def __init__(self, filename=None):
         """
@@ -206,9 +217,6 @@ class FileParser(object):
         else:
             self.file = None
         
-        # List of attributes (strings) ['foo', 'bar', '_baz', ...]. For each
-        # attr, there must exist a getter self.get_foo(), self.get_bar(),
-        # self._get_baz(), ... which is called in self.parse().
         self.set_attr_lst([])
     
     def __del__(self):
@@ -307,6 +315,11 @@ class StructureFileParser(FileParser):
         [a,b,c,alpha,beta,gamma]
     self.natoms : number of atoms
 
+    convenience attributes:
+    -----------------------
+    self.atpos_str : a string representing the ATOMIC_POSITIONS card in a pw.x
+        in/out file
+
     Unless explicitly stated, we DO NOT DO any unit conversions with the data
     parsed out of the files. It is up to the user (and derived classes) to
     handle that. 
@@ -379,21 +392,12 @@ class StructureFileParser(FileParser):
         # classes. The calling order can be overridden. Additional members may
         # be added, as long as all members of this list are beeing set in
         # parse() of the derived class.
-        # 
-        # Note:
-        # atpos_str is NOT an attr which is parsed out of the file but rather a
-        # convenience combination of other attrs
         self.set_attr_lst(['coords', 'symbols', 'cryst_const', 'cell_parameters',
                          'natoms', 'atpos_str'])
         self.a0_to_A = constants.a0_to_A
     
     def parse(self):
         FileParser.parse(self)
-
-    def get_atpos_str(self):
-        self.check_get_attr('coords')
-        self.check_get_attr('symbols')
-        return atpos_str(self.symbols, self.coords)
 
     # Default dummy getters. They all return None.
     
@@ -415,8 +419,12 @@ class StructureFileParser(FileParser):
     def get_natoms(self):
         pass
     
-    # write methods for different file formats
-    
+    # Convenience getters
+
+    def get_atpos_str(self):
+        self.check_get_attr('coords')
+        self.check_get_attr('symbols')
+        return atpos_str(self.symbols, self.coords)
 
 
 class CifFile(StructureFileParser):
@@ -558,8 +566,7 @@ class PDBFile(StructureFileParser):
     """Very very simple pdb file parser. Extract only ATOM/HETATM and CRYST1
     (if present) records.
         
-    If you want smth serious, check biopython. No unit conversion up to
-    now.
+    If you want smth serious, check biopython.
     
     members:
     --------
@@ -698,16 +705,16 @@ class PwInputFile(StructureFileParser):
     kpoints : dict
         see self.get_kpoints()
     massvec : 1d array (natoms,)
-        Convenience member. Array of masses of all atoms in the order listed in
+        Array of masses of all atoms in the order listed in
         ATOMIC_POSITIONS. This is actually self.atpos['massvec'].
     
     notes:
     ------
     self.cell_parameters (CELL_PARAMETERS) in pw.in is units of alat. If we
     have an entry in pw.in to determine alat: system:celldm(1) or sysetm:A,
-    then the cell parameters will be multiplied with that for the calculation
-    of self.cryst_const, otherwise [a,b,c] = cryst_const[:3] will be wrong! A
-    warning will be issued.
+    then the cell parameters will be multiplied with that *only for the
+    calculation* of self.cryst_const, otherwise [a,b,c] = cryst_const[:3] will
+    be wrong! A warning will be issued.
     """
 
     def __init__(self, filename=None):
@@ -752,17 +759,18 @@ class PwInputFile(StructureFileParser):
     def get_cryst_const(self):
         self.check_get_attr('cell_parameters')
         self.check_get_attr('namelists')
-        alat_dct = {'celldm(1)': 1,
-                    'A': 1/constants.a0_to_A}
+        alat_conv_dct = {'celldm(1)': 1,
+                         'A': 1/constants.a0_to_A}
         nl_system = self.namelists['system']
         alat_found = False
-        for key, conv_fac in alat_dct.iteritems():                    
+        for key, conv_fac in alat_conv_dct.iteritems():                    
             if nl_system.has_key(key):
                 celldm1 = float(nl_system[key])*conv_fac
                 alat_found = True
                 break
         if not alat_found:
-            print "[PwInputFile:get_cryst_const] Warning: no alat found"
+            print("[PwInputFile:get_cryst_const] Warning: no alat found. "
+                  "Using celldm1=1.0")
             celldm1 = 1.0
         return None if (self.cell_parameters is None) else \
                crys.cp2cc(self.cell_parameters*celldm1)
@@ -1095,40 +1103,37 @@ class PwInputFile(StructureFileParser):
                 'kpoints': kpoints}
             
 
-# XXX Possible optimization: 
-# --------------------------
-# Use get_txt() to read in the file to parse and use only python's re module.
-# Would spare us spawning child processes for grep/sed/awk. But GNU sed is
-# probably faster for large files and has some very nice features, too.
-#
-# TODO 
-# ----
-# * introduce new variable (int): self.time_axis to contruct slice
-#   stuff for reading "3d arrays", dont hard-code axis=1 everywhere
-
 class PwOutputFile(FileParser):
     """Parse a pw.x output file. This class is primarily geared towards
-    pw.x MD runs but should also work for other calculation types.
+    pw.x MD runs but should also work for other calculation types (scf,
+    relax, ...).
     
     members:
     --------
     etot : 1d array (nstep,)
     ekin : 1d array (nstep,)
-    stresstensor : 3d array (3, nstep, 3), stress tensor for each step 
-        XXX time axis hardcoded!
-    pressure : 1d array (nstep,), this is parsed from the "P= ... kbar"
-        lines and the value is actually 1/3*trace(stress tensor)
+    stresstensor : 3d array (3, 3, nstep) 
+        stress tensor for each step 
+    pressure : 1d array (nstep,) 
+        This is parsed from the "P= ... kbar" lines and the value is actually
+        1/3*trace(stresstensor)
     temperature : 1d array (nstep,)
-    coords : 3d array (natoms, nstep, 3) XXX time axis hardcoded!
-    cell_parameters : 3d array (3, nstep, 3), prim. basis vectors for each 
-        step
-    nstep : scalar, number of MD steps
-    natoms : scalar, number of atoms
+    coords : 3d array (natoms, 3, nstep)
+    cell_parameters : 3d array (3, 3, nstep) 
+        prim. basis vectors for each step
+    nstep : scalar 
+        number of MD steps
+    natoms : scalar 
+        number of atoms
     volume : 1d array (nstep,)
     total_force : 1d array (nstep,)
-    forces : 3d array (natoms, nstep, 3) XXX time axis hardcoded!
-    time_axis : the time axis along which `coords` has 2d arrays with atomic
-        coords
+        The "total force" parsed from lines "Total force =" after the "Forces
+        acting on atoms" block.
+    forces : 3d array (natoms, 3, nstep)
+    time_axis : the time axis along which all 3d arrays have 2d arrays lined
+        up; e.g. `coords` has 2d arrays with atomic coords[:,:,i] for
+        i=0,...,nstep-1; time_axis is currently hardcoded to -1, i.e. the last
+        axis
 
     Members, whose corresponding data in the file is not present, are None.
     E.g. if there are no CELL_PARAMETERS printed in the output file, then
@@ -1136,16 +1141,35 @@ class PwOutputFile(FileParser):
 
     notes:
     ------
-    Why do we need the input file anyway? For pw.x MDs, normally all infos
-    are contained in the output file alone. Also often, the output file is
-    actually a concatenation of smaller files ("$ cat pw.out.r* >
-    pw.out.all"). In that case, things line "nstep" are of course wrong if
-    taken from an input file. 
-    
-    But certain quantinies must be the same (e.g. "nat" == natoms) in
-    input- and output file. This can be used to sanity-check the parsed
-    results. Also, they are often easier extracted from an input file.
-    """        
+    total_force : Pwscf writes a "Total Force" after the "Forces acting on
+    atoms" section . This value is kind of an RMS of the force matrix (f_ij,
+    i=1,natoms j=1,2,3) printed. According to .../PW/forces.f90, variable
+    "sumfor", the "Total Force" is
+        sqrt(sum_ij f_ij^2)
+    But this is not normalized to the number of atoms. Use crys.rms() or
+    crys.rms3d() for MD runs where the RMS of each (f_ij) is 
+        sqrt( (sum_ij f_ij^2) / N )
+    with N = 3*natoms or N=natoms.       
+    """
+    # infile : Why do we need the input file anyway? For pw.x MDs, normally all
+    #     infos are contained in the output file alone. Also often, the output
+    #     file is actually a concatenation of smaller files ("$ cat pw.out.r* >
+    #     pw.out.all"). In that case, things line "nstep" are of course wrong
+    #     if taken from an input file. But certain quantinies must be the same
+    #     (e.g. "nat" == natoms) in input- and output file. This can be used to
+    #     sanity-check the parsed results. Also, they are often easier
+    #     extracted from an input file.
+    #
+    # self.time_axis: This is the hardcoded time axis. It must be done
+    #     this way b/c getters returning a >2d array cannot determine the shape
+    #     of the returned array auttomatically based on the self.time_axis
+    #     setting alone. If you want to change this, then manually fix the
+    #     "shape" kwarg to io.readtxt() in all getters which return a 3d array.
+    # 
+    # Possible optimization: Use get_txt() to read in the file to parse and use
+    #     only python's re module. Would spare us spawning child processes for
+    #     grep/sed/awk. But GNU sed is probably faster for large files and has
+    #     some very nice features, too.
     def __init__(self, filename=None, infile=None):
         """
         args:
@@ -1345,7 +1369,6 @@ class PwOutputFile(FileParser):
         if ret_str.strip() == '':
             return None
         else:
-            # XXX time axis hardcoded!
             return io.readtxt(StringIO(ret_str), axis=self.time_axis, 
                               shape=(3, 3, nstep))
     
@@ -1503,11 +1526,6 @@ class CPOutputFile(PwOutputFile):
     
     def get_pressure(self):
         verbose("getting pressure")
-##        if self.stresstensor is not None:
-##            # FIXME: axis=1 as time axis hard-coded here! 
-##            return np.trace(self.stresstensor, axis1=0, axis2=2)/3.0
-##        else:
-##            raise StandardError("self.stresstensor is None")  
         return self.evp_data[:, self.evp_order.index('out_press')]
     
     def get_temperature(self):
@@ -1653,7 +1671,8 @@ class Grep(object):
     
     notes
     -----
-    Currently, if you define `func`, you have know that self.func is called 
+    Currently, if you define `func`, you have know that self.func is called
+    like
         self.func(regex, open(<filename>).read())
     and you have to construct `func` in that way. Keep that in mind if you need
     to pass extra args to func (like re.M if func is a re module function, see
