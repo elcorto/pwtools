@@ -957,7 +957,7 @@ class FileTemplate(object):
     >>> templ2 = FileTemplate(basename='pw.in',
     >>>                       dir='calc.templ', 
     >>>                       func=lambda x: "@%s@" %x)
-    >>> templ2.writesql(dct, 'calc/0')
+    >>> templ2.write(dct, 'calc/0')
     >>>
     # or with SQL foo in a parameter study
     >>>
