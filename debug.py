@@ -3,7 +3,8 @@ from time import time
 class Debug:
     """
     Helper Class for timimg and debugging. It's meant to be used for manually
-    inspecting code. For permanent verbose/debug stuff, use utils.Verbose.
+    inspecting code. For permanent verbose/debug stuff, use the logging and
+    warnings modules.
 
     Usage:
         DBG = Debug()

@@ -2,7 +2,7 @@ import sqlite3
 
 class SQLEntry(object):
     def __init__(self, sql_type, sql_val, file_val=None, key=None):
-        """Represent an entry in an SQLite database. An entry is one single
+        """Represent an entry in a SQLite database. An entry is one single
         value of one column and record (record = row). 
         
         This class is ment to be used in parameter studies where a lot of
