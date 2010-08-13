@@ -101,6 +101,11 @@ From http://www.quantum-espresso.org/input-syntax/INPUT_PW.html
     RYDBERG ATOMIC UNITS
 See constants.py
 
+matdyn.x and phonon dos: With dos=.true., matdyn.x calculates the phonon
+    density of states. The frequency axis in the output file is f in cm^-1.
+    Note that THIS IS NOT THE ANGULAR FREQUENCY omega = 2*pi*f!!! Therefore, if
+    you calculate with this frequency as in "hbar*omega", then use f*2*pi!
+
 Atomic coordinates
 ------------------
 
