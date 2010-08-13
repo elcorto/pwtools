@@ -89,8 +89,11 @@
 
 
 __all__ = ['pi', 'h', 'hbar', 'm0', 'e0', 'mu0', 'c0', 'eps0', 'a0', \
-           'Eh', 'th', 'kb', 'avo', 'dyn', 'Eryd', 'tryd', 'R',
-           'a0_to_A', 'Ry_to_eV']
+           'Eh', 'th', 'kb', 'avo', 'dyn', 'Eryd', 'tryd', 'R', \
+           'a0_to_A', 'Ry_to_eV', 'Ry_to_J', 'J_to_rcm', 'Ry_to_rcm', \
+           'rcm_to_Hz', 'Ry_to_Hz']
+
+# constants
 
 from math import pi
 h = 6.62606896e-34          # J*s
@@ -111,11 +114,22 @@ R = 8.314472                # J / (mol*K)
 Eryd = 0.5*Eh
 tryd = 2.0*th
 
+# conversions
+
+# Note that e0/(h*c0*100) = 8065.54 . You may see this and other funny numbers
+# e.g. in $QEDIR/PH/matdyn.f90 as rydcm1 = 13.6058d0*8065.5d0 . 
+# And remember: If in doubt, divide by 2*pi.
+
 # 1 Bohr = 0.52 Angstrom
 a0_to_A = 0.52917720859
 # 1 Ry = 13.6 eV
 Ry_to_eV = 13.60569193
+# 1 eV = 1.6e-19 J
 Ry_to_J = Ry_to_eV * e0
+J_to_rcm = 1.0/(h*c0*100)           # J  -> cm^-1
+Ry_to_rcm = Ry_to_J * J_to_rcm      # Ry -> cm^-1
+rcm_to_Hz = c0*100                  # cm^-1 -> Hz
+Ry_to_Hz  = Ry_to_rcm * rcm_to_Hz   # Ry -> Hz
 
 #-----------------------------------------------------------------------------
 
