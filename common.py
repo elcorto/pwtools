@@ -19,6 +19,7 @@ import numpy as np
 # TODO: maybe move functions which need scipy functionality to smth like
 # numutils.py or whatever
 from scipy.integrate import simps
+from scipy.interpolate import splev, splrep
 
 from pwtools.verbose import verbose
 
@@ -355,7 +356,8 @@ def norm_int(y, x, area=1.0):
     _area = simps(sy, sx) / (fx*fy)
     return y*area/_area
 
-def deriv(y, x=None, n=1):
+
+def deriv_fd(y, x=None, n=1):
     """n-th derivative for 1d arrays of possibly nonuniformly sampled data.
     Returns matching x-axis for plotting. Simple finite differences are used:
     f'(x) = [f(x+h) - f(x)] / h
@@ -367,6 +369,14 @@ def deriv(y, x=None, n=1):
     n : int
         order of the derivative
     
+    returns:
+    --------
+    xd, yd
+    xd : 1d array, (len(x)-n,)
+        matching x-axis
+    yd : 1d array, (len(x)-n,)
+        n-th derivative of y at points xd
+
     notes:
     ------
     n > 1 (e.g. n=2 -> 2nd derivative) is done by
@@ -376,7 +386,7 @@ def deriv(y, x=None, n=1):
     engouraged to re-sample the data with constant h (e.g. by spline
     interpolation first). Then, derivatives up to ~ 4th order are OK for
     plotting, not for further calculations (unless h is *very* small)!.
-    Ifv you need very accurate derivatives, look into NR, 3rd ed., ch. 5.7 and
+    If you need very accurate derivatives, look into NR, 3rd ed., ch. 5.7 and
     maybe scipy.derivative(). 
 
     Each application returns len(x)-1 points. So for n=3, the returned x and y
@@ -402,9 +412,53 @@ def deriv(y, x=None, n=1):
         return deriv(y, x, n=n-1)
     else:            
         if x is None:
-            x = arange(len(y))
+            x = np.arange(len(y))
         dx = np.diff(x)
         return x[:-1]+.5*dx, np.diff(y)/dx
+
+
+def deriv_spl(y, x=None, xnew=None, n=1, k=3, fullout=True):
+    """n-th derivative for 1d arrays of possibly nonuniformly sampled data.
+    Returns matching x-axis for plotting. Splines are used.
+    
+    args:
+    -----
+    x,y : 1d arrays of same length
+        if x=None, then x=arange(len(y)) is used
+    xnew : {None, 1d array)
+        x-axis to evaluate the derivative, if None then xnew=x
+    n : int
+        order of the derivative, can only be <= k 
+    k : int
+        order of the spline; k=n is not recommended, use at least k=n+1
+    fullout : bool
+        return xd, yd or just yd
+
+    returns:
+    --------
+    if fullout:
+        xd, yd
+    else:
+        yd
+    xd : 1d array, (len(x) or len(xnew),)
+    yd : 1d array, (len(x) or len(xnew),)
+        n-th derivative of y at points xd
+    
+    notes:
+    ------
+    xd is actually == x or xnew (if x is not None). xd can be returned to match
+    the function signature of deriv_fd.
+    """
+    assert n > 0, "n <= 0 makes no sense"
+    if x is None:
+        x = np.arange(len(y))
+    if xnew is None:
+        xnew = x
+    yd = splev(xnew, splrep(x, y, s=0, k=k), der=n)
+    if fullout:
+        return xnew, yd
+    else:
+        return yd
 
 #-----------------------------------------------------------------------------
 # array  indexing
