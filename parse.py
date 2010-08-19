@@ -52,7 +52,8 @@ except ImportError:
     "Parsing XML/HTML/CML files will not work." %__file__)
 
 import io
-import common as com
+import common
+com = common
 import constants
 from verbose import verbose
 import regex
@@ -1135,7 +1136,8 @@ class PwOutputFile(FileParser):
         i=0,...,nstep-1; time_axis is currently hardcoded to -1, i.e. the last
         axis
 
-    Members, whose corresponding data in the file is not present, are None.
+    Members, whose corresponding data in the file is not present or cannot
+    parsed b/c regexes don't match, are None.
     E.g. if there are no CELL_PARAMETERS printed in the output file, then
     self.cell_parameters == None.
 
@@ -1219,8 +1221,8 @@ class PwOutputFile(FileParser):
                             %(self.infile.filename, self.infile.natoms,
                               self.filename, self.coords.shape[0]))
         if self.is_set_attr('nstep') and self.is_set_attr('infile'):
-            if self.infile.namelists['system'].has_key('nstep'):
-                if self.nstep != self.infile.namelists['system']['nstep']:
+            if self.infile.namelists['control'].has_key('nstep'):
+                if self.nstep != self.infile.namelists['control']['nstep']:
                     print("WARNING: nstep from infile (%s) and outfile (%s) "
                           "don't match" %(self.infile.filename, self.filename))
         self.close_file()
@@ -1387,7 +1389,7 @@ class PwOutputFile(FileParser):
         """
         verbose("getting volume")
         ret_str = com.backtick(r"grep 'new.*volume' %s | sed -re \
-                                's/.*volume\s*=\s*(.*?)\s*a.u..*/\1/'"
+                                's/.*volume\s*=\s*(.*?)\s+.*a.u..*/\1/'"
                                 %self.filename)
         if ret_str.strip() == '':
             return None
