@@ -688,6 +688,62 @@ class PDBFile(StructureFileParser):
         return len(self.symbols)
 
 
+class CMLFile(StructureFileParser):
+    """Parse Chemical Markup Language files (XML-ish format). This file format
+    is used by avogadro."""
+    def __init__(self, filename=None):
+        StructureFileParser.__init__(self, filename)
+    
+    def parse(self):
+        StructureFileParser.parse(self)
+
+    def _get_soup(self):
+        return BeautifulStoneSoup(open(self.filename).read())        
+
+    def _get_atomarray(self):
+        self.check_get_attr('_soup')
+        # ret: list of Tag objects:
+        # <atomarray>
+        #    <atom id="a1" ...>
+        #    <atom id="a2" ...>
+        #    ...
+        # </atomarray>
+        # ==>
+        # [<atom id="a1" ...>, <atom id="a2" ...>, ...]
+        return self._soup.find('atomarray').findAll('atom')
+    
+    def get_coords(self):
+        self.check_get_attr('_atomarray')
+        return np.array([[float(entry.get('xfract')), 
+                          float(entry.get('yfract')),
+                          float(entry.get('zfract'))] \
+                          for entry in self._atomarray])
+    
+    def get_symbols(self):
+        self.check_get_attr('_atomarray')
+        return [str(entry.get('elementtype')) for entry in self._atomarray]
+    
+    def get_cryst_const(self):
+        self.check_get_attr('_soup')
+        crystal = self._soup.find('crystal')            
+        return np.array([crystal.find('scalar', title="a").string,
+                         crystal.find('scalar', title="b").string,
+                         crystal.find('scalar', title="c").string,
+                         crystal.find('scalar', title="alpha").string,
+                         crystal.find('scalar', title="beta").string,
+                         crystal.find('scalar', title="gamma").string]\
+                         ).astype(float)
+    
+    def get_cell_parameters(self):
+        self.check_get_attr('cryst_const')
+        return crys.cc2cp(self.cryst_const)
+
+    def get_natoms(self):
+        self.check_get_attr('symbols')
+        return len(self.symbols)            
+
+
+
 class PwInputFile(StructureFileParser):
     """Parse Pwscf input file.
 
@@ -1406,6 +1462,42 @@ class PwOutputFile(FileParser):
         else:            
             return np.loadtxt(StringIO(ret_str))
 
+
+class PwVCMDOutputFile(PwOutputFile):
+    def __init__(self, *args, **kwargs):
+        PwOutputFile.__init__(self, *args, **kwargs)
+        
+        self.set_attr_lst(self.attr_lst + ['_datadct', 'econst'])
+
+    def _get_datadct(self):
+        verbose("getting _datadct")
+        cmd = "grep 'Ekin.*T.*Etot' %s \
+              | awk '{print $3\" \"$7\" \"$11}'"%self.filename
+        ret_str = com.backtick(cmd)
+        if ret_str.strip() == '':
+            return None
+        else:            
+            data = np.loadtxt(StringIO(ret_str))
+            return {'ekin': data[:,0],
+                    'temperature': data[:,1],
+                    'econst': data[:,2]}
+    
+    def get_ekin(self):
+        verbose("getting ekin")
+        self.check_get_attr('_datadct')
+        return self._datadct['ekin']
+    
+    def get_econst(self):
+        verbose("getting econst")
+        self.check_get_attr('_datadct')
+        return self._datadct['econst']
+    
+    def get_temperature(self):
+        verbose("getting temperature")
+        self.check_get_attr('_datadct')
+        return self._datadct['temperature']
+    
+
 class CPOutputFile(PwOutputFile):
     """
     Some notes on parsing cp.x output data.
@@ -1534,61 +1626,6 @@ class CPOutputFile(PwOutputFile):
         verbose("getting temperature")
         return self.evp_data[:, self.evp_order.index('tempp')]
     
-
-class CMLFile(StructureFileParser):
-    """Parse Chemical Markup Language files (XML-ish format). This file format
-    is used by avogadro."""
-    def __init__(self, filename=None):
-        StructureFileParser.__init__(self, filename)
-    
-    def parse(self):
-        StructureFileParser.parse(self)
-
-    def _get_soup(self):
-        return BeautifulStoneSoup(open(self.filename).read())        
-
-    def _get_atomarray(self):
-        self.check_get_attr('_soup')
-        # ret: list of Tag objects:
-        # <atomarray>
-        #    <atom id="a1" ...>
-        #    <atom id="a2" ...>
-        #    ...
-        # </atomarray>
-        # ==>
-        # [<atom id="a1" ...>, <atom id="a2" ...>, ...]
-        return self._soup.find('atomarray').findAll('atom')
-    
-    def get_coords(self):
-        self.check_get_attr('_atomarray')
-        return np.array([[float(entry.get('xfract')), 
-                          float(entry.get('yfract')),
-                          float(entry.get('zfract'))] \
-                          for entry in self._atomarray])
-    
-    def get_symbols(self):
-        self.check_get_attr('_atomarray')
-        return [str(entry.get('elementtype')) for entry in self._atomarray]
-    
-    def get_cryst_const(self):
-        self.check_get_attr('_soup')
-        crystal = self._soup.find('crystal')            
-        return np.array([crystal.find('scalar', title="a").string,
-                         crystal.find('scalar', title="b").string,
-                         crystal.find('scalar', title="c").string,
-                         crystal.find('scalar', title="alpha").string,
-                         crystal.find('scalar', title="beta").string,
-                         crystal.find('scalar', title="gamma").string]\
-                         ).astype(float)
-    
-    def get_cell_parameters(self):
-        self.check_get_attr('cryst_const')
-        return crys.cc2cp(self.cryst_const)
-
-    def get_natoms(self):
-        self.check_get_attr('symbols')
-        return len(self.symbols)            
-
 
 class Grep(object):
     """Maximum felxibility!
