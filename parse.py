@@ -4,7 +4,7 @@
 #  
 # We need the following basic Unix tools installed:
 #   grep/egrep
-#   GNU sed
+#   sed
 #   awk
 #   tail
 #   wc 
@@ -19,10 +19,6 @@
 #   files, pure-python versions, although they have much more code, are faster. 
 #   But who cares if the files are small. For big files, grep&friends win + much
 #   less code here.
-# * Yes, we really need *GNU* sed! (Or, any sed that supports the address
-#   syntax "sed '/<patter>/,+<number>'"). Should work on any modern Linux
-#   machine. I don't know about all those other exotic Unix flavours
-#   you are forced to work on.
 # * The tested egrep's don't know the "\s" character class for whitespace
 #   as sed, Perl, Python or any other sane regex implementation does. Use 
 #   "[ ]" instead.
@@ -1318,7 +1314,7 @@ class PwOutputFile(FileParser):
             nstep = 0
         else:
             nstep = int(ret_str)
-        cmd = "sed -nre '/%s/,+3p' %s | grep -v %s | \
+        cmd = "grep -A3 '%s' %s | grep -v -e %s -e '--'| \
               awk '{printf $4\"  \"$5\"  \"$6\"\\n\"}'" \
               %(key, self.filename, key)
         ret_str = com.backtick(cmd)          
@@ -1379,9 +1375,9 @@ class PwOutputFile(FileParser):
         else:            
             nstep = int(ret_str)
         # coords
-        cmd = "sed -nre '/%s/,+%ip' %s | grep -v %s | \
+        cmd = "grep -A%i '%s' %s | grep -v -e %s -e '--' | \
               awk '{printf $2\"  \"$3\"  \"$4\"\\n\"}'" \
-              %(key, natoms, self.filename, key)
+              %(natoms, key, self.filename, key)
         ret_str = com.backtick(cmd)
         if ret_str.strip() == '':
             return None
@@ -1403,7 +1399,8 @@ class PwOutputFile(FileParser):
         else:            
             nstep = int(ret_str)
         # forces
-        cmd = r"sed -nre 's/atom.*type.*force\s+=(.*)$/\1/p' %s" %self.filename
+        cmd = r"grep 'atom.*type.*force' %s \
+            | sed -re 's/.*atom.*type.*force\s+=(.*)$/\1/g'" %self.filename
         ret_str = com.backtick(cmd)
         if ret_str.strip() == '':
             return None
@@ -1422,7 +1419,7 @@ class PwOutputFile(FileParser):
         else:            
             nstep = int(ret_str)
         # cell_parameters            
-        cmd = "sed -nre '/%s/,+3p' %s | grep -v %s" %(key, self.filename, key)
+        cmd = "grep -A3 %s %s | grep -v -e %s -e '--'" %(key, self.filename, key)
         ret_str = com.backtick(cmd)
         if ret_str.strip() == '':
             return None
@@ -1454,9 +1451,10 @@ class PwOutputFile(FileParser):
     
     def get_total_force(self):
         verbose("getting total force")
-        ret_str = com.backtick(r"sed -nre \
-            's/^.*Total\s+force\s*=\s*(.*)\s*Total.*/\1/p' %s"
-                               %self.filename)
+        cmd = r"egrep 'Total[ ]+force[ ]*=.*Total' %s \
+            | sed -re 's/^.*Total\s+force\s*=\s*(.*)\s*Total.*/\1/'" \
+            %self.filename
+        ret_str = com.backtick(cmd)
         if ret_str.strip() == '':
             return None
         else:            
@@ -1597,7 +1595,7 @@ class CPOutputFile(PwOutputFile):
             nstep = 0
         else:
             nstep = int(ret_str)
-        cmd = "sed -nre '/%s/,+3p' %s | grep -v '%s'" %(key, self.filename, key)
+        cmd = "grep -A3 '%s' %s | grep -v '%s' -e '--'" %(key, self.filename, key)
         ret_str = com.backtick(cmd)          
         if ret_str.strip() == '':
             return None
