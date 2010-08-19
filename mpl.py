@@ -148,10 +148,22 @@ def set_tickline_width(ax, xmin=1.0,xmaj=1.5,ymin=1.0,ymaj=1.5):
 
 def set_plot_layout_phdth(pyl_obj):
     set_plot_layout(pyl_obj)
-    pyl_obj.rc('legend', pad=0.2)
+    pyl_obj.rc('legend', borderpad=0.2)
     # figure
     pyl_obj.rc('figure', figsize=(11,10))
     pyl_obj.rc('savefig', dpi=100)
+
+def set_plot_layout_talk(plt):
+    plt.rc('legend', borderpad=0.2)
+    plt.rc('savefig', dpi=100)
+    plt.rc('font', size=18)
+    plt.rc('lines', linewidth=2)
+    plt.rc('lines', markersize=8)
+    plt.rc('figure.subplot', left=0.15)
+    plt.rc('figure.subplot', bottom=0.13)
+    plt.rc('mathtext', default='regular')
+##    plt.rc('xtick', labelsize=10)
+##    plt.rc('ytick', labelsize=10)
 
 #----------------------------------------------------------------------------
 # new axis line
