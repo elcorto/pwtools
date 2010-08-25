@@ -6,11 +6,76 @@ import itertools
 import sys
 import os
 
-import matplotlib 
-from mpl_toolkits.axes_grid.parasite_axes import SubplotHost, \
-    ParasiteAxes
+import matplotlib
 from matplotlib import pyplot as plt
 import numpy as np
+try:
+    from mpl_toolkits.axes_grid.parasite_axes import SubplotHost, \
+        ParasiteAxes
+except ImportError:
+    print "mpl.py: cannot import from mpl_toolkits.axes_grid"
+# This is with mpl < 1.0
+try:
+    from mpl_toolkits.mplot3d import Axes3D
+except ImportError:
+    print "mpl.py: cannot import from mpl_toolkits.mplot3d"
+
+#----------------------------------------------------------------------------
+# mpl helpers, boilerplate stuff
+#----------------------------------------------------------------------------
+
+def plotlines3d(ax3d, x,y,z, *args, **kwargs):
+    """Plot x-z curves stacked along y.
+    
+    args:
+    -----
+    ax3d : Axes3D instance
+    x : nd array
+        1d (x-axis) or 2d (x-axes are the columns)
+    y : 1d array        
+    z : nd array with "y"-values
+        1d : the same curve will be plotted len(y) times against x (1d) or
+             x[:,i] (2d) 
+        2d : each column z[:,i] will be plotted against x (1d) or each x[:,i]
+             (2d)
+    returns:
+    --------
+    ax3d
+
+    example:
+    --------
+    >>> x = linspace(0,5,100)
+    >>> y = arange(1.0,5) # len(y) = 4
+    >>> z = np.repeat(sin(x)[:,None], 4, axis=1)/y # make 2d 
+    >>> fig,ax = fig_ax3d()
+    >>> plotlines3d(ax, x, y, z)
+    >>> show()
+    """
+    assert y.ndim == 1
+    if z.ndim == 1:
+        zz = np.repeat(z[:,None], len(y), axis=1)
+    else:
+        zz = z
+    if x.ndim == 1:
+        xx = np.repeat(x[:,None], zz.shape[1], axis=1)
+    else:
+        xx = x
+    assert xx.shape == zz.shape
+    assert len(y) == xx.shape[1] == zz.shape[1]
+    for j in range(xx.shape[1]):
+        ax3d.plot(xx[:,j], np.ones(xx.shape[0])*y[j], z[:,j], *args, **kwargs)
+    return ax3d        
+
+def fig_ax():
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    return fig, ax
+
+def fig_ax3d():
+    fig = plt.figure()
+    ax = Axes3D(fig)
+    return fig, ax
+
 
 #----------------------------------------------------------------------------
 # color and marker iterators
@@ -42,8 +107,6 @@ def check_ax_obj(ax):
     if not isinstance(ax, matplotlib.axes.Axes):
         raise StandardError("argument `ax` %s is no instance of "
             "matplotlib.axes.Axes" %repr(ax))
-
-#----------------------------------------------------------------------------
 
 
 def set_plot_layout(py, layout='latex_hs'):
@@ -115,7 +178,6 @@ def set_plot_layout(py, layout='latex_hs'):
     else:
         raise StandardError("unknown layout '%s'" % layout)    
 
-#-----------------------------------------------------------------------------
 
 def set_tickline_width(ax, xmin=1.0,xmaj=1.5,ymin=1.0,ymaj=1.5):
     """Set the ticklines (minors and majors) to the given values.
@@ -123,28 +185,20 @@ def set_tickline_width(ax, xmin=1.0,xmaj=1.5,ymin=1.0,ymaj=1.5):
 
         ax -- an Axes object (e.g. ax=gca() or ax=fig.add_subplot(111))
      """
-    
     check_ax_obj(ax)
-
-    # the axis object to use
-    # get the x-ticklines
     for tick in ax.xaxis.get_major_ticks():
         tick.tick1line.set_markeredgewidth(xmaj)
         tick.tick2line.set_markeredgewidth(xmaj)
-    #
     for tick in ax.xaxis.get_minor_ticks():
         tick.tick1line.set_markeredgewidth(xmin)
         tick.tick2line.set_markeredgewidth(xmin)
-    #
     for tick in ax.yaxis.get_major_ticks():
         tick.tick1line.set_markeredgewidth(ymaj)
         tick.tick2line.set_markeredgewidth(ymaj)
-    #
     for tick in ax.yaxis.get_minor_ticks():
         tick.tick1line.set_markeredgewidth(ymin)
         tick.tick2line.set_markeredgewidth(ymin)
 
-#-----------------------------------------------------------------------------
 
 def set_plot_layout_phdth(pyl_obj):
     set_plot_layout(pyl_obj)
@@ -162,15 +216,13 @@ def set_plot_layout_talk(plt):
     plt.rc('figure.subplot', left=0.15)
     plt.rc('figure.subplot', bottom=0.13)
     plt.rc('mathtext', default='regular')
-##    plt.rc('xtick', labelsize=10)
-##    plt.rc('ytick', labelsize=10)
 
 #----------------------------------------------------------------------------
 # new axis line
 #----------------------------------------------------------------------------
 
 # works with mpl 0.99
-def new_axis(fig, hostax, off=50, loc='bottom', ticks=None, ws_add=0.1,
+def new_axis(fig, hostax, off=50, loc='bottom', ticks=None, wsadd=0.1,
              label='', sharex=False, sharey=False):
     """Make a new axis line using mpl_toolkits.axes_grid's SubplotHost and
     ParasiteAxes. The new axis line will be an instance of ParasiteAxes
@@ -187,8 +239,8 @@ def new_axis(fig, hostax, off=50, loc='bottom', ticks=None, ws_add=0.1,
     loc : one of 'left', 'right', 'top', 'bottom', where to place the new axis
         line
     ticks : sequence of ticks (numbers)
-    ws_add : Whitespace to add at the location `loc` to make space for the new
-        axis line (only useful if off != 0). The number is a relative unit
+    wsadd : Whitespace to add at the location `loc` to make space for the new
+        axis line (only useful if off > 0). The number is a relative unit
         and is used to change the bounding box: hostax.get_position().
     label : str, xlabel (ylabel) for 'top','bottom' ('left', 'right')
     sharex, sharey : bool, share xaxis (yaxis) with `hostax`
@@ -258,15 +310,14 @@ def new_axis(fig, hostax, off=50, loc='bottom', ticks=None, ws_add=0.1,
     bbox_idx = dict(left=[0,0], bottom=[0,1], right=[1,0], top=[1,1])
     old_pos = np.array(hostax.get_position())[bbox_idx[loc][0], bbox_idx[loc][1]] 
     if loc in ['top', 'right']:
-        new_ws = old_pos - ws_add
+        new_ws = old_pos - wsadd
     else:
-        new_ws = old_pos + ws_add
+        new_ws = old_pos + wsadd
     # hack ...        
     cmd = "fig.subplots_adjust(%s=%f)" %(loc, new_ws)
     eval(cmd)
     return fig, hostax, parax
 
-#-----------------------------------------------------------------------------
 
 def make_axes_grid_fig(num=None):
     """Create an mpl Figure and add to it an axes_grid.SubplotHost subplot
@@ -285,8 +336,6 @@ def make_axes_grid_fig(num=None):
     return fig, hostax
 
 
-#-----------------------------------------------------------------------------
-#-----------------------------------------------------------------------------
 
 if __name__ == '__main__':
     
@@ -326,22 +375,24 @@ if __name__ == '__main__':
     hostax.set_xlabel('hostax bottom')
     hostax.set_ylabel('hostax left')
 
-    # {'left': (off, ws_add),
+    # {'left': (off, wsadd),
     # ...}
-    off_dct = dict(left=(60, .1), right=(60, .1), top=(60, .15), bottom=(50,
-    .15))
+    off_dct = dict(left=(60, .1), 
+                   right=(60, .1), 
+                   top=(60, .15), 
+                   bottom=(50, .15))
 
     for n, val in enumerate(off_dct.iteritems()):
-        loc, off, ws_add = tuple(flatten(val))
+        loc, off, wsadd = tuple(flatten(val))
         fig3, hostax, parax = new_axis(fig3, hostax=hostax, 
                                        loc=loc, off=off, label=loc, 
-                                       ws_add=ws_add)
+                                       wsadd=wsadd)
         parax.plot(x*n, y**n)
     
-    new_axis(fig3, hostax=hostax, loc='right', off=0, ws_add=0, 
+    new_axis(fig3, hostax=hostax, loc='right', off=0, wsadd=0, 
              label="hostax right, I'm like twinx()")
     
-    new_axis(fig3, hostax=hostax, loc='top', off=0, ws_add=0, 
+    new_axis(fig3, hostax=hostax, loc='top', off=0, wsadd=0, 
              label="hostax top, I'm like twiny()")
     
 
