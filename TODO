@@ -30,3 +30,5 @@ tests
 
 - For all parsing funcs, add test output data (e.g. text files with arrays).
   np.loadtxt() these arrays and compare them to parsed ones, e.g. p.coords .
+
+- Add test for eos.py
