@@ -46,9 +46,15 @@ def atspec_str(symbols, masses, pseudos):
     returns:
     --------
     string
+
+    example:
+    --------
+    >>>  print pwscf.atspec_str(['Al', 'N'], ['1.23', '2.34'], ['Al.UPF', 'N.UPF'])
+    Al      1.23    Al.UPF
+    N       2.34    N.UPF
     """
     assert len(symbols) == len(masses) == len(pseudos), \
         "len(symbols) != len(masses) != len(pseudos)"
     txt = '\n'.join(["%s\t%s\t%s" %(sym, str(mass), pp) for sym, mass, pp in
-    izip(symbols, masses, pseudos)])        
+    zip(symbols, masses, pseudos)])        
     return txt        
