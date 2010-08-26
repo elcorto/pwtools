@@ -4,9 +4,9 @@
 methods
 -------
 
-Test 3 different methods to calculate the phonon density as the power spectrum
-(PSD) of atomic velocities. We generate random 1d and 3d data containing sums
-of sin()s.
+Test 3 different methods to calculate the phonon density of states as the power
+spectrum (PSD) of atomic velocities. We generate random 1d and 3d data
+containing sums of sin()s.
 
 1) FFT of the VACF (pydos.vacf_pdos())
 2) direct FFT of the velocities (pydos.direct_pdos())
@@ -60,8 +60,8 @@ details like zero-padding, mirroring, normalization. See also NR, chap. 12
     fft(corr(v,v)) = fft(v)*fft(v).conj() = |fft(v)|^2
     
     =>
-    PSD = fft(corr(v,v))         # (1)
-        = |fft(v)|^2             # (2), (3)
+    PSD := fft(corr(v,v))         # (1)
+         = |fft(v)|^2             # (2), (3)
 
 Note that we skip the factor of 2 from the definition of the "real" power
 spectrum in NR (PSD = 2*|fft(v)|**2) b/c `v` is a real function of time and we

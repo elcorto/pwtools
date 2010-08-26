@@ -8,7 +8,7 @@
 import numpy as np
 from pwtools import pydos as pd
 from pwtools.crys import coord_trans
-from matplotlib import pyplot as plt
+##from matplotlib import pyplot as plt
 
 def pdos(coords_arr_3d):
     f, d = pd.direct_pdos(pd.velocity(coords_arr_3d, axis=-1))
@@ -37,11 +37,10 @@ dos = {}
 for key, val in coords.iteritems():
     dos[key] = pdos(val)
 
-for key, val in dos.iteritems():
-    plt.plot(val, label=key)
-
-plt.legend()
-plt.show()
+##for key, val in dos.iteritems():
+##    plt.plot(val, label=key)
+##plt.legend()
+##plt.show()
 
 print ">>> this test should pass ..."
 np.testing.assert_array_almost_equal(dos['cart'], dos['cart2'])

@@ -53,10 +53,10 @@ df = fd[1] - fd[0]
 print "Nyquist freq [Hz]: %e" %(0.5/dt)
 print "df [Hz] %e:" %df
 
-from matplotlib import pyplot as plt
-plt.plot(fd, dd, label='direct')
-plt.plot(fv, dv, label='vacf')
-plt.legend()
-plt.show()
+##from matplotlib import pyplot as plt
+##plt.plot(fd, dd, label='direct')
+##plt.plot(fv, dv, label='vacf')
+##plt.legend()
+##plt.show()
 
 common.system('gzip %s' %filename)
