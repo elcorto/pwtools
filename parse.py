@@ -195,7 +195,7 @@ class FileParser(object):
     We define the convention 
       self.foo  -> self.get_foo() 
       self.bar  -> self.get_bar()
-      self._baz -> self._get_baz() 
+      self._baz -> self._get_baz() # note the underscores
       ... 
     
     All getters are called in the default self.parse() which can, of course, be
@@ -207,13 +207,11 @@ class FileParser(object):
         -----
         filename : str, name of the file to parse
         """
-        
         self.filename = filename
         if self.filename is not None:
             self.file = open(filename)
         else:
             self.file = None
-        
         self.set_attr_lst([])
     
     def __del__(self):
@@ -238,20 +236,22 @@ class FileParser(object):
         cPickle.dump(self, open(dump_filename, 'wb'), 2)
 
     def load(self, dump_filename):
-        """Load pickled object."""
-        # does not work:
+        """Load pickled object.
+        
+        example:
+        --------
+        # save
+        >>> x = FileParser('foo.txt')
+        >>> x.parse()
+        >>> x.dump('foo.pk')
+        # load: method 1
+        >>> xx = FileParser()
+        >>> xx.load('foo.pk')
+        # load: method 2, probably easier :)
+        >>> xx = cPickle.load(open('foo.pk'))
+        """
+        # this does not work:
         #   self = cPickle.load(...)
-        # 
-        # HACK
-        # usage:
-        # >>> x = FileParser('foo.txt')
-        # >>> x.parse()
-        # >>> x.dump('foo.pk')
-        # # method 1
-        # >>> xx = FileParser()
-        # >>> xx.load('foo.pk')
-        # # method 2, probably easier :)
-        # >>> xx = cPickle.load(open('foo.pk'))
         self.__dict__.update(cPickle.load(open(dump_filename, 'rb')).__dict__)
     
     def is_set_attr(self, attr):
@@ -589,12 +589,10 @@ class PDBFile(StructureFileParser):
     
     def parse(self):
         # Grep atom symbols and coordinates in Angstrom ([A]) from PDB file.
-        #
-        # XXX Note that for the atom symbols, we do NOT use the columns 77-78
-        #     ("Element symbol"), b/c that is apparently not present in all the
-        #     files which we currently use. Instead, we use the columns 13-16,
-        #     i.e. "Atom name". Note that in general this is not the element
-        #     symbol.
+        # Note that for the atom symbols, we do NOT use the columns 77-78
+        # ("Element symbol"), b/c that is apparently not present in all the
+        # files which we currently use. Instead, we use the columns 13-16, i.e.
+        # "Atom name". Note that in general this is not the element symbol.
         #
         # From the PDB spec v3.20:
         #
@@ -763,11 +761,13 @@ class PwInputFile(StructureFileParser):
     
     notes:
     ------
-    self.cell_parameters (CELL_PARAMETERS) in pw.in is units of alat. If we
-    have an entry in pw.in to determine alat: system:celldm(1) or sysetm:A,
-    then the cell parameters will be multiplied with that *only for the
-    calculation* of self.cryst_const, otherwise [a,b,c] = cryst_const[:3] will
-    be wrong! A warning will be issued.
+    self.cell_parameters (CELL_PARAMETERS) in pw.in is units of alat
+    (=celldm(1)). If we have an entry in pw.in to determine alat:
+    system:celldm(1) or sysetm:A, then the cell parameters will be multiplied
+    with that *only* for the calculation of self.cryst_const. Then [a,b,c] =
+    cryst_const[:3] will have the right unit (Bohr). A warning will be issued
+    if neither is found. self.cell_parameters will be returned as it is in the
+    file.
     """
 
     def __init__(self, filename=None):
@@ -1158,8 +1158,8 @@ class PwInputFile(StructureFileParser):
 
 class PwOutputFile(FileParser):
     """Parse a pw.x output file. This class is primarily geared towards
-    pw.x MD runs but should also work for other calculation types (scf,
-    relax, ...).
+    pw.x MD runs but also works for other calculation types. Tested so far: 
+    md, scf, relax, vc-relax. For vc-md, see PwVCMDOutputFile.
     
     members:
     --------
