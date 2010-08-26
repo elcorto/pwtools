@@ -1,3 +1,3 @@
 #!/bin/bash
 
-egrep -i 'error|warning' run_all.log
+egrep -i 'error|warning|fail' run_all.log

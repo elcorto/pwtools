@@ -8,11 +8,11 @@ from pwtools.parse import PwOutputFile
 from pwtools import common
 from pwtools import pydos as pd
 
-def check(is_true):
+def check(is_true, attr):
     if is_true:
-        print "... ok"
+        print "%s: ... ok" %attr
     else:        
-        print "... FAILED!"
+        print "%s: ... FAILED!" %attr
         
 
 filename = 'files/pw.md.out'
@@ -39,14 +39,13 @@ known_fails = {'file': 'closed/uninitialized file',
                'infile': 'same object, just new memory address'}
 arr_t = type(np.array([1]))
 for attr in c.__dict__.iterkeys():
-    print attr
     c_val = getattr(c, attr)
     c2_val = getattr(c2, attr)
     if type(c_val) == arr_t:
-        check((c_val == c2_val).all())
+        check((c_val == c2_val).all(), attr)
     else:
-        check(c_val == c2_val)
+        check(c_val == c2_val, attr)
     for name, string in known_fails.iteritems():
         if name == attr:
-            print "    KNOWN FAIL: %s: %s" %(name, string)
+            print "%s: KNOWN FAIL: %s: %s" %(name, string, attr)
 common.system('gzip %s' %filename)

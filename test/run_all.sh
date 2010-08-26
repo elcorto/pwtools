@@ -1,10 +1,9 @@
 #!/bin/bash
 
-# Simple script to run all test_*.py . For some tests, some plot windows
-# may pop up. Just close them to continue.
+# Simple script to run all test_*.py . 
 #
 # For tests calling Fortran extensions: Stdout from Fortran ends up in the
-# wrong order in run_all.log. To see the correct output, run this these tests
+# wrong order in run_all.log. To see the correct output, run these tests
 # by hand (python test_foo.py).
 
 # This is for test_f2py_flib_openmp.py
@@ -34,3 +33,5 @@ if [ -n "$old_omp" ]; then
 else
     unset OMP_NUM_THREADS
 fi
+
+./check.sh
