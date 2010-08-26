@@ -51,7 +51,7 @@ optional:
         Without these, you will get warnings and some parsing classes will not
         work (Cif and CML parsing currently). If you wish, uncomment the warnings
         at the top of parse.py .
-    test/*
+    examples/*
         - matplotlib
 
 =====
@@ -63,13 +63,17 @@ See test/test_*.py and examples/ for examples.
 Methology
 ---------
 
-There are two ways of computing the PDOS (V is is array of atomic velocities,
-see pydos.velocity(). 
+There are two ways of computing the phonon density of states (PDOS) from 
+an MD trajectory (V is is array of atomic velocities, see pydos.velocity(). 
 
 (1) vacf way: FFT of the velocity autocorrelation function (vacf):
     V -> VACF -> FFT(VACF) = PDOS, see pydos.vacf_pdos()
 (2) direct way: |FFT(V)**2| = PDOS, see pydos.direct_pdos(), this is much
-    faster and mathematically exactly the same, see test/test_pdos_methods.py
+    faster and mathematically exactly the same, see examples/pdos_methods.py
+    and test/test_pdos.py .
+
+Both methods are implemented but actually only method (2) is worth using.
+Method (1) still exists for historical reasons and as reference.
 
 - In method (1), if you mirror the VACF before the FFT, then you get double
   frequency resolution. 
@@ -78,12 +82,12 @@ see pydos.velocity().
   resolution as you would get with mirroring the signal in vacf_pdos().
 
 - Both methods use Welch windowing by default to reduce "leakage" from
-  neighboring peaks. See also test/test_pdos_methods.py 
+  neighboring peaks. See also examples/pdos_methods.py 
 
 - Both methods must produce exactly the same results (up to numerical noise).
 
 - The frequency axis of the PDOS is in Hz. It is "f", NOT the angular frequency 
-  2*pi*f. See also test/test_pdos_methods.py .
+  2*pi*f. See also examples/pdos_methods.py .
 
 
 =====================
@@ -109,14 +113,16 @@ matdyn.x and phonon dos: With dos=.true., matdyn.x calculates the phonon
 Atomic coordinates
 ------------------
 
+In PWscf terms, alat = celldm(1) = lattice constant "a" in a.u. . A length in
+a.u. means a unit or Bohr.
+
 To calculate the PDOS, atomic coordinates from MD trajectories have to be in
 cartesian coordinates. You may have to transform them *before* using them to
 calculate the PDOS. See 
     test/test_pdos.py 
     test/test_pdos_coord_trans.py
 
-This is necessary if you have 
-    ATOMIC_POSITIONS crystal
+This is necessary if you have "ATOMIC_POSITIONS crystal".
 
 The scale (or unit: Bohr, Angstrom, ..., defined by celldm(1) or
 CELL_PARAMETERS) does not matter, b/c currently the integral area under the
@@ -137,18 +143,18 @@ allowed ATOMIC_POSITIONS units (from the Pwscf help):
    crystal : atomic positions are in crystal coordinates, i.e.
              in relative coordinates of the primitive lattice vectors
 
-Note: crystal coords are also called fractional coordinates (e.g. in Cif files).
+Note: crystal coords are also called fractional coordinates (e.g. in Cif
+files).
 
 summary:
 
     ATOMIC_POSITIONS angstrom  -> cartesian angstrom
-    ATOMIC_POSITIONS bohr      -> cartesian bohr  [== a.u.] 
+    ATOMIC_POSITIONS bohr      -> cartesian a.u. 
     ATOMIC_POSITIONS           -> cartesian alat
     ATOMIC_POSITIONS alat      -> cartesian alat
-    ATOMIC_POSITIONS crystal   -> crystal alat or crystal a.u. 
+    ATOMIC_POSITIONS crystal   -> crystal alat or crystal a.u. (see below)
 
-The unit of CELL_PARAMETERS is only important for ATOMIC_POSITIONS crystal,
-i.e. if one wants to calculate cartesian coords. Note that alat == celldm(1).
+The unit of CELL_PARAMETERS is only important for ATOMIC_POSITIONS crystal:
     if celldm(1) present  -> CELL_PARAMETERS in alat -> crystal alat
         => CELL_PARAMETERS = real cell parameter divided by alat
     if not                -> CELL_PARAMETERS in a.u. -> crystal a.u.
