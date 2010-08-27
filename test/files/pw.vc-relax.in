@@ -1,0 +1,51 @@
+&control
+    calculation = 'vc-relax'
+    restart_mode='from_scratch',
+    prefix='vrc_run0'
+    tstress = .true.
+    tprnfor = .true.
+    nstep = 100,
+    pseudo_dir = '/home/schmerle/soft/lib/espresso/pseudo/pseudo_espresso',
+    outdir='/fastfs/schmerle'
+    disk_io = 'low'
+    wf_collect = .true.
+/
+&system
+    ibrav = 4, 
+    celldm(1) = 5.878937999, 
+    celldm(3) = 1.600128576,
+    nat = 4, 
+    ntyp = 2,
+    ecutwfc = 50,
+    ecutrho = 500,
+    occupations = 'smearing'
+    degauss   = 0.002
+    smearing  = 'gaussian'
+    nosym = .false.,
+/
+&electrons
+   diagonalization='david'
+   mixing_mode     = 'local-TF'
+   mixing_beta = 0.4
+/
+&ions
+   pot_extrapolation='second-order',
+   wfc_extrapolation='second-order',
+/
+&cell
+    press = -250.0
+    press_conv_thr = 1
+    cell_dynamics = 'bfgs'
+    cell_dofree = 'xyz'
+/    
+ATOMIC_SPECIES
+    Al 26.981538 Al.pbe-n-van.UPF
+    N 14.00674   N.pbe-van_ak.UPF
+ATOMIC_POSITIONS crystal
+    Al  0.33333      0.66667      0       
+    Al  0.66667      0.33333      0.50000 
+    N   0.33333      0.66667      0.38800 
+    N   0.66667      0.33333      0.88800 
+K_POINTS automatic
+8 8 8 0 0 0
+

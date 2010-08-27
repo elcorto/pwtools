@@ -1495,7 +1495,7 @@ class PwOutputFile(FileParser):
     
     def get_start_volume(self):
         verbose("getting start volume")
-        ret_str = com.backtick(r"grep 'unit-cell.*volume' %s | sed -re \
+        ret_str = com.backtick(r"grep 'unit-cell.*volume' %s | head -n1 | sed -re \
                                 's/.*volume\s*=\s*(.*?)\s+.*a.u..*/\1/'"
                                 %self.filename)
         if ret_str.strip() == '':
