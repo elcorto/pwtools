@@ -93,14 +93,14 @@ class SQLiteDB(object):
         self.conn = sqlite3.connect(db_fn)
         self.cur = self.conn.cursor()
             
-    def execute(self, cmd):
+    def execute(self, *args, **kwargs):
         """
         args:
         -----
         cmd : str
             SQLite command
         """            
-        return self.cur.execute(cmd)
+        return self.cur.execute(*args, **kwargs)
 
     def has_column(self, table, col):
         """Check if table `table` already has the column `col`.
