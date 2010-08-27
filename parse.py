@@ -1172,13 +1172,20 @@ class PwOutputFile(FileParser):
         1/3*trace(stresstensor)
     temperature : 1d array (nstep,)
     coords : 3d array (natoms, 3, nstep)
+    start_coords : 2d array
+        atomic coords of the start unit cell in cartesian alat units
     cell_parameters : 3d array (3, 3, nstep) 
         prim. basis vectors for each step
+    start_cell_parameters : 2d array
+        start prim. basis vectors from the output file in alat units, parsed
+        from "crystal axes: (cart. coord. in units of a_0)"
     nstep : scalar 
         number of MD steps
     natoms : scalar 
         number of atoms
     volume : 1d array (nstep,)
+    start_volume : float
+        the volume of the start unit cell
     total_force : 1d array (nstep,)
         The "total force" parsed from lines "Total force =" after the "Forces
         acting on atoms" block.
@@ -1222,7 +1229,7 @@ class PwOutputFile(FileParser):
     # 
     # Possible optimization: Use get_txt() to read in the file to parse and use
     #     only python's re module. Would spare us spawning child processes for
-    #     grep/sed/awk. But GNU sed is probably faster for large files and has
+    #     grep/sed/awk. But grep is probably faster for large files and has
     #     some very nice features, too.
     def __init__(self, filename=None, infile=None):
         """
@@ -1259,6 +1266,9 @@ class PwOutputFile(FileParser):
         'volume',
         'total_force',
         'forces',
+        'start_volume',
+        'start_cell_parameters',
+        'start_coords',
         ])
     
     def parse(self):
@@ -1384,6 +1394,29 @@ class PwOutputFile(FileParser):
         else:
             return io.readtxt(StringIO(ret_str), axis=self.time_axis, 
                               shape=(natoms, 3, nstep))
+    
+    def get_start_coords(self):
+        """Grep start ATOMIC_POSITIONS from pw.out. This is always in cartesian
+        alat units. The start coords in the format given in the input file is
+        just self.infile.coords. This should be the same as
+        >>> p = PwOutputFile(...)
+        >>> p.parse()
+        >>> crys.coord_trans(p.start_coords, 
+        >>>                  old=np.identity(3), 
+        >>>                  new=p.start_cell_parameters, 
+        >>>                  align='rows')
+        """
+        verbose("getting start coords")
+        self.check_get_attr('natoms')
+        natoms = self.natoms
+        cmd = r"grep -A%i 'positions.*a_0.*units' %s | tail -n%i | \
+              sed -re 's/.*\((.*)\)/\1/g'" \
+              %(natoms, self.filename, natoms)
+        ret_str = com.backtick(cmd)
+        if ret_str.strip() == '':
+            return None
+        else:
+            return np.loadtxt(StringIO(ret_str))
 
     def get_forces(self):
         verbose("getting forces")
@@ -1427,6 +1460,17 @@ class PwOutputFile(FileParser):
             return io.readtxt(StringIO(ret_str), axis=self.time_axis, 
                               shape=(3, 3, nstep))
     
+    def get_start_cell_parameters(self):
+        """Grep start cell_parameters from pw.out. This is always in alat
+        units."""
+        verbose("getting start cell parameters")
+        cmd = "grep -A3 'crystal.*axes:' %s | tail -n3 | awk '{print $4\" \"$5\" \"$6}'" %(self.filename)
+        ret_str = com.backtick(cmd)
+        if ret_str.strip() == '':
+            return None
+        else:
+            return np.loadtxt(StringIO(ret_str))
+    
     def get_volume(self):
         """For vc-relax, vc-md, pw.x prints stuff like
             ,----------
@@ -1449,6 +1493,16 @@ class PwOutputFile(FileParser):
         else:            
             return np.loadtxt(StringIO(ret_str))
     
+    def get_start_volume(self):
+        verbose("getting start volume")
+        ret_str = com.backtick(r"grep 'unit-cell.*volume' %s | sed -re \
+                                's/.*volume\s*=\s*(.*?)\s+.*a.u..*/\1/'"
+                                %self.filename)
+        if ret_str.strip() == '':
+            return None
+        else:            
+            return float(ret_str)
+
     def get_total_force(self):
         verbose("getting total force")
         cmd = r"egrep 'Total[ ]+force[ ]*=.*Total' %s \
@@ -1460,7 +1514,7 @@ class PwOutputFile(FileParser):
         else:            
             return np.loadtxt(StringIO(ret_str))
 
-
+    
 class PwVCMDOutputFile(PwOutputFile):
     def __init__(self, *args, **kwargs):
         PwOutputFile.__init__(self, *args, **kwargs)
