@@ -138,7 +138,7 @@ def cp2cc(cp, align='rows'):
     """From CELL_PARAMETERS to crystallographic constants a, b, c, alpha, beta,
     gamma. 
     This mapping is unique in the sense that multiple `cp`s will have
-    the same` cryst_const`, i.e. the representation of the cell in
+    the same `cryst_const`, i.e. the representation of the cell in
     `cryst_const` is independent from the spacial orientation of the cell
     w.r.t. a cartesian coord sys.
     
@@ -501,12 +501,12 @@ def wien_sgroup_input(lat_symbol, symbols, atpos_crystal, cryst_const):
     txt = "/ lattice type symbol\n%s" %lat_symbol
     txt += empty
     txt += "/ a b c alpha beta gamma\n"
-    txt += " ".join(["%.15g"]*6) % tuple(cryst_const)
+    txt += " ".join(["%.16e"]*6) % tuple(cryst_const)
     txt += empty
     txt += "/ number of atoms\n%i" %len(symbols)
     txt += empty
     txt += "/ atom list (crystal cooords)\n"
-    fmt = ' '.join(['%.15g']*3)
+    fmt = ' '.join(['%.16e']*3)
     for sym, coord in izip(symbols, atpos_crystal):
         txt += fmt % tuple(coord) + '\n' + sym + '\n'
     return txt

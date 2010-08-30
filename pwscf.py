@@ -1,7 +1,7 @@
 import numpy as np
 from common import fix_eps, str_arr
 
-def atpos_str(symbols, coords, fmt="%.10f", zero_eps=True):
+def atpos_str(symbols, coords, fmt="%.16e", zero_eps=True):
     """Convenience function to make a string for the ATOMIC_POSITIONS section
     of a pw.x input file. Usually, this can be used to process the output of
     crys.scell().

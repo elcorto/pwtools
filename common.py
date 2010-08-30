@@ -247,25 +247,26 @@ def str2tup(s, func=int):
     return tuple(map(func, s.split()))
 
 
-def fix_eps(arr, eps=np.finfo(float).eps):
+def fix_eps(arr, eps=1.5*np.finfo(float).eps, copy=True):
     """Set values of arr to zero where abs(arr) <= eps.
-    This always returns a copy.
 
     args:
     ----
     arr : numpy nd array
     eps : float eps
+    copy : bool
+        return copy of arr
 
     returns:
     --------
-    numpy nd array (copy)
+    numpy nd array
     """
-    _arr = np.asarray(arr).copy()
+    _arr = arr.copy() if copy else arr
     _arr[np.abs(_arr) <= eps] = 0.0
     return _arr
 
 
-def str_arr(arr, fmt='%.15g', delim=' '*4, zero_eps=True):
+def str_arr(arr, fmt='%.16e', delim=' '*4, zero_eps=True):
     """Convert array `arr` to nice string representation for printing.
     
     args:
@@ -395,8 +396,8 @@ def deriv_fd(y, x=None, n=1):
     example:
     --------
     >>> x=sort(rand(100)*10); y=sin(x); plot(x,y, 'o-'); plot(x,cos(x), 'o-')
-    >>> x1,y1=common.deriv(y,x,1) # cos(x)
-    >>> x2,y2=common.deriv(y,x,2) # -sin(x)
+    >>> x1,y1=deriv_fd(y,x,1) # cos(x)
+    >>> x2,y2=deriv_fd(y,x,2) # -sin(x)
     >>> plot(x1, y1, lw=2) # cos(x)
     >>> plot(x2, -y2, lw=2) # sin(x)
     >>> x=linspace(0,10,100); y=sin(x); plot(x,y, 'o-'); plot(x,cos(x), 'o-')
