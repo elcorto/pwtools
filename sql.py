@@ -1,7 +1,8 @@
 import sqlite3
 
 class SQLEntry(object):
-    def __init__(self, sql_type, sql_val, file_val=None, key=None):
+    def __init__(self, sqltype=None, sqlval=None, fileval=None, key=None, sql_type=None,
+                 sql_val=None, file_val=None):
         """Represent an entry in a SQLite database. An entry is one single
         value of one column and record (record = row). 
         
@@ -10,28 +11,28 @@ class SQLEntry(object):
         SQLite database. 
         
         There is the possibility that the entry has a slightly different value
-        in the db and in the actual input file. See file_val.
+        in the db and in the actual input file. See fileval.
         
         args:
         -----
-        sql_type : str
+        sqltype : str
             A string (not case sentitive) which determines the SQL type of the
             entry: 'integer', 'real', ...
-        sql_val : the value of the entry
+        sqlval : the value of the entry
             If it is a string, it is automatically quoted to match SQLite
             syntax rules, e.g. 'lala' -> "'lala'", which appears as 'lala' in
             the db.
-        file_val : optional, {None, <anything>}
+        fileval : optional, {None, <anything>}
             If not None, then this is the value of the entry that it has in
             another context (actually used in the input file). If None, then
-            file_val = val. 
+            fileval = val. 
             Example: K_POINTS in pw.x input file:
-                sql_val: '2 2 2 0 0 0'
-                file_val: 'K_POINTS automatic\n2 2 2 0 0 0'
+                sqlval: '2 2 2 0 0 0'
+                fileval: 'K_POINTS automatic\n2 2 2 0 0 0'
         key : optional, {None, str}
             An optional key. This key should refer to the column name in the 
             database table, as in:
-                % create table calc (key1 sql_type1, key2    sql_type2, ...)
+                % create table calc (key1 sqltype1, key2    sqltype2, ...)
             For example:
                 % create table calc (idx  integer,   ecutwfc float,     ...)
 
@@ -49,18 +50,35 @@ class SQLEntry(object):
             unicode         TEXT
             buffer          BLOB
         """
-        self.sql_type = sql_type
-        self.file_val = sql_val if file_val is None else file_val
-        self.sql_val = self._fix_sql_val(sql_val)
+        # backwd compat
+        assert None in [sqltype, sql_type], ("you use old syntax, one of " 
+               "[sql_type, sqltype] must not be None")
+        assert None in [sqlval, sql_val], ("you use old syntax, one of " 
+               "[sql_val, sqlval] must not be None")
+        if sql_type is not None:
+            sqltype = sql_type
+        if sql_val is not None:
+            sqlval = sql_val
+        if file_val is not None:
+            fileval = file_val
+        
+        self.sqltype = sqltype
+        self.fileval = sqlval if fileval is None else fileval
+        self.sqlval = self._fix_sqlval(sqlval)
         self.key = key
+
+        # backwd compat
+        self.sql_val = self.sqlval
+        self.sql_type = self.sqltype
+        self.file_val = self.fileval
     
-    def _fix_sql_val(self, sql_val):
-        if isinstance(sql_val, str):
+    def _fix_sqlval(self, sqlval):
+        if isinstance(sqlval, str):
             # "lala" -> "'lala'"
             # 'lala' -> "'lala'"
-            return repr(sql_val)
+            return repr(sqlval)
         else:
-            return sql_val
+            return sqlval
 
 
 class SQLiteDB(object):
@@ -94,12 +112,7 @@ class SQLiteDB(object):
         self.cur = self.conn.cursor()
             
     def execute(self, *args, **kwargs):
-        """
-        args:
-        -----
-        cmd : str
-            SQLite command
-        """            
+        """This calls self.cur.execute()"""
         return self.cur.execute(*args, **kwargs)
 
     def has_column(self, table, col):
