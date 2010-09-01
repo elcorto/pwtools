@@ -1464,7 +1464,8 @@ class PwOutputFile(FileParser):
         """Grep start cell_parameters from pw.out. This is always in alat
         units."""
         verbose("getting start cell parameters")
-        cmd = "grep -A3 'crystal.*axes:' %s | tail -n3 | awk '{print $4\" \"$5\" \"$6}'" %(self.filename)
+        cmd = "grep -A3 'crystal.*axes.*units.*a_0' %s | tail -n3 | \
+               awk '{print $4\" \"$5\" \"$6}'" %(self.filename)
         ret_str = com.backtick(cmd)
         if ret_str.strip() == '':
             return None
