@@ -5,7 +5,17 @@ filename = 'files/pw.vc-relax.out'
 infile = 'files/pw.vc-relax.in'
 
 common.system('gunzip %s.gz' %filename)
-c = PwOutputFile(filename=filename, infile=infile)
-c.parse()
-common.print_dct(c.__dict__)
+pp = PwOutputFile(filename=filename, infile=infile)
+pp.parse()
+common.print_dct(pp.__dict__)
+none_attrs = ['ekin',
+              'temperature',
+             ]             
+for attr_name in pp.attr_lst:
+    attr = getattr(pp, attr_name)
+    if attr_name not in none_attrs:
+        assert attr is not None, "FAILED: %s" %attr_name
+##    if attr is None:
+##        print ">>> '%s'," %attr_name
 common.system('gzip %s' %filename)
+
