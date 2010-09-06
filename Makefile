@@ -121,7 +121,6 @@
 FILE=flib
 FORT=$(FILE).f90
 PYF=$(FILE).pyf
-EXE=$(FILE).x
 EXT_MODULE=_$(FILE)
 SO=$(EXT_MODULE).so
 
@@ -179,8 +178,6 @@ pyf: $(PYF)
 clean:
 	rm -f $(SO) $(PYF)
 
-main: $(EXE)
-
 #--- internal targets -------------------------------------------------------
 
 # Make .pyf file and overwrite old one. We could also do
@@ -193,8 +190,3 @@ $(PYF): $(FORT)
 # make shared lib 
 $(SO): $(PYF) $(FORT)
 	$(F2PY) -c $(PYF) $(FORT) $(F2PY_FLAGS)
-
-# In case we have a Fortran main program (e.g. "program main") in the source of
-# the extension for testing.
-$(EXE): $(FORT)
-	$(F90) -O2 -o $(EXE) $(FORT)
