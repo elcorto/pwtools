@@ -14,8 +14,10 @@ if not os.path.exists(dr):
 if os.path.exists(dbfn):
     os.remove(dbfn)
 
+header = [('idx', 'INTEGER'), ('foo', 'FLOAT'), ('bar', 'TEXT')]
 db = SQLiteDB(dbfn)
-db.execute("CREATE TABLE calc (idx INTEGER, foo FLOAT, bar TEXT)")
+db.execute("CREATE TABLE calc (%s)" %','.join("%s %s" %(x[0], x[1]) \
+                                              for x in header)) 
 
 vals = [[0, 1.1, 'a'],
         [1, 2.2, 'b'],
@@ -24,6 +26,7 @@ for lst in vals:
     db.execute("INSERT INTO calc (idx, foo, bar) VALUES (?,?,?)", tuple(lst))
 db.commit()
 
+assert header == db.get_header('calc')
 # call sqlite3, the cmd line interface
 assert common.backtick("sqlite3 %s 'select * from calc'" %dbfn) \
     == '0|1.1|a\n1|2.2|b\n2|3.3|c\n'
