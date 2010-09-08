@@ -126,12 +126,19 @@ class SQLiteDB(object):
             column name in the database
         """            
         has_col = False
-        for entry in self.execute("PRAGMA table_info(%s)" %table):
-            if entry[1] == col:
+        for entry in self.get_header(table):
+            if entry[0] == col:
                 has_col = True
                 break
         return has_col                            
     
+    def get_header(self, table):
+        """Return the "header" of the db:
+            create table foo (a text, b real)
+            -> header = [('a', 'text'), ('b', 'real')]
+        """            
+        return [(x[1], x[2]) for x in self.execute("PRAGMA table_info(%s)" %table)]
+
     def commit(self):
         self.conn.commit()
 
