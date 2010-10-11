@@ -12,8 +12,8 @@
 # -> latesttag="0.9.2"
 #
 # latesttagdistance : The distance from tip to the latest tag "0.9.2" is 1.
-
-
+#
+#
 # In the example above and "hg log -r tip --template
 # '{latesttag}+{latesttagdistance}'", the version of tip would be "0.9.2+1".
 # However, rev 269 is just created by tagging rev 268. So, in principle, the
@@ -24,9 +24,15 @@
 ##latesttag=$(hg log -r tip --template '{latesttag}')
 ##latesttagdistance=$(hg log -r tip --template '{latesttagdistance}')
 ##version=${latesttag}+$(echo "$latesttagdistance - 1" | bc)
-
-# Versioning in accordance with Mercurial. It we archive tip, then the version
-# name sould reflect that: "0.9.2+1" for tip.
-version=$(hg log -r tip --template '{latesttag}+{latesttagdistance}')
-
+#
+# We just name the archive pwtools-{latesttag} and that's it. The
+# {latesttagdistance} and the repo hashes are stored in the archive in
+# .hg_archival.txt, e.g.
+#    repo: 74d7fa88bdc3ecd15a1dc103a6c7ed35692c90fd
+#    node: 085de072fc20df52ac60415603911e0a8bc2c81c
+#    branch: default
+#    latesttag: 0.9.2
+#    latesttagdistance: 1
+#
+version=$(hg log -r tip --template '{latesttag}')
 hg archive -t tgz pwtools-${version}.tgz
