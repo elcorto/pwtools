@@ -1,10 +1,6 @@
 # common.py
 #
-# File operations, common system utils and other handy tools that could as well
-# live in the std lib.
-#
-# Steve Schmerler 2009 <mefx@gmx.net>
-#
+# File operations, common system utils and other handy tools.
 
 import types
 import os
@@ -462,7 +458,7 @@ def deriv_spl(y, x=None, xnew=None, n=1, k=3, fullout=True):
         return yd
 
 #-----------------------------------------------------------------------------
-# array  indexing
+# array indexing
 #-----------------------------------------------------------------------------
 
 def slicetake(a, sl, axis=None, copy=False):
@@ -635,42 +631,6 @@ def get_filename(fh):
     except AttributeError:
         name = 'object_%s_pwtools_dummy_filename' %str(fh)
     return name        
-
-
-def fileo(val, mode='r', force=False):
-    """Return open file object with mode `mode`. Handles also gzip'ed files.
-    Non-empty files are protected. File objects are just passed through, not
-    modified.
-
-    args:
-    -----
-    val : str or file object
-    mode : file mode (everything that Python's open() can handle)
-    force : bool, force to overwrite non-empty files
-    """
-    if isinstance(val, types.StringType):
-        if os.path.exists(val): 
-            if not os.path.isfile(val):
-                raise ValueError("argument '%s' exists but is no file" %val)
-            if ('w' in mode) and (not force) and (os.path.getsize(val) > 0):
-                raise StandardError("file '%s' not empty, won't ovewrite, use "
-                    "force=True" %val)
-        if val.endswith('.gz'):
-            import gzip
-            ret =  gzip.open(val, mode)
-            # Files opened with gzip don't have a 'name' attr.
-            if not hasattr(ret, 'name'):
-                ret.name = fullpath(val)
-            return ret                
-        else:
-            return open(val, mode)
-    elif isinstance(val, types.FileType):
-        if val.closed:
-            raise StandardError("need an open file") 
-        elif val.mode != mode:
-            raise ValueError("mode of file '%s' is '%s', must be '%s'" 
-                %(val.name, val.mode, mode))
-        return val
 
 
 def file_read(fn):
