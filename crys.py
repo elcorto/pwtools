@@ -8,6 +8,7 @@ from itertools import izip
 
 import numpy as np
 from scipy.linalg import inv
+from scipy.integrate import cumtrapz
 
 # Cif parser
 try:
@@ -20,6 +21,7 @@ from pwtools.common import assert_cond
 import pwtools.common as common
 import pwtools.constants as con
 from pwtools.decorators import crys_add_doc
+from pwtools.pwscf import atpos_str
 
 #-----------------------------------------------------------------------------
 # misc math
@@ -569,6 +571,68 @@ def write_cif(filename, coords, symbols, cryst_const, fac=con.a0_to_A, conv=Fals
     cf['pwtools'] = block
     common.file_write(filename, str(cf))
 
+
+@crys_add_doc
+def write_axsf(filename, coords, cp, symbols, time_axis=-1, atoms_axis=0, align='rows'):
+    """Write animated XSF file. ATM, only fixed cells, i.e. `cp` cannot be 3d
+    array, in pwscf: md, relax, not vc-md, vc-relax. Forces are all set to
+    zero.
+
+    Note that `cp` must be in Angstrom, not the usual PWscf style scaled `cp`
+    in alat units.
+    
+    args:
+    -----
+    filename : target file name
+    coords : 2d (one unit cell) or 3d array (e.g. MD trajectory)
+        crystal (fractional) coords,
+        examples:
+        2d: (natoms, 3) : atoms_axis=0, time_axis not used
+        3d: (natoms, 3, nstep) : atoms_axis=0, time_axis=2
+    %(cp_doc)s 
+        In Angstrom units.
+    symbols : list of strings (natoms,)
+        atom symbols
+    time_axis : int, optional
+        axis number for time (if coords is 3d)
+    atoms_axis : int, optional
+        axis along which atomic coords [x,y,z] are aligned
+    %(align_doc)s
+
+    refs:
+    -----
+    [XSF] http://www.xcrysden.org/doc/XSF.html
+    """
+    # notes:
+    # ------
+    # The XSF spec [XSF] is a little fuzzy about what PRIMCOORD actually is
+    # (fractional or cartesian Angstrom). Only the latter case results in a
+    # correctly displayed structure in xcrsyden. So we use that.
+    #
+    # We could extend this to variable cell by allowing `cp` to be 3d and
+    # accept an 3d array for forces, too. Then we had (together with
+    # parse.Pw*OutputFile) a replacement for pwo2xsf.sh .
+    
+    if align == 'cols':
+        cp = cp.T
+    is3d = coords.ndim == 3
+    natoms = coords.shape[atoms_axis]
+    if is3d:
+        nstep = coords.shape[time_axis]
+        sl = [slice(None)]*3
+    else:
+        nstep = 1
+        sl = [slice(None)]*2
+    axsf_str = "ANIMSTEPS %i\nCRYSTAL\nPRIMVEC\n%s" %(nstep, common.str_arr(cp))
+    for istep in range(nstep):
+        if is3d:
+            sl[time_axis] = istep
+        coords_cart = np.dot(coords[sl], cp)
+        arr = np.concatenate((coords_cart, np.zeros_like(coords_cart)), axis=1)
+        axsf_str += "\nPRIMCOORD %i\n%i 1\n%s" %(istep+1, natoms, 
+                                                 atpos_str(symbols, arr))
+    common.file_write(filename, axsf_str)
+
 #-----------------------------------------------------------------------------
 # atomic coords processing / evaluation, MD analysis
 #-----------------------------------------------------------------------------
@@ -923,3 +987,238 @@ def coord_trans(coords, old=None, new=None, copy=True, align='cols'):
     # must use `tmp[:] = ...`, just `tmp = ...` is a new array
     tmp[:] = np.dot(tmp, np.dot(inv(new), old).T)
     return tmp
+
+
+def min_image_convention(sij, copy=False):
+    """Helper function for rpdf(). Apply minimum image convention to
+    differences of fractional coords.
+    
+    args:
+    -----
+    sij : ndarray
+    copy : bool, optional
+
+    returns:
+    --------
+    sij in-place modified or copy
+    """
+    _sij = sij.copy() if copy else sij
+    _sij[_sij > 0.5] -= 1.0
+    _sij[_sij < -0.5] += 1.0
+    return _sij
+
+
+@crys_add_doc
+def rmax_smith(cp, align='cols'):
+    """Helper function for rpdf(). Calculate rmax as in [Smith].
+    The cell vecs must be the rows of `cp`.
+
+    args:
+    -----
+    %(cp_doc)s
+    %(align_doc)s
+
+    returns:
+    --------
+    rmax : float
+
+    refs:
+    -----
+    [Smith] W. Smith, The Minimum Image Convention in Non-Cubic MD Cells,
+            http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.57.1696
+            1989
+    """
+    if align == 'cols':
+        cp = cp.T
+    a = cp[:,0]
+    b = cp[:,1]
+    c = cp[:,2]
+    bxc = np.cross(b,c)
+    cxa = np.cross(c,a)
+    axb = np.cross(a,b)
+    wa = abs(np.dot(a, bxc)) / norm(bxc)
+    wb = abs(np.dot(b, cxa)) / norm(cxa)
+    wc = abs(np.dot(c, axb)) / norm(axb)
+    rmax = 0.5*min(wa,wb,wc)
+    return rmax
+
+
+@crys_add_doc
+def rpdf(coords, cp, dr, rmax='auto', align='rows', pbc=True, full_output=False):
+    """ Radial pair distribution (pair correlation) function. This is for one
+    atomic structure, i.e. one unit cell or time step in MD. Can slao handle
+    non-orthorhombic unit cells (simulation boxes).
+    
+    args:
+    -----
+    coords : 2d array (natoms, 3)
+    %(cp_doc)s
+    dr : radius spacing (x-axis spacing for RDF)
+    rmax : {'auto', float}
+        'auto': the method of [Smith] is used to calculate the max. sphere
+            raduis for any cell shape
+        float: set value yourself
+    %(align_doc)s
+    pbc : bool
+        apply minimum image convention
+    full_output : bool
+
+    returns:
+    --------
+    (rad, hist, (number_density, number_integral, rmax_auto))
+    rad : 1d array, radius (x-axis) with spacing `dr`, each value r[i] is the
+        middle of a histogram bin 
+    hist : 1d array, (len(rad),)
+        the function values g(r)
+    if full_output:
+        number_density : float
+            natoms / unit cell volume
+        number_integral : 1d array, (len(rad)-1,)
+            number_density*hist*4*pi*r**2.0*dr
+        rmax_auto : float
+            auto-calculated rmax, even if not used (i.e. rmax is set from
+            input)
+    
+    examples:
+    ---------
+    >>> rad, hist, dens, num_int, rmax_auto = rpdf(coords, cp, dr, full_output=True)
+    >>> plot(rad, hist)
+    >>> plot(rad[:-1]+0.5*np.diff(rad), num_int)
+     
+    refs:
+    -----
+    [AT] M. P. Allen, D. J. Tildesley, Computer Simulation of Liquids,
+         Clarendon Press, 1989
+    [MD] R. Haberlandt, S. Fritzsche, G. Peinel, K. Heinzinger,
+         Molekulardynamik - Grundlagen und Anwendungen,
+         Friedrich Vieweg & Sohn Verlagsgesellschaft 1995
+    [Smith] W. Smith, The Minimum Image Convention in Non-Cubic MD Cells,
+            http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.57.1696
+            1989
+    """
+    # TODO:
+    # -----
+    # * Averaging over time steps (frames in VMD). ATM, you must use this
+    #   function on each frame and average yourself.
+    # * RDF between selection of atoms, e.g. between H  and O. For that, accept
+    #   2 coords arrays. Then, sij will be (N,M,3) and we need to use np.tri()
+    #   etc instead of np.triu_indices().
+    #
+    # Verification
+    # ------------
+    # 
+    # This function was tested against VMD's "measure gofr" command. VMD can
+    # only handle orthorhombic boxes. To test non-orthorhombic boxes:
+    #   * take your non-orthorhombic unit cell and create a supercell
+    #   * transform the crystal coords from your unit cell to cartesian coords
+    #     and construct a supercell for that, too -> you got a orthorhombic box
+    #     now
+    #   * make sure that both boxes can contain a sphere of `rmax`
+    #   * feed the orthorhombic box to VMD, use the SAME rmax for both boxes
+    #
+    # Theory
+    # ------
+    #
+    # Below, "density" always means number density, i.e. number of particles
+    # (N atoms in the unit cell)  / (unit cell) volume V.
+    #
+    # g(r) is (a) the average number of atoms in a shell [r,r+dr] around an
+    # atom or (b) the average density of atoms in that shell -- relative to an
+    # "ideal gas" (random distribution) of density N/V. Also sometimes: The
+    # number of atom pairs with distance r relative the the number of pairs in
+    # a random distribution.
+    #
+    # For each atom i=1,N, count the number dn(r) of atoms j around it in the
+    # shell [r,r+dr] with rij = r_i - r_j.
+    #   
+    #   dn(r) = sum(i=1,N) sum(j=1,N, j!=i) delta(r - rij)
+    # 
+    # We sum over N atoms, so we have to divide by N -- that's why g(r) is an
+    # average. Also, we normalize to ideal gas values
+    #   
+    #   g(r) = dn(r) / (N * V(r) * rho)
+    #   V(r) = 4*pi*r**2*dr = 4/3*pi*[(r+dr)**3 - r**3]
+    #   rho = N/V
+    # 
+    # where V(r) the volume of the shell. Formulation (a) from above: rho*V(r)
+    # is the number of atoms in the shell for an ideal gas or (b):  dn(r) /
+    # V(r) is the density of atoms in the shell and dn(r) / (V(r) * rho) is
+    # that density relative to the ideal gas density rho. Clear? :)
+    # 
+    # g(r) -> 1 for r -> inf in liquids, i.e. long distances are not
+    # correlated. Their distribution is random. In a crystal, we get an
+    # infinite series of delta peaks at the distances of the 1st, 2nd, ...
+    # nearest neighbor shell.
+    #
+    # The number integral is
+    #
+    #   I(r1,r2) = int(r=r1,r2) rho*g(r)*4*pi*r**2*dr
+    # 
+    # which can be used to calculate coordination numbers, i.e. it counts the
+    # average number of atoms around an atom in a shell [r1,r2]. 
+    #   
+    # Integrating to infinity
+    #
+    #   I(0,inf) = N-1
+    #
+    # gives the average number of *all* atoms around an atom, *excluding* the
+    # central one. This integral will converge to N-1 with or without PBC, but
+    # w/o PBC, the nearest neigbor numbers I(r1,r2) will be wrong! Always use
+    # PBC (minimum image convention). Have a look at the following table:
+    #
+    #                                nearest neighb.     I(0,rmax) = N-1  
+    # pbc=Tue,   rmax <  rmax-auto   +                   -
+    # pbc=Tue,   rmax >> rmax-auto   +                   +
+    # pbc=False, rmax <  rmax-auto   -                   -
+    # pbc=Nalse, rmax >> rmax-auto   -                   +
+    # 
+    # Interestingly though, in the 2nd case the nearest neighbors are also
+    # correct (pbc=True, rmax > rmax-auto). Why? A too big rmax should be
+    # inconsistent with the MIC. These results were obtained with a
+    # rocksalt-AlN crystal test case. However, [Smith] says: Use only the 1st
+    # case: pbc=True, rmax < rmax-auto.
+    #
+    # For a crystal, integrating over a peak [r-dr/2, r+dr/2] gives *exactly*
+    # the number of nearest neighbor atoms for that distance r b/c the
+    # normalizatiobn factor -- the number of atoms in an ideal gas for a narrow
+    # shell of width dr -- is 1.
+    #
+    assert coords.shape[1] == 3
+    assert cp.shape == (3,3)
+    if align == 'cols':
+        cp = cp.T
+    rmax_auto = rmax_smith(cp)
+    if rmax == 'auto':
+        rmax = rmax_auto
+    natoms = coords.shape[0]
+    volume = np.linalg.det(cp) # or crys.volume_cp()
+    number_density = float(natoms) / volume
+    # sij and rij
+    #
+    # sij: (N,N,3); sij is a "(N,N)-matrix" is length=3 distance vectors
+    #   equivalent 2d:  
+    #   >>> a=arange(5)
+    #   >>> sij = a[:,None]-a
+    #   or
+    #   >>> sij = a[:,None]-a[None,:]
+    sij = coords[:,None,:] - coords[None,...]
+    # np.tri() etc. for (N,M,3) and coords1[xxx]-coords2[yyy] for 2 selections
+    idx = np.triu_indices(natoms, 1)
+    # ((N**2 - N)/2, 3) 
+    sij = sij[idx[0], idx[1],:]
+    if pbc:
+        sij = min_image_convention(sij)
+    rij = np.dot(sij, cp) 
+    # ((N**2 - N)/2,) 
+    dists = np.sqrt((rij**2.0).sum(axis=1))
+    dists = dists[dists < rmax]
+    bins = np.arange(0, rmax+dr, dr)
+    hist, rad_hist = np.histogram(dists, bins=bins)
+    rad = rad_hist[:-1]+0.5*dr
+    volume_shells = 4.0/3.0*pi*(rad_hist[1:]**3.0 - rad_hist[:-1]**3.0)
+    hist = hist * 2.0 / volume_shells * volume / (natoms)**2.0
+    out = (rad, hist)
+    if full_output:
+        number_integral = cumtrapz(number_density*hist*4*pi*rad**2.0, rad)
+        out += (number_density, number_integral, rmax_auto) 
+    return out
