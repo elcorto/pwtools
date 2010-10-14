@@ -114,13 +114,13 @@ class ElkEOSfit(ExternEOS):
     Note that the data produced by eos.x is normalized to natoms and that
     energy is in Hartree. We remove the normalization and convert Ha ->Ry.
     """
-    def __init__(self, app='eos.x', natom=1, name='foo', etype=1, **kwargs):
+    def __init__(self, app='eos.x', natoms=1, name='foo', etype=1, **kwargs):
         """
         args:
         -----
         see ExternEOS.__init__()
 
-        natom : number of atoms in the unit cell, this is (I think) only used
+        natoms : number of atoms in the unit cell, this is (I think) only used
             for normalization and can be set to 1 if not needed
         name : str
             some dummy name for the input file
@@ -142,7 +142,7 @@ class ElkEOSfit(ExternEOS):
         """
         ExternEOS.__init__(self, app=app, **kwargs)
         self.name = name
-        self.natom = natom
+        self.natoms = natoms
         self.etype = etype
         # From the README:
         # ----------------
@@ -181,7 +181,7 @@ class ElkEOSfit(ExternEOS):
 %i
 %s
         """%(self.name, 
-             self.natom, 
+             self.natoms, 
              self.etype, 
              self.volume[0], self.volume[-1], npoints,
              len(self.volume), 
@@ -191,9 +191,9 @@ class ElkEOSfit(ExternEOS):
         print(open(os.path.join(self.dir,'PARAM.OUT')).read())
         # remove normalization on natoms
         # convert energy back to Ry
-        fitev = np.loadtxt(os.path.join(self.dir,'EVPAI.OUT')) * self.natom
+        fitev = np.loadtxt(os.path.join(self.dir,'EVPAI.OUT')) * self.natoms
         fitev[:,1] *= 2.0
         self.fitdata_energy = fitev
         fitpv = np.loadtxt(os.path.join(self.dir,'PVPAI.OUT'))
-        fitpv[:,0] *= self.natom
+        fitpv[:,0] *= self.natoms
         self.fitdata_pressure = fitpv
