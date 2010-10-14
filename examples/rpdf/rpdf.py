@@ -1,3 +1,5 @@
+#!/usr/bin/python
+#
 # rpdf.py
 #
 # Test pwtools.crys.rpdf() -- the radial pair distribution function.
@@ -14,7 +16,6 @@ from pwtools import crys
 from pwtools import mpl
 plt = mpl.plt
 
-
 class Structure(object):
     def __init__(self, coords, cp, symbols, fnbase=None, tgtdir=None):
         self.coords = coords
@@ -22,7 +23,7 @@ class Structure(object):
         self.symbols = symbols
         self.fnbase = fnbase
         self.tgtdir = tgtdir
-        if not os.path.exists(self.tgtdir):
+        if (self.tgtdir is not None) and not os.path.exists(self.tgtdir):
             os.makedirs(self.tgtdir)
     
     def _assert_fnbase(self):        
@@ -48,9 +49,9 @@ class Structure(object):
     
     def savetxt(self):
         self._assert_fnbase()
-        fn_coords = self.fnbase + '.coords.txt'
-        fn_cp = self.fnbase + '.cp.txt'
-        print("writing: %s, %s" %fn_coords, fn_cp)
+        fn_coords = self._get_fn('.coords.txt')
+        fn_cp = self._get_fn('.cp.txt')
+        print("writing: %s, %s" %(fn_coords, fn_cp))
         np.savetxt(fn_coords, self.coords)
         np.savetxt(fn_cp, self.cp)
                     
@@ -79,6 +80,14 @@ def plot_pl(*pls):
     ax.hlines(1, xlo, xhi, color='k', lw=2)
     return fig,ax
 
+
+def rand(*args, **kwds):
+    """Wrapper for np.random.rand() which uses the same seed, no matter how
+    often called. Use only this function."""
+    np.random.seed(3)
+    return np.random.rand(*args, **kwds)
+
+
 if __name__ == '__main__':
     
     # Generate some structures and calculate their RPDF.
@@ -90,7 +99,7 @@ if __name__ == '__main__':
     #
     # random points in a cubic box, "ideal gas"
     #
-    coords = np.random.rand(100,3)
+    coords = rand(100,3)
     cp = np.identity(3)*10
     # some non-orthorombic cell
     ##cp = np.array([[1.0, 0.0, 0.0],
@@ -103,9 +112,9 @@ if __name__ == '__main__':
                               symbols, 
                               fnbase=name,
                               tgtdir=tgtdir)
-    ##structs[name].write_cif(conv=False)
+    structs[name].write_cif(conv=False)
     structs[name].write_axsf()
-    ##structs[name].savetxt()
+    structs[name].savetxt()
 
     
     # AlN ibrav=0 
@@ -135,7 +144,7 @@ if __name__ == '__main__':
                        [0.0, 0.5, 0.5],
                        [0.5, 0.5, 0.5],
                        ])
-    symbols_in = ['Al', 'N', 'N', 'Al', 'N', 'Al', 'Al', 'N ']
+    symbols_in = ['Al', 'N', 'N', 'Al', 'N', 'Al', 'Al', 'N']
     alat = 5.0
     cp_in = np.identity(3) * alat
     sc = crys.scell(coords, cp_in, (2,2,2), symbols_in)
@@ -145,9 +154,9 @@ if __name__ == '__main__':
                               sc['symbols'], 
                               fnbase=name,
                               tgtdir=tgtdir)
-    ##structs[name].write_cif(conv=False)
+    structs[name].write_cif(conv=False)
     structs[name].write_axsf()
-    ##structs[name].savetxt()
+    structs[name].savetxt()
 
     
     # AlN ibrav=2
@@ -171,9 +180,9 @@ if __name__ == '__main__':
                               sc['symbols'], 
                               fnbase=name,
                               tgtdir=tgtdir)
-    ##structs[name].write_cif(conv=False)
+    structs[name].write_cif(conv=False)
     structs[name].write_axsf()
-    ##structs[name].savetxt()
+    structs[name].savetxt()
     # ---- AlN ibrav=2 -----------------------------------------------------------
 
     # For all structs, calculate rmax=5 (= rmax_auto for aln_ibrav0_sc for a
