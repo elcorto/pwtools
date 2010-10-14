@@ -410,4 +410,19 @@ if __name__ == '__main__':
     hostax.set_title('many axis lines yeah yeah')
     
     hostax.legend()
+    
+    
+    #-------------------------------------------------------------------------
+    # plotlines3d
+    #-------------------------------------------------------------------------
+
+    fig4, ax3d = fig_ax3d()
+    x = np.linspace(0,5,100)
+    y = np.arange(1.0,5) # len(y) = 4
+    z = np.repeat(np.sin(x)[:,None], 4, axis=1)/y # make 2d 
+    plotlines3d(ax3d, x, y, z)
+    ax3d.set_xlabel('x')
+    ax3d.set_ylabel('y')
+    ax3d.set_zlabel('z')
+    
     plt.show()
