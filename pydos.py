@@ -1,20 +1,12 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*- 
-
-
+# pydos.py
+#
 # Post-process molecular dynamics data produced by the Quantum Espresso package
-# (quantum-espresso.org). 
+# (quantum-espresso.org) or, in fact any data that parse.py can handle.
 # 
-# This module implements the functionallity to calculate the phonon DOS from MD
-# trajectories. For parsing output files into a format which is used here, see
-# parse.py and test/* for examples.
-# 
-
-##from debug import Debug
-##DBG = Debug()
-
-# timing of the imports
-##DBG.t('import')
+# This module implements the functionallity to calculate the phonon density of
+# states (PDOS) from MD trajectories. For parsing output files into a format
+# which is used here, see parse.py and test/* for examples. For a theory
+# overview, see README and refs therein.
 
 import os
 from itertools import izip
@@ -25,7 +17,6 @@ norm = np.linalg.norm
 # slow import time for these
 from scipy.fftpack import fft
 
-# own modules
 from pwtools import constants
 from pwtools import _flib
 from pwtools import common as com
@@ -35,8 +26,6 @@ from pwtools.signal import pad_zeros, welch
 
 # aliases
 pjoin = os.path.join
-
-##DBG.pt('import')
 
 
 # backward compat for older scripts using pwtools, not used here
@@ -54,7 +43,6 @@ VERBOSE = False
 #-----------------------------------------------------------------------------
 # computational
 #-----------------------------------------------------------------------------
-
 
 def velocity(coords, dt=None, copy=True, tslice=slice(None), axis=-1):
     """Compute velocity from 3d array with MD trajectory.
@@ -79,7 +67,7 @@ def velocity(coords, dt=None, copy=True, tslice=slice(None), axis=-1):
     returns:            
     --------
     vel : 3D array, shape (natoms, 3, <determined_by_tslice>) 
-        Usally, this is (natoms, 3, netsp-1) for tslice=slice(None), i.e. if
+        Usally, this is (natoms, 3, nstep-1) for tslice=slice(None), i.e. if
         vel is computed from all steps.
 
     notes:
@@ -274,7 +262,7 @@ def direct_pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
     #   axis 1 of vel2
     # * Pad velocities w/ zeros along `axis`.
     # * Possible optimization: always pad up to the next power of 2.
-    # * using breadcasting for multiplication with Welch window:
+    # * using broadcasting for multiplication with Welch window:
     #   # 1d
     #   >>> a = welch(...)
     #   # tranform to 3d, broadcast to axis 0 and 1 (time axis = 2)

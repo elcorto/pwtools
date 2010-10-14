@@ -1,19 +1,20 @@
 # version.py
 #
-# Simple utils to do version checking. It is up to the user to do that.
+# Utils to do version checking in scripts which use this package.
+#
+# The current implementation assumes that a file .hgtags resides in the
+# package. This is true for the hg repo and for an archive created with "hg
+# archive".
 # 
 # Examples
 # --------
 #
 # >>> from pwtools import version as ver
-#
 # >>> assert ver.version > ver.tov('0.5.2'), "must use > 0.5.2"
-# 
 # >>> assert ver.tov('0.5.2') < ver.version < ver.tov('0.6.0b1'), \
 # "use version between 0.5.2 and 0.6.0b1"
 
 from distutils.version import StrictVersion
-##from common import backtick
 import os.path 
 
 def toversion(v1):
@@ -34,9 +35,6 @@ tov = toversion
 #     tip                              271:b733e197c96a
 # --> 0.9.2                            268:a4ecac0432a8
 #     0.9.1                            265:82817214abb2
-#     
-##version_str = "0.9.2"
-##version_str = backtick('hg tags | head -n2').split()[2]
 
 hgtags = os.path.join(pathback(__file__, 1), '.hgtags')
 if not os.path.exists(hgtags):

@@ -1,4 +1,13 @@
 #!/usr/bin/env python
+# 
+# cif2pwin.py
+#
+# Extract information from a .cif file and print them in a format suitable for
+# inclusion in a pascf input file.
+#
+# usage:
+#   cif2pwin.py foo.cif
+
 
 import sys
 import numpy as np

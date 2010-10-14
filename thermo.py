@@ -37,7 +37,7 @@ class HarmonicThermo(object):
             Warn about found NaNs. To actually fix them, set fixnan=True.
         fixnan : bool
             Currently, set all NaNs to 0.0 if checknan=True. This is
-            a hack b/c we must assume (know) that these numbers should be 0.0.
+            a HACK b/c we must assume that these numbers should be 0.0.
             Use if YKWYAD.
         """
         # notes:
@@ -99,9 +99,9 @@ class HarmonicThermo(object):
         if self.checknan:
             mask = np.isnan(y)
             if mask.any():
-                print "HarmonicThermo._integrate: warning: NaNs found!"
+                print("HarmonicThermo._integrate: warning: NaNs found!")
                 if self.fixnan:
-                    print "HarmonicThermo._integrate: warning: fixing NaNs!"
+                    print("HarmonicThermo._integrate: warning: fixing NaNs!")
                     y[mask] = 0.0
         return np.array([simps(y[i,:], f) for i in range(y.shape[0])])
     

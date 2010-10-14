@@ -85,14 +85,6 @@
 # 1 cm^-1     = 2.998e10 Hz = 0.02998 THz
 
 
-
-
-
-__all__ = ['pi', 'h', 'hbar', 'm0', 'e0', 'mu0', 'c0', 'eps0', 'a0', \
-           'Eh', 'th', 'kb', 'avo', 'dyn', 'Eryd', 'tryd', 'R', \
-           'a0_to_A', 'Ry_to_eV', 'Ry_to_J', 'J_to_rcm', 'Ry_to_rcm', \
-           'rcm_to_Hz', 'Ry_to_Hz']
-
 # constants
 
 from math import pi

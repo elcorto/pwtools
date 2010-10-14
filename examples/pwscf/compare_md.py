@@ -22,7 +22,6 @@ if __name__ == '__main__':
     #   p2.parse()
     # or ...  
     for run, dir in runs.iteritems():
-        inf = dir
         pp[run] = parse.PwOutputFile(filename=pj(dir, 'pw.out'), 
                                      infile=pj(dir, 'pw.in'))
         pp[run].parse()

@@ -1,3 +1,7 @@
+# pwscf.py
+#
+# Some handy tools to construct strings which for building pwscf input files.
+
 import numpy as np
 from common import fix_eps, str_arr
 

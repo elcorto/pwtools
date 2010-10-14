@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
-# Plot a dispersion. This is a simplified (and non-ugly) version of QE's
-# plotband.x . Reads a k-point - frequency file produced by QE's matdyn.x 
-# See parse_dis().
+# Plot a dispersion. This is a simplified version of QE's plotband.x . Reads a
+# k-point - frequency file produced by QE's matdyn.x See parse_dis().
 #
 # This is a q'n'd hack. Patches welcome.
 

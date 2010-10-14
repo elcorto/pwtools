@@ -1,6 +1,6 @@
 from time import time
 
-class Debug:
+class Debug(object):
     """
     Helper Class for timimg and debugging. It's meant to be used for manually
     inspecting code. For permanent verbose/debug stuff, use the logging and
@@ -38,7 +38,6 @@ class Debug:
         ....
     """
     def __init__(self):
-##        self.none_ar = np.array([None, None])
         self.none_ar = [None, None]
         # {'tag0': array([val0, val1]), 'tag1': array([val2, val3]), ...}
         # Every `val` can be None or a float (= a time value). `tag` is a tag
@@ -54,11 +53,11 @@ class Debug:
             tag -- a tag (string) associated with a storage array
                                        
         Notes:
-            After initialization, self.time_ar_dict[tag] == array([None, None]).
+            After initialization, self.time_ar_dict[tag] == [None, None].
             
             The 1st call assings self.time_ar_dict[tag][0] = <time>. 
             The 2nd call assings self.time_ar_dict[tag][1] = <time>. 
-            The 3rd call resets self.time_ar_dict[tag][1] = array([None, None])
+            The 3rd call resets self.time_ar_dict[tag][1] = [None, None]
             and recursively calls t(), which then does the the same as the 1st.
             ...
         """
@@ -71,7 +70,6 @@ class Debug:
             # lists:
             #   Behave like numpy arrays (b = a is view of a). Must also copy:
             #   b = a[:] (use slicing).
-##            self.time_ar_dict[tag] = self.none_ar.copy()
             self.time_ar_dict[tag] = self.none_ar[:]
         
         # array is [None, None], assign the 1st time value.
@@ -83,7 +81,6 @@ class Debug:
         # array is [<val>, <val>], so reset to [None, None] and 
         # assign the 1st time value.
         else:            
-##            self.time_ar_dict[tag] = self.none_ar.copy()
             self.time_ar_dict[tag] = self.none_ar[:]
             self.t(tag)
  
@@ -95,7 +92,6 @@ class Debug:
             raise ValueError("array for tag '%s' not jet initialized; " %tag\
                 + "you have to call t() first.")
         # hmm ... array is [None, None] .. shouldn't be
-##        if (self.none_ar == self.time_ar_dict[tag]).all():
         # list test: [a, a] == [a, a] -> True
         if self.none_ar == self.time_ar_dict[tag]:
             raise ValueError("time array for tag '%s' or none_ar is wrong:\n" 
@@ -107,8 +103,8 @@ class Debug:
             # [<val>, None], assign second time                
             if self.time_ar_dict[tag][1] is None:
                 self.t(tag)
-            print "--DEBUG--: %s: %s time: %s" %(tag, msg,\
-                self.time_ar_dict[tag][1] - self.time_ar_dict[tag][0])
+            self.p("%s: %s time: %s" %(tag, msg,\
+                self.time_ar_dict[tag][1] - self.time_ar_dict[tag][0]))
         else:                
             raise ValueError("illegal array content for tag '%s' " %tag)
     

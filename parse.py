@@ -47,14 +47,14 @@ except ImportError:
     print("%s: Warning: Cannot import BeautifulSoup. " 
     "Parsing XML/HTML/CML files will not work." %__file__)
 
-import io
-import common
+from pwtools import io
+from pwtools import common
 com = common
-import constants
-from verbose import verbose
-import regex
-import crys
-from pwscf import atpos_str
+from pwtools import constants
+from pwtools.verbose import verbose
+from pwtools import regex
+from pwtools import crys
+from pwtools.pwscf import atpos_str
 
 
 #TODO Get atom masses from periodic_table.py, not from the input file (pw.in).
@@ -193,8 +193,9 @@ class FileParser(object):
     self.attr_list is a list of strings, each is the name of a data attribute,
     e.g. ['foo', 'bar', '_baz', ...]. For each attr, there must exist a getter.
     We define the convention 
+      
       self.foo  -> self.get_foo() 
-      self.bar  -> self.get_bar()
+      self.bar  -> self.get_bar()  
       self._baz -> self._get_baz() # note the underscores
       ... 
     
@@ -302,7 +303,9 @@ class StructureFileParser(FileParser):
     Classes derived from this one must provide the following members. If a
     particular information is not present in the parsed file, the corresponding
     member must be None.
-
+    
+    parsing results:
+    ----------------
     self.coords : ndarray (natoms, 3) with atom coords
     self.symbols : list (natoms,) with strings of atom symbols, must match the
         order of the rows of self.coords
@@ -1251,7 +1254,6 @@ class PwOutputFile(FileParser):
         
         self.time_axis = -1
 
-        # This list of calls is supposed to be order-independent.
         self.set_attr_lst([\
         'infile', 
         'nstep', 
@@ -1290,7 +1292,7 @@ class PwOutputFile(FileParser):
         self.close_file()
     
     def get_infile(self):
-        """Return a PwInputFile instance """
+        """Return a PwInputFile instance."""
         verbose("getting infile")
         if isinstance(self._infile, types.StringType):
             infile = PwInputFile(self._infile)

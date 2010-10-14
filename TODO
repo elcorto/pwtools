@@ -11,14 +11,24 @@ pydos.py
   pw.in and that of the parsed out ones from pw.out are the same. Check this!
   For example, it is seems to be NOT the same for cp.x!
 
-- Implement the maximum entropy method .. or not.
-
 all
 ---
 - Drop verbose.py. Use the logging or warnings module.
 
 - Fix importing. Use full module name "pwtools.foo" instead of "foo" for
   intra-package imports. 
+
+- Add class Structure to hold stuff like
+    - coords
+    - cp       
+    - forces 
+    - symbols
+    - ...
+    - align (attr) describing `cp` 
+  much like ASE's Atoms class. This would drastically simplify the writing and
+  maintaining of all functions which take coords, cp, symbols .. as args
+  (crys.py). Make parsing classes have an attr `structure`, which is an
+  instance of Structure.
 
 tests
 -----
@@ -27,4 +37,9 @@ tests
 - For all parsing funcs, add test output data (e.g. text files with arrays).
   np.loadtxt() these arrays and compare them to parsed ones, e.g. p.coords .
 
-- Add test for eos.py
+- Add tests for 
+    eos.py
+    crys.rpdf()
+    crys.scell()
+
+- crys.scell(): make symbols an optional kwarg

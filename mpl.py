@@ -13,12 +13,12 @@ try:
     from mpl_toolkits.axes_grid.parasite_axes import SubplotHost, \
         ParasiteAxes
 except ImportError:
-    print "mpl.py: cannot import from mpl_toolkits.axes_grid"
+    print("mpl.py: cannot import from mpl_toolkits.axes_grid")
 # This is with mpl < 1.0
 try:
     from mpl_toolkits.mplot3d import Axes3D
 except ImportError:
-    print "mpl.py: cannot import from mpl_toolkits.mplot3d"
+    print("mpl.py: cannot import from mpl_toolkits.mplot3d")
 
 #----------------------------------------------------------------------------
 # mpl helpers, boilerplate stuff
@@ -38,6 +38,8 @@ def plotlines3d(ax3d, x,y,z, *args, **kwargs):
              x[:,i] (2d) 
         2d : each column z[:,i] will be plotted against x (1d) or each x[:,i]
              (2d)
+    *args, **kwargs : additional args and keywords args passed to ax3d.plot()
+
     returns:
     --------
     ax3d

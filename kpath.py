@@ -6,7 +6,7 @@ from common import str_arr
 
 
 def vlinspace(a, b, num, endpoint=True):
-    """Like numpy.linspace, but for 1d arrays. Generate uniformly spaces points
+    """Like numpy.linspace, but for 1d arrays. Generate uniformly spaced points
     (vectors) along the distance vector connecting a and b.
     
     args:
@@ -19,6 +19,7 @@ def vlinspace(a, b, num, endpoint=True):
     array (num, len(a)), each row is a "point" between `a` and `b`
     """
     assert a.ndim == b.ndim == 1, "expect 1d arrays"
+    assert len(a) == len(b), "`a` and `b` must have equal length"
     # distance vec connecting a and b
     dv = b-a
     if endpoint:
@@ -50,7 +51,7 @@ def kpath(vecs, N):
     
     notes:
     ------
-    This is the simplest method one can think of. Points on the "file path" are
+    This is the simplest method one can think of. Points on the "fine path" are
     not equally distributed but with distance prop. to 1/N in every segment
     conneting two adjacent vertices.
     """

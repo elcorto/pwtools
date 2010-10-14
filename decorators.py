@@ -88,7 +88,7 @@ def crys_add_doc(func):
         'rows' : basis vecs are the rows of `cp`
         'cols' : basis vecs are the columns of `cp`"""
     dct['cp_doc'] = \
-    """cp: array_like, shape (3,3)
+    """cp: array, shape (3,3)
         Matrix with basis vectors."""
     dct['cryst_const_doc'] = \
     """cryst_const: array_like, shape (6,)

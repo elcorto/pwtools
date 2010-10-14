@@ -18,8 +18,9 @@
 #   de : frequency axis spacing
 #
 # usage:
-#   $ matddyn2fqha.py matdyn.phdos > PHDOS.out
+#   $ matdyn2fqha.py matdyn.phdos > PHDOS.out
 #   $ f90 F_QHA.f90 -o fqha.x
+#   # make input file "fqha.in" for fqha.x:
 #   $ cat fqha.in
 #     PHDOS.out   
 #     fqha.out    

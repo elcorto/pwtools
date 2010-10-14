@@ -1,6 +1,6 @@
 # crys.py
 #
-# Crystal and unit-cell related tools.
+# Crystal and unit-cell related tools. Some MD analysis tools, too.
 #
 
 from math import acos, pi, sin, cos, sqrt
@@ -16,10 +16,10 @@ except ImportError:
     print("%s: Warning: Cannot import CifFile from the PyCifRW package. " 
     "Parsing Cif files will not work." %__file__)
 
-from common import assert_cond
-import common
-import constants as con
-from decorators import crys_add_doc
+from pwtools.common import assert_cond
+import pwtools.common as common
+import pwtools.constants as con
+from pwtools.decorators import crys_add_doc
 
 #-----------------------------------------------------------------------------
 # misc math
@@ -89,11 +89,17 @@ def volume_cp(cp):
     >>> m = np.array([a,b,c])
     >>> volume_cp(m)
     9.0
+    >>> volume_cp(m.T)
+    9.0
     >>> m = rand(3,3)
     >>> volume_cp(m)
-    0.34119414123070052
+    0.11844733769775126
     >>> volume_cp(m.T)
-    0.34119414123070052
+    0.11844733769775123
+    >>> np.linalg.det(m)
+    0.11844733769775125
+    >>> np.linalg.det(m.T)
+    0.11844733769775125
 
     notes:
     ------
@@ -212,36 +218,25 @@ def cc2cp(cryst_const):
     alpha = cryst_const[3]*pi/180
     beta = cryst_const[4]*pi/180
     gamma = cryst_const[5]*pi/180
-    
     va = np.array([a,0,0])
     vb = np.array([b*cos(gamma), b*sin(gamma), 0])
-    
-    # vc must be calculated ...
-    # projection onto x axis (va)
+    # vc must be calculated:
+    # cx: projection onto x axis (va)
     cx = c*cos(beta)
-    
     # Now need cy and cz ...
-
-##    #
-##    # Maxima solution
-##    #   
-##    # volume of the unit cell 
-##    vol = volume_cc(cryst_const)
-##    print "Maxima: vol", vol
-##    cz = vol / (a*b*sin(gamma))
-##    print "Maxima: cz", cz
-##    cy = sqrt(a**2 * b**2 * c**2 * sin(beta)**2 * sin(gamma)**2 - \
-##        vol**2) / (a*b*sin(gamma))
-##    print "Maxima: cy", cy
-##    cy = sqrt(c**2 - cx**2 - cz**2)
-##    print "Pythagoras: cy", cy
-    
+    #
+    # Maxima solution
+    #   
+    ## vol = volume_cc(cryst_const)
+    ## cz = vol / (a*b*sin(gamma))
+    ## cy = sqrt(a**2 * b**2 * c**2 * sin(beta)**2 * sin(gamma)**2 - \
+    ##     vol**2) / (a*b*sin(gamma))
+    ## cy2 = sqrt(c**2 - cx**2 - cz**2)
+    #
     # PWscf , WIEN2K's sgroup, results are the same as with Maxima but the
     # formulas are shorter :)
     cy = c*(cos(alpha) - cos(beta)*cos(gamma))/sin(gamma)
-##    print "sgroup: cy", cy
     cz = sqrt(c**2 - cy**2 - cx**2)
-##    print "sgroup: cz", cz
     vc = np.array([cx, cy, cz])
     return np.array([va, vb, vc])
 
@@ -343,19 +338,19 @@ def scell_mask(dim1, dim2, dim3):
 
 
 @crys_add_doc
-def raw_scell(R0, mask, symbols):
+def raw_scell(coords, mask, symbols):
     """Build supercell based on `mask`. This function does only translate the
     atomic coords. it does NOT do anything with the crystal axes. See scell()
     for that.
 
     args:
     -----
-    R0 : 2d array, (natoms, 3) with atomic positions in *crystal* (fractional)
+    coords : 2d array, (natoms, 3) with atomic positions in *crystal* (fractional)
         coordinates (i.e. in units of the basis vecs in `cp`, for instance in .cif
         files _atom_site_fract_*), these represent the initial single unit cell
     mask : what scell_mask() returns, (N, 3)
     symbols : list of strings with atom symbols, (natoms,), must match with the
-        rows of R0
+        rows of coords
 
     returns:
     --------
@@ -367,7 +362,7 @@ def raw_scell(R0, mask, symbols):
 
     notes:
     ------
-    This is tested for R0 in 'crystal' coords, i.e. in units of `cp`.
+    This is tested for coords in 'crystal' coords, i.e. in units of `cp`.
     """
     # Build supercell 
     # ---------------
@@ -379,7 +374,7 @@ def raw_scell(R0, mask, symbols):
     #   mod(ni, floor(ni)) == 0.0)
     #
     # original cell:
-    # R0[i,:] = r_i = position vect of atom i in the unit cell in *crystal*
+    # coords[i,:] = r_i = position vect of atom i in the unit cell in *crystal*
     #           coords!!
     # 
     # super cell:
@@ -387,14 +382,14 @@ def raw_scell(R0, mask, symbols):
     #   for all permutations (see scell_mask()) of n1, n2, n3.
     #   ni = 0, ..., dim_i - 1, i = 1,2,3
     symbols_sc = []
-    Rsc = np.empty((mask.shape[0]*R0.shape[0], 3), dtype=float)
+    coords_sc = np.empty((mask.shape[0]*coords.shape[0], 3), dtype=float)
     k = 0
-    for iatom in range(R0.shape[0]):
+    for iatom in range(coords.shape[0]):
         for j in range(mask.shape[0]):
-            Rsc[k,:] = R0[iatom,:] + mask[j,:]
+            coords_sc[k,:] = coords[iatom,:] + mask[j,:]
             symbols_sc.append(symbols[iatom])
             k += 1
-    return {'symbols': symbols_sc, 'coords': Rsc}
+    return {'symbols': symbols_sc, 'coords': coords_sc}
 
 
 @crys_add_doc
@@ -575,7 +570,7 @@ def write_cif(filename, coords, symbols, cryst_const, fac=con.a0_to_A, conv=Fals
     common.file_write(filename, str(cf))
 
 #-----------------------------------------------------------------------------
-# atomic coords processing / evaluation
+# atomic coords processing / evaluation, MD analysis
 #-----------------------------------------------------------------------------
 
 
@@ -607,7 +602,7 @@ def rms3d(arr, axis=-1, nitems='all'):
     
     args:
     -----
-    arr : nd array, max arr.ndim = 3
+    arr : 3d array
     axis : int
         The axis along which the RMS of all sub-arrays is to be computed.
     nitems : {'all', float)
@@ -620,6 +615,7 @@ def rms3d(arr, axis=-1, nitems='all'):
     rms : 1d array, (arr.shape[axis],)
     """
     assert -1 <= axis <= 2, "allowed axis values: -1,0,1,2"
+    assert arr.ndim == 3, "arr must be 3d array"
     if axis == -1:
         axis = arr.ndim - 1
     if nitems == 'all':
@@ -734,24 +730,24 @@ def pbc_wrap(coords, copy=True, mask=[True]*3, xyz_axis=-1):
     return tmp        
 
 
-def coord_trans(R, old=None, new=None, copy=True, align='cols'):
+def coord_trans(coords, old=None, new=None, copy=True, align='cols'):
     """Coordinate transformation.
     
     args:
     -----
-    R : array (d0, d1, ..., M) 
+    coords : array (d0, d1, ..., M) 
         Array of arbitrary rank with coordinates (length M vectors) in old
         coord sys `old`. The only shape resiriction is that the last dim must
-        equal the number of coordinates (R.shape[-1] == M == 3 for normal 3-dim
-        x,y,z). 
-            1d : OK trivial, transform that vector (length M)
+        equal the number of coordinates (coords.shape[-1] == M == 3 for normal
+        3-dim x,y,z). 
+            1d : trivial, transform that vector (length M)
             2d : The matrix must have shape (N,M), i.e. the vectors to be
                 transformed are the *rows*.
-            3d : R must have the shape (..., M)                 
+            3d : coords must have the shape (..., M)                 
     old, new : 2d arrays
         matrices with the old and new basis vectors as rows or cols
     copy : bool, optional
-        True: overwrite `R`
+        True: overwrite `coords`
         False: return new array
     align : string
         {'cols', 'rows'}
@@ -760,7 +756,7 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
 
     returns:
     --------
-    array of shape = R.shape, coordinates in system `new`
+    array of shape = coords.shape, coordinates in system `new`
     
     examples:
     ---------
@@ -784,21 +780,21 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
     >>> coord_trans(v_X,X,I)
     array([ 1. ,  1.5])
     
-    >>> Rold = np.random.rand(30,200,3)
+    >>> coordsold = np.random.rand(30,200,3)
     >>> old = np.random.rand(3,3)
     >>> new = np.random.rand(3,3)
-    >>> Rnew = coord_trans(Rold, old=old, new=new)
-    >>> Rold2 = coord_trans(Rnew, old=new, new=old)
-    >>> np.testing.assert_almost_equal(Rold, Rold2)
+    >>> coordsnew = coord_trans(coordsold, old=old, new=new)
+    >>> coordsold2 = coord_trans(coordsnew, old=new, new=old)
+    >>> np.testing.assert_almost_equal(coordsold, coordsold2)
     
     # these do the same: A, B have vecs as rows
-    >>> RB1=coord_trans(Rold, old=old, new=new, align='rows') 
-    >>> RB2=coord_trans(Rold, old=old.T, new=new.T, align='cols') 
-    >>> np.testing.assert_almost_equal(Rold, Rold2)
+    >>> coordsB1=coord_trans(coordsold, old=old, new=new, align='rows') 
+    >>> coordsB2=coord_trans(coordsold, old=old.T, new=new.T, align='cols') 
+    >>> np.testing.assert_almost_equal(coordsold, coordsold2)
     
     # If you have an array of shape, say (10,3,100), i.e. the last dimension is
     # NOT 3, then use numpy.swapaxes():
-    >>> coord_trans(arr.swapaxes(1,2)).swapaxes(1,2)
+    >>> coord_trans(arr.swapaxes(1,2), old=..., new=...).swapaxes(1,2)
 
     refs:
     [1] http://www.mathe.tu-freiberg.de/~eiermann/Vorlesungen/HM/index_HM2.htm
@@ -807,7 +803,7 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
     # Coordinate transformation:
     # --------------------------
     #     
-    # Mathematical formulation:
+    # From the textbook:
     # X, Y square matrices with basis vecs as *columns*.
     #
     # X ... old, shape: (3,3)
@@ -827,15 +823,15 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
     # 
     # Every product X . v_X, Y . v_Y, v_I . I (in general [basis] .
     # v_[basis]) is actually an expansion of v_{X,Y,...} in the basis vectors
-    # vontained in X,Y,... . If the dot product is computed, we always get v in
+    # contained in X,Y,... . If the dot product is computed, we always get v in
     # cartesian coords. 
     # 
     # Now, v_X^T is a row(!) vector (1,M). This form is implemented here (see
     # below for why). With
     #     
-    #     A^T == A.T = [[--- a0 ---], 
-    #                   [--- a1 ---], 
-    #                   [--- a2 ---]] 
+    #     A^T = [[--- a0 ---], 
+    #            [--- a1 ---], 
+    #            [--- a2 ---]] 
     # 
     # we have
     #
@@ -852,8 +848,9 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
     #       = dot(A, v_X)         <=> v_Y[i] = sum(j=0..2) A[i,j]*v_X[j]
     #       = dot(v_X, A.T)       <=> v_Y[j] = sum(i=0..2) v_X[i]*A[i,j]
     # 
-    # Note that in numpy `v` is actually an 1d array for which v.T == v, i.e.
-    # the transpose is not defined and so dot(A, v_X) == dot(v_X, A.T).
+    # numpy note: In numpy A.T is the transpose. `v` is actually an 1d array
+    # for which v.T == v, i.e. the transpose is not defined and so dot(A, v_X)
+    # == dot(v_X, A.T).
     #
     # In general, if we don't have one vector `v` but an array R (N,M) of row
     # vectors:
@@ -870,8 +867,8 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
     # -------------
     #     
     # If we want to use fast numpy array broadcasting to transform many `v`
-    # vectors at once, we must use the form dot(R,A.T) (or, well, transform R
-    # to have the vectors as cols and then use dot(A,R)).
+    # vectors at once, we must use the form dot(R,A.T) or, well, transform R to
+    # have the vectors as cols: dot(A,R.T)).T .
     # The shape of `R` doesn't matter, as long as the last dimension matches
     # the dimensions of A (e.g. R: shape = (n,m,3), A: (3,3), dot(R,A.T): shape
     # = (n,m,3)).
@@ -916,13 +913,13 @@ def coord_trans(R, old=None, new=None, copy=True, align='cols'):
         old = old.T
         new = new.T
         msg = 'after transpose, '
-    common.assert_cond(R.shape[-1] == old.shape[0], "%slast dim of `R` must match first dim"
-        " of `old` and `new`" %msg)
+    common.assert_cond(coords.shape[-1] == old.shape[0], 
+                       "%slast dim of `coords` must match first dim"
+                       " of `old` and `new`" %msg)
     if copy:
-        tmp = R.copy()
+        tmp = coords.copy()
     else:
-        tmp = R
+        tmp = coords
     # must use `tmp[:] = ...`, just `tmp = ...` is a new array
     tmp[:] = np.dot(tmp, np.dot(inv(new), old).T)
     return tmp
-

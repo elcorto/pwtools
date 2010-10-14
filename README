@@ -32,7 +32,7 @@ Python versions
 ---------------
 
 Developed mostly with Python 2.5. Should work with all versions from 2.4 on,
-bot not yet 3.x. Also, python2.6 has not jet been tested.
+but not yet 3.x. Also, python2.6 has not been tested yet.
 
 Add-on packages
 ---------------
@@ -75,8 +75,8 @@ an MD trajectory (V is is array of atomic velocities, see pydos.velocity().
 Both methods are implemented but actually only method (2) is worth using.
 Method (1) still exists for historical reasons and as reference.
 
-- In method (1), if you mirror the VACF before the FFT, then you get double
-  frequency resolution. 
+- In method (1), if you mirror the VACF at t=0 before the FFT, then you get
+  double frequency resolution. 
 
 - By default, direct_pdos() uses zero padding to get the same frequency
   resolution as you would get with mirroring the signal in vacf_pdos().
@@ -114,7 +114,7 @@ Atomic coordinates
 ------------------
 
 In PWscf terms, alat = celldm(1) = lattice constant "a" in a.u. . A length in
-a.u. means a unit or Bohr.
+a.u. means a unit or Bohr = a0 = 0.52917720859 Angstrom.
 
 To calculate the PDOS, atomic coordinates from MD trajectories have to be in
 cartesian coordinates. You may have to transform them *before* using them to
