@@ -978,8 +978,8 @@ class FileTemplate(object):
     >>>
     >>> from sql import SQLEntry
     >>> dct = {}                     
-    >>> dct['prefix']  = SQLEntry(sql_type='text',  sql_val='foo_run_1')
-    >>> sct['ecutwfc'] = SQLEntry(sql_type='float', sql_val=23.0)
+    >>> dct['prefix']  = SQLEntry(sqltype='text',  sqlval='foo_run_1')
+    >>> sct['ecutwfc'] = SQLEntry(sqltype='float', sqlval=23.0)
     >>> templ2.writesql(dct, 'calc/0')
     """
     
@@ -1045,7 +1045,7 @@ class FileTemplate(object):
             the dir where to write the target file to
         mode : str, {'dct', 'sql'}
             mode='dct': replacement values are dct[<key>]
-            mode='sql': replacement values are dct[<key>].file_val and every
+            mode='sql': replacement values are dct[<key>].fileval and every
                 dct[<key>] is an SQLEntry instance
         """
         if type is not None:
@@ -1083,7 +1083,7 @@ class FileTemplate(object):
                     rules[self._get_placeholder(key)] = dct[key]
                 elif mode == 'sql':                    
                     # dct = sql_record, a list of SQLEntry's
-                    rules[self._get_placeholder(key)] = dct[key].file_val
+                    rules[self._get_placeholder(key)] = dct[key].fileval
                 else:
                     raise StandardError("'mode' must be wrong")
             file_write(tgt, template_replace(txt, rules, mode='txt',

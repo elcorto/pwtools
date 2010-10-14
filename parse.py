@@ -1730,10 +1730,10 @@ class Grep(object):
     (1) define Grep objects
 
     patterns = { 
-        "nelec_out"  : Grep(sql_type = 'FLOAT',
+        "nelec_out"  : Grep(sqltype = 'FLOAT',
                             regex = re.compile(r'number.*electr.*=\s*(.*)\s*'),
                             basename = 'pw.out'),
-        "finished": Grep(sql_type='TEXT', 
+        "finished": Grep(sqltype='TEXT', 
                          regex = re.compile(r'end.*bfgs', re.I),
                          handle = lambda m: m if m is None else 'yes' ,
                          basename='pw.out'),
@@ -1750,14 +1750,14 @@ class Grep(object):
     ...  ...
     20   'qq'
     
-    Note that `sql_type` is an optional kwarg. It is only used to automagically
+    Note that `sqltype` is an optional kwarg. It is only used to automagically
     add a column to the db table.
     
     sql = SQLiteDB(...)
     for name, grep in patterns.iteritems():
         if not sql.has_column('calc', name):
             sql.execute("ALTER TABLE calc ADD COLUMN %s %s" \
-                        %(name, grep.sql_type))
+                        %(name, grep.sqltype))
         for idx in range(0,20):
             dir = os.path.join('calc', idx)
             ret = grep.grepdir(dir)
@@ -1776,7 +1776,7 @@ class Grep(object):
     def __init__(self, regex, basename=None, 
                  handle = lambda m: m.group(1), 
                  func = re.search,
-                 sql_type=None):
+                 sqltype=None):
         """
         args:
         -----
@@ -1789,10 +1789,10 @@ class Grep(object):
             or whatever for further processing
         func : function object
             re module function re.<func>
-        sql_type : str, optional
+        sqltype : str, optional
             'TEXT', 'FLOAT', ...
         """
-        self.sql_type = sql_type
+        self.sqltype = sqltype
         self.regex = regex
         self.basename = basename
         self.handle = handle

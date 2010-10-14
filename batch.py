@@ -31,7 +31,7 @@ class Machine(object):
         for key in self.attr_lst:
             val = getattr(self, attr)
             if val is not None:
-                dct[key] = SQLEntry(sql_type='TEXT', sql_val=val)
+                dct[key] = SQLEntry(sqltype='TEXT', sqlval=val)
         return dct
     
     def _get_jobtempl(self):
