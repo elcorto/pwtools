@@ -37,12 +37,13 @@ class Debug(object):
             DBG.t('inner-loop')
         ....
     """
-    def __init__(self):
+    def __init__(self, silence=False):
         self.none_ar = [None, None]
         # {'tag0': array([val0, val1]), 'tag1': array([val2, val3]), ...}
         # Every `val` can be None or a float (= a time value). `tag` is a tag
         # string like 'outer-loop'.
         self.time_ar_dict = dict()
+        self.silence = silence
     
     def t(self, tag):
         """
@@ -110,5 +111,6 @@ class Debug(object):
     
     def p(self, msg):
         """ Simply print `msg`. """
-        print "--DEBUG--: %s" %msg 
+        if not self.silence:
+            print("--DEBUG--: %s" %msg)
 
