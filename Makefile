@@ -15,7 +15,7 @@
 #       see the package manager of your distro)
 # 
 # The module is compiled with f2py (currently part of numpy, tested with numpy
-# 1.1.0 with f2py 2_5237). 
+# 1.1.0 .. 1.4.x). 
 # 
 # Just try 
 #     
@@ -81,14 +81,6 @@
 # another compiler, e.g. gfortran, modify F2PY_FLAGS to use
 # --fcompiler=gnu95 or set --f90exec=/usr/bin/gfortran directly.     
 # 
-# There is also a pythonic way to build the extension: setup.py (i.e. using
-# Python's distutils).  See
-#     
-#     $ python setup.py help 
-#     $ python setup.py build --help-fcompiler
-#
-# and comments in setup.py .
-#
 # OpenMP 
 # ------
 # We managed to speed up the calculations by sprinkling some OpenMP
