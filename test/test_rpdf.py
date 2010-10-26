@@ -1,5 +1,5 @@
 # Test crys.rpdf() against reference results. Test 2 AlN structs from
-# examples/rpdf/rpdf.py and one random trajectory with selections (2 atom
+# examples/rpdf/rpdf_aln.py and one random trajectory with selections (2 atom
 # types) and time average.
 #
 # See examples/rpdf/ for more complete examples.

@@ -1186,7 +1186,7 @@ def rpdf(coords, cp, dr, rmax='auto', tslice=slice(None), align='rows',
     # Note that case (1) is the use case in [Smith]. Always use this. Also note
     # that case (2) appears to be also useful. However, it can be shown that
     # nearest neigbors are correct only up to rmax-auto! See
-    # examples/rpdf/rpdf.py .
+    # examples/rpdf/rpdf_aln.py .
     #
     # For a crystal, integrating over a peak [r-dr/2, r+dr/2] gives *exactly*
     # the number of nearest neighbor atoms for that distance r b/c the

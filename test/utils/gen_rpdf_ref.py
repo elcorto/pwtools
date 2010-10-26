@@ -6,8 +6,8 @@
 # pwtools/test/files/rpdf/result.*.txt files with reference results. 
 # Also, generate results for a random set of atoms.
 #
-# The AlN structures were generated with pwtools/examples/rpdf/rpdf.py .
-#   $ python pwtools/examples/rpdf/rpdf.py
+# The AlN structures were generated with pwtools/examples/rpdf/rpdf_aln.py .
+#   $ python pwtools/examples/rpdf/rpdf_aln.py
 #   $ cp /tmp/rpdf_test/* pwtools/test/files/rpdf/
 #   $ python pwtools/test/utils/gen_rpdf_ref.py 
 #

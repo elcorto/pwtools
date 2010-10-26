@@ -1,8 +1,9 @@
 #!/usr/bin/python
 #
-# rpdf.py
+# rpdf_aln.py
 #
-# Test pwtools.crys.rpdf() -- the radial pair distribution function.
+# Test pwtools.crys.rpdf() -- the radial pair distribution function -- on
+# crystal data (rs-AlN).
 # 
 # Key results: 
 # * Always use periodic boundary conditions to get the correct
