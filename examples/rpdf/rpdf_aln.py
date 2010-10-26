@@ -70,7 +70,7 @@ def plot_pl(*pls):
                             pl.hist, 
                             pl.color + pl.marker + '-',
                             )
-        pl.line2, = ax.plot(pl.rad[:-1]+np.diff(pl.rad)*0.5, 
+        pl.line2, = ax.plot(pl.rad, 
                             pl.num_int, 
                             pl.color + pl.marker + '-', 
                             )
@@ -80,43 +80,14 @@ def plot_pl(*pls):
     ax.hlines(1, xlo, xhi, color='k', lw=2)
     return fig,ax
 
-
-def rand(*args, **kwds):
-    """Wrapper for np.random.rand() which uses the same seed, no matter how
-    often called. Use only this function."""
-    np.random.seed(3)
-    return np.random.rand(*args, **kwds)
-
-
 if __name__ == '__main__':
     
+    #------------------------------------------------------------------------
     # Generate some structures and calculate their RPDF.
+    #------------------------------------------------------------------------
     structs = {}
     tgtdir = '/tmp/rpdf_test' 
 
-    # random
-    # ------
-    #
-    # random points in a cubic box, "ideal gas"
-    #
-    coords = rand(100,3)
-    cp = np.identity(3)*10
-    # some non-orthorombic cell
-    ##cp = np.array([[1.0, 0.0, 0.0],
-    ##               [0.2, 0.7, 0.2],
-    ##               [0.2, 0.2, 2.0]])*10
-    symbols = ['H']*coords.shape[0]
-    name = 'randNx3'
-    structs[name] = Structure(coords, 
-                              cp, 
-                              symbols, 
-                              fnbase=name,
-                              tgtdir=tgtdir)
-    structs[name].write_cif(conv=False)
-    structs[name].write_axsf()
-    structs[name].savetxt()
-
-    
     # AlN ibrav=0 
     # -----------
     #
@@ -154,9 +125,9 @@ if __name__ == '__main__':
                               sc['symbols'], 
                               fnbase=name,
                               tgtdir=tgtdir)
-    structs[name].write_cif(conv=False)
-    structs[name].write_axsf()
-    structs[name].savetxt()
+##    structs[name].write_cif(conv=False)
+##    structs[name].write_axsf()
+##    structs[name].savetxt()
 
     
     # AlN ibrav=2
@@ -180,11 +151,16 @@ if __name__ == '__main__':
                               sc['symbols'], 
                               fnbase=name,
                               tgtdir=tgtdir)
-    structs[name].write_cif(conv=False)
-    structs[name].write_axsf()
-    structs[name].savetxt()
+##    structs[name].write_cif(conv=False)
+##    structs[name].write_axsf()
+##    structs[name].savetxt()
     # ---- AlN ibrav=2 -----------------------------------------------------------
 
+    
+    #------------------------------------------------------------------------
+    # plotting
+    #------------------------------------------------------------------------
+    
     # For all structs, calculate rmax=5 (= rmax_auto for aln_ibrav0_sc for a
     # 2x2x2 cell) and rmax = 20 as well as pbc=True, False. Plot for 1 struct.
     plots = {}
@@ -193,7 +169,7 @@ if __name__ == '__main__':
         mm = iter(['v', '^', '+', 'x'])
         for rmax in [5, 20]:
             for pbc in [True, False]:
-                rad, hist, dens, num_int, rmax_auto = crys.rpdf(struct.coords, 
+                rad, hist, num_int, rmax_auto = crys.rpdf(struct.coords, 
                                                           rmax=rmax, 
                                                           cp=struct.cp,
                                                           dr=0.05, 
@@ -232,6 +208,34 @@ if __name__ == '__main__':
     pl2.marker = '+'
     pl2.leg_label = pl2.name + ', ' + pl2.leg_label
     plot_pl(pl1,pl2)
-
+    
+    # g_{Al,N}(r): Al-N rpdf between 2 seelctions, 
+    # num_int should be: 1st (6) = 6, 2nd (8) = 14
+    name = 'aln_ibrav0_sc'
+    rmax = 5
+    pbc = True
+    struct = structs[name]
+    c1 = struct.coords[np.array(struct.symbols) == 'Al', ...]
+    c2 = struct.coords[np.array(struct.symbols) == 'N', ...]
+    
+    rad, hist, num_int, rmax_auto = crys.rpdf([c1,c2], 
+                                              rmax=rmax, 
+                                              cp=struct.cp,
+                                              dr=0.05, 
+                                              pbc=pbc,
+                                              full_output=True)
+    cc = iter(['b', 'r', 'g', 'm'])
+    mm = iter(['v', '^', '+', 'x'])
+    pl = Plot()
+    pl.name = struct.fnbase
+    pl.rad = rad
+    pl.hist = hist
+    pl.num_int = num_int
+    pl.color = cc.next()                                                     
+    pl.marker = mm.next()                                                     
+    pl.leg_label = "pbc=%s, rmax=%i, rmax_auto=%.1f, Al-N" %(pbc, rmax,
+                                                   rmax_auto)
+    plot_pl(pl)                                                   
+    
     plt.show()
     

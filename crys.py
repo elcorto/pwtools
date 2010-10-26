@@ -23,6 +23,8 @@ import pwtools.constants as con
 from pwtools.decorators import crys_add_doc
 from pwtools.pwscf import atpos_str
 
+from pwtools.debug import Debug
+
 #-----------------------------------------------------------------------------
 # misc math
 #-----------------------------------------------------------------------------
@@ -1044,36 +1046,45 @@ def rmax_smith(cp, align='cols'):
 
 
 @crys_add_doc
-def rpdf(coords, cp, dr, rmax='auto', align='rows', pbc=True, full_output=False):
-    """ Radial pair distribution (pair correlation) function. This is for one
-    atomic structure, i.e. one unit cell or time step in MD. Can slao handle
+def rpdf(coords, cp, dr, rmax='auto', tslice=slice(None), align='rows', 
+         pbc=True, full_output=False):
+    """Radial pair distribution (pair correlation) function. This is for one
+    atomic structure (2d arrays) or a MD trajectory (3d arrays). Can also handle
     non-orthorhombic unit cells (simulation boxes).
     
     args:
     -----
-    coords : 2d array (natoms, 3)
+    coords : one array [2d (natoms, 3) or 3d (natoms, 3,  nstep)] or a
+        sequence of 2 such arrays 
+        Crystal coords. If it is a sequence, then the RPDF of the 2nd coord set
+        (coords[1]) w.r.t. to the first (coords[0]) is calculated, i.e. the
+        order matters! This is like selection 1 and 2 in VMD.
     %(cp_doc)s
-    dr : radius spacing (x-axis spacing for RDF)
-    rmax : {'auto', float}
+    dr : float
+        Radius spacing. Must have the same unit as `cp`, e.g. Angstrom.
+    rmax : {'auto', float}, optional
+        Max. radius up to which minimum image nearest neighbors are counted.
+        For cubic boxes of side length L, this is L/2 [AT,MD].
         'auto': the method of [Smith] is used to calculate the max. sphere
             raduis for any cell shape
         float: set value yourself
-    %(align_doc)s
-    pbc : bool
+    tslice : slice object, optional
+        Slice for the time axis if coords had 3d arrays.
+    %(align_doc)s 
+        optional
+    pbc : bool, optional
         apply minimum image convention
-    full_output : bool
+    full_output : bool, optional
 
     returns:
     --------
-    (rad, hist, (number_density, number_integral, rmax_auto))
+    (rad, hist, (number_integral, rmax_auto))
     rad : 1d array, radius (x-axis) with spacing `dr`, each value r[i] is the
         middle of a histogram bin 
     hist : 1d array, (len(rad),)
         the function values g(r)
     if full_output:
-        number_density : float
-            natoms / unit cell volume
-        number_integral : 1d array, (len(rad)-1,)
+        number_integral : 1d array, (len(rad),)
             number_density*hist*4*pi*r**2.0*dr
         rmax_auto : float
             auto-calculated rmax, even if not used (i.e. rmax is set from
@@ -1081,9 +1092,23 @@ def rpdf(coords, cp, dr, rmax='auto', align='rows', pbc=True, full_output=False)
     
     examples:
     ---------
-    >>> rad, hist, dens, num_int, rmax_auto = rpdf(coords, cp, dr, full_output=True)
+    # 2 selections (O and H atoms, time step 3000 to end)
+    >>> pp = parse.PwOutputFile(...)
+    >>> pp.parse()
+    # lattice constant, assume cubic box
+    >>> alat = 5
+    >>> cp = np.identity(3)*alat
+    # transform to crystal coords (simple for cubic box, can also use 
+    # coord_trans()), result is 3d array (natoms, 3, nstep)
+    >>> coords = pp.coords / alat
+    # make selections, numpy rocks!
+    >>> sy = np.array(pp.infile.symbols)
+    >>> msk1 = sy=='O'; msk2 = sy=='H'
+    # do time slice here or with `tslice` kwd
+    >>> clst = [coords[msk1,:,3000:], coords[msk2,:,3000:]]
+    >>> rad, hist, num_int, rmax_auto = rpdf(clst, cp, dr, full_output=True)
     >>> plot(rad, hist)
-    >>> plot(rad[:-1]+0.5*np.diff(rad), num_int)
+    >>> plot(rad, num_int)
      
     refs:
     -----
@@ -1096,54 +1121,38 @@ def rpdf(coords, cp, dr, rmax='auto', align='rows', pbc=True, full_output=False)
             http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.57.1696
             1989
     """
-    # TODO:
-    # -----
-    # * Averaging over time steps (frames in VMD). ATM, you must use this
-    #   function on each frame and average yourself.
-    # * RDF between selection of atoms, e.g. between H  and O. For that, accept
-    #   2 coords arrays. Then, sij will be (N,M,3) and we need to use np.tri()
-    #   etc instead of np.triu_indices().
-    #
-    # Verification
-    # ------------
-    # 
-    # This function was tested against VMD's "measure gofr" command. VMD can
-    # only handle orthorhombic boxes. To test non-orthorhombic boxes:
-    #   * take your non-orthorhombic unit cell and create a supercell
-    #   * transform the crystal coords from your unit cell to cartesian coords
-    #     and construct a supercell for that, too -> you got a orthorhombic box
-    #     now
-    #   * make sure that both boxes can contain a sphere of `rmax`
-    #   * feed the orthorhombic box to VMD, use the SAME rmax for both boxes
-    #
     # Theory
     # ------
+    # 
+    # 1) N equal particles (atoms) in a volume V.
     #
-    # Below, "density" always means number density, i.e. number of particles
-    # (N atoms in the unit cell)  / (unit cell) volume V.
+    # Below, "density" always means number density, i.e. 
+    # (N atoms in the unit cell)  / (unit cell volume V).
     #
     # g(r) is (a) the average number of atoms in a shell [r,r+dr] around an
     # atom or (b) the average density of atoms in that shell -- relative to an
     # "ideal gas" (random distribution) of density N/V. Also sometimes: The
-    # number of atom pairs with distance r relative the the number of pairs in
+    # number of atom pairs with distance r relative to the number of pairs in
     # a random distribution.
     #
     # For each atom i=1,N, count the number dn(r) of atoms j around it in the
     # shell [r,r+dr] with rij = r_i - r_j.
     #   
-    #   dn(r) = sum(i=1,N) sum(j=1,N, j!=i) delta(r - rij)
+    #   dn(r) = sum(i=1,N) sum(j=1,N, j!=i) delta(r - r_ij)
+    # 
+    # In practice, this is done by calculating all distances r_ij and bin them
+    # in a histogram dn(k) with k = r_ij / dr the histogram index.
     # 
     # We sum over N atoms, so we have to divide by N -- that's why g(r) is an
     # average. Also, we normalize to ideal gas values
     #   
-    #   g(r) = dn(r) / (N * V(r) * rho)
+    #   g(r) = dn(r) / [N * (N/V) * V(r)]
     #   V(r) = 4*pi*r**2*dr = 4/3*pi*[(r+dr)**3 - r**3]
-    #   rho = N/V
     # 
-    # where V(r) the volume of the shell. Formulation (a) from above: rho*V(r)
-    # is the number of atoms in the shell for an ideal gas or (b):  dn(r) /
-    # V(r) is the density of atoms in the shell and dn(r) / (V(r) * rho) is
-    # that density relative to the ideal gas density rho. Clear? :)
+    # where V(r) the volume of the shell. Formulation (a) from above: N/V*V(r)
+    # is the number of atoms in the shell for an ideal gas (density*volume) or
+    # (b):  dn(r) / V(r) is the density of atoms in the shell and dn(r) / [V(r)
+    # * (N/V)] is that density relative to the ideal gas density N/V. Clear? :)
     # 
     # g(r) -> 1 for r -> inf in liquids, i.e. long distances are not
     # correlated. Their distribution is random. In a crystal, we get an
@@ -1152,7 +1161,7 @@ def rpdf(coords, cp, dr, rmax='auto', align='rows', pbc=True, full_output=False)
     #
     # The number integral is
     #
-    #   I(r1,r2) = int(r=r1,r2) rho*g(r)*4*pi*r**2*dr
+    #   I(r1,r2) = int(r=r1,r2) N/V*g(r)*4*pi*r**2*dr
     # 
     # which can be used to calculate coordination numbers, i.e. it counts the
     # average number of atoms around an atom in a shell [r1,r2]. 
@@ -1166,59 +1175,185 @@ def rpdf(coords, cp, dr, rmax='auto', align='rows', pbc=True, full_output=False)
     # w/o PBC, the nearest neigbor numbers I(r1,r2) will be wrong! Always use
     # PBC (minimum image convention). Have a look at the following table:
     #
-    #                                nearest neighb.     I(0,rmax) = N-1  
-    # pbc=Tue,   rmax <  rmax-auto   +                   -
-    # pbc=Tue,   rmax >> rmax-auto   +                   +
-    # pbc=False, rmax <  rmax-auto   -                   -
-    # pbc=Nalse, rmax >> rmax-auto   -                   +
+    #                                    nearest neighb.     I(0,rmax) = N-1  
+    # 1.) pbc=Tue,   rmax <  rmax-auto   +                   -
+    # 2.) pbc=Tue,   rmax >> rmax-auto   +                   +
+    # 3.) pbc=False, rmax <  rmax-auto   -                   -
+    # 4.) pbc=Nalse, rmax >> rmax-auto   -                   +
     # 
-    # Interestingly though, in the 2nd case the nearest neighbors are also
-    # correct (pbc=True, rmax > rmax-auto). Why? A too big rmax should be
-    # inconsistent with the MIC. These results were obtained with a
-    # rocksalt-AlN crystal test case. However, [Smith] says: Use only the 1st
-    # case: pbc=True, rmax < rmax-auto.
+    # Note that case (1) is the use case in [Smith]. Always use this. Also note
+    # that case (2) appears to be also useful. However, it can be shown that
+    # nearest neigbors are correct only up to rmax-auto! See
+    # examples/rpdf/rpdf.py .
     #
     # For a crystal, integrating over a peak [r-dr/2, r+dr/2] gives *exactly*
     # the number of nearest neighbor atoms for that distance r b/c the
     # normalizatiobn factor -- the number of atoms in an ideal gas for a narrow
     # shell of width dr -- is 1.
     #
-    assert coords.shape[1] == 3
-    assert cp.shape == (3,3)
+    # 2) 2 selections
+    #
+    # Lets say wou have 10 waters -> 10 x O (atom type A), 20 x H (type B),
+    # then let A = 10, B = 20.
+    #
+    #   dn(r) = sum(i=1,A) sum(j=1,B) delta(r - r_ij) = 
+    #           dn_AB(r) + dn_BA(r)
+    # 
+    # where dn_AB(r) is the number of B's around A's and vice versa. With the
+    # densities A/V and B/V, we get
+    #
+    #   g(r) = g_AB(r) + g_BA(r) = 
+    #          dn_AB(r) / [A * (B/V) * V(r)] + 
+    #          dn_BA(r) / [B * (A/V) * V(r)]
+    # 
+    # Note that the density used is always the density of the *sourrounding*
+    # atom type.
+    #
+    # This g(r) is independent of the selection order in `coords` b/c it's a
+    # sum. But the number integal is not!
+    #
+    #   I_AB(r1,r2) = int(r=r1,r2) (B/V)*g(r)*4*pi*r**2*dr
+    #   I_BA(r1,r2) = int(r=r1,r2) (A/V)*g(r)*4*pi*r**2*dr
+    #
+    #
+    # Verification
+    # ------------
+    # 
+    # This function was tested against VMD's "measure gofr" command. VMD can
+    # only handle orthorhombic boxes. To test non-orthorhombic boxes, see 
+    # examples/rpdf/.
+    #
+    # Make sure to convert all length to Angstrom of you compare with VMD.
+    #
+    # Number integral mehod
+    # ---------------------
+    #
+    # To match with VMD results, we use the most basic method, namely the
+    # "rectangle rule", i.e. just y_i*dx. This is even cheaper than the
+    # trapezoidal rule! To use the latter, we would do:
+    #   number_integral_avg = np.zeros(len(bins)-2, dtype=float)
+    #   for ...
+    #       number_integral = \
+    #           cumtrapz(1.0*natoms_lst[1]/volume*hist*4*pi*rad**2.0, rad)
+    #   
+    # Shape of result arrays:
+    #   rect. rule :  len(hist)     = len(bins) - 1
+    #   trapz. rule:  len(hist) - 1 = len(bins) - 2
+    #
+  
+    assert cp.shape == (3,3), "`cp` must be (3,3) array"
+    # nd array or list of 2 arrays
+    if not type(coords) == type([]):
+        coords_lst = [coords, coords]
+    else:
+        coords_lst = coords
+    assert len(coords_lst) == 2, "len(coords_lst) != 2"
+    assert coords_lst[0].ndim == coords_lst[1].ndim, ("coords do not have "
+           "same shape") 
+    # 2 or 3
+    coords_ndim = coords_lst[0].ndim
+    # (natoms,3) or (natoms,3,nstep)
+    assert [3,3] == [c.shape[1] for c in coords_lst], ("axis 1 of one or "
+           "both coord arrays does not have length 3")
+    # assert shape 3d
+    if coords_ndim == 2:
+        for i in range(len(coords_lst)):
+            coords_lst[i] = coords_lst[i][...,None]
+        nstep = 1
+    elif coords_ndim == 3:
+        for i in range(len(coords_lst)):
+            coords_lst[i] = coords_lst[i][...,tslice]
+        nstep = coords_lst[0].shape[-1]
+    else:
+        raise StandardError("arrays in coords_lst have wrong shape, expect 2d "
+                            "or 3d, got [%s, %s]" \
+                            %tuple(map(str, [c.shape for c in coords_lst])))
     if align == 'cols':
         cp = cp.T
     rmax_auto = rmax_smith(cp)
     if rmax == 'auto':
         rmax = rmax_auto
-    natoms = coords.shape[0]
-    volume = np.linalg.det(cp) # or crys.volume_cp()
-    number_density = float(natoms) / volume
-    # sij and rij
-    #
-    # sij: (N,N,3); sij is a "(N,N)-matrix" is length=3 distance vectors
+    natoms_lst = [c.shape[0] for c in coords_lst]
+    
+    # sij : distance matrix in crystal coords
+    # rij : in cartesian coords, same unit as `cp`, e.g. Angstrom
+    # 
+    # For coords = 2d arrays (natoms,3):
+    # sij: for coords_lst[0] == coords_lst[1], i.e. only one structure:
+    #   sij.shape = (N,N,3) where N = natoms, sij is a "(N,N)-matrix" of
+    #   length=3 distance vectors,
     #   equivalent 2d:  
     #   >>> a=arange(5)
-    #   >>> sij = a[:,None]-a
-    #   or
     #   >>> sij = a[:,None]-a[None,:]
-    sij = coords[:,None,:] - coords[None,...]
-    # np.tri() etc. for (N,M,3) and coords1[xxx]-coords2[yyy] for 2 selections
-    idx = np.triu_indices(natoms, 1)
-    # ((N**2 - N)/2, 3) 
-    sij = sij[idx[0], idx[1],:]
+    #   
+    #   For 3d arrays with (N,3,nstep), we get (N,N,3,nstep).
+    #
+    #   For coords_lst[0] != coords_lst[1], i.e. 2 selections, we get
+    #   (N,M,3) or (N,M,3,nstep), respectively.
+    # 
+    # If we have arbitrary selections, we cannot use np.tri() to select only
+    # the upper (or lower) triangle of this "matrix" to skip duplicates (zero
+    # distance on the main diagonal) and avoid double counting. We must
+    # calculate and bin *all* distances.
+    #
+    # (natoms0, natoms1, 3, nstep)
+    sij = coords_lst[0][:,None,...] - coords_lst[1][None,...]
     if pbc:
         sij = min_image_convention(sij)
-    rij = np.dot(sij, cp) 
-    # ((N**2 - N)/2,) 
-    dists = np.sqrt((rij**2.0).sum(axis=1))
-    dists = dists[dists < rmax]
+    # (natoms0 * natoms1, 3, nstep)
+    sij = sij.reshape(natoms_lst[0]*natoms_lst[1], 3, nstep)
+    # (natoms0 * natoms1, 3, nstep)
+    rij = np.dot(sij.swapaxes(-1,-2), cp).swapaxes(-1,-2)
+    # (natoms0 * natoms1, nstep)
+    dists_all = np.sqrt((rij**2.0).sum(axis=1))
+    
+    # Duplicate atoms in both coord sets from 1st time step, this is slow. Note
+    # that VMD uses natoms_lst_prod - num_duplicates, but frankly, I don't
+    # understand why.
+    #
+    ##zero_xyz = np.ones((3,)) * np.finfo(float).eps * 2.0
+    ##num_duplicates = 0
+    ##c0 = coords_lst[0][...,0]
+    ##c1 = coords_lst[1][...,0]
+    ##for i in range(c0.shape[0]):
+    ##    for j in range(c1.shape[0]):
+    ##        if (np.abs(c0[i,:] - c1[j,:]) < zero_xyz).all():
+    ##            num_duplicates += 1
+    
+    natoms_lst_prod = float(np.prod(natoms_lst))
+    volume = np.linalg.det(cp)
     bins = np.arange(0, rmax+dr, dr)
-    hist, rad_hist = np.histogram(dists, bins=bins)
-    rad = rad_hist[:-1]+0.5*dr
-    volume_shells = 4.0/3.0*pi*(rad_hist[1:]**3.0 - rad_hist[:-1]**3.0)
-    hist = hist * 2.0 / volume_shells * volume / (natoms)**2.0
-    out = (rad, hist)
+    rad = bins[:-1]+0.5*dr
+    volume_shells = 4.0/3.0*pi*(bins[1:]**3.0 - bins[:-1]**3.0)
+    norm_fac = volume / volume_shells / natoms_lst_prod
+    
+    # Set all dists > rmax to 0.0 and thereby keep shape of `dists_all`. This
+    # is b/c we may calculate all nstep hists in a vectorized fashion later
+    # (avoid Python loop). The first bin counting the zero distances will be
+    # corrected below later anyway. The other way would be to do in each loop:
+    #   dists = dists_all[...,idx][dists_all[...,idx] < rmax]
+    #
+    # Calculate hists for each time step and average them.
+    dists_all[dists_all >= rmax] = 0.0
+    hist_avg = np.zeros(len(bins)-1, dtype=float)
+    number_integral_avg = np.zeros(len(bins)-1, dtype=float)
+    for idx in range(dists_all.shape[-1]):
+        dists = dists_all[...,idx]
+        # rad_hist == bins
+        hist, rad_hist = np.histogram(dists, bins=bins)
+        # correct first bin
+        if bins[0] == 0.0:
+            hist[0] = 0.0
+            # works only if we do NOT set dists > rmax to 0.0
+            ##hist[0] -= num_duplicates 
+        hist = hist * norm_fac            
+        hist_avg += hist
+        # Note that we use "natoms_lst[1] / volume" to get the correct density.
+        number_integral = np.cumsum(1.0*natoms_lst[1]/volume*hist*4*pi*rad**2.0 * dr)
+        number_integral_avg += number_integral
+    hist_avg = hist_avg / (1.0*dists_all.shape[-1])
+    number_integral = number_integral_avg / (1.0*dists_all.shape[-1])
+    out = (rad, hist_avg)
     if full_output:
-        number_integral = cumtrapz(number_density*hist*4*pi*rad**2.0, rad)
-        out += (number_density, number_integral, rmax_auto) 
+        out += (number_integral, rmax_auto) 
     return out
