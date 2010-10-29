@@ -214,15 +214,3 @@ subroutine msg(this, txt)
     write(*,*) "[", this, "] ", txt
 
 end subroutine msg
-
-
-subroutine error(this, txt)
-    
-    implicit none
-    character(len=*) :: this, txt
-    
-    write(unit=0,fmt=*) "******* [", this, "] ERROR: ", txt    
-
-end subroutine error
-
-
