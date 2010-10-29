@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Simple script to run all test_*.py . 
+# Simple script to run all test_*.py . This is a very simple-minded way to run
+# test suite. Yes, we really should use nose.
 #
 # For tests calling Fortran extensions: Stdout from Fortran ends up in the
 # wrong order in run_all.log. To see the correct output, run these tests
@@ -12,8 +13,24 @@
 # usage:
 #   [ PYTHON=pythonX.Y ] ./run_all.sh
 
-logfile=run_all.log
-rm -f $logfile
+
+# Make sure that the correct (this) package is picked up by the interpreter,
+# no matter how you named it (e.g. "from pwtools import *" will fail
+# if the package's root dir is named /path/to/pwtools-dev or such). For
+# security, we copy the whole package to a tmp dir and run the tests there.
+PP=$PYTHONPATH
+tgt=$(cd .. && pwd)
+testdir=/tmp/pwtools-test.$$
+mkdir -pv $testdir
+logfile=$testdir/run_all.log
+cp -rv $tgt $testdir/pwtools | tee -a $logfile
+export PYTHONPATH=$testdir:$PYTHONPATH
+cd $testdir/pwtools/
+# build extension modules
+[ -f Makefile ] && make
+cd test/
+
+echo "Running tests ..." | tee -a $logfile
 
 # This is for test_f2py_flib_openmp.py
 if env | grep OMP_NUM_THREADS > /dev/null; then
@@ -27,7 +44,6 @@ rm -vf $(find ../ -name "*.pyc")  $(find . -name "*.pyc") 2>&1 \
 [ -z $PYTHON ] && PYTHON=python
 echo "using python interpreter: $PYTHON" | tee -a $logfile
 
-# Simple-minded way to run test suite. Yes, we really should use nose.
 for f in $(ls -1 *.py); do 
     echo "#################################################################"
     echo "$f"
@@ -35,7 +51,7 @@ for f in $(ls -1 *.py); do
     $PYTHON $f
 done 2>&1 | tee -a $logfile
 
-if egrep -i 'error|warning' run_all.log > /dev/null; then
+if egrep -i 'error|warning' $logfile > /dev/null; then
     echo "#################################################################"
     echo "there have been errors/warnings"
     echo "#################################################################"
@@ -47,4 +63,11 @@ else
     unset OMP_NUM_THREADS
 fi
 
-./check.sh
+export PYTHONPATH=$PP
+echo "#################################################################"
+echo "error/warning summary:"
+echo "#################################################################"
+./log_summary.sh $logfile
+echo "#################################################################"
+echo "Logfile: $logfile"
+echo "#################################################################"
