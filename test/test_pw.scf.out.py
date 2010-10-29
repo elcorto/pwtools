@@ -12,7 +12,7 @@ none_attrs = ['nstep',
              'ekin',
              'temperature',
              'coords',
-             'cell_parameters',
+             'cell',
              'volume',
             ]             
 for attr_name in pp.attr_lst:

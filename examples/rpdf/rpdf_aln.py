@@ -122,7 +122,7 @@ if __name__ == '__main__':
     sc = crys.scell(coords, cp_in, (2,2,2), symbols_in)
     name = 'aln_ibrav0_sc'
     structs[name] = Structure(sc['coords'], 
-                              sc['cell_parameters'],
+                              sc['cell'],
                               sc['symbols'], 
                               fnbase=name,
                               tgtdir=tgtdir)
@@ -148,7 +148,7 @@ if __name__ == '__main__':
     sc = crys.scell(coords_in, cp_in, (4,4,4), symbols_in)
     name = 'aln_ibrav2_sc'
     structs[name] = Structure(sc['coords'], 
-                              sc['cell_parameters'],
+                              sc['cell'],
                               sc['symbols'], 
                               fnbase=name,
                               tgtdir=tgtdir)

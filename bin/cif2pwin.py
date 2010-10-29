@@ -21,12 +21,12 @@ pp = parse.CifFile(fn)
 pp.parse()
 
 print "celldm (a[Bohr], b/a, c/a, cos(bc), cos(ac), cos(ab):\n%s\n" %str_arr(pp.celldm)
-print "cell_parameters (div. by a):\n%s\n" %str_arr(pp.cell_parameters / pp.cryst_const[0])
+print "cell (div. by a):\n%s\n" %str_arr(pp.cell / pp.cryst_const[0])
 print "atpos (crystal):\n%s\n" %pp.atpos_str
 print "natoms:\n%s\n" %pp.natoms
 
-cpr = crys.recip_cp(pp.cell_parameters)
-print "recip. cell_parameters:\n%s\n" %str_arr(cpr)
+cpr = crys.recip_cp(pp.cell)
+print "recip. cell:\n%s\n" %str_arr(cpr)
 
 norms = np.sqrt((cpr**2.0).sum(axis=1))
 print "relation of recip. vector lengths (a:b:c):\n%s\n" %str(norms/norms.min())

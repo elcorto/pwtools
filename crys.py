@@ -417,12 +417,12 @@ def scell(coords, cp, dims, symbols, align='rows'):
 
     returns:
     --------
-    {symbols, coords, cell_parameters}
+    {symbols, coords, cell}
     symbols : list of strings with atom symbols for the supercell, (N*natoms,)
     coords : array (N*natoms, 3)
-        Atomic crystal coords in the super cell w.r.t `cell_parameters`, i.e.
+        Atomic crystal coords in the super cell w.r.t `cell`, i.e.
         the numbers are in [0,1].
-    cell_parameters : array (3,3), basis vecs of the super cell        
+    cell : array (3,3), basis vecs of the super cell        
     """
     cp = np.asarray(cp)
     assert_cond(cp.shape == (3,3), "cp must be (3,3) array")
@@ -434,13 +434,13 @@ def scell(coords, cp, dims, symbols, align='rows'):
     sc = raw_scell(coords, mask, symbols)
     # scale cp acording to super cell dims
     cp_sc = cp * np.asarray(dims)[:,np.newaxis]
-    # Rescale crystal coords to new bigger cell_parameters (coord_trans
+    # Rescale crystal coords to new bigger cell (coord_trans
     # actually) -> all values in [0,1] again
     sc['coords'][:,0] /= dims[0]
     sc['coords'][:,1] /= dims[1]
     sc['coords'][:,2] /= dims[2]
     return {'symbols': sc['symbols'], 'coords': sc['coords'], 
-            'cell_parameters': cp_sc}
+            'cell': cp_sc}
 
 #-----------------------------------------------------------------------------
 # file parsers / converters

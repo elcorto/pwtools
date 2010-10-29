@@ -20,11 +20,11 @@ ibrav = int(c.infile.namelists['system']['ibrav'])
 c_sys = c.infile.atpos['unit'].lower().strip()
 if c_sys == 'crystal':
     if ibrav == 0:
-        if c.infile.cell_parameters is None:
+        if c.infile.cell is None:
             print "error: no cell parameters in infile, set manually here"
             sys.exit(1)
         else:        
-            coords = coord_trans(c.coords, old=c.infile.cell_parameters,
+            coords = coord_trans(c.coords, old=c.infile.cell,
                                  new=np.identity(3)) 
     else:
         print "error: ibrav != 0, cannot get cell parameters from infile \

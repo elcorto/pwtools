@@ -309,7 +309,7 @@ class StructureFileParser(FileParser):
     self.coords : ndarray (natoms, 3) with atom coords
     self.symbols : list (natoms,) with strings of atom symbols, must match the
         order of the rows of self.coords
-    self.cell_parameters : 3x3 array with primitive basis vectors as rows, for
+    self.cell : 3x3 array with primitive basis vectors as rows, for
         PWscf, the array is in units of (= divided by) alat == self.cryst_const[0]
     self.cryst_const : array (6,) with crystallographic costants
         [a,b,c,alpha,beta,gamma]
@@ -392,7 +392,7 @@ class StructureFileParser(FileParser):
         # classes. The calling order can be overridden. Additional members may
         # be added, as long as all members of this list are beeing set in
         # parse() of the derived class.
-        self.set_attr_lst(['coords', 'symbols', 'cryst_const', 'cell_parameters',
+        self.set_attr_lst(['coords', 'symbols', 'cryst_const', 'cell',
                          'natoms', 'atpos_str'])
         self.a0_to_A = constants.a0_to_A
     
@@ -413,7 +413,7 @@ class StructureFileParser(FileParser):
     def get_cryst_const(self):
         pass
     
-    def get_cell_parameters(self):
+    def get_cell(self):
         pass
     
     def get_natoms(self):
@@ -537,7 +537,7 @@ class CifFile(StructureFileParser):
         return np.array([self._cif_dct[key] for key in \
             ['a', 'b', 'c', 'alpha', 'beta', 'gamma']])
     
-    def get_cell_parameters(self):
+    def get_cell(self):
         self.check_get_attr('cryst_const')
         return crys.cc2cp(self.cryst_const)
 
@@ -676,7 +676,7 @@ class PDBFile(StructureFileParser):
         else:
             raise StandardError("found CRYST1 record more then once")
     
-    def get_cell_parameters(self):
+    def get_cell(self):
         self.check_get_attr('cryst_const')
         return crys.cc2cp(self.cryst_const)            
     
@@ -731,7 +731,7 @@ class CMLFile(StructureFileParser):
                          crystal.find('scalar', title="gamma").string]\
                          ).astype(float)
     
-    def get_cell_parameters(self):
+    def get_cell(self):
         self.check_get_attr('cryst_const')
         return crys.cc2cp(self.cryst_const)
 
@@ -764,12 +764,12 @@ class PwInputFile(StructureFileParser):
     
     notes:
     ------
-    self.cell_parameters (CELL_PARAMETERS) in pw.in is units of alat
+    self.cell (CELL_PARAMETERS) in pw.in is units of alat
     (=celldm(1)). If we have an entry in pw.in to determine alat:
     system:celldm(1) or sysetm:A, then the cell parameters will be multiplied
     with that *only* for the calculation of self.cryst_const. Then [a,b,c] =
     cryst_const[:3] will have the right unit (Bohr). A warning will be issued
-    if neither is found. self.cell_parameters will be returned as it is in the
+    if neither is found. self.cell will be returned as it is in the
     file.
     """
 
@@ -813,7 +813,7 @@ class PwInputFile(StructureFileParser):
         return int(self.namelists['system']['nat'])
 
     def get_cryst_const(self):
-        self.check_get_attr('cell_parameters')
+        self.check_get_attr('cell')
         self.check_get_attr('namelists')
         alat_conv_dct = {'celldm(1)': 1,
                          'A': 1/constants.a0_to_A}
@@ -828,8 +828,8 @@ class PwInputFile(StructureFileParser):
             print("[PwInputFile:get_cryst_const] Warning: no alat found. "
                   "Using celldm1=1.0")
             celldm1 = 1.0
-        return None if (self.cell_parameters is None) else \
-               crys.cp2cc(self.cell_parameters*celldm1)
+        return None if (self.cell is None) else \
+               crys.cp2cc(self.cell*celldm1)
 
     def get_atspec(self):
         """Parses ATOMIC_SPECIES card in a pw.x input file.
@@ -892,7 +892,7 @@ class PwInputFile(StructureFileParser):
         return {'symbols': symbols, 'masses': masses, 'pseudos': pseudos}
 
 
-    def get_cell_parameters(self):
+    def get_cell(self):
         """Parses CELL_PARAMETERS card in a pw.x input file. Extract primitive
         lattice vectors.
 
@@ -928,12 +928,12 @@ class PwInputFile(StructureFileParser):
             >>> cp = np.loadtxt(StringIO(com.backtick(cmd)))
         """
         self.file.seek(0)
-        verbose('[get_cell_parameters] reading CELL_PARAMETERS from %s' %self.filename)
+        verbose('[get_cell] reading CELL_PARAMETERS from %s' %self.filename)
         rex = re.compile(r'\s*((' + regex.float_re + '\s*){3})\s*')
         self.file, flag = scan_until_pat(self.file, pat="cell_parameters",
                                          err=False)
         if flag == 0:
-            verbose("[get_cell_parameters]: WARNING: start pattern not found")
+            verbose("[get_cell]: WARNING: start pattern not found")
             return None
         line = next_line(self.file)
         while line == '':
@@ -947,7 +947,7 @@ class PwInputFile(StructureFileParser):
             line = next_line(self.file)
             match = rex.match(line)
         if lst == []:
-            verbose("[get_cell_parameters]: WARNING: nothing found")
+            verbose("[get_cell]: WARNING: nothing found")
             return None
         cp = np.array(lst, dtype=float)
         com.assert_cond(len(cp.shape) == 2, "`cp` is no 2d array")
@@ -1177,9 +1177,9 @@ class PwOutputFile(FileParser):
     coords : 3d array (natoms, 3, nstep)
     start_coords : 2d array
         atomic coords of the start unit cell in cartesian alat units
-    cell_parameters : 3d array (3, 3, nstep) 
+    cell : 3d array (3, 3, nstep) 
         prim. basis vectors for each step
-    start_cell_parameters : 2d array
+    start_cell : 2d array
         start prim. basis vectors from the output file in alat units, parsed
         from "crystal axes: (cart. coord. in units of a_0)"
     nstep : scalar 
@@ -1201,7 +1201,7 @@ class PwOutputFile(FileParser):
     Members, whose corresponding data in the file is not present or cannot
     parsed b/c regexes don't match, are None.
     E.g. if there are no CELL_PARAMETERS printed in the output file, then
-    self.cell_parameters == None.
+    self.cell == None.
 
     notes:
     ------
@@ -1263,13 +1263,13 @@ class PwOutputFile(FileParser):
         'pressure', 
         'temperature', 
         'coords', 
-        'cell_parameters', 
+        'cell', 
         'natoms', 
         'volume',
         'total_force',
         'forces',
         'start_volume',
-        'start_cell_parameters',
+        'start_cell',
         'start_coords',
         ])
     
@@ -1405,7 +1405,7 @@ class PwOutputFile(FileParser):
         >>> p.parse()
         >>> crys.coord_trans(p.start_coords, 
         >>>                  old=np.identity(3), 
-        >>>                  new=p.start_cell_parameters, 
+        >>>                  new=p.start_cell, 
         >>>                  align='rows')
         """
         verbose("getting start coords")
@@ -1443,7 +1443,7 @@ class PwOutputFile(FileParser):
             return io.readtxt(StringIO(ret_str), axis=self.time_axis, 
                               shape=(natoms, 3, nstep))
     
-    def get_cell_parameters(self):
+    def get_cell(self):
         verbose("getting cell parameters")
         # nstep
         key = 'CELL_PARAMETERS'
@@ -1453,7 +1453,7 @@ class PwOutputFile(FileParser):
             nstep = 0
         else:            
             nstep = int(ret_str)
-        # cell_parameters            
+        # cell            
         cmd = "grep -A3 %s %s | grep -v -e %s -e '--'" %(key, self.filename, key)
         ret_str = com.backtick(cmd)
         if ret_str.strip() == '':
@@ -1462,8 +1462,8 @@ class PwOutputFile(FileParser):
             return io.readtxt(StringIO(ret_str), axis=self.time_axis, 
                               shape=(3, 3, nstep))
     
-    def get_start_cell_parameters(self):
-        """Grep start cell_parameters from pw.out. This is always in alat
+    def get_start_cell(self):
+        """Grep start cell from pw.out. This is always in alat
         units."""
         verbose("getting start cell parameters")
         cmd = "grep -A3 'crystal.*axes.*units.*a_0' %s | tail -n3 | \
@@ -1570,7 +1570,7 @@ class CPOutputFile(PwOutputFile):
     33  <prefix>.evp  temperature etc. at iprint steps
     34  <prefix>.vel  atomic velocities
     35  <prefix>.pos  atomic positions (self.coords)
-    36  <prefix>.cel  cell parameters (self.cell_parameters)
+    36  <prefix>.cel  cell parameters (self.cell)
     37  <prefix>.for  forces on atoms 
     38  <prefix>.str  stress tensors  (self.stresstensor)
     39  <prefix>.nos  Nose thetmostat stuff every iprint steps
@@ -1628,7 +1628,7 @@ class CPOutputFile(PwOutputFile):
     #   get_nstep() 
     #   get_natoms()
     #   get_coords()
-    #   get_cell_parameters()
+    #   get_cell()
     
     def parse(self):
         com.assert_cond(self.evpfilename is not None, "self.evpfilename is None")

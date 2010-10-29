@@ -7,7 +7,7 @@ pp = PwInputFile(filename=filename)
 pp.parse()
 common.print_dct(pp.__dict__)
 
-none_attrs = ['cell_parameters',
+none_attrs = ['cell',
               'cryst_const',
              ]             
 for attr_name in pp.attr_lst:

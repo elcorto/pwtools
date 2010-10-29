@@ -8,7 +8,7 @@ common.system('gunzip %s.gz' %filename)
 pp = PwOutputFile(filename=filename, infile=infile)
 pp.parse()
 common.print_dct(pp.__dict__)
-none_attrs = ['cell_parameters',
+none_attrs = ['cell',
               'volume',
              ]             
 for attr_name in pp.attr_lst:

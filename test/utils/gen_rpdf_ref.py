@@ -45,7 +45,7 @@ if __name__ == '__main__':
             pp = parse.CifFile(pj(dd, name + '.cif'))
             pp.parse()
             coords = pp.coords
-            cp = pp.cell_parameters
+            cp = pp.cell
         rad, hist, num_int, rmax_auto = crys.rpdf(coords, 
                                                   rmax=5.0, 
                                                   cp=cp,
