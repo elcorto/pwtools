@@ -1,3 +1,6 @@
+# Examples for nd matrix mult. This is a leftover from playing arounf with
+# crys.coord_trans().
+
 import numpy as np
 
 # some random 3d array

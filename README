@@ -43,8 +43,9 @@ Add-on packages
 Must have:
     - numpy 
     - scipy
-    On Debian-based distros, "aptitude install python-numpy python-scipy"
-    should do it.
+    - nose (for running tests in test/)  
+    On Debian-based distros, "aptitude install python-numpy python-scipy
+    python-nose" should do it.
 
 optional: 
     parse.py:

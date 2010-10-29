@@ -6,13 +6,13 @@
 #
 # See utils/gen_rpdf_ref.py for how the references were generated.
 
-import os
-import numpy as np
-from pwtools import crys, parse, io
-pj = os.path.join
 
-if __name__ == '__main__':
-    
+def test():
+    import os
+    import numpy as np
+    from pwtools import crys, parse, io
+    pj = os.path.join
+
     for name in ['rand_3d', 'aln_ibrav0_sc', 'aln_ibrav2_sc']:
         print("name: %s" %name)
         dd = 'files/rpdf'

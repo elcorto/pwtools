@@ -1,7 +1,8 @@
-from pwtools.parse import CMLFile
-from pwtools import common
+def test():
+    from pwtools.parse import CMLFile
+    from pwtools import common
 
-c = CMLFile('files/cml_struct.cml')
-c.parse()
+    c = CMLFile('files/cml_struct.cml')
+    c.parse()
 
-common.print_dct(c.__dict__)
+    common.print_dct(c.__dict__)

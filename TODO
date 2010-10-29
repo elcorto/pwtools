@@ -32,14 +32,13 @@ all
 
 tests
 -----
-- Pythonic test suite (nose etc) instead of test/test_*.py .
+- Handle known fails with nose.
 
 - For all parsing funcs, add test output data (e.g. text files with arrays).
   np.loadtxt() these arrays and compare them to parsed ones, e.g. p.coords .
 
 - Add tests for 
     eos.py
-    crys.rpdf()
     crys.scell()
 
 - crys.scell(): make symbols an optional kwarg
