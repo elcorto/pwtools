@@ -425,6 +425,13 @@ class StructureFileParser(FileParser):
         self.check_get_attr('coords')
         self.check_get_attr('symbols')
         return atpos_str(self.symbols, self.coords)
+    
+    # backward compat
+    def get_cell_parameters(self):
+        verbose("warning: cell_parameters deprecated. Use 'cell' and "
+                "get_cell() instead.")
+        self.check_get_attr('cell')                
+        return self.cell
 
 
 class CifFile(StructureFileParser):
@@ -1292,6 +1299,13 @@ class PwOutputFile(FileParser):
                             "(%s: %i) don't match" \
                             %(self.infile.filename, self.infile.natoms,
                               self.filename, self.coords.shape[0]))
+    
+    # backward compat
+    def get_cell_parameters(self):
+        verbose("warning: cell_parameters deprecated. Use 'cell' and "
+                "get_cell() instead.")
+        self.check_get_attr('cell')                
+        return self.cell
 
     def parse(self):
         verbose("parsing %s" %self.filename)
