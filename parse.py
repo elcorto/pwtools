@@ -882,7 +882,6 @@ class PwInputFile(StructureFileParser):
             line = next_line(self.file)
             match = rex.match(line)
         if lst == []:
-            verbose("[get_atspec]: WARNING: nothing found")
             return None
         # numpy string array :)
         ar = np.array(lst)
@@ -933,7 +932,6 @@ class PwInputFile(StructureFileParser):
         self.file, flag = scan_until_pat(self.file, pat="cell_parameters",
                                          err=False)
         if flag == 0:
-            verbose("[get_cell]: WARNING: start pattern not found")
             return None
         line = next_line(self.file)
         while line == '':
@@ -947,7 +945,6 @@ class PwInputFile(StructureFileParser):
             line = next_line(self.file)
             match = rex.match(line)
         if lst == []:
-            verbose("[get_cell]: WARNING: nothing found")
             return None
         cp = np.array(lst, dtype=float)
         com.assert_cond(len(cp.shape) == 2, "`cp` is no 2d array")
@@ -992,7 +989,6 @@ class PwInputFile(StructureFileParser):
                                                pat="atomic_positions", 
                                                retline=True)
         if flag == 0:
-            verbose("[get_atpos]: WARNING: start pattern not found")
             return None
         line = line.strip().lower().split()
         if len(line) > 1:
@@ -1013,7 +1009,6 @@ class PwInputFile(StructureFileParser):
             line = next_line(self.file)
             match = rex.match(line)
         if lst == []:
-            verbose("[get_atpos]: WARNING: nothing found")
             return None
         ar = np.array(lst)
         symbols = ar[:,0].tolist()
@@ -1273,22 +1268,37 @@ class PwOutputFile(FileParser):
         'start_coords',
         ])
     
-    def parse(self):
-        verbose("parsing %s" %self.filename)
-        FileParser.parse(self) 
-
-        # sanity check
+    def _check_nstep(self):
+        """Check if MD steps from infile and outfile match. For MDs, they may
+        differ by 1."""
+        is_md = self.infile.namelists['control']['calculation'] == 'md'
+        if is_md and self.is_set_attr('nstep') and self.is_set_attr('infile'):
+            if self.infile.namelists['control'].has_key('nstep'):
+                nstep_pwout = self.nstep
+                nstep_pwin = int(self.infile.namelists['control']['nstep'])
+                if nstep_pwout != nstep_pwin and \
+                   (abs(nstep_pwout - nstep_pwin) > 1):
+                    verbose("WARNING: nstep from infile (%s: %i) and "
+                            "outfile (%s: %i) don't seem to match" \
+                            %(self.infile.filename,
+                              nstep_pwin, 
+                              self.filename, 
+                              nstep_pwout))
+    
+    def _check_natoms(self):
         if self.is_set_attr('coords'):
             com.assert_cond(self.coords.shape[0] == self.infile.natoms, 
                             "natoms from infile (%s: %i)  and outfile "
                             "(%s: %i) don't match" \
                             %(self.infile.filename, self.infile.natoms,
                               self.filename, self.coords.shape[0]))
-        if self.is_set_attr('nstep') and self.is_set_attr('infile'):
-            if self.infile.namelists['control'].has_key('nstep'):
-                if self.nstep != self.infile.namelists['control']['nstep']:
-                    print("WARNING: nstep from infile (%s) and outfile (%s) "
-                          "don't match" %(self.infile.filename, self.filename))
+
+    def parse(self):
+        verbose("parsing %s" %self.filename)
+        FileParser.parse(self) 
+        # sanity check
+        self._check_natoms()
+        self._check_nstep()
         self.close_file()
     
     def get_infile(self):
@@ -1521,7 +1531,6 @@ class PwOutputFile(FileParser):
 class PwVCMDOutputFile(PwOutputFile):
     def __init__(self, *args, **kwargs):
         PwOutputFile.__init__(self, *args, **kwargs)
-        
         self.set_attr_lst(self.attr_lst + ['_datadct', 'econst'])
 
     def _get_datadct(self):

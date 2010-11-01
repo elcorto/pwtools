@@ -44,7 +44,7 @@ def test():
         dotest = True
         for name, string in known_fails.iteritems():
             if name == attr:
-                print "%s: KNOWN FAIL: %s: %s" %(name, string, attr)
+                print "%s: KNOWNFAIL: %s: %s" %(name, string, attr)
                 dotest = False
         if dotest:                
             if type(c_val) == arr_t:

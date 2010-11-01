@@ -44,12 +44,8 @@ def test():
     ##plt.legend()
     ##plt.show()
 
-    print ">>> this test should pass ..."
     np.testing.assert_array_almost_equal(dos['cart'], dos['cart2'])
-    print ">>> ... ok"
-
-    print ">>> this test should fail ..."
     try:
         np.testing.assert_array_almost_equal(dos['cart'], dos['cp1'])
     except AssertionError:
-        print "OK KNOWNFAIL"
+        print "KNOWNFAIL"

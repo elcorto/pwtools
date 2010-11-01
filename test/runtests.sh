@@ -3,18 +3,21 @@
 # Prepare package for testing and call nosetests.
 #
 # usage:
-#   ./run_all.sh [nosetests options]
+#   ./runtests.sh [nosetests options]
 # 
 # example:
-#   ./run_all.sh -v
+#   ./runtests.sh -v
 #   Be a bit more verbose by calling nosetests -v .
 #   
-#   ./run_all.sh -vs
+#   ./runtests.sh -vs
 #   Print all stdout (like warnings) of all tests.
-# 
+#   
+#   ./runtests.sh test_foo.py test_bar.py
+#   Run only some tests.
+#
 # For tests calling Fortran extensions: Stdout from Fortran ends up in the
 # wrong order in the logfile. To see the correct output, run these tests by
-# hand (nosetests test_foo.py).
+# hand (./runtests.sh test_foo.py).
 # 
 # We make sure that the correct (this) package is picked up by the interpreter,
 # no matter how you named it (e.g. "from pwtools import *" will fail if the
@@ -25,11 +28,10 @@
 # oversubscribe any CPU with less than 3 cores, but should run fine.
 
 
-PP=$PYTHONPATH
 tgt=$(cd .. && pwd)
 testdir=/tmp/pwtools-test.$$
 mkdir -pv $testdir
-logfile=$testdir/run_all.log
+logfile=$testdir/runtests.log
 cp -rv $tgt $testdir/pwtools | tee -a $logfile
 cd $testdir/pwtools/
 # build extension modules

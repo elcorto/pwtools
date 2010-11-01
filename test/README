@@ -1,9 +1,8 @@
-To run the tests, use ./run_all.sh . Note the comments in that file.
+To run the tests, use ./runtests.sh . Note the comments in that file.
 
 The file files/pw.md.out.gz comes from a long MD run with nstep=1200. To lower
 the file size, it has been truncated after 120 steps and the variable
 control:nstep in pw.md.in has been set to 120 as well.
-Note that you may get warnings "nstep from infile (files/pw.md.in) and outfile
-(files/pw.md.out) don't match". This can be ignored. The reason is that even
-though the MD itself has 120 steps, pw.x performs a first SCF run before the
-MD, so that actually we have 121 steps, with step 1 beeing the start structure.
+
+If all tests pass, good. If they do and the logfile does not contain warnings
+but only some KNOWNFAIL statements .. very good.
