@@ -6,10 +6,10 @@ from cStringIO import StringIO
 
 import numpy as np
 
-from decorators import open_and_close
-from common import PydosConfigParser
-from verbose import verbose
-import common as com
+from pwtools.decorators import open_and_close
+from pwtools.common import PydosConfigParser
+from pwtools.verbose import verbose
+from pwtools import common as com
 
 # globals
 HEADER_MAXLINES = 20

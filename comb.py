@@ -3,7 +3,7 @@
 # Some combinatorics stuff.
 
 import numpy as np
-from common import assert_cond as _assert
+from pwtools.common import assert_cond as _assert
 
 def fac(n):
     """Factorial n!. Returns integer."""

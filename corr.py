@@ -5,7 +5,7 @@
 
 from scipy.fftpack import fft, ifft
 import numpy as np
-import _flib
+from pwtools import _flib
 
 def acorr(v, method=7):
     """Normalized autocorrelation function (ACF) for 1d arrys: 

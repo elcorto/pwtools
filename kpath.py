@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import math
 
-from common import str_arr
+from pwtools.common import str_arr
 
 
 def vlinspace(a, b, num, endpoint=True):

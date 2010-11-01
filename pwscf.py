@@ -3,7 +3,7 @@
 # Some handy tools to construct strings which for building pwscf input files.
 
 import numpy as np
-from common import fix_eps, str_arr
+from pwtools.common import fix_eps, str_arr
 
 def atpos_str(symbols, coords, fmt="%.16e", zero_eps=True):
     """Convenience function to make a string for the ATOMIC_POSITIONS section

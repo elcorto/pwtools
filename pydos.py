@@ -29,9 +29,9 @@ pjoin = os.path.join
 
 
 # backward compat for older scripts using pwtools, not used here
-from crys import coord_trans
-from pwscf import atpos_str, atspec_str
-from common import slicetake, sliceput
+from pwtools.crys import coord_trans
+from pwtools.pwscf import atpos_str, atspec_str
+from pwtools.common import slicetake, sliceput
 
 #-----------------------------------------------------------------------------
 # globals 
