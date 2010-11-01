@@ -32,7 +32,7 @@ tgt=$(cd .. && pwd)
 testdir=/tmp/pwtools-test.$$
 mkdir -pv $testdir
 logfile=$testdir/runtests.log
-cp -rv $tgt $testdir/pwtools | tee -a $logfile
+cp -rvL $tgt $testdir/pwtools | tee -a $logfile
 cd $testdir/pwtools/
 # build extension modules
 [ -f Makefile ] && make  | tee -a $logfile
