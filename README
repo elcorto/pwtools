@@ -34,9 +34,6 @@ necessary for the "Direct Method" (see below).
 Running tests
 -------------
 
-    $ cd tests
-    $ ./run_all.sh
-
 See tests/README.
 
 Python versions
