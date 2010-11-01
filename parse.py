@@ -1271,9 +1271,9 @@ class PwOutputFile(FileParser):
     def _check_nstep(self):
         """Check if MD steps from infile and outfile match. For MDs, they may
         differ by 1."""
-        is_md = self.infile.namelists['control']['calculation'] == 'md'
-        if is_md and self.is_set_attr('nstep') and self.is_set_attr('infile'):
-            if self.infile.namelists['control'].has_key('nstep'):
+        if self.is_set_attr('nstep') and self.is_set_attr('infile'):
+            is_md = self.infile.namelists['control']['calculation'] == 'md'
+            if is_md and self.infile.namelists['control'].has_key('nstep'):
                 nstep_pwout = self.nstep
                 nstep_pwin = int(self.infile.namelists['control']['nstep'])
                 if nstep_pwout != nstep_pwin and \
