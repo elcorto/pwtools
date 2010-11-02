@@ -1458,8 +1458,8 @@ class PwOutputFile(FileParser):
         else:            
             nstep = int(ret_str)
         # forces
-        cmd = r"grep 'atom.*type.*force' %s \
-            | sed -re 's/.*atom.*type.*force\s+=(.*)$/\1/g'" %self.filename
+        cmd = "grep 'atom.*type.*force' %s \
+            | awk '{print $7\" \"$8\" \"$9}'" %self.filename
         ret_str = com.backtick(cmd)
         if ret_str.strip() == '':
             return None
