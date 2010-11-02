@@ -42,8 +42,8 @@ Python versions
 Developed mostly with Python 2.5. Should work with all versions from 2.4 on,
 but not yet 3.x. Also, python2.6 has not been tested yet.
 
-Add-on packages
----------------
+Add-on packages / other required tools
+--------------------------------------
 
 Must have:
     - numpy 
@@ -51,6 +51,8 @@ Must have:
     - nose (for running tests in test/)  
     On Debian-based distros, "aptitude install python-numpy python-scipy
     python-nose" should do it.
+    - Unix tools: grep, sed, awk, tail, wc (for parse.py); gzip/gunzip (for
+      test/*)
 
 optional: 
     parse.py:
