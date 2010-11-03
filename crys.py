@@ -1138,7 +1138,7 @@ def rpdf(coords, cp, dr, rmax='auto', tslice=slice(None), align='rows',
     # a random distribution.
     #
     # For each atom i=1,N, count the number dn(r) of atoms j around it in the
-    # shell [r,r+dr] with rij = r_i - r_j.
+    # shell [r,r+dr] with r_ij = r_i - r_j.
     #   
     #   dn(r) = sum(i=1,N) sum(j=1,N, j!=i) delta(r - r_ij)
     # 
@@ -1149,6 +1149,7 @@ def rpdf(coords, cp, dr, rmax='auto', tslice=slice(None), align='rows',
     # average. Also, we normalize to ideal gas values
     #   
     #   g(r) = dn(r) / [N * (N/V) * V(r)]
+    #        = dn(r) / [N**2/V * V(r)]
     #   V(r) = 4*pi*r**2*dr = 4/3*pi*[(r+dr)**3 - r**3]
     # 
     # where V(r) the volume of the shell. Formulation (a) from above: N/V*V(r)
@@ -1175,27 +1176,29 @@ def rpdf(coords, cp, dr, rmax='auto', tslice=slice(None), align='rows',
     # gives the average number of *all* atoms around an atom, *excluding* the
     # central one. This integral will converge to N-1 with or without PBC, but
     # w/o PBC, the nearest neigbor numbers I(r1,r2) will be wrong! Always use
-    # PBC (minimum image convention). Have a look at the following table:
+    # PBC (minimum image convention). Have a look at the following table.
+    # rmax_auto is the rmax value for the given unit cell by the method of
+    # [Smith].
     #
     #                                    nearest neighb.     I(0,rmax) = N-1  
-    # 1.) pbc=Tue,   rmax <  rmax-auto   +                   -
-    # 2.) pbc=Tue,   rmax >> rmax-auto   +                   +
-    # 3.) pbc=False, rmax <  rmax-auto   -                   -
-    # 4.) pbc=Nalse, rmax >> rmax-auto   -                   +
+    # 1.) pbc=Tue,   rmax <  rmax_auto   +                   -
+    # 2.) pbc=Tue,   rmax >> rmax_auto   +                   +
+    # 3.) pbc=False, rmax <  rmax_auto   -                   -
+    # 4.) pbc=Nalse, rmax >> rmax_auto   -                   +
     # 
     # Note that case (1) is the use case in [Smith]. Always use this. Also note
     # that case (2) appears to be also useful. However, it can be shown that
-    # nearest neigbors are correct only up to rmax-auto! See
+    # nearest neigbors are correct only up to rmax_auto! See
     # examples/rpdf/rpdf_aln.py .
     #
     # For a crystal, integrating over a peak [r-dr/2, r+dr/2] gives *exactly*
     # the number of nearest neighbor atoms for that distance r b/c the
-    # normalizatiobn factor -- the number of atoms in an ideal gas for a narrow
+    # normalization factor -- the number of atoms in an ideal gas for a narrow
     # shell of width dr -- is 1.
     #
     # 2) 2 selections
     #
-    # Lets say wou have 10 waters -> 10 x O (atom type A), 20 x H (type B),
+    # Lets say you have 10 waters -> 10 x O (atom type A), 20 x H (type B),
     # then let A = 10, B = 20.
     #
     #   dn(r) = sum(i=1,A) sum(j=1,B) delta(r - r_ij) = 
@@ -1209,11 +1212,18 @@ def rpdf(coords, cp, dr, rmax='auto', tslice=slice(None), align='rows',
     #          dn_BA(r) / [B * (A/V) * V(r)]
     # 
     # Note that the density used is always the density of the *sourrounding*
-    # atom type.
+    # atom type. Finally:
     #
+    #  g(r) = [dn_AB(r) +  dn_BA(r)] / [A*B/V * V(r)]
+    # 
+    # Note the similarity to the case of one atom type:
+    #
+    #   g(r) = dn(r) / [N**2/V * V(r)]
+    # 
     # This g(r) is independent of the selection order in `coords` b/c it's a
-    # sum. But the number integal is not!
-    #
+    # sum. But the number integal is not! It must depend on which atom type
+    # surounds the other.
+    # 
     #   I_AB(r1,r2) = int(r=r1,r2) (B/V)*g(r)*4*pi*r**2*dr
     #   I_BA(r1,r2) = int(r=r1,r2) (A/V)*g(r)*4*pi*r**2*dr
     #
@@ -1277,11 +1287,11 @@ def rpdf(coords, cp, dr, rmax='auto', tslice=slice(None), align='rows',
         rmax = rmax_auto
     natoms_lst = [c.shape[0] for c in coords_lst]
     
-    # sij : distance matrix in crystal coords
+    # sij : distance "matrix" in crystal coords
     # rij : in cartesian coords, same unit as `cp`, e.g. Angstrom
     # 
-    # For coords = 2d arrays (natoms,3):
-    # sij: for coords_lst[0] == coords_lst[1], i.e. only one structure:
+    # sij: for coords_lst[0] == coords_lst[1] == coords with shape (natoms,3), 
+    #   i.e. only one structure:
     #   sij.shape = (N,N,3) where N = natoms, sij is a "(N,N)-matrix" of
     #   length=3 distance vectors,
     #   equivalent 2d:  
@@ -1336,6 +1346,8 @@ def rpdf(coords, cp, dr, rmax='auto', tslice=slice(None), align='rows',
     #   dists = dists_all[...,idx][dists_all[...,idx] < rmax]
     #
     # Calculate hists for each time step and average them.
+    #
+    # XXX This Python loop is the bottleneck if we have many timesteps.
     dists_all[dists_all >= rmax] = 0.0
     hist_avg = np.zeros(len(bins)-1, dtype=float)
     number_integral_avg = np.zeros(len(bins)-1, dtype=float)
