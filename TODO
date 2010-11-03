@@ -30,6 +30,8 @@ all
   (crys.py). Make parsing classes have an attr `structure`, which is an
   instance of Structure.
 
+- move crys.write* to io.py
+
 tests
 -----
 - Handle known fails with nose.

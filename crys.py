@@ -1360,31 +1360,41 @@ def rpdf(coords, cp, dr, rmax='auto', tslice=slice(None), align='rows',
         out += (number_integral, rmax_auto) 
     return out
 
-
-def vmd_measure_gofr(fn, selstr1='all', selstr2='all', fntype='xsf', first=0,
-                     last=-1, step=1, dr=None, rmax=None, usepbc=1, datafn=None,
-                     scriptfn=None, logfn=None, tmpdir='/tmp', keepfiles=False):
+@crys_add_doc
+def vmd_measure_gofr(coords, cp, symbols, dr, rmax='auto', selstr1='all', selstr2='all', 
+                     fntype='xsf', first=0,
+                     last=-1, step=1, usepbc=1, datafn=None,
+                     scriptfn=None, logfn=None, xsffn=None, tmpdir='/tmp', 
+                     keepfiles=False, full_output=False, align='rows'):
     """Call VMD's "measure gofr" command. This is a simple interface which does
     in fact the same thing as the gofr GUI. This is intended as a complementary
     function to rpdf() and should, of course, produce the "same" results.
+
+    Only cubic boxes are alowed.
     
     args:
     -----
-    fn : str
-        file name of the data file containing the MD trajectory (e.g an .axsf
-        file)
+    coords : 3d array (natoms, 3, nstep)
+        Crystal coords.
+    %(cp_doc)s
+        Unit: Angstrom
+    symbols : (natoms,) list of strings
+        Atom symbols.
+    dr : float
+        dr in Angstrom
+    rmax : {'auto', float}, optional
+        Max. radius up to which minimum image nearest neighbors are counted.
+        For cubic boxes of side length L, this is L/2 [AT,MD].
+        'auto': the method of [Smith] is used to calculate the max. sphere
+            raduis for any cell shape
+        float: set value yourself
     selstr1, selstr2 : str, optional
         string to select atoms, "all", "name O", ...
     fntype : str, optional
         file type of `fn` for the VMD "mol" command
     first, last, step: int, optional
-        Select which MD steps are averaged. Note that VMD starts counting at 1.
-        Last is -1, like in Python. 
-        example:
-            VMD:    first=30, last=-1, step=2
-            Python: [29:-1::2]
-    dr, rmax : float, optional
-        dr and rmax in Angstrom
+        Select which MD steps are averaged. Like Python, VMD starts counting at
+        0. Last is -1, like in Python. 
     usepbc: int {1,0}, optional
         Whether to use min image convention.
     datafn : str, optional (auto generated)
@@ -1393,18 +1403,28 @@ def vmd_measure_gofr(fn, selstr1='all', selstr2='all', fntype='xsf', first=0,
         temp file where VMD tcl input script is written to
     logfn : str, optional (auto generated)
         file where VMD output is logged 
+    xsffn : str, optional (auto generated)
+        temp file where .axsf file generated from `coords` is written to and
+        loaded by VMD
     tmpdir : str, optional
         dir where auto-generated tmp files are written
     keepfiles : bool, optional
         Whether to delete `datafn` and `scriptfn`.
-    
+    %(align_doc)s
+
     returns:
     --------
-    data: array (len(rad), 3)
-        loaded results
-        data[:,0] : radius with spacing dr
-        data[:,1] : g(r)
-        data[:,2] : number integral
+    (rad, hist, (number_integral, rmax_auto))
+    rad : 1d array, radius (x-axis) with spacing `dr`, each value r[i] is the
+        middle of a histogram bin 
+    hist : 1d array, (len(rad),)
+        the function values g(r)
+    if full_output:
+        number_integral : 1d array, (len(rad),)
+            number_density*hist*4*pi*r**2.0*dr
+        rmax_auto : float
+            auto-calculated rmax, even if not used (i.e. rmax is set from
+            input)
     """
 
     vmd_tcl = textwrap.dedent("""                    
@@ -1448,6 +1468,10 @@ def vmd_measure_gofr(fn, selstr1='all', selstr2='all', fntype='xsf', first=0,
     }    
     quit
     """)
+    # Speed: The VMD command "measure gofr" is multithreaded and written in C.
+    # That's why it is faster then the pure Python rpdf() above when we have to
+    # average many timesteps. But the writing of the .axsf file here is
+    # actually the bottleneck and makes this function slower.
     assert None not in [dr, rmax], "`dr` or `rmax` is None"
     tmpstr = tempfile.mktemp(prefix='', dir='')
     if datafn is None:
@@ -1456,8 +1480,20 @@ def vmd_measure_gofr(fn, selstr1='all', selstr2='all', fntype='xsf', first=0,
         scriptfn = os.path.join(tmpdir, "vmd_script_%s" %tmpstr)
     if logfn is None:
         logfn = os.path.join(tmpdir, "vmd_log_%s" %tmpstr)
+    if xsffn is None:
+        xsffn = os.path.join(tmpdir, "vmd_xsf_%s" %tmpstr)
+    if align == 'cols':
+        cp = cp.T
+    cc = cp2cc(cp)
+    if np.abs(cc[3:] - 90.0).max() > 0.1:
+        print cp
+        raise StandardError("`cp` is not a cubic cell, check angles")
+    rmax_auto = rmax_smith(cp)
+    if rmax == 'auto':
+        rmax = rmax_auto
+    write_axsf(xsffn, coords, cp, symbols)
     dct = {}
-    dct['fn'] = fn
+    dct['fn'] = xsffn
     dct['fntype'] = fntype
     dct['selstr1'] = selstr1
     dct['selstr2'] = selstr2
@@ -1478,6 +1514,12 @@ def vmd_measure_gofr(fn, selstr1='all', selstr2='all', fntype='xsf', first=0,
     if not keepfiles:
         os.remove(datafn)
         os.remove(scriptfn)
+        os.remove(xsffn)
         ##os.remove(logfn)
-    return data
-
+    rad = data[:,0]
+    hist_avg = data[:,1]
+    number_integral = data[:,2]
+    out = (rad, hist_avg)
+    if full_output:
+        out += (number_integral, rmax_auto) 
+    return out
