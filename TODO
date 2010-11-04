@@ -44,6 +44,5 @@ tests
 
 - Add tests for 
     eos.py
-    crys.scell()
 
 - crys.scell(): make symbols an optional kwarg
