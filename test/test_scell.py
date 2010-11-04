@@ -56,3 +56,5 @@ def test():
                   [ 0.5,  2. ,  0.4],
                   [ 0.4,  1. ,  2. ]])
     np.testing.assert_array_almost_equal(sc['cell'], sc_cell)
+    # crystal coords are cell-independent
+    np.testing.assert_array_almost_equal(sc['coords'], sc_coords)
