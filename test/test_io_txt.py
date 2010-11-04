@@ -4,6 +4,7 @@ def test():
     from pwtools import io
     import os
     import numpy as np
+    from testenv import testdir
 
     pj = os.path.join
     ##rand = np.random.rand
@@ -29,43 +30,39 @@ def test():
         ##    print "... FAIL!"
         assert (a == arr).all()
 
-    dir = '/tmp/pwtools_test'
-    if not os.path.exists(dir):
-        os.makedirs(dir)
-
     # 1d
     a = np.arange(0, 3)
-    fn = pj(dir, 'a1d.txt')
+    fn = pj(testdir, 'a1d.txt')
     write_read_check(fn, a)
 
     # 2d
     shape = (3, 5)
     a = np.arange(0, np.prod(shape)).reshape(shape) 
-    fn = pj(dir, 'a2d.txt')
+    fn = pj(testdir, 'a2d.txt')
     write_read_check(fn, a)
 
     # 3d
     shape = (3, 5, 7)
     a = np.arange(0, np.prod(shape)).reshape(shape)
 
-    fn = pj(dir, 'a3d0.txt')
+    fn = pj(testdir, 'a3d0.txt')
     write_read_check(fn, a, axis=0)
 
-    fn = pj(dir, 'a3d1.txt')
+    fn = pj(testdir, 'a3d1.txt')
     write_read_check(fn, a, axis=1)
 
-    fn = pj(dir, 'a3d2.txt')
+    fn = pj(testdir, 'a3d2.txt')
     write_read_check(fn, a, axis=2)
 
-    fn = pj(dir, 'a3dm1.txt')
+    fn = pj(testdir, 'a3dm1.txt')
     write_read_check(fn, a, axis=-1)
 
-    fn = pj(dir, 'a3d0r.txt')
+    fn = pj(testdir, 'a3d0r.txt')
     write_read_check_raw(fn, a, axis=0, shape=shape)
 
-    fn = pj(dir, 'a3d1r.txt')
+    fn = pj(testdir, 'a3d1r.txt')
     write_read_check_raw(fn, a, axis=1, shape=shape)
 
-    fn = pj(dir, 'a3d2r.txt')
+    fn = pj(testdir, 'a3d2r.txt')
     write_read_check_raw(fn, a, axis=2, shape=shape)
 

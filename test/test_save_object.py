@@ -8,13 +8,6 @@ def test():
     from pwtools import common
     from pwtools import pydos as pd
 
-    def check(is_true, attr):
-        if is_true:
-            print "%s: ... ok" %attr
-        else:        
-            print "%s: ... FAILED!" %attr
-            
-
     filename = 'files/pw.md.out'
     infile = 'files/pw.md.in'
     dumpfile = '/tmp/pw.md.pk'

@@ -38,6 +38,10 @@ cd $testdir/pwtools/
 [ -f Makefile ] && make  | tee -a $logfile
 cd test/
 
+# HACK: communicate variable to test_*.py modules. All tests which write temp
+# files must import this module and write their files to $testdir.
+echo "testdir='$testdir'" > testenv.py
+
 # Purge any compiled files.
 echo "Deleting *.pyc files ..." | tee -a $logfile
 rm -vf $(find ../ -name "*.pyc")  $(find . -name "*.pyc") 2>&1 \

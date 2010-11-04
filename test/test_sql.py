@@ -6,12 +6,10 @@ def test():
     import os
     from pwtools.sql import SQLiteDB, SQLEntry
     from pwtools import common
+    from testenv import testdir
     pj = os.path.join
 
-    dr = '/tmp/pwtools_test'
-    dbfn = pj(dr, 'test.db')
-    if not os.path.exists(dr):
-        os.makedirs(dr)
+    dbfn = pj(testdir, 'test.db')
     if os.path.exists(dbfn):
         os.remove(dbfn)
 
