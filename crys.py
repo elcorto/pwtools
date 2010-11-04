@@ -630,7 +630,7 @@ def write_xyz(filename, coords, cp, symbols, align='rows', name='pwtools_dummy_m
 
 
 @crys_add_doc
-def write_axsf(filename, coords, cp, symbols, time_axis=-1, atoms_axis=0, align='rows'):
+def write_axsf(filename, coords, cp, symbols, align='rows'):
     """Write animated XSF file. ATM, only fixed cells, i.e. `cp` cannot be 3d
     array, in pwscf: md, relax, not vc-md, vc-relax. Forces are all set to
     zero.
@@ -643,17 +643,12 @@ def write_axsf(filename, coords, cp, symbols, time_axis=-1, atoms_axis=0, align=
     filename : target file name
     coords : 2d (one unit cell) or 3d array (e.g. MD trajectory)
         crystal (fractional) coords,
-        examples:
-        2d: (natoms, 3) : atoms_axis=0, time_axis not used
-        3d: (natoms, 3, nstep) : atoms_axis=0, time_axis=2
+        2d: (natoms, 3)
+        3d: (natoms, 3, nstep)
     %(cp_doc)s 
         In Angstrom units.
     symbols : list of strings (natoms,)
         atom symbols
-    time_axis : int, optional
-        axis number for time (if coords is 3d)
-    atoms_axis : int, optional
-        axis along which atomic coords [x,y,z] are aligned
     %(align_doc)s
 
     refs:
@@ -669,30 +664,33 @@ def write_axsf(filename, coords, cp, symbols, time_axis=-1, atoms_axis=0, align=
     # We could extend this to variable cell by allowing `cp` to be 3d and
     # accept an 3d array for forces, too. Then we had (together with
     # parse.Pw*OutputFile) a replacement for pwo2xsf.sh .
-    #
-    # XXX It would be nice to tansform the 3d coords array all at once before
-    # the loop. This can be done easily with coord_trans() if the shape in
-    # known (and maybe swapayes. But is that possible with generic
-    # atom_axis/time_axis stuff? I guess not. Maybe force an API where coords
-    # is (natoms, 3, nstep)?
     if align == 'cols':
         cp = cp.T
+    atoms_axis = 0
+    time_axis = -1
+    xyz_axis = 1
     is3d = coords.ndim == 3
     natoms = coords.shape[atoms_axis]
     if is3d:
         nstep = coords.shape[time_axis]
         sl = [slice(None)]*3
+        # (natoms, 3, nstep) -> (natoms, nstep, 3) -> transform -> (natoms, nstep, 3)
+        # -> (natoms, 3, nstep)
+        coords_cart = np.dot(coords.swapaxes(-1,-2), cp).swapaxes(-1,-2)
     else:
         nstep = 1
         sl = [slice(None)]*2
+        coords_cart = np.dot(coords, cp)
+    coords_cart = np.concatenate((coords_cart, 
+                                  np.zeros_like(coords_cart)),
+                                  axis=xyz_axis)
     axsf_str = "ANIMSTEPS %i\nCRYSTAL\nPRIMVEC\n%s" %(nstep, common.str_arr(cp))
     for istep in range(nstep):
         if is3d:
             sl[time_axis] = istep
-        coords_cart = np.dot(coords[sl], cp)
-        arr = np.concatenate((coords_cart, np.zeros_like(coords_cart)), axis=1)
         axsf_str += "\nPRIMCOORD %i\n%i 1\n%s" %(istep+1, natoms, 
-                                                 atpos_str(symbols, arr))
+                                                 atpos_str(symbols,
+                                                           coords_cart[sl]))
     common.file_write(filename, axsf_str)
 
 #-----------------------------------------------------------------------------
