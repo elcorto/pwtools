@@ -32,6 +32,9 @@ all
 
 - move crys.write* to io.py
 
+- crys.write_*(): by using cryst_const instead of `cp`, we would get rid of the
+  annoying `align` kwarg. I guess that it is not even necessary everywhere.
+
 tests
 -----
 - Handle known fails with nose.

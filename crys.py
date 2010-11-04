@@ -577,6 +577,59 @@ def write_cif(filename, coords, symbols, cryst_const, fac=con.a0_to_A, conv=Fals
 
 
 @crys_add_doc
+def write_xyz(filename, coords, cp, symbols, align='rows', name='pwtools_dummy_mol_name'):
+    """Write VMD-style [VMD] XYZ file.
+    
+    B/c we require `coords` to be fractional, we need `cp` to transform to
+    cartesian Angstrom.
+    
+    args:
+    -----
+    filename : target file name
+    coords : 2d (one unit cell) or 3d array (e.g. MD trajectory)
+        crystal (fractional) coords,
+        2d: (natoms, 3)
+        3d: (natoms, 3, nstep)
+    %(cp_doc)s 
+        In Angstrom units.
+    symbols : list of strings (natoms,)
+        atom symbols
+    %(align_doc)s
+    name : str, optional
+        Molecule name.
+
+    refs:
+    -----
+    [VMD] http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/xyzplugin.html
+    """
+    if align == 'cols':
+        cp = cp.T
+    is3d = coords.ndim == 3
+    atoms_axis = 0
+    time_axis = -1
+    natoms = coords.shape[atoms_axis]
+    if is3d:
+        nstep = coords.shape[time_axis]
+        sl = [slice(None)]*3
+        # (natoms, 3, nstep) -> (natoms, nstep, 3) -> transform -> (natoms, nstep, 3)
+        # -> (natoms, 3, nstep)
+        coords_cart = np.dot(coords.swapaxes(-1,-2), cp).swapaxes(-1,-2)
+    else:
+        nstep = 1
+        sl = [slice(None)]*2
+        coords_cart = np.dot(coords, cp)
+    xyz_str = ""
+    for istep in range(nstep):
+        if is3d:
+            sl[time_axis] = istep
+        xyz_str += "%i\n%s\n%s\n" %(natoms,
+                                  name + '.%i' %(istep + 1),
+                                  atpos_str(symbols, coords_cart[sl]),
+                                  )
+    common.file_write(filename, xyz_str)
+
+
+@crys_add_doc
 def write_axsf(filename, coords, cp, symbols, time_axis=-1, atoms_axis=0, align='rows'):
     """Write animated XSF file. ATM, only fixed cells, i.e. `cp` cannot be 3d
     array, in pwscf: md, relax, not vc-md, vc-relax. Forces are all set to
@@ -616,7 +669,12 @@ def write_axsf(filename, coords, cp, symbols, time_axis=-1, atoms_axis=0, align=
     # We could extend this to variable cell by allowing `cp` to be 3d and
     # accept an 3d array for forces, too. Then we had (together with
     # parse.Pw*OutputFile) a replacement for pwo2xsf.sh .
-    
+    #
+    # XXX It would be nice to tansform the 3d coords array all at once before
+    # the loop. This can be done easily with coord_trans() if the shape in
+    # known (and maybe swapayes. But is that possible with generic
+    # atom_axis/time_axis stuff? I guess not. Maybe force an API where coords
+    # is (natoms, 3, nstep)?
     if align == 'cols':
         cp = cp.T
     is3d = coords.ndim == 3
