@@ -344,10 +344,13 @@ def scell_mask(dim1, dim2, dim3):
 
 
 @crys_add_doc
-def raw_scell(coords, mask, symbols):
+def raw_scell(coords, mask, symbols, behave='new'):
     """Build supercell based on `mask`. This function does only translate the
     atomic coords. it does NOT do anything with the crystal axes. See scell()
     for that.
+
+    NOTE: This is depretacted. The functionality (behave='new') is built into
+    scell() now.
 
     args:
     -----
@@ -365,44 +368,30 @@ def raw_scell(coords, mask, symbols):
     coords : array (N*natoms, 3)
         Atomic crystal coords in the super cell w.r.t the original cell, 
         i.e. the numbers are not in [0,1], but in [0, max(dims)].
-
-    notes:
-    ------
-    This is tested for coords in 'crystal' coords, i.e. in units of `cp`.
     """
-    # Build supercell 
-    # ---------------
-    # Place each atom N = dim1*dim2*dim3 times in the
-    # supercell, i.e. copy unit cell N times. Actually, N-1, since
-    # n1=n2=n3=0 is the unit cell itself.
-    #
-    # mask[j,:] = [n1, n2, n3], ni = integers (floats actually, but
-    #   mod(ni, floor(ni)) == 0.0)
-    #
-    # original cell:
-    # coords[i,:] = r_i = position vect of atom i in the unit cell in *crystal*
-    #           coords!!
-    # 
-    # super cell:
-    # r*_i = r_i + [n1, n2, n3]
-    #   for all permutations (see scell_mask()) of n1, n2, n3.
-    #   ni = 0, ..., dim_i - 1, i = 1,2,3
-    symbols_sc = []
-    coords_sc = np.empty((mask.shape[0]*coords.shape[0], 3), dtype=float)
-    k = 0
-    for iatom in range(coords.shape[0]):
-        for j in range(mask.shape[0]):
-            coords_sc[k,:] = coords[iatom,:] + mask[j,:]
-            symbols_sc.append(symbols[iatom])
-            k += 1
-    return {'symbols': symbols_sc, 'coords': coords_sc}
+    nmask = mask.shape[0]
+    natoms = coords.shape[0]
+    if behave == 'new':   
+        sc_symbols = np.array(symbols).repeat(nmask).tolist()   
+        sc_coords = (coords[:,None] + mask[None,:]).reshape(natoms*nmask,3)
+    elif behave == 'old':        
+        sc_symbols = []
+        sc_coords = np.empty((nmask*natoms, 3), dtype=float)
+        k = 0
+        for iatom in range(coords.shape[0]):
+            for j in range(nmask):
+                sc_symbols.append(symbols[iatom])  
+                sc_coords[k,:] = coords[iatom,:] + mask[j,:]
+                k += 1
+    else:
+        raise
+    return sc_symbols, sc_coords
 
 
 @crys_add_doc
 def scell(coords, cp, dims, symbols, align='rows'):
-    """Convenience function. Uses raw_scell() and scell_mask(). It scales the
-    unit cell to the dims of the super cell and returns crystal atomic
-    positions w.r.t this cell.
+    """Build supercell based on `dims`. It scales the unit cell to the dims of
+    the super cell and returns crystal atomic positions w.r.t. this cell.
     
     args:
     -----
@@ -424,23 +413,44 @@ def scell(coords, cp, dims, symbols, align='rows'):
         the numbers are in [0,1].
     cell : array (3,3), basis vecs of the super cell        
     """
-    cp = np.asarray(cp)
     assert_cond(cp.shape == (3,3), "cp must be (3,3) array")
     if align == 'cols':
         cp = cp.T
     mask = scell_mask(*tuple(dims))
-    # Rsc : crystal coords w.r.t the *old* cell, i.e. the entries are in
-    # [0,(max(dims))], not [0,1]
-    sc = raw_scell(coords, mask, symbols)
+    
+    # Place each atom N = dim1*dim2*dim3 times in the
+    # supercell, i.e. copy unit cell N times. Actually, N-1, since
+    # n1=n2=n3=0 is the unit cell itself.
+    #
+    # mask[j,:] = [n1, n2, n3], ni = integers (floats actually, but
+    #   mod(ni, floor(ni)) == 0.0)
+    #
+    # original cell:
+    # coords[i,:] = r_i = position vect of atom i in the unit cell in *crystal*
+    #           coords!!
+    # 
+    # super cell:
+    # r*_i = r_i + [n1, n2, n3]
+    #   for all permutations (see scell_mask()) of n1, n2, n3.
+    #   ni = 0, ..., dim_i - 1, i = 1,2,3
+    #
+    # sc_coords : crystal coords w.r.t the *old* cell, i.e. the entries are in
+    # [0,(max(dims))], not [0,1], is scaled below
+    #
+    ##sc_symbols, sc_coords = raw_scell(coords, mask, symbols, behave='new')
+    nmask = mask.shape[0]
+    natoms = coords.shape[0]
+    sc_symbols = np.array(symbols).repeat(nmask).tolist()   
+    sc_coords = (coords[:,None] + mask[None,:]).reshape(natoms*nmask,3)
     # scale cp acording to super cell dims
-    cp_sc = cp * np.asarray(dims)[:,np.newaxis]
+    sc_cp = cp * np.asarray(dims)[:,None]
     # Rescale crystal coords to new bigger cell (coord_trans
     # actually) -> all values in [0,1] again
-    sc['coords'][:,0] /= dims[0]
-    sc['coords'][:,1] /= dims[1]
-    sc['coords'][:,2] /= dims[2]
-    return {'symbols': sc['symbols'], 'coords': sc['coords'], 
-            'cell': cp_sc}
+    sc_coords[:,0] /= dims[0]
+    sc_coords[:,1] /= dims[1]
+    sc_coords[:,2] /= dims[2]
+    return {'symbols': sc_symbols, 'coords': sc_coords, 
+            'cell': sc_cp}
 
 #-----------------------------------------------------------------------------
 # file parsers / converters
