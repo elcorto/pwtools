@@ -24,7 +24,7 @@ def test():
         print "KNOWNFAIL"
 
     # simple dot product must produce same cartesian results:
-    # v_X . X = v_I . I = v_I
+    # X . v_X = I . v_I = v_I
     X = np.identity(3)
     Y = np.random.rand(3,3)*3
     c_X = np.random.rand(20,3)

@@ -360,10 +360,11 @@ def raw_scell(coords, mask, symbols, behave='new'):
     mask : what scell_mask() returns, (N, 3)
     symbols : list of strings with atom symbols, (natoms,), must match with the
         rows of coords
+    behave : str, {'new', 'old'}        
 
     returns:
     --------
-    {symbols, coords)
+    (symbols, coords)
     symbols : list of strings with atom symbols, (N*natoms,)
     coords : array (N*natoms, 3)
         Atomic crystal coords in the super cell w.r.t the original cell, 
@@ -406,7 +407,7 @@ def scell(coords, cell, dims, symbols, align='rows'):
 
     returns:
     --------
-    {symbols, coords, cell}
+    dict {symbols, coords, cell}
     symbols : list of strings with atom symbols for the supercell, (N*natoms,)
     coords : array (N*natoms, 3)
         Atomic crystal coords in the super cell w.r.t `cell`, i.e.

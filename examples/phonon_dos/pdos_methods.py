@@ -153,7 +153,7 @@ rand = np.random.rand
 pj = os.path.join
 
 def cut_norm(full_y, dt, area=1.0):
-    """Cut out and FFT spectrum from scpiy.fftpack.fft() (or numpy.fft.fft())
+    """Cut out and FFT spectrum from scipy.fftpack.fft() (or numpy.fft.fft())
     result and normalize the integral `int(f) y(f) df = area`.
     
     full_y : 1d array
