@@ -85,15 +85,15 @@ def crys_add_doc(func):
     dct = {}
     dct['align_doc'] = \
     """align: str
-        'rows' : basis vecs are the rows of `cp`
-        'cols' : basis vecs are the columns of `cp`"""
-    dct['cp_doc'] = \
-    """cp: array, shape (3,3)
+        'rows' : basis vecs are the rows of `cell`
+        'cols' : basis vecs are the columns of `cell`"""
+    dct['cell_doc'] = \
+    """cell: array, shape (3,3)
         Matrix with basis vectors."""
     dct['cryst_const_doc'] = \
     """cryst_const: array_like, shape (6,)
         [a, b, c, alpha, beta, gamma]"""
-    dct['notes_cp_crys_const'] = \
+    dct['notes_cell_crys_const'] = \
     """We use PWscf notation.
     CELL_PARAMETERS == (matrix of) primitime basis vectors elsewhere
     crystallographic constants a,b,c,alpha,beta,gamma == cell parameters 

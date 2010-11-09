@@ -2,7 +2,7 @@
 # integral area in pydos.*_pdos(). But using a different coord sys does not work.
 # One must convert coords to cartesian before calculating the PDOS.
 #
-# In the resulting plot, "cart" and "cart2" must be exactly the same. "cp1"
+# In the resulting plot, "cart" and "cart2" must be exactly the same. "cell1"
 # must match in principle, but not overlay the other two. 
 
 # XXX how to treat knownfails w/ nose?
@@ -29,11 +29,11 @@ def test():
     #
     # swapaxes : transform (10,3,200) -> (10,200,3) -> coord_trans -> transform
     # back to (10,2,300); for coord_trans, the last axis must have dim 3
-    cp1 = rand((3,3))
-    coords['cp1'] = coord_trans(coords['cart'].swapaxes(-1,-2),
-                                old=np.identity(3), 
-                                new=cp1,
-                                align='rows').swapaxes(-1,-2)
+    cell1 = rand((3,3))
+    coords['cell1'] = coord_trans(coords['cart'].swapaxes(-1,-2),
+                                  old=np.identity(3), 
+                                  new=cell1,
+                                  align='rows').swapaxes(-1,-2)
 
     dos = {}
     for key, val in coords.iteritems():
@@ -46,6 +46,6 @@ def test():
 
     np.testing.assert_array_almost_equal(dos['cart'], dos['cart2'])
     try:
-        np.testing.assert_array_almost_equal(dos['cart'], dos['cp1'])
+        np.testing.assert_array_almost_equal(dos['cart'], dos['cell1'])
     except AssertionError:
         print "KNOWNFAIL"

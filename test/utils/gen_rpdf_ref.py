@@ -33,22 +33,22 @@ if __name__ == '__main__':
             natoms_H = 3
             symbols = ['O']*natoms_O + ['H']*natoms_H
             coords_in = np.random.rand(natoms_H + natoms_O, 3, 30)
-            cp = np.identity(3)*10
+            cell = np.identity(3)*10
             sy = np.array(symbols)
             msk1 = sy=='O'
             msk2 = sy=='H'
             coords = [coords_in[msk1, ..., 10:], coords_in[msk1, ..., 10:]]
-            np.savetxt(pj(dd, name + '.cp.txt'), cp)
+            np.savetxt(pj(dd, name + '.cell.txt'), cell)
             io.writetxt(pj(dd, name + '.coords0.txt'), coords[0])
             io.writetxt(pj(dd, name + '.coords1.txt'), coords[1])
         else:
             pp = parse.CifFile(pj(dd, name + '.cif'))
             pp.parse()
             coords = pp.coords
-            cp = pp.cell
+            cell = pp.cell
         rad, hist, num_int, rmax_auto = crys.rpdf(coords, 
                                                   rmax=5.0, 
-                                                  cp=cp,
+                                                  cell=cell,
                                                   dr=0.05, 
                                                   pbc=True,
                                                   full_output=True)

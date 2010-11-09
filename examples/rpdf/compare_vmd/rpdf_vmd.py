@@ -24,7 +24,7 @@ if __name__ == '__main__':
     common.system("gzip pw.out")
     alat_ang = float(pp.infile.namelists['system']['celldm(1)']) * constants.a0_to_A
     # cart Angstrom -> crystal
-    cp = np.identity(3)*alat_ang
+    cell = np.identity(3)*alat_ang
     coords = pp.coords / alat_ang # 3d
     
     # O_Ca
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     for key, val in cdct.iteritems():
         rad, hist, num_int, rmax_auto = \
             crys.rpdf(coords=val, 
-                      cp=cp, 
+                      cell=cell, 
                       dr=dr, 
                       full_output=True,
                       tslice=slice(None))
@@ -87,7 +87,7 @@ if __name__ == '__main__':
         # like we use rpdf().
         rad_vmd, hist_vmd, num_int_vmd, rmax_auto_vmd = \
             crys.vmd_measure_gofr(coords=coords, 
-                                  cp=cp,
+                                  cell=cell,
                                   symbols=symbols,
                                   dr=dr, 
                                   rmax='auto', 

@@ -18,9 +18,9 @@ from pwtools import mpl
 plt = mpl.plt
 
 class Structure(object):
-    def __init__(self, coords, cp, symbols, fnbase=None, tgtdir=None):
+    def __init__(self, coords, cell, symbols, fnbase=None, tgtdir=None):
         self.coords = coords
-        self.cp = cp
+        self.cell = cell
         self.symbols = symbols
         self.fnbase = fnbase
         self.tgtdir = tgtdir
@@ -38,23 +38,23 @@ class Structure(object):
             fn = os.path.join(self.tgtdir, self.fnbase + suffix)
         return fn                
 
-    def write_axsf(self, cpfac=1.0, **kwds):
+    def write_axsf(self, cellfac=1.0, **kwds):
         fn = self._get_fn('.axsf')
         print("writing: %s" %fn)
-        crys.write_axsf(fn, self.coords, self.cp*cpfac, self.symbols, **kwds)
+        crys.write_axsf(fn, self.coords, self.cell*cellfac, self.symbols, **kwds)
     
-    def write_cif(self, cpfac=1.0, **kwds):
+    def write_cif(self, cellfac=1.0, **kwds):
         fn = self._get_fn('.cif')
         print("writing: %s" %fn)
-        crys.write_cif(fn, self.coords, self.symbols, crys.cp2cc(self.cp*cpfac), **kwds)
+        crys.write_cif(fn, self.coords, self.symbols, crys.cell2cc(self.cell*cellfac), **kwds)
     
     def savetxt(self):
         self._assert_fnbase()
         fn_coords = self._get_fn('.coords.txt')
-        fn_cp = self._get_fn('.cp.txt')
-        print("writing: %s, %s" %(fn_coords, fn_cp))
+        fn_cell = self._get_fn('.cell.txt')
+        print("writing: %s, %s" %(fn_coords, fn_cell))
         np.savetxt(fn_coords, self.coords)
-        np.savetxt(fn_cp, self.cp)
+        np.savetxt(fn_cell, self.cell)
                     
 
 class Plot(object):
@@ -118,8 +118,8 @@ if __name__ == '__main__':
                        ])
     symbols_in = ['Al', 'N', 'N', 'Al', 'N', 'Al', 'Al', 'N']
     alat = 5.0
-    cp_in = np.identity(3) * alat
-    sc = crys.scell(coords, cp_in, (2,2,2), symbols_in)
+    cell_in = np.identity(3) * alat
+    sc = crys.scell(coords, cell_in, (2,2,2), symbols_in)
     name = 'aln_ibrav0_sc'
     structs[name] = Structure(sc['coords'], 
                               sc['cell'],
@@ -144,8 +144,8 @@ if __name__ == '__main__':
                           ])
     symbols_in = ['Al', 'N']
     alat = 5.0
-    cp_in = alat/2.0 * np.array([[-1,0,1.], [0,1,1], [-1,1,0]]) # pwscf
-    sc = crys.scell(coords_in, cp_in, (4,4,4), symbols_in)
+    cell_in = alat/2.0 * np.array([[-1,0,1.], [0,1,1], [-1,1,0]]) # pwscf
+    sc = crys.scell(coords_in, cell_in, (4,4,4), symbols_in)
     name = 'aln_ibrav2_sc'
     structs[name] = Structure(sc['coords'], 
                               sc['cell'],
@@ -172,7 +172,7 @@ if __name__ == '__main__':
             for pbc in [True, False]:
                 rad, hist, num_int, rmax_auto = crys.rpdf(struct.coords, 
                                                           rmax=rmax, 
-                                                          cp=struct.cp,
+                                                          cell=struct.cell,
                                                           dr=0.05, 
                                                           pbc=pbc,
                                                           full_output=True)
@@ -221,7 +221,7 @@ if __name__ == '__main__':
     
     rad, hist, num_int, rmax_auto = crys.rpdf([c1,c2], 
                                               rmax=rmax, 
-                                              cp=struct.cp,
+                                              cell=struct.cell,
                                               dr=0.05, 
                                               pbc=pbc,
                                               full_output=True)

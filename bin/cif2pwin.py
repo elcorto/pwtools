@@ -25,8 +25,8 @@ print "cell (div. by a):\n%s\n" %str_arr(pp.cell / pp.cryst_const[0])
 print "atpos (crystal):\n%s\n" %pp.atpos_str
 print "natoms:\n%s\n" %pp.natoms
 
-cpr = crys.recip_cp(pp.cell)
-print "recip. cell:\n%s\n" %str_arr(cpr)
+cellr = crys.recip_cell(pp.cell)
+print "recip. cell:\n%s\n" %str_arr(cellr)
 
-norms = np.sqrt((cpr**2.0).sum(axis=1))
+norms = np.sqrt((cellr**2.0).sum(axis=1))
 print "relation of recip. vector lengths (a:b:c):\n%s\n" %str(norms/norms.min())

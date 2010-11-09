@@ -6,14 +6,14 @@ from testenv import testdir
 pj = os.path.join
 
 def test():
-    cp = np.identity(3)*2.0
+    cell = np.identity(3)*2.0
 
     c2d = np.array([[0.5, 0.5, 0.5],
                   [1,1,1]])
 
     # (2,3,2) = (natoms, 3, nstep)
     coords = np.dstack((c2d[...,None],c2d[...,None]))
-    coords_cart = np.dot(coords.swapaxes(-1,-2), cp).swapaxes(-1,-2)
+    coords_cart = np.dot(coords.swapaxes(-1,-2), cell).swapaxes(-1,-2)
     c2d_cart = coords_cart[...,0]
     symbols = ['H']*2
 
@@ -21,11 +21,11 @@ def test():
     xyz_fn = pj(testdir, 'foo.xyz')
     crys.write_axsf(axsf_fn, 
                     coords=coords, 
-                    cp=cp,
+                    cell=cell,
                     symbols=symbols)
     crys.write_xyz(xyz_fn, 
                     coords=coords, 
-                    cp=cp,
+                    cell=cell,
                     symbols=symbols,
                     name='foo') 
 
@@ -35,7 +35,7 @@ def test():
     # axsf
     arr = np.loadtxt(StringIO(
             common.backtick("grep -A3 PRIMVEC %s | tail -n3" %axsf_fn)))
-    np.testing.assert_array_almost_equal(arr, cp)
+    np.testing.assert_array_almost_equal(arr, cell)
     arr = np.loadtxt(StringIO(
             common.backtick("sed -nre 's/^H(.*)/\\1/gp' %s" %axsf_fn)))
     arr2 = np.concatenate((c2d_cart, c2d_cart), axis=0)

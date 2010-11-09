@@ -546,7 +546,7 @@ class CifFile(StructureFileParser):
     
     def get_cell(self):
         self.check_get_attr('cryst_const')
-        return crys.cc2cp(self.cryst_const)
+        return crys.cc2cell(self.cryst_const)
 
     def get_natoms(self):
         self.check_get_attr('symbols')
@@ -685,7 +685,7 @@ class PDBFile(StructureFileParser):
     
     def get_cell(self):
         self.check_get_attr('cryst_const')
-        return crys.cc2cp(self.cryst_const)            
+        return crys.cc2cell(self.cryst_const)            
     
     def get_natoms(self):
         self.check_get_attr('symbols')
@@ -740,7 +740,7 @@ class CMLFile(StructureFileParser):
     
     def get_cell(self):
         self.check_get_attr('cryst_const')
-        return crys.cc2cp(self.cryst_const)
+        return crys.cc2cell(self.cryst_const)
 
     def get_natoms(self):
         self.check_get_attr('symbols')
@@ -836,7 +836,7 @@ class PwInputFile(StructureFileParser):
                   "Using celldm1=1.0")
             celldm1 = 1.0
         return None if (self.cell is None) else \
-               crys.cp2cc(self.cell*celldm1)
+               crys.cell2cc(self.cell*celldm1)
 
     def get_atspec(self):
         """Parses ATOMIC_SPECIES card in a pw.x input file.
@@ -931,7 +931,7 @@ class PwInputFile(StructureFileParser):
 
         This would also work:
             >>> cmd = r"sed -nre '/CELL_PARAMETERS/,+3p' %s | tail -n3" %self.filename
-            >>> cp = np.loadtxt(StringIO(com.backtick(cmd)))
+            >>> cell = np.loadtxt(StringIO(com.backtick(cmd)))
         """
         self.file.seek(0)
         verbose('[get_cell] reading CELL_PARAMETERS from %s' %self.filename)
@@ -953,10 +953,10 @@ class PwInputFile(StructureFileParser):
             match = rex.match(line)
         if lst == []:
             return None
-        cp = np.array(lst, dtype=float)
-        com.assert_cond(len(cp.shape) == 2, "`cp` is no 2d array")
-        com.assert_cond(cp.shape[0] == cp.shape[1], "dimensions of `cp` don't match")
-        return cp
+        cell = np.array(lst, dtype=float)
+        com.assert_cond(len(cell.shape) == 2, "`cell` is no 2d array")
+        com.assert_cond(cell.shape[0] == cell.shape[1], "dimensions of `cell` don't match")
+        return cell
 
     def get_atpos(self):
         """Parse ATOMIC_POSITIONS card in pw.x input file.

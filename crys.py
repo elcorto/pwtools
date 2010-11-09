@@ -74,16 +74,16 @@ def deg2rad(x):
 #-----------------------------------------------------------------------------
 
 @crys_add_doc
-def volume_cp(cp):
+def volume_cell(cell):
     """Volume of the unit cell from CELL_PARAMETERS. Calculates the triple
     product 
         np.dot(np.cross(a,b), c) 
-    of the basis vectors a,b,c contained in `cp`. Note that (mathematically)
-    the vectors can be either the rows or the cols of `cp`.
+    of the basis vectors a,b,c contained in `cell`. Note that (mathematically)
+    the vectors can be either the rows or the cols of `cell`.
 
     args:
     -----
-    %(cp_doc)s
+    %(cell_doc)s
 
     returns:
     --------
@@ -93,14 +93,14 @@ def volume_cp(cp):
     --------
     >>> a = [1,0,0]; b = [2,3,0]; c = [1,2,3.];
     >>> m = np.array([a,b,c])
-    >>> volume_cp(m)
+    >>> volume_cell(m)
     9.0
-    >>> volume_cp(m.T)
+    >>> volume_cell(m.T)
     9.0
     >>> m = rand(3,3)
-    >>> volume_cp(m)
+    >>> volume_cell(m)
     0.11844733769775126
-    >>> volume_cp(m.T)
+    >>> volume_cell(m.T)
     0.11844733769775123
     >>> np.linalg.det(m)
     0.11844733769775125
@@ -109,10 +109,10 @@ def volume_cp(cp):
 
     notes:
     ------
-    %(notes_cp_crys_const)s
+    %(notes_cell_crys_const)s
     """    
-    assert_cond(cp.shape == (3,3), "input must be (3,3) array")
-    return np.dot(np.cross(cp[0,:], cp[1,:]), cp[2,:])        
+    assert_cond(cell.shape == (3,3), "input must be (3,3) array")
+    return np.dot(np.cross(cell[0,:], cell[1,:]), cell[2,:])        
 
 
 @crys_add_doc
@@ -129,7 +129,7 @@ def volume_cc(cryst_const):
     
     notes:
     ------
-    %(notes_cp_crys_const)s
+    %(notes_cell_crys_const)s
 
     refs:
     -----
@@ -146,17 +146,17 @@ def volume_cc(cryst_const):
 
 
 @crys_add_doc
-def cp2cc(cp, align='rows'):
+def cell2cc(cell, align='rows'):
     """From CELL_PARAMETERS to crystallographic constants a, b, c, alpha, beta,
     gamma. 
-    This mapping is unique in the sense that multiple `cp`s will have
+    This mapping is unique in the sense that multiple `cell`s will have
     the same `cryst_const`, i.e. the representation of the cell in
     `cryst_const` is independent from the spacial orientation of the cell
     w.r.t. a cartesian coord sys.
     
     args:
     -----
-    %(cp_doc)s
+    %(cell_doc)s
     %(align_doc)s
 
     returns:
@@ -166,18 +166,18 @@ def cp2cc(cp, align='rows'):
 
     notes:
     ------
-    %(notes_cp_crys_const)s
+    %(notes_cell_crys_const)s
     """
-    cp = np.asarray(cp)
-    assert_cond(cp.shape == (3,3), "cp must be (3,3) array")
+    cell = np.asarray(cell)
+    assert_cond(cell.shape == (3,3), "cell must be (3,3) array")
     if align == 'cols':
-        cp = cp.T
+        cell = cell.T
     cryst_const = np.empty((6,), dtype=float)
     # a = |a|, b = |b|, c = |c|
-    cryst_const[:3] = np.sqrt((cp**2.0).sum(axis=1))
-    va = cp[0,:]
-    vb = cp[1,:]
-    vc = cp[2,:]
+    cryst_const[:3] = np.sqrt((cell**2.0).sum(axis=1))
+    va = cell[0,:]
+    vb = cell[1,:]
+    vc = cell[2,:]
     # alpha
     cryst_const[3] = angle(vb,vc)
     # beta
@@ -188,11 +188,11 @@ def cp2cc(cp, align='rows'):
 
 
 @crys_add_doc
-def cc2cp(cryst_const):
+def cc2cell(cryst_const):
     """From crystallographic constants a, b, c, alpha, beta,
     gamma to CELL_PARAMETERS.
     This mapping not NOT unique in the sense that one set of `cryst_const` can
-    have arbitrarily many representations in terms of `cp`s. We stick to a
+    have arbitrarily many representations in terms of `cell`s. We stick to a
     common convention. See notes below.
     
     args:
@@ -201,20 +201,20 @@ def cc2cp(cryst_const):
     
     returns:
     --------
-    %(cp_doc)s
+    %(cell_doc)s
         Basis vecs are the rows.
         unit: [a]**3
     
     notes:
     ------
-    * %(notes_cp_crys_const)s
+    * %(notes_cell_crys_const)s
     
     * Basis vectors fulfilling the crystallographic constants are arbitrary
       w.r.t. their orientation in space. We choose the common convention that
         va : along x axis
         vb : in the x-y plane
       Then, vc is fixed. 
-      cp = [[-- va --],
+      cell = [[-- va --],
             [-- vb --],
             [-- vc --]]
     """
@@ -248,15 +248,15 @@ def cc2cp(cryst_const):
 
 
 @crys_add_doc
-def recip_cp(cp, align='rows'):
+def recip_cell(cell, align='rows'):
     """Reciprocal lattice vectors.
         {a,b,c}* = 2*pi / V * {b,c,a} x {c, a, b}
     
-    The volume is calculated using `cp`, so make sure that all units match.
+    The volume is calculated using `cell`, so make sure that all units match.
 
     args:
     -----
-    %(cp_doc)s
+    %(cell_doc)s
     %(align_doc)s
 
     returns:
@@ -265,24 +265,24 @@ def recip_cp(cp, align='rows'):
 
     notes:
     ------
-    %(notes_cp_crys_const)s
+    %(notes_cell_crys_const)s
 
-    The unit of the recip. vecs is 1/[cp] and the unit of the volume is
-    [cp]**3.
+    The unit of the recip. vecs is 1/[cell] and the unit of the volume is
+    [cell]**3.
     """
-    cp = np.asarray(cp)
-    assert_cond(cp.shape == (3,3), "cp must be (3,3) array")
+    cell = np.asarray(cell)
+    assert_cond(cell.shape == (3,3), "cell must be (3,3) array")
     if align == 'cols':
-        cp = cp.T
-    cp_recip = np.empty_like(cp)
-    vol = volume_cp(cp)
-    a = cp[0,:]
-    b = cp[1,:]
-    c = cp[2,:]
-    cp_recip[0,:] = 2*pi/vol * np.cross(b,c)
-    cp_recip[1,:] = 2*pi/vol * np.cross(c,a)
-    cp_recip[2,:] = 2*pi/vol * np.cross(a,b)
-    return cp_recip
+        cell = cell.T
+    cell_recip = np.empty_like(cell)
+    vol = volume_cell(cell)
+    a = cell[0,:]
+    b = cell[1,:]
+    c = cell[2,:]
+    cell_recip[0,:] = 2*pi/vol * np.cross(b,c)
+    cell_recip[1,:] = 2*pi/vol * np.cross(c,a)
+    cell_recip[2,:] = 2*pi/vol * np.cross(a,b)
+    return cell_recip
 
 #-----------------------------------------------------------------------------
 # super cell building
@@ -355,7 +355,7 @@ def raw_scell(coords, mask, symbols, behave='new'):
     args:
     -----
     coords : 2d array, (natoms, 3) with atomic positions in *crystal* (fractional)
-        coordinates (i.e. in units of the basis vecs in `cp`, for instance in .cif
+        coordinates (i.e. in units of the basis vecs in `cell`, for instance in .cif
         files _atom_site_fract_*), these represent the initial single unit cell
     mask : what scell_mask() returns, (N, 3)
     symbols : list of strings with atom symbols, (natoms,), must match with the
@@ -389,16 +389,16 @@ def raw_scell(coords, mask, symbols, behave='new'):
 
 
 @crys_add_doc
-def scell(coords, cp, dims, symbols, align='rows'):
+def scell(coords, cell, dims, symbols, align='rows'):
     """Build supercell based on `dims`. It scales the unit cell to the dims of
     the super cell and returns crystal atomic positions w.r.t. this cell.
     
     args:
     -----
     coords : 2d array, (natoms, 3) with atomic positions in *crystal* coordinates
-        (i.e. in units of the basis vecs in `cp`), these represent the initial
+        (i.e. in units of the basis vecs in `cell`), these represent the initial
         single unit cell
-    %(cp_doc)s
+    %(cell_doc)s
     dims : tuple (nx, ny, nz) for a N = nx * ny * nz supercell
     symbols : list of strings with atom symbols, (natoms,), must match with the
         rows of coords
@@ -413,9 +413,9 @@ def scell(coords, cp, dims, symbols, align='rows'):
         the numbers are in [0,1].
     cell : array (3,3), basis vecs of the super cell        
     """
-    assert_cond(cp.shape == (3,3), "cp must be (3,3) array")
+    assert_cond(cell.shape == (3,3), "cell must be (3,3) array")
     if align == 'cols':
-        cp = cp.T
+        cell = cell.T
     mask = scell_mask(*tuple(dims))
     
     # Place each atom N = dim1*dim2*dim3 times in the
@@ -442,15 +442,15 @@ def scell(coords, cp, dims, symbols, align='rows'):
     natoms = coords.shape[0]
     sc_symbols = np.array(symbols).repeat(nmask).tolist()   
     sc_coords = (coords[:,None] + mask[None,:]).reshape(natoms*nmask,3)
-    # scale cp acording to super cell dims
-    sc_cp = cp * np.asarray(dims)[:,None]
+    # scale cell acording to super cell dims
+    sc_cell = cell * np.asarray(dims)[:,None]
     # Rescale crystal coords to new bigger cell (coord_trans
     # actually) -> all values in [0,1] again
     sc_coords[:,0] /= dims[0]
     sc_coords[:,1] /= dims[1]
     sc_coords[:,2] /= dims[2]
     return {'symbols': sc_symbols, 'coords': sc_coords, 
-            'cell': sc_cp}
+            'cell': sc_cell}
 
 #-----------------------------------------------------------------------------
 # file parsers / converters
@@ -587,10 +587,10 @@ def write_cif(filename, coords, symbols, cryst_const, fac=con.a0_to_A, conv=Fals
 
 
 @crys_add_doc
-def write_xyz(filename, coords, cp, symbols, align='rows', name='pwtools_dummy_mol_name'):
+def write_xyz(filename, coords, cell, symbols, align='rows', name='pwtools_dummy_mol_name'):
     """Write VMD-style [VMD] XYZ file.
     
-    B/c we require `coords` to be fractional, we need `cp` to transform to
+    B/c we require `coords` to be fractional, we need `cell` to transform to
     cartesian Angstrom.
     
     args:
@@ -600,7 +600,7 @@ def write_xyz(filename, coords, cp, symbols, align='rows', name='pwtools_dummy_m
         crystal (fractional) coords,
         2d: (natoms, 3)
         3d: (natoms, 3, nstep)
-    %(cp_doc)s 
+    %(cell_doc)s 
         In Angstrom units.
     symbols : list of strings (natoms,)
         atom symbols
@@ -613,7 +613,7 @@ def write_xyz(filename, coords, cp, symbols, align='rows', name='pwtools_dummy_m
     [VMD] http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/xyzplugin.html
     """
     if align == 'cols':
-        cp = cp.T
+        cell = cell.T
     is3d = coords.ndim == 3
     atoms_axis = 0
     time_axis = -1
@@ -623,11 +623,11 @@ def write_xyz(filename, coords, cp, symbols, align='rows', name='pwtools_dummy_m
         sl = [slice(None)]*3
         # (natoms, 3, nstep) -> (natoms, nstep, 3) -> transform -> (natoms, nstep, 3)
         # -> (natoms, 3, nstep)
-        coords_cart = np.dot(coords.swapaxes(-1,-2), cp).swapaxes(-1,-2)
+        coords_cart = np.dot(coords.swapaxes(-1,-2), cell).swapaxes(-1,-2)
     else:
         nstep = 1
         sl = [slice(None)]*2
-        coords_cart = np.dot(coords, cp)
+        coords_cart = np.dot(coords, cell)
     xyz_str = ""
     for istep in range(nstep):
         if is3d:
@@ -640,12 +640,12 @@ def write_xyz(filename, coords, cp, symbols, align='rows', name='pwtools_dummy_m
 
 
 @crys_add_doc
-def write_axsf(filename, coords, cp, symbols, align='rows'):
-    """Write animated XSF file. ATM, only fixed cells, i.e. `cp` cannot be 3d
+def write_axsf(filename, coords, cell, symbols, align='rows'):
+    """Write animated XSF file. ATM, only fixed cells, i.e. `cell` cannot be 3d
     array, in pwscf: md, relax, not vc-md, vc-relax. Forces are all set to
     zero.
 
-    Note that `cp` must be in Angstrom, not the usual PWscf style scaled `cp`
+    Note that `cell` must be in Angstrom, not the usual PWscf style scaled `cell`
     in alat units.
     
     args:
@@ -655,7 +655,7 @@ def write_axsf(filename, coords, cp, symbols, align='rows'):
         crystal (fractional) coords,
         2d: (natoms, 3)
         3d: (natoms, 3, nstep)
-    %(cp_doc)s 
+    %(cell_doc)s 
         In Angstrom units.
     symbols : list of strings (natoms,)
         atom symbols
@@ -671,11 +671,11 @@ def write_axsf(filename, coords, cp, symbols, align='rows'):
     # (fractional or cartesian Angstrom). Only the latter case results in a
     # correctly displayed structure in xcrsyden. So we use that.
     #
-    # We could extend this to variable cell by allowing `cp` to be 3d and
+    # We could extend this to variable cell by allowing `cell` to be 3d and
     # accept an 3d array for forces, too. Then we had (together with
     # parse.Pw*OutputFile) a replacement for pwo2xsf.sh .
     if align == 'cols':
-        cp = cp.T
+        cell = cell.T
     atoms_axis = 0
     time_axis = -1
     xyz_axis = 1
@@ -686,15 +686,15 @@ def write_axsf(filename, coords, cp, symbols, align='rows'):
         sl = [slice(None)]*3
         # (natoms, 3, nstep) -> (natoms, nstep, 3) -> transform -> (natoms, nstep, 3)
         # -> (natoms, 3, nstep)
-        coords_cart = np.dot(coords.swapaxes(-1,-2), cp).swapaxes(-1,-2)
+        coords_cart = np.dot(coords.swapaxes(-1,-2), cell).swapaxes(-1,-2)
     else:
         nstep = 1
         sl = [slice(None)]*2
-        coords_cart = np.dot(coords, cp)
+        coords_cart = np.dot(coords, cell)
     coords_cart = np.concatenate((coords_cart, 
                                   np.zeros_like(coords_cart)),
                                   axis=xyz_axis)
-    axsf_str = "ANIMSTEPS %i\nCRYSTAL\nPRIMVEC\n%s" %(nstep, common.str_arr(cp))
+    axsf_str = "ANIMSTEPS %i\nCRYSTAL\nPRIMVEC\n%s" %(nstep, common.str_arr(cell))
     for istep in range(nstep):
         if is3d:
             sl[time_axis] = istep
@@ -1079,13 +1079,13 @@ def min_image_convention(sij, copy=False):
 
 
 @crys_add_doc
-def rmax_smith(cp, align='cols'):
+def rmax_smith(cell, align='cols'):
     """Helper function for rpdf(). Calculate rmax as in [Smith].
-    The cell vecs must be the rows of `cp`.
+    The cell vecs must be the rows of `cell`.
 
     args:
     -----
-    %(cp_doc)s
+    %(cell_doc)s
     %(align_doc)s
 
     returns:
@@ -1099,10 +1099,10 @@ def rmax_smith(cp, align='cols'):
             1989
     """
     if align == 'cols':
-        cp = cp.T
-    a = cp[:,0]
-    b = cp[:,1]
-    c = cp[:,2]
+        cell = cell.T
+    a = cell[:,0]
+    b = cell[:,1]
+    c = cell[:,2]
     bxc = np.cross(b,c)
     cxa = np.cross(c,a)
     axb = np.cross(a,b)
@@ -1114,7 +1114,7 @@ def rmax_smith(cp, align='cols'):
 
 
 @crys_add_doc
-def rpdf(coords, cp, dr, rmax='auto', tslice=slice(None), align='rows', 
+def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None), align='rows', 
          pbc=True, full_output=False):
     """Radial pair distribution (pair correlation) function. This is for one
     atomic structure (2d arrays) or a MD trajectory (3d arrays). Can also handle
@@ -1127,9 +1127,9 @@ def rpdf(coords, cp, dr, rmax='auto', tslice=slice(None), align='rows',
         Crystal coords. If it is a sequence, then the RPDF of the 2nd coord set
         (coords[1]) w.r.t. to the first (coords[0]) is calculated, i.e. the
         order matters! This is like selection 1 and 2 in VMD.
-    %(cp_doc)s
+    %(cell_doc)s
     dr : float
-        Radius spacing. Must have the same unit as `cp`, e.g. Angstrom.
+        Radius spacing. Must have the same unit as `cell`, e.g. Angstrom.
     rmax : {'auto', float}, optional
         Max. radius up to which minimum image nearest neighbors are counted.
         For cubic boxes of side length L, this is L/2 [AT,MD].
@@ -1165,7 +1165,7 @@ def rpdf(coords, cp, dr, rmax='auto', tslice=slice(None), align='rows',
     >>> pp.parse()
     # lattice constant, assume cubic box
     >>> alat = 5
-    >>> cp = np.identity(3)*alat
+    >>> cell = np.identity(3)*alat
     # transform to crystal coords (simple for cubic box, can also use 
     # coord_trans()), result is 3d array (natoms, 3, nstep)
     >>> coords = pp.coords / alat
@@ -1174,7 +1174,7 @@ def rpdf(coords, cp, dr, rmax='auto', tslice=slice(None), align='rows',
     >>> msk1 = sy=='O'; msk2 = sy=='H'
     # do time slice here or with `tslice` kwd
     >>> clst = [coords[msk1,:,3000:], coords[msk2,:,3000:]]
-    >>> rad, hist, num_int, rmax_auto = rpdf(clst, cp, dr, full_output=True)
+    >>> rad, hist, num_int, rmax_auto = rpdf(clst, cell, dr, full_output=True)
     >>> plot(rad, hist)
     >>> plot(rad, num_int)
      
@@ -1319,7 +1319,7 @@ def rpdf(coords, cp, dr, rmax='auto', tslice=slice(None), align='rows',
     #   trapz. rule:  len(hist) - 1 = len(bins) - 2
     #
   
-    assert cp.shape == (3,3), "`cp` must be (3,3) array"
+    assert cell.shape == (3,3), "`cell` must be (3,3) array"
     # nd array or list of 2 arrays
     if not type(coords) == type([]):
         coords_lst = [coords, coords]
@@ -1347,14 +1347,14 @@ def rpdf(coords, cp, dr, rmax='auto', tslice=slice(None), align='rows',
                             "or 3d, got [%s, %s]" \
                             %tuple(map(str, [c.shape for c in coords_lst])))
     if align == 'cols':
-        cp = cp.T
-    rmax_auto = rmax_smith(cp)
+        cell = cell.T
+    rmax_auto = rmax_smith(cell)
     if rmax == 'auto':
         rmax = rmax_auto
     natoms_lst = [c.shape[0] for c in coords_lst]
     
     # sij : distance "matrix" in crystal coords
-    # rij : in cartesian coords, same unit as `cp`, e.g. Angstrom
+    # rij : in cartesian coords, same unit as `cell`, e.g. Angstrom
     # 
     # sij: for coords_lst[0] == coords_lst[1] == coords with shape (natoms,3), 
     #   i.e. only one structure:
@@ -1381,7 +1381,7 @@ def rpdf(coords, cp, dr, rmax='auto', tslice=slice(None), align='rows',
     # (natoms0 * natoms1, 3, nstep)
     sij = sij.reshape(natoms_lst[0]*natoms_lst[1], 3, nstep)
     # (natoms0 * natoms1, 3, nstep)
-    rij = np.dot(sij.swapaxes(-1,-2), cp).swapaxes(-1,-2)
+    rij = np.dot(sij.swapaxes(-1,-2), cell).swapaxes(-1,-2)
     # (natoms0 * natoms1, nstep)
     dists_all = np.sqrt((rij**2.0).sum(axis=1))
     
@@ -1399,7 +1399,7 @@ def rpdf(coords, cp, dr, rmax='auto', tslice=slice(None), align='rows',
     ##            num_duplicates += 1
     
     natoms_lst_prod = float(np.prod(natoms_lst))
-    volume = np.linalg.det(cp)
+    volume = np.linalg.det(cell)
     bins = np.arange(0, rmax+dr, dr)
     rad = bins[:-1]+0.5*dr
     volume_shells = 4.0/3.0*pi*(bins[1:]**3.0 - bins[:-1]**3.0)
@@ -1439,7 +1439,7 @@ def rpdf(coords, cp, dr, rmax='auto', tslice=slice(None), align='rows',
     return out
 
 @crys_add_doc
-def vmd_measure_gofr(coords, cp, symbols, dr, rmax='auto', selstr1='all', selstr2='all', 
+def vmd_measure_gofr(coords, cell, symbols, dr, rmax='auto', selstr1='all', selstr2='all', 
                      fntype='xsf', first=0,
                      last=-1, step=1, usepbc=1, datafn=None,
                      scriptfn=None, logfn=None, xsffn=None, tmpdir='/tmp', 
@@ -1454,7 +1454,7 @@ def vmd_measure_gofr(coords, cp, symbols, dr, rmax='auto', selstr1='all', selstr
     -----
     coords : 3d array (natoms, 3, nstep)
         Crystal coords.
-    %(cp_doc)s
+    %(cell_doc)s
         Unit: Angstrom
     symbols : (natoms,) list of strings
         Atom symbols.
@@ -1561,15 +1561,15 @@ def vmd_measure_gofr(coords, cp, symbols, dr, rmax='auto', selstr1='all', selstr
     if xsffn is None:
         xsffn = os.path.join(tmpdir, "vmd_xsf_%s" %tmpstr)
     if align == 'cols':
-        cp = cp.T
-    cc = cp2cc(cp)
+        cell = cell.T
+    cc = cell2cc(cell)
     if np.abs(cc[3:] - 90.0).max() > 0.1:
-        print cp
-        raise StandardError("`cp` is not a cubic cell, check angles")
-    rmax_auto = rmax_smith(cp)
+        print cell
+        raise StandardError("`cell` is not a cubic cell, check angles")
+    rmax_auto = rmax_smith(cell)
     if rmax == 'auto':
         rmax = rmax_auto
-    write_axsf(xsffn, coords, cp, symbols)
+    write_axsf(xsffn, coords, cell, symbols)
     dct = {}
     dct['fn'] = xsffn
     dct['fntype'] = fntype

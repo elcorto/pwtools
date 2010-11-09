@@ -17,7 +17,7 @@ def test():
         print("name: %s" %name)
         dd = 'files/rpdf'
         if name == 'rand_3d':
-            cp = np.loadtxt(pj(dd, name + '.cp.txt'))
+            cell = np.loadtxt(pj(dd, name + '.cell.txt'))
             coords = [io.readtxt(pj(dd, name + '.coords0.txt')), 
                       io.readtxt(pj(dd, name + '.coords1.txt'))]
             for c in coords:
@@ -26,10 +26,10 @@ def test():
             pp = parse.CifFile(pj(dd, name + '.cif'))
             pp.parse()
             coords = pp.coords
-            cp = pp.cell
+            cell = pp.cell
         rad, hist, num_int, rmax_auto = crys.rpdf(coords, 
                                                   rmax=5.0, 
-                                                  cp=cp,
+                                                  cell=cell,
                                                   dr=0.05, 
                                                   pbc=True,
                                                   full_output=True)

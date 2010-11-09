@@ -17,7 +17,7 @@ def test():
     c_Y2 = coord_trans(c_X, old=X.T, new=Y.T, align='cols')
     np.testing.assert_array_almost_equal(c_Y, c_Y2)
 
-    # cp's must have the right shape
+    # `cell` must have the right shape
     try:
         coord_trans(np.random.rand(20,4), old=X, new=Y, align='rows')
     except AssertionError:
