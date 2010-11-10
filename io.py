@@ -6,10 +6,19 @@ from cStringIO import StringIO
 
 import numpy as np
 
-from pwtools.decorators import open_and_close
+from pwtools.decorators import open_and_close, crys_add_doc
 from pwtools.common import PydosConfigParser
 from pwtools.verbose import verbose
-from pwtools import common as com
+from pwtools import common
+from pwtools import constants
+from pwtools.pwscf import atpos_str
+
+# Cif parser
+try:
+    import CifFile as pycifrw_CifFile
+except ImportError:
+    print("%s: Warning: Cannot import CifFile from the PyCifRW package. " 
+    "Parsing Cif files will not work." %__file__)
 
 # globals
 HEADER_MAXLINES = 20
@@ -45,7 +54,7 @@ def _read_header_config(fh, header_maxlines=HEADER_MAXLINES,
     >>> _get_header_config('foo.txt')
     <pwtools.pydos.PydosConfigParser instance at 0x2c52320>
     """
-    fn = com.get_filename(fh)
+    fn = common.get_filename(fh)
     verbose("[_read_header_config]: reading header from '%s'" %fn)
     header = ''
     for i in range(header_maxlines):
@@ -76,7 +85,7 @@ def _write_header_config(fh, config, header_comment=HEADER_COMMENT,
                          header_maxlines=HEADER_MAXLINES):
     """Write ini-style config file from `config` prefixed with `header_comment` to
     file handle `fh`."""
-    fn = com.get_filename(fh)
+    fn = common.get_filename(fh)
     verbose("[_write_header_config]: writing header to '%s'" %fn)
     # write config to dummy file
     ftmp = StringIO()
@@ -84,7 +93,7 @@ def _write_header_config(fh, config, header_comment=HEADER_COMMENT,
     # write with comment signs to actual file
     ftmp.seek(0)
     lines = ftmp.readlines()
-    com.assert_cond(len(lines) <= header_maxlines, 
+    common.assert_cond(len(lines) <= header_maxlines, 
                 "header has more then header_maxlines (%i) lines" \
                 %header_maxlines)
     for line in lines:
@@ -107,12 +116,12 @@ def writetxt(fn, arr, axis=-1, maxdim=TXT_MAXDIM):
     maxdim : highest number of dims that `arr` is allowed to have
     """
     verbose("[writetxt] writing: %s" %fn)
-    com.assert_cond(arr.ndim <= maxdim, 'no rank > %i arrays supported' %maxdim)
+    common.assert_cond(arr.ndim <= maxdim, 'no rank > %i arrays supported' %maxdim)
     fh = open(fn, 'w+')
     c = PydosConfigParser()
     sec = 'array'
     c.add_section(sec)
-    c.set(sec, 'shape', com.tup2str(arr.shape))
+    c.set(sec, 'shape', common.tup2str(arr.shape))
     c.set(sec, 'axis', axis)
     _write_header_config(fh, c)
     # 1d and 2d case
@@ -156,7 +165,7 @@ def readtxt(fh, axis=None, shape=None, header_maxlines=HEADER_MAXLINES,
     --------
     nd array
     """
-    fn = com.get_filename(fh)
+    fn = common.get_filename(fh)
     verbose("[readtxt] reading: %s" %fn)
     verbose("[readtxt]    axis: %s" %str(axis))
     verbose("[readtxt]    shape: %s" %str(shape))
@@ -164,11 +173,11 @@ def readtxt(fh, axis=None, shape=None, header_maxlines=HEADER_MAXLINES,
         c = _read_header_config(fh)
         sec = 'array'
         if shape is None:
-            shape = com.str2tup(c.get(sec, 'shape'))
+            shape = common.str2tup(c.get(sec, 'shape'))
         if axis is None:            
             axis = int(c.get(sec, 'axis'))
     ndim = len(shape)
-    com.assert_cond(ndim <= maxdim, 'no rank > %i arrays supported' %maxdim)
+    common.assert_cond(ndim <= maxdim, 'no rank > %i arrays supported' %maxdim)
     # axis = -1 means the last dim
     if axis == -1:
         axis = ndim - 1
@@ -204,7 +213,7 @@ def readtxt(fh, axis=None, shape=None, header_maxlines=HEADER_MAXLINES,
         arr = np.empty(shape)
         # read_arr: (50*1000, 3)
         expect_shape = (shape_2d_chunk[0]*shape[axis],) + (shape_2d_chunk[1],)
-        com.assert_cond(read_arr.shape == expect_shape, 
+        common.assert_cond(read_arr.shape == expect_shape, 
                     "read 2d array from '%s' has not the correct "
                     "shape, got %s, expect %s" %(fn, 
                                                  str(read_arr.shape),
@@ -225,7 +234,7 @@ def readbin(fn):
 def readarr(fn, type='bin'):
     """Read bin or txt array from file `fn`."""
     verbose("[readarr] reading: %s" %fn)
-    com.assert_cond(type in ['bin', 'txt'], "`type` must be 'bin' or 'txt'")
+    common.assert_cond(type in ['bin', 'txt'], "`type` must be 'bin' or 'txt'")
     if type == 'bin':
         return np.load(fn)
     elif type == 'txt':
@@ -262,7 +271,7 @@ def writearr(fn, arr, comment=None, info=None,
     only type == 'txt'
         axis : axis kwarg for writetxt()
     """
-    com.assert_cond(type in ['bin', 'txt'], "`type` must be 'bin' or 'txt'")
+    common.assert_cond(type in ['bin', 'txt'], "`type` must be 'bin' or 'txt'")
     verbose("[writearr] writing: %s" %fn)
     verbose("[writearr]     shape: %s" %repr(arr.shape))
     if type == 'txt':
@@ -278,7 +287,257 @@ def writearr(fn, arr, comment=None, info=None,
             f.write(comment + '\n')
         if info is not None:
             c = PydosConfigParser()
-            c = com.add_to_config(c, info) 
+            c = common.add_to_config(c, info) 
             c.write(f)
         f.close()
+
+
+@crys_add_doc
+def wien_sgroup_input(lat_symbol, symbols, atpos_crystal, cryst_const):
+    """Generate input for WIEN2K's sgroup tool.
+
+    args:
+    -----
+    lat_symbol : str, e.g. 'P'
+    symbols : list of strings with atom symbols, (atpos_crystal.shape[0],)
+    atpos_crystal : array_like (natoms, 3), crystal ("fractional") atomic
+        coordinates
+    %(cryst_const_doc)s
+
+    notes:
+    ------
+    From sgroup's README:
+
+    / ------------------------------------------------------------
+    / in input file symbol "/" means a comment
+    / and trailing characters are ignored by the program
+
+    / empty lines are allowed
+
+    P  /type of lattice; choices are P,F,I,C,A
+
+    /  parameters of cell:
+    /  lengths of the basis vectors and
+    /  angles (degree unit is used)  alpha=b^c  beta=a^c  gamma=a^b
+    /   |a|  |b|   |c|               alpha  beta  gamma
+
+       1.0   1.1   1.2                90.   91.    92.
+
+    /Number of atoms in the cell
+    4
+
+    /List of atoms
+    0.1 0.2 0.3  / <-- Atom positions in units of the vectors a b c
+    Al           / <-- name of this atom
+
+    0.1 0.2 0.4  /....
+    Al1
+
+    0.2 0.2 0.3
+    Fe
+
+    0.1 0.3 0.3
+    Fe
+
+    / ------------------------------------------------------------------
+    """
+    atpos_crystal = np.asarray(atpos_crystal)
+    assert_cond(len(symbols) == atpos_crystal.shape[0], 
+        "len(symbols) != atpos_crystal.shape[0]")
+    empty = '\n\n'
+    txt = "/ lattice type symbol\n%s" %lat_symbol
+    txt += empty
+    txt += "/ a b c alpha beta gamma\n"
+    txt += " ".join(["%.16e"]*6) % tuple(cryst_const)
+    txt += empty
+    txt += "/ number of atoms\n%i" %len(symbols)
+    txt += empty
+    txt += "/ atom list (crystal cooords)\n"
+    fmt = ' '.join(['%.16e']*3)
+    for sym, coord in izip(symbols, atpos_crystal):
+        txt += fmt % tuple(coord) + '\n' + sym + '\n'
+    return txt
+
+
+@crys_add_doc
+def write_cif(filename, coords, symbols, cryst_const, fac=constants.a0_to_A, 
+              conv=False):
+    """Q'n'D Cif writer. Should be a method of parse.StructureFileParser ....
+    stay tuned.
+    
+    args:
+    -----
+    filename : str
+        name of output .cif file
+    coords : array (natoms, 3)
+        crystal (fractional) coords
+    symbols : list of strings
+        atom symbols
+    %(cryst_const_doc)s
+    fac : conv factor Bohr -> Ang (.cif wants Angstrom)
+    conv: bool
+        Convert cryst_const[:3] to Ang
+    """
+    cf = pycifrw_CifFile.CifFile()
+    block = pycifrw_CifFile.CifBlock()
+    symbols = list(symbols)
+
+    # Bohr -> A
+    if conv:
+        # nasty trick, make local var with same name, otherwise, 'cryst_const'
+        # in global scope (module level) gets changed!
+        cryst_const = cryst_const.copy()
+        cryst_const[:3] *= fac
+    # cell
+    #
+    # dunno why I have to use str() here, assigning floats does not work
+    block['_cell_length_a'] = str(cryst_const[0])
+    block['_cell_length_b'] = str(cryst_const[1])
+    block['_cell_length_c'] = str(cryst_const[2])
+    block['_cell_angle_alpha'] = str(cryst_const[3])
+    block['_cell_angle_beta'] = str(cryst_const[4])
+    block['_cell_angle_gamma'] = str(cryst_const[5])
+    block['_symmetry_space_group_name_H-M'] = 'P 1'
+    block['_symmetry_Int_Tables_number'] = 1
+    # assigning a list produces a "loop_"
+    block['_symmetry_equiv_pos_as_xyz'] = ['x,y,z']
+    
+    # atoms
+    #
+    # _atom_site_label: We just use symbols, which is then =
+    #   _atom_site_type_symbol, but we *could* use that to number atoms of each
+    #   specie, e.g. Si1, Si2, ..., Al1, Al2, ...
+    data_names = ['_atom_site_label', 
+                  '_atom_site_fract_x',
+                  '_atom_site_fract_y',
+                  '_atom_site_fract_z',
+                  '_atom_site_type_symbol']
+    data = [symbols, 
+            coords[:,0].tolist(), 
+            coords[:,1].tolist(), 
+            coords[:,2].tolist(),
+            symbols]
+    # "loop_" with multiple columns            
+    block.AddCifItem([[data_names], [data]])                
+    cf['pwtools'] = block
+    common.file_write(filename, str(cf))
+
+
+@crys_add_doc
+def write_xyz(filename, coords, cell, symbols, align='rows', name='pwtools_dummy_mol_name'):
+    """Write VMD-style [VMD] XYZ file.
+    
+    B/c we require `coords` to be fractional, we need `cell` to transform to
+    cartesian Angstrom.
+    
+    args:
+    -----
+    filename : target file name
+    coords : 2d (one unit cell) or 3d array (e.g. MD trajectory)
+        crystal (fractional) coords,
+        2d: (natoms, 3)
+        3d: (natoms, 3, nstep)
+    %(cell_doc)s 
+        In Angstrom units.
+    symbols : list of strings (natoms,)
+        atom symbols
+    %(align_doc)s
+    name : str, optional
+        Molecule name.
+
+    refs:
+    -----
+    [VMD] http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/xyzplugin.html
+    """
+    if align == 'cols':
+        cell = cell.T
+    is3d = coords.ndim == 3
+    atoms_axis = 0
+    time_axis = -1
+    natoms = coords.shape[atoms_axis]
+    if is3d:
+        nstep = coords.shape[time_axis]
+        sl = [slice(None)]*3
+        # (natoms, 3, nstep) -> (natoms, nstep, 3) -> transform -> (natoms, nstep, 3)
+        # -> (natoms, 3, nstep)
+        coords_cart = np.dot(coords.swapaxes(-1,-2), cell).swapaxes(-1,-2)
+    else:
+        nstep = 1
+        sl = [slice(None)]*2
+        coords_cart = np.dot(coords, cell)
+    xyz_str = ""
+    for istep in range(nstep):
+        if is3d:
+            sl[time_axis] = istep
+        xyz_str += "%i\n%s\n%s\n" %(natoms,
+                                  name + '.%i' %(istep + 1),
+                                  atpos_str(symbols, coords_cart[sl]),
+                                  )
+    common.file_write(filename, xyz_str)
+
+
+@crys_add_doc
+def write_axsf(filename, coords, cell, symbols, align='rows'):
+    """Write animated XSF file. ATM, only fixed cells, i.e. `cell` cannot be 3d
+    array, in pwscf: md, relax, not vc-md, vc-relax. Forces are all set to
+    zero.
+
+    Note that `cell` must be in Angstrom, not the usual PWscf style scaled `cell`
+    in alat units.
+    
+    args:
+    -----
+    filename : target file name
+    coords : 2d (one unit cell) or 3d array (e.g. MD trajectory)
+        crystal (fractional) coords,
+        2d: (natoms, 3)
+        3d: (natoms, 3, nstep)
+    %(cell_doc)s 
+        In Angstrom units.
+    symbols : list of strings (natoms,)
+        atom symbols
+    %(align_doc)s
+
+    refs:
+    -----
+    [XSF] http://www.xcrysden.org/doc/XSF.html
+    """
+    # notes:
+    # ------
+    # The XSF spec [XSF] is a little fuzzy about what PRIMCOORD actually is
+    # (fractional or cartesian Angstrom). Only the latter case results in a
+    # correctly displayed structure in xcrsyden. So we use that.
+    #
+    # We could extend this to variable cell by allowing `cell` to be 3d and
+    # accept an 3d array for forces, too. Then we had (together with
+    # parse.Pw*OutputFile) a replacement for pwo2xsf.sh .
+    if align == 'cols':
+        cell = cell.T
+    atoms_axis = 0
+    time_axis = -1
+    xyz_axis = 1
+    is3d = coords.ndim == 3
+    natoms = coords.shape[atoms_axis]
+    if is3d:
+        nstep = coords.shape[time_axis]
+        sl = [slice(None)]*3
+        # (natoms, 3, nstep) -> (natoms, nstep, 3) -> transform -> (natoms, nstep, 3)
+        # -> (natoms, 3, nstep)
+        coords_cart = np.dot(coords.swapaxes(-1,-2), cell).swapaxes(-1,-2)
+    else:
+        nstep = 1
+        sl = [slice(None)]*2
+        coords_cart = np.dot(coords, cell)
+    coords_cart = np.concatenate((coords_cart, 
+                                  np.zeros_like(coords_cart)),
+                                  axis=xyz_axis)
+    axsf_str = "ANIMSTEPS %i\nCRYSTAL\nPRIMVEC\n%s" %(nstep, common.str_arr(cell))
+    for istep in range(nstep):
+        if is3d:
+            sl[time_axis] = istep
+        axsf_str += "\nPRIMCOORD %i\n%i 1\n%s" %(istep+1, natoms, 
+                                                 atpos_str(symbols,
+                                                           coords_cart[sl]))
+    common.file_write(filename, axsf_str)
+
 

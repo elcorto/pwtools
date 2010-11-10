@@ -1,7 +1,7 @@
 import os
 from cStringIO import StringIO
 import numpy as np
-from pwtools import crys, common
+from pwtools import io, common
 from testenv import testdir
 pj = os.path.join
 
@@ -19,11 +19,11 @@ def test():
 
     axsf_fn = pj(testdir, 'foo.axsf')
     xyz_fn = pj(testdir, 'foo.xyz')
-    crys.write_axsf(axsf_fn, 
+    io.write_axsf(axsf_fn, 
                     coords=coords, 
                     cell=cell,
                     symbols=symbols)
-    crys.write_xyz(xyz_fn, 
+    io.write_xyz(xyz_fn, 
                     coords=coords, 
                     cell=cell,
                     symbols=symbols,
