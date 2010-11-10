@@ -103,6 +103,8 @@ def test():
     assert sc['symbols'] == sc_symbols
     np.testing.assert_array_almost_equal(sc['cell'], sc_cell)
     np.testing.assert_array_almost_equal(sc['coords'], sc_coords)
-
     
-
+    # symbols = None
+    sc = crys.scell(coords, cell, (1,1,1), symbols=None)
+    assert sc['symbols'] is None
+    

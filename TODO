@@ -15,9 +15,6 @@ all
 ---
 - Drop verbose.py. Use the logging or warnings module.
 
-- Fix importing. Use full module name "pwtools.foo" instead of "foo" for
-  intra-package imports. 
-
 - Add class Structure to hold stuff like
     - coords
     - cp       
@@ -44,5 +41,3 @@ tests
 
 - Add tests for 
     eos.py
-
-- crys.scell(): make symbols an optional kwarg

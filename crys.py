@@ -390,7 +390,7 @@ def raw_scell(coords, mask, symbols, behave='new'):
 
 
 @crys_add_doc
-def scell(coords, cell, dims, symbols, align='rows'):
+def scell(coords, cell, dims, symbols=None, align='rows'):
     """Build supercell based on `dims`. It scales the unit cell to the dims of
     the super cell and returns crystal atomic positions w.r.t. this cell.
     
@@ -401,18 +401,21 @@ def scell(coords, cell, dims, symbols, align='rows'):
         single unit cell
     %(cell_doc)s
     dims : tuple (nx, ny, nz) for a N = nx * ny * nz supercell
-    symbols : list of strings with atom symbols, (natoms,), must match with the
-        rows of coords
+    symbols : {sequence (natoms,), None}, optional
+        List of strings with atom symbols, (natoms,), must match with the
+        rows of `coords`. If None then the returned `symbols` for the supercell
+        are also None.
     %(align_doc)s
 
     returns:
     --------
     dict {symbols, coords, cell}
     symbols : list of strings with atom symbols for the supercell, (N*natoms,)
+        or None
     coords : array (N*natoms, 3)
         Atomic crystal coords in the super cell w.r.t `cell`, i.e.
         the numbers are in [0,1].
-    cell : array (3,3), basis vecs of the super cell        
+    cell : array (3,3), basis vecs of the super cell
     """
     assert_cond(cell.shape == (3,3), "cell must be (3,3) array")
     if align == 'cols':
@@ -441,7 +444,8 @@ def scell(coords, cell, dims, symbols, align='rows'):
     ##sc_symbols, sc_coords = raw_scell(coords, mask, symbols, behave='new')
     nmask = mask.shape[0]
     natoms = coords.shape[0]
-    sc_symbols = np.array(symbols).repeat(nmask).tolist()   
+    sc_symbols = np.array(symbols).repeat(nmask).tolist() if (symbols \
+                 is not None) else None
     sc_coords = (coords[:,None] + mask[None,:]).reshape(natoms*nmask,3)
     # scale cell acording to super cell dims
     sc_cell = cell * np.asarray(dims)[:,None]
