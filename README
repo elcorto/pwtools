@@ -2,6 +2,41 @@ The pwtools package.
 
 Copyright (c) 2008-2010, Steve Schmerler <mefx@gmx.net>.
 
+========
+Features
+========
+
+The package was initially developed to calculate the phonon density of states
+from ab initio MD calculations done with pwscf from the Quantum Espresso
+distribution of ab initio codes [1]. Over time, many general tools for every
+day pre- and postprocessing have been added. Current featues include:
+
+- velocity autocorrelation function from MD trajectories
+- phonon DOS from MD trajectories
+- parsing of pwscf input and output files into Python objects for easy access
+- interface to external EOS fitting tools  
+- MD analayis: radial pair distribution function (own implementation and VMD
+  interface), rmsd
+- unit cell related tools: super cell building, coordinate transformation
+- IO: read cif, cml, pdb, pwscf in- and outfiles, write xsf, cif, xyz  
+
+Related projects
+----------------
+
+The very nice ASE [2] project is in some way related. It also stores MD
+trajectory data in Python objects for further manipulation. It's IO
+capabilities are much more developed. One can convert data parsed from a pwscf
+output file to an ASE Atoms object and use ASE's file writers. ASE provides
+interfaces to a large pile of ab initio codes ("calculators"). These interfaces
+invoke the SCF solvers of these codes and parse their output. MD and structure
+optimization in ASE is coded in Python, using the calculator's SCF engine in
+every step to get energy and forces. It does not jet provide things like
+variable cell MD/optimization and phonon calculations based on density
+functional perturbation theory like pwscf or Abinit. The focus of the pwtools
+package is to fully rely on pwscf capabilities, providing pythonic access to
+all output quantities like unit cell shape, temperature, total energy, forces
+etc.
+
 ============
 Installation
 ============
@@ -182,3 +217,10 @@ But this is not normalized to the number of atoms. Use crys.rms() or
 crys.rms3d() for MD runs where the RMS of each (f_ij) is 
     sqrt( (sum_ij f_ij^2) / N )
 with N = 3*natoms or N=natoms.   
+
+====
+Refs
+====
+
+[1] http://www.quantum-espresso.org
+[2] https://wiki.fysik.dtu.dk/ase

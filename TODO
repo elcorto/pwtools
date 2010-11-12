@@ -30,6 +30,12 @@ all
 - io.write_*(): by using cryst_const instead of `cp`, we would get rid of the
   annoying `align` kwarg. I guess that it is not even necessary everywhere.
 
+- Function to convert between ASE Atoms objects and things like PwOutputFile.
+  We have an example script so far ...
+
+- Classes to ease input file setup for pwscf (automatic SQL db etc), apart from 
+  batch.py
+
 tests
 -----
 - Handle known fails with nose.
