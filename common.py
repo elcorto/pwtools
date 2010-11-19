@@ -2,6 +2,11 @@
 #
 # File operations, common system utils and other handy tools.
 
+# Import std lib's signal module, not the one from pwtools. AFAIK, this is
+# needed for Python 2.4 ... 2.6. See PEP 328.
+from __future__ import absolute_import
+import signal
+
 import types
 import os
 import subprocess
@@ -16,8 +21,8 @@ import numpy as np
 # numutils.py or whatever
 from scipy.integrate import simps
 from scipy.interpolate import splev, splrep
-
 from pwtools.verbose import verbose
+
 
 def assert_cond(cond, string=None):
     """Use this instead of `assert cond, string`. It's been said on
@@ -1180,6 +1185,31 @@ def system(call, wait=True):
     if wait:
         os.waitpid(p.pid, 0)
 
+def permit_sigpipe():
+    """Helper for subprocess.Popen(). Handle SIGPIPE. To be used as preexec_fn.
+
+    notes:
+    ------
+    Some cases like:
+        >>> cmd = r"grep /path/to/very_big_file | head -n1"
+        >>> pp = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, 
+        ...                       stderr=subprocess.PIPE)
+        >>> out,err = pp.communicate()
+    
+    sometimes end with a broken pipe error:
+        "grep: writing output: Broken pipe"
+    They run fine at the bash prompt, while failing with Popen. The reason is
+    that they actually "kind of" fail in the shell too, namely, SIGPIPE [1,2].
+    This can be seen by runing the call in strace "$ strace grep ...". Popen
+    chokes on that. The solution is to ignore SIGPIPE.
+
+    refs:
+    -----
+    [1] http://mail.python.org/pipermail/tutor/2007-October/058042.html
+    [2] http://article.gmane.org/gmane.comp.python.devel/88798/
+    """
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+
 
 def backtick(call):
     """Convenient shell backtick replacement with gentle error handling.
@@ -1188,8 +1218,10 @@ def backtick(call):
     --------
     >>> print backtick('ls -l')
     """
-    out,err = subprocess.Popen(call, shell=True,
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+    pp = subprocess.Popen(call, shell=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        preexec_fn=permit_sigpipe)
+    out,err = pp.communicate()
     if err.strip() != '':
         raise StandardError("Error calling command: '%s'\nError message "
             "follows:\n%s" %(call, err))
