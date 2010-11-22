@@ -693,7 +693,7 @@ def igrep(pat_or_rex, iterable, func='search'):
 
     notes:
     ------
-    This function could also live in Python's itertools module.
+    This function is similar to re.findall()
     
     Difference to grep(1):
         Similar to the shell grep(1) utility, but there is a subtle but
@@ -739,7 +739,6 @@ def igrep(pat_or_rex, iterable, func='search'):
         One possilbe other way would be to call grep(1) & friends thru
             print subprocess.Popen("egrep -o '<pattern>' file.txt", shell=True,
                                     stdout=PIPE).communicate()[0] 
-        But that's not really pythonic, eh? :)
         
         It's generally a good idea to use raw strings: r'<pattern>' instead of
         'pattern'.
@@ -767,20 +766,24 @@ def igrep(pat_or_rex, iterable, func='search'):
      11 2 3
      4 5 667
      7 8 9
-    >>> for m in igrep(r'(\s+[0-9]+){3}?', open('file.txt'), 'search'): print m.group().strip() 
+    >>> fd = open('file.txt')     
+    >>> for m in igrep(r'(\s+[0-9]+){3}?', fd, 'search'): print m.group().strip() 
     11  2   3
     4  5   667
     7  8   9
-    >>> for m in igrep(r'((\s+[0-9]+){3}?)', open('file.txt'), 'search'): print m.group(1).strip() 
+    >>> fd.seek(0)
+    >>> for m in igrep(r'((\s+[0-9]+){3}?)', fd, 'search'): print m.group(1).strip() 
     11  2   3
     4  5   667
     7  8   9
-    >>> for m in igrep(r'^.*((\s+[0-9]+){3}?).*$', open('file.txt'), 'match'): print m.group(1).strip()
+    >>> fd.seek(0)
+    >>> for m in igrep(r'^.*((\s+[0-9]+){3}?).*$', fd, 'match'): print m.group(1).strip()
     11  2   3
     4  5   667
     7  8   9
     # Put numbers directly into numpy array.
-    >>> ret=igrep(r'(\s+[0-9]+){3}?', fd, 'search') 
+    >>> fd.seek(0)
+    >>> ret = igrep(r'(\s+[0-9]+){3}?', fd, 'search') 
     >>> array([m.group().split() for m in ret], dtype=float)
     array([[  11.,    2.,    3.],
            [   4.,    5.,  667.],
@@ -1191,7 +1194,7 @@ def permit_sigpipe():
     notes:
     ------
     Some cases like:
-        >>> cmd = r"grep /path/to/very_big_file | head -n1"
+        >>> cmd = r"grep pattern /path/to/very_big_file | head -n1"
         >>> pp = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, 
         ...                       stderr=subprocess.PIPE)
         >>> out,err = pp.communicate()

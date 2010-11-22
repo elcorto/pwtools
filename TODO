@@ -36,6 +36,8 @@ all
 - Classes to ease input file setup for pwscf (automatic SQL db etc), apart from 
   batch.py
 
+- Move all of parse.* to io.py ?
+
 tests
 -----
 - Handle known fails with nose.

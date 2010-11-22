@@ -1076,7 +1076,7 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None), align='rows',
         coords_lst = coords
     assert len(coords_lst) == 2, "len(coords_lst) != 2"
     assert coords_lst[0].ndim == coords_lst[1].ndim, ("coords do not have "
-           "same shape") 
+           "same number of dimensions") 
     # 2 or 3
     coords_ndim = coords_lst[0].ndim
     # (natoms,3) or (natoms,3,nstep)
