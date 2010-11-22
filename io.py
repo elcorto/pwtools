@@ -9,8 +9,7 @@ import numpy as np
 from pwtools.decorators import open_and_close, crys_add_doc
 from pwtools.common import PydosConfigParser
 from pwtools.verbose import verbose
-from pwtools import common
-from pwtools import constants
+from pwtools import common, crys, constants
 from pwtools.pwscf import atpos_str
 
 # Cif parser
@@ -360,8 +359,7 @@ def wien_sgroup_input(lat_symbol, symbols, atpos_crystal, cryst_const):
 
 
 @crys_add_doc
-def write_cif(filename, coords, symbols, cryst_const, fac=constants.a0_to_A, 
-              conv=False):
+def write_cif(filename, coords, cell, symbols, align='rows'):
     """Q'n'D Cif writer. Should be a method of parse.StructureFileParser ....
     stay tuned.
     
@@ -369,28 +367,24 @@ def write_cif(filename, coords, symbols, cryst_const, fac=constants.a0_to_A,
     -----
     filename : str
         name of output .cif file
-    coords : array (natoms, 3)
-        crystal (fractional) coords
+    coords : array (natoms,3)
+        crystal coords
+    %(cell_doc)s
+        Unit: Angstrom
     symbols : list of strings
         atom symbols
-    %(cryst_const_doc)s
-    fac : conv factor Bohr -> Ang (.cif wants Angstrom)
-    conv: bool
-        Convert cryst_const[:3] to Ang
+    %(align_doc)s
     """
+    if align == 'cols':
+        cell = cell.T
     cf = pycifrw_CifFile.CifFile()
     block = pycifrw_CifFile.CifBlock()
     symbols = list(symbols)
 
-    # Bohr -> A
-    if conv:
-        # nasty trick, make local var with same name, otherwise, 'cryst_const'
-        # in global scope (module level) gets changed!
-        cryst_const = cryst_const.copy()
-        cryst_const[:3] *= fac
     # cell
     #
     # dunno why I have to use str() here, assigning floats does not work
+    cryst_const = crys.cell2cc(cell)
     block['_cell_length_a'] = str(cryst_const[0])
     block['_cell_length_b'] = str(cryst_const[1])
     block['_cell_length_c'] = str(cryst_const[2])

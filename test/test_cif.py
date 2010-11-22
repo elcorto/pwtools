@@ -10,7 +10,7 @@ def test():
     
     # test writing
     filename = os.path.join(testdir, 'test_write_cif.cif')
-    io.write_cif(filename, p1.coords, p1.symbols, p1.cryst_const, conv=False)
+    io.write_cif(filename, p1.coords, p1.cell, p1.symbols)
     p2 = CifFile(filename)
     p2.parse()
     np.testing.assert_array_almost_equal(p1.coords, p2.coords)

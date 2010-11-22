@@ -19,7 +19,7 @@ import pwtools.common as common
 from pwtools.decorators import crys_add_doc
 
 # backward compat
-from pwtools.io import write_axsf, write_xyz, write_cif, wien_sgroup_input
+##from pwtools.io import write_axsf, write_xyz, write_cif, wien_sgroup_input
 
 #-----------------------------------------------------------------------------
 # misc math
