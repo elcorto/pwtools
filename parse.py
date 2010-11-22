@@ -184,46 +184,110 @@ def scan_until_pat2(fh, rex, err=True, retmatch=False):
 # Parsers
 #-----------------------------------------------------------------------------
 
-class FileParser(object):
-    """Base class for file parsers.
+class FlexibleGetters(object):
+    """Base class. Implements a mechanism which allows to call getters in
+    arbitrary order, even if they depend on each other.
     
-    Classes derived from this one must at least override self.attr_list by
-    using self.set_attr_lst().
-
-    self.attr_list is a list of strings, each is the name of a data attribute,
-    e.g. ['foo', 'bar', '_baz', ...]. For each attr, there must exist a getter.
-    We define the convention 
-      
+    For each attr, there must exist a getter. We define the convention 
       self.foo  -> self.get_foo() 
       self.bar  -> self.get_bar()  
       self._baz -> self._get_baz() # note the underscores
       ... 
     
-    All getters are called in the default self.parse() which can, of course, be
-    overridden in derived classes.
-    """
-    def __init__(self, filename=None):
-        """
-        args: 
-        -----
-        filename : str, name of the file to parse
-        """
-        self.filename = filename
-        if self.filename is not None:
-            self.file = open(filename)
-        else:
-            self.file = None
-        self.set_attr_lst([])
+    self.attr_list is an *optional* list of strings, each is the name of a data
+    attribute, e.g. ['foo', 'bar', '_baz', ...].       
+    Derived classes can override self.attr_list by using self.set_attr_lst().
     
-    def __del__(self):
-        """Destructor. If self.file has not been closed yet (in self.parse()),
-        then do it here, eventually."""
-        self.close_file()
+    Example:
+        def __init__(self):
+            self.set_attr_lst(['foo', 'bar', '_baz'])
+            self.get_all()
+        
+        def get_all(self):
+            for attr in self.attr_lst:
+                self.check_get_attr(attr)
+        
+        # Getters call each other
+        def _get_baz(self):
+            return self.calc_baz()
+        
+        def get_bar(self):
+            check_get_attr('_baz')
+            return self.calc_stuff(self._baz)**2.0
 
-    def close_file(self):
-        if (self.file is not None) and (not self.file.closed):
-            self.file.close()
+        def get_foo(self):
+            self.check_get_attr('bar')
+            self.check_get_attr('_baz')
+            return do_stuff(self._baz, self.bar)
     
+    Setting self.attr_list is optional. It is supposed to be used only in
+    get_all(). The check_get_attr() - method works without it, too. 
+    """ 
+    # Notes for derived classes (long explaination):
+    #
+    # In this class we define a number of members (self.member1, self.member2,
+    # ...) which shall all be set by the get_all() method.
+    #
+    # There are 3 ways of doing it:
+    #
+    # 1) Put all code in get_all(). 
+    #    Con: One might forget to implement the setting of a member.
+    # 
+    # 2) Implement get_all() so that for each data member of the API, we have
+    #       self.member1 = self.get_member1()
+    #       self.member2 = self.get_member2()
+    #       ...
+    #    and put the code for each member in a separate getter. This is good
+    #    coding style, but often data needs to be shared between getters (e.g.
+    #    get_member1() needs member2, which is the result of self.member2 =
+    #    self.get_member2(). This means that in general the calling order
+    #    of the getters is important and is different in each get_all() of each
+    #    derived class.
+    #    Con: One might forget to call a getter in get_all() and/or in the wrong 
+    #         order.
+    # 
+    # 3) Implement all getters such that they can be called in arbitrary order.
+    #    Then in each get_all(), one does exactly the same:
+    #
+    #        attr_lst = ['member1', 'member2', ...]
+    #        for attr in attr_lst:
+    #            self.check_get_attr(attr)
+    #    
+    #    This code (the "getting" of all API members) can then be moved to the
+    #    *base* class's get_all() and thereby forcing all derived classes to
+    #    conform to the API. 
+    #
+    #    If again one getter needs a return value of another getter, one has to
+    #    transform
+    #    
+    #       def get_member1(self):
+    #           return do_stuff(self.member2)
+    #    to 
+    #       
+    #       def get_member1(self):
+    #           self.check_get_attr('member2')                <<<<<<<<<<<<
+    #           return do_stuff(self.member2)
+    #
+    #    If one does
+    #        self.member1 = self.get_member1()
+    #        self.member2 = self.get_member2()
+    #        ....
+    #    then some calls may in fact be redundant b/c e.g. get_member1() has
+    #    already been called inside get_member2(). There is NO big overhead in
+    #    this approach b/c in each getter we test with check_get_attr() if a
+    #    needed other member is already set.
+    #    
+    #    This way we get a flexible and easily extensible framework to
+    #    implement new parsers and modify existing ones (just implement another
+    #    getter get_newmember() in each class and extend the list of API
+    #    members by 'newmember').
+    #
+    #    One drawback: Beware of cyclic dependencies (i.e. get_member2 ->
+    #    get_member1 -> get_member2 -> ...). Always test the implementation!
+    
+    def __init__(self):
+        self.set_attr_lst([])
+
     def set_attr_lst(self, attr_lst):
         """Set self.attr_lst and init each attr to None."""
         self.attr_lst = attr_lst
@@ -286,14 +350,95 @@ class FileParser(object):
             else:
                 get = 'get_'
             setattr(self, attr, eval('self.%s%s()' %(get, attr))) 
+
+
+class FileParser(FlexibleGetters):
+    """Base class for file parsers.
+    
+    All getters are called in the default self.parse() which can, of course, be
+    overridden in derived classes.
+    """
+    def __init__(self, filename=None):
+        """
+        args: 
+        -----
+        filename : str, name of the file to parse
+        """
+        FlexibleGetters.__init__(self)
+        self.filename = filename
+        if self.filename is not None:
+            self.fd = open(self.filename, 'r')
+        else:
+            self.fd = None
+    
+    def __del__(self):
+        """Destructor. If self.fd has not been closed yet (in self.parse()),
+        then do it here, eventually."""
+        self.close_file()
+    
+    def _is_file_open(self):
+        return (self.fd is not None) and (not self.fd.closed)
+
+    def close_file(self):
+        if self._is_file_open():
+            self.fd.close()
     
     def parse(self):
         for attr in self.attr_lst:
             self.check_get_attr(attr)
-    
-    def get_txt(self):
-        return open(self.filename).read().strip()
+        self.close_file()
 
+    def get_txt(self):
+        if self._is_file_open():
+            self.fd.seek(0)    
+            return self.fd.read().strip()
+        else:
+            raise StandardError("self.fd is None or closed")
+
+# Idea:
+#
+# Structure : single struct -> Atoms in ASE, ATM all classes derived from
+#   StructureFileParser have this character (CifFile, etc)
+#   
+# Trajectory : for trajectories, some arrays are 3d
+#   This is like Pw*OutputFile.
+# 
+# Both as input for crys.write_*, crys.rpdf() etc
+#
+# Most usefull feature: Must hold attr self.coords_frac, derived classes must
+# define getter (how to get fractional coords), i.e. PwOutputFile must know all
+# about pwscf's ibrav etc. This means we must implement all 14 bravais lattices
+# or map pwscf's ibrav to ASE.lattice
+#
+# BUT: How to best combine parser class and structure class?
+
+## class Structure(FlexibleGetters):
+##     def __init__(self, 
+##                  coords=None, 
+##                  coords_frac=None, 
+##                  symbols=None, 
+##                  cell=None,
+##                  cryst_const=None, 
+##                  natoms=None):
+##         FlexibleGetters.__init__(self)                 
+##         self.set_attr_lst(['coords', 
+##                            'coords_frac',
+##                            'symbols', 
+##                            'cell',
+##                            'cryst_const', 
+##                            'natoms', 
+##                            'atpos_str'])
+##        
+##         self.coords = coords
+##         self.coords_frac = coords_frac
+##         self.symbols = symbols
+##         self.cell = cell
+##         self.cryst_const = cryst_const
+##         self.natoms = natoms
+## 
+## class Trajectory(Structure):
+##     pass
+##     # .... where coords etc is 3d
 
 class StructureFileParser(FileParser):
     """Base class for structure file (pdb, cif, etc) and input file parsers.
@@ -324,103 +469,12 @@ class StructureFileParser(FileParser):
     parsed out of the files. It is up to the user (and derived classes) to
     handle that. 
     """
-    # Notes for derived classes:
-    #
-    # In this class we define a number of members (self.member1, self.member2,
-    # ...) which _must_ be set by the parse() method. We call this the "API".
-    #
-    # There are 3 ways of doing it:
-    #
-    # 1) Put all code in parse(). 
-    #    Con: One might forget to implement the setting of a member.
-    # 
-    # 2) Implement parse() so that for each data member of the API, we have
-    #       self.member1 = self.get_member1()
-    #       self.member2 = self.get_member2()
-    #       ...
-    #    and put the code for each member in a separate getter. This is good
-    #    coding style, but often data needs to be shared between getters (e.g.
-    #    get_member1() needs member2, which is the result of self.member2 =
-    #    self.get_member2(). This means that in general the calling order
-    #    of the getters is important and is different in each parse() of each
-    #    derived class.
-    #    Con: One might forget to call a getter in parse() and/or in the wrong 
-    #         order.
-    # 
-    # 3) Implement all getters such that they can be called in arbitrary order.
-    #    Then in each parse(), one does exactly the same:
-    #
-    #        attr_lst = ['member1', 'member2', ...]
-    #        for attr in attr_lst:
-    #            self.check_get_attr(attr)
-    #    
-    #    This code (the "getting" of all API members) can then be moved to the
-    #    *base* class's parse() and thereby forcing all derived classes to
-    #    conform to the API. 
-    #
-    #    If again one getter needs a return value of another getter, one has to
-    #    transform
-    #    
-    #       def get_member1(self):
-    #           return do_stuff(self.member2)
-    #    to 
-    #       
-    #       def get_member1(self):
-    #           self.check_get_attr('member2')                <<<<<<<<<<<<
-    #           return do_stuff(self.member2)
-    #
-    #    If one does
-    #        self.member1 = self.get_member1()
-    #        self.member2 = self.get_member2()
-    #        ....
-    #    then some calls may in fact be redundant b/c e.g. get_member1() has
-    #    already been called inside get_member2(). There is NO big overhead in
-    #    this approach b/c in each getter we test with check_get_attr() if a
-    #    needed other member is already set.
-    #    
-    #    This way we get a flexible and easily extensible framework to
-    #    implement new parsers and modify existing ones (just implement another
-    #    getter get_newmember() in each class and extend the list of API
-    #    members by 'newmember').
-    #
-    #    One drawback: Beware of cyclic dependencies (i.e. get_member2 ->
-    #    get_member1 -> get_member2 -> ...). Always test the implementation!
-    
     def __init__(self, filename=None):
         FileParser.__init__(self, filename)
-        # At least these members must be "gotten" in parse() of derived
-        # classes. The calling order can be overridden. Additional members may
-        # be added, as long as all members of this list are beeing set in
-        # parse() of the derived class.
         self.set_attr_lst(['coords', 'symbols', 'cryst_const', 'cell',
-                         'natoms', 'atpos_str'])
-        self.a0_to_A = constants.a0_to_A
-    
-    def parse(self):
-        FileParser.parse(self)
+                           'natoms', 'atpos_str'])
 
-    # Default dummy getters. They all return None.
-    
-    def get_coords(self):
-        pass
-    
-    def get_symbols(self):
-        # Note: If a file lists the atom numbers (e.g. 1 for H etc) and not
-        # atom symbols (e.g. 'H'), we can get the mapping number -> symbol from
-        # periodic_table.py .
-        pass
-    
-    def get_cryst_const(self):
-        pass
-    
-    def get_cell(self):
-        pass
-    
-    def get_natoms(self):
-        pass
-    
     # Convenience getters
-
     def get_atpos_str(self):
         self.check_get_attr('coords')
         self.check_get_attr('symbols')
@@ -556,7 +610,7 @@ class CifFile(StructureFileParser):
         self.check_get_attr('_cif_dct')
         celldm = []
         # ibrav 14, celldm(1) ... celldm(6)
-        celldm.append(self._cif_dct['a']/self.a0_to_A) # Angstrom -> Bohr
+        celldm.append(self._cif_dct['a']/constants.a0_to_A) # Angstrom -> Bohr
         celldm.append(self._cif_dct['b']/self._cif_dct['a'])
         celldm.append(self._cif_dct['c']/self._cif_dct['a'])
         celldm.append(cos(self._cif_dct['alpha']*pi/180))
@@ -564,10 +618,6 @@ class CifFile(StructureFileParser):
         celldm.append(cos(self._cif_dct['gamma']*pi/180))
         return np.asarray(celldm)
 
-    def parse(self):        
-        StructureFileParser.parse(self)
-        self.close_file()
-    
 
 class PDBFile(StructureFileParser):
     """Very very simple pdb file parser. Extract only ATOM/HETATM and CRYST1
@@ -589,6 +639,50 @@ class PDBFile(StructureFileParser):
         don't use the strict column numbers for each field as stated in the PDB
         spec.
     """
+    # Notes:
+    #
+    # Grep atom symbols and coordinates in Angstrom ([A]) from PDB file.
+    # Note that for the atom symbols, we do NOT use the columns 77-78
+    # ("Element symbol"), b/c that is apparently not present in all the
+    # files which we currently use. Instead, we use the columns 13-16, i.e.
+    # "Atom name". Note that in general this is not the element symbol.
+    #
+    # From the PDB spec v3.20:
+    #
+    # ATOM record:
+    #
+    # COLUMNS       DATA  TYPE    FIELD        DEFINITION
+    # -------------------------------------------------------------------------------------
+    #  1 -  6       Record name   "ATOM  "
+    #  7 - 11       Integer       serial       Atom  serial number.
+    #  13 - 16      Atom          name         Atom name.
+    #  17           Character     altLoc       Alternate location indicator.
+    #  18 - 20      Residue name  resName      Residue name.
+    #  22           Character     chainID      Chain identifier.
+    #  23 - 26      Integer       resSeq       Residue sequence number.
+    #  27           AChar         iCode        Code for insertion of residues.
+    #  31 - 38      Real(8.3)     x            Orthogonal coordinates for X in Angstroms.
+    #  39 - 46      Real(8.3)     y            Orthogonal coordinates for Y in Angstroms.
+    #  47 - 54      Real(8.3)     z            Orthogonal coordinates for Z in Angstroms.
+    #  55 - 60      Real(6.2)     occupancy    Occupancy.
+    #  61 - 66      Real(6.2)     tempFactor   Temperature  factor.
+    #  77 - 78      LString(2)    element      Element symbol, right-justified.
+    #  79 - 80      LString(2)    charge       Charge  on the atom.
+    #
+    # CRYST1 record:
+    # 
+    # COLUMNS       DATA  TYPE    FIELD          DEFINITION
+    # -------------------------------------------------------------
+    #  1 -  6       Record name   "CRYST1"
+    #  7 - 15       Real(9.3)     a              a (Angstroms).
+    # 16 - 24       Real(9.3)     b              b (Angstroms).
+    # 25 - 33       Real(9.3)     c              c (Angstroms).
+    # 34 - 40       Real(7.2)     alpha          alpha (degrees).
+    # 41 - 47       Real(7.2)     beta           beta (degrees).
+    # 48 - 54       Real(7.2)     gamma          gamma (degrees).
+    # 56 - 66       LString       sGroup         Space  group.
+    # 67 - 70       Integer       z              Z value.
+    #
     def __init__(self, filename=None):
         """
         args:
@@ -597,56 +691,10 @@ class PDBFile(StructureFileParser):
         """
         StructureFileParser.__init__(self, filename)
     
-    def parse(self):
-        # Grep atom symbols and coordinates in Angstrom ([A]) from PDB file.
-        # Note that for the atom symbols, we do NOT use the columns 77-78
-        # ("Element symbol"), b/c that is apparently not present in all the
-        # files which we currently use. Instead, we use the columns 13-16, i.e.
-        # "Atom name". Note that in general this is not the element symbol.
-        #
-        # From the PDB spec v3.20:
-        #
-        # ATOM record:
-        #
-        # COLUMNS       DATA  TYPE    FIELD        DEFINITION
-        # -------------------------------------------------------------------------------------
-        #  1 -  6       Record name   "ATOM  "
-        #  7 - 11       Integer       serial       Atom  serial number.
-        #  13 - 16      Atom          name         Atom name.
-        #  17           Character     altLoc       Alternate location indicator.
-        #  18 - 20      Residue name  resName      Residue name.
-        #  22           Character     chainID      Chain identifier.
-        #  23 - 26      Integer       resSeq       Residue sequence number.
-        #  27           AChar         iCode        Code for insertion of residues.
-        #  31 - 38      Real(8.3)     x            Orthogonal coordinates for X in Angstroms.
-        #  39 - 46      Real(8.3)     y            Orthogonal coordinates for Y in Angstroms.
-        #  47 - 54      Real(8.3)     z            Orthogonal coordinates for Z in Angstroms.
-        #  55 - 60      Real(6.2)     occupancy    Occupancy.
-        #  61 - 66      Real(6.2)     tempFactor   Temperature  factor.
-        #  77 - 78      LString(2)    element      Element symbol, right-justified.
-        #  79 - 80      LString(2)    charge       Charge  on the atom.
-        #
-        # CRYST1 record:
-        # 
-        # COLUMNS       DATA  TYPE    FIELD          DEFINITION
-        # -------------------------------------------------------------
-        #  1 -  6       Record name   "CRYST1"
-        #  7 - 15       Real(9.3)     a              a (Angstroms).
-        # 16 - 24       Real(9.3)     b              b (Angstroms).
-        # 25 - 33       Real(9.3)     c              c (Angstroms).
-        # 34 - 40       Real(7.2)     alpha          alpha (degrees).
-        # 41 - 47       Real(7.2)     beta           beta (degrees).
-        # 48 - 54       Real(7.2)     gamma          gamma (degrees).
-        # 56 - 66       LString       sGroup         Space  group.
-        # 67 - 70       Integer       z              Z value.
-        #
-        StructureFileParser.parse(self)
-        self.close_file()
-    
     def _get_coords_data(self):
-        self.file.seek(0)
+        self.fd.seek(0)
         ret = com.igrep(r'(ATOM|HETATM)[\s0-9]+([A-Za-z]+)[\sa-zA-Z0-9]*'
-            r'[\s0-9]+((\s+'+ regex.float_re + r'){3}?)', self.file)
+            r'[\s0-9]+((\s+'+ regex.float_re + r'){3}?)', self.fd)
         # array of string type            
         return np.array([[m.group(2)] + m.group(3).split() for m in ret])
     
@@ -673,8 +721,8 @@ class PDBFile(StructureFileParser):
         # example:
         # CRYST1   52.000   58.600   61.900  90.00  90.00  90.00  P 21 21 21   8
         #          a        b        c       alpha  beta   gamma  |space grp|  z-value
-        self.file.seek(0)
-        ret = com.mgrep(r'CRYST1\s+((\s+'+ regex.float_re + r'){6}).*$', self.file)
+        self.fd.seek(0)
+        ret = com.mgrep(r'CRYST1\s+((\s+'+ regex.float_re + r'){6}).*$', self.fd)
         if len(ret) == 1:
             match = ret[0]
             return np.array(match.group(1).split()).astype(float)
@@ -698,9 +746,6 @@ class CMLFile(StructureFileParser):
     def __init__(self, filename=None):
         StructureFileParser.__init__(self, filename)
     
-    def parse(self):
-        StructureFileParser.parse(self)
-
     def _get_soup(self):
         return BeautifulStoneSoup(open(self.filename).read())        
 
@@ -799,10 +844,6 @@ class PwInputFile(StructureFileParser):
                                            'kpoints', \
                                            'massvec'])
     
-    def parse(self):
-        StructureFileParser.parse(self)
-        self.close_file()
-    
     def get_massvec(self):
         self.check_get_attr('atpos')
         return self.atpos['massvec']
@@ -866,19 +907,20 @@ class PwInputFile(StructureFileParser):
         N   14.0067     N.LDA.fhi.UPF
         [...]
         """
-        self.file.seek(0)
+        self.fd.seek(0)
         verbose('[get_atspec] reading ATOMIC_SPECIES from %s' %self.filename)
         rex = re.compile(r'\s*([a-zA-Z]+)\s+(' + regex.float_re +\
             ')\s+(.*)$')
-        self.file, flag = scan_until_pat(self.file, 
+        self.fd, flag = scan_until_pat(self.fd, 
                                          pat='atomic_species',        
                                          err=False)
+        # XXX from here on, could use common.igrep() or re.findall()
         if flag == 0:
             verbose("[get_atspec]: WARNING: start pattern not found")
             return None
-        line = next_line(self.file)
+        line = next_line(self.fd)
         while line == '':
-            line = next_line(self.file)
+            line = next_line(self.fd)
         match = rex.match(line)
         lst = []
         # XXX Could use knowledge of namelists['system']['ntyp'] here (=number
@@ -886,7 +928,7 @@ class PwInputFile(StructureFileParser):
         while match is not None:
             # match.groups: tuple ('Si', '28.0855', 'Si.LDA.fhi.UPF')
             lst.append(list(match.groups()))
-            line = next_line(self.file)
+            line = next_line(self.fd)
             match = rex.match(line)
         if lst == []:
             return None
@@ -933,23 +975,23 @@ class PwInputFile(StructureFileParser):
             >>> cmd = r"sed -nre '/CELL_PARAMETERS/,+3p' %s | tail -n3" %self.filename
             >>> cell = np.loadtxt(StringIO(com.backtick(cmd)))
         """
-        self.file.seek(0)
+        self.fd.seek(0)
         verbose('[get_cell] reading CELL_PARAMETERS from %s' %self.filename)
         rex = re.compile(r'\s*((' + regex.float_re + '\s*){3})\s*')
-        self.file, flag = scan_until_pat(self.file, pat="cell_parameters",
+        self.fd, flag = scan_until_pat(self.fd, pat="cell_parameters",
                                          err=False)
         if flag == 0:
             return None
-        line = next_line(self.file)
+        line = next_line(self.fd)
         while line == '':
-            line = next_line(self.file)
+            line = next_line(self.fd)
         match = rex.match(line)
         lst = []
         # XXX Could use <number_of_lines> = 3 instead of regexes
         while match is not None:
             # match.groups(): ('1.3 0 3.0', ' 3.0')
             lst.append(match.group(1).strip().split())
-            line = next_line(self.file)
+            line = next_line(self.fd)
             match = rex.match(line)
         if lst == []:
             return None
@@ -989,10 +1031,10 @@ class PwInputFile(StructureFileParser):
         <unit> is a string: 'alat', 'crystal' etc.
         """
         self.check_get_attr('atspec')
-        self.file.seek(0)
+        self.fd.seek(0)
         verbose("[get_atpos] reading ATOMIC_POSITIONS from %s" %self.filename)
         rex = re.compile(r'\s*([a-zA-Z]+)((\s+' + regex.float_re + '){3})\s*')
-        self.file, flag, line = scan_until_pat(self.file, 
+        self.fd, flag, line = scan_until_pat(self.fd, 
                                                pat="atomic_positions", 
                                                retline=True)
         if flag == 0:
@@ -1002,9 +1044,9 @@ class PwInputFile(StructureFileParser):
             unit = re.sub(r'[{\(\)}]', '', line[1])
         else:
             unit = ''
-        line = next_line(self.file)
+        line = next_line(self.fd)
         while line == '':
-            line = next_line(self.file)
+            line = next_line(self.fd)
         lst = []
         # XXX Instead of regexes, we could as well use natoms
         # (namelists['system']['nat']).
@@ -1013,7 +1055,7 @@ class PwInputFile(StructureFileParser):
             # match.groups():
             # ('Al', '       4.482670384  -0.021685570   4.283770714', '    4.283770714')
             lst.append([match.group(1)] + match.group(2).strip().split())
-            line = next_line(self.file)
+            line = next_line(self.fd)
             match = rex.match(line)
         if lst == []:
             return None
@@ -1085,11 +1127,11 @@ class PwInputFile(StructureFileParser):
         >>> intkey    = int(d['namelist1']['intkey'])
         >>> boolkey   = com.tobool(d['namelist1']['boolkey'])
         """
-        self.file.seek(0)
+        self.fd.seek(0)
         verbose("[get_namelists] parsing %s" %self.filename)
         dct = {}
         nl_kvps = None
-        for line in self.file:
+        for line in self.fd:
             # '   A = b, c=d,' -> 'A=b,c=d'
             line = line.strip().strip(',').replace(' ', '')
             # Start of namelist.
@@ -1146,7 +1188,7 @@ class PwInputFile(StructureFileParser):
         => 'K_POINTS gamma'
         => mode = 'gamma'
            kpoints = 'gamma'
-        """           
+        """
         self.check_get_attr('txt')
         rex = re.compile(r'^\s*K_POINTS\s*(.*)\s*\n*(.*)$', re.M)
         m = rex.search(self.txt)
@@ -1159,7 +1201,10 @@ class PwInputFile(StructureFileParser):
                 raise StandardError("K_POINTS mode = 'gamma' but kpoints != ''")
         return {'mode': mode,
                 'kpoints': kpoints}
-            
+
+# XXX crys: coord_trans3d -> wrapper special for (??,3,nstep), i.e.
+#     trajectory-like arrays
+
 
 class PwOutputFile(FileParser):
     """Parse a pw.x output file. This class is primarily geared towards
@@ -1300,6 +1345,25 @@ class PwOutputFile(FileParser):
                             %(self.infile.filename, self.infile.natoms,
                               self.filename, self.coords.shape[0]))
     
+    def _nstep_from_txt(sekf, txt):
+        if txt.strip() == '':
+            return 0
+        else:
+            return int(txt)
+ 
+    def _traj_from_txt(self, txt, shape, axis=None):
+        _axis = self.time_axis if axis is None else axis
+        if txt.strip() == '':
+            return None
+        else:
+            return io.readtxt(StringIO(txt), axis=_axis, shape=shape)
+    
+    def _arr_from_txt(self, txt):
+        if txt.strip() == '':
+            return None
+        else:
+            return np.loadtxt(StringIO(txt))
+
     # backward compat
     def get_cell_parameters(self):
         verbose("warning: cell_parameters deprecated. Use 'cell' and "
@@ -1345,57 +1409,33 @@ class PwOutputFile(FileParser):
         verbose("getting stress tensor")
         key = 'P='
         cmd = "grep %s %s | wc -l" %(key, self.filename)
-        ret_str = com.backtick(cmd)          
-        if ret_str.strip() == '':
-            nstep = 0
-        else:
-            nstep = int(ret_str)
+        nstep = self._nstep_from_txt(com.backtick(cmd))
         cmd = "grep -A3 '%s' %s | grep -v -e %s -e '--'| \
               awk '{printf $4\"  \"$5\"  \"$6\"\\n\"}'" \
               %(key, self.filename, key)
-        ret_str = com.backtick(cmd)          
-        if ret_str.strip() == '':
-            return None
-        else:
-            return io.readtxt(StringIO(ret_str), axis=self.time_axis, 
-                              shape=(3, 3, nstep))
+        return self._traj_from_txt(com.backtick(cmd), shape=(3,3,nstep))              
 
     def get_etot(self):
         verbose("getting etot")
-        ret_str = com.backtick(r"grep '^!' %s | awk '{print $5}'" \
-                               %self.filename)
-        if ret_str.strip() == '':
-            return None
-        else:            
-            return np.loadtxt(StringIO(ret_str))
+        cmd =  r"grep '^!' %s | awk '{print $5}'" %self.filename  
+        return self._arr_from_txt(com.backtick(cmd))
     
     def get_ekin(self):
         verbose("getting ekin")
-        ret_str = com.backtick(r"grep 'kinetic energy' %s | awk '{print $5}'"\
-                               %self.filename)
-        if ret_str.strip() == '':
-            return None
-        else:            
-            return np.loadtxt(StringIO(ret_str))
+        cmd = r"grep 'kinetic energy' %s | awk '{print $5}'" %self.filename
+        return self._arr_from_txt(com.backtick(cmd))
 
     def get_pressure(self):
         verbose("getting pressure")
-        ret_str = com.backtick(r"grep P= %s | awk '{print $6}'" %self.filename)
-        if ret_str.strip() == '':
-            return None
-        else:            
-            return np.loadtxt(StringIO(ret_str))
+        cmd = r"grep P= %s | awk '{print $6}'" %self.filename
+        return self._arr_from_txt(com.backtick(cmd))
      
     def get_temperature(self):
         verbose("getting temperature")
         cmd = r"egrep 'temperature[ ]*=' %s " %self.filename + \
               "| sed -re 's/.*temp.*=\s*(" + regex.float_re + \
               r")\s*K/\1/'"
-        ret_str = com.backtick(cmd)
-        if ret_str.strip() == '':
-            return None
-        else:            
-            return np.loadtxt(StringIO(ret_str))
+        return self._arr_from_txt(com.backtick(cmd))
     
     def get_coords(self):
         verbose("getting coords")
@@ -1405,21 +1445,12 @@ class PwOutputFile(FileParser):
         # wrong if the output file is a concatenation of multiple smaller files
         key = 'ATOMIC_POSITIONS'
         cmd = 'grep %s %s | wc -l' %(key, self.filename)
-        ret_str = com.backtick(cmd)
-        if ret_str.strip() == '':
-            nstep = 0
-        else:            
-            nstep = int(ret_str)
+        nstep = self._nstep_from_txt(com.backtick(cmd))
         # coords
         cmd = "grep -A%i '%s' %s | grep -v -e %s -e '--' | \
               awk '{printf $2\"  \"$3\"  \"$4\"\\n\"}'" \
               %(natoms, key, self.filename, key)
-        ret_str = com.backtick(cmd)
-        if ret_str.strip() == '':
-            return None
-        else:
-            return io.readtxt(StringIO(ret_str), axis=self.time_axis, 
-                              shape=(natoms, 3, nstep))
+        return self._traj_from_txt(com.backtick(cmd), shape=(natoms,3,nstep))              
     
     def get_start_coords(self):
         """Grep start ATOMIC_POSITIONS from pw.out. This is always in cartesian
@@ -1438,11 +1469,7 @@ class PwOutputFile(FileParser):
         cmd = r"grep -A%i 'positions.*a_0.*units' %s | tail -n%i | \
               sed -re 's/.*\((.*)\)/\1/g'" \
               %(natoms, self.filename, natoms)
-        ret_str = com.backtick(cmd)
-        if ret_str.strip() == '':
-            return None
-        else:
-            return np.loadtxt(StringIO(ret_str))
+        return self._arr_from_txt(com.backtick(cmd))
 
     def get_forces(self):
         verbose("getting forces")
@@ -1452,39 +1479,21 @@ class PwOutputFile(FileParser):
         # wrong if the output file is a concatenation of multiple smaller files
         key = r'Forces\s+acting\s+on\s+atoms.*$'
         cmd = r"egrep '%s' %s | wc -l" %(key.replace(r'\s', r'[ ]'), self.filename)
-        ret_str = com.backtick(cmd)
-        if ret_str.strip() == '':
-            nstep = 0
-        else:            
-            nstep = int(ret_str)
+        nstep = self._nstep_from_txt(com.backtick(cmd))
         # forces
         cmd = "grep 'atom.*type.*force' %s \
             | awk '{print $7\" \"$8\" \"$9}'" %self.filename
-        ret_str = com.backtick(cmd)
-        if ret_str.strip() == '':
-            return None
-        else:
-            return io.readtxt(StringIO(ret_str), axis=self.time_axis, 
-                              shape=(natoms, 3, nstep))
+        return self._traj_from_txt(com.backtick(cmd), shape=(natoms,3,nstep))              
     
     def get_cell(self):
         verbose("getting cell parameters")
         # nstep
         key = 'CELL_PARAMETERS'
         cmd = 'grep %s %s | wc -l' %(key, self.filename)
-        ret_str = com.backtick(cmd)
-        if ret_str.strip() == '':
-            nstep = 0
-        else:            
-            nstep = int(ret_str)
+        nstep = self._nstep_from_txt(com.backtick(cmd))
         # cell            
         cmd = "grep -A3 %s %s | grep -v -e %s -e '--'" %(key, self.filename, key)
-        ret_str = com.backtick(cmd)
-        if ret_str.strip() == '':
-            return None
-        else:
-            return io.readtxt(StringIO(ret_str), axis=self.time_axis, 
-                              shape=(3, 3, nstep))
+        return self._traj_from_txt(com.backtick(cmd), shape=(3,3,nstep))              
     
     def get_start_cell(self):
         """Grep start cell from pw.out. This is always in alat
@@ -1492,11 +1501,7 @@ class PwOutputFile(FileParser):
         verbose("getting start cell parameters")
         cmd = "grep -A3 'crystal.*axes.*units.*a_0' %s | tail -n3 | \
                awk '{print $4\" \"$5\" \"$6}'" %(self.filename)
-        ret_str = com.backtick(cmd)
-        if ret_str.strip() == '':
-            return None
-        else:
-            return np.loadtxt(StringIO(ret_str))
+        return self._arr_from_txt(com.backtick(cmd))
     
     def get_volume(self):
         """For vc-relax, vc-md, pw.x prints stuff like
@@ -1512,13 +1517,9 @@ class PwOutputFile(FileParser):
         occur nstep times.
         """
         verbose("getting volume")
-        ret_str = com.backtick(r"grep 'new.*volume' %s | sed -re \
-                                's/.*volume\s*=\s*(.*?)\s+.*a.u..*/\1/'"
-                                %self.filename)
-        if ret_str.strip() == '':
-            return None
-        else:            
-            return np.loadtxt(StringIO(ret_str))
+        cmd = r"grep 'new.*volume' %s | sed -re \
+               's/.*volume\s*=\s*(.*?)\s+.*a.u..*/\1/'" %self.filename
+        return self._arr_from_txt(com.backtick(cmd))
     
     def get_start_volume(self):
         verbose("getting start volume")
@@ -1535,11 +1536,7 @@ class PwOutputFile(FileParser):
         cmd = r"egrep 'Total[ ]+force[ ]*=.*Total' %s \
             | sed -re 's/^.*Total\s+force\s*=\s*(.*)\s*Total.*/\1/'" \
             %self.filename
-        ret_str = com.backtick(cmd)
-        if ret_str.strip() == '':
-            return None
-        else:            
-            return np.loadtxt(StringIO(ret_str))
+        return self._arr_from_txt(com.backtick(cmd))
 
     
 class PwVCMDOutputFile(PwOutputFile):
@@ -1646,21 +1643,13 @@ class CPOutputFile(PwOutputFile):
             ['nfi', 'ekinc', 'temphc', 'tempp', 'etot', 'enthal', 'econs', 
              'econt', 'volume', 'out_press', 'tps']
     
-    # from base class:
-    #   parse()
-    #   get_nstep() 
-    #   get_natoms()
-    #   get_coords()
-    #   get_cell()
-    
     def parse(self):
         com.assert_cond(self.evpfilename is not None, "self.evpfilename is None")
         self.evp_data = self.load_evp_file()
         PwOutputFile.parse(self)
     
     def load_evp_file(self):
-        """
-        Load the file /path/to/scratch/<prefix>.evp. It contains temperature
+        """Load the file /path/to/scratch/<prefix>.evp. It contains temperature
         etc. at every iprint step. See self.evp_order .        
         """ 
         verbose("loading evp file: %s" %self.evpfilename)
@@ -1670,18 +1659,9 @@ class CPOutputFile(PwOutputFile):
         verbose("getting stress tensor")
         key = "Total stress"
         cmd = "grep '%s' %s | wc -l" %(key, self.filename)
-        ret_str = com.backtick(cmd)          
-        if ret_str.strip() == '':
-            nstep = 0
-        else:
-            nstep = int(ret_str)
+        nstep = self._nstep_from_txt(com.backtick(cmd))
         cmd = "grep -A3 '%s' %s | grep -v '%s' -e '--'" %(key, self.filename, key)
-        ret_str = com.backtick(cmd)          
-        if ret_str.strip() == '':
-            return None
-        else:
-            return io.readtxt(StringIO(ret_str), axis=self.time_axis, 
-                              shape=(3, 3, nstep))
+        return self._traj_from_txt(com.backtick(cmd), shape=(3,3,nstep))              
     
     def get_etot(self):
         verbose("getting etot")
@@ -1689,12 +1669,9 @@ class CPOutputFile(PwOutputFile):
     
     def get_ekin(self):
         verbose("getting ekin")
-        ret_str = com.backtick(r"egrep 'kinetic[ ]+energy[ ]=' %s | "\
-                                "awk '{print $4}'" %self.filename)
-        if ret_str.strip() == '':
-            return None
-        else:            
-            return np.loadtxt(StringIO(ret_str))
+        cmd = r"egrep 'kinetic[ ]+energy[ ]=' %s | awk '{print $4}'" \
+              %self.filename
+        return self._arr_from_txt(com.backtick(cmd))
     
     def get_pressure(self):
         verbose("getting pressure")

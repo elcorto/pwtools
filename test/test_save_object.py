@@ -28,7 +28,7 @@ def test():
     print ">>> ... done"
 
     print ">>> checking equalness of attrs in loaded object ..."
-    known_fails = {'file': 'closed/uninitialized file',
+    known_fails = {'fd': 'closed/uninitialized file',
                    'infile': 'same object, just new memory address'}
     arr_t = type(np.array([1]))
     for attr in c.__dict__.iterkeys():
@@ -41,7 +41,9 @@ def test():
                 dotest = False
         if dotest:                
             if type(c_val) == arr_t:
-                assert (c_val == c2_val).all()
+                assert (c_val == c2_val).all(), "fail: %s: %s, %s" \
+                                                %(name, c_val, c2_val)
             else:
-                assert c_val == c2_val
+                assert c_val == c2_val, "fail: %s: %s, %s" \
+                                        %(name, c_val, c2_val)
     common.system('gzip %s' %filename)
