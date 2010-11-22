@@ -95,49 +95,98 @@ class SQLiteDB(object):
 
     example:
     --------
-    >>> sql = SQLiteDB('test.db')
+    >>> sql = SQLiteDB('test.db', table='calc')
+    >>> sql.create_table([('a', 'FLOAT'), ('b', 'TEXT')])
+    >>> sql.execute("insert into %s ('a', 'b') values (1.0, 'lala')")
+    >>> sql.execute("insert into %s ('a', 'b') values (2.0, 'huhu')")
     >>> for record in sql.execute("SELECT * FROM calc"):
     ...     print record
     >>> records = sql.execute("SELECT * FROM calc").fetchall()        
     """
-    def __init__(self, db_fn):
+    def __init__(self, db_fn, table=None):
         """
         args:
         -----
         db_fn : str
-            Database filename
+            database filename
+        table : str
+            name of the database table 
         """            
         self.db_fn = db_fn
         self.conn = sqlite3.connect(db_fn)
         self.cur = self.conn.cursor()
-            
-    def execute(self, *args, **kwargs):
-        """This calls self.cur.execute()"""
-        return self.cur.execute(*args, **kwargs)
-
-    def has_column(self, table, col):
-        """Check if table `table` already has the column `col`.
+        self.table = table
+        if self.table is None:
+            raise StandardError("missing table name for database")
+    
+    def set_table(self, table):
+        """Set the table name (aka switch to another table).
 
         args:
         -----
         table : str
-            table name in the database
+            table name
+        """            
+        self.table = table
+
+    def execute(self, *args, **kwargs):
+        """This calls self.cur.execute()"""
+        return self.cur.execute(*args, **kwargs)
+
+    def has_column(self, col):
+        """Check if table self.table already has the column `col`.
+        
+        args:
+        -----
         col : str
             column name in the database
         """            
         has_col = False
-        for entry in self.get_header(table):
+        for entry in self.get_header():
             if entry[0] == col:
                 has_col = True
                 break
         return has_col                            
     
-    def get_header(self, table):
+    def add_column(self, col, sqltype):
+        """Add column `col` with type `sqltype`. 
+        
+        args:
+        -----
+        col : str
+            column name
+        sqltype : str
+            sqite data type (see SQLEntry)
+        """
+        if not self.has_column(col):
+            self.execute("ALTER TABLE %s ADD COLUMN %s %s" \
+                        %(self.table, col, sqltype))
+        ##self.commit()
+
+    def get_header(self):
         """Return the "header" of the db:
-            create table foo (a text, b real)
-            -> header = [('a', 'text'), ('b', 'real')]
+
+        example:
+        --------
+        db = SQLiteDB('test.db', table='foo')
+        db.execute("create table foo (a text, b real)"
+        db.get_header() -> [('a', 'text'), ('b', 'real')]
         """            
-        return [(x[1], x[2]) for x in self.execute("PRAGMA table_info(%s)" %table)]
+        return [(x[1], x[2]) for x in \
+                self.execute("PRAGMA table_info(%s)" %self.table)]
+    
+    def create_table(self, header):
+        """Create a table named self.table from `header`. `header` is in the
+        same format which get_header() returns.
+        
+        args:
+        -----
+        header : list of lists/tuples
+            [(colname1, sqltype1), (colname2, sqltype2), ...]
+        """
+        self.execute("CREATE TABLE %s (%s)" %(self.table, 
+                                            ','.join("%s %s" %(x[0], x[1]) \
+                                            for x in header)))
 
     def commit(self):
         self.conn.commit()
