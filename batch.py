@@ -1,3 +1,4 @@
+import numpy as np
 from pwtools import common
 from pwtools.sql import SQLEntry, SQLiteDB
 fpj = common.fpj
@@ -36,6 +37,40 @@ class Machine(object):
     
     def _get_jobtempl(self):
         return common.FileTemplate(self.jobfn)
+
+
+def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s"):
+    """Convergence table. Assume that quantity `xx` was varied, resulting in
+    `yy` values. Return a string (table) listing x,y and diff(y), where
+    each row of diff(y) is the difference to the *next* row.
+    
+    Useful for quickly viewing the results of a convergence study.
+
+    args:
+    -----
+    xx : 1d sequence (need not be numpy array)
+    yy : 1d sequence, len(xx), must be convertable to numpy float array
+    ffmt, sfmt : str
+        Format strings for strings and floats
+    
+    example:
+    --------
+    >>> kpoints = ['2 2 2', '4 4 4', '8 8 8']
+    >>> etot = [-300.0, -310.0, -312.0]
+    >>> print conv_table(kpoints, etot)
+          2 2 2      -300.0000       -10.0000
+          4 4 4      -310.0000        -2.0000
+          8 8 8      -312.0000         0.0000
+    """
+    yy = np.asarray(yy, dtype=np.float)
+    lenxx = len(xx)
+    dyy = np.zeros((lenxx,), dtype=np.float)
+    dyy[:-1] = np.diff(yy)
+    st = ""
+    fmtstr = "%s%s%s\n" %(sfmt,ffmt,ffmt)
+    for idx in range(lenxx):
+        st += fmtstr %(xx[idx], yy[idx], dyy[idx])
+    return st
 
 
 # Settings for the machines which we frequently use.
