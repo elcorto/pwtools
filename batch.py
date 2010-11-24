@@ -29,7 +29,7 @@ class Machine(object):
     def get_sql_record(self):
         dct = {}
         for key in self.attr_lst:
-            val = getattr(self, attr)
+            val = getattr(self, key)
             if val is not None:
                 dct[key] = SQLEntry(sqltype='TEXT', sqlval=val)
         return dct
