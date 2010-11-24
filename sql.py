@@ -133,6 +133,9 @@ class SQLiteDB(object):
             table name
         """            
         self.table = table
+    
+    def get_table(self):
+        return self.table
 
     def execute(self, *args, **kwargs):
         """This calls self.cur.execute()"""
