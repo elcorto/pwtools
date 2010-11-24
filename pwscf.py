@@ -61,4 +61,22 @@ def atspec_str(symbols, masses, pseudos):
         "len(symbols) != len(masses) != len(pseudos)"
     txt = '\n'.join(["%s\t%s\t%s" %(sym, str(mass), pp) for sym, mass, pp in
     zip(symbols, masses, pseudos)])        
-    return txt        
+    return txt      
+
+
+def kpointstr(lst, base='nk'):
+    """[3,3,3] -> "nk1=3,nk2=3,nk3=3" 
+    
+    Useful for QE's phonon toolchain ph.x, q2r.x, matdyn.x
+    """
+    return ','.join(['%s%i=%i' %(base, i+1, x) for i, x in enumerate(lst)])
+
+
+def kpointstr_pwin(lst, shift=[0,0,0]):
+    """[3,3,3] -> " 3 3 3 0 0 0" 
+    
+    Useful for pwscf input files.
+    """
+    return ' '.join(map(str, lst+shift))
+
+

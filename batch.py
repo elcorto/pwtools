@@ -38,22 +38,6 @@ class Machine(object):
         return common.FileTemplate(self.jobfn)
 
 
-def kpointstr(lst, base='nk'):
-    """[3,3,3] -> "nk1=3,nk2=3,nk3=3" 
-    
-    Useful for QE's phonon toolchain ph.x, q2r.x, matdyn.x
-    """
-    return ','.join(['%s%i=%i' %(base, i+1, x) for i, x in enumerate(lst)])
-
-
-def kpointstr_pwin(lst, shift=[0,0,0]):
-    """[3,3,3] -> " 3 3 3 0 0 0" 
-    
-    Useful for pwscf input files.
-    """
-    return ' '.join(map(str, lst+shift))
-
-
 # Settings for the machines which we frequently use.
 adde = Machine(name='adde',
                subcmd='qsub',
