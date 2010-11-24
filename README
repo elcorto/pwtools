@@ -19,6 +19,7 @@ postprocessing have been added. Current featues include:
   interface), rmsd
 - unit cell related tools: super cell building, coordinate transformation
 - IO: read cif, cml, pdb, pwscf in- and outfiles, write xsf, cif, xyz  
+- simple sqlite3 interface  
 
 Related projects
 ----------------

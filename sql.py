@@ -95,13 +95,18 @@ class SQLiteDB(object):
 
     example:
     --------
-    >>> sql = SQLiteDB('test.db', table='calc')
-    >>> sql.create_table([('a', 'FLOAT'), ('b', 'TEXT')])
-    >>> sql.execute("insert into %s ('a', 'b') values (1.0, 'lala')")
-    >>> sql.execute("insert into %s ('a', 'b') values (2.0, 'huhu')")
-    >>> for record in sql.execute("SELECT * FROM calc"):
+    >>> db = SQLiteDB('test.db', table='calc')
+    >>> db.create_table([('a', 'FLOAT'), ('b', 'TEXT')])
+    >>> db.execute("INSERT INTO %s ('a', 'b') VALUES (1.0, 'lala')" %db.table)
+    >>> db.execute("INSERT INTO %s ('a', 'b') VALUES (2.0, 'huhu')" %db.table)
+    # iterator
+    >>> for record in db.execute("SELECT * FROM calc"):
     ...     print record
-    >>> records = sql.execute("SELECT * FROM calc").fetchall()        
+    (1.0, u'lala')
+    (2.0, u'huhu')
+    # list
+    >>> print db.execute("SELECT * FROM calc").fetchall()
+    [(1.0, u'lala'), (2.0, u'huhu')]
     """
     def __init__(self, db_fn, table=None):
         """
@@ -161,7 +166,12 @@ class SQLiteDB(object):
         if not self.has_column(col):
             self.execute("ALTER TABLE %s ADD COLUMN %s %s" \
                         %(self.table, col, sqltype))
-        ##self.commit()
+    
+    def add_columns(self, header):
+        """Convenience function to add multiple columns from `header`. See
+        get_header()."""
+        for entry in header:
+            self.add_column(*entry)
 
     def get_header(self):
         """Return the "header" of the db:

@@ -58,9 +58,11 @@ def test():
     assert db.execute("select bar from calc where idx==0").fetchone()[0] == \
         'a'
     
-    # add column, fill with values
+    # add_column(), fill with values
     db.add_column('baz', 'TEXT')
-    assert db.get_header() == header + [('baz', 'TEXT')]
+    add_header = [('baz', 'TEXT')]
+    header += add_header
+    assert db.get_header() == header
     db.execute("UPDATE %s SET baz='xx' where idx==0" %db.table)
     db.execute("UPDATE %s SET baz='yy' where idx==1" %db.table)
     db.execute("UPDATE %s SET baz='zz' where idx==2" %db.table)
@@ -69,6 +71,12 @@ def test():
     print db.execute("select baz from calc").fetchall()
     assert db.execute("select baz from calc").fetchall() == \
         [(u'xx',), (u'yy',), (u'zz',)]
+    
+    # add even more cols with add_columns()
+    add_header = [('bob', 'TEXT'), ('alice', 'BLOB')]
+    header += add_header
+    db.add_columns(add_header)
+    assert db.get_header() == header
     
     # create_table()
     dbfn2 = pj(testdir, 'test2.db')
