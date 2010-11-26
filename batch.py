@@ -1,7 +1,10 @@
+import os
+import shutil
 import numpy as np
 from pwtools import common
 from pwtools.sql import SQLEntry, SQLiteDB
-fpj = common.fpj
+from pwtools.verbose import verbose
+pj = os.path.join
 
 class Machine(object):
     """This is a container for machine specific stuff. Most of the
@@ -19,7 +22,7 @@ class Machine(object):
         # extra
         self.jobfn = jobfn
 
-        self.jobtempl = self._get_jobtempl()
+        self.jobtempl = FileTemplate(self.jobfn)
 
         self.attr_lst = ['subcmd', 
                          'scratch',
@@ -35,8 +38,164 @@ class Machine(object):
                 dct[key] = SQLEntry(sqltype='TEXT', sqlval=val)
         return dct
     
-    def _get_jobtempl(self):
-        return common.FileTemplate(self.jobfn)
+
+class FileTemplate(object):
+    """Class to represent a template file in parameter studies.
+    
+    placeholders
+    ------------
+    Each template file is supposed to contain a number of placeholder strings
+    (e.g. XXXFOO or @foo@ or whatever other form). The `dct` passed to
+    self.write() is a dict which contains key-value pairs for replacement (e.g.
+    {'foo': 1.0, 'bar': 'say-what'}, keys=dct.keys()). Each key is converted to
+    a placeholder by `func`.
+    
+    We use common.template_replace(..., mode='txt'). dict-style placeholders
+    like "%(foo)s %(bar)i" will not work.
+
+    example
+    -------
+    This will take a template file calc.templ/pw.in, replace the placeholders
+    "@prefix@" and "@ecutwfc@" with some values and write the file to
+    calc/0/pw.in .
+
+    >>> templ = FileTemplate(basename='pw.in',
+    >>>                      keys=['prefix', 'ecutwfc'],
+    >>>                      dir='calc.templ',
+    >>>                      func=lambda x: "@%s@" %x)
+    >>>
+    >>> dct = {}
+    >>> dct['prefix'] = 'foo_run_1'
+    >>> dct['ecutwfc'] = 23.0
+    >>> templ.write(dct, 'calc/0')
+    >>>
+    # Not specifying keys will instruct write() to replace all placeholders in
+    # the template file which match the placeholders defined by dct.keys().
+    >>>
+    >>> templ2 = FileTemplate(basename='pw.in',
+    >>>                       dir='calc.templ', 
+    >>>                       func=lambda x: "@%s@" %x)
+    >>> templ2.write(dct, 'calc/0')
+    >>>
+    # or with SQL foo in a parameter study
+    >>>
+    >>> from sql import SQLEntry
+    >>> dct = {}                     
+    >>> dct['prefix']  = SQLEntry(sqltype='text',  sqlval='foo_run_1')
+    >>> sct['ecutwfc'] = SQLEntry(sqltype='float', sqlval=23.0)
+    >>> templ2.writesql(dct, 'calc/0')
+    """
+    
+    def __init__(self, basename='pw.in', keys=None, dir='calc.templ',
+                 func=lambda x:'XXX'+x.upper()):
+        """
+        args
+        ----
+        basename : string
+            The name of the template file and target file.
+            example: basename = pw.in
+                template = calc.templ/pw.in
+                target   = calc/0/pw.in
+        keys : {None, list of strings)
+            keys=None: All keys dct.keys() in self.write() are used. This is
+                useful if you have a dict holding many keys, whose placeholders
+                are spread across files. Then this will just replace every
+                match in each file. This is what most people want.
+            keys=[<key1>, <key2>, ...] : Each string is a key. Each key is
+                connected to a placeholder in the template. See func. This is
+                for binding keys to template files, i.e. replace only these
+                keys.
+            keys=[]: The template file is simply copied to `calc_dir` (see
+                self.write()).
+        dir : dir where the template lives (e.g. calc.templ)
+        func : callable
+            A function which takes a string (key) and returns a string, which
+            is the placeholder corresponding to that key.
+            example: (this is actually default)
+                key = "lala"
+                placeholder = "XXXLALA"
+                func = lambda x: "XXX" + x.upper()
+        """
+        self.keys = keys
+        self.dir = dir
+        
+        # We hardcode the convention that template and target files live in
+        # different dirs and have the same name ("basename") there.
+        #   template = <dir>/<basename>
+        #   target   = <calc_dir>/<basename>
+        # e.g.
+        #   template = calc.templ/pw.in
+        #   target   = calc/0/pw.in
+        # Something like
+        #   template = ./pw.in.templ
+        #   target   = ./pw.in
+        # is not possible.
+        self.basename = basename
+        self.filename = pj(self.dir, self.basename)
+        self.func = func
+        
+        self._get_placeholder = self.func
+        
+    def write(self, dct, calc_dir='calc', mode='dct'):
+        """Write file self.filename (e.g. calc/0/pw.in) by replacing 
+        placeholders in the template (e.g. calc.templ/pw.in).
+        
+        args:
+        -----
+        dct : dict 
+            key-value pairs, dct.keys() are converted to placeholders
+        calc_dir : str
+            the dir where to write the target file to
+        mode : str, {'dct', 'sql'}
+            mode='dct': replacement values are dct[<key>]
+            mode='sql': replacement values are dct[<key>].fileval and every
+                dct[<key>] is an SQLEntry instance
+        """
+        assert mode in ['dct', 'sql'], ("Wrong 'mode' kwarg, use 'dct' "
+                                        "or 'sql'")
+        # copy_only : bypass reading the file and passing the text thru the
+        # replacement machinery and getting the text back, unchanged. While
+        # this works, it is slower and useless.
+        if self.keys == []:
+            _keys = None
+            txt = None
+            copy_only = True
+        else:
+            if self.keys is None:
+                _keys = dct.iterkeys()
+                warn_not_found = False
+            else:
+                _keys = self.keys
+                warn_not_found = True
+            txt = common.file_read(self.filename)
+            copy_only = False
+        
+        tgt = pj(calc_dir, self.basename)
+        verbose("write: %s" %tgt)
+        if copy_only:    
+            verbose("write: ignoring input, just copying file: %s -> %s"
+                    %(self.filename, tgt))
+            shutil.copy(self.filename, tgt)
+        else:            
+            rules = {}
+            for key in _keys:
+                if mode == 'dct':
+                    rules[self._get_placeholder(key)] = dct[key]
+                elif mode == 'sql':                    
+                    # dct = sql_record, a list of SQLEntry's
+                    rules[self._get_placeholder(key)] = dct[key].fileval
+                else:
+                    raise StandardError("'mode' must be wrong")
+            new_txt = common.template_replace(txt, 
+                                              rules, 
+                                              mode='txt',
+                                              conv=True,
+                                              warn_not_found=warn_not_found)
+            common.file_write(tgt, new_txt) 
+                                  
+    def writesql(self, sql_record, calc_dir='calc'):
+        self.write(sql_record, calc_dir=calc_dir, mode='sql')
+
 
 
 def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s"):
