@@ -35,7 +35,7 @@ def test():
     # sql
     rules = {'foo': sql.SQLEntry(sqltype='integer', sqlval=1),
              'bar': sql.SQLEntry(sqltype='text', sqlval='lala'),
-             'baz': sql.SQLEntry(sqltype='integer', sqlval='3')}
+             'baz': sql.SQLEntry(sqltype='integer', sqlval=3)}
     templ.writesql(rules, calc_dir=tgt_dir)
     assert file_read(tgt_fn).strip() == "1 lala 3"
     
