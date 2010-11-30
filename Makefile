@@ -122,7 +122,7 @@ SO=$(EXT_MODULE).so
 #	/usr/bin/f2py2.6
 # and such. Here you define the correct executable for your environment.
 # Usually, just "f2py" should be fine.	
-F2PY=f2py2.5
+F2PY=f2py
 
 # ARCH below is for Intel Core i7
 F90=gfortran
