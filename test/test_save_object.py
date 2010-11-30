@@ -2,15 +2,18 @@
 # whole object in binary to disk using the dump() method, which actually uses
 # cPickle. 
 
-def test():
-    import numpy as np
-    from pwtools.parse import PwOutputFile
-    from pwtools import common
-    from pwtools import pydos as pd
+import os
+import numpy as np
+from pwtools.parse import PwOutputFile
+from pwtools import common
+from pwtools import pydos as pd
+from testenv import testdir
 
+
+def test():
     filename = 'files/pw.md.out'
     infile = 'files/pw.md.in'
-    dumpfile = '/tmp/pw.md.pk'
+    dumpfile = os.path.join(testdir, 'pw.md.pk')
 
     common.system('gunzip %s.gz' %filename)
     c = PwOutputFile(filename=filename, infile=infile)
