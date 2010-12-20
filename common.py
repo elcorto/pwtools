@@ -947,6 +947,38 @@ def file_template_replace(fn, dct, bak='', **kwargs):
     file_write(fn, txt)
 
 
+def backup(src, prefix='.'):
+    """Backup (copy) `src` to <src><prefix><num>, where <num> is an integer
+    starting at 0 which is incremented until there is no destination with that
+    name.
+    
+    Symlinks are handled by shutil.copy() for files and shutil.copytree() for
+    dirs. In both cases, the content of the file/dir pointed to by the link is
+    copied.
+
+    args:
+    -----
+    src : str
+        name of file/dir to be copied
+    prefix : str, optional
+    """
+    if os.path.isfile(src):
+        copy = shutil.copy 
+    elif os.path.isdir(src):
+        copy = shutil.copytree
+    else:
+        raise StandardError("source '%s' is not file or dir" %src)
+    idx = 0
+    dst = src + '%s%s' %(prefix,idx)
+    while os.path.exists(dst):
+        idx += 1
+        dst = src + '%s%s' %(prefix,idx)
+    # sanity check
+    if os.path.exists(dst):
+        raise StandardError("destination '%s' exists" %dst)
+    else:        
+        copy(src, dst)
+
 #-----------------------------------------------------------------------------
 # Dictionary tricks
 #-----------------------------------------------------------------------------
