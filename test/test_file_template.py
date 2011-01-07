@@ -20,14 +20,14 @@ def test():
     # specify keys
     templ = FileTemplate(basename='foo.in', 
                          keys=['foo', 'bar'],
-                         dir=templ_dir)
+                         templ_dir=templ_dir)
     rules = {'foo': 1, 'bar': 'lala', 'baz': 3}
     templ.write(rules, calc_dir=tgt_dir)
     assert file_read(tgt_fn).strip() == "1 lala XXXBAZ"
     
     # no keys
     templ = FileTemplate(basename='foo.in', 
-                         dir=templ_dir)
+                         templ_dir=templ_dir)
     rules = {'foo': 1, 'bar': 'lala', 'baz': 3}
     templ.write(rules, calc_dir=tgt_dir)
     assert file_read(tgt_fn).strip() == "1 lala 3"
@@ -43,7 +43,7 @@ def test():
     templ_txt = "@foo@ @bar@"
     file_write(templ_fn, templ_txt)
     templ = FileTemplate(basename='foo.in', 
-                         dir=templ_dir,
+                         templ_dir=templ_dir,
                          func=lambda x: "@%s@" %x)
     rules = {'foo': 1, 'bar': 'lala'}
     templ.write(rules, calc_dir=tgt_dir)
