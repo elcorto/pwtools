@@ -1,3 +1,25 @@
+# Minimal parameter study example. 
+#
+# Here, we consider the special case of a commonly needed convergence study of
+# cut-off (ecutwfc) and kpoints. It is known that one can vary ecutwfc and
+# kpoints *independently* of each other, i.e. instead of a grid:
+#
+#   25 50 75
+# 2 *  *  *
+# 4 *  *  *
+# 6 *  *  *
+#
+# just one row and column to save computer time and avoid redundant
+# information.
+#
+#   25 50 75
+# 2 *  *  *
+# 4 *  
+# 6 *  
+#
+# This is done by the nested_loops() trick below.
+
+
 import os
 import numpy as np
 from pwtools import comb, batch, common
@@ -8,7 +30,7 @@ from testenv import testdir
 def test():    
     pj = os.path.join
 
-    calc_name = 'convergence'
+    prefix = 'convergence'
     machines = [batch.local]
     templ_dir = 'files/calc.templ'
     templates = \
@@ -25,14 +47,10 @@ def test():
     ecutwfc = batch.sql_column('ecutwfc', 'float', _ecutwfc)
     ecutrho = batch.sql_column('ecutrho', 'float', 10*_ecutwfc)
     params_lst = comb.nested_loops([[kpoints[0]], zip(ecutwfc, ecutrho)]) + \
-                 comb.nested_loops([kpoints, zip([ecutwfc[0]], [ecutrho[0]])])
-    for params in params_lst:
-        print [(x.key, x.fileval) for x in common.flatten(params)]
+                 comb.nested_loops([kpoints[1:], zip([ecutwfc[0]], [ecutrho[0]])])
     for machine in machines:
-        templates[machine.jobfn] = batch.FileTemplate(basename=machine.jobfn,
-                                                      templ_dir=templ_dir)
         calc = batch.ParameterStudy(machine=machine, 
                                     templates=templates, 
                                     params_lst=params_lst, 
-                                    prefix=calc_name)
+                                    prefix=prefix)
         calc.write_input(calc_dir=pj(testdir, 'calc_test'))
