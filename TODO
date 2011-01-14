@@ -38,7 +38,8 @@ ase interface
   much like ASE's Atoms class. This would drastically simplify the writing and
   maintaining of all functions which take coords, cp, symbols .. as args
   (crys.py). Make parsing classes have an attr `structure`, which is an
-  instance of Structure.
+  instance of Structure. 
+  This is in progress ... see structure.py
 
 - Subclass ase.Atoms -> PwAtoms, add set_forces() method. In
   StructureFileParser, add method get_ase_atoms() which adds forces and returns

@@ -350,6 +350,18 @@ class FlexibleGetters(object):
             else:
                 get = 'get_'
             setattr(self, attr, eval('self.%s%s()' %(get, attr))) 
+    
+    def assert_attr(self, attr):
+        if not self.is_set_attr(attr):
+            raise AssertionError("attr '%s' is not set" %attr)
+    
+    def assert_attrs(self, attr_lst):
+        for attr in attr_lst:
+            self.assert_attr(attr)
+    
+    def check_get_attrs(self, attr_lst):
+        for attr in attr_lst:
+            self.check_get_attr(attr)
 
 
 class FileParser(FlexibleGetters):
@@ -412,33 +424,6 @@ class FileParser(FlexibleGetters):
 #
 # BUT: How to best combine parser class and structure class?
 
-## class Structure(FlexibleGetters):
-##     def __init__(self, 
-##                  coords=None, 
-##                  coords_frac=None, 
-##                  symbols=None, 
-##                  cell=None,
-##                  cryst_const=None, 
-##                  natoms=None):
-##         FlexibleGetters.__init__(self)                 
-##         self.set_attr_lst(['coords', 
-##                            'coords_frac',
-##                            'symbols', 
-##                            'cell',
-##                            'cryst_const', 
-##                            'natoms', 
-##                            'atpos_str'])
-##        
-##         self.coords = coords
-##         self.coords_frac = coords_frac
-##         self.symbols = symbols
-##         self.cell = cell
-##         self.cryst_const = cryst_const
-##         self.natoms = natoms
-## 
-## class Trajectory(Structure):
-##     pass
-##     # .... where coords etc is 3d
 
 class StructureFileParser(FileParser):
     """Base class for structure file (pdb, cif, etc) and input file parsers.
@@ -486,7 +471,7 @@ class StructureFileParser(FileParser):
                 "get_cell() instead.")
         self.check_get_attr('cell')                
         return self.cell
-
+    
 
 class CifFile(StructureFileParser):
     """Extract cell parameters and atomic positions from Cif files. This
