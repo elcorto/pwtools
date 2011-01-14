@@ -1674,16 +1674,17 @@ class Grep(object):
     with grep/sed/awk).
     
     In the constructor, define your a parsing function, e.g. re.<func> from the
-    re module or anything else that parses a text string. You must know
-    what it will return, e.g. MatchObject for re.search()/re.match() or list
-    for re.findall(). Then define a handle (function), which takes that output
-    and returns something (string, list, whatever) for further processing.
+    re module or anything else that parses a text string. You must know what it
+    will return, e.g. MatchObject for re.search()/re.match() or list for
+    re.findall(). Then, optionally define a handle (function), which takes that
+    output and returns something (string, list, whatever) for further
+    processing.
     
-    example
-    -------
+    examples:
+    ---------
     
     scalar values - single file
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ---------------------------
     This example uses only "scalar" values, i.e. values that occur only once in
     the parsed file.
     
@@ -1694,14 +1695,16 @@ class Grep(object):
     >>> g=Grep(rex); g.grepfile('pw.out')
     '87.1541'
 
-    Here, the default "handle" is used, which is to return the first match
-    group (m.group(1) where m is a MatchObject).
+    Here, the default handle is used for re.search, which is to return the
+    first match group m.group(1), where m is a MatchObject.
     
     array values - single file
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~
-    >>> g=Grep(regex=re.compile(r'.*Total\s+force\s*=\s*(.*?)\s*Total.*'),
-    >>>        func=lambda x,y: re.findall(x,y,re.M), 
-    >>>        handle=lambda x: x)
+    --------------------------
+    The default handle for re.findall is to return what findall()
+    returned, namly a list.
+
+    >>> g=Grep(regex=r'.*Total\s+force\s*=\s*(.*?)\s*Total.*',
+    ...        func=re.findall)
     >>> g.grepfile('calc/0/pw.out')
     ['1.619173',
      '1.444923',
@@ -1713,15 +1716,15 @@ class Grep(object):
      '0.001006']
     
     scalar values - loop over dirs
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ------------------------------
     (1) define Grep objects
 
     patterns = { 
         "nelec_out"  : Grep(sqltype = 'FLOAT',
-                            regex = re.compile(r'number.*electr.*=\s*(.*)\s*'),
+                            regex = r'number.*electr.*=\s*(.*)\s*',
                             basename = 'pw.out'),
         "finished": Grep(sqltype='TEXT', 
-                         regex = re.compile(r'end.*bfgs', re.I),
+                         regex = r'end.*bfgs', re.I,
                          handle = lambda m: m if m is None else 'yes' ,
                          basename='pw.out'),
                } 
@@ -1742,49 +1745,55 @@ class Grep(object):
     
     sql = SQLiteDB(...)
     for name, grep in patterns.iteritems():
-        if not sql.has_column('calc', name):
-            sql.execute("ALTER TABLE calc ADD COLUMN %s %s" \
-                        %(name, grep.sqltype))
+        sql.add_column(name, grep.sqltype)
         for idx in range(0,20):
-            dir = os.path.join('calc', idx)
+            dir = os.path.join('calc', str(idx))
             ret = grep.grepdir(dir)
             sql.execute("UPDATE calc SET %s=%s WHERE idx==%s" \
                         %(name, ret, idx))
     
     notes
     -----
-    Currently, if you define `func`, you have know that self.func is called
+    If you define `func`, you have know that self.func is called
     like
         self.func(regex, open(<filename>).read())
     and you have to construct `func` in that way. Keep that in mind if you need
-    to pass extra args to func (like re.M if func is a re module function, see
-    "arry values" example).
+    to pass extra args to func (like re.M if func is a re module function):
+        self.func(regex, open(<filename>).read(), re.M)
+     -> func = lambda x,y: re.findall(x,y,re.M)
     """
     def __init__(self, regex, basename=None, 
-                 handle = lambda m: m.group(1), 
+                 handle = None, 
                  func = re.search,
                  sqltype=None):
         """
         args:
         -----
         regex : str or compiled regex
-            For speed, it is recommended to use regex = re.compile(...)
+            If string, it will be compiled.
         basename : {None, str}, optional
             'pw.in' for calc/0/pw.in etc.
-        handle : callable
+        handle : callable, optional
             gets the output of re.<func> and returns a string
             or whatever for further processing
-        func : function object
+        func : function object, optional
             re module function re.<func>
         sqltype : str, optional
             'TEXT', 'FLOAT', ...
         """
         self.sqltype = sqltype
-        self.regex = regex
+        self.regex = re.compile(regex) if isinstance(regex, str) else regex
         self.basename = basename
-        self.handle = handle
         self.func = func
+        self.handle = self._get_handle_for_func(func) if handle is None \
+                      else handle
     
+    def _get_handle_for_func(self, func):
+        if func in [re.search, re.match]:
+            return lambda m: m.group(1)
+        else:            
+            return lambda x: x
+
     def _handle(self, arg):
         """Wrapper for self.handle that takes care of arg=None (common case if
         a MatchObject is None b/c there was no match) so no self.handle()
