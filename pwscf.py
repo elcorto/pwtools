@@ -77,6 +77,16 @@ def kpointstr_pwin(lst, shift=[0,0,0]):
     
     Useful for pwscf input files.
     """
-    return ' '.join(map(str, lst+shift))
+    if lst == 'gamma':
+        return lst
+    else:        
+        return ' '.join(map(str, lst+shift))
 
 
+def kpointstr_pwin2(lst, shift=[0,0,0]):
+    """Full k-points string for pw.x input files.
+    """
+    if lst == 'gamma':
+        return "K_POINTS gamma"
+    else:
+        return "K_POINTS automatic\n%s"  %kpointstr_pwin(lst, shift=shift)
