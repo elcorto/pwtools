@@ -1471,7 +1471,7 @@ class PwOutputFile(FileParser):
         return self._traj_from_txt(com.backtick(cmd), shape=(natoms,3,nstep))              
     
     def get_cell(self):
-        verbose("getting cell parameters")
+        verbose("getting cell")
         # nstep
         key = 'CELL_PARAMETERS'
         cmd = 'grep %s %s | wc -l' %(key, self.filename)

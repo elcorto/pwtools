@@ -224,6 +224,9 @@ def set_plot_layout_talk(plt):
 #----------------------------------------------------------------------------
 
 # works with mpl 0.99
+#
+# XXX This is probably superseded by ax.spine or gridspec (in 1.0) now. Have
+#     not tested both, but looks good.
 def new_axis(fig, hostax, off=50, loc='bottom', ticks=None, wsadd=0.1,
              label='', sharex=False, sharey=False):
     """Make a new axis line using mpl_toolkits.axes_grid's SubplotHost and
