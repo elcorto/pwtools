@@ -983,10 +983,16 @@ def backup(src, prefix='.'):
 # Dictionary tricks
 #-----------------------------------------------------------------------------
 
-def print_dct(dct):
+def dict2str(dct):
+    """Nicer than simply __repr__."""
+    st = ""    
     for key, val in dct.iteritems():
-        print "%s: %s" %(key, str(val))
+        st += "%s: %s\n" %(key, repr(val))
+    return st        
 
+# backward compat only
+def print_dct(dct):
+    print dict2str(dct)
 
 def dict2class(dct, name='Dummy'):
     """
