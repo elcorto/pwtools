@@ -68,6 +68,10 @@
 # Eryd        = 1/2*Eh
 # tryd = hbar/Eryd = 2*th     
 #
+# Atomic mass unit
+# ----------------
+#
+# amu = 1/12 * mass of C-12 isotope, mass in periodic table * amu = mass [kg]
 
 
 #-----------------------------------------------------------------------------
@@ -102,9 +106,14 @@ kb = 1.3806504e-23          # J/K
 avo = 6.02214179e23         # 1/mol
 dyn = 1e-5                  # N
 R = 8.314472                # J / (mol*K)
+amu = 1.660538782e-27       # kg
 
 Eryd = 0.5*Eh
 tryd = 2.0*th
+
+# aliases
+Ha = Eh     # J
+Ry = Eryd   # J
 
 # conversions
 
@@ -116,7 +125,10 @@ tryd = 2.0*th
 a0_to_A = 0.52917720859
 # 1 Ry = 13.6 eV
 Ry_to_eV = 13.60569193
+Ry_to_Ha = 0.5
+Ha_to_eV = 1.0/Ry_to_Ha * Ry_to_eV    # 27.211
 # 1 eV = 1.6e-19 J
+J_to_eV = 1.0/e0
 Ry_to_J = Ry_to_eV * e0
 J_to_rcm = 1.0/(h*c0*100)           # J  -> cm^-1
 Ry_to_rcm = Ry_to_J * J_to_rcm      # Ry -> cm^-1
