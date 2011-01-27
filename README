@@ -81,7 +81,10 @@ Python versions
 ---------------
 
 Developed mostly with Python 2.5. Should work with all versions from 2.4 on,
-but not yet 3.x. Also, python2.6 has not been tested yet.
+but not yet 3.x. 
+
+With Python 2.6, you may get a DeprecationWarning regarding the sets module
+when the CifFile module from the pycifrw package is imported.
 
 Add-on packages / other required tools
 --------------------------------------

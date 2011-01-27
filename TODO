@@ -21,10 +21,13 @@ all
 - Function to convert between ASE Atoms objects and things like PwOutputFile.
   We have an example script so far ...
 
-- Classes to ease input file setup for pwscf (automatic SQL db etc), apart from 
-  batch.py
+- Using raw 3d arrays for trajectories is cumbersome, esp. when we want to do
+  coord transformations (see io.write_axsf()). Add unified storage class
+  Trajectory (like structure.Structure) to hide the data storage as 3d arrays.
+  Make them have list-like hehavior (modify __getitem__).
 
-- Move all of parse.* to io.py ?
+  >>> traj = Trajectory(...)
+  >>> assert (traj[0] == traj.raw_coords[...,0]).all()
 
 ase interface
 -------------
@@ -49,8 +52,6 @@ ase interface
   just a list of Atoms objects or if PickleTrajectory instances have a list API
   while storing coords, cell etc more efficiently (like PwOutputFile as 3d
   arrays :). Then, add get_ase_traj() to PwOutputFile etc.
-
-- use ag etc to view cool movies and render stuff in povray!
 
 tests
 -----
