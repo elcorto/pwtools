@@ -1606,8 +1606,7 @@ class CPOutputFile(PwOutputFile):
     41  <prefix>.spr  ?
     42  <prefix>.wfc  ? (wafefunctions)?
 
-    Of course, there is no docu as to what they contain! But why should
-    there be, this would be useful then.
+    Of course, there is no documentation as to what they contain!
 
     We don't read most of the stuff (coords etc) from these files but instead
     directly from the outfile since we already have the code (inherit from
@@ -1631,7 +1630,7 @@ class CPOutputFile(PwOutputFile):
       nfi ekinc temph tempp etot enthal econs econt vnhh xnhh0 vnhp xnhp0
 
     every isave steps. This lists some (but not all!) values from the 
-    .evp file and some from the .nos file. Useless shit! 
+    .evp file and some from the .nos file!
 
     The important thing is that we cannot grep these lines from the
     outfile b/c this is ambiguous. There may be (in fact there are!)
@@ -1640,8 +1639,11 @@ class CPOutputFile(PwOutputFile):
     """
     def __init__(self, filename=None, infile=None, evpfilename=None):
         
-        # XXX This class has not been tested yet!!
-        raise NotImplementedError("test code first, dont use now")
+        # XXX This class has not been tested very much yet. Parsing a test
+        # cp.out works, but we have not verified if everything is parsed
+        # correctly. E.g. we are not sure if self.evp_order is correct. Would
+        # have to look at the code b/c this is not documented.
+        raise NotImplementedError("If you really want to do CP, use CPMD.")
 
 
         PwOutputFile.__init__(self, filename, infile)
@@ -1668,7 +1670,7 @@ class CPOutputFile(PwOutputFile):
         key = "Total stress"
         cmd = "grep '%s' %s | wc -l" %(key, self.filename)
         nstep = nstep_from_txt(com.backtick(cmd))
-        cmd = "grep -A3 '%s' %s | grep -v '%s' -e '--'" %(key, self.filename, key)
+        cmd = "grep -A3 '%s' %s | grep -v -e '%s' -e '--'" %(key, self.filename, key)
         return traj_from_txt(com.backtick(cmd), 
                              shape=(3,3,nstep),
                              axis=self.time_axis)
