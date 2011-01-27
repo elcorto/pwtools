@@ -470,27 +470,57 @@ def write_xyz(filename, coords, cell, symbols, align='rows', name='pwtools_dummy
     common.file_write(filename, xyz_str)
 
 
-@crys_add_doc
-def write_axsf(filename, coords, cell, symbols, align='rows'):
-    """Write animated XSF file. ATM, only fixed cells, i.e. `cell` cannot be 3d
-    array, in pwscf: md, relax, not vc-md, vc-relax. Forces are all set to
-    zero.
+def write_axsf(filename, coords, cell, symbols, forces=None):
+    """Write variable-cell animated XSF file. For only one unit cell (single
+    structure), provide only 2d arrays.
+    
+    For fixed-cell trajectories use (i) one 2d array for `cell` or (ii) a 3d
+    array where each cell[...,i] is the same.
 
     Note that `cell` must be in Angstrom, not the usual PWscf style scaled `cell`
     in alat units.
     
+    The number of steps is determined from `coords`. So, for fixed coordinates
+    but varying cell, use 3d `coords`, where each coords[...,i] is the same.
+
     args:
     -----
     filename : target file name
     coords : 2d (one unit cell) or 3d array (e.g. MD trajectory)
-        crystal (fractional) coords,
+        Crystal (fractional) coords.
         2d: (natoms, 3)
         3d: (natoms, 3, nstep)
-    %(cell_doc)s 
-        In Angstrom units.
+    cell : 2d or 3d, shape like `coords`.
+        Unit cell(s). In Angstrom units (for XSF). Basis vecs in `cell` (2d) or
+        cell[...,i] (3d) are the rows.
     symbols : list of strings (natoms,)
-        atom symbols
-    %(align_doc)s
+        Atom symbols in *one* unit cell.
+    forces : {None, 2d or 3d}, shape like `coords`.
+        Forces on atoms in Hartree / Angstrom. If None, then forces are set to
+        zero.
+   
+    examples:
+    ---------
+    >>> nstep=500; natoms=10; symbols=['H']*natoms
+    
+    Fixed cell + forces=0 (default).
+    >>> coords=rand(natoms, 3, nstep)
+    >>> cell=rand(3,3)
+    
+    Variable cell and coords with forces.
+    >>> coords=rand(natoms, 3, nstep)
+    >>> cell=rand(3,3,nstep)
+    >>> forces=rand(natoms,3,nstep)
+
+    Fixed fractional coords, varying cell: repeat `coords` nstep times.
+    >>> tmp = rand(natoms,3)
+    >>> coords = tmp[...,None].repeat(nstep, axis=2)
+    >>> cell=rand(3,3,nstep)
+
+    notes:
+    ------
+    If 2 or more 3d-arrays (trajectories) are used, then they must have the
+    same number of steps. This is currently not checked.
 
     refs:
     -----
@@ -498,40 +528,60 @@ def write_axsf(filename, coords, cell, symbols, align='rows'):
     """
     # notes:
     # ------
-    # The XSF spec [XSF] is a little fuzzy about what PRIMCOORD actually is
-    # (fractional or cartesian Angstrom). Only the latter case results in a
-    # correctly displayed structure in xcrsyden. So we use that.
+    # XSF: The XSF spec [XSF] is a little fuzzy about what PRIMCOORD actually
+    #     is (fractional or cartesian Angstrom). Only the latter case results
+    #     in a correctly displayed structure in xcrsyden. So we use that.
     #
-    # We could extend this to variable cell by allowing `cell` to be 3d and
-    # accept an 3d array for forces, too. Then we had (together with
-    # parse.Pw*OutputFile) a replacement for pwo2xsf.sh .
-    if align == 'cols':
-        cell = cell.T
+    # 3d arrays: Normally, we would calculate the coord trans coords ->
+    #     coords_cart (fractional -> cartesian) before the loop using
+    #     numpy.dot(). But if `cell` is 3d too (cell[...,i] = cell for each
+    #     time step coords[...,i]), then there is no efficient numpy.dot trick
+    #     for doing this with two 3d arrays, not even with tensordot(). At
+    #     least, I didn't find one. Simple loop over nstep here. We would have
+    #     to do
+    #         coords[i,j,k]; i=0...natoms-1, j=0...2, k=0...nstep-1
+    #         cell[l,m,n]; l,m=0..2, n=0...nstep-1, vectors are rows cell[l,:,n]
+    #         coords_cart[i,m,k] = sum(j=0..2) coords[i,j,k] * cell[j,m,k]
+    #     But this does not matter b/c we cannot avoid the loop anyway.
     atoms_axis = 0
-    time_axis = -1
     xyz_axis = 1
-    is3d = coords.ndim == 3
-    natoms = coords.shape[atoms_axis]
-    if is3d:
-        nstep = coords.shape[time_axis]
-        sl = [slice(None)]*3
-        # (natoms, 3, nstep) -> (natoms, nstep, 3) -> transform -> (natoms, nstep, 3)
-        # -> (natoms, 3, nstep)
-        coords_cart = np.dot(coords.swapaxes(-1,-2), cell).swapaxes(-1,-2)
-    else:
-        nstep = 1
-        sl = [slice(None)]*2
-        coords_cart = np.dot(coords, cell)
-    coords_cart = np.concatenate((coords_cart, 
-                                  np.zeros_like(coords_cart)),
-                                  axis=xyz_axis)
-    axsf_str = "ANIMSTEPS %i\nCRYSTAL\nPRIMVEC\n%s" %(nstep, common.str_arr(cell))
+    time_axis = 2
+    # This causes buggy behavior. Apparently, slices are varied together!? 
+    ##sl_coords, sl_cell, sl_forces = ([slice(None)]*3,)*3
+    sl_coords  = [slice(None)]*3
+    sl_cell  = [slice(None)]*3
+    sl_forces = [slice(None)]*3
+    isnstep_coords = coords.ndim == 3
+    isnstep_cell = cell.ndim == 3
+    _coords = coords if isnstep_coords else coords[...,None]
+    _cell = cell if isnstep_cell else cell[...,None]
+    nstep = _coords.shape[time_axis]
+    natoms = _coords.shape[atoms_axis]
+    if forces is None:
+        _forces = (np.zeros((natoms,3), dtype=float))[...,None]
+        isnstep_forces = False
+    elif forces.ndim == 3:
+        isnstep_forces = True
+        _forces = forces
+    else:        
+        isnstep_forces = False
+        _forces = forces[...,None]
+    axsf_str = "ANIMSTEPS %i\nCRYSTAL" %nstep
     for istep in range(nstep):
-        if is3d:
-            sl[time_axis] = istep
-        axsf_str += "\nPRIMCOORD %i\n%i 1\n%s" %(istep+1, natoms, 
-                                                 atpos_str(symbols,
-                                                           coords_cart[sl]))
+        sl_coords[time_axis] = istep if isnstep_coords else 0
+        sl_cell[time_axis] = istep if isnstep_cell else 0
+        sl_forces[time_axis] = istep if isnstep_forces else 0
+        # ccf = cartesian coords + forces for this step
+        ccf = np.empty((natoms,6), dtype=float)
+        ccf[:,:3] = np.dot(_coords[sl_coords], _cell[sl_cell])
+        ccf[:,3:] = _forces[sl_forces]
+        # for now PRIMVEC == CONVVEC
+        axsf_str += "\nPRIMVEC %i\n%s\nCONVVEC %i\n%s" %(istep+1,
+                                                         common.str_arr(_cell[sl_cell]),
+                                                         istep+1,                  
+                                                         common.str_arr(_cell[sl_cell]))
+        axsf_str += "\nPRIMCOORD %i\n%i 1\n%s" %(istep+1,
+                                                 natoms,
+                                                 atpos_str(symbols, 
+                                                           ccf))
     common.file_write(filename, axsf_str)
-
-

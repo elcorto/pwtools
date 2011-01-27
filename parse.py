@@ -47,14 +47,10 @@ except ImportError:
     print("%s: Warning: Cannot import BeautifulSoup. " 
     "Parsing XML/HTML/CML files will not work." %__file__)
 
-from pwtools import io
-from pwtools import common
-com = common
-from pwtools import constants
+from pwtools import io, common, constants, regex, crys, periodic_table
 from pwtools.verbose import verbose
-from pwtools import regex
-from pwtools import crys
 from pwtools.pwscf import atpos_str
+com = common
 
 
 #TODO Get atom masses from periodic_table.py, not from the input file (pw.in).
@@ -179,6 +175,38 @@ def scan_until_pat2(fh, rex, err=True, retmatch=False):
         return fh, 0, match
     return fh, 0
 
+def int_from_txt(txt):
+    if txt.strip() == '':
+        return None
+    else:
+        return int(txt)
+
+def nstep_from_txt(txt):
+    if txt.strip() == '':
+        return 0
+    else:
+        return int(txt)
+
+def traj_from_txt(txt, shape, axis=-1):
+    """Used for 3d trajectories where the exact shape must be known (N,3,nstep)
+    where N=3 (cell, stresstensor) or N=natoms (coords, forces, ...). 
+    """
+    if txt.strip() == '':
+        return None
+    else:
+        return io.readtxt(StringIO(txt), axis=axis, shape=shape)
+
+def arr1d_from_txt(txt):
+    if txt.strip() == '':
+        return None
+    else:
+        return np.atleast_1d(np.loadtxt(StringIO(txt)))
+
+def arr2d_from_txt(txt):
+    if txt.strip() == '':
+        return None
+    else:
+        return np.atleast_2d(np.loadtxt(StringIO(txt)))
 
 #-----------------------------------------------------------------------------
 # Parsers
@@ -337,6 +365,12 @@ class FlexibleGetters(object):
         else:
             return False
     
+    def is_set_attrs(self, attr_lst):
+        for attr in attr_lst:
+            if not self.is_set_attr(attr):
+                return False
+        return True                
+
     def check_get_attr(self, attr):
         """If self.<attr> does not exist or is None, then invoke an
         appropirately named getter as if this command would be executed:
@@ -362,7 +396,7 @@ class FlexibleGetters(object):
     def check_get_attrs(self, attr_lst):
         for attr in attr_lst:
             self.check_get_attr(attr)
-
+    
 
 class FileParser(FlexibleGetters):
     """Base class for file parsers.
@@ -1330,25 +1364,6 @@ class PwOutputFile(FileParser):
                             %(self.infile.filename, self.infile.natoms,
                               self.filename, self.coords.shape[0]))
     
-    def _nstep_from_txt(sekf, txt):
-        if txt.strip() == '':
-            return 0
-        else:
-            return int(txt)
- 
-    def _traj_from_txt(self, txt, shape, axis=None):
-        _axis = self.time_axis if axis is None else axis
-        if txt.strip() == '':
-            return None
-        else:
-            return io.readtxt(StringIO(txt), axis=_axis, shape=shape)
-    
-    def _arr_from_txt(self, txt):
-        if txt.strip() == '':
-            return None
-        else:
-            return np.loadtxt(StringIO(txt))
-
     # backward compat
     def get_cell_parameters(self):
         verbose("warning: cell_parameters deprecated. Use 'cell' and "
@@ -1394,33 +1409,35 @@ class PwOutputFile(FileParser):
         verbose("getting stress tensor")
         key = 'P='
         cmd = "grep %s %s | wc -l" %(key, self.filename)
-        nstep = self._nstep_from_txt(com.backtick(cmd))
+        nstep = nstep_from_txt(com.backtick(cmd))
         cmd = "grep -A3 '%s' %s | grep -v -e %s -e '--'| \
               awk '{printf $4\"  \"$5\"  \"$6\"\\n\"}'" \
               %(key, self.filename, key)
-        return self._traj_from_txt(com.backtick(cmd), shape=(3,3,nstep))              
+        return traj_from_txt(com.backtick(cmd), 
+                             shape=(3,3,nstep),
+                             axis=self.time_axis)              
 
     def get_etot(self):
         verbose("getting etot")
-        cmd =  r"grep '^!' %s | awk '{print $5}'" %self.filename  
-        return self._arr_from_txt(com.backtick(cmd))
+        cmd =  r"grep '^!' %s | awk '{print $5}'" %self.filename
+        return arr1d_from_txt(com.backtick(cmd))
     
     def get_ekin(self):
         verbose("getting ekin")
         cmd = r"grep 'kinetic energy' %s | awk '{print $5}'" %self.filename
-        return self._arr_from_txt(com.backtick(cmd))
+        return arr1d_from_txt(com.backtick(cmd))
 
     def get_pressure(self):
         verbose("getting pressure")
         cmd = r"grep P= %s | awk '{print $6}'" %self.filename
-        return self._arr_from_txt(com.backtick(cmd))
+        return arr1d_from_txt(com.backtick(cmd))
      
     def get_temperature(self):
         verbose("getting temperature")
         cmd = r"egrep 'temperature[ ]*=' %s " %self.filename + \
               "| sed -re 's/.*temp.*=\s*(" + regex.float_re + \
               r")\s*K/\1/'"
-        return self._arr_from_txt(com.backtick(cmd))
+        return arr1d_from_txt(com.backtick(cmd))
     
     def get_coords(self):
         verbose("getting coords")
@@ -1430,12 +1447,14 @@ class PwOutputFile(FileParser):
         # wrong if the output file is a concatenation of multiple smaller files
         key = 'ATOMIC_POSITIONS'
         cmd = 'grep %s %s | wc -l' %(key, self.filename)
-        nstep = self._nstep_from_txt(com.backtick(cmd))
+        nstep = nstep_from_txt(com.backtick(cmd))
         # coords
         cmd = "grep -A%i '%s' %s | grep -v -e %s -e '--' | \
               awk '{printf $2\"  \"$3\"  \"$4\"\\n\"}'" \
               %(natoms, key, self.filename, key)
-        return self._traj_from_txt(com.backtick(cmd), shape=(natoms,3,nstep))              
+        return traj_from_txt(com.backtick(cmd), 
+                             shape=(natoms,3,nstep),
+                             axis=self.time_axis)              
     
     def get_start_coords(self):
         """Grep start ATOMIC_POSITIONS from pw.out. This is always in cartesian
@@ -1454,7 +1473,7 @@ class PwOutputFile(FileParser):
         cmd = r"grep -A%i 'positions.*a_0.*units' %s | tail -n%i | \
               sed -re 's/.*\((.*)\)/\1/g'" \
               %(natoms, self.filename, natoms)
-        return self._arr_from_txt(com.backtick(cmd))
+        return arr2d_from_txt(com.backtick(cmd))
 
     def get_forces(self):
         verbose("getting forces")
@@ -1464,21 +1483,25 @@ class PwOutputFile(FileParser):
         # wrong if the output file is a concatenation of multiple smaller files
         key = r'Forces\s+acting\s+on\s+atoms.*$'
         cmd = r"egrep '%s' %s | wc -l" %(key.replace(r'\s', r'[ ]'), self.filename)
-        nstep = self._nstep_from_txt(com.backtick(cmd))
+        nstep = nstep_from_txt(com.backtick(cmd))
         # forces
         cmd = "grep 'atom.*type.*force' %s \
             | awk '{print $7\" \"$8\" \"$9}'" %self.filename
-        return self._traj_from_txt(com.backtick(cmd), shape=(natoms,3,nstep))              
+        return traj_from_txt(com.backtick(cmd), 
+                             shape=(natoms,3,nstep),
+                             axis=self.time_axis)
     
     def get_cell(self):
         verbose("getting cell")
         # nstep
         key = 'CELL_PARAMETERS'
         cmd = 'grep %s %s | wc -l' %(key, self.filename)
-        nstep = self._nstep_from_txt(com.backtick(cmd))
+        nstep = nstep_from_txt(com.backtick(cmd))
         # cell            
         cmd = "grep -A3 %s %s | grep -v -e %s -e '--'" %(key, self.filename, key)
-        return self._traj_from_txt(com.backtick(cmd), shape=(3,3,nstep))              
+        return traj_from_txt(com.backtick(cmd), 
+                             shape=(3,3,nstep),
+                             axis=self.time_axis)
     
     def get_start_cell(self):
         """Grep start cell from pw.out. This is always in alat
@@ -1486,7 +1509,7 @@ class PwOutputFile(FileParser):
         verbose("getting start cell parameters")
         cmd = "grep -A3 'crystal.*axes.*units.*a_0' %s | tail -n3 | \
                awk '{print $4\" \"$5\" \"$6}'" %(self.filename)
-        return self._arr_from_txt(com.backtick(cmd))
+        return arr2d_from_txt(com.backtick(cmd))
     
     def get_volume(self):
         """For vc-relax, vc-md, pw.x prints stuff like
@@ -1504,7 +1527,7 @@ class PwOutputFile(FileParser):
         verbose("getting volume")
         cmd = r"grep 'new.*volume' %s | sed -re \
                's/.*volume\s*=\s*(.*?)\s+.*a.u..*/\1/'" %self.filename
-        return self._arr_from_txt(com.backtick(cmd))
+        return arr1d_from_txt(com.backtick(cmd))
     
     def get_start_volume(self):
         verbose("getting start volume")
@@ -1521,7 +1544,7 @@ class PwOutputFile(FileParser):
         cmd = r"egrep 'Total[ ]+force[ ]*=.*Total' %s \
             | sed -re 's/^.*Total\s+force\s*=\s*(.*)\s*Total.*/\1/'" \
             %self.filename
-        return self._arr_from_txt(com.backtick(cmd))
+        return arr2d_from_txt(com.backtick(cmd))
 
     
 class PwVCMDOutputFile(PwOutputFile):
@@ -1644,9 +1667,11 @@ class CPOutputFile(PwOutputFile):
         verbose("getting stress tensor")
         key = "Total stress"
         cmd = "grep '%s' %s | wc -l" %(key, self.filename)
-        nstep = self._nstep_from_txt(com.backtick(cmd))
+        nstep = nstep_from_txt(com.backtick(cmd))
         cmd = "grep -A3 '%s' %s | grep -v '%s' -e '--'" %(key, self.filename, key)
-        return self._traj_from_txt(com.backtick(cmd), shape=(3,3,nstep))              
+        return traj_from_txt(com.backtick(cmd), 
+                             shape=(3,3,nstep),
+                             axis=self.time_axis)
     
     def get_etot(self):
         verbose("getting etot")
@@ -1656,7 +1681,7 @@ class CPOutputFile(PwOutputFile):
         verbose("getting ekin")
         cmd = r"egrep 'kinetic[ ]+energy[ ]=' %s | awk '{print $4}'" \
               %self.filename
-        return self._arr_from_txt(com.backtick(cmd))
+        return arr1d_from_txt(com.backtick(cmd))
     
     def get_pressure(self):
         verbose("getting pressure")
@@ -1665,7 +1690,394 @@ class CPOutputFile(PwOutputFile):
     def get_temperature(self):
         verbose("getting temperature")
         return self.evp_data[:, self.evp_order.index('tempp')]
+
+
+class AbinitVCMDOutputFile(FileParser):
+    """This works for ionmov 13 + optcell 0,1,2. With optcell 0, some cell
+    related quantities are None. See test/test_abinit_ionmom*.py
+
+    notes:
+    ------
+    Due to simple grepping, some arrays may have a time_axis shape of >
+    nstep b/c some quantities are repeated in the summary at the file end
+    (for instance self.stresstensor). We do NOT truncate these arrays b/c 
+    - we do not need to match quantities to timesteps exactly when plotting
+      something over, say, 10000 steps and
+    - we often deal with files from killed jobs which do not have the summary
+    """
+    # XXX Currently, there is no cell-related information in case optcell 0 b/c
+    # we only parse stuff which gets printed repeatatly at each MD step, not at
+    # the beginning.
+    #
+    # notes:
+    # ------
+    # rprim : `rprim` lists the basis vecs as rows (like pwscf's
+    #     CELL_PARAMETERS) and contrary to the fuzzy description in the Abinit
+    #     docs (maybe they think in Fortran). rprim is `cell`, but each row
+    #     divided by acell[i], the length of each cell vector.
+    #
+    #     i = a,b,c
+    #     j = 1,2,3 = x,y,z
+    #     
+    #     basis vecs: 
+    #       a = [a1, a2, a3]
+    #       b = [b1, b2, b3]
+    #       c = [c1, c2, c3]
+    #
+    #     A = |a|, B = |b|, C = |c|
+    #     acell = [A,B,C]
+    #
+    #     cell = 
+    #       [[a1, a2, a3]
+    #        [b1, b2, b3]
+    #        [c1, c2, c3]]
+    #     
+    #     rprim =
+    #       [[a1/A, a2/A, a3/A]
+    #        [b1/B, b2/B, b3/B]
+    #        [c1/C, c2/C, c3/C]]
+    # 
+    # double printing with MDs : This applies to
+    #         * coord_frac
+    #         * forces
+    #     Except for the 1st coord (=start struct, MOLDYN STEP 0), all are
+    #     printed twice. Take every second item [*] with numpy indexing
+    #     array[...,::2]. nstep = (nstep_raw - 1)/2 + 1 (+1 for step 0)
+    #         moldyn_0 *
+    #         moldyn_1
+    #         moldyn_1 *
+    #         moldyn_2
+    #         moldyn_2 *
+    #         ...
+    #         moldyn_{nstep-1}
+    #         moldyn_{nstep-1} *
+    #
+    # Does not work for ionmov 8:
+    #     * coords, forces etc not double-printed (same regex, but don't use
+    #       [...,::2]
+    #     * printed differently: ekin, etot 
+    # 
+    def __init__(self, filename=None):
+        FileParser.__init__(self, filename)
+        
+        self.time_axis = -1
+
+        self.set_attr_lst([\
+        'acell',
+        'angles',
+        'lengths',
+        'etot_ekin',
+        'rprim',
+        'cryst_const',
+        'nstep', 
+        'typat',
+        'znucl',
+        'symbols',
+        'etot', 
+        'ekin', 
+        'ekin_vel',
+        'stresstensor', 
+        'pressure', 
+        'mass',
+        'temperature', 
+        'coords_frac', 
+        'cell', 
+        'natoms', 
+        'volume',
+        'forces_rms',
+        'forces',
+        'velocity',
+        ])
     
+    # XXX experimental: This is constant over the whole MD in our test file
+    # (ionmov 13 + optcell 2). self.lengths are the cell vector lengths at
+    # each step.
+    def get_acell(self):
+        verbose("getting acell")
+        cmd = "grep acell= %s | awk '{print $2\" \"$3\" \"$4}'" %self.filename
+        return arr2d_from_txt(com.backtick(cmd))
+    
+    def get_angles(self):
+        verbose("getting angles")
+        cmd = "grep 'angles.*degrees' %s | awk '{print $3\" \"$4\" \"$5}'" %self.filename
+        return arr2d_from_txt(com.backtick(cmd))
+    
+    def get_lengths(self):
+        verbose("getting lengths")
+        cmd = "grep 'lengths=' %s | awk '{print $2\" \"$3\" \"$4}'" %self.filename
+        return arr2d_from_txt(com.backtick(cmd))
+    
+    def get_rprim(self):
+        verbose("getting rprim")
+        key = 'rprim='
+        cmd = 'grep %s %s | wc -l' %(key, self.filename)
+        nstep = nstep_from_txt(com.backtick(cmd))
+        cmd = "grep %s -A2 %s | grep -v -e '--' | sed -re 's/%s//'" \
+            %(key, self.filename, key)
+        return traj_from_txt(com.backtick(cmd),
+                             shape=(3,3,nstep),
+                             axis=self.time_axis)
+    
+    def get_etot_ekin(self):
+        verbose("getting etot_ekin")
+        key = 'KIN+POT.En.'
+        cmd = "grep '%s' %s | awk '{print $2}'" %(key, self.filename)
+        return arr1d_from_txt(com.backtick(cmd))
+    
+    def get_cryst_const(self):
+        verbose("getting cryst_const")
+        req = ['angles', 'lengths']
+        self.check_get_attrs(req)
+        if self.is_set_attrs(req):
+            n1 = self.angles.shape[-1]
+            n2 = self.lengths.shape[-1]
+            assert n1 == n2, "nstep different: angles(%i) and lengths(%i)" %(n1,n2)
+            return np.concatenate((self.lengths, self.angles), axis=1)
+        else:
+            return None
+    
+    def get_cell(self):
+        verbose("getting cell")
+        req = ['rprim', 'acell']
+        self.check_get_attrs(req)
+        if self.is_set_attrs(req):
+            acell = self.acell[0,:] # 1d array, len 3
+            assert self.time_axis == -1
+            return self.rprim*acell[:,None,None]       
+        else:
+            return None
+
+    def get_natoms(self):
+        verbose("getting natoms")
+        cmd = r"grep '^[ ]*natom' %s | tail -n1 | awk '{print $2}'" %self.filename
+        return int_from_txt(com.backtick(cmd))
+
+    def get_coords_frac(self):
+        verbose("getting coords_frac")
+        self.check_get_attr('natoms')
+        natoms = self.natoms
+        key = 'Reduced.*xred'
+        cmd = 'grep %s %s | wc -l' %(key, self.filename)
+        nstep_raw = nstep_from_txt(com.backtick(cmd))
+        # coords_frac
+        cmd = "grep -A%i '%s' %s | grep -v -e '%s' -e '--'" \
+              %(natoms, key, self.filename, key)
+        ret = traj_from_txt(com.backtick(cmd),
+                            shape=(natoms,3,nstep_raw),
+                            axis=self.time_axis)
+        return None if ret is None else ret[...,::2]                            
+    
+    def get_forces(self):
+        verbose("getting forces")
+        self.check_get_attr('natoms')
+        natoms = self.natoms
+        key = 'Cartesian forces.*fcart'
+        cmd = "grep '%s' %s | wc -l" %(key, self.filename)
+        nstep_raw = nstep_from_txt(com.backtick(cmd))
+        # coords_frac
+        cmd = "grep -A%i '%s' %s | grep -v -e '%s' -e '--'" \
+              %(natoms, key, self.filename, key)
+        ret = traj_from_txt(com.backtick(cmd),
+                            shape=(natoms,3,nstep_raw),
+                            axis=self.time_axis)
+        return None if ret is None else ret[...,::2]                            
+    
+    # XXX For our test data, this is different from crys.rms3d(pp.forces,
+    # axis=-1, nitems='all'), but normalization (1st value at step 0) seems
+    # correct
+    def get_forces_rms(self):
+        verbose("getting forces_rms")
+        key = 'Cartesian forces.*fcart.*rms'
+        cmd = "grep '%s' %s | awk '{print $7}'" %(key, self.filename)
+        return arr1d_from_txt(com.backtick(cmd))
+    
+    def get_typat(self):
+        verbose("getting typat")
+        cmd = "grep '^[ ]*typat' %s | head -n1 | sed -re 's/typat//'" %self.filename
+        return arr1d_from_txt(com.backtick(cmd))
+    
+    def get_znucl(self):
+        verbose("getting znucl")
+        cmd = "grep '^[ ]*znucl' %s | head -n1 | sed -re 's/znucl//'" %self.filename
+        return arr1d_from_txt(com.backtick(cmd))
+
+    def get_nstep(self):
+        verbose("getting nstep")
+        self.check_get_attr('coords_frac')
+        if self.is_set_attr('coords_frac'):
+            return self.coords_frac.shape[self.time_axis]
+        else:
+            return None
+ 
+    def get_volume(self):
+        verbose("getting volume")
+        key = '^[ ]*ucvol='
+        cmd = "grep '%s' %s | awk '{print $2}'" %(key, self.filename)
+        return arr1d_from_txt(com.backtick(cmd))
+    
+    def get_symbols(self):
+        verbose("getting symbols")
+        req = ['znucl', 'typat']
+        self.check_get_attrs(req)
+        if self.is_set_attrs(req):
+            idxs = (self.typat - 1).astype(int)
+            znucl = self.znucl.astype(int)
+            # hack! loop over entire periodic table dict :)
+            syms = [sym for zz in znucl for sym,dct in \
+                    periodic_table.pt.iteritems() if dct['number']==zz]
+            ##syms = []
+            ##for zz in znucl:
+            ##    for sym,dct in periodic_table.pt.iteritems():
+            ##        if dct['number'] == zz:
+            ##            syms.append(sym)
+            ##            break
+            return [syms[i] for i in idxs]
+        else:
+            return None
+
+    def get_mass(self):
+        # mass in amu = 1.660538782e-27 kg
+        verbose("getting mass")
+        self.check_get_attr('symbols')
+        if self.is_set_attr('symbols'):
+            return np.array([periodic_table.pt[sym]['mass'] for sym in
+                             self.symbols])
+        else:
+            return None
+
+    def get_etot(self):
+        verbose("getting etot")
+        key = 'end of Moldyn step.*POT.En.'
+        cmd = "grep '%s' %s | awk '{print $9}'" %(key, self.filename)
+        return arr1d_from_txt(com.backtick(cmd))
+
+    def get_ekin(self):
+        verbose("getting ekin")
+        req = ['etot_ekin', 'etot']
+        self.check_get_attrs(req)
+        if self.is_set_attrs(req):
+            return self.etot_ekin - self.etot
+        else:
+            return None
+    
+    def get_ekin_vel(self):
+        """Kinetic energy in Ha. Sum of Ekin_i from all atoms, obtained from
+        velocities. Ekin = sum(i=1...natoms) Ekin_i = 3/2 * natoms * kb*T
+
+        notes:
+        ------
+        This is for verification only. It's the same as self.ekin but due to
+        the way stuff is printed in the outfile, the first velocities are zero,
+        but the first ekin value is already ekin_vel[1], so
+            ekin_vel[1:] == ekin[:-1]
+        """
+        verbose("getting ekin_vel")
+        req = ['velocity', 'mass']
+        self.check_get_attrs(req)
+        if self.is_set_attrs(req):
+            # self.velocity [a0*Ha/hbar], self.ekin [Ha], self.ekin_vel [Ha]
+            vv = self.velocity
+            mm = self.mass
+            amu = constants.amu
+            a0 = constants.a0
+            Ha = constants.Ha
+            hbar = constants.hbar
+            assert self.time_axis == -1
+            return (((vv*a0*Ha/hbar)**2.0).sum(axis=1)*mm[:,None]*amu/2.0).sum(axis=0)/Ha
+        else:
+            return None
+    
+    # XXX experimental: Abinit does not print temperature. Not sure if T
+    # fluctuates or is constant at each step with MTTK (ionmov 13 + optcell 2).
+    #
+    #   Ekin = 3/2 * natoms * kb * T
+    # 
+    # This can be seen from abinit/src/95_drive/moldyn.f90 (kb_HaK: K->Ha)
+    #   ! v2gauss is twice the kinetic energy
+    #   v2gauss = ...
+    #   ...
+    #   write(message, '(a,d12.5,a,D12.5)' )&
+    #   ' --- Effective temperature',v2gauss/(3*dtset%natom*kb_HaK),' From variance', sigma2
+    def get_temperature(self):
+        verbose("getting temperature")
+        req = ['ekin', 'natoms']
+        self.check_get_attrs(req)
+        if self.is_set_attrs(req):
+            return self.ekin * constants.Eh / self.natoms / constants.kb * (2.0/3.0)
+        else:
+            return None
+ 
+    def get_stresstensor(self):
+        # In abinit output:
+        # Cartesian components of stress tensor (hartree/bohr^3)
+        #  sigma(1 1)= a  sigma(3 2)= d
+        #  sigma(2 2)= b  sigma(3 1)= e
+        #  sigma(3 3)= c  sigma(2 1)= f
+        # 
+        # here:
+        # arr[...,i] = 
+        #   [[a, d],
+        #    [b, e],
+        #    [c, f]]
+        # 
+        # indices: 
+        #   abinit = strt = arr
+        #   
+        #   diagonal            lower
+        #   1 1 = 0 0 = 0 0     3 2 = 2 1 = 0 1
+        #   2 2 = 1 1 = 1 0     3 1 = 2 0 = 1 1
+        #   3 3 = 2 2 = 2 0     2 1 = 1 0 = 2 1   
+        #
+        # XXX the last strt is printed twice (as part of the summary at
+        # calculation and)
+        verbose("getting stresstensor")
+        self.check_get_attr('natoms')
+        key = 'Cartesian components of stress tensor'
+        cmd = "grep '%s' %s | grep -v '^-' | wc -l" %(key, self.filename)
+        nstep_raw = nstep_from_txt(com.backtick(cmd))
+        cmd = "grep -A3 '%s' %s | grep -v -e '%s' -e '--' -e '^-' \
+              | awk '{print $3\" \"$6}'" %(key, self.filename, key)
+        arr = traj_from_txt(com.backtick(cmd),
+                            shape=(3,2,nstep_raw),
+                            axis=self.time_axis)
+        strt = np.empty((3,3,nstep_raw))
+        # diagonal
+        strt[0,0,:] = arr[0,0,:]
+        strt[1,1,:] = arr[1,0,:]
+        strt[2,2,:] = arr[2,0,:]
+        # lower
+        strt[2,1,:] = arr[0,1,:]
+        strt[2,0,:] = arr[1,1,:]
+        strt[1,0,:] = arr[2,1,:]
+        # upper
+        strt[0,1,:] = strt[1,0,:]
+        strt[0,2,:] = strt[2,0,:]
+        strt[1,2,:] = strt[2,1,:]
+        return strt
+    
+    def get_pressure(self):
+        verbose("getting pressure")
+        self.check_get_attr('stresstensor')
+        if self.is_set_attr('stresstensor'):
+            assert self.time_axis == -1
+            return np.trace(self.stresstensor,axis1=0, axis2=1)/3.0
+        else:
+            return None
+            
+    def get_velocity(self):
+        verbose("getting velocity")
+        self.check_get_attr('natoms')
+        natoms = self.natoms
+        key = 'Cartesian velocities (vel)'
+        cmd = "grep '%s' %s | wc -l" %(key, self.filename)
+        nstep_raw = nstep_from_txt(com.backtick(cmd))
+        cmd = "grep -A%i '%s' %s | grep -v -e '%s' -e '--'" \
+              %(natoms, key, self.filename, key)
+        ret = traj_from_txt(com.backtick(cmd),
+                            shape=(natoms,3,nstep_raw),
+                            axis=self.time_axis)
+        return None if ret is None else ret[...,::2]                            
+                                    
 
 class Grep(object):
     """Maximum felxibility!
