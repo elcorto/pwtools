@@ -120,7 +120,7 @@ def writetxt(fn, arr, axis=-1, maxdim=TXT_MAXDIM):
     c = PydosConfigParser()
     sec = 'array'
     c.add_section(sec)
-    c.set(sec, 'shape', common.tup2str(arr.shape))
+    c.set(sec, 'shape', common.seq2str(arr.shape))
     c.set(sec, 'axis', axis)
     _write_header_config(fh, c)
     # 1d and 2d case

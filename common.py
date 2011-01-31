@@ -234,7 +234,7 @@ def frepr(var, ffmt="%.16e"):
         return repr(var)
 
 
-def tup2str(t):
+def seq2str(t):
     """
     (1,2,3) -> "1 2 3"
     """
@@ -1120,3 +1120,4 @@ fpj = fullpathjoin
 pj = os.path.join
 # backw. compat
 grep = mgrep 
+tup2str = seq2str
