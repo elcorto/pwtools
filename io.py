@@ -7,7 +7,7 @@ from cStringIO import StringIO
 import numpy as np
 
 from pwtools.decorators import open_and_close, crys_add_doc
-from pwtools.common import PydosConfigParser
+from pwtools.common import PydosConfigParser, frepr
 from pwtools.verbose import verbose
 from pwtools import common, crys, constants
 from pwtools.pwscf import atpos_str
@@ -375,6 +375,7 @@ def write_cif(filename, coords, cell, symbols, align='rows'):
         atom symbols
     %(align_doc)s
     """
+    ffmt = "%.16e"
     if align == 'cols':
         cell = cell.T
     cf = pycifrw_CifFile.CifFile()
@@ -383,14 +384,15 @@ def write_cif(filename, coords, cell, symbols, align='rows'):
 
     # cell
     #
-    # dunno why I have to use str() here, assigning floats does not work
+    # dunno why I have to convert to string here, assigning floats does not
+    # work
     cryst_const = crys.cell2cc(cell)
-    block['_cell_length_a'] = str(cryst_const[0])
-    block['_cell_length_b'] = str(cryst_const[1])
-    block['_cell_length_c'] = str(cryst_const[2])
-    block['_cell_angle_alpha'] = str(cryst_const[3])
-    block['_cell_angle_beta'] = str(cryst_const[4])
-    block['_cell_angle_gamma'] = str(cryst_const[5])
+    block['_cell_length_a'] = frepr(cryst_const[0], ffmt=ffmt)
+    block['_cell_length_b'] = frepr(cryst_const[1], ffmt=ffmt)
+    block['_cell_length_c'] = frepr(cryst_const[2], ffmt=ffmt)
+    block['_cell_angle_alpha'] = frepr(cryst_const[3], ffmt=ffmt)
+    block['_cell_angle_beta'] = frepr(cryst_const[4], ffmt=ffmt)
+    block['_cell_angle_gamma'] = frepr(cryst_const[5], ffmt=ffmt)
     block['_symmetry_space_group_name_H-M'] = 'P 1'
     block['_symmetry_Int_Tables_number'] = 1
     # assigning a list produces a "loop_"
@@ -406,15 +408,16 @@ def write_cif(filename, coords, cell, symbols, align='rows'):
                   '_atom_site_fract_y',
                   '_atom_site_fract_z',
                   '_atom_site_type_symbol']
+    _xyz2str = lambda arr: [ffmt %x for x in arr]
     data = [symbols, 
-            coords[:,0].tolist(), 
-            coords[:,1].tolist(), 
-            coords[:,2].tolist(),
+            _xyz2str(coords[:,0]), 
+            _xyz2str(coords[:,1]), 
+            _xyz2str(coords[:,2]),
             symbols]
     # "loop_" with multiple columns            
     block.AddCifItem([[data_names], [data]])                
     cf['pwtools'] = block
-    common.file_write(filename, str(cf))
+    common.file_write(filename, cf.WriteOut())
 
 
 @crys_add_doc
