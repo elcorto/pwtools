@@ -454,9 +454,6 @@ class ParameterStudy(object):
                                                       sqlvals)
             sqldb.execute(cmd) 
         sqldb.commit()
-        # "sqlite3 -column" is buggy, must use column(1) instead
-        common.system("sqlite3 -header %s 'select * from %s' | \
-                    column -t -s '|' > %s.txt" %(dbfn, self.db_table, dbfn))
 
 
 def sql_column(key, sqltype, lst, sqlval_func=lambda x: x, fileval_func=lambda x: x):
