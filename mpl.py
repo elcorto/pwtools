@@ -79,6 +79,34 @@ def fig_ax3d():
     return fig, ax
 
 
+class Plot(object):
+    """Container for a plot figure with one axis `ax`."""
+    def __init__(self, fig, ax):
+        self.fig = fig
+        self.ax = ax
+
+def prepare_plots(names):
+    """Return a dict of Plot instances.
+    
+    args:
+    -----
+    names : sequence of strings (keys for the dict)
+
+    example:
+    --------
+    >>> plots = prepare_plots(['etot', 'ekin'])
+    >>> plots['etot'].ax.plot(etot)
+    >>> plots['ekin'].ax.plot(ekin)
+    >>> for key,pp in plots.iteritems():
+    ...     pp.ax.set_title(key)
+    ...     pp.fig.savefig(key+'.png')
+    """
+    plots = {}
+    for nn in names:
+        plots[nn] = Plot(*fig_ax())
+    return plots        
+
+
 #----------------------------------------------------------------------------
 # color and marker iterators
 #----------------------------------------------------------------------------
