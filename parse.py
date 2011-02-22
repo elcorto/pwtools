@@ -1263,6 +1263,8 @@ class PwOutputFile(FileParser):
         The "total force" parsed from lines "Total force =" after the "Forces
         acting on atoms" block.
     forces : 3d array (natoms, 3, nstep)
+    forces_rms : 1d array (nstep,) of RMS of the forces, each forces[...,i] is
+        normalized to 3*natoms
     time_axis : the time axis along which all 3d arrays have 2d arrays lined
         up; e.g. `coords` has 2d arrays with atomic coords[:,:,i] for
         i=0,...,nstep-1; time_axis is currently hardcoded to -1, i.e. the last
@@ -1276,24 +1278,12 @@ class PwOutputFile(FileParser):
     notes:
     ------
     total_force : Pwscf writes a "Total Force" after the "Forces acting on
-    atoms" section . This value is kind of an RMS of the force matrix (f_ij,
-    i=1,natoms j=1,2,3) printed. According to .../PW/forces.f90, variable
-    "sumfor", the "Total Force" is
-        sqrt(sum_ij f_ij^2)
-    But this is not normalized to the number of atoms. Use crys.rms() or
-    crys.rms3d() for MD runs where the RMS of each (f_ij) is 
-        sqrt( (sum_ij f_ij^2) / N )
-    with N = 3*natoms or N=natoms.       
+        atoms" section . This value a UNnormalized RMS of the force matrix
+        (f_ij, i=1,natoms j=1,2,3) printed. According to .../PW/forces.f90,
+        variable "sumfor", the "Total Force" is
+            sqrt(sum_ij f_ij^2)
+        Use self.forces_rms for a normalized value.            
     """
-    # infile : Why do we need the input file anyway? For pw.x MDs, normally all
-    #     infos are contained in the output file alone. Also often, the output
-    #     file is actually a concatenation of smaller files ("$ cat pw.out.r* >
-    #     pw.out.all"). In that case, things line "nstep" are of course wrong
-    #     if taken from an input file. But certain quantities must be the same
-    #     (e.g. "nat" == natoms) in input- and output file. This can be used to
-    #     sanity-check the parsed results. Also, they are often easier
-    #     extracted from an input file.
-    #
     # self.time_axis: This is the hardcoded time axis. It must be done
     #     this way b/c getters returning a >2d array cannot determine the shape
     #     of the returned array auttomatically based on the self.time_axis
@@ -1338,6 +1328,7 @@ class PwOutputFile(FileParser):
         'volume',
         'total_force',
         'forces',
+        'forces_rms',
         'start_volume',
         'start_cell',
         'start_coords',
@@ -1495,6 +1486,15 @@ class PwOutputFile(FileParser):
                              shape=(natoms,3,nstep),
                              axis=self.time_axis)
     
+    def get_forces_rms(self):
+        verbose("getting forces_rms")
+        req = ['forces']
+        self.check_get_attrs(req)
+        if self.is_set_attrs(req):
+            return crys.rms3d(self.forces, axis=self.time_axis) 
+        else:
+            return None
+
     def get_cell(self):
         verbose("getting cell")
         # nstep
