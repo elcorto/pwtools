@@ -7,17 +7,33 @@ import numpy as np
 from pwtools.parse import FlexibleGetters
 from pwtools import crys, decorators
 from pwtools.pwscf import atpos_str
+from pwtools.verbose import verbose
 
-# XXX Use this as an interface for all functions/classes which take/operate
+# Use this as an interface for all functions/classes which take/operate
 # on/return a crystal structure.
-
-# XXX This is not used ATM. If we use it as an interface (i.e. all functions in
+#
+# This is not used ATM. If we use it as an interface (i.e. all functions in
 # crys.py take a Structure instance as input), then also add a length unit,
 # i.e. require that cartesian coords `coords` and `cell` are always in Bohr,
 # for instance.
-
-# XXX The best usage pattern would be if each StructureFileParser derived class
+#
+# The best usage pattern would be if each StructureFileParser derived class
 # gets an attr `structure`, which is an instance of Structure.
+#
+# Problem: The parsing classes derived from StructureFileParser must know in
+# which units coords, cell etc are in order to return a Structure instance with
+# defined units. This a lot of work and magic b/c each code does it in it's own
+# way and usually there are a number different units possible in the output
+# files. 
+#
+# The only solution is that the user must tell StructureFileParser at parsing
+# time which units are present in the parsed file. There is no functionality
+# there for this, that's way this class here is not used much.
+#
+# Actually, if one goes this way, one could deprecate Structure just as well
+# and include the whole machinery in StructureFileParser's derived classes b/c
+# then, conversion to pwtools standard units can be made in each parsing class
+# right away. Actually it is easy for Abinit, not so much for PWscf.
 
 class Structure(FlexibleGetters):
     """Container for a single crystal structure (unit cell + atoms).
@@ -25,13 +41,14 @@ class Structure(FlexibleGetters):
     This is a defined minimal interface for how to store a crystal structure in
     pwtools, in contrast to the classes in parse.py, which may extract and
     store structure information in any number of ways.
+
+    Similar to parse.StructureFileParser, but with strict attribute checking
+    and automatic calculation of some quantities.
+    
+    In the parsing classes (parse.py), getters are "sloppy". They can return
+    None if something is not found. Here all getters return something or raise
+    an error.
     """
-    # Similar to parse.StructureFileParser, but with strict attribute checking
-    # and automatic calculation of some quantities.
-    #
-    # In the parsing classes (parse.py), getters als "sloppy". They can return
-    # None if something is not found. Here all getters return something or raise
-    # an error.
     @decorators.crys_add_doc
     def __init__(self, 
                  coords=None, 
@@ -164,5 +181,18 @@ class Structure(FlexibleGetters):
         celldm[5] = cos(gamma*pi/180.0)
         return celldm
     
+    def get_ase_atoms(self):
+        """Return ASE Atoms object. Obviously, you must have ASE installed."""
+        req = ['coords_frac', 'cell', 'symbols']
+        self.check_get_attrs(req)
+        self.assert_attrs(req)
+        # We don't wanna make ase a dependency. Import only when needed.
+        from ase import Atoms
+        return Atoms(symbols=self.symbols,
+                     scaled_positions=self.coords_frac,
+                     cell=self.cell,
+                     pbc=[1,1,1])
+
     def verify(self):
         assert self.get_natoms() == self.get_coords.shape[0]
+
