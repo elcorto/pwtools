@@ -1265,6 +1265,7 @@ class PwOutputFile(FileParser):
     forces : 3d array (natoms, 3, nstep)
     forces_rms : 1d array (nstep,) of RMS of the forces, each forces[...,i] is
         normalized to 3*natoms
+    nkpoints : number of kpoints        
     time_axis : the time axis along which all 3d arrays have 2d arrays lined
         up; e.g. `coords` has 2d arrays with atomic coords[:,:,i] for
         i=0,...,nstep-1; time_axis is currently hardcoded to -1, i.e. the last
@@ -1319,6 +1320,7 @@ class PwOutputFile(FileParser):
         'start_volume',
         'start_cell',
         'start_coords',
+        'nkpoints',
         ])
         
     # backward compat
@@ -1340,6 +1342,12 @@ class PwOutputFile(FileParser):
         verbose("getting natoms")
         cmd = r"grep 'number.*atoms/cell' %s | \
               sed -re 's/.*=\s+([0-9]+).*/\1/'" %self.filename
+        return int_from_txt(com.backtick(cmd))
+    
+    def get_nkpoints(self):
+        verbose("getting nkpoints")
+        cmd = r"grep 'number of k points=' %s | \
+            sed -re 's/.*points=\s*([0-9]+)\s*.*/\1/'" %self.filename
         return int_from_txt(com.backtick(cmd))
 
     def get_stresstensor(self):
@@ -1697,6 +1705,7 @@ class AbinitSCFOutputFile(FileParser):
             'volume',
             'forces_rms',
             'forces',
+            'nkpt',
             ])
     
         # Conceptually not needed for SCF, but some quantities are printed and
@@ -1918,6 +1927,15 @@ class AbinitSCFOutputFile(FileParser):
         verbose("getting etot")
         cmd = "grep '>>>>.*Etotal' %s | sed -re 's/.*Etotal=//'" %self.filename
         return float_from_txt(com.backtick(cmd))
+
+    def get_nkpt(self):
+        verbose("getting nkpt")
+        cmd = "grep '^[ ]*nkpt' %s | head -n1 | sed -re 's/nkpt//'" %self.filename
+        return int_from_txt(com.backtick(cmd))
+    
+    # alias
+    def get_nkpoints(self):
+        return self.get_nkpt()
 
 
 class AbinitVCMDOutputFile(AbinitSCFOutputFile):
