@@ -3,6 +3,7 @@
 # "SELECT * FROM calc WHERE idx==1" == "select * from calc where idx==1".
 
 import os
+import numpy as np
 from pwtools.sql import SQLiteDB, SQLEntry
 from pwtools import common
 from testenv import testdir
@@ -58,6 +59,15 @@ def test():
     assert db.execute("select bar from calc where idx==0").fetchone()[0] == \
         'a'
     
+    # get_list1d(), get_array1d(), get_array()
+    assert db.get_list1d("select idx from calc") == [0,1,2]
+    np.testing.assert_array_equal(db.get_array1d("select idx from calc"),
+                                  np.array([0,1,2]))
+    np.testing.assert_array_equal(db.get_array("select idx from calc"), 
+                                  np.array([0,1,2])[:,None])
+    np.testing.assert_array_equal(db.get_array("select idx,foo from calc"), 
+                                  np.array(vals)[:,:2].astype(float))
+
     # add_column(), fill with values
     db.add_column('baz', 'TEXT')
     add_header = [('baz', 'TEXT')]
