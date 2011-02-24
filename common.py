@@ -13,6 +13,7 @@ import subprocess
 import shutil
 import re
 import ConfigParser
+import cPickle
 import numpy as np
 
 # slow import time
@@ -1121,6 +1122,13 @@ def backtick(call):
         raise StandardError("Error calling command: '%s'\nError message "
             "follows:\n%s" %(call, err))
     return out            
+
+#-----------------------------------------------------------------------------
+# pickle
+#-----------------------------------------------------------------------------
+
+def cpickle_load(filename):
+    return cPickle.load(open(filename, 'rb'))
 
 #-----------------------------------------------------------------------------
 # aliases
