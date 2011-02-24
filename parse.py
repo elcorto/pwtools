@@ -1640,9 +1640,8 @@ class AbinitSCFOutputFile(FileParser):
 
     PwOutputFile works for SCF and MD-like calculations. In Abinit, too many
     quantities are printed differently in the SCF output. Each trajectory-like
-    quantity of shape (X,Y,nstep) in AbinitVCMDOutputFile has shape (X,Y) here,
-    i.e. only 2d array.
-    
+    quantity of shape (X,Y,nstep) in Abinit{MDOpt,VCMD}OutputFile has shape
+    (X,Y) here, i.e. only 2d array.
     """
     # notes:
     # ------
@@ -1744,6 +1743,7 @@ class AbinitSCFOutputFile(FileParser):
         return strt
     
     def get_stresstensor(self):
+        """Return the last printed stresstensor."""
         req = ['_stresstensor_raw']
         self.check_get_attrs(req)
         if self.is_set_attrs(req):
@@ -1752,6 +1752,7 @@ class AbinitSCFOutputFile(FileParser):
             return None
     
     def get_pressure(self):
+        """As in PWscf, pressure = 1/3*trace(stresstensor)."""
         verbose("getting pressure")
         self.check_get_attr('stresstensor')
         if self.is_set_attr('stresstensor'):
@@ -1884,7 +1885,7 @@ class AbinitSCFOutputFile(FileParser):
         verbose("getting znucl")
         cmd = "grep '^[ ]*znucl' %s | head -n1 | sed -re 's/znucl//'" %self.filename
         return arr1d_from_txt(com.backtick(cmd))
-
+    
     def get_symbols(self):
         verbose("getting symbols")
         req = ['znucl', 'typat']
@@ -1924,9 +1925,163 @@ class AbinitSCFOutputFile(FileParser):
         return self.get_nkpt()
 
 
-class AbinitVCMDOutputFile(AbinitSCFOutputFile):
-    """This works for ionmov 13 + optcell 0,1,2. With optcell 0, some cell
-    related quantities are None. See test/test_abinit_ionmom*.py
+class AbinitMDOptOutputFile(AbinitSCFOutputFile):
+    """Parse MD-like optimization output.
+
+    Tested: 
+        ionmov 2 + optcell 0 (only ions)
+        ionmov 2 + optcell 2 (ions + cell)
+    """
+    # `cell` is printed as rprimd, so rprim is not needed here. But it is
+    # calculated from acell and cell, b/c get_rprim() is otherwise the one from
+    # AbinitSCFOutputFile, which greps something different.
+    #
+    # In AbinitVCMDOutputFile, we calculate cell from acell and rprim. 
+    
+    def __init__(self, filename=None):
+        AbinitSCFOutputFile.__init__(self, filename)
+        self.time_axis = -1
+        attr_lst = self.attr_lst + \
+        ['angles',
+         'lengths',
+         'nstep', 
+        ]
+        self.set_attr_lst(attr_lst)
+
+    def get_angles(self):
+        verbose("getting angles")
+        cmd = r"egrep -A1 'Angles.*=[ ]+.*\[degrees\].*' %s | \
+                grep -v -e '--' -e 'Angles'" %self.filename
+        return arr2d_from_txt(com.backtick(cmd))
+    
+    def get_lengths(self):
+        verbose("getting lengths")
+        cmd = r"egrep -A1 'Lengths[ ]+\[' %s | \
+              grep -v -e '--' -e 'Lengths'" %self.filename
+        return arr2d_from_txt(com.backtick(cmd))
+    
+    def get_cryst_const(self):
+        verbose("getting cryst_const")
+        req = ['angles', 'lengths']
+        self.check_get_attrs(req)
+        if self.is_set_attrs(req):
+            n1 = self.angles.shape[-1]
+            n2 = self.lengths.shape[-1]
+            assert n1 == n2, "nstep different: angles(%i) and lengths(%i)" %(n1,n2)
+            return np.concatenate((self.lengths, self.angles), axis=1)
+        else:
+            return None
+    
+    def get_cell(self):
+        verbose("getting cell")
+        key = 'rprimd'
+        cmd = 'grep %s %s | wc -l' %(key, self.filename)
+        nstep = nstep_from_txt(com.backtick(cmd))
+        cmd = "grep -A3 '%s' %s | grep -v -e '%s' -e '--'" \
+              %(key, self.filename, key)
+        return traj_from_txt(com.backtick(cmd),
+                             shape=(3,3,nstep),
+                             axis=self.time_axis)
+    
+    def get_rprim(self):
+        verbose("getting rprim")
+        req = ['cell', 'acell']
+        self.check_get_attrs(req)
+        if self.is_set_attrs(req):
+            assert self.time_axis == -1
+            return self.cell/self.acell[:,None,None]       
+        else:
+            return None
+
+    def _get_coords_frac_raw(self):
+        verbose("getting _coords_frac_raw")
+        self.check_get_attr('natoms')
+        natoms = self.natoms
+        key = 'Reduced.*xred'
+        cmd = 'grep %s %s | wc -l' %(key, self.filename)
+        nstep = nstep_from_txt(com.backtick(cmd))
+        cmd = "grep -A%i '%s' %s | grep -v -e '%s' -e '--'" \
+              %(natoms, key, self.filename, key)
+        return traj_from_txt(com.backtick(cmd),
+                             shape=(natoms,3,nstep),
+                             axis=self.time_axis)
+    
+    def get_coords_frac(self):
+        self.check_get_attr('_coords_frac_raw')
+        ret = self._coords_frac_raw 
+        return None if ret is None else ret
+
+    def _get_forces_raw(self):
+        verbose("getting _forces_raw")
+        self.check_get_attr('natoms')
+        natoms = self.natoms
+        key = 'Cartesian forces.*fcart'
+        cmd = "grep '%s' %s | wc -l" %(key, self.filename)
+        nstep = nstep_from_txt(com.backtick(cmd))
+        cmd = "grep -A%i '%s' %s | grep -v -e '%s' -e '--'" \
+              %(natoms, key, self.filename, key)
+        return traj_from_txt(com.backtick(cmd),
+                             shape=(natoms,3,nstep),
+                             axis=self.time_axis)
+    
+    def get_forces(self):
+        self.check_get_attr('_forces_raw')
+        ret = self._forces_raw
+        return None if ret is None else ret
+    
+    # XXX For our test data, this is a little different from
+    # crys.rms3d(pp.forces, axis=-1, nitems='all'), but normalization (1st
+    # value at step 0) seems correct
+    def get_forces_rms(self):
+        verbose("getting forces_rms")
+        key = 'Cartesian forces.*fcart.*rms'
+        cmd = "grep '%s' %s | awk '{print $7}'" %(key, self.filename)
+        return arr1d_from_txt(com.backtick(cmd))
+    
+    def get_nstep(self):
+        verbose("getting nstep")
+        self.check_get_attr('coords_frac')
+        if self.is_set_attr('coords_frac'):
+            return self.coords_frac.shape[self.time_axis]
+        else:
+            return None
+ 
+    def get_volume(self):
+        verbose("getting volume")
+        cmd = r"grep 'Unitary Cell Volume.*=' %s | \
+              sed -re 's/.*ucvol.*=\s*(.*)/\1/'" %self.filename
+        return arr1d_from_txt(com.backtick(cmd))
+    
+    def get_etot(self):
+        verbose("getting etot")
+        key = 'Total energy (etotal).*='
+        cmd = r"grep '%s' %s | sed -re 's/.*=\s*(.*)/\1/'" %(key, self.filename)
+        return arr1d_from_txt(com.backtick(cmd))
+
+    def get_pressure(self):
+        verbose("getting pressure")
+        self.check_get_attr('stresstensor')
+        if self.is_set_attr('stresstensor'):
+            assert self.time_axis == -1
+            return np.trace(self.stresstensor,axis1=0, axis2=1)/3.0
+        else:
+            return None
+            
+    def get_stresstensor(self):
+        req = ['_stresstensor_raw']
+        self.check_get_attrs(req)
+        if self.is_set_attrs(req):
+            return self._stresstensor_raw
+        else:
+            return None
+                                 
+
+class AbinitVCMDOutputFile(AbinitMDOptOutputFile):
+    """Parse ionmov 13 output (NPT MD with the MTTK method).
+
+    This works for ionmov 13 + optcell 0,1,2. With optcell 0 (fixed cell
+    actually), some cell related quantities are None. See
+    test/test_abinit_ionmom*.py
 
     notes:
     ------
@@ -1936,16 +2091,14 @@ class AbinitVCMDOutputFile(AbinitSCFOutputFile):
     - we do not need to match quantities to timesteps exactly when plotting
       something over, say, 10000 steps and
     - we often deal with files from killed jobs which do not have the summary
+
+    There is no cell-related information in case optcell 0 (cell = constant
+    = start cell). We only parse stuff which gets printed repeatatly at each MD
+    step. Start cell information is then self.cell[...,0] etc. We do not parse
+    "xred" etc at the beginning. Use AbinitSCFOutputFile for the MD output to
+    parse start structure quantities.
     """
-    # XXX Currently, there is no cell-related information in case optcell 0 b/c
-    # we only parse stuff which gets printed repeatatly at each MD step. Start
-    # cell information is then self.cell[...,0] etc. We do not parse "xred" etc
-    # at the beginning. Also, self.acell() gets overridden here, which is not
-    # necessary b/c acell is constant. We might use AbinitSCFOutputFile
-    # machinery b/c there we basically parse all cell information from acell,
-    # rprim, xred.
-    #
-    # double printing with MDs : This applies to
+    # double printing with ionmov 13: This applies to
     #         * coord_frac
     #         * forces
     #     Except for the 1st coord (=start struct, MOLDYN STEP 0), all are
@@ -1960,50 +2113,24 @@ class AbinitVCMDOutputFile(AbinitSCFOutputFile):
     #         moldyn_{nstep-1}
     #         moldyn_{nstep-1} *
     #
-    # Does not work for ionmov 8:
-    #     * coords, forces etc not double-printed (same regex, but don't use
-    #       [...,::2]
+    # ionmov 2,3,8 (others not tested, see AbinitMDOptOutputFile):
+    #     * coords, forces etc not double-printed, same regex, but don't use
+    #       [...,::2] -> we use _get_{forces,coord_frac}_raw()
     #     * printed differently: ekin, etot 
     # 
     def __init__(self, filename=None):
         AbinitSCFOutputFile.__init__(self, filename)
-        
         self.time_axis = -1
-
-        self.set_attr_lst([\
-        'acell',
-        'angles',
-        'lengths',
+        attr_lst = self.attr_lst + \
+        [\
         'etot_ekin',
         'rprim',
-        'cryst_const',
-        'nstep', 
-        'typat',
-        'znucl',
-        'symbols',
-        'etot', 
         'ekin', 
         'ekin_vel',
-        'stresstensor', 
-        'pressure', 
-        'mass',
         'temperature', 
-        'coords_frac', 
-        'cell', 
-        'natoms', 
-        'volume',
-        'forces_rms',
-        'forces',
         'velocity',
-        ])
-    
-    # XXX experimental: This is constant over the whole MD in our test file
-    # (ionmov 13 + optcell 2). self.lengths are the cell vector lengths at
-    # each step. 
-    def get_acell(self):
-        verbose("getting acell")
-        cmd = "grep acell= %s | awk '{print $2\" \"$3\" \"$4}'" %self.filename
-        return arr2d_from_txt(com.backtick(cmd))
+        ]
+        self.set_attr_lst(attr_lst)
     
     def get_angles(self):
         verbose("getting angles")
@@ -2032,76 +2159,42 @@ class AbinitVCMDOutputFile(AbinitSCFOutputFile):
         cmd = "grep '%s' %s | awk '{print $2}'" %(key, self.filename)
         return arr1d_from_txt(com.backtick(cmd))
     
-    def get_cryst_const(self):
-        verbose("getting cryst_const")
-        req = ['angles', 'lengths']
-        self.check_get_attrs(req)
-        if self.is_set_attrs(req):
-            n1 = self.angles.shape[-1]
-            n2 = self.lengths.shape[-1]
-            assert n1 == n2, "nstep different: angles(%i) and lengths(%i)" %(n1,n2)
-            return np.concatenate((self.lengths, self.angles), axis=1)
-        else:
-            return None
-    
     def get_cell(self):
         verbose("getting cell")
         req = ['rprim', 'acell']
         self.check_get_attrs(req)
         if self.is_set_attrs(req):
-            acell = self.acell[0,:] # 1d array, len 3
             assert self.time_axis == -1
-            return self.rprim*acell[:,None,None]       
+            return self.rprim*self.acell[:,None,None]       
         else:
             return None
-
-    def get_coords_frac(self):
-        verbose("getting coords_frac")
+    
+    def get_velocity(self):
+        verbose("getting velocity")
         self.check_get_attr('natoms')
         natoms = self.natoms
-        key = 'Reduced.*xred'
-        cmd = 'grep %s %s | wc -l' %(key, self.filename)
+        key = 'Cartesian velocities (vel)'
+        cmd = "grep '%s' %s | wc -l" %(key, self.filename)
         nstep_raw = nstep_from_txt(com.backtick(cmd))
-        # coords_frac
         cmd = "grep -A%i '%s' %s | grep -v -e '%s' -e '--'" \
               %(natoms, key, self.filename, key)
         ret = traj_from_txt(com.backtick(cmd),
                             shape=(natoms,3,nstep_raw),
                             axis=self.time_axis)
+        return None if ret is None else ret[...,::2]                            
+   
+    def get_coords_frac(self):
+        verbose("getting coords_frac")
+        self.check_get_attr('_coords_frac_raw')
+        ret = self._coords_frac_raw
         return None if ret is None else ret[...,::2]                            
     
     def get_forces(self):
         verbose("getting forces")
-        self.check_get_attr('natoms')
-        natoms = self.natoms
-        key = 'Cartesian forces.*fcart'
-        cmd = "grep '%s' %s | wc -l" %(key, self.filename)
-        nstep_raw = nstep_from_txt(com.backtick(cmd))
-        # coords_frac
-        cmd = "grep -A%i '%s' %s | grep -v -e '%s' -e '--'" \
-              %(natoms, key, self.filename, key)
-        ret = traj_from_txt(com.backtick(cmd),
-                            shape=(natoms,3,nstep_raw),
-                            axis=self.time_axis)
+        self.check_get_attr('_forces_raw')
+        ret = self._forces_raw
         return None if ret is None else ret[...,::2]                            
     
-    # XXX For our test data, this is a little different from
-    # crys.rms3d(pp.forces, axis=-1, nitems='all'), but normalization (1st
-    # value at step 0) seems correct
-    def get_forces_rms(self):
-        verbose("getting forces_rms")
-        key = 'Cartesian forces.*fcart.*rms'
-        cmd = "grep '%s' %s | awk '{print $7}'" %(key, self.filename)
-        return arr1d_from_txt(com.backtick(cmd))
-    
-    def get_nstep(self):
-        verbose("getting nstep")
-        self.check_get_attr('coords_frac')
-        if self.is_set_attr('coords_frac'):
-            return self.coords_frac.shape[self.time_axis]
-        else:
-            return None
- 
     def get_volume(self):
         verbose("getting volume")
         key = '^[ ]*ucvol='
@@ -2170,37 +2263,6 @@ class AbinitVCMDOutputFile(AbinitSCFOutputFile):
         else:
             return None
  
-    def get_pressure(self):
-        verbose("getting pressure")
-        self.check_get_attr('stresstensor')
-        if self.is_set_attr('stresstensor'):
-            assert self.time_axis == -1
-            return np.trace(self.stresstensor,axis1=0, axis2=1)/3.0
-        else:
-            return None
-            
-    def get_velocity(self):
-        verbose("getting velocity")
-        self.check_get_attr('natoms')
-        natoms = self.natoms
-        key = 'Cartesian velocities (vel)'
-        cmd = "grep '%s' %s | wc -l" %(key, self.filename)
-        nstep_raw = nstep_from_txt(com.backtick(cmd))
-        cmd = "grep -A%i '%s' %s | grep -v -e '%s' -e '--'" \
-              %(natoms, key, self.filename, key)
-        ret = traj_from_txt(com.backtick(cmd),
-                            shape=(natoms,3,nstep_raw),
-                            axis=self.time_axis)
-        return None if ret is None else ret[...,::2]                            
-   
-    def get_stresstensor(self):
-        req = ['_stresstensor_raw']
-        self.check_get_attrs(req)
-        if self.is_set_attrs(req):
-            return self._stresstensor_raw
-        else:
-            return None
-                                 
 
 class Grep(object):
     """Maximum felxibility!
