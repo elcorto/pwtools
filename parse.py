@@ -503,13 +503,6 @@ class StructureFileParser(FileParser):
         self.check_get_attr('symbols')
         return atpos_str(self.symbols, self.coords)
     
-    # backward compat
-    def get_cell_parameters(self):
-        verbose("warning: cell_parameters deprecated. Use 'cell' and "
-                "get_cell() instead.")
-        self.check_get_attr('cell')                
-        return self.cell
-    
 
 class CifFile(StructureFileParser):
     """Extract cell parameters and atomic positions from Cif files. This
@@ -1323,13 +1316,6 @@ class PwOutputFile(FileParser):
         'nkpoints',
         ])
         
-    # backward compat
-    def get_cell_parameters(self):
-        verbose("warning: cell_parameters deprecated. Use 'cell' and "
-                "get_cell() instead.")
-        self.check_get_attr('cell')                
-        return self.cell
-
     def get_nstep(self):
         verbose("getting nstep")
         self.check_get_attr('coords')
