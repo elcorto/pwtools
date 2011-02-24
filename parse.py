@@ -1294,28 +1294,15 @@ class PwOutputFile(FileParser):
     #     only python's re module. Would spare us spawning child processes for
     #     grep/sed/awk. But grep is probably faster for large files and has
     #     some very nice features, too.
-    def __init__(self, filename=None, infile=None):
+    def __init__(self, filename=None):
         """
         args:
         -----
         filename : file to parse
-        infile : "parsed" PwInputFile object or filename
-            # object
-            >>> pwin = PwInputFile('pw.in')
-            >>> pwin.parse()
-            >>> pwout = PwOutputFile('pw.out', pwin)
-            # filename
-            >>> pwout = PwOutputFile('pw.out', 'pw.in')
-            In case it is a filename, the "pwin" object will be constructed
-            here in the way shown above.
         """        
         FileParser.__init__(self, filename)
-        self._infile = infile
-        
         self.time_axis = -1
-
         self.set_attr_lst([\
-        'infile', 
         'nstep', 
         'etot', 
         'ekin', 
@@ -1333,32 +1320,7 @@ class PwOutputFile(FileParser):
         'start_cell',
         'start_coords',
         ])
-    
-    def _check_nstep(self):
-        """Check if MD steps from infile and outfile match. For MDs, they may
-        differ by 1."""
-        if self.is_set_attr('nstep') and self.is_set_attr('infile'):
-            is_md = self.infile.namelists['control']['calculation'] == 'md'
-            if is_md and self.infile.namelists['control'].has_key('nstep'):
-                nstep_pwout = self.nstep
-                nstep_pwin = int(self.infile.namelists['control']['nstep'])
-                if nstep_pwout != nstep_pwin and \
-                   (abs(nstep_pwout - nstep_pwin) > 1):
-                    verbose("WARNING: nstep from infile (%s: %i) and "
-                            "outfile (%s: %i) don't seem to match" \
-                            %(self.infile.filename,
-                              nstep_pwin, 
-                              self.filename, 
-                              nstep_pwout))
-    
-    def _check_natoms(self):
-        if self.is_set_attr('coords'):
-            com.assert_cond(self.coords.shape[0] == self.infile.natoms, 
-                            "natoms from infile (%s: %i)  and outfile "
-                            "(%s: %i) don't match" \
-                            %(self.infile.filename, self.infile.natoms,
-                              self.filename, self.coords.shape[0]))
-    
+        
     # backward compat
     def get_cell_parameters(self):
         verbose("warning: cell_parameters deprecated. Use 'cell' and "
@@ -1366,27 +1328,6 @@ class PwOutputFile(FileParser):
         self.check_get_attr('cell')                
         return self.cell
 
-    def parse(self):
-        verbose("parsing %s" %self.filename)
-        FileParser.parse(self) 
-        # sanity check
-        self._check_natoms()
-        self._check_nstep()
-        self.close_file()
-    
-    def get_infile(self):
-        """Return a PwInputFile instance."""
-        verbose("getting infile")
-        if isinstance(self._infile, types.StringType):
-            infile = PwInputFile(self._infile)
-            infile.parse()
-        elif isinstance(self._infile, PwInputFile):
-            infile = self._infile
-        else:
-            raise ValueError("infile must be string or instance of "
-                             "PwInputFile, is: %s" %str(self._infile))
-        return infile
-    
     def get_nstep(self):
         verbose("getting nstep")
         self.check_get_attr('coords')
@@ -1397,8 +1338,9 @@ class PwOutputFile(FileParser):
     
     def get_natoms(self):
         verbose("getting natoms")
-        self.check_get_attr('infile')
-        return self.infile.natoms
+        cmd = r"grep 'number.*atoms/cell' %s | \
+              sed -re 's/.*=\s+([0-9]+).*/\1/'" %self.filename
+        return int_from_txt(com.backtick(cmd))
 
     def get_stresstensor(self):
         verbose("getting stress tensor")
@@ -1454,7 +1396,7 @@ class PwOutputFile(FileParser):
     def get_start_coords(self):
         """Grep start ATOMIC_POSITIONS from pw.out. This is always in cartesian
         alat units. The start coords in the format given in the input file is
-        just self.infile.coords. This should be the same as
+        just infile.coords. This should be the same as
         >>> p = PwOutputFile(...)
         >>> p.parse()
         >>> crys.coord_trans(p.start_coords, 
@@ -1590,8 +1532,9 @@ class CPOutputFile(PwOutputFile):
     Some notes on parsing cp.x output data.
 
     For the following explanations:
-      iprint = self.infile.namelists['control']['iprint']
-      isave  = self.infile.namelists['control']['isave']
+      infile = PwInputFile('cp.in'); infile.parse()  
+      iprint = infile.namelists['control']['iprint']
+      isave  = infile.namelists['control']['isave']
 
     The cp.x code writes several text files to scratch:
 
@@ -1641,7 +1584,7 @@ class CPOutputFile(PwOutputFile):
     other lines with 12 numbers :) So .. we have to load the crappy
     file.
     """
-    def __init__(self, filename=None, infile=None, evpfilename=None):
+    def __init__(self, filename=None, evpfilename=None):
         
         # XXX This class has not been tested very much yet. Parsing a test
         # cp.out works, but we have not verified if everything is parsed
@@ -1650,7 +1593,7 @@ class CPOutputFile(PwOutputFile):
         raise NotImplementedError("If you really want to do CP, use CPMD.")
 
 
-        PwOutputFile.__init__(self, filename, infile)
+        PwOutputFile.__init__(self, filename)
         self.evpfilename = evpfilename
         # columns of self.evpfilename
         self.evp_order = \

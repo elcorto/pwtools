@@ -4,10 +4,9 @@ def test():
     from pwtools import common
 
     filename = 'files/pw.vc-relax.out'
-    infile = 'files/pw.vc-relax.in'
 
     common.system('gunzip %s.gz' %filename)
-    pp = PwOutputFile(filename=filename, infile=infile)
+    pp = PwOutputFile(filename=filename)
     pp.parse()
     common.print_dct(pp.__dict__)
     none_attrs = ['ekin',

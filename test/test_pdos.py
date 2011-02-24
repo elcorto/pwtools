@@ -2,7 +2,7 @@
 def test():
     import sys
     import numpy as np
-    from pwtools.parse import PwOutputFile
+    from pwtools import parse
     from pwtools import common
     from pwtools import pydos as pd
     from pwtools import constants
@@ -12,26 +12,28 @@ def test():
     infile = 'files/pw.md.in'
 
     common.system('gunzip %s.gz' %filename)
-    c = PwOutputFile(filename=filename, infile=infile)
-    c.parse()
+    pwout = parse.PwOutputFile(filename)
+    pwin = parse.PwInputFile(infile)
+    pwin.parse()
+    pwout.parse()
 
     # Transform coords if needed. See .../pwtools/README .
-    ibrav = int(c.infile.namelists['system']['ibrav'])
-    c_sys = c.infile.atpos['unit'].lower().strip()
+    ibrav = int(pwin.namelists['system']['ibrav'])
+    c_sys = pwin.atpos['unit'].lower().strip()
     if c_sys == 'crystal':
         if ibrav == 0:
-            if c.infile.cell is None:
+            if pwin.cell is None:
                 print "error: no cell parameters in infile, set manually here"
                 sys.exit(1)
             else:        
-                coords = coord_trans(c.coords, old=c.infile.cell,
+                coords = coord_trans(pwout.coords, old=pwin.cell,
                                      new=np.identity(3)) 
         else:
             print "error: ibrav != 0, cannot get cell parameters from infile \
                   set manually here"
             sys.exit(1)
     else:
-        coords = c.coords
+        coords = pwout.coords
 
     # vacf_pdos:
     #   If we compute the *normalized* VCAF, then dt is a factor: 
@@ -41,8 +43,8 @@ def test():
     # direct_pdos:
     #   Also here, we do not need V = velocity(coords, dt=dt).
     V = pd.velocity(coords)
-    m = c.infile.massvec
-    dt = float(c.infile.namelists['control']['dt'])*constants.tryd
+    m = pwin.massvec
+    dt = float(pwin.namelists['control']['dt'])*constants.tryd
     fd, dd = pd.direct_pdos(V, m=m, dt=dt)
     fv, dv = pd.vacf_pdos(V, m=m, dt=dt, mirr=True)
 

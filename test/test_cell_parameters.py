@@ -18,9 +18,8 @@ def test():
     assert pp.get_cell_parameters() is not None
 
     filename = 'files/pw.vc-relax.out'
-    infile = 'files/pw.vc-relax.in'
     common.system('gunzip %s.gz' %filename)
-    pp = parse.PwOutputFile(filename=filename, infile=infile)
+    pp = parse.PwOutputFile(filename=filename)
     pp.set_attr_lst(['cell_parameters'])
     pp.parse()
     assert pp.cell_parameters is not None

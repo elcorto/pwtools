@@ -6,17 +6,15 @@ import os
 import numpy as np
 from pwtools.parse import PwOutputFile
 from pwtools import common
-from pwtools import pydos as pd
 from testenv import testdir
 
 
 def test():
     filename = 'files/pw.md.out'
-    infile = 'files/pw.md.in'
     dumpfile = os.path.join(testdir, 'pw.md.pk')
 
     common.system('gunzip %s.gz' %filename)
-    c = PwOutputFile(filename=filename, infile=infile)
+    c = PwOutputFile(filename=filename)
     print ">>> parsing ..."
     c.parse()
     print ">>> ... done"
@@ -31,8 +29,7 @@ def test():
     print ">>> ... done"
 
     print ">>> checking equalness of attrs in loaded object ..."
-    known_fails = {'fd': 'closed/uninitialized file',
-                   'infile': 'same object, just new memory address'}
+    known_fails = {'fd': 'closed/uninitialized file'}
     arr_t = type(np.array([1]))
     for attr in c.__dict__.iterkeys():
         c_val = getattr(c, attr)

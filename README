@@ -227,6 +227,21 @@ crys.rms3d() for MD runs where the RMS of each (f_ij) is
     sqrt( (sum_ij f_ij^2) / N )
 with N = 3*natoms or N=natoms.   
 
+
+Parsed results
+--------------
+
+Concerns: parse.Pw*File, parse.Abinit*File
+
+Abinit : Here, all relevant quantities are printed in the output files alone
+    with enough precision to do further calculations inside these classes (not
+    used yet).
+PWscf : Sadly, things like cell information (CELL_PARAMETERS) and kpoint grid
+    (K_POINTS) are only printed with low precision or not at all in the output
+    file. ATM, we parse input and output separately (in recent versions). So,
+    calculations based on higher-precision quantities in the input file are not
+    automatically done in Pw*File. 
+
 ====
 Refs
 ====
