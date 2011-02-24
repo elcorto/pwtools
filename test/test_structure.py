@@ -46,3 +46,19 @@ def test():
                    cell=cell,
                    symbols=['X']*natoms)
     assert st.get_natoms() == natoms
+    
+    # Test if all getters work.
+    st.attr_lst = ['coords',
+                   'coords_frac',
+                   'cell',
+                   'cryst_const',
+                   'natoms',
+                   'atpos_str',
+                   'celldm']
+    for name in st.attr_lst:
+        eval("st.get_%s()" %name)
+    try:
+        import ase
+        st.get_ase_atoms()
+    except ImportError:
+        print("cannot import ase, skip test get_ase_atoms()")

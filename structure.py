@@ -144,11 +144,11 @@ class Structure(FlexibleGetters):
         self.assert_attr('symbols') 
         return len(self.symbols)
     
-    def get_atpos_str(self):
-        req = ['coords', 'symbols']
+    def get_atpos_str(self, coords_attr='coords'):
+        req = [coords_attr, 'symbols']
         self.check_get_attrs(req)
         self.assert_attrs(req)
-        return atpos_str(self.symbols, self.coords)
+        return atpos_str(self.symbols, getattr(self, coords_attr))
     
     def get_celldm(self, fac=1.0):
         """
