@@ -94,7 +94,7 @@ class SQLiteDB(object):
     self.conn.commit() -> commit()
     where self.cur  -> sqlite3.Cursor
           self.conn -> sqlite3.Connection
-
+    
     example:
     --------
     >>> db = SQLiteDB('test.db', table='calc')

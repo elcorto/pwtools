@@ -1021,10 +1021,20 @@ def dict2class(dct, name='Dummy'):
 #-----------------------------------------------------------------------------
 
 def is_seq(seq):
-    """Test if `seq` is some kind of sequence."""
-    # Exclude cases which are iterable but that we still don't like. In fact,
-    # we wish to catch list, tuple, numpy array.
-    if isinstance(seq, types.StringType) or \
+    """Test if `seq` is some kind of sequence, based on calling iter(seq), i.e.
+    if the object is iterable.
+
+    Exclude cases which are iterable but that we still don't like: 
+        StringTypes = StringType + UnicodeType
+        FileType
+    UnicodeType is for lists of unicode strings [u'aaa', u'bbb']. In fact, we
+    wish to catch list, tuple, numpy array.
+    
+    args:
+    -----
+    seq : (nested) sequence of arbitrary objects
+    """ 
+    if isinstance(seq, types.StringTypes) or \
        isinstance(seq, types.FileType):
        return False
     else:        
@@ -1036,8 +1046,8 @@ def is_seq(seq):
 
 
 def iflatten(seq):
-    """Flatten a sequence. After
-    matplotlib.cbook.flatten(). Returns an generator object."""
+    """Flatten a sequence. After matplotlib.cbook.flatten(). Returns an
+    generator object."""
     for item in seq:
         if not is_seq(item):
             yield item
