@@ -1,4 +1,6 @@
 import sqlite3
+import numpy as np
+from pwtools import common
 
 class SQLEntry(object):
     def __init__(self, sqltype=None, sqlval=None, fileval=None, key=None, sql_type=None,
@@ -181,9 +183,10 @@ class SQLiteDB(object):
 
         example:
         --------
-        db = SQLiteDB('test.db', table='foo')
-        db.execute("create table foo (a text, b real)"
-        db.get_header() -> [('a', 'text'), ('b', 'real')]
+        >>> db = SQLiteDB('test.db', table='foo')
+        >>> db.execute("create table foo (a text, b real)"
+        >>> db.get_header() 
+        [('a', 'text'), ('b', 'real')]
         """            
         return [(x[1], x[2]) for x in \
                 self.execute("PRAGMA table_info(%s)" %self.table)]
@@ -200,6 +203,24 @@ class SQLiteDB(object):
         self.execute("CREATE TABLE %s (%s)" %(self.table, 
                                             ','.join("%s %s" %(x[0], x[1]) \
                                             for x in header)))
+    
+    def get_list1d(self, *args, **kwargs):
+        """Shortcut for commonly used functionality: If one extracts a single
+        row, then self.cur.fetchall() returns a list of tuples like 
+            [(1,), (2,)]. 
+        We call fetchall() and return the flattened list. 
+        """
+        return common.flatten(self.execute(*args, **kwargs).fetchall())
+
+    def get_array1d(self, *args, **kwargs):
+        """Same as get_list1d, but return numpy array."""
+        return np.array(self.get_list1d(*args, **kwargs))
+    
+    def get_array(self, *args, **kwargs):
+        """Return result of self.execute().fetchall() as numpy array. Usful for
+        2d arrays, i.e. convert result of extracting >1 columns to numpy 2d
+        array."""
+        return np.array(self.execute(*args, **kwargs).fetchall())
 
     def commit(self):
         self.conn.commit()
