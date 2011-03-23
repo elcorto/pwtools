@@ -330,12 +330,18 @@ def check_ax_obj(ax):
             "matplotlib.axes.Axes" %repr(ax))
 
 
-def set_plot_layout(py, layout='latex_hs'):
+def get_rctarget(rctarget, default=plt):
+    """If `rctarget` is None, return `default` (the module-level `plt` module)
+    for modifications with it's rc() method. See set_plot_layout*()."""
+    return default if rctarget is None else rctarget
+
+
+def set_plot_layout(rctarget=None, layout='latex_hs'):
     """Set mpl rc parameters.
     
     args:
     -----
-    py : something with an rc() method
+    rctarget : something with an rc() method
     
     example:
     ------
@@ -343,59 +349,18 @@ def set_plot_layout(py, layout='latex_hs'):
     >>> set_plot_layout(plt)
     >>> plt.plot(...)
     """
-    
-    if not hasattr(py, 'rc'):
-        raise AttributeError("argument %s has no attribute 'rc'" %repr(py))
-
+    rctarget = get_rctarget(rctarget)
+    if not hasattr(rctarget, 'rc'):
+        raise AttributeError("argument %s has no attribute 'rc'" %repr(rctarget))
     # This is good for presentations and tex'ing files in a PhD Thesis
     if layout == 'latex_hs':
-        py.rc('text', usetex=True) # this may not work on windows systems !!
-##        # text
-##        pyl_obj.rc('font', weight='normal')
-        py.rc('font', weight='bold')
-        py.rc('font', size='20')
-##        # lines
-        py.rc('lines', linewidth=3.0)
-        py.rc('lines', markersize=8)
-##        # axes
-##        py.rc('axes', titlesize=30)
-##        py.rc('axes', labelsize=28)
-##        py.rc('axes', linewidth=2.0)
-##        # ticks
-##        py.rc('xtick.major', size=12)
-##        py.rc('ytick.major', size=12)
-##        py.rc('xtick.minor', size=8)
-##        py.rc('ytick.minor', size=8)
-##        py.rc('xtick', labelsize=30)
-##        py.rc('ytick', labelsize=30)
-##        # legend
-##        py.rc('legend', numpoints=3)
-##        py.rc('legend', fontsize=25)
-##        py.rc('legend', markerscale=0.8)
-####        py.rc('legend', axespad=0.04)
-##        py.rc('legend', shadow=False)
-####        py.rc('legend', handletextsep=0.02)
-####        py.rc('legend', pad=0.3)
-##        # figure
-####        py.rc('figure', figsize=(12,9))
-        py.rc('savefig', dpi=150)
-##        # then, set custom vals
-##        py.rc('xtick', labelsize=30)
-##        py.rc('ytick', labelsize=30)
-##        py.rc('legend', fontsize=25)
-        
-        # fractional whitespace between legend entries and legend border
-    ##    py.rc('legend', pad=0.1) # default 0.2
-        # length of the legend lines, useful for plotting many 
-        # dashed lines with slowly changing dash length
-    ##    py.rc('legend', handlelen=0.1) # default 0.05
-        py.rc('lines', dash_capstyle='round') # default 'butt'
-
-        
-        # Need this on Linux (Debian etch) for correct .eps bounding boxes. We
-        # check for the OS here because it works without this on MacOS.
-##        if sys.platform == 'linux2':
-##            py.rc('ps', usedistiller='xpdf')
+        rctarget.rc('text', usetex=True) # this may not work on windows systems !!
+        rctarget.rc('font', weight='bold')
+        rctarget.rc('font', size='20')
+        rctarget.rc('lines', linewidth=3.0)
+        rctarget.rc('lines', markersize=8)
+        rctarget.rc('savefig', dpi=150)
+        rctarget.rc('lines', dash_capstyle='round') # default 'butt'
     else:
         raise StandardError("unknown layout '%s'" % layout)    
 
@@ -421,22 +386,29 @@ def set_tickline_width(ax, xmin=1.0,xmaj=1.5,ymin=1.0,ymaj=1.5):
         tick.tick2line.set_markeredgewidth(ymin)
 
 
-def set_plot_layout_phdth(pyl_obj):
-    set_plot_layout(pyl_obj)
-    pyl_obj.rc('legend', borderpad=0.2)
+def set_plot_layout_phdth(rctarget=None):
+    rctarget = get_rctarget(rctarget)
+    set_plot_layout(rctarget)
+    rctarget.rc('legend', borderpad=0.2)
     # figure
-    pyl_obj.rc('figure', figsize=(11,10))
-    pyl_obj.rc('savefig', dpi=100)
+    rctarget.rc('figure', figsize=(11,10))
+    rctarget.rc('savefig', dpi=100)
 
-def set_plot_layout_talk(plt):
-    plt.rc('legend', borderpad=0.2)
-    plt.rc('savefig', dpi=100)
-    plt.rc('font', size=18)
-    plt.rc('lines', linewidth=2)
-    plt.rc('lines', markersize=8)
-    plt.rc('figure.subplot', left=0.15)
-    plt.rc('figure.subplot', bottom=0.13)
-    plt.rc('mathtext', default='regular')
+def set_plot_layout_talk(rctarget=None):
+    rctarget = get_rctarget(rctarget)
+    rctarget.rc('legend', borderpad=0.2)
+    # minimal possible spacing, labels do not overlap
+    rctarget.rc('legend', labelspacing=0)
+    rctarget.rc('savefig', dpi=100)
+    rctarget.rc('font', size=13)
+    rctarget.rc('lines', linewidth=2)
+    rctarget.rc('lines', markersize=6)
+    # Equal whitespace left and right in case of twinx(). And even if not, we
+    # want all subplots to have the same aspect ratio.
+    rctarget.rc('figure.subplot', left=0.125)
+    rctarget.rc('figure.subplot', right=0.875)
+    rctarget.rc('figure.subplot', bottom=0.125)
+    rctarget.rc('mathtext', default='regular')
 
 #----------------------------------------------------------------------------
 # new axis line
