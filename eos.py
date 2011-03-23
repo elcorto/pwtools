@@ -6,6 +6,7 @@
 # app='/path/to/eos.x' in the constructor.
 
 import os
+import subprocess
 import numpy as np
 from pwtools import common
 
@@ -54,7 +55,8 @@ class ExternEOS(object):
     #     Derived classed must conform to this in their _fit() method. We use
     #     the fitdata_* arrays b/c the fitting apps usually write their results
     #     in that format -- just np.loadtxt() that.
-    def __init__(self, app=None, energy=None, volume=None, dir=None):
+    def __init__(self, app=None, energy=None, volume=None, dir=None,
+                 verbose=True):
         """
         args:
         -----
@@ -66,6 +68,8 @@ class ExternEOS(object):
         dir : str
             dir where in- and outfiles are written, default is the basename of
             "app" (e.g. "eos.x" for app='/path/to/eos.x')
+        verbose : bool
+            print stdout and stderr of fitting tool
         """
         assert len(energy) == len(volume), ("volume and energy arrays have "
                                             "not the same length")
@@ -73,13 +77,15 @@ class ExternEOS(object):
         self.energy = energy
         self.volume = volume
         self.app_basename = os.path.basename(self.app)
+        self.verbose = verbose
         if dir is None:
             self.dir = self.app_basename
         else:
             self.dir = dir
         if not os.path.exists(self.dir):
-            os.makedirs(self.dir) 
-        print("Find your results in %s/" %self.dir)
+            os.makedirs(self.dir)
+        if self.verbose:            
+            print("Find your results in %s/" %self.dir)
         self.infn = os.path.join(self.dir, 'eos.in')
     
     def _fit(self):
@@ -130,6 +136,21 @@ class ExternEOS(object):
         p : pressure [GPa]
         """
         return (self.pv_v, self.pv_p)
+    
+    def call(self, cmd):
+        """
+        Call shell command 'cmd' and merge stdout and stderr.
+
+        Use this instead of common.backtick() if fitting tool insists on beeing
+        very chatty on stderr.
+        """
+        pp = subprocess.Popen(call, 
+                              shell=True,
+                              stdout=subprocess.PIPE, 
+                              stderr=subprocess.STDOUT)
+        out,err = pp.communicate()
+        assert err is None, "stderr output is not None"                              
+        return out
 
 
 class BossEOSFit(ExternEOS):
@@ -159,9 +180,12 @@ class BossEOSFit(ExternEOS):
         common.file_write(self.infn,
                           '%s\n%f' %(os.path.basename(datafn), \
                                      self.volume[min_en_idx]))
-        common.system('cd %s && %s < %s' \
-                      %(self.dir, self.app_basename, 
-                        os.path.basename(self.infn)))
+        out = common.backtick('cd %s && %s < %s' \
+                              %(self.dir, 
+                                self.app_basename, 
+                                os.path.basename(self.infn)))
+        if self.verbose:
+            print out
         # [V [Bohr^3], E [Ry]]
         self.fitdata_energy = np.loadtxt(os.path.join(self.dir,'eos.fit'))
         # [V [Bohr^3], P [GPa]]
@@ -265,8 +289,10 @@ class ElkEOSFit(ExternEOS):
              len(self.volume), 
              common.str_arr(data))
         common.file_write(self.infn, infn_txt)
-        common.system('cd %s && %s' %(self.dir, self.app_basename))
-        print(open(os.path.join(self.dir,'PARAM.OUT')).read())
+        out = common.backtick('cd %s && %s' %(self.dir, self.app_basename))
+        if self.verbose:
+            print out
+            print(open(os.path.join(self.dir,'PARAM.OUT')).read())
         # Remove normalization on natoms. See .../eos/output.f90:
         # fitev: [volume [Bohr^3] / natoms, energy [Ha] / natoms]
         # fitpv: [volume [Bohr^3] / natoms, pressure [GPa]]
