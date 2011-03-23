@@ -1,5 +1,5 @@
 import numpy as np
-from pwtools import num
+from pwtools import num, pwscf, common
 
 def kpath(vecs, N=10):    
     """Simple k-path. Given a set of K vectors (special points in the BZ),
@@ -36,9 +36,84 @@ def kpath(vecs, N=10):
     return new_vecs
 
 
-if __name__ == '__main__':
-    import sys
-    from pwtools.common import str_arr
-    vecs = np.loadtxt(sys.argv[1])
-    N = int(sys.argv[2])
-    print str_arr(kpath(vecs, N), fmt="%f")
+def get_path_norm(ks):
+    """Like in QE's plotband.f90, path_norm = kx there. Return a sequence of
+    cumulative norms of the difference vectors which connect each two adjacent
+    k-points.
+
+    args:
+    -----
+    ks : array (nks, 3), array with `nks` k-points on the path
+    """
+    dnorms = np.empty(ks.shape[0], dtype=float)
+    dnorms[0] = np.linalg.norm(ks[0,:])
+    # diff(...): array with difference vecs, norm of each of them
+    dnorms[1:] = np.sqrt((np.diff(ks, axis=0)**2.0).sum(axis=1))
+    # cumulative sum
+    path_norm = dnorms.cumsum(axis=0)
+    return path_norm
+
+
+class SpecialPoint(object):
+    def __init__(self, arr, symbol, path_norm=None):
+        # (3,) : the k-point
+        self.arr = arr
+        # symbol, e.g. 'Gamma'
+        self.symbol = symbol
+        # not used ...
+        ##self.path_norm = path_norm
+
+
+class SpecialPointsPath(object):
+    def __init__(self, sp_lst=None, ks=None, symbols=None):
+        # List of SpecialPoint instances.
+        self.sp_lst = sp_lst
+        
+        if self.sp_lst is not None:
+            # Array of k-points. (nks, 3)
+            self.ks = np.array([sp.arr for sp in self.sp_lst])
+            # list (nks,) with a symbol for each special point
+            self.symbols = [sp.symbol for sp in self.sp_lst]
+        else:
+            assert None not in [ks,symbols], "ks and/or symbols is None"
+            assert len(ks) == len(symbols), ("ks and symbols have different \
+                                            lengths")
+            self.ks = ks
+            self.symbols = symbols
+        # 1d array (nks,) of cumulative norms
+        self.path_norm = get_path_norm(self.ks)
+
+
+def plot_dis(path_norm, freqs, special_points_path=None, **kwargs):
+    """Plot dispersion. See bin/plot_dispersion.py for a usage example. This
+    lives here (and not in pwscf.py) b/c it is not PWscf-specific. It can be
+    used for any dispersion data (band structure).
+    
+    See pwscf.read_matdyn_freq() for how to get `freqs` in the case of phonon
+    dispersions.
+
+    args:
+    -----
+    path_norm : array (nks,)
+        x-axis with cumulative norms of points along the k-path
+    freqs : array (nks, nbnd)
+        `nbnd` frequencies for each band at each k-point
+    special_points_path : optional, a SpecialPointsPath instance,
+        used for pretty-printing the x-axis (set special point labels)
+    """
+    import matplotlib.pyplot as plt
+    # Plot columns of `freq` against q points (path_norm)
+    plt.plot(path_norm, freqs, **kwargs)
+    if special_points_path is not None:
+        yl = plt.ylim()
+        ks, nrm, symbols = special_points_path.ks, \
+                         special_points_path.path_norm, \
+                         special_points_path.symbols
+        plt.vlines(nrm, yl[0], yl[1])
+        fmtfunc = lambda x: "%.2g" %x
+        labels = ['%s\n[%s]' %(sym, common.seq2str(kk, func=fmtfunc,sep=','))\
+                  for sym,kk in zip(symbols, ks)]
+        print nrm
+        print labels
+        plt.xticks(nrm, labels)
+        plt.show()

@@ -1,6 +1,6 @@
 # pwscf.py
 #
-# Some handy tools to construct strings which for building pwscf input files.
+# Some handy tools to construct strings for building pwscf input files.
 # Readers for QE postprocessing tool output (matdyn.x  etc).
 
 import re
@@ -108,7 +108,10 @@ def read_matdyn_freq(filename):
     returns:
     --------
     kpoints : array (nks, 3)
+        Array with `nks` k-points.
     freqs : array (nks, nbnd)
+        Array with `nbnd` energies/frequncies at each of the `nks` k-points.
+        For phonon DOS, nks == 3*natoms.
 
     notes:
     ------
@@ -134,10 +137,10 @@ def read_matdyn_freq(filename):
     
     see also:
     ---------
-    bin/plot_dispersion.py
+    bin/plot_dispersion.py, kpath.py
     """
     lines = file_readlines(filename)
-    # Read number of bands (nbnd) and qpoints (nks). OK, Fortran's namelists
+    # Read number of bands (nbnd) and k-points (nks). OK, Fortran's namelists
     # win here :)
     # nbnd: number of bands = number of frequencies per k-point = 3*natoms
     # nks: number of k-points
@@ -149,17 +152,132 @@ def read_matdyn_freq(filename):
     kpoints = np.empty((nks, 3), dtype=float)
     freqs = np.empty((nks, nbnd), dtype=float)
     step = 3 + nbnd
+    # nasty trick: join all lines containing data into one 1d array: " ".join()
+    # does "1 2\n3 4" -> "1 2\n 3 4" and split() splits at \n + whitespace.
     items = np.array(' '.join(lines[1:]).split(), dtype=float)
     for ii in range(len(items) / step):
         kpoints[ii,:] = items[ii*step:(ii*step+3)]
         freqs[ii,:] = items[(ii*step+3):(ii*step+step)]
     return kpoints, freqs
 
+# XXX do we really need this function? 
+# XXX the only PWscf-specific thing is that we use read_matdyn_freq() inside.
+def parse_dis(fn_freq, fn_kpath_def=None):
+    """Parse frequency file produced by matdyn.x and, optionally a k-path
+    definition file.
+    
+    This is a helper for bin/plot_dispersion.py. It lives here b/c it is
+    PWscf-specific.
+
+    args:
+    ----
+    fn_freq : name of the frequency file
+    fn_kpath_def : optional (only for plotting later), special points definition
+        file, see notes below
+    
+    returns:
+    --------
+    path_norm, freqs, special_points_path
+    path_norm : array (nks,), sequence of cumulative norms of the difference
+        vectors which connect each two adjacent k-points
+    freqs : array (nks, nbnd), array with `nbnd` frequencies for each k-point,
+        nbnd should be = 3*natom (natom = atoms in the unit cell)
+    special_points_path : SpecialPointsPath instance or None
+
+    notes:
+    ------
+
+    matdyn.x must have been instructed to calculate a phonon dispersion along a
+    predefined path in the BZ. e.g. natom=2, nbnd=6, 101 k-points on path
+        
+        example:        
+        -------------------------------------------------------------
+        &input
+            asr='simple',  
+            amass(1)=26.981538,
+            amass(2)=14.00674,
+            flfrc='fc',
+            flfrq='matdyn.freq.disp'
+        /
+        101                                | nks
+        0.000000    0.000000    0.000000   |
+        0.037500    0.037500    0.000000   | List of nks = 101 k-points
+        ....                               |
+        -------------------------------------------------------------
+
+
+    `fn_freq` has the form
+        <header>
+        <k-point, (3,)>
+        <frequencies,(nbnd,)
+        <k-point, (3,)>
+        <frequencies,(nbnd,)
+        ...
+
+        example:        
+        -------------------------------------------------------------
+        &plot nbnd=   6, nks= 101 /
+                  0.000000  0.000000  0.000000
+          0.0000    0.0000    0.0000  456.2385  456.2385  871.5931
+                  0.037500  0.037500  0.000000
+         23.8811   37.3033   54.3776  455.7569  457.2338  869.8832
+        ... 
+        -------------------------------------------------------------
+    
+    `fn_kpath_def` : 
+        <coordinate of special point> #<name>
+        ...
+
+        example:
+        -------------------------------------------------------------
+        0    0    0     # $\Gamma$
+        0.75 0.75 0     # K
+        1 0.5 0         # W
+        1 0 0           # X
+        0 0 0           # $\Gamma$
+        .5 .5 .5        # L
+        -------------------------------------------------------------
+    Note that you can put special matplotlib math text in this file. Everything
+    after `#' is treated as a Python raw string.
+
+    For correct plotting, the k-points defined in `fn_kpath_def` MUST of course
+    be on the exact same k-path as the k-points listed in `fn_freq`.
+    """
+    from pwtools.kpath import SpecialPointsPath, SpecialPoint
+    ks, freqs = read_matdyn_freq(fn_freq)
+    # parse k-path definition file
+    if fn_kpath_def is not None:
+        special_points = []
+        fhk = open(fn_kpath_def)
+        for line in fhk:    
+            spl = line.strip().split()
+            special_points.append(
+                kpath.SpecialPoint(np.array(spl[:3], dtype=float), 
+                    r'%s' %spl[-1].replace('#', '')))
+        fhk.close()
+        special_points_path = kpath.SpecialPointsPath(sp_lst=special_points)
+    else:
+        special_points_path = None
+    # calculate path norms (= x-axis for plotting)
+    path_norm = kpath.get_path_norm(ks)
+    return path_norm, freqs, special_points_path
+
 
 def ibrav2cell(ibrav, celldm):
     """Convert PWscf's ibrav + celldm to cell. All formulas are taken straight
     from the PWscf homepage. Don't blame me for errors. Use after testing. Ask
     you doctor.
+
+    This function generates *primitive* cells. Note that in crys.py (and
+    anywhere else in the package, for that matter) we do not have a distinction
+    between conventional/primitive cell. We always think in primitive cells.
+    Especially celldm in crys.py can be converted to/from `cell` and
+    `cryst_const`. But here, `celldm` is the PWscf style celldm, which
+    describes the *conventional* cell. For example, for an fcc cell (ibrav=2),
+    celldm[0] == a == alat is the lattice constant "a" of the cubic
+    conventional cell (cell=a*identity(3)), which is also found in a .cif file
+    together with all symmetries. OTOH, for a hexagonal cell (ibrav=4)
+    primitive == conventional cell.
     
     `celldm` (a = celldm[0]) is assumed be in the unit that you want for
     `cell` (Bohr, Angstrom, etc).
@@ -182,10 +300,10 @@ def ibrav2cell(ibrav, celldm):
 
     notes:
     ------
-    ibrav = 14 is actually the only case where all 6 entries of `celldm` are
-    needed and therefore the same as crys.cc2cell(crys.celldm2cc(celldm)).
-    The returned `cell` here has the same spatial orientation as the one
-    returned from crys.cc2cell(): a along x, b in xy-plane.
+    * ibrav = 14 is actually the only case where all 6 entries of `celldm` are
+      needed and therefore the same as crys.cc2cell(crys.celldm2cc(celldm)).
+      The returned `cell` here has the same spatial orientation as the one
+      returned from crys.cc2cell(): a along x, b in xy-plane.
     """
     # some of celldm can be None
     tofloat = lambda x: x if x is None else float(x)
