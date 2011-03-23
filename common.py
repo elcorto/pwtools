@@ -15,7 +15,7 @@ import re
 import ConfigParser
 import cPickle
 import numpy as np
-from scipy.optimize import brentq
+from scipy.optimize import brentq, newton
 from scipy.interpolate import splev, splrep
 
 from pwtools.verbose import verbose
@@ -462,18 +462,19 @@ def deriv_spl(y, x=None, xnew=None, n=1, k=3, fullout=True):
 
 def _splroot(x, y, der=0):
     # helper for find{min,root}
-    spl = splrep(x, y, s=0)
-    func = lambda xx: splev(xx, spl, der=der)
+    tck = splrep(x, y, k=3, s=0)
+    func = lambda xx: splev(xx, tck, der=der)
     x0 = brentq(func, x[0], x[-1])
-    return np.array([x0, splev(x0, spl)])
+    return np.array([x0, splev(x0, tck)])
 
 
 def findmin(x, y):
-    """
-    Find minimum of x-y curve by searching for the root of the 1st derivative
-    of a spline thru x,y.
-    `x` must be sorted min -> max and the interval [x[0], x[-1]] must contain
-    the minimum.
+    """Find minimum of x-y curve by searching for the root of the 1st
+    derivative of a spline thru x,y. `x` must be sorted min -> max and the
+    interval [x[0], x[-1]] must contain the minimum.
+    
+    This is intended for quick interactive work. For working with
+    pre-calculated splines, see Spline.
 
     args:
     -----
@@ -487,11 +488,13 @@ def findmin(x, y):
 
 
 def findroot(x, y):
-    """ 
-    Find root of x-y curve by searching for the root of a spline thru x,y.
+    """Find root of x-y curve by searching for the root of a spline thru x,y.
     `x` must be sorted min -> max and the interval [x[0], x[-1]] must contain
     the root.
 
+    This is intended for quick interactive work. For working with
+    pre-calculated splines, see Spline.
+    
     args:
     -----
     x,y : 1d arrays
@@ -502,6 +505,121 @@ def findroot(x, y):
     """
     return _splroot(x, y, der=0)
 
+
+class Spline(object):
+    """Wrapper around scipy.interpolate.splrep/splev with some nice features
+    like y->x lookup etc.
+
+    example:
+    --------
+    >>> x = linspace(0,10,100)
+    >>> y = sin(x)
+    >>> sp = Spline(x,y)
+    >>> plot(x,y)
+    >>> plot(x, sp(x))
+    >>> plot(x, sp.splev(x))      # the same
+    >>> plot(x, splev(x, sp.tck)) # the same
+    >>> plot(x, sp(x, der=1), label='1st derivative')
+    >>> xx = sp.invsplev(0.5, xab=[0, pi/2])
+    >>> print("at %f degrees, sin(x) = 0.5" %(xx/pi*180))
+    >>> 
+    >>> y = x**2 - 5
+    >>> sp = Spline(x,y)
+    >>> print("the root is at x=%f" %sp.invsplev(0.0))
+    """
+    def __init__(self, x, y, eps=1e-10, **splrep_kwargs):
+        """
+        args:
+        -----
+        x, y : numpy 1d arrays
+        eps : float
+            Accuracy threshold. Spline must interpolate points with an error
+            less then eps. Useless if you use splrep(...,s=..) with "s" (the
+            smoothing factor) much bigger than 0. In that case, use eps=<large
+            number> to disable this check.
+        **splrep_kwargs : keywords args to splrep(), default: k=3, s=0            
+        """
+        self.x = x
+        self.y = y
+        self.eps = eps
+        assert (np.diff(self.x) >= 0.0).all(), ("x wronly ordered")
+        for key, val in {'s':0, 'k':3}.iteritems():
+            if not splrep_kwargs.has_key(key):
+                splrep_kwargs[key] = val
+        self.splrep_kwargs = splrep_kwargs
+        self.tck = splrep(self.x, self.y, **splrep_kwargs)
+        err = np.abs(self.splev(self.x) - self.y)
+        assert (err < self.eps).all(), \
+               ("spline not accurate to eps=%e, max(error)=%e, raise eps" \
+                %(self.eps, err.max()))
+
+    def __call__(self, *args, **kwargs):
+        return self.splev(*args, **kwargs)
+
+    def _findroot(self, func, x0=None, xab=None):
+        if x0 is not None:
+            xx = newton(func, x0)
+        else:
+            if xab is None:
+                xab = [self.x[0], self.x[-1]]
+            xx = brentq(func, xab[0], xab[1])
+        return xx    
+    
+    def is_mono(self):
+        """Return True if the curve described by the spline is monotonic."""
+        tmp = np.diff(np.sign(np.diff(self.splev(self.x))))       
+        return (tmp == 0).all()
+
+    def splev(self, x, *args, **kwargs):
+        return splev(x, self.tck, *args, **kwargs)
+
+    def invsplev(self, y0, x0=None, xab=None):
+        """Find xx where y(xx) == y0 by calculating the root of y(x) - y0.
+        We can use Newton's (x0) or Brent's (xab) methods. Use only one of
+        them. If neither is given, we use xab=[x[0], x[-1]].
+
+        The result depends on how good x0 or xab are. For values outside of the
+        data range, you will get unreliable extrapolated data! No check is done
+        for that. Also an interval xab which does not contain y0 will give
+        bogus results.
+        
+        Works only for scalar input (one point lookup). For many points, try to
+        construct an inverse spline: Spline(y,x).
+        
+        args:
+        -----
+        x0 : float
+            start guess for Newton secant method
+        xab : length 2 sequence
+            interval for Brent method
+        
+        returns:
+        --------
+        xx : scalar
+        """
+        # The other possibility to implement this is to construct an inverse
+        # spline Spline(y,x) and do the lookup via splev(y0, ...). But this
+        # requires the data x,y to be monotonic b/c otherwise, the lookup y->x
+        # is not unique. Here, the user is responsible for providing a
+        # meaningful x0 / xab, which is more flexible and generic.
+        func = lambda x: self.splev(x) - y0
+        return self._findroot(func, x0=x0, xab=xab)
+   
+    def get_min(self, x0=None, xab=None):
+        """Return xx where y(xx) = min(y) by calculating the root of the
+        spline's 1st derivative.
+        
+        args:
+        -----
+        x0 or xab: see self.invsplev()
+        
+        returns:
+        --------
+        xx : scalar
+        """
+        func = lambda x: self.splev(x, der=1)
+        return self._findroot(func, x0=x0, xab=xab)
+    
 
 #-----------------------------------------------------------------------------
 # array indexing

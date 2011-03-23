@@ -61,3 +61,7 @@ tests
   np.loadtxt() these arrays and compare them to parsed ones, e.g. p.coords .
   ... this is too much work and will never happen. Check your results when
   using this.
+
+eos.py
+------
+- Use new common.Spline
