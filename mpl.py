@@ -25,6 +25,23 @@ except ImportError:
 # mpl helpers, boilerplate stuff
 #----------------------------------------------------------------------------
 
+def meshgridt(x, y):
+    """A version of 
+        X,Y = numpy.meshgrid(x,y) 
+    which returns X and Y transposed, i.e. (nx, ny) instead (ny, nx) 
+    where nx,ny = len(x),len(y).
+
+    This is useful for dealing with 2D splines in 
+    scipy.interpolate.bisplev(), which also returns a (nx,ny) array.
+    
+    args:
+    -----
+    x,y : 1d arrays
+    """
+    X,Y = np.meshgrid(x,y)
+    return X.T, Y.T
+
+
 def plotlines3d(ax3d, x,y,z, *args, **kwargs):
     """Plot x-z curves stacked along y.
     

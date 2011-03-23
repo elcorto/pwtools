@@ -460,23 +460,6 @@ def deriv_spl(y, x=None, xnew=None, n=1, k=3, fullout=True):
         return yd
 
 
-def meshgridt(x, y):
-    """A version of 
-        X,Y = numpy.meshgrid(x,y) 
-    which returns X and Y transposed, i.e. (nx, ny) instead (ny, nx) 
-    where nx,ny = len(x),len(y).
-
-    This is useful for dealing with 2D splines in 
-    scipy.interpolate.bisplev(), which also returns a (nx,ny) array.
-    
-    args:
-    -----
-    x,y : 1d arrays
-    """
-    X,Y = np.meshgrid(x,y)
-    return X.T, Y.T
-
-
 def _splroot(x, y, der=0):
     # helper for find{min,root}
     spl = splrep(x, y, s=0)
