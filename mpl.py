@@ -5,6 +5,7 @@
 import itertools
 import sys
 import os
+from pwtools import common
 
 import matplotlib
 from matplotlib import pyplot as plt
@@ -80,10 +81,63 @@ def fig_ax3d():
 
 
 class Plot(object):
-    """Container for a plot figure with one axis `ax`."""
+    """Container for a plot figure with (by default one) axis `ax`.
+
+    You can add more axes with twinx() etc and operate on them.
+    
+    examples:
+    ---------
+    >>> pp = mpl.Plot(*mpl.fig_ax())
+    >>> pp.ax.plot([1,2,3], label='ax')
+    >>> pp.ax2 = pp.ax.twinx()
+    >>> pp.ax2.plot([2,2,1], 'r', label='ax2')
+    >>> # legend on `ax` (default legaxname='ax') with all lines from `ax` and
+    >>> # `ax2`
+    >>> pp.legend(['ax', 'ax2'])
+    >>> pp.fig.savefig('lala.png')
+    """
     def __init__(self, fig, ax):
         self.fig = fig
         self.ax = ax
+    
+    def collect_legends(self, axnames=['ax']):
+        """If self has more then one axis object attached, then collect legends
+        from all axes specified in axnames. Useful for handling legend entries
+        of lines on differend axes (in case of twinx, for instance).
+
+        args:
+        -----
+        axnames : sequence of strings
+
+        returns:
+        --------
+        tuple of lines and labels
+            ([line1, line2, ...], ['foo', 'bar', ...])
+        where lines and labels are taken from all axes. Use this as input for
+        any axis's legend() method.
+        """            
+        axhls = [getattr(self, axname).get_legend_handles_labels() for axname in
+                 axnames]
+        ret = [common.flatten(x) for x in zip(*tuple(axhls))]
+        return ret[0], ret[1]
+    
+    # XXX This is not completly transparent. This 
+    #   >>> plot = Plot(...)
+    #   >>> plot.ax.plot(...)
+    #   >>> plot.legend(...)
+    # does only behave as ax.legend() if only kwargs are used. For anything
+    # else, use 
+    #   >>> plot.ax.legend() directly.
+    def legend(self, axnames=None, legaxname='ax', **kwargs):
+        """Collect legend entries from all axes in axnames and place legend on
+        the axis named with legaxname.
+        """
+        ax = getattr(self, legaxname)
+        if axnames is None:
+            ax.legend(**kwargs)
+        else:
+            ax.legend(*self.collect_legends(axnames), **kwargs)
+
 
 def prepare_plots(names):
     """Return a dict of Plot instances.
