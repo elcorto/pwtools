@@ -139,12 +139,14 @@ class Plot(object):
             ax.legend(*self.collect_legends(axnames), **kwargs)
 
 
-def prepare_plots(names):
+def prepare_plots(names, projection='2d'):
     """Return a dict of Plot instances.
     
     args:
     -----
     names : sequence of strings (keys for the dict)
+    projection : str
+        type of plot; {'2d','3d'}
 
     example:
     --------
@@ -155,11 +157,16 @@ def prepare_plots(names):
     ...     pp.ax.set_title(key)
     ...     pp.fig.savefig(key+'.png')
     """
+    assert projection in ['2d', '3d'], ("unknown projection, allowed: "
+        "'2d', '3d'")
+    if projection == '2d':
+        func = fig_ax
+    elif projection == '3d':        
+        func = fig_ax3d
     plots = {}
     for nn in names:
-        plots[nn] = Plot(*fig_ax())
+        plots[nn] = Plot(*func())
     return plots        
-
 
 #----------------------------------------------------------------------------
 # color and marker iterators
