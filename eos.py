@@ -17,25 +17,40 @@ class ExternEOS(object):
     methods:
     --------
     fit() : fit E-V data
-    get_ev() : return 2d array (len(volume), :) [volume [Bohr^3], evergy [Ry]]
-    get_pv() : return 2d array (len(volume), :) [volume [Bohr^3], pressure [GPa]]
+    get_ev() : return tuple (ev_v, ev_e), see below
+    get_pv() : return tuple (pv_v, pv_p), see below
+    
+    attributes:
+    -----------
+    After calling fit(), these attrs are available. They are also returned by
+    get_{ev,pv}.
+        self.ev_v : volume [Bohr^3]
+        self.ev_e : evergy [Ry]
+        self.pv_v : volume [Bohr^3]
+        self.pv_p : pressure [GPa]
 
     >>> eos = SomeEOSClass(app='super_app.x', energy=e, volume=v)
     >>> eos.fit()
-    >>> ee,vv_e = eos.get_ev()
-    >>> pp,vv_p = eos.get_pv()
-    >>> plot(e,v, 'o-', label='data')
-    >>> plot(vv_e, ee, label='eos fit')
-    >>> plot(vv_p, pp, label='-dE_eos/dV')
+    >>> plot(v,e, 'o-', label='data')
+    >>> plot(eos.ev_v, eos.ev_e, label='eos fit')
+    >>> plot(eos.pv_v, eos.pv_p, label='-dE_eos/dV')
+
+    notes:
+    ------
+    We distinguish between the volume "x-axis" for energy (ev_v) and pressure
+    (pv_v) b/c, depending on how P=-dE_eos/dV is calculated, these may have
+    different length (if the pressure is calculated by finite differences, for
+    instance).
     """
-    # Note: we distinguish between the volume "x-axis" for energy (vv_e) and
-    # pressure (vv_p) b/c, depending on how P=-dE_eos/dV is calculated, these
-    # may have different length (if the pressure is calculated by finite
-    # differences, for instance).
+    # Derived classes:
+    # ----------------
+    # Implement _fit(), which sets self.fitdata_{energy, pressure}.
     #
-    # self.fitdata_{energy, pressure} : We have hardcoded the way these arrays
-    # must look like. See get_{ev,pv}. Derived classed must conform to this  in
-    # their fit() method.
+    # self.fitdata_{energy, pressure} : 2d array, shape (len(volume), 2):
+    #       [volume[Bohr^3], {energy[Ry], pressure[GPa]}]
+    #     Derived classed must conform to this in their _fit() method. We use
+    #     the fitdata_* arrays b/c the fitting apps write their results in that
+    #     format -- just np.loadtxt() that.
     def __init__(self, app=None, energy=None, volume=None, dir=None):
         """
         args:
@@ -49,6 +64,8 @@ class ExternEOS(object):
             dir where in- and outfiles are written, default is the basename of
             "app" (e.g. "eos.x" for app='/path/to/eos.x')
         """
+        assert len(energy) == len(volume), ("volume and energy arrays have "
+                                            "not the same length")
         self.app = app
         self.energy = energy
         self.volume = volume
@@ -61,49 +78,74 @@ class ExternEOS(object):
             os.makedirs(self.dir) 
         print("Find your results in %s/" %self.dir)
         self.infn = os.path.join(self.dir, 'eos.in')
-
-    def fit(self):
-        """Fit E-V data and set 
+    
+    def _fit(self):
+        """Fit E-V data (self.energy, self.volume) and set 
             self.fitdata_energy
             self.fitdata_pressure
-        """            
+        This is the interface which derived classes must implement.            
+        """
         self.fitdata_energy = None
         self.fitdata_pressure = None
+
+    def fit(self, *args, **kwargs):
+        """Fit E-V data (self.energy, self.volume) and set 
+            self.fitdata_energy
+            self.fitdata_pressure
+        by fitting. Set shortcut attrs
+            self.ev_v
+            self.ev_e
+            self.pv_v
+            self.pv_p
+        """            
+        # Assume 
+        #   fitdata_*[:,0] = volume
+        #   fitdata_*[:,1] = <data>
+        # shortcuts
+        self._fit(*args, **kwargs)   
+        self.ev_v = self.fitdata_energy[:,0]
+        self.ev_e = self.fitdata_energy[:,1]
+        self.pv_v = self.fitdata_pressure[:,0]
+        self.pv_p = self.fitdata_pressure[:,1]
 
     def get_ev(self):
         """
         returns:
         --------
-        fitdata_energy : 2d array (len(volume), :) 
-            [volume [Bohr^3], evergy [Ry]]
+        v,e
+        v : volume [Bohr^3] 
+        e : evergy [Ry]
         """
-        # Assume 
-        #   fitdata_*[:,0] = <data>
-        #   fitdata_*[:,1] = volume
-        return (self.fitdata_energy[:,1], 
-                self.fitdata_energy[:,0])
+        return (self.ev_v, self.ev_e)
     
     def get_pv(self):
         """
         returns:
         --------
-        fitdata_pressure : 2d array (len(volume), :) 
-            [volume [Bohr^3], pressure [GPa]]
+        v,p
+        v : volume [Bohr^3] 
+        p : pressure [GPa]
         """
-        # Assume 
-        #   fitdata_*[:,0] = <data>
-        #   fitdata_*[:,1] = volume
-        return (self.fitdata_pressure[:,1], 
-                self.fitdata_pressure[:,0])
+        return (self.pv_v, self.pv_p)
 
 
-class BossEOSfit(ExternEOS):
+class BossEOSFit(ExternEOS):
     """eosfit.x from WIEN2k modified by The Boss
+
+    The returned arrays from get_pv() are 1 shorter than the results of
+    get_ev() b/c the pressure is calculated by finite differences.
+
+    notes:
+    ------
+    - The output file name with fitted data is hardcoded in eosfit.f to be
+      'eos.fit'.
+    - Also, the number of fit points is hardcoded. This is not the case for
+      eos.x, see npoints in ElkEOSFit.      
     """
     def __init__(self, app='eosfit.x', **kwargs):
         ExternEOS.__init__(self, app=app, **kwargs)
 
-    def fit(self):
+    def _fit(self):
         # data file with volume[Bohr^3] etot[Ry]
         datafn = os.path.join(self.dir, 'evdata.txt')
         np.savetxt(datafn, np.array([self.volume, self.energy]).T)
@@ -117,10 +159,9 @@ class BossEOSfit(ExternEOS):
         common.system('cd %s && %s < %s' \
                       %(self.dir, self.app_basename, 
                         os.path.basename(self.infn)))
-        # V, E                      
-        # data produced by fit, 'eos.fit' hardcoded in eosfit.f90
+        # [V [Bohr^3], E [Ry]]
         self.fitdata_energy = np.loadtxt(os.path.join(self.dir,'eos.fit'))
-        # V, P
+        # [V [Bohr^3], P [GPa]]
         # P = -dE/dV
         # Ry / Bohr^3 -> Pa -> GPa
         fac = constants.Ry_to_J / constants.a0**3 / 1e9
@@ -132,15 +173,18 @@ class BossEOSfit(ExternEOS):
         self.fitdata_pressure[:, 0] = vol
 
 
-class ElkEOSfit(ExternEOS):
+class ElkEOSFit(ExternEOS):
     """eos.x from the Elk [1] and Exciting [2] codes.
     [1] http://elk.sourceforge.net/
     [2] http://exciting-code.org/
 
     Note that the data produced by eos.x is normalized to natoms and that
     energy is in Hartree. We remove the normalization and convert Ha -> Ry.
+
+    get_ev() and get_pv() return arrays of the same length.
     """
-    def __init__(self, app='eos.x', natoms=1, name='foo', etype=1, **kwargs):
+    def __init__(self, app='eos.x', natoms=1, name='foo', etype=1, 
+                 npoints=300, **kwargs):
         """
         args:
         -----
@@ -152,7 +196,10 @@ class ElkEOSfit(ExternEOS):
             some dummy name for the input file
         etype : int
             type of EOS to fit (see below)
-        
+        npoints : integer, optional
+            number of E-V and P-V points of the fitted curves (`nvplt` in
+            eos.x)
+
         notes:
         ------
         From the README:
@@ -170,6 +217,9 @@ class ElkEOSfit(ExternEOS):
         self.name = name
         self.natoms = natoms
         self.etype = etype
+        self.npoints = npoints
+        assert self.npoints >= len(self.volume), ("npoints is < number of E-V "
+            "input points")
         # From the README:
         # ----------------
         # input file:
@@ -194,10 +244,9 @@ class ElkEOSfit(ExternEOS):
         # Pressure(GPa)-volume per atom over interval written to PVPAI.OUT
         # Enthalpy-pressure(GPa) per atom over interval written to HPPAI.OUT
 
-    def fit(self):
+    def _fit(self):
         # volume[Bohr^3] etot[Ha] (Ry -> Ha : / 2)
         data = np.array([self.volume, self.energy/2.0]).T
-        npoints = len(self.volume)*15
         infn_txt =\
         """
 %s
@@ -209,17 +258,23 @@ class ElkEOSfit(ExternEOS):
         """%(self.name, 
              self.natoms, 
              self.etype, 
-             self.volume[0], self.volume[-1], npoints,
+             self.volume[0], self.volume[-1], self.npoints,
              len(self.volume), 
              common.str_arr(data))
         common.file_write(self.infn, infn_txt)
         common.system('cd %s && %s' %(self.dir, self.app_basename))
         print(open(os.path.join(self.dir,'PARAM.OUT')).read())
-        # remove normalization on natoms
-        # convert energy back to Ry
+        # Remove normalization on natoms. See .../eos/output.f90:
+        # fitev: [volume [Bohr^3] / natoms, energy [Ha] / natoms]
+        # fitpv: [volume [Bohr^3] / natoms, pressure [GPa]]
         fitev = np.loadtxt(os.path.join(self.dir,'EVPAI.OUT')) * self.natoms
+        # convert energy back to Ry
         fitev[:,1] *= 2.0
         self.fitdata_energy = fitev
         fitpv = np.loadtxt(os.path.join(self.dir,'PVPAI.OUT'))
         fitpv[:,0] *= self.natoms
         self.fitdata_pressure = fitpv
+
+# backward compat
+BossEOSfit = BossEOSFit
+ElkEOSfit = ElkEOSFit
