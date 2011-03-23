@@ -4,9 +4,10 @@
 
 def test():
     import numpy as np
-##    from matplotlib import pyplot as plt
     from pwtools.thermo import HarmonicThermo
     from pwtools import common
+    
+    # Verify result tests
 
     def pack(fns):
         for fn in fns:
@@ -51,6 +52,7 @@ def test():
            }
     for key, store in dct.iteritems():
         np.testing.assert_array_almost_equal(store.arr1, store.arr2, decimal=2)
+    ##from matplotlib import pyplot as plt        
     ##    plt.figure()
     ##    plt.plot(T, store.arr1, label='%s: ha'%key)
     ##    plt.plot(T, store.arr2, label='%s: fqha'%key)
@@ -58,6 +60,9 @@ def test():
     ##    plt.legend()
     ##plt.show()
     
+
+    # API tests
+
     # use temp arg in methods
     ha = HarmonicThermo(pdos[:,0], pdos[:,1], fixzero=True, fixnan=True,
                         checknan=True)
@@ -65,5 +70,42 @@ def test():
     x=ha.fvib(T)
     x=ha.cv(T)
     x=ha.svib(T)
-
     pack(files)
+    
+    # test fix* 
+    freq = np.linspace(1, 10, 100)
+    dos = freq**2.0
+    temp = np.linspace(10, 100, 100)
+    # fixzero
+    freq[0] = 0.0
+    ha = HarmonicThermo(freq=freq, 
+                        dos=dos, 
+                        fixzero=False, 
+                        checknan=True, 
+                        fixnan=False, 
+                        fixneg=False)
+    assert ha.f[0] == 0.0 
+    ha = HarmonicThermo(freq=freq, 
+                        dos=dos, 
+                        fixzero=True, 
+                        checknan=True, 
+                        fixnan=False, 
+                        fixneg=False)
+    assert ha.f[0] > 0.0                        
+    # fixneg 
+    freq[0] = -100.0
+    ha = HarmonicThermo(freq=freq, 
+                        dos=dos, 
+                        fixzero=False, 
+                        checknan=True, 
+                        fixnan=False, 
+                        fixneg=False)
+    assert ha.f[0] == -100                
+    ha = HarmonicThermo(freq=freq, 
+                        dos=dos, 
+                        fixzero=False, 
+                        checknan=True, 
+                        fixnan=False, 
+                        fixneg=True)
+    assert ha.f[0] > 0.0                
+                

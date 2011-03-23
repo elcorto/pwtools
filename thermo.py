@@ -6,6 +6,7 @@ import numpy as np
 from scipy.integrate import simps
 from pwtools.constants import kb, h, R, pi, c0, Ry_to_J
 from pwtools.verbose import verbose
+from pwtools import crys
 
 
 def coth(x):
@@ -18,7 +19,7 @@ class HarmonicThermo(object):
     approximation from a phonon density of states. 
     """    
     def __init__(self, freq, dos, temp=None, hplanck=h, kb=kb, fixzero=True,
-                 checknan=True, fixnan=False):
+                 checknan=True, fixnan=False, fixneg=False, warn=True):
         """                 
         args:
         -----
@@ -37,9 +38,19 @@ class HarmonicThermo(object):
         checknan : bool
             Warn about found NaNs. To actually fix them, set fixnan=True.
         fixnan : bool
-            Currently, set all NaNs to 0.0 if checknan=True. This is
-            a HACK b/c we must assume that these numbers should be 0.0.
-            Use if YKWYAD.
+            Use if YKWYAD, test before using! Currently, set all NaNs to 0.0 if
+            checknan=True. This is a HACK b/c we must assume that these numbers
+            should be 0.0.
+        fixneg : bool
+            Use if YKWYAD, test before using! Same as fixnan, but for negative
+            numbers. Sometimes, a few frequencies (ususally the 1st entry only)
+            are close to zero and negative. Set them to a very small positive
+            value. The rms of the fixed values is printed. The default is False
+            b/c it may hide large negative frequencies (i.e. unstable
+            structure), which is a perfectly valid result (but you shouldn't do
+            thermodynamics with that :)
+        warn : bool
+            Turn warnings on and off. Use only if you know you can ignore them.
         """
         # notes:
         # ------
@@ -61,7 +72,9 @@ class HarmonicThermo(object):
         #
         # Cv is in J/K. To get Cv in R[J/(mol*K)], one would have to do 
         #   Cv[J/K] * Navo[1/mol] / R = Cv[J/K] / kb[J/K]
-        # since kb = R/Navo.  
+        # since kb = R/Navo, with 
+        #   R = gas constant = 8.314 J/(mol*K)
+        #   Navo = Avogadro's number = 6e23
         #
         # We save the division by "kb" by dropping the "kb" prefactor:
         #   Cv(T) = Z**2 * Int(w) [w**2 * D(w) / sinh(z))**2]
@@ -70,9 +83,10 @@ class HarmonicThermo(object):
         #
         # in F_QHA.f90:
         #   a3 = 1.0/8065.5/8.617e-5 # = hbar*c0*100*2*pi / kb
+        #   Did you know that?
         #
-        # Must convert freq to w=2*pi*freq for hbar*w. Or, use 
-        # h*freq.
+        # All formulas (cv, fvib etc) are written for angular frequency
+        # w=2*pi*freq. Either we use hbar*w or h*freq. We do the latter.
         #
         # cm^-1 -> 1/s       : * c0*100
         # 1/s   -> cm^-1     : / (c0*100)
@@ -84,26 +98,62 @@ class HarmonicThermo(object):
         self.h = hplanck * c0 * 100
         self.kb = kb
         self.fixnan = fixnan
+        self.fixneg = fixneg
+        self.fixzero = fixzero
         self.checknan = checknan
-
-        self.eps = np.finfo(float).eps
-
-        if fixzero:
-            self.f = self._fixzero(self.f, copy=True)
+        self.warn = warn
+        self.tiny = 1.5 * np.finfo(float).eps
+        
+        # order is important!
+        if self.fixneg:
+            self.f = self._fix(self.f, 'neg', copy=True)
+        if self.fixzero:
+            self.f = self._fix(self.f, 'zero', copy=True)
     
-    def _fixzero(self, arr, copy=True):
+    def _printwarn(self, msg):
+        if self.warn:
+            print(msg)
+
+    def _fix(self, arr, what='zero', copy=True):
         arr2 = arr.copy() if copy else arr
-        arr2[arr2 < 1.5*self.eps] = 1.5*self.eps
+        if what == 'zero':
+            idxs = np.abs(arr2) <= self.tiny
+            if idxs.any():
+                rms = crys.rms(arr2[idxs])
+                self._printwarn("HarmonicThermo._fix: warning: "
+                    "fixing zeros!, rms=%e" %rms)
+            arr2[idxs] = self.tiny
+        elif what == 'neg':
+            idxs = arr2 < 0.0
+            if idxs.any():
+                rms = crys.rms(arr2[idxs])
+                self._printwarn("HarmonicThermo._fix: warning: "
+                    "fixing negatives!, rms=%e" %rms) 
+            arr2[idxs] = 2*self.tiny
+        else:
+            raise StandardError("unknown method: '%s'" %what)
         return arr2
+    
 
     def _integrate(self, y, f):
-        # y: 2d array (len(T), len(dos)), integrate along axis=1
+        """
+        Integrate `y` along axis=1, i.e. over freq axis for all T.
+
+        args:
+        -----
+        y : 2d array (nT, ndos) where nT = len(self.T), ndos = len(self.dos)
+        f : self.f, (len(self.dos),)
+
+        returns:
+        --------
+        array (nT,)
+        """
         if self.checknan:
             mask = np.isnan(y)
             if mask.any():
-                print("HarmonicThermo._integrate: warning: NaNs found!")
+                self._printwarn("HarmonicThermo._integrate: warning: NaNs found!")
                 if self.fixnan:
-                    print("HarmonicThermo._integrate: warning: fixing NaNs!")
+                    self._printwarn("HarmonicThermo._integrate: warning: fixing NaNs!")
                     y[mask] = 0.0
         return np.array([simps(y[i,:], f) for i in range(y.shape[0])])
     
@@ -116,14 +166,14 @@ class HarmonicThermo(object):
         h, f, kb, dos = self.h, self.f, self.kb, self.dos
         T = self._get_temp(T)
         arg = h * f / (kb*T[:,None])
-        # 1/[ exp(x) -1] = NaN for x=0, that's why we use _fixzero(): For
+        # 1/[ exp(x) -1] = NaN for x=0, that's why we use _fix('zero'): For
         # instance
         #   1/(exp(1e-17) - 1) = NaN
         #   1/(exp(3e-16) - 1) = 4503599627370496.0
-        arg = self._fixzero(arg, copy=False)
+        arg = self._fix(arg, 'zero', copy=False)
         y = dos * f * (0.5 + 1.0 / (np.exp(arg) - 1.0))
         eint = self._integrate(y, f) 
-        return eint * (h/ Ry_to_J) # [Ry]
+        return eint * (h/Ry_to_J) # [Ry]
         
     def isochoric_heat_capacity(self, T=None):
         h, f, kb, dos = self.h, self.f, self.kb, self.dos
