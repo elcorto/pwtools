@@ -1,56 +1,144 @@
-# Minimal parameter study example. 
+# Parameter study examples. 
+# 
+# We use template files: files/calc.templ/* . These files are no real input
+# files but do only contain placeholders in order to ease verification.
 #
-# Here, we consider the special case of a commonly needed convergence study of
-# cut-off (ecutwfc) and kpoints. It is known that one can vary ecutwfc and
-# kpoints *independently* of each other, i.e. instead of a grid:
-#
-#   25 50 75
-# 2 *  *  *
-# 4 *  *  *
-# 6 *  *  *
-#
-# just one row and column to save computer time and avoid redundant
-# information.
-#
-#   25 50 75
-# 2 *  *  *
-# 4 *  
-# 6 *  
-#
-# This is done by the nested_loops() trick below.
-
+# We do not replace all placeholders in some examples, so do not wonder why the
+# resulting "input files" sometimes still contain placeholders.
 
 import os
 import numpy as np
 from pwtools import comb, batch, common
 from pwtools.pwscf import kpointstr_pwin
-
+from pwtools import sql
 from testenv import testdir
+
+def file_get(fn, key):
+    # parse "key=value" lines, return "value" of first key found as string
+    lines = common.file_readlines(fn)
+    for ll in lines:
+        if ll.strip().startswith(key):
+            return ll.split('=')[1].strip()
 
 def test():    
     pj = os.path.join
-
-    prefix = 'convergence'
-    machines = [batch.local]
     templ_dir = 'files/calc.templ'
+    
+    #--------------------------------------------------------------------------
+    # vary 1 parameter -- single loop
+    #--------------------------------------------------------------------------
+    # This may look overly complicated but in fact 50% of the code is only
+    # verification.
+    machine = batch.local
+    calc_dir = pj(testdir, 'calc_test_1d_1col')
+    prefix = 'convergence'
+    # Specify template files in templ_dir.
     templates = \
         {'pw': batch.FileTemplate(basename='pw.in', 
                                   templ_dir=templ_dir), 
         }
-    for m in machines:
-        templates[m.jobfn] = batch.FileTemplate(basename=m.jobfn,
-                                                templ_dir=templ_dir)
-    _kpoints = [2,4,6]
-    _ecutwfc = np.array([25, 50, 75])
-    kpoints = batch.sql_column('kpoints', 'text', [kpointstr_pwin([x]*3) \
-                                                   for x in _kpoints])
+    # Add machine template file to the dict of templates. The idea is to use
+    # this rather then spefifying it by hand b/c the machine object may have
+    # things like "scratch" etc already predefined.        
+    # You can also loop over many machines here to write the same input for
+    # several machines = [batch.local, batch.adde, ...]. For that to work, you
+    # must have machine.jobfn as template for each machine in templ_dir.
+    # for m in machines:
+    #     templates[m.jobfn] = ...
+    templates[machine.jobfn] = batch.FileTemplate(basename=machine.jobfn,
+                                                  templ_dir=templ_dir)
+    # raw values to be varied
+    _ecutwfc = [25, 50, 75]
+    # [SQLEntry(...), 
+    #  SQLEntry(...), 
+    #  SQLEntry(...)]
     ecutwfc = batch.sql_column('ecutwfc', 'float', _ecutwfc)
-    ecutrho = batch.sql_column('ecutrho', 'float', 10*_ecutwfc)
-    params_lst = comb.nested_loops([[kpoints[0]], zip(ecutwfc, ecutrho)]) + \
-                 comb.nested_loops([kpoints[1:], zip([ecutwfc[0]], [ecutrho[0]])])
-    for machine in machines:
-        calc = batch.ParameterStudy(machine=machine, 
-                                    templates=templates, 
-                                    params_lst=params_lst, 
-                                    prefix=prefix)
-        calc.write_input(calc_dir=pj(testdir, 'calc_test'))
+    # only one parameter "ecutwfc" per calc (sublists of length 1) -> one sql column
+    # [[SQLEntry(...)], # calc_dir/0
+    #  [SQLEntry(...)], # calc_dir/1
+    #  [SQLEntry(...)]] # calc_dir/2
+    params_lst = comb.nested_loops([ecutwfc])
+    calc = batch.ParameterStudy(machine=machine, 
+                                templates=templates, 
+                                params_lst=params_lst, 
+                                prefix=prefix)
+    calc.write_input(calc_dir=calc_dir)
+    # asserts .......
+    db = sql.SQLiteDB(pj(calc_dir, 'calc.db'), table='calc')
+    header = [(x[0].lower(), x[1].lower()) for x in db.get_header()]
+    assert ('idx', 'integer') in header
+    assert ('ecutwfc', 'float') in header
+    assert ('scratch', 'text') in header
+    assert ('prefix', 'text') in header
+    idx_lst = db.get_list1d("select idx from calc")
+    assert idx_lst == [0,1,2]
+    for idx in idx_lst:
+        pwfn = pj(calc_dir, str(idx), 'pw.in')
+        jobfn = pj(calc_dir, str(idx), machine.jobfn) 
+        assert float(ecutwfc[idx].file_val) == float(file_get(pwfn, 'ecutwfc'))
+        assert float(ecutwfc[idx].file_val) == float(_ecutwfc[idx])
+        # same placeholders in different files
+        assert machine.scratch == file_get(jobfn, 'scratch')
+        assert machine.scratch == file_get(pwfn, 'outdir')
+        prfx = prefix + '_run%i' %idx
+        # same placeholders in different files
+        assert prfx == file_get(pwfn, 'prefix')
+        assert prfx == file_get(jobfn, 'prefix')
+        # content of sqlite database
+        assert prfx == db.execute("select prefix from calc where idx==?",
+                                  (idx,)).fetchone()[0]
+        assert _ecutwfc[idx] == db.execute("select ecutwfc from calc where idx==?",
+                                           (idx,)).fetchone()[0]
+        assert machine.scratch == db.execute("select scratch from calc where idx==?",
+                                             (idx,)).fetchone()[0]
+    
+    
+    #--------------------------------------------------------------------------
+    # Add more ecutwfc to the same study + one column of misc information. Vary
+    # two parameters (ecutwfc, pw_mkl) *together* using the zip() trick.
+    #--------------------------------------------------------------------------
+    ecutwfc = batch.sql_column('ecutwfc', 'float', [100, 150])
+    pw_mkl = batch.sql_column('pw_mkl', 'text', ['yes', 'yes'])
+    params_lst = comb.nested_loops([zip(ecutwfc, pw_mkl)])
+    calc = batch.ParameterStudy(machine=machine, 
+                                templates=templates, 
+                                params_lst=params_lst, 
+                                prefix=prefix)
+    calc.write_input(calc_dir=calc_dir)
+    db = sql.SQLiteDB(pj(calc_dir, 'calc.db'), table='calc')
+    header = [(x[0].lower(), x[1].lower()) for x in db.get_header()]
+    assert ('pw_mkl', 'text') in header
+    idx_lst = db.get_list1d("select idx from calc")
+    assert idx_lst == [0,1,2,3,4]
+    for idx, ecut in zip([3,4], [100, 150]):
+        pwfn = pj(calc_dir, str(idx), 'pw.in')
+        jobfn = pj(calc_dir, str(idx), machine.jobfn)
+        # the study index is 3,4, but the local parameter index is 0,1
+        assert float(ecutwfc[idx-3].file_val) == \
+               float(file_get(pwfn, 'ecutwfc'))
+        assert float(ecut) == float(file_get(pwfn, 'ecutwfc'))
+        assert prefix + '_run%i' %idx == file_get(pwfn, 'prefix')
+        assert prefix + '_run%i' %idx == file_get(jobfn, 'prefix')
+
+    #--------------------------------------------------------------------------
+    # Vary two (three, ...) params on a 2d (3d, ...) grid
+    #--------------------------------------------------------------------------
+    # This is more smth for the examples/, not tests. In fact, the way you are
+    # constructing params_lst is only a matter of zip() and comb.nested_loops().
+     
+    # >>> par1 = batch.sql_column('par1', 'float', [1,2,3])
+    # >>> par2 = batch.sql_column('par2', 'text', ['a','b'])
+    # >>> par3 = ...
+    #
+    # # 2d grid
+    # >>> params_lst = comb.nested_loops([par1, par2])
+    # 
+    # # 3d grid   
+    # >>> params_lst = comb.nested_loops([par1, par2, par3])
+    # 
+    # # vary par1 and par2 together, and par3 -> 2d grid w/ par1+par2 on one
+    # axis and par3 on the other
+    # >>> params_lst = comb.nested_loops([zip(par1, par2), par3])
+    #
+    # That's all.
+

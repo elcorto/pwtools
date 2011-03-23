@@ -362,11 +362,19 @@ class ParameterStudy(object):
         machine, templates : see Calculation
         params_lst : list of lists
             The "parameter sets". Each sublist is a set of calculation
-            parameters as SQLEntry instances. For each sublist, a separate
-            calculation dir is created and populated with files based on
-            `templates`. The `key` attribute of each SQLEntry will be converted
-            to a placeholder in each FileTemplate and an attempt to replacement
-            in the template files is made.
+            parameters as SQLEntry instances: 
+                params_lst = \
+                    [[SQLEntry(...), SQLEntry(...), ...], # calc_dir/0
+                     [SQLEntry(...), SQLEntry(...), ...], # calc_dir/1
+                     ...
+                    ] 
+            For each sublist, a separate calculation dir is created and
+            populated with files based on `templates`. The `key` attribute of
+            each SQLEntry will be converted to a placeholder in each
+            FileTemplate and an attempt to replacement in the template files is
+            made. Note: Each sublist (parameter set) is flattened, so that it
+            can in fact be a nested list, e.g. params_lst = the result of a
+            complex comb.nested_loops() call.
         prefix : str, optional
             Calculation name. From this, the prefix for pw.in files and job
             name etc. will be built. By default, a string "_run<idx>" is
@@ -447,6 +455,10 @@ class ParameterStudy(object):
         if have_new_db:
             header = [(key, entry.sqltype) for key, entry in record.iteritems()]
             sqldb.create_table(header)
+        else:
+            for key, entry in record.iteritems():
+                if not sqldb.has_column(key):
+                    sqldb.add_column(key, entry.sqltype)
         for record in sql_records:
             sqlvals = ",".join(str(entry.sqlval) for entry in record.itervalues())
             cmd = "insert into %s (%s) values (%s)" %(self.db_table,

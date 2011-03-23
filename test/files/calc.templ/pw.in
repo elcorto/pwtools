@@ -1,35 +1,5 @@
-&control
-   calculation = 'scf'
-   restart_mode='from_scratch',
-   prefix='XXXPREFIX'
-   tstress = .true.
-   tprnfor = .true.
-   pseudo_dir = '/home/schmerler/soft/lib/espresso/pseudo/pseudo_espresso',
-   outdir='XXXSCRATCH'
-/
-&system
-    ibrav = 4, 
-    celldm(1) = 5.878937999, 
-    celldm(3) = 1.600128576,
-    nat = 4, 
-    ntyp = 2,
-    ecutwfc = XXXECUTWFC,
-    ecutrho = XXXECUTRHO,
-/
-&electrons
-   diagonalization='david'
-   mixing_mode = 'plain'
-   mixing_beta = 0.7
-   conv_thr =  1.0d-8
-/
-ATOMIC_SPECIES
-Al 26.981538 Al.pbe-n-van.UPF
-N 14.00674   N.pbe-van_ak.UPF
-ATOMIC_POSITIONS crystal
-Al  0.33333333333333      0.66666666666667      0       
-Al  0.66666666666667      0.33333333333333      0.50000 
-N   0.33333333333333      0.66666666666667      0.38800 
-N   0.66666666666667      0.33333333333333      0.88800 
-K_POINTS automatic
-XXXKPOINTS
-
+outdir=XXXSCRATCH
+ecutwfc=XXXECUTWFC
+ecutrho=XXXECUTRHO
+kpoints=XXXKPOINTS
+prefix=XXXPREFIX
