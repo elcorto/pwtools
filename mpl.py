@@ -93,7 +93,11 @@ def fig_ax():
 
 def fig_ax3d():
     fig = plt.figure()
-    ax = Axes3D(fig)
+    try: 
+        ax = fig.add_subplot(111, projection='3d')
+    except:
+        # mpl < 1.0.0
+        ax = Axes3D(fig)
     return fig, ax
 
 
@@ -184,6 +188,115 @@ def prepare_plots(names, projection='2d'):
     for nn in names:
         plots[nn] = Plot(*func())
     return plots        
+
+
+class Data3D(object):
+    """Container which converts between different x-y-z data formats frequently
+    used by scipy.interpolate.bispl{rep,ev} and mpl_toolkits.mplot3d fuctions.
+    """
+    def __init__(self, x=None, y=None, xx=None, yy=None, zz=None, X=None,
+                 Y=None, Z=None):
+        """
+        args:
+        -----
+        x,y : 1d arrays, shape (nx,) (ny,)
+            These are the raw x and y "axes".
+        X,Y,Z: meshgrid-like 2d arrays (nx, ny)
+        xx,yy,zz : 1d arrays (nx*ny)
+            "Double-loop" versions of x,y,Z, input for ax3d.scatter() or
+            bisplrep(). 
+        
+        example:
+        --------
+        x = linspace(...,5)
+        y = linspace(...,5)
+        X,Y = np.meshgridt(x,y)
+        Z = X**2+Y**2
+        data = Data3D(x=x,y=y,Z=Z)
+        xi = linspace(...,50)
+        yi = linspace(...,50)
+        ZI = bisplev(xi,yi,bisplrep(data.xx, data.yy, data.zz))
+        spline = Data3D(x=xi, y=yi, Z=ZI)
+        ax3d.scatter(data.xx, data.yy, data.zz)
+        ax3d.plot_wireframe(data.X, data.Y, data.Z)
+        ax3d.plot_surface(spline.X, spline.Y, spline.Z, cstride=1, rstride=1)
+
+        notes:
+        ------
+        Shape of X,Y,Z:
+
+        In 
+            X,Y = meshgridt(x,y), 
+        X and Y are the *transposed* versions of  
+            X,Y = numpy.meshgrid()
+        which returns (ny,nx). The shape (nx,ny), which we use, is more
+        intuitive and also used in ax3d.plot_surface() etc. The output of
+        scipy.interpolate.bisplev() is also (nx,ny).        
+        
+        xx,yy,zz:
+
+            nx = 10
+            ny = 5
+            x = linspace(...,nx)
+            y = linspace(...,ny)
+        To calculate z=f(x,y) on the x,y-grid, use meshgridt() or X.T, Y.T
+        from numpy.meshgrid(). 
+            X,Y = meshgridt(x,y)
+            Z = X**2 + Y**2
+        X,Y,Z are good for data generation and plotting (ax3d.plot_wireframe()). But
+        the input to bisplrep() must be flat X,Y,Z (xx,yy,zz) like so:
+            xx = X.flatten()
+            yy = Y.flatten()
+            zz = Z.flatten()
+        The same, as explicit loops:
+            xx = np.empty((nx*ny), dtype=float)
+            yy = np.empty((nx*ny), dtype=float)
+            zz = np.empty((nx*ny), dtype=float)
+            for ii in range(nx):
+                for jj in range(ny):
+                    idx = ii*ny+jj
+                    xx[idx] = x[ii]
+                    yy[idx] = y[jj]
+                    zz[idx] = x[ii]**2 + y[jj]**2
+        Construct the spline and evaluate
+            spl = bisplrep(xx,yy,zz,...)
+            ZI = bisplev(x,y)
+        Note that for evaluation, we must use the "axes" x and y, not xx and yy! 
+        ZI has the correct shape: (nx, ny), which is the shape of np.outer(x,y).
+        """
+        self.x = x
+        self.y = y
+        self.xx = xx
+        self.yy = yy
+        self.zz = zz
+        self.X = X
+        self.Y = Y
+        self.Z = Z
+        self.update()
+
+    def update(self):
+        if [self.x,self.y] != [None]*2:
+            self.X,self.Y = meshgridt(self.x, self.y)
+            self.xx = self.X.flatten()
+            self.yy = self.Y.flatten()
+        else:
+            if self.X is not None:
+                self.x = self.X[:,0]
+                self.xx = self.X.flatten()
+            if self.Y is not None:
+                self.y = self.Y[0,:]
+                self.yy = self.Y.flatten()
+        if self.Z is not None:
+            self.zz = self.Z.flatten()
+
+
+def get_3d_testdata():
+    x = np.linspace(-5,5,20)
+    y = np.linspace(-5,5,20)
+    X,Y = meshgridt(x,y)
+    Z = np.sin(X) + np.cos(Y)
+    return Data3D(X=X, Y=Y, Z=Z)
+
 
 #----------------------------------------------------------------------------
 # color and marker iterators
