@@ -3,8 +3,7 @@ import numpy as np
 from pwtools import common
 
 class SQLEntry(object):
-    def __init__(self, sqltype=None, sqlval=None, fileval=None, key=None, sql_type=None,
-                 sql_val=None, file_val=None):
+    def __init__(self, sqltype=None, sqlval=None, fileval=None, key=None):
         """Represent an entry in a SQLite database. An entry is one single
         value of one column and record (record = row). 
         
@@ -52,28 +51,11 @@ class SQLEntry(object):
             unicode         TEXT
             buffer          BLOB
         """
-        # backwd compat
-        assert None in [sqltype, sql_type], ("you use old syntax, one of " 
-               "[sql_type, sqltype] must not be None")
-        assert None in [sqlval, sql_val], ("you use old syntax, one of " 
-               "[sql_val, sqlval] must not be None")
-        if sql_type is not None:
-            sqltype = sql_type
-        if sql_val is not None:
-            sqlval = sql_val
-        if file_val is not None:
-            fileval = file_val
-        
         self.sqltype = sqltype
         self.fileval = sqlval if fileval is None else fileval
         self.sqlval = self._fix_sqlval(sqlval)
         self.key = key
 
-        # backwd compat
-        self.sql_val = self.sqlval
-        self.sql_type = self.sqltype
-        self.file_val = self.fileval
-    
     def _fix_sqlval(self, sqlval):
         if isinstance(sqlval, str):
             # "lala" -> "'lala'"
@@ -98,17 +80,28 @@ class SQLiteDB(object):
     example:
     --------
     >>> db = SQLiteDB('test.db', table='calc')
-    >>> db.create_table([('a', 'FLOAT'), ('b', 'TEXT')])
-    >>> db.execute("INSERT INTO %s ('a', 'b') VALUES (1.0, 'lala')" %db.table)
-    >>> db.execute("INSERT INTO %s ('a', 'b') VALUES (2.0, 'huhu')" %db.table)
+    >>> db.create_table([('a', 'float'), ('b', 'text')])
+    >>> db.execute("insert into %s ('a', 'b') values (1.0, 'lala')" %db.table)
+    >>> db.execute("insert into %s ('a', 'b') values (2.0, 'huhu')" %db.table)
     # iterator
-    >>> for record in db.execute("SELECT * FROM calc"):
+    >>> for record in db.execute("select * from calc"):
     ...     print record
     (1.0, u'lala')
     (2.0, u'huhu')
     # list
-    >>> print db.execute("SELECT * FROM calc").fetchall()
+    >>> print db.execute("select * from calc").fetchall()
     [(1.0, u'lala'), (2.0, u'huhu')]
+    >>> db.get_list1d("select a from calc")
+    [1.0, 2.0]
+    >>> db.get_list1d("select b from calc")
+    [u'lala', u'huhu']
+    >>> db.get_array1d("select a from calc")
+    array([ 1.,  2.])
+    >>> db.add_column('c', 'float')
+    >>> db.execute("update calc set c=5.0")
+    >>> db.get_array("select a,c from calc")
+    array([[ 1.,  5.],
+           [ 2.,  5.]])
     """
     def __init__(self, db_fn, table=None):
         """
@@ -206,7 +199,7 @@ class SQLiteDB(object):
     
     def get_list1d(self, *args, **kwargs):
         """Shortcut for commonly used functionality: If one extracts a single
-        row, then self.cur.fetchall() returns a list of tuples like 
+        column, then self.cur.fetchall() returns a list of tuples like 
             [(1,), (2,)]. 
         We call fetchall() and return the flattened list. 
         """
@@ -217,9 +210,10 @@ class SQLiteDB(object):
         return np.array(self.get_list1d(*args, **kwargs))
     
     def get_array(self, *args, **kwargs):
-        """Return result of self.execute().fetchall() as numpy array. Usful for
-        2d arrays, i.e. convert result of extracting >1 columns to numpy 2d
-        array."""
+        """Return result of self.execute().fetchall() as numpy array. 
+        
+        Usful for 2d arrays, i.e. convert result of extracting >1 columns to
+        numpy 2d array. The result depends on the data types of the columns."""
         return np.array(self.execute(*args, **kwargs).fetchall())
 
     def commit(self):

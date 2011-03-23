@@ -75,8 +75,8 @@ def test():
     for idx in idx_lst:
         pwfn = pj(calc_dir, str(idx), 'pw.in')
         jobfn = pj(calc_dir, str(idx), machine.jobfn) 
-        assert float(ecutwfc[idx].file_val) == float(file_get(pwfn, 'ecutwfc'))
-        assert float(ecutwfc[idx].file_val) == float(_ecutwfc[idx])
+        assert float(ecutwfc[idx].fileval) == float(file_get(pwfn, 'ecutwfc'))
+        assert float(ecutwfc[idx].fileval) == float(_ecutwfc[idx])
         # same placeholders in different files
         assert machine.scratch == file_get(jobfn, 'scratch')
         assert machine.scratch == file_get(pwfn, 'outdir')
@@ -114,7 +114,7 @@ def test():
         pwfn = pj(calc_dir, str(idx), 'pw.in')
         jobfn = pj(calc_dir, str(idx), machine.jobfn)
         # the study index is 3,4, but the local parameter index is 0,1
-        assert float(ecutwfc[idx-3].file_val) == \
+        assert float(ecutwfc[idx-3].fileval) == \
                float(file_get(pwfn, 'ecutwfc'))
         assert float(ecut) == float(file_get(pwfn, 'ecutwfc'))
         assert prefix + '_run%i' %idx == file_get(pwfn, 'prefix')
