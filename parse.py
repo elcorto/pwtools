@@ -1500,7 +1500,7 @@ class PwVCMDOutputFile(PwOutputFile):
         if ret_str.strip() == '':
             return None
         else:            
-            data = np.loadtxt(StringIO(ret_str))
+            data = np.atleast_2d(np.loadtxt(StringIO(ret_str)))
             return {'ekin': data[:,0],
                     'temperature': data[:,1],
                     'econst': data[:,2]}
