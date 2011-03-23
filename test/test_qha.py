@@ -4,7 +4,7 @@
 
 def test():
     import numpy as np
-    from matplotlib import pyplot as plt
+##    from matplotlib import pyplot as plt
     from pwtools.thermo import HarmonicThermo
     from pwtools import common
 
@@ -49,7 +49,6 @@ def test():
            'cv':   Store(arr1=ha.cv(),   arr2=fqha[:,3]),
            'svib': Store(arr1=ha.svib(), arr2=fqha[:,4]),
            }
-
     for key, store in dct.iteritems():
         np.testing.assert_array_almost_equal(store.arr1, store.arr2, decimal=2)
     ##    plt.figure()
@@ -58,5 +57,13 @@ def test():
     ##    plt.plot(T, store.arr1 - store.arr2, label='%s: diff'%key)
     ##    plt.legend()
     ##plt.show()
+    
+    # use temp arg in methods
+    ha = HarmonicThermo(pdos[:,0], pdos[:,1], fixzero=True, fixnan=True,
+                        checknan=True)
+    x=ha.evib(T)                        
+    x=ha.fvib(T)
+    x=ha.cv(T)
+    x=ha.svib(T)
 
     pack(files)
