@@ -142,18 +142,14 @@ class HarmonicThermo(object):
         return ret # [kb]
     
     def evib(self):
-        verbose('evib')
         return self.vibrational_internal_energy()
 
     def cv(self):
-        verbose('cv')
         return self.isochoric_heat_capacity()
     
     def fvib(self):
-        verbose('fvib')
         return self.vibrational_free_energy()
     
     def svib(self):
-        verbose('svib')
         return self.vibrational_entropy()
 
