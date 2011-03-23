@@ -45,7 +45,7 @@ theory
 
 For 3d arrays with real velocity data, (1) is much slower b/c ATM the VACF is
 calculated directly via loops. Possible optimization: calc the autocorrelation
-via FFT (see corr.py and the Wiener-Khinchin theorem). But this is useless
+via FFT (see signal.py and the Wiener-Khinchin theorem). But this is useless
 b/c the theorem tells us that in fact method (1) is just a more complicated way
 of doing (2). BTW, (3) is the same as (2) -- direct FFT of velocities.
 
@@ -241,7 +241,7 @@ print "y1.shape", y1.shape
 
 # 2) fft the autocorrelation of `arr`
 print "|fft(acorr(arr))| ..."
-fft_arr = pydos.mirror(corr.acorr(arr*signal.welch(arr.shape[0]), method=5))
+fft_arr = pydos.mirror(signal.acorr(arr*signal.welch(arr.shape[0]), method=5))
 y2 = np.abs(fft(fft_arr))
 print "y2.shape", y2.shape 
 

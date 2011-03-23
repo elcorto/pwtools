@@ -12,7 +12,6 @@ import numpy as np
 from math import pi, sqrt
 from matplotlib import pyplot as plt
 from pwtools import signal
-from pwtools import corr
 from scipy.fftpack import fft
 
 print "sin() test ..."
@@ -79,9 +78,9 @@ runner.run(yy, '-', 'fft(yy)', title)
 #-------------------------------------------------------
 
 # ACF, for now don't mirror <y(0)y(t)> at t=0
-title =  "fft(c), using c=corr.acorr(v, method=6)"
+title =  "fft(c), using c=signal.acorr(v, method=6)"
 v = y[1:]-y[:-1]
-c = corr.acorr(v, method=6)
+c = signal.acorr(v, method=6)
 runner.run(c, '-', 'fft(c)', title)
 plt.figure()
 plt.plot(c)

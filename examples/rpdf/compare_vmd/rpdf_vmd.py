@@ -19,16 +19,18 @@ if __name__ == '__main__':
     # ---------
     
     common.system("gunzip pw.out.gz")
-    pp = parse.PwOutputFile('pw.out', 'pw.in')
-    pp.parse()
+    pwout = parse.PwOutputFile('pw.out')
+    pwin = parse.PwInputFile('pw.in')
+    pwout.parse()
+    pwin.parse()
     common.system("gzip pw.out")
-    alat_ang = float(pp.infile.namelists['system']['celldm(1)']) * constants.a0_to_A
+    alat_ang = float(pwin.namelists['system']['celldm(1)']) * constants.a0_to_A
     # cart Angstrom -> crystal
     cell = np.identity(3)*alat_ang
-    coords = pp.coords / alat_ang # 3d
+    coords = pwout.coords / alat_ang # 3d
     
     # O_Ca
-    symbols = np.array(pp.infile.symbols)
+    symbols = np.array(pwin.symbols)
     msk1 = symbols=='O'
     msk2 = symbols=='Ca'
     tslice = np.s_[-1]
@@ -39,7 +41,7 @@ if __name__ == '__main__':
     cdct['O:Ca:1:-1'] = coords_lst
     
     # Ca_O
-    symbols = np.array(pp.infile.symbols)
+    symbols = np.array(pwin.symbols)
     msk1 = symbols=='Ca'
     msk2 = symbols=='O'
     tslice = np.s_[-1]
@@ -50,7 +52,7 @@ if __name__ == '__main__':
     cdct['Ca:O:1:-1'] = coords_lst
     
     # O_H
-    symbols = np.array(pp.infile.symbols)
+    symbols = np.array(pwin.symbols)
     msk1 = symbols=='O'
     msk2 = symbols=='H'
     tslice = np.s_[-1]

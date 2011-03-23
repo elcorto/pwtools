@@ -1362,6 +1362,7 @@ def vmd_measure_gofr(coords, cell, symbols, dr, rmax='auto', selstr1='all', sels
     }    
     quit
     """)
+    from pwtools.io import write_axsf
     # Speed: The VMD command "measure gofr" is multithreaded and written in C.
     # That's why it is faster then the pure Python rpdf() above when we have to
     # average many timesteps. But the writing of the .axsf file here is
