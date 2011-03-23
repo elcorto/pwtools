@@ -191,26 +191,26 @@ def nstep_from_txt(txt):
     else:
         return int(txt)
 
-def traj_from_txt(txt, shape, axis=-1):
+def traj_from_txt(txt, shape, axis=-1, dtype=np.float):
     """Used for 3d trajectories where the exact shape must be known (N,3,nstep)
     where N=3 (cell, stresstensor) or N=natoms (coords, forces, ...). 
     """
     if txt.strip() == '':
         return None
     else:
-        return io.readtxt(StringIO(txt), axis=axis, shape=shape)
+        return io.readtxt(StringIO(txt), axis=axis, shape=shape).astype(dtype)
 
-def arr1d_from_txt(txt):
+def arr1d_from_txt(txt, dtype=np.float):
     if txt.strip() == '':
         return None
     else:
-        return np.atleast_1d(np.loadtxt(StringIO(txt)))
+        return np.atleast_1d(np.loadtxt(StringIO(txt))).astype(dtype)
 
-def arr2d_from_txt(txt):
+def arr2d_from_txt(txt, dtype=np.float):
     if txt.strip() == '':
         return None
     else:
-        return np.atleast_2d(np.loadtxt(StringIO(txt)))
+        return np.atleast_2d(np.loadtxt(StringIO(txt))).astype(dtype)
 
 #-----------------------------------------------------------------------------
 # Parsers
@@ -1298,6 +1298,7 @@ class PwOutputFile(FileParser):
         self.time_axis = -1
         self.set_attr_lst([\
         'nstep', 
+        'nstep_scf', 
         'etot', 
         'ekin', 
         'stresstensor', 
@@ -1485,6 +1486,12 @@ class PwOutputFile(FileParser):
             | sed -re 's/^.*Total\s+force\s*=\s*(.*)\s*Total.*/\1/'" \
             %self.filename
         return arr2d_from_txt(com.backtick(cmd))
+
+    def get_nstep_scf(self):
+        verbose("getting nstep_scf")
+        cmd = r"grep 'convergence has been achieved in' %s | awk '{print $6}'" \
+            %self.filename
+        return arr1d_from_txt(com.backtick(cmd), dtype=int)
 
     
 class PwVCMDOutputFile(PwOutputFile):
@@ -1691,6 +1698,7 @@ class AbinitSCFOutputFile(FileParser):
             'forces_rms',
             'forces',
             'nkpt',
+            'nstep_scf',
             ])
     
         # Conceptually not needed for SCF, but some quantities are printed and
@@ -1745,12 +1753,27 @@ class AbinitSCFOutputFile(FileParser):
             strt[1,2,:] = strt[2,1,:]
             return strt
     
+    def _get_nstep_scf_raw(self):
+        verbose("getting _nstep_scf_raw")
+        cmd = r"grep 'At SCF.*converged' %s | sed -re 's/.*step\s*([0-9]+),.*/\1/'" \
+            %self.filename
+        return arr1d_from_txt(com.backtick(cmd), dtype=int)
+
     def get_stresstensor(self):
         """Return the last printed stresstensor."""
         req = ['_stresstensor_raw']
         self.check_get_attrs(req)
         if self.is_set_attrs(req):
             return self._stresstensor_raw[...,-1]
+        else:
+            return None
+    
+    def get_nstep_scf(self):
+        verbose("getting nstep_scf")
+        req = ['_nstep_scf_raw']
+        self.check_get_attrs(req)
+        if self.is_set_attrs(req):
+            return self._nstep_scf_raw[-1]
         else:
             return None
     
@@ -1950,6 +1973,13 @@ class AbinitMDOptOutputFile(AbinitSCFOutputFile):
          'nstep', 
         ]
         self.set_attr_lst(attr_lst)
+    
+    def get_nstep_scf(self):
+        verbose("getting nstep_scf")
+        req = ['_nstep_scf_raw']
+        self.check_get_attrs(req)
+        ret = self._nstep_scf_raw
+        return None if ret is None else ret
 
     def get_angles(self):
         verbose("getting angles")
