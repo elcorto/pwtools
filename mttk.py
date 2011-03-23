@@ -3,7 +3,7 @@
 # Fictitious masses for Nose-Hoover thermostat chains (NHCs) and barostat from
 # the MTTK paper [1].
 #
-# Atomic units: All "masses" have dimension mass * length**2 [kg * m**2] and
+# Atomic units: All "masses" have dimension [mass * length**2] = [kg * m**2] and
 # are converted to Hartree atomic units: mass[kg] / m0 (electron mass),
 # length[m] / a0 (Bohr). We are not totally sure, but we belief that these area
 # the units for qmass an bmass used in Abinit. As usual, this is not documented
@@ -31,7 +31,7 @@ def add_doc(func):
         with ndim==3 (x,y,z).
     """
     dct['ndim'] = \
-    """nf : scalar
+    """ndim : scalar
         Number of dimensions. Usually ndim==3 (x,y,z).
     """
     # Use dictionary string replacement:
@@ -128,5 +128,5 @@ def barostat_mass_wg(freq, temp, nf=None, ndim=3):
     --------
     W_g : barostat mass
     """
-    return float(nf+ndim)*kb*temp / ndim / freq**2.0  / m0 / a0**2.0
+    return float(nf+ndim)*kb*temp / float(ndim) / freq**2.0  / m0 / a0**2.0
 
