@@ -6,7 +6,7 @@
 import os
 from cStringIO import StringIO
 import numpy as np
-from pwtools import io, common
+from pwtools import io, common, crys
 from testenv import testdir
 pj = os.path.join
 
@@ -21,7 +21,12 @@ def test():
     # fractional, 2 time steps: (2,3,2) = (natoms, 3, nstep)
     coords3d= np.dstack((coords2d[...,None],coords2d[...,None]*3))
     # cartesian
-    coords3d_cart = np.dot(coords3d.swapaxes(-1,-2), cell).swapaxes(-1,-2)
+##    coords3d_cart = np.dot(coords3d.swapaxes(-1,-2), cell).swapaxes(-1,-2)
+    coords3d_cart = crys.coord_trans(coords3d, 
+                                     old=cell, 
+                                     new=np.identity(3),
+                                     axis=1,
+                                     align='rows')
     coords2d_cart = coords3d_cart[...,0]
     symbols = ['H']*2
     forces2d = np.random.random(coords2d.shape)
@@ -112,7 +117,12 @@ def test():
                          [1,1,1]])
     # (2,3,2) = (natoms, 3, nstep)
     coords3d = np.dstack((coords2d[...,None],coords2d[...,None]*3))
-    coords3d_cart = np.dot(coords3d.swapaxes(-1,-2), cell).swapaxes(-1,-2)
+##    coords3d_cart = np.dot(coords3d.swapaxes(-1,-2), cell).swapaxes(-1,-2)
+    coords3d_cart = crys.coord_trans(coords3d, 
+                                     old=cell, 
+                                     new=np.identity(3),
+                                     axis=1,
+                                     align='rows')
     coords2d_cart = coords3d_cart[...,0]
     symbols = ['H']*2
     forces2d = np.random.random(coords2d.shape)

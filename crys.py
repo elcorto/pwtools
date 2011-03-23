@@ -613,8 +613,8 @@ def pbc_wrap(coords, copy=True, mask=[True]*3, xyz_axis=-1):
     return tmp        
 
 
-def coord_trans(coords, old=None, new=None, copy=True, align='cols'):
-    """Coordinate transformation.
+def coord_trans(coords, old=None, new=None, copy=True, axis=-1, align='cols'):
+    """General-purpose n-dimensional coordinate transformation.
     
     args:
     -----
@@ -624,14 +624,17 @@ def coord_trans(coords, old=None, new=None, copy=True, align='cols'):
         equal the number of coordinates (coords.shape[-1] == M == 3 for normal
         3-dim x,y,z). 
             1d : trivial, transform that vector (length M)
-            2d : The matrix must have shape (N,M), i.e. the vectors to be
+            2d : The matrix must have shape (N,M), i.e. N vectors to be
                 transformed are the *rows*.
-            3d : coords must have the shape (..., M)                 
-    old, new : 2d arrays
+            3d : coords must have shape (..., M)
+        If `coords` has a different shape, use `axis`.             
+    old, new : 2d arrays (M,M)
         matrices with the old and new basis vectors as rows or cols
     copy : bool, optional
         True: overwrite `coords`
         False: return new array
+    axis : the axis along which the length-M vectors are placed in `coords`,
+        default is -1, i.e. coords.shape = (...,M)
     align : string
         {'cols', 'rows'}
         cols : basis vecs are columns of `old` and `new`
@@ -676,8 +679,9 @@ def coord_trans(coords, old=None, new=None, copy=True, align='cols'):
     >>> np.testing.assert_almost_equal(coordsold, coordsold2)
     
     # If you have an array of shape, say (10,3,100), i.e. the last dimension is
-    # NOT 3, then use numpy.swapaxes():
+    # NOT 3, then use numpy.swapaxes() or axis:
     >>> coord_trans(arr.swapaxes(1,2), old=..., new=...).swapaxes(1,2)
+    >>> coord_trans(arr, old=..., new=..., axis=1)
 
     refs:
     [1] http://www.mathe.tu-freiberg.de/~eiermann/Vorlesungen/HM/index_HM2.htm
@@ -701,8 +705,11 @@ def coord_trans(coords, old=None, new=None, copy=True, align='cols'):
     #     
     #     Y . v_Y = X . v_X = I . v_I = v_I
     #     v_Y = Y^-1 . X . v_X = A . v_X
-    #
-    #     v_Y^T = (A . v_X)^T = v_Y^T . A^T
+    # 
+    # From linalg we know that (A . B)^T = B^T . A^T, so the problem written
+    # for *row* vectors v^T is
+    #     
+    #     v_Y^T = (A . v_X)^T = v_X^T . A^T
     # 
     # Every product X . v_X, Y . v_Y, v_I . I (in general [basis] .
     # v_[basis]) is actually an expansion of v_{X,Y,...} in the basis vectors
@@ -788,24 +795,39 @@ def coord_trans(coords, old=None, new=None, copy=True, align='cols'):
     #     # coord on each row at time step j
     #     for j in xrange(R.shape[1]):
     #             newR[:,j,:] = dot(R[:,j,:],A.T)
-                 
-    common.assert_cond(old.ndim == new.ndim == 2, "`old` and `new` must be rank 2 arrays")
-    common.assert_cond(old.shape == new.shape, "`old` and `new` must have th same shape")
-    msg = ''        
+    
+    common.assert_cond(old.ndim == new.ndim == 2, 
+                       "`old` and `new` must be rank 2 arrays")
+    common.assert_cond(old.shape == new.shape, 
+                       "`old` and `new` must have th same shape")
+    common.assert_cond(old.shape[0] == old.shape[1], 
+                      "`old` and `new` must be square")
+    # arr.T and arr.swapaxes() are no in-place operations, just views, input
+    # arrays are not changed, but copy() b/c we ca overwrite coords
+    _coords = coords.copy() if copy else coords
+    mx_axis = _coords.ndim - 1
+    axis = mx_axis if (axis == -1) else axis
     if align == 'rows':
         old = old.T
         new = new.T
-        msg = 'after transpose, '
+    # must use `coords[:] = ...`, just `coords = ...` is a new array
+    if axis != mx_axis:
+        # bring xyz-axis to -1 for broadcasting
+        _coords[:] = _trans(_coords.swapaxes(-1, axis), 
+                            old,
+                            new).swapaxes(-1, axis)
+    else:                            
+        _coords[:] = _trans(_coords, 
+                            old,
+                            new)
+    return _coords
+
+def _trans(coords, old, new):
+    # Helper for coord_trans().
     common.assert_cond(coords.shape[-1] == old.shape[0], 
-                       "%slast dim of `coords` must match first dim"
-                       " of `old` and `new`" %msg)
-    if copy:
-        tmp = coords.copy()
-    else:
-        tmp = coords
-    # must use `tmp[:] = ...`, just `tmp = ...` is a new array
-    tmp[:] = np.dot(tmp, np.dot(inv(new), old).T)
-    return tmp
+                       "last dim of `coords` must match first dim"
+                       " of `old` and `new`")
+    return np.dot(coords, np.dot(inv(new), old).T)
 
 
 def min_image_convention(sij, copy=False):
