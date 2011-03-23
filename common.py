@@ -22,6 +22,7 @@ import numpy as np
 # numutils.py or whatever
 from scipy.integrate import simps
 from scipy.interpolate import splev, splrep
+
 from pwtools.verbose import verbose
 
 
@@ -825,9 +826,9 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
     
     args:
     -----
-    txt : string
+    txt : string with placeholders
     dct : dictionary with placeholders (keys) and values to replace them
-    conv : bool, convert `dct` values to strings with str()
+    conv : bool, convert values dct.values() to strings with frepr()
     warn_mult_found : bool, warning if a key is found multiple times in `txt`
     warn_not_found : bool, warning if a key is NOT found in `txt`
     disp : tell which keys have been replaced
@@ -843,7 +844,7 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
             exact same arbitrary string (e.g. 'XXXFOO' in both). Here,
             dct.values() must be strings. If not, use conv=True to
             automatically convert them to strings, but note that this is
-            limited since only str(<val>) is used.
+            limited since only frepr(<val>) is used.
     
     returns:
     --------
@@ -852,7 +853,7 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
     example:
     --------
     >>> txt = file_read('file.txt') 
-    >>> dct = {'XXXONE': 1, 'XXXPI': '%.16e' %math.pi}
+    >>> dct = {'XXXONE': '1', 'XXXPI': '%.16e' %math.pi}
     >>> new_txt = template_replace(txt, dct, conv=True, mode='txt')
     >>>
     >>> txt = 'XXXONE  XXXPI'                            
@@ -898,7 +899,7 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
         if tst_key in txt:
             if is_txt_mode:
                 if conv:
-                    val = str(val)
+                    val = frepr(val, ffmt="%.16e")
                 else:                    
                     if not isinstance(val, types.StringType):
                         raise StandardError("dict vals must be strings: "
