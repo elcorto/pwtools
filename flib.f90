@@ -1,5 +1,21 @@
 ! Fortran extension module to calculate the velocity autocorrelation function.
 ! See Makefile for compilation, pydos.fvacf() for usage.
+!
+! Remove "!verbose" below to get some OpenMP debugging infos.
+!
+! stdout/stderr
+! -------------
+! write(*,*) or write(6,*) write to stdout, write(0,*) to stderr. This works for
+! redirecting text in the shell:
+!   ./a.out > foo
+!   ./a.out > foo 2>&1
+! But it does not work for Fortran extensions. For instance, nose (testing) still
+! prints stdout messages from Fortran extensions instead of catching them. AFAIK,
+! there is no eays (read: f2py builtin) solution. If you know better, send me an
+! email -- or a patch!
+
+#define stdout 6
+#define stderr 0
 
 subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
     
@@ -39,21 +55,21 @@ subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
     ! input args. nthreads is alawys present. When it is not
     ! supplied, the if clause *should* evaluate to .false. . Instead, 
     ! nthreads is simply 0. This is not very pretty ...
-    write(*,*) this, "nthreads input: ", nthreads
+!verbose    write(stdout,*) this, "nthreads input: ", nthreads
     
     if (nthreads /= 0) then
-        write(*,*) this, "setting nthreads to ", nthreads
+!verbose        write(stdout,*) this, "setting nthreads to ", nthreads
         call omp_set_num_threads(nthreads)
-    else        
-        write(*,*) this, "number of threads controlled by OMP_NUM_THREADS or &
-        number of cores"        
+!verbose    else        
+!verbose        write(stdout,*) this, "number of threads controlled by OMP_NUM_THREADS or &
+!verbose        number of cores"        
     end if        
-    write(*,*) this, "num threads:", omp_get_max_threads()
-#else
-    if (nthreads /= 0) then
-        write(*,*) this, "warning: nthreads is ignored, not compiled with &
-        OpenMP support"
-    end if
+!verbose    write(stdout,*) this, "num threads:", omp_get_max_threads()
+!verbose#else
+!verbose    if (nthreads /= 0) then
+!verbose        write(stdout,*) this, "warning: nthreads is ignored, not compiled with &
+!verbose        OpenMP support"
+!verbose    end if
 #endif    
 
     if (method == 1) then 
@@ -98,7 +114,7 @@ subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
             !$omp end do
             !$omp end parallel
         else
-            write(0,*) this, "ERROR: illegal value for 'use_m'"
+            write(stderr,*) this, "ERROR: illegal value for 'use_m'"
             return
         end if
         c = c / c(0)
@@ -134,33 +150,30 @@ subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
         else if (use_m == 0) then        
             call vect_loops(v, natoms, nstep, c)
         else
-            write(0,*) this, "ERROR: illegal value for 'use_m'"
+            write(stderr,*) this, "ERROR: illegal value for 'use_m'"
             return
         end if
         c = c / c(0)
         return
     else        
-        write(0,*) this, "ERROR: illegal value for 'method'"
+        write(stderr,*) this, "ERROR: illegal value for 'method'"
         return
     end if
 end subroutine vacf
 
 
 subroutine vect_loops(v, natoms, nstep, c)
-
 #ifdef __OPENMP
     use omp_lib
     !f2py threadsafe
 #endif    
-
     implicit none
     integer :: t, nstep, natoms
     ! v(:, :, :) and v(0:, 0:, 0:) results in c = [NaN, ..., NaN]. 
     ! v(0:, 0:nstep-1, 0:) is not allowed (at least, ifort complains).
-!!    double precision, intent(in) :: v(:, :, :)
+    !!double precision, intent(in) :: v(:, :, :)
     double precision, intent(in) :: v(0:natoms-1, 0:2, 0:nstep-1)
     double precision, intent(out) :: c(0:nstep-1)
-    
     !$omp parallel
     !$omp do
     do t = 0,nstep-1
@@ -168,22 +181,17 @@ subroutine vect_loops(v, natoms, nstep, c)
     end do
     !$omp end do
     !$omp end parallel
-
 end subroutine vect_loops
 
 
 subroutine acorr(v, c, nstep, method, norm)
-    
     ! (Normalized) 1d-vacf: c_vv(t) = C_vv(t) / C_vv(0)
     ! This is a reference implementation.
-    
     implicit none
     integer :: nstep, t, j, method, norm
     double precision, intent(in) :: v(0:nstep-1)
     double precision, intent(out) :: c(0:nstep-1)
-    
     !f2py intent(in, out) c
-
     if (method == 1) then 
         do t = 0,nstep-1
             do j = 0,nstep - t - 1
@@ -199,15 +207,4 @@ subroutine acorr(v, c, nstep, method, norm)
         c = c / c(0)
     end if        
     return
-
 end subroutine acorr
-
-
-subroutine msg(this, txt)
-    
-    implicit none
-    character(len=*) :: this, txt
-    
-    write(*,*) "[", this, "] ", txt
-
-end subroutine msg

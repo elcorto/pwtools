@@ -27,15 +27,21 @@
 # For test_f2py_flib_openmp.py, we set OMP_NUM_THREADS=3. This will
 # oversubscribe any CPU with less than 3 cores, but should run fine.
 
+prnt(){
+    echo "$@" | tee -a $logfile
+}    
 
-tgt=$(cd .. && pwd)
 testdir=/tmp/pwtools-test.$$
 mkdir -pv $testdir
 logfile=$testdir/runtests.log
-cp -rvL $tgt $testdir/pwtools | tee -a $logfile
+prnt "copy package ..."
+tgt=$(cd .. && pwd)
+cp -rvL $tgt $testdir/pwtools &>> $logfile
 cd $testdir/pwtools/
-# build extension modules
-[ -f Makefile ] && make  | tee -a $logfile
+prnt "... ready"
+prnt "build extension modules ..."
+[ -f Makefile ] && make &>> $logfile
+prnt "... ready"
 cd test/
 
 # HACK: communicate variable to test_*.py modules. All tests which write temp
@@ -43,24 +49,25 @@ cd test/
 echo "testdir='$testdir'" > testenv.py
 
 # Purge any compiled files.
-echo "Deleting *.pyc files ..." | tee -a $logfile
-rm -vf $(find ../ -name "*.pyc")  $(find . -name "*.pyc") 2>&1 \
-    | tee -a $logfile
+prnt 'deleting *.pyc files ...'
+rm -vf $(find ../ -name "*.pyc")  $(find . -name "*.pyc") \
+    &>> $logfile
+prnt "... ready"
 
-echo "Running tests ..." | tee -a $logfile
+prnt "running tests ..."
 PYTHONPATH=$testdir:$PYTHONPATH \
 OMP_NUM_THREADS=3 \
 nosetests $@ 2>&1 | tee -a $logfile
+prnt "... ready"
 
 cat << eof
-#################################################################
-Logfile error/warning summary. Logfile may not contain 
-everything. Use $0 -s in that case. 
-#################################################################
+
+Logfile: $logfile
+Logfile error/warning summary follows. Logfile may not contain everything. Use
+$0 -s in that case. 
+------------------------------------------------------------------------------
 eof
 egrep -i 'error|warning|fail' $logfile
 cat << eof
-#################################################################
-Logfile: $logfile
-#################################################################
+------------------------------------------------------------------------------
 eof

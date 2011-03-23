@@ -2,7 +2,7 @@ def test():
     import numpy as np
     from pwtools import _flib
     from pwtools.pydos import fvacf
-    from pwtools.common import system
+    from pwtools.common import backtick
     import os
     import sys
 
@@ -14,7 +14,7 @@ def test():
             if has_key:
                 print "[omp_num_threads] os.environ['%s']: %s" %(key, os.environ[key])
                 print "[omp_num_threads] shell$ echo %s" %(key)
-                system('echo $%s' %key)
+                print backtick('echo $%s' %key)
                 if err and os.environ[key] != '3':
                     return 'err'
             else:
