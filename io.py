@@ -417,7 +417,10 @@ def write_cif(filename, coords, cell, symbols, align='rows'):
     # "loop_" with multiple columns            
     block.AddCifItem([[data_names], [data]])                
     cf['pwtools'] = block
-    common.file_write(filename, cf.WriteOut())
+    # maxoutlength = 2048 is default for cif 1.1 standard (which is default in
+    # pycifrw 3.x). Reset default wraplength=80 b/c ASE's cif reader cannot
+    # handle wrapped lines.
+    common.file_write(filename, cf.WriteOut(wraplength=2048))
 
 
 @crys_add_doc
