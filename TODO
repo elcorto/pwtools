@@ -1,6 +1,6 @@
 pydos.py
 --------
-- unify vacf_pdos(), direct_pdos(), thay have almost the same signature and
+- unify vacf_pdos(), direct_pdos(), they have almost the same signature and
   functionallity, use a kwarg 'method' to select the method of calculation
 
 - PDOS normalization. ATM we normalize so that Int(faxis, pdos) = area = 1.0. 
@@ -10,27 +10,36 @@ pydos.py
 - We assume that the ATOMIC_POSITIONS unit (crystal, alat, angstrom) in
   pw.in and that of the parsed out ones from pw.out are the same. Check this!
   For example, it is seems to be NOT the same for cp.x!
+  => This is no longer true. We parse output w/o any information from the input
+  file. The user is responsible, he must know what units are used in the
+  output.
 
 all
 ---
 - Drop verbose.py. Use the logging or warnings module.
 
-- io.write_*(): by using cryst_const instead of `cp`, we would get rid of the
-  annoying `align` kwarg. I guess that it is not even necessary everywhere.
+- io.write_*(): by using `cryst_const` instead of `cell`, we would get rid of
+  the annoying `align` kwarg. In fact, I think it is really used only
+  crys.coord_trans().
 
-- Function to convert between ASE Atoms objects and things like PwOutputFile.
-  We have an example script so far ...
+- move all numerical stuff (esp. from common) into new module (numutils.py or
+  whatever)
 
+ase interface and some ideas on how to not use plain 3d arrays
+--------------------------------------------------------------
 - Using raw 3d arrays for trajectories is cumbersome, esp. when we want to do
-  coord transformations (see io.write_axsf()). Add unified storage class
+  coord transformations (see io.write_axsf()). 
+  Update: We have a new crys.coord_trans() version, which is more usable.
+
+  Add unified storage class
   Trajectory (like structure.Structure) to hide the data storage as 3d arrays.
-  Make them have list-like hehavior (modify __getitem__).
+  Make them have list-like hehavior (modify __getitem__), much like ASE's
+  PickleTrajectory.
+      >>> traj = Trajectory(...)
+      >>> assert (traj[0] == traj.raw_coords[...,0]).all()
+  Or only implement a Trajectory class to hold 3d arrays, which hides the
+  time_axis stuff.
 
-  >>> traj = Trajectory(...)
-  >>> assert (traj[0] == traj.raw_coords[...,0]).all()
-
-ase interface
--------------
 - Add class Structure to hold stuff like
     - coords
     - cell
@@ -44,9 +53,16 @@ ase interface
   instance of Structure. 
   This is in progress ... see structure.py
 
-- Subclass ase.Atoms -> PwAtoms, add set_forces() method. In
+- Function to convert between ASE Atoms objects and things like PwOutputFile.
+  We have an example script so far, and structure.Structure.get_ase_atoms() for
+  one structure.
+
+- ase.Atoms is nice, but for some reason, it has no set_forces() (or some such)
+  method. Last time I checked, forces are retrieved from the attached
+  Calculator object, but cannot be set freely, which is pretty sad for a
+  container class. Subclass ase.Atoms -> PwAtoms, add set_forces() method. In
   StructureFileParser, add method get_ase_atoms() which adds forces and returns
-  a PwAtoms instance. 
+  a PwAtoms instance. ATM, we have that, but w/o forces.
 
 - Check if a ASE trajectory (do they just have this PickleTrajectory thing?) is
   just a list of Atoms objects or if PickleTrajectory instances have a list API
@@ -67,8 +83,8 @@ parse.py
 - Currently, we have a inconsistency for scf/md output parsers. In case of SCF,
   all Abinit quantities have one dimension less.     
     Pw*OutputFile: 
-        - work for MD-like (many time steps) and SCF (one time step)
-        - For SCF, all trajectory-like arrays are at at least 2d and have
+        - works for MD-like (many time steps) and SCF (one time step)
+        - For SCF, all trajectory-like arrays are at least 2d and have
           nstep=1 along the time axis, e.g. pressure.shape = (1,): can be
           scalar, coords.shape = (natoms, 3, 1): can be 2d (natoms, 3) 
     Abinit*OutputFile
@@ -87,10 +103,9 @@ parse.py
      - Implement class PwSCFOutputFile(PwOutputFile) and return the last value
        along time axis, e.g. pressure[-1], coords[...,-1].
    treat SCF as MD w/ nstep=1
-     - In AbinitSCFOutputFile, add time axis (np.atleast_{2d,3d} newaxis
+     - In AbinitSCFOutputFile, add time axis (np.atleast_{2d,3d} or newaxis
        tricks) for each array.
          
-
 eos.py
 ------
 - Use new common.Spline
