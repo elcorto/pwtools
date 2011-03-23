@@ -1,6 +1,6 @@
 def test():
     import numpy as np
-    from pwtools.corr import acorr
+    from pwtools.signal import acorr
 
     arr = np.random.rand(100)
     ref = acorr(arr, method=1, norm=True)

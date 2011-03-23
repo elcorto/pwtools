@@ -1,10 +1,11 @@
 # signal.py
 #
-# Some general FFT/DFT stuff. Mostly textbook and reference implementations and
-# utilities. FFT helper functions.
-#
+# After scipy.signal: Some general "signal procressing" tools (FFT,
+# correlation). Mostly textbook and reference implementations and utilities.
 
 import numpy as np
+from scipy.fftpack import fft, ifft
+from pwtools import _flib
 
 def fftsample(a, b, mode='f', mirr=False):
     """Convert size and resolution between frequency and time domain.
@@ -18,7 +19,7 @@ def fftsample(a, b, mode='f', mirr=False):
     
     args:
     -----
-    a, b: see below
+    a, b: 1d arrays, see below
     mode : string, {'f', 't'}
         f : frequency mode
         t : time mode
@@ -75,7 +76,7 @@ def fftsample(a, b, mode='f', mirr=False):
 
 
 def dft(a, method='loop'):
-    """Simple straightforward complex DFT algo.
+    """Simple straightforward complex DFT algo. 
     
     args:
     -----
@@ -116,7 +117,7 @@ def dft(a, method='loop'):
 
     The algo for method=='matmul' is the matrix mult from [1], but as Forward
     DFT for comparison with scipy. The difference between FW and BW DFT is that
-    the imaginary parts are mirrored around y=0. 
+    the imaginary parts are mirrored at y=0. 
 
     [1] Numerical Recipes in Fortran, Second Edition, 1992
     [2] http://www.fftw.org/doc/The-1d-Real_002ddata-DFT.html
@@ -256,4 +257,115 @@ def welch(M, sym=1):
     if not sym and not odd:
         w = w[:-1]
     return w
+
+# Generalization to correlation corr(v,w) should be straightforward.
+# Autocorrelation is then corr(v,v).
+def acorr(v, method=7, norm=True):
+    """(Normalized) autocorrelation function (ACF) for 1d arrays:
+    Without normalization
+        c(t) = <v(0) v(t)>
+    and with
+        c(t) = <v(0) v(t)> / <v(0)**2>
+            
+    The x-axis is the offset "t" (or "lag" in Digital Signal Processing lit.).
+
+    Several Python and Fortran implememtations. The Python versions are mostly
+    for reference and are slow, except for fft-based, which is by far the
+    fastet. 
+
+    args:
+    -----
+    v : 1d array
+    method : int
+        1: Python loops
+        2: Python loops, zero-padded
+        3: method 1, numpy vectorized
+        4: uses numpy.correlate()
+        5: Fortran version of 1
+        6: Fortran version of 3
+        7: fft, Wiener-Khinchin Theorem
+    norm : bool
+        normalize or not
+
+    returns:
+    --------
+    c : numpy 1d array
+        c[0]  <=> lag = 0
+        c[-1] <=> lag = len(v)
+    
+    notes:
+    ------
+    speed:
+        methods 1 ...  are loosely ordered slow ... fast
+    methods:
+       All methods, besides the FFT, are "exact", they use variations of loops
+       in the time domain, i.e. norm(acorr(v,1) - acorr(v,6)) = 0.0. 
+       The FFT method introduces small numerical noise, norm(acorr(v,1) -
+       acorr(v,4)) = O(1e-16) or so.
+
+    signature of the Fortran extension _flib.acorr
+        acorr - Function signature:
+          c = acorr(v,c,method,[nstep])
+        Required arguments:
+          v : input rank-1 array('d') with bounds (nstep)
+          c : input rank-1 array('d') with bounds (nstep)
+          method : input int
+        Optional arguments:
+          nstep := len(v) input int
+        Return objects:
+          c : rank-1 array('d') with bounds (nstep)
+    
+    refs:
+    -----
+    [1] Numerical Recipes in Fortran, 2nd ed., ch. 13.2
+    [2] http://mathworld.wolfram.com/FourierTransform.html
+    [3] http://mathworld.wolfram.com/Cross-CorrelationTheorem.html
+    [4] http://mathworld.wolfram.com/Wiener-KhinchinTheorem.html
+    [5] http://mathworld.wolfram.com/Autocorrelation.html
+    """
+    nstep = v.shape[0]
+    c = np.zeros((nstep,), dtype=float)
+    _norm = 1 if norm else 0
+    if method == 1:
+        for t in xrange(nstep):    
+            for j in xrange(nstep-t):
+                c[t] += v[j]*v[j+t] 
+    elif method == 2:
+        vv = np.concatenate((v, np.zeros((nstep,),dtype=float)))
+        for t in xrange(nstep):    
+            for j in xrange(nstep):
+                c[t] += v[j]*vv[j+t] 
+    elif method == 3: 
+        for t in xrange(nstep):
+            c[t] = (v[:(nstep-t)] * v[t:]).sum()
+    elif method == 4: 
+        # old_behavior : for numpy 1.4.x
+        c = np.correlate(v, v, mode='full', old_behavior=False)[nstep-1:]
+    elif method == 5: 
+        return _flib.acorr(v, c, 1, _norm)
+    elif method == 6: 
+        return _flib.acorr(v, c, 2, _norm)
+    elif method == 7: 
+        # Correlation via fft. After ifft, the imaginary part is (in theory) =
+        # 0, in practise < 1e-16.
+        # Cross-Correlation Theorem:
+        #   corr(a,b)(t) = Int(-oo, +oo) a(tau)*conj(b)(tau+t) dtau   
+        #                = ifft(fft(a)*fft(b).conj())
+        # If a == b (like here), then this reduces to the special case of the 
+        # Wiener-Khinchin Theorem (autocorrelation of `a`):
+        #   corr(a,a) = ifft(np.abs(fft(a))**2)
+        # Note that fft(a) is complex in gereal and abs() must be used!  Both
+        # theorems assume *periodic* data, i.e. `a` and `b` repeat after
+        # `nstep` points. To deal with non-periodic data, we use zero-padding
+        # at the end of `a` [1]. The result `c` contains the correlations for
+        # positive and negative lags. Since the ACF is symmetric around lag=0,
+        # we return 0 ... +lag.
+        vv = np.concatenate((v, np.zeros((nstep,),dtype=float)))
+        c = ifft(np.abs(fft(vv))**2.0)[:nstep].real
+    else:
+        raise ValueError('unknown method: %s' %method)
+    if norm:        
+        return c / c[0]
+    else:
+        return c
 
