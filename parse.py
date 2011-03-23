@@ -1912,7 +1912,7 @@ class AbinitSCFOutputFile(FileParser):
     
     def get_etot(self):
         verbose("getting etot")
-        cmd = "grep '>>>>.*Etotal' %s | sed -re 's/.*Etotal=//'" %self.filename
+        cmd = r"grep '>>>>.*Etotal\s*=' %s | sed -re 's/.*Etotal\s*=//'" %self.filename
         return float_from_txt(com.backtick(cmd))
 
     def get_nkpt(self):
