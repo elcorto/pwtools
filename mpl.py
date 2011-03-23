@@ -319,6 +319,18 @@ cc = cycle_colors
 cm = cycle_markers
 ccm = cycle_colors_markers
 
+def smooth_color(idx, niter):
+    """
+    example:
+    --------
+    # change color smoothly blue -> red
+    for ii in range(10):
+        z = smooth_color(ii,10)
+        plot(..., color=(z, 0, 1-z)
+    """
+    niter = float(niter)
+    idx = float(idx)
+    return idx / niter
 
 #----------------------------------------------------------------------------
 # Layout defs
