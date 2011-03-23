@@ -13,6 +13,9 @@ class ExternEOS(object):
     """Base class for calling extern (Fortran) EOS-fitting apps. The class
     writes an input file, calls the app, loads E-V fitted data and loads or
     calcutates P-V data.
+    
+    The number of data points for the returned arrays (fitted curves) are
+    handled by derived classes.
 
     methods:
     --------
@@ -29,7 +32,7 @@ class ExternEOS(object):
         self.pv_v : volume [Bohr^3]
         self.pv_p : pressure [GPa]
 
-    >>> eos = SomeEOSClass(app='super_app.x', energy=e, volume=v)
+    >>> eos = SomeEOSClass(app='super_fitting_app.x', energy=e, volume=v)
     >>> eos.fit()
     >>> plot(v,e, 'o-', label='data')
     >>> plot(eos.ev_v, eos.ev_e, label='eos fit')
@@ -49,8 +52,8 @@ class ExternEOS(object):
     # self.fitdata_{energy, pressure} : 2d array, shape (len(volume), 2):
     #       [volume[Bohr^3], {energy[Ry], pressure[GPa]}]
     #     Derived classed must conform to this in their _fit() method. We use
-    #     the fitdata_* arrays b/c the fitting apps write their results in that
-    #     format -- just np.loadtxt() that.
+    #     the fitdata_* arrays b/c the fitting apps usually write their results
+    #     in that format -- just np.loadtxt() that.
     def __init__(self, app=None, energy=None, volume=None, dir=None):
         """
         args:
@@ -178,8 +181,8 @@ class ElkEOSFit(ExternEOS):
     [1] http://elk.sourceforge.net/
     [2] http://exciting-code.org/
 
-    Note that the data produced by eos.x is normalized to natoms and that
-    energy is in Hartree. We remove the normalization and convert Ha -> Ry.
+    Note that the data produced by eos.x is divided by natoms and that energy
+    is in Hartree. We remove the normalization and convert Ha -> Ry.
 
     get_ev() and get_pv() return arrays of the same length.
     """

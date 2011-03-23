@@ -34,9 +34,9 @@ class SQLEntry(object):
         key : optional, {None, str}
             An optional key. This key should refer to the column name in the 
             database table, as in:
-                % create table calc (key1 sqltype1, key2    sqltype2, ...)
+                % create table calc (key1 sqltype1, key2 sqltype2, ...)
             For example:
-                % create table calc (idx  integer,   ecutwfc float,     ...)
+                % create table calc (idx integer, ecutwfc float, ...)
 
 
         notes:

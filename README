@@ -11,37 +11,42 @@ Features
 ========
 
 The package was initially developed to calculate the phonon density of states
-from ab initio MD calculations done with pwscf from the Quantum Espresso
-distribution [1]. Over time, many general tools for every day pre- and
-postprocessing have been added. Current featues include:
+from (ab initio) MD calculations. Over time, the package evolved into a
+general-purpose pre- and postprocessing tool. Current featues include:
 
-- velocity autocorrelation function from MD trajectories
-- phonon DOS from MD trajectories
-- parsing of pwscf input and output files into Python objects for easy access
-- interface to external EOS fitting tools  
-- MD analayis: radial pair distribution function (own implementation and VMD
-  interface), rmsd
-- unit cell related tools: super cell building, coordinate transformation
-- IO: read cif, cml, pdb, pwscf in- and outfiles, write xsf, cif, xyz  
-- simple sqlite3 interface  
 - classes to set up calculations (parameter studies) based on template
   input files
+- simple sqlite3 interface with convenience data extraction methods 
+- velocity autocorrelation function from MD trajectories
+- phonon DOS from MD trajectories
+- parsing of PWscf [1] input and output files and Abinit [3] output into Python
+  objects for easy access
+- IO: read cif, cml, pdb, write xsf, cif, xyz  
+- interface to external EOS fitting tools 
+- thermodynamic properties in the quasi-harmonic approximation from phonon
+  density of states  
+- MD analayis: radial pair distribution function (own implementation and VMD
+  interface), RMS, RMSD
+- unit cell related tools: super cell building, coordinate transformation,
+  convert back and forth between unit cell vectors and crystallographic
+  constants
 
 Related projects
 ----------------
 
 The very nice ASE [2] project is in some way related. It also stores MD
 trajectory data in Python objects for further manipulation. It's IO
-capabilities are much more developed. One can convert data parsed from a pwscf
-output file to an ASE Atoms object and use ASE's file writers. ASE provides
-interfaces to a large pile of ab initio codes ("calculators"). MD and structure
-optimization in ASE is coded in Python, using only the calculator's SCF engine
-in every step to get energy and forces. It does not jet provide things like
-variable cell MD/optimization and phonon calculations based on density
-functional perturbation theory like pwscf or Abinit. The focus of the pwtools
-package is to fully rely on pwscf capabilities, providing pythonic access to
-all output quantities like unit cell shape, temperature, total energy, forces
-etc.
+capabilities are much more developed. One can convert structure data to an ASE
+Atoms object and use ASE's file writers (see structure.py and
+examples/ase_atoms.py). ASE provides interfaces to a large pile of ab initio
+codes ("calculators"). MD and structure optimization in ASE is coded in Python,
+using only the calculator's SCF engine in every step to get energy and forces.
+Unfortunately, it does not jet provide things like variable cell MD with the
+MTTK [4] method and phonon calculations based on density functional
+perturbation theory like PWscf/PH or Abinit (only supercell frozen phonons).
+The focus of the pwtools package is to be a handy pre- and postprocessor
+providing pythonic access to all input and output quantities of the used ab
+initio codes (PWscf, Abinit). 
 
 ============
 Installation
@@ -75,13 +80,13 @@ necessary for the "Direct Method" (see below).
 Running tests
 -------------
 
-See tests/README.
+See tests/README. Actually, all of these are good examples, too!
 
 Python versions
 ---------------
 
-Developed mostly with Python 2.5. Should work with all versions from 2.4 on,
-but not yet 3.x. 
+Developed mostly with Python 2.5/2.6. Should work with all versions from 2.4
+on, but not yet 3.x. 
 
 With Python 2.6, you may get a DeprecationWarning regarding the sets module
 when the CifFile module from the pycifrw package is imported.
@@ -103,10 +108,10 @@ optional:
         - PyCifRW (http://pycifrw.berlios.de)
         - BeautifulSoup (http://www.crummy.com/software/BeautifulSoup/)
         
-        Without these, you will get warnings and some parsing classes will not
-        work (Cif and CML parsing currently). If you wish, uncomment the warnings
-        at the top of parse.py .
-    examples/*
+        Without these, you will get warnings and some parsing classes and IO
+        functions will not work (Cif and CML parsing currently). If you wish,
+        uncomment the warnings at the top of parse.py .
+    examples/*, mpl.py
         - matplotlib
 
 =====
@@ -248,3 +253,8 @@ Refs
 
 [1] http://www.quantum-espresso.org
 [2] https://wiki.fysik.dtu.dk/ase
+[3] http://www.abinit.org
+[4] Glenn J. Martyna and Mark E. Tuckerman and Douglas J. Tobias and Michael
+    L. Klein, "Explicit reversible integrators for extended systems
+    dynamics", Mol. Phys. 87(5), pp. 1117, 1996
+

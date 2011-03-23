@@ -42,14 +42,15 @@ class HarmonicThermo(object):
         """
         # notes:
         # ------
-        # * This is actually a re-implementation of F_QHA.f90 found in Quantum
+        # - This is actually a re-implementation of F_QHA.f90 found in Quantum
         #   Espresso as of v4.2.
-        # * All relations can be found in M.T. Dove, Introduction to Lattice
+        # - All relations can be found in M.T. Dove, Introduction to Lattice
         #   Dynamics, ch. 5 .
-        # * The frequency axis "f" in cm^-1 is what QE's matdyn.x returns
+        # - The frequency axis "f" in cm^-1 is what QE's matdyn.x returns
         #   when it calculates the phonon DOS (input: dos=.true.).
-        # * For high T, cv should approach 3*N where N = natom = atoms in the unit
-        #   cell. This is the Dulong-Petit limit (usually 3*N*R, here 3*N).
+        # - For high T, Cv in units of R, the universal gas constant, should
+        #   approach 3*N where N = natom = atoms in the unit cell. This is the
+        #   Dulong-Petit limit (usually 3*N*R, here 3*N).
         #
         # Theory (example Cv):
         # --------------------
@@ -108,7 +109,7 @@ class HarmonicThermo(object):
     def vibrational_internal_energy(self):
         h, f, T, kb, dos = self.h, self.f, self.T, self.kb, self.dos
         arg = h * f / (kb*T[:,None])
-        # 1/[ exp(x) -1] = NaN for x=0, thats why we use _fixzero(): For
+        # 1/[ exp(x) -1] = NaN for x=0, that's why we use _fixzero(): For
         # instance
         #   1/(exp(1e-17) - 1) = NaN
         #   1/(exp(3e-16) - 1) = 4503599627370496.0

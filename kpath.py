@@ -32,7 +32,7 @@ def vlinspace(a, b, num, endpoint=True):
     return np.cumsum(ret, axis=0)
     
 
-def kpath(vecs, N):    
+def kpath(vecs, N=10):    
     """Simple k-path. Given a set of K vectors (special points in the BZ),
     generate a "fine path" of N*(K-1)+1 vectors along the path defined by the
     vectors in `vecs`. The K vectors are the "vertices" of the k-path and we
@@ -52,8 +52,9 @@ def kpath(vecs, N):
     notes:
     ------
     This is the simplest method one can think of. Points on the "fine path" are
-    not equally distributed but with distance prop. to 1/N in every segment
-    conneting two adjacent vertices.
+    not equally distributed. The distance between 2 vertices (k-points) doesn't
+    matter, you will always get N points between them. For a smooth dispersion
+    plot, you need N=20 or more.
     """
     nvecs = vecs.shape[0]
     nnew = (nvecs-1)*N+1
