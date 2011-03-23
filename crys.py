@@ -278,6 +278,51 @@ def recip_cell(cell, align='rows'):
     cell_recip[2,:] = 2*pi/vol * np.cross(a,b)
     return cell_recip
 
+@crys_add_doc
+def cc2celldm(cryst_const, fac=1.0):
+    """
+    Convert cryst_const to PWscf `celldm`.
+
+    args:
+    -----
+    fac : float, optional
+        conversion a[any unit] -> a[Bohr]
+    
+    returns:
+    --------
+    %(celldm)s
+    """
+    assert len(cryst_const) == 6, ("cryst_const has length != 6")
+    celldm = np.empty((6,), dtype=np.float)
+    a,b,c,alpha,beta,gamma = np.asarray(cryst_const, dtype=np.float)
+    celldm[0] = a*fac
+    celldm[1] = b/a
+    celldm[2] = c/a
+    celldm[3] = cos(alpha*pi/180.0)
+    celldm[4] = cos(beta*pi/180.0)
+    celldm[5] = cos(gamma*pi/180.0)
+    return celldm
+
+def celldm2cc(celldm, fac=1.0):
+    """Convert PWscf celldm to cryst_const.
+    
+    args:
+    -----
+    fac : float, optional
+        conversion a[Bohr] -> a[any unit]
+    """
+    assert len(celldm) == 6, ("celldm has length != 6")
+    cryst_const = np.empty((6,), dtype=np.float)
+    a,ba,ca,cos_alpha,cos_beta,cos_gamma = np.asarray(celldm, dtype=np.float)
+    a = a*fac
+    cryst_const[0] = a
+    cryst_const[1] = ba * a
+    cryst_const[2] = ca * a
+    cryst_const[3] = acos(cos_alpha) / pi * 180.0
+    cryst_const[4] = acos(cos_beta) / pi * 180.0
+    cryst_const[5] = acos(cos_gamma) / pi * 180.0
+    return cryst_const
+
 #-----------------------------------------------------------------------------
 # super cell building
 #-----------------------------------------------------------------------------

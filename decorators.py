@@ -93,6 +93,10 @@ def crys_add_doc(func):
     dct['cryst_const_doc'] = \
     """cryst_const: array_like, shape (6,)
         [a, b, c, alpha, beta, gamma]"""
+    dct['celldm'] = \
+    """celldm: array_like, shape (6,)
+        [a, b/a, c/a, cos(alpha), cos(beta), cos(gamma)]
+        `a` is supposed to be in Bohr"""
     dct['notes_cell_crys_const'] = \
     """We use PWscf notation.
     CELL_PARAMETERS == (matrix of) primitime basis vectors elsewhere
