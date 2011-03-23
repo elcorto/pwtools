@@ -16,15 +16,7 @@ import ConfigParser
 import cPickle
 import numpy as np
 
-# slow import time
-#
-# TODO: maybe move functions which need scipy functionality to smth like
-# numutils.py or whatever
-from scipy.integrate import simps
-from scipy.interpolate import splev, splrep
-
 from pwtools.verbose import verbose
-
 
 def assert_cond(cond, string=None):
     """Use this instead of `assert cond, string`. It's been said on
@@ -346,6 +338,7 @@ def norm_int(y, x, area=1.0):
     The argument order y,x might be confusing. x,y would be more natural but we
     stick to the order used in the scipy.integrate routines.
     """
+    from scipy.integrate import simps
     # First, scale x and y to the same order of magnitude before integration.
     # This may be necessary to avoid numerical trouble if x and y have very
     # different scales.
@@ -454,6 +447,7 @@ def deriv_spl(y, x=None, xnew=None, n=1, k=3, fullout=True):
     the function signature of deriv_fd.
     """
     assert n > 0, "n <= 0 makes no sense"
+    from scipy.interpolate import splev, splrep
     if x is None:
         x = np.arange(len(y))
     if xnew is None:
