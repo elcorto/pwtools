@@ -1,4 +1,6 @@
-# Write animated xsf file with pwtools and ASE.
+# Write animated xsf file with pwtools and ASE, based on fractional coords. 
+# Write file with original cartesian Angstrom coords, which is what you will
+# find in the .axsf files.
 
 import numpy as np
 from pwtools import io, crys
@@ -19,11 +21,14 @@ coords_frac = crys.coord_trans(coords_ang.swapaxes(-1,-2),
                                align='rows').swapaxes(-1,-2)
 symbols = ['X']*natoms
 
-atoms_lst = [Atoms('X'*natoms,
-                   positions=coords_ang[...,i],
+# symbols: ASE can use 'X'*natoms or ['X']*natoms
+# positions: use positions = coords_ang or scaled_positions = coords_frac
+atoms_lst = [Atoms(symbols=symbols,
+                   scaled_positions=coords_frac[...,i], 
                    cell=cell,
                    pbc=[1,1,1]) \
              for i in range(nstep)]      
 
 io.write_axsf('pwtools.axsf', coords_frac, cell, symbols)
 write('ase.axsf', atoms_lst, format='xsf')
+io.writetxt('coords_ang.txt', coords_ang, axis=-1)
