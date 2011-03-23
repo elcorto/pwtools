@@ -172,36 +172,33 @@ subroutine vect_loops(v, natoms, nstep, c)
 end subroutine vect_loops
 
 
-subroutine acorr(v, c, nstep, method)
+subroutine acorr(v, c, nstep, method, norm)
     
-    ! Normalized 1d-vacf: c_vv(t) = C_vv(t) / C_vv(0)
+    ! (Normalized) 1d-vacf: c_vv(t) = C_vv(t) / C_vv(0)
     ! This is a reference implementation.
     
     implicit none
-    integer :: nstep, t, j, method
+    integer :: nstep, t, j, method, norm
     double precision, intent(in) :: v(0:nstep-1)
     double precision, intent(out) :: c(0:nstep-1)
     
     !f2py intent(in, out) c
 
     if (method == 1) then 
-       
         do t = 0,nstep-1
             do j = 0,nstep - t - 1
                 c(t) = c(t) + v(j) * v(j+t)
             end do                    
         end do                    
-        c = c / c(0)
-        return
-    
     else if (method == 2) then        
-        
         do t = 0,nstep-1
             c(t) = sum(v(:(nstep-t-1)) * v(t:))
         end do
-        c = c / c(0)
-        return
     end if
+    if (norm == 1) then
+        c = c / c(0)
+    end if        
+    return
 
 end subroutine acorr
 

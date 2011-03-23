@@ -7,9 +7,13 @@ from scipy.fftpack import fft, ifft
 import numpy as np
 from pwtools import _flib
 
-def acorr(v, method=7):
-    """Normalized autocorrelation function (ACF) for 1d arrys: 
-    c(t) = <v(0) v(t)> / <v(0)**2>. 
+def acorr(v, method=7, norm=True):
+    """(Normalized) autocorrelation function (ACF) for 1d arrays:
+    Without normalization
+        c(t) = <v(0) v(t)>
+    and with
+        c(t) = <v(0) v(t)> / <v(0)**2>
+            
     The x-axis is the offset "t" (or "lag" in Digital Signal Processing lit.).
 
     Several Python and Fortran implememtations. The Python versions are mostly
@@ -27,7 +31,9 @@ def acorr(v, method=7):
         5: Fortran version of 1
         6: Fortran version of 3
         7: fft, Wiener-Khinchin Theorem
-    
+    norm : bool
+        normalize or not
+
     returns:
     --------
     c : numpy 1d array
@@ -66,6 +72,7 @@ def acorr(v, method=7):
     """
     nstep = v.shape[0]
     c = np.zeros((nstep,), dtype=float)
+    _norm = 1 if norm else 0
     if method == 1:
         for t in xrange(nstep):    
             for j in xrange(nstep-t):
@@ -82,9 +89,9 @@ def acorr(v, method=7):
         # old_behavior : for numpy 1.4.x
         c = np.correlate(v, v, mode='full', old_behavior=False)[nstep-1:]
     elif method == 5: 
-        return _flib.acorr(v, c, 1)
+        return _flib.acorr(v, c, 1, _norm)
     elif method == 6: 
-        return _flib.acorr(v, c, 2)
+        return _flib.acorr(v, c, 2, _norm)
     elif method == 7: 
         # Correlation via fft. After ifft, the imaginary part is (in theory) =
         # 0, in practise < 1e-16.
@@ -103,5 +110,8 @@ def acorr(v, method=7):
         c = ifft(np.abs(fft(vv))**2.0)[:nstep].real
     else:
         raise ValueError('unknown method: %s' %method)
-    return c / c[0]
+    if norm:        
+        return c / c[0]
+    else:
+        return c
 
