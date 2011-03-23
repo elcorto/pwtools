@@ -232,18 +232,21 @@ def frepr(var, ffmt="%.16e"):
         return repr(var)
 
 
-def seq2str(t):
-    """
-    (1,2,3) -> "1 2 3"
-    """
-    return " ".join(map(str, t))
+def seq2str(seq, func=str, sep=' '):
+    """(1,2,3) -> "1 2 3" """
+    return sep.join(map(func, seq))
 
 
-def str2tup(s, func=int):
-    """
-    "1 2 3" -> (func('1'), func('2'), func('3')) 
-    """
-    return tuple(map(func, s.split()))
+def str2seq(st, func=int, sep=None):
+    """ "1 2 3" -> [func('1'), func('2'), func('3')]"""
+    if sep is None:
+        return map(func, st.split())
+    else:
+        return map(func, st.split(sep))
+
+
+def str2tup(*args, **kwargs):
+    return tuple(str2seq(*args, **kwargs))
 
 
 def fix_eps(arr, eps=1.5*np.finfo(float).eps, copy=True):
