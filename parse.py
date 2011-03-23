@@ -1758,6 +1758,21 @@ class AbinitSCFOutputFile(FileParser):
         cmd = r"grep 'At SCF.*converged' %s | sed -re 's/.*step\s*([0-9]+),.*/\1/'" \
             %self.filename
         return arr1d_from_txt(com.backtick(cmd), dtype=int)
+    
+    def _get_volume_raw(self):
+        """Grep for volume. This should catch all various ways in which the
+        volume is printed for several ionmov/optcell combinations.
+        For SCF, it catches only the start volume, for MD-like output start
+        volume + volume at every step.
+
+        This is different from Pw*OutputFile, where we still have
+        get_start_volume().
+        """
+        verbose("getting _volume_raw")
+        cmd = r"grep 'ucvol.*=' %s | \
+              sed -re 's/.*ucvol.*=\s*(%s)($|\s*.*)/\1/'" %(self.filename,
+              regex.float_re)
+        return arr1d_from_txt(com.backtick(cmd))
 
     def get_stresstensor(self):
         """Return the last printed stresstensor."""
@@ -1848,12 +1863,10 @@ class AbinitSCFOutputFile(FileParser):
     
     def get_volume(self):
         verbose("getting volume")
-        req = ['cell']
+        req = ['_volume_raw']
         self.check_get_attrs(req)
-        if self.is_set_attrs(req):
-            return crys.volume_cell(self.cell)      
-        else:
-            return None
+        ret = self._volume_raw
+        return ret if ret is None else ret[-1]
 
     def get_acell(self):
         verbose("getting acell")
@@ -2081,9 +2094,9 @@ class AbinitMDOptOutputFile(AbinitSCFOutputFile):
  
     def get_volume(self):
         verbose("getting volume")
-        cmd = r"grep 'Unitary Cell Volume.*=' %s | \
-              sed -re 's/.*ucvol.*=\s*(.*)/\1/'" %self.filename
-        return arr1d_from_txt(com.backtick(cmd))
+        req = ['_volume_raw']
+        self.check_get_attrs(req)
+        return self._volume_raw
     
     def get_etot(self):
         verbose("getting etot")
@@ -2227,12 +2240,6 @@ class AbinitVCMDOutputFile(AbinitMDOptOutputFile):
         self.check_get_attr('_forces_raw')
         ret = self._forces_raw
         return None if ret is None else ret[...,::2]                            
-    
-    def get_volume(self):
-        verbose("getting volume")
-        key = '^[ ]*ucvol='
-        cmd = "grep '%s' %s | awk '{print $2}'" %(key, self.filename)
-        return arr1d_from_txt(com.backtick(cmd))
     
     def get_etot(self):
         verbose("getting etot")
