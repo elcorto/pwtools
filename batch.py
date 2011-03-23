@@ -24,7 +24,7 @@ class Machine(object):
         attr name from self.attr_lst.        
     """
     def __init__(self, name=None, subcmd=None, scratch=None, bindir=None, 
-                 pseudodir=None, jobfn=None):
+                 pseudodir=None, jobfn=None, home=None):
         """
         args:
         -----
@@ -40,6 +40,8 @@ class Machine(object):
             esp. for pwscf: dir where pseudopotentials live
         jobfn : str
             basename of jobfile, can be used as FileTemplate(basename=jobfn)
+        home : str
+            $HOME
         """
         # attr_lst
         self.name = name
@@ -47,16 +49,20 @@ class Machine(object):
         self.scratch = scratch
         self.bindir = bindir
         self.pseudodir = pseudodir
+        self.home = home
         # extra
         if os.sep in jobfn:
             raise StandardError("Path separator in `jobfn`: '%s', "
                   "this should be a basename." %jobfn)
         self.jobfn = jobfn
                 
-        self.attr_lst = ['subcmd', 
+        self.attr_lst = ['name',
+                         'subcmd', 
                          'scratch',
                          'bindir',
                          'pseudodir',
+                         'jobfn',
+                         'home'
                          ]
 
     def get_sql_record(self):
@@ -546,28 +552,24 @@ def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s"):
 adde = Machine(name='adde',
                subcmd='qsub',
                scratch='/local/scratch/schmerler',
-               bindir='/home/schmerler/soft/lib/espresso/current/bin',
-               pseudodir='/home/schmerler/soft/lib/espresso/pseudo/pseudo_espresso',
+               home='/home/schmerler',
                jobfn='job.sge.adde')
 
 mars = Machine(name='mars',
                subcmd='bsub <',
                scratch='/fastfs/schmerle',
-               bindir='/home/schmerle/mars/soft/lib/espresso/current/bin',
-               pseudodir='/home/schmerle/soft/lib/espresso/pseudo/pseudo_espresso',
+               home='/home/schmerle',
                jobfn='job.lsf.mars')
 
 deimos = Machine(name='deimos',
                subcmd='bsub <',
                scratch='/fastfs/schmerle',
-               bindir='/home/schmerle/deimos/soft/lib/espresso/current/bin',
-               pseudodir='/home/schmerle/soft/lib/espresso/pseudo/pseudo_espresso',
+               home='/home/schmerle',
                jobfn='job.lsf.deimos')
 
 local = Machine(name='local',
                subcmd='bash',
                scratch='/tmp',
-               bindir='/home/schmerler/soft/lib/espresso/current/bin',
-               pseudodir='/home/schmerler/soft/lib/espresso/pseudo/pseudo_espresso',
+               home='/home/schmerler',
                jobfn='job.local')
 
