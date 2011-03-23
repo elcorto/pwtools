@@ -1727,20 +1727,23 @@ class AbinitSCFOutputFile(FileParser):
         arr = traj_from_txt(com.backtick(cmd),
                             shape=(3,2,nstep),
                             axis=self.time_axis)
-        strt = np.empty((3,3,nstep))
-        # diagonal
-        strt[0,0,:] = arr[0,0,:]
-        strt[1,1,:] = arr[1,0,:]
-        strt[2,2,:] = arr[2,0,:]
-        # lower
-        strt[2,1,:] = arr[0,1,:]
-        strt[2,0,:] = arr[1,1,:]
-        strt[1,0,:] = arr[2,1,:]
-        # upper
-        strt[0,1,:] = strt[1,0,:]
-        strt[0,2,:] = strt[2,0,:]
-        strt[1,2,:] = strt[2,1,:]
-        return strt
+        if arr is None:
+            return None
+        else:            
+            strt = np.empty((3,3,nstep))
+            # diagonal
+            strt[0,0,:] = arr[0,0,:]
+            strt[1,1,:] = arr[1,0,:]
+            strt[2,2,:] = arr[2,0,:]
+            # lower
+            strt[2,1,:] = arr[0,1,:]
+            strt[2,0,:] = arr[1,1,:]
+            strt[1,0,:] = arr[2,1,:]
+            # upper
+            strt[0,1,:] = strt[1,0,:]
+            strt[0,2,:] = strt[2,0,:]
+            strt[1,2,:] = strt[2,1,:]
+            return strt
     
     def get_stresstensor(self):
         """Return the last printed stresstensor."""
