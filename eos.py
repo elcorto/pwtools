@@ -8,7 +8,7 @@
 import os
 import subprocess
 import numpy as np
-from pwtools import common, constants
+from pwtools import common, constants, num
 from pwtools.parse import FlexibleGetters
 from scipy.interpolate import splrep, splev
 
@@ -198,14 +198,14 @@ class ExternEOS(FlexibleGetters):
         array([v0, e0, p0, b0]) : volume, energy, pressure, bulk modulus at
             energy min
         """
-        # XXX use self._spl* or common.Spline instead of find*() to avoid
+        # XXX use self._spl* or num.Spline instead of find*() to avoid
         # spline re-calc
         if self.method == 'pv':
-            v0, p0 = common.findroot(self.pv_v, self.pv_p)
+            v0, p0 = num.findroot(self.pv_v, self.pv_p)
             self.check_get_attr('_spl_ev')
             e0 = splev(v0, self._spl_ev)
         elif self.method == 'ev':
-            v0, e0 = common.findmin(self.ev_v, self.ev_e)
+            v0, e0 = num.findmin(self.ev_v, self.ev_e)
             self.check_get_attr('_spl_pv')
             p0 = splev(v0, self._spl_pv)
         else:
@@ -273,9 +273,9 @@ class BossEOSFit(ExternEOS):
         # P = -dE/dV
         # Ry / Bohr^3 -> Pa -> GPa
         fac = constants.Ry_to_J / constants.a0**3 / 1e9
-        vol, dEdV = common.deriv_fd(self.fitdata_energy[:,1], 
-                                    self.fitdata_energy[:,0], 
-                                    n=1)
+        vol, dEdV = num.deriv_fd(self.fitdata_energy[:,1], 
+                                 self.fitdata_energy[:,0], 
+                                 n=1)
         self.fitdata_pressure = np.empty((vol.shape[0], 2), dtype=float)
         self.fitdata_pressure[:, 1] = -dEdV*fac
         self.fitdata_pressure[:, 0] = vol

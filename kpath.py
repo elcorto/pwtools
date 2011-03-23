@@ -1,36 +1,5 @@
 import numpy as np
-import sys
-import math
-
-from pwtools.common import str_arr
-
-
-def vlinspace(a, b, num, endpoint=True):
-    """Like numpy.linspace, but for 1d arrays. Generate uniformly spaced points
-    (vectors) along the distance vector connecting a and b.
-    
-    args:
-    -----
-    a, b : 1d arrays
-    num : int
-
-    returns:
-    --------
-    array (num, len(a)), each row is a "point" between `a` and `b`
-    """
-    assert a.ndim == b.ndim == 1, "expect 1d arrays"
-    assert len(a) == len(b), "`a` and `b` must have equal length"
-    # distance vec connecting a and b
-    dv = b-a
-    if endpoint:
-        ddv = dv/float(num-1)
-    else:        
-        ddv = dv/float(num)
-    ret = np.empty((num, len(dv)), dtype=float)
-    ret[...] = ddv
-    ret[0,:] = a
-    return np.cumsum(ret, axis=0)
-    
+from pwtools import num
 
 def kpath(vecs, N=10):    
     """Simple k-path. Given a set of K vectors (special points in the BZ),
@@ -60,14 +29,16 @@ def kpath(vecs, N=10):
     nnew = (nvecs-1)*N+1
     new_vecs = np.empty((nnew, vecs.shape[1]), dtype=float)
     for i in range(1, nvecs):
-        new_vecs[(i-1)*N:i*N, :] = vlinspace(vecs[i-1,:], vecs[i,:], N,
-                                             endpoint=False)
+        new_vecs[(i-1)*N:i*N, :] = num.vlinspace(vecs[i-1,:], vecs[i,:], N,
+                                                 endpoint=False)
 
     new_vecs[-1,:] = vecs[-1,:]            
     return new_vecs
 
 
 if __name__ == '__main__':
+    import sys
+    from pwtools.common import str_arr
     vecs = np.loadtxt(sys.argv[1])
     N = int(sys.argv[2])
     print str_arr(kpath(vecs, N), fmt="%f")

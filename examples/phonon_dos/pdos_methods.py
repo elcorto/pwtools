@@ -145,9 +145,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.fftpack import fft
 ##from scipy import signal
-
-from pwtools import signal
-from pwtools import pydos, corr, constants, common
+from pwtools import pydos, corr, constants, common, num, signal
 
 rand = np.random.rand
 pj = os.path.join
@@ -165,7 +163,7 @@ def cut_norm(full_y, dt, area=1.0):
     split_idx = full_faxis.shape[0]/2
     y_out = full_y[:split_idx]
     faxis = full_faxis[:split_idx]
-    return faxis, common.norm_int(y_out, faxis, area=area)
+    return faxis, num.norm_int(y_out, faxis, area=area)
 
 
 ###############################################################################
@@ -273,7 +271,7 @@ if use_fourier:
     common.system(fourier_exe + ' < ' + fourier_in_fn)
     fourier_out_data = np.loadtxt(fourier_out_data_fn)
     f3 = fourier_out_data[:,0]*(constants.c0*100) # 1/cm -> Hz
-    y3n = common.norm_int(fourier_out_data[:,1], f3)
+    y3n = num.norm_int(fourier_out_data[:,1], f3)
 
 f1, y1n = cut_norm(y1, dt)
 f2, y2n = cut_norm(y2, dt)
@@ -360,7 +358,7 @@ if use_fourier:
         else:        
             fourier_out_data[:,1:] += fourier_loaded_data[:,1:]
         f8 = fourier_out_data[:,0]*(constants.c0*100)
-        y8n = common.norm_int(fourier_out_data[:,1], f8)
+        y8n = num.norm_int(fourier_out_data[:,1], f8)
 
 figs.append(plt.figure())
 axs.append(figs[-1].add_subplot(111))

@@ -1,11 +1,11 @@
 import numpy as np
 from scipy.interpolate import splev
-from pwtools import common
+from pwtools.num import Spline
 
 def test():
     x = np.linspace(0,10,100)
     y = np.sin(x)
-    spl = common.Spline(x,y)
+    spl = Spline(x,y)
     assert (y - spl(x) < spl.eps).all()
     assert (y - spl.splev(x) < spl.eps).all()
     assert (y - splev(x, spl.tck) < spl.eps).all()
@@ -14,11 +14,11 @@ def test():
 
     x = np.linspace(0,10,100)
     y = x**2.0 - 5
-    spl = common.Spline(x,y)
+    spl = Spline(x,y)
     assert spl.is_mono() == True
     
     y = -(x**2.0 - 5)
-    spl = common.Spline(x,y)
+    spl = Spline(x,y)
     assert spl.is_mono() == True
     
     y0s = [5,0,-40]
@@ -35,4 +35,4 @@ def test():
         np.testing.assert_almost_equal(y0, spl(spl.invsplev(y0, x0=x0)))
     
     # API
-    spl = common.Spline(x,y,k=2,s=0.1,eps=0.11)
+    spl = Spline(x,y,k=2,s=0.1,eps=0.11)

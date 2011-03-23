@@ -23,6 +23,7 @@ from pwtools import common as com
 from pwtools import io
 from pwtools.verbose import verbose
 from pwtools.signal import pad_zeros, welch
+from pwtools import num
 
 # aliases
 pjoin = os.path.join
@@ -31,7 +32,7 @@ pjoin = os.path.join
 # backward compat for older scripts using pwtools, not used here
 from pwtools.crys import coord_trans
 from pwtools.pwscf import atpos_str, atspec_str
-from pwtools.common import slicetake, sliceput
+from pwtools.num import slicetake, sliceput
 
 #-----------------------------------------------------------------------------
 # globals 
@@ -289,7 +290,7 @@ def direct_pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
     # average remaining axes (axis 0 and 1), summing is enough b/c
     # normalization is done below      
     pdos = fft_vel.sum(axis=0).sum(axis=0)        
-    default_out = (faxis, com.norm_int(pdos, faxis, area=area))
+    default_out = (faxis, num.norm_int(pdos, faxis, area=area))
     if full_out:
         # have to re-calculate this here b/c we never calculate the full_pdos
         # normally
@@ -357,7 +358,7 @@ def vacf_pdos(vel, dt=1.0, m=None, mirr=False, full_out=False, area=1.0,
     split_idx = len(full_faxis)/2
     faxis = full_faxis[:split_idx]
     pdos = full_pdos[:split_idx]
-    default_out = (faxis, com.norm_int(pdos, faxis, area=area))
+    default_out = (faxis, num.norm_int(pdos, faxis, area=area))
     extra_out = (full_faxis, full_pdos, split_idx, vacf, fft_vacf)
     if full_out:
         return default_out + (extra_out,)
