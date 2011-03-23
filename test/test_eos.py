@@ -56,3 +56,7 @@ def test():
         for key, val in ref.iteritems():
             print key
             np.testing.assert_array_almost_equal(now[key], ref[key])
+        
+        # other getters
+        print eos.get_min()
+        x,y = eos.get_bv()

@@ -15,6 +15,8 @@ import re
 import ConfigParser
 import cPickle
 import numpy as np
+from scipy.optimize import brentq
+from scipy.interpolate import splev, splrep
 
 from pwtools.verbose import verbose
 
@@ -447,7 +449,6 @@ def deriv_spl(y, x=None, xnew=None, n=1, k=3, fullout=True):
     the function signature of deriv_fd.
     """
     assert n > 0, "n <= 0 makes no sense"
-    from scipy.interpolate import splev, splrep
     if x is None:
         x = np.arange(len(y))
     if xnew is None:
@@ -457,6 +458,67 @@ def deriv_spl(y, x=None, xnew=None, n=1, k=3, fullout=True):
         return xnew, yd
     else:
         return yd
+
+
+def meshgridt(x, y):
+    """A version of 
+        X,Y = numpy.meshgrid(x,y) 
+    which returns X and Y transposed, i.e. (nx, ny) instead (ny, nx) 
+    where nx,ny = len(x),len(y).
+
+    This is useful for dealing with 2D splines in 
+    scipy.interpolate.bisplev(), which also returns a (nx,ny) array.
+    
+    args:
+    -----
+    x,y : 1d arrays
+    """
+    X,Y = np.meshgrid(x,y)
+    return X.T, Y.T
+
+
+def _splroot(x, y, der=0):
+    # helper for find{min,root}
+    spl = splrep(x, y, s=0)
+    func = lambda xx: splev(xx, spl, der=der)
+    x0 = brentq(func, x[0], x[-1])
+    return np.array([x0, splev(x0, spl)])
+
+
+def findmin(x, y):
+    """
+    Find minimum of x-y curve by searching for the root of the 1st derivative
+    of a spline thru x,y.
+    `x` must be sorted min -> max and the interval [x[0], x[-1]] must contain
+    the minimum.
+
+    args:
+    -----
+    x,y : 1d arrays
+
+    returns:
+    --------
+    array([x0, y(x0)])
+    """
+    return _splroot(x, y, der=1)
+
+
+def findroot(x, y):
+    """ 
+    Find root of x-y curve by searching for the root of a spline thru x,y.
+    `x` must be sorted min -> max and the interval [x[0], x[-1]] must contain
+    the root.
+
+    args:
+    -----
+    x,y : 1d arrays
+
+    returns:
+    --------
+    array([x0, y(x0)])
+    """
+    return _splroot(x, y, der=0)
+
 
 #-----------------------------------------------------------------------------
 # array indexing

@@ -8,9 +8,11 @@
 import os
 import subprocess
 import numpy as np
-from pwtools import common
+from pwtools import common, constants
+from pwtools.parse import FlexibleGetters
+from scipy.interpolate import splrep, splev
 
-class ExternEOS(object):
+class ExternEOS(FlexibleGetters):
     """Base class for calling extern (Fortran) EOS-fitting apps. The class
     writes an input file, calls the app, loads E-V fitted data and loads or
     calcutates P-V data.
@@ -23,15 +25,20 @@ class ExternEOS(object):
     fit() : fit E-V data
     get_ev() : return tuple (ev_v, ev_e), see below
     get_pv() : return tuple (pv_v, pv_p), see below
-    
+    get_bv() : return tuple (bv_v, bv_b), see below
+    get_min() : return V0, E0, P0, B0 at min(energy), hint: If the
+        pressure is not very close to zero (say ~ 1e-10), then your E-V data is
+        incorrect. Usually, this is because of poorly converged phonon
+        calculations (low ecut, too few q-points).
+
     attributes:
     -----------
     After calling fit(), these attrs are available. They are also returned by
-    get_{ev,pv}.
-        self.ev_v : volume [Bohr^3]
-        self.ev_e : evergy [Ry]
-        self.pv_v : volume [Bohr^3]
-        self.pv_p : pressure [GPa]
+    get_{ev,pv,bv}.
+        self.ev_v, self.pv_v, self.bv_v : volume [Bohr^3] for E(V), P(V), B(V)
+        self.ev_e : evergy E(V) [Ry]
+        self.pv_p : pressure P(V) [GPa]
+        self.bv_b : bulk modulus B(V) [GPa] 
 
     >>> eos = SomeEOSClass(app='super_fitting_app.x', energy=e, volume=v)
     >>> eos.fit()
@@ -56,7 +63,7 @@ class ExternEOS(object):
     #     the fitdata_* arrays b/c the fitting apps usually write their results
     #     in that format -- just np.loadtxt() that.
     def __init__(self, app=None, energy=None, volume=None, dir=None,
-                 verbose=True):
+                 method='ev', verbose=True):
         """
         args:
         -----
@@ -68,15 +75,23 @@ class ExternEOS(object):
         dir : str
             dir where in- and outfiles are written, default is the basename of
             "app" (e.g. "eos.x" for app='/path/to/eos.x')
+        method : str, {'pv', 'ev'}
+            Based on which quantity should B(V) and minimum properties be
+            calculated.
+            pv: based on P(V) 
+            ev: based on E(V) 
         verbose : bool
             print stdout and stderr of fitting tool
         """
         assert len(energy) == len(volume), ("volume and energy arrays have "
                                             "not the same length")
+        assert (np.diff(volume) > 0.0).any(), ("volume seems to be wrongly "
+            "sorted")
         self.app = app
         self.energy = energy
         self.volume = volume
         self.app_basename = os.path.basename(self.app)
+        self.method = method
         self.verbose = verbose
         if dir is None:
             self.dir = self.app_basename
@@ -96,16 +111,34 @@ class ExternEOS(object):
         """
         self.fitdata_energy = None
         self.fitdata_pressure = None
+    
+    def _make_spline(self, x,y):
+        return splrep(x, y, k=3, s=0)
+
+    def _get_spl_ev(self):
+        return self._make_spline(*self.get_ev())
+    
+    def _get_spl_pv(self):
+        return self._make_spline(*self.get_pv())
+    
+    def _get_spl_bv(self):
+        return self._make_spline(*self.get_bv())
+    
+    def set_method(self, method):
+        """Set self.method, a.k.a. switch to another method."""
+        self.method = method
 
     def fit(self, *args, **kwargs):
         """Fit E-V data (self.energy, self.volume) and set 
             self.fitdata_energy
             self.fitdata_pressure
-        by fitting. Set shortcut attrs
+        Set shortcut attrs
             self.ev_v
             self.ev_e
             self.pv_v
             self.pv_p
+            self.bv_v
+            self.bv_b
         """            
         # Assume 
         #   fitdata_*[:,0] = volume
@@ -116,6 +149,7 @@ class ExternEOS(object):
         self.ev_e = self.fitdata_energy[:,1]
         self.pv_v = self.fitdata_pressure[:,0]
         self.pv_p = self.fitdata_pressure[:,1]
+        self.bv_v, self.bv_b = self.get_bv()
 
     def get_ev(self):
         """
@@ -137,6 +171,53 @@ class ExternEOS(object):
         """
         return (self.pv_v, self.pv_p)
     
+    def get_bv(self):
+        # B = V*d^2E/dV^2 = -V*dP/dV
+        if self.method == 'pv':
+            self.check_get_attr('_spl_pv')
+            pv_v, pv_p = self.get_pv()
+            return pv_v, -pv_v * splev(pv_v, self._spl_pv, der=1)
+        elif self.method == 'ev':
+            self.check_get_attr('_spl_ev')
+            ev_v, ev_e = self.get_ev()
+            # Ry / Bohr^3 -> GPa
+            fac = constants.Ry_to_J / constants.a0**3.0 / 1e9
+            return ev_v, ev_v * splev(ev_v, self._spl_ev, der=2) * fac
+        else:
+            raise StandardError("unknown method: '%s'" %method)
+
+    def get_min(self):
+        """
+        args:
+        -----
+        method : str, {'pv', 'ev'}
+            pv: min based on P(V) 
+            ev: min based on E(V) 
+        returns:
+        --------
+        array([v0, e0, p0, b0]) : volume, energy, pressure, bulk modulus at
+            energy min
+        """
+        # XXX use self._spl* or common.Spline instead of find*() to avoid
+        # spline re-calc
+        if self.method == 'pv':
+            v0, p0 = common.findroot(self.pv_v, self.pv_p)
+            self.check_get_attr('_spl_ev')
+            e0 = splev(v0, self._spl_ev)
+        elif self.method == 'ev':
+            v0, e0 = common.findmin(self.ev_v, self.ev_e)
+            self.check_get_attr('_spl_pv')
+            p0 = splev(v0, self._spl_pv)
+        else:
+            raise StandardError("unknown method: '%s'" %method)
+        self.check_get_attr('_spl_bv')
+        b0 = splev(v0, self._spl_bv)
+        return np.array([v0, e0, p0, b0])
+      
+      # XXX Use Spline class here.
+##    def lookup(self, volume=None, energy=None, pressure=None, bulkmod=None):
+##        pass
+
     def call(self, cmd):
         """
         Call shell command 'cmd' and merge stdout and stderr.
