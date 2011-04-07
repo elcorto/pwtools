@@ -250,7 +250,7 @@ class Spline(object):
     >>> sp = Spline(x,y)
     >>> print("the root is at x=%f" %sp.invsplev(0.0))
     """
-    def __init__(self, x, y, eps=1e-10, **splrep_kwargs):
+    def __init__(self, x, y, eps=1e-10, checkeps=True, **splrep_kwargs):
         """
         args:
         -----
@@ -258,8 +258,9 @@ class Spline(object):
         eps : float
             Accuracy threshold. Spline must interpolate points with an error
             less then eps. Useless if you use splrep(...,s=..) with "s" (the
-            smoothing factor) much bigger than 0. In that case, use eps=<large
-            number> to disable this check.
+            smoothing factor) much bigger than 0. See `ckeckeps`.
+        checkeps : bool
+            Whether to use `eps` to ckeck interpolation accuracy.
         **splrep_kwargs : keywords args to splrep(), default: k=3, s=0            
         """
         self.x = x
@@ -271,10 +272,11 @@ class Spline(object):
                 splrep_kwargs[key] = val
         self.splrep_kwargs = splrep_kwargs
         self.tck = splrep(self.x, self.y, **splrep_kwargs)
-        err = np.abs(self.splev(self.x) - self.y)
-        assert (err < self.eps).all(), \
-               ("spline not accurate to eps=%e, max(error)=%e, raise eps" \
-                %(self.eps, err.max()))
+        if checkeps:
+            err = np.abs(self.splev(self.x) - self.y)
+            assert (err < self.eps).all(), \
+                    ("spline not accurate to eps=%e, max(error)=%e, raise eps"\
+                    %(self.eps, err.max()))
 
     def __call__(self, *args, **kwargs):
         return self.splev(*args, **kwargs)
