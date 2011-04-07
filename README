@@ -43,10 +43,10 @@ codes ("calculators"). MD and structure optimization in ASE is coded in Python,
 using only the calculator's SCF engine in every step to get energy and forces.
 Unfortunately, it does not jet provide things like variable cell MD with the
 MTTK [4] method and phonon calculations based on density functional
-perturbation theory like PWscf/PH or Abinit (only supercell frozen phonons).
-The focus of the pwtools package is to be a handy pre- and postprocessor
-providing pythonic access to all input and output quantities of the used ab
-initio codes (PWscf, Abinit). 
+perturbation theory like PWscf/PH or Abinit (only supercell frozen phonons can
+be done with the related phonopy package [5]). The focus of the pwtools package
+is to be a handy pre- and postprocessor providing pythonic access to all input
+and output quantities of the used ab initio codes (PWscf, Abinit). 
 
 ============
 Installation
@@ -95,24 +95,34 @@ Add-on packages / other required tools
 --------------------------------------
 
 Must have:
-    - numpy 
-    - scipy
-    - nose (for running tests in test/)  
+    * numpy 
+    * scipy
+    * nose (for running tests in test/)  
     On Debian-based distros, "aptitude install python-numpy python-scipy
     python-nose" should do it.
-    - Unix tools: grep, sed, awk, tail, wc (for parse.py); gzip/gunzip (for
+    * Unix tools: grep, sed, awk, tail, wc (for parse.py); gzip/gunzip (for
       test/*)
 
-optional: 
-    parse.py:
-        - PyCifRW (http://pycifrw.berlios.de)
-        - BeautifulSoup (http://www.crummy.com/software/BeautifulSoup/)
-        
+Suggested:
+    parse.py
+        * PyCifRW [6]
+        * BeautifulSoup [7] 
         Without these, you will get warnings and some parsing classes and IO
         functions will not work (Cif and CML parsing currently). If you wish,
         uncomment the warnings at the top of parse.py .
     examples/*, mpl.py
-        - matplotlib
+        * matplotlib
+    eos.py
+        * The tool "eos" from the Elk code [8] must be on your path. Note that
+          the executable is assumed to be named "eos.x". For details, see
+          eos.ElkEOSFit .
+
+Optional:
+    examples/
+        * The "fourier.x" tool from the CPMD [9] contrib sources.
+
+Several add-on/plugin packages are available in the pwextern package. Ask me
+(see LICENSE) if you need help with installing.
 
 =====
 Usage
@@ -120,8 +130,8 @@ Usage
 
 See test/test_*.py and examples/ for examples.
 
-Methology
----------
+Velocity autocorrelation function and phonon DOS
+------------------------------------------------
 
 There are two ways of computing the phonon density of states (PDOS) from 
 an MD trajectory (V is is array of atomic velocities, see pydos.velocity(). 
@@ -135,20 +145,28 @@ an MD trajectory (V is is array of atomic velocities, see pydos.velocity().
 Both methods are implemented but actually only method (2) is worth using.
 Method (1) still exists for historical reasons and as reference.
 
-- In method (1), if you mirror the VACF at t=0 before the FFT, then you get
+* In method (1), if you mirror the VACF at t=0 before the FFT, then you get
   double frequency resolution. 
 
-- By default, direct_pdos() uses zero padding to get the same frequency
+* By default, direct_pdos() uses zero padding to get the same frequency
   resolution as you would get with mirroring the signal in vacf_pdos().
 
-- Both methods use Welch windowing by default to reduce "leakage" from
+* Both methods use Welch windowing by default to reduce "leakage" from
   neighboring peaks. See also examples/pdos_methods.py 
 
-- Both methods must produce exactly the same results (up to numerical noise).
+* Both methods must produce exactly the same results (up to numerical noise).
 
-- The frequency axis of the PDOS is in Hz. It is "f", NOT the angular frequency 
+* The frequency axis of the PDOS is in Hz. It is "f", NOT the angular frequency 
   2*pi*f. See also examples/pdos_methods.py .
 
+
+==========================
+Units of parsed quantities
+==========================
+
+We have a lot of machinery to parse PWscf and Abinit output files. Unless
+otherwise stated, NO unit conversion is done. The user must know which unit the
+parsed data has. 
 
 =====================
 Format-specific notes
@@ -257,4 +275,11 @@ Refs
 [4] Glenn J. Martyna and Mark E. Tuckerman and Douglas J. Tobias and Michael
     L. Klein, "Explicit reversible integrators for extended systems
     dynamics", Mol. Phys. 87(5), pp. 1117, 1996
+[5] http://phonopy.sourceforge.net
+[6] http://pycifrw.berlios.de
+[7] http://www.crummy.com/software/BeautifulSoup
+[8] http://elk.sourceforge.net
+[9] http://www.cpmd.org
 
+
+# vim:comments=fb\:*

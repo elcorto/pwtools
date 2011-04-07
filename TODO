@@ -1,98 +1,85 @@
 pydos.py
 --------
-- unify vacf_pdos(), direct_pdos(), they have almost the same signature and
-  functionallity, use a kwarg 'method' to select the method of calculation
+* unify vacf_pdos(), direct_pdos(), they have almost the same signature and
+  functionality, use a kwarg 'method' to select the method of calculation
 
-- PDOS normalization. ATM we normalize so that Int(faxis, pdos) = area = 1.0. 
+* PDOS normalization. ATM we normalize so that Int(faxis, pdos) = area = 1.0. 
   But there may be others, like area = 3*natoms in the unit cell (not
   supercell), ...
 
-- We assume that the ATOMIC_POSITIONS unit (crystal, alat, angstrom) in
-  pw.in and that of the parsed out ones from pw.out are the same. Check this!
-  For example, it is seems to be NOT the same for cp.x!
-  => This is no longer true. We parse output w/o any information from the input
-  file. The user is responsible, he must know what units are used in the
-  output.
-
 all
 ---
-- Drop verbose.py. Use the logging or warnings module.
+* Drop verbose.py. Use the logging or warnings module.
 
-- io.write_*(): by using `cryst_const` instead of `cell`, we would get rid of
+* io.write_*(): by using `cryst_const` instead of `cell`, we would get rid of
   the annoying `align` kwarg. In fact, I think it is really used only
   crys.coord_trans().
 
-- move all numerical stuff (esp. from common) into new module (numutils.py or
-  whatever)
-
 ase interface and some ideas on how to not use plain 3d arrays
 --------------------------------------------------------------
-- Using raw 3d arrays for trajectories is cumbersome, esp. when we want to do
-  coord transformations (see io.write_axsf()). 
-  Update: We have a new crys.coord_trans() version, which is more usable.
 
-  Add unified storage class
-  Trajectory (like structure.Structure) to hide the data storage as 3d arrays.
-  Make them have list-like hehavior (modify __getitem__), much like ASE's
-  PickleTrajectory.
+* It is probably bad design to use cell, coords, symbols, etc as separate
+  objects. Use ase.Atoms as the central container to hold one unit cell, or
+  finish structure.Structure, which has essentially the same goal. Make all
+  functions in crys.py etc use this as input instead of coords/cell/symbols.
+  The only really cool thing about ase.Atoms is that __imul__ creates a
+  supercell. Besides that, we have the same functionality already present in
+  pwtools, but split across several modules (parse, crys, etc). We don't need
+  the calculator stuff at all, b/c we do calculations based on template files
+  etc (batch.py), not inside Python scripts on the cluster.
+
+* Implement trajectories as list-like objects which represent a sequence of
+  Atoms. That's all. For details, see below. 
+
+* Get rid of parse.py's CifFile, PDBFile, CMLFile etc. Use ase.io.read() or
+  io.read_* and return Atoms. 
+ 
+* Keep PwInputFile for historical reasons, add get_atoms() method which returns
+  Atoms if possible.
+
+* Using raw 3d arrays for trajectories is cumbersome, esp. when we want to do
+  coord transformations (see io.write_axsf()). Update: We have a new
+  crys.coord_trans() version, which is more usable.
+
+  Add unified storage class Trajectory (like structure.Structure) to hide the
+  data storage as 3d arrays. Make them have list-like behavior (modify
+  __getitem__), much like ASE's PickleTrajectory.
       >>> traj = Trajectory(...)
       >>> assert (traj[0] == traj.raw_coords[...,0]).all()
   Or only implement a Trajectory class to hold 3d arrays, which hides the
   time_axis stuff.
 
-- Add class Structure to hold stuff like
-    - coords
-    - cell
-    - forces 
-    - symbols
-    - ...
-    - align (attr) describing `cp` 
-  much like ASE's Atoms class. This would drastically simplify the writing and
-  maintaining of all functions which take coords, cp, symbols .. as args
-  (crys.py). Make parsing classes have an attr `structure`, which is an
-  instance of Structure. 
-  This is in progress ... see structure.py
-
-- Function to convert between ASE Atoms objects and things like PwOutputFile.
-  We have an example script so far, and structure.Structure.get_ase_atoms() for
-  one structure.
-
-- ase.Atoms is nice, but for some reason, it has no set_forces() (or some such)
+* ase.Atoms is nice, but for some reason, it has no set_forces() (or some such)
   method. Last time I checked, forces are retrieved from the attached
   Calculator object, but cannot be set freely, which is pretty sad for a
   container class. Subclass ase.Atoms -> PwAtoms, add set_forces() method. In
   StructureFileParser, add method get_ase_atoms() which adds forces and returns
   a PwAtoms instance. ATM, we have that, but w/o forces.
 
-- Check if a ASE trajectory (do they just have this PickleTrajectory thing?) is
+* Check if a ASE trajectory (do they just have this PickleTrajectory thing?) is
   just a list of Atoms objects or if PickleTrajectory instances have a list API
   while storing coords, cell etc more efficiently (like PwOutputFile as 3d
   arrays :). Then, add get_ase_traj() to PwOutputFile etc.
 
 tests
 -----
-- Handle known fails with nose.
-
-- For all parsing funcs, add test output data (e.g. text files with arrays).
-  np.loadtxt() these arrays and compare them to parsed ones, e.g. p.coords .
-  ... this is too much work and will never happen. Check your results when
-  using this.
+* Handle known fails with nose.
 
 parse.py
 --------
-- Currently, we have a inconsistency for scf/md output parsers. In case of SCF,
+* Currently, we have an inconsistency for scf/md output parsers. In case of SCF,
   all Abinit quantities have one dimension less.     
     Pw*OutputFile: 
-        - works for MD-like (many time steps) and SCF (one time step)
-        - For SCF, all trajectory-like arrays are at least 2d and have
+        * works for MD-like (many time steps) and SCF (one time step)
+        * For SCF, all trajectory-like arrays are at least 2d and have
           nstep=1 along the time axis, e.g. pressure.shape = (1,): can be
           scalar, coords.shape = (natoms, 3, 1): can be 2d (natoms, 3) 
     Abinit*OutputFile
-        - for MD-like output, they behave as their Pw* counterparts
-        - BUT we have AbinitSCFOutputFile, where each trajectory-like 
+        * for MD-like output, they behave as their Pw* counterparts
+        * BUT we have AbinitSCFOutputFile, where each trajectory-like 
           array (nstep,...) or (...,nstep) does NOT have the time axis,
           i.e. pressure is scalar, coords is (natoms, 3)
-        - We use _get_foo_raw() to parse the trajectory-like array and use that
+        * We use _get_foo_raw() to parse the trajectory-like array and use that
           to return "scalar" values (last value along time axis) or the full
           trajectory.
    We have this situation b/c it is difficult to define an API b/c the parsers
@@ -100,12 +87,11 @@ parse.py
    break backward compat, but some day, we must decide for one of the two
    schemes: 
    treat SCF as "scalar":
-     - Implement class PwSCFOutputFile(PwOutputFile) and return the last value
+     * Implement class PwSCFOutputFile(PwOutputFile) and return the last value
        along time axis, e.g. pressure[-1], coords[...,-1].
    treat SCF as MD w/ nstep=1
-     - In AbinitSCFOutputFile, add time axis (np.atleast_{2d,3d} or newaxis
+     * In AbinitSCFOutputFile, add time axis (np.atleast_{2d,3d} or newaxis
        tricks) for each array.
-         
-eos.py
-------
-- Use new common.Spline
+
+
+# vim:comments=fb\:*
