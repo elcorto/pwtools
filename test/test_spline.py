@@ -34,5 +34,17 @@ def test():
     for y0,x0 in zip(y0s, x0s):
         np.testing.assert_almost_equal(y0, spl(spl.invsplev(y0, x0=x0)))
     
+    # root    
+    np.testing.assert_almost_equal(spl.invsplev(0.0), spl.get_root())
+    
+    # min
+    x = np.linspace(-10,10,100) 
+    y = (x-5)**2.0 + 1.0
+    spl = Spline(x,y)
+    xmin = spl.get_min()
+    ymin = spl(xmin)
+    np.testing.assert_almost_equal(xmin, 5.0)
+    np.testing.assert_almost_equal(ymin, 1.0)
+
     # API
     spl = Spline(x,y,k=2,s=0.1,eps=0.11)

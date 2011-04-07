@@ -231,10 +231,15 @@ def findroot(x, y):
 
 class Spline(object):
     """Wrapper around scipy.interpolate.splrep/splev with some nice features
-    like y->x lookup and interpolation accuracy check etc.
+    like y->x lookup and interpolation accuracy check etc. It basically
+    simplifies setting up a spline interpolation and holds x-y data plus the
+    spline knots (self.tck) together in one place. You can work with the
+    methods here, but you can also use the normal tck (self.tck) in
+    scipy.interpolation.splev() etc.
 
     example:
     --------
+    >>> from scipy.interpolate import splev
     >>> x = linspace(0,10,100)
     >>> y = sin(x)
     >>> sp = Spline(x,y)
@@ -299,14 +304,19 @@ class Spline(object):
         return splev(x, self.tck, *args, **kwargs)
 
     def invsplev(self, y0, x0=None, xab=None):
-        """Find xx where y(xx) == y0 by calculating the root of y(x) - y0.
-        We can use Newton's (x0) or Brent's (xab) methods. Use only one of
+        """Lookup x for a given y, i.e. "inverse spline evaluation", hence
+        the same. Find xx where y(xx) == y0 by calculating the root of y(x) -
+        y0. We can use Newton's (x0) or Brent's (xab) methods. Use only one of
         them. If neither is given, we use xab=[x[0], x[-1]].
-
-        The result depends on how good x0 or xab are. For values outside of the
-        data range, you will get unreliable extrapolated data! No check is done
-        for that. Also an interval xab which does not contain y0 will give
-        bogus results.
+       
+        There are a few caveats. The result depends the nature of the
+        underlying x-y curve (is it strictly monotinic -> hopefully one root or
+        oscillating -> possibly several roots) and on how good x0 or xab are.
+        For instance, a bad x0 will cause the Newton method to converge to a
+        different root (if there is one) or to converge not at all. Or an
+        interval xab which contains no (or several) root(s) will cause the
+        Brent method to error out or give wrong/unexpected results. Always plot
+        you data before using.
         
         Works only for scalar input (one point lookup). For many points, try to
         construct an inverse spline: Spline(y,x).
@@ -327,6 +337,9 @@ class Spline(object):
         # requires the data x,y to be monotonic b/c otherwise, the lookup y->x
         # is not unique. Here, the user is responsible for providing a
         # meaningful x0 / xab, which is more flexible and generic.
+        ymn, ymx = self.y.min(), self.y.max()
+        assert (ymn <= y0 <= ymx), ("y0 (%e) outside y data range [%e, %e]"
+                                    %(y0, ymn, ymx))
         func = lambda x: self.splev(x) - y0
         return self._findroot(func, x0=x0, xab=xab)
    
@@ -341,9 +354,27 @@ class Spline(object):
         returns:
         --------
         xx : scalar
+            min(y) = y(xx)
         """
         func = lambda x: self.splev(x, der=1)
         return self._findroot(func, x0=x0, xab=xab)
+    
+    def get_root(self, x0=None, xab=None):
+        """Return xx where y(xx) = 0 by calculating the root of the spline.
+        This function is actually redundant b/c it can be done with
+        self.invsplev(0.0, ...), i.e. lookup x where y=0, which is exactly the
+        root. But we keep it for reference and convenience.
+        
+        args:
+        -----
+        x0 or xab: see self.invsplev()
+        
+        returns:
+        --------
+        xx : scalar
+            y(xx) = 0
+        """
+        return self._findroot(self.splev, x0=x0, xab=xab)
     
 
 def slicetake(a, sl, axis=None, copy=False):
