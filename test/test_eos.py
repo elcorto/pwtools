@@ -27,36 +27,51 @@ def test():
         # natoms=1 -> no normalitation in ref. data *.OUT                    
         ref_ev = np.loadtxt("files/ev/EVPAI.OUT.gz")
         ref_pv = np.loadtxt("files/ev/PVPAI.OUT.gz")
+        ref_min = np.loadtxt("files/ev/min.txt")
         assert ref_ev.shape[0] == ref_pv.shape[0], ("reference data lengths "
             "inconsistent")
         ref = {}        
         ref['ev_v'] = ref_ev[:,0]        
         ref['ev_e'] = ref_ev[:,1] * 2.0 # Ha -> Ry
         ref['pv_v'] = ref_pv[:,0]
-        ref['pv_p'] = ref_pv[:,1]        
+        ref['pv_p'] = ref_pv[:,1]
+        ref['v0'], ref['e0'], ref['p0'], ref['b0'] = ref_min
         
-        # natoms = 1, no normalization
-        eos = ElkEOSFit(energy=energy,
-                        volume=volume,
-                        natoms=1,
-                        etype=1,
-                        npoints=300,
-                        dir=testdir)
-        eos.fit()
-        now = {}
-        now['ev_v'], now['ev_e'] = eos.get_ev()
-        now['pv_v'], now['pv_p'] = eos.get_pv()
+        eos_store = {}
+        type_arr = type(np.array([1.0,2.0]))
+        for method in ['ev', 'pv']:
+            print "method: %s" %method
+            # natoms = 1, no normalization
+            eos = ElkEOSFit(energy=energy,
+                            volume=volume,
+                            natoms=1,
+                            etype=1,
+                            npoints=300,
+                            dir=testdir,
+                            method=method)
+            eos.fit()
+            now = {}
+            now['ev_v'], now['ev_e'] = eos.get_ev()
+            now['pv_v'], now['pv_p'] = eos.get_pv()
+            now['v0'], now['e0'], now['p0'], now['b0'] = eos.get_min()
+            
+            # compare to reference
+            for key, val in ref.iteritems():
+                print key
+                if type(val) == type_arr:
+                    np.testing.assert_array_almost_equal(now[key], ref[key])
+                else:
+                    np.testing.assert_almost_equal(now[key], ref[key],
+                                                   decimal=3)
+            eos_store[method] = eos
         
-        # internal consistence
-        for key in now.iterkeys():
-            print key
-            assert (now[key] == getattr(eos, key)).all()
+        # Test other attrs between methods 'ev' and 'pv' among each other for
+        # which we do not have external ref data.
+        print "bv_v"
+        np.testing.assert_array_almost_equal(eos_store['ev'].bv_v, 
+                                             eos_store['pv'].bv_v)
+        print "bv_b"
+        np.testing.assert_array_almost_equal(eos_store['ev'].bv_b, 
+                                             eos_store['pv'].bv_b,
+                                             decimal=2)
         
-        # compare to reference
-        for key, val in ref.iteritems():
-            print key
-            np.testing.assert_array_almost_equal(now[key], ref[key])
-        
-        # other getters
-        print eos.get_min()
-        x,y = eos.get_bv()

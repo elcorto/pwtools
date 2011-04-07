@@ -10,7 +10,7 @@ import subprocess
 import numpy as np
 from pwtools import common, constants, num
 from pwtools.parse import FlexibleGetters
-from scipy.interpolate import splrep, splev
+##from scipy.interpolate import splrep, splev
 
 class ExternEOS(FlexibleGetters):
     """Base class for calling extern (Fortran) EOS-fitting apps. The class
@@ -36,7 +36,7 @@ class ExternEOS(FlexibleGetters):
     After calling fit(), these attrs are available. They are also returned by
     get_{ev,pv,bv}.
         self.ev_v, self.pv_v, self.bv_v : volume [Bohr^3] for E(V), P(V), B(V)
-        self.ev_e : evergy E(V) [Ry]
+        self.ev_e : energy E(V) [Ry]
         self.pv_p : pressure P(V) [GPa]
         self.bv_b : bulk modulus B(V) [GPa] 
 
@@ -112,20 +112,23 @@ class ExternEOS(FlexibleGetters):
         self.fitdata_energy = None
         self.fitdata_pressure = None
     
-    def _make_spline(self, x,y):
-        return splrep(x, y, k=3, s=0)
-
-    def _get_spl_ev(self):
-        return self._make_spline(*self.get_ev())
+    def get_spl_ev(self):
+        return num.Spline(*self.get_ev())
     
-    def _get_spl_pv(self):
-        return self._make_spline(*self.get_pv())
+    def get_spl_pv(self):
+        return num.Spline(*self.get_pv())
     
-    def _get_spl_bv(self):
-        return self._make_spline(*self.get_bv())
+    def get_spl_bv(self):
+        return num.Spline(*self.get_bv())
     
     def set_method(self, method):
-        """Set self.method, a.k.a. switch to another method."""
+        """Set self.method, a.k.a. switch to another method.
+        
+        args:
+        -----
+        method : str
+            'ev', 'pv'
+        """
         self.method = method
 
     def fit(self, *args, **kwargs):
@@ -157,7 +160,7 @@ class ExternEOS(FlexibleGetters):
         --------
         v,e
         v : volume [Bohr^3] 
-        e : evergy [Ry]
+        e : energy [Ry]
         """
         return (self.ev_v, self.ev_e)
     
@@ -174,15 +177,15 @@ class ExternEOS(FlexibleGetters):
     def get_bv(self):
         # B = V*d^2E/dV^2 = -V*dP/dV
         if self.method == 'pv':
-            self.check_get_attr('_spl_pv')
+            self.check_get_attr('spl_pv')
             pv_v, pv_p = self.get_pv()
-            return pv_v, -pv_v * splev(pv_v, self._spl_pv, der=1)
+            return pv_v, -pv_v * self.spl_pv(pv_v, der=1)
         elif self.method == 'ev':
-            self.check_get_attr('_spl_ev')
+            self.check_get_attr('spl_ev')
             ev_v, ev_e = self.get_ev()
             # Ry / Bohr^3 -> GPa
             fac = constants.Ry_to_J / constants.a0**3.0 / 1e9
-            return ev_v, ev_v * splev(ev_v, self._spl_ev, der=2) * fac
+            return ev_v, ev_v * self.spl_ev(ev_v, der=2) * fac
         else:
             raise StandardError("unknown method: '%s'" %method)
 
@@ -198,26 +201,21 @@ class ExternEOS(FlexibleGetters):
         array([v0, e0, p0, b0]) : volume, energy, pressure, bulk modulus at
             energy min
         """
-        # XXX use self._spl* or num.Spline instead of find*() to avoid
-        # spline re-calc
+        self.check_get_attr('spl_pv')
+        self.check_get_attr('spl_ev')
+        self.check_get_attr('spl_bv')
         if self.method == 'pv':
-            v0, p0 = num.findroot(self.pv_v, self.pv_p)
-            self.check_get_attr('_spl_ev')
-            e0 = splev(v0, self._spl_ev)
+            v0 = self.spl_pv.invsplev(0.0)
         elif self.method == 'ev':
-            v0, e0 = num.findmin(self.ev_v, self.ev_e)
-            self.check_get_attr('_spl_pv')
-            p0 = splev(v0, self._spl_pv)
+            v0 = self.spl_ev.get_min()
         else:
             raise StandardError("unknown method: '%s'" %method)
-        self.check_get_attr('_spl_bv')
-        b0 = splev(v0, self._spl_bv)
+        p0 = self.spl_pv(v0)
+        e0 = self.spl_ev(v0)
+        b0 = self.spl_bv(v0)
         return np.array([v0, e0, p0, b0])
       
-      # XXX Use Spline class here.
-##    def lookup(self, volume=None, energy=None, pressure=None, bulkmod=None):
-##        pass
-
+    
     def call(self, cmd):
         """
         Call shell command 'cmd' and merge stdout and stderr.
