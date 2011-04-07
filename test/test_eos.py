@@ -1,6 +1,14 @@
 # test_eos.py
 #
 # Test if calling eos.x from the Elk code works. Compare to reference data.
+#
+# ref data created with
+#     eos = ElkEOSFit(energy=energy,
+#                     volume=volume,
+#                     natoms=1,
+#                     etype=1,
+#                     npoints=300)
+# natoms=1 -> no normalitation in ref. data *.OUT 
 
 import numpy as np
 from pwtools.eos import ElkEOSFit
@@ -14,27 +22,20 @@ def test():
     if app == '':
         print("warning: cannot find '%s' on PATH, skipping test" %exe)
     else:
-        # EV data
+        # EV input data
         data = np.loadtxt("files/ev/evdata.txt")
         volume = data[:,0]
         energy = data[:,1]
-        # ref data, created with
-        #     eos = ElkEOSFit(energy=energy,
-        #                     volume=volume,
-        #                     natoms=1,
-        #                     etype=1,
-        #                     npoints=300)
-        # natoms=1 -> no normalitation in ref. data *.OUT                    
+        # reference fitted data points
         ref_ev = np.loadtxt("files/ev/EVPAI.OUT.gz")
+        ref_ev[:,1] *= 2.0 # Ha -> Ry
         ref_pv = np.loadtxt("files/ev/PVPAI.OUT.gz")
         ref_min = np.loadtxt("files/ev/min.txt")
         assert ref_ev.shape[0] == ref_pv.shape[0], ("reference data lengths "
             "inconsistent")
         ref = {}        
-        ref['ev_v'] = ref_ev[:,0]        
-        ref['ev_e'] = ref_ev[:,1] * 2.0 # Ha -> Ry
-        ref['pv_v'] = ref_pv[:,0]
-        ref['pv_p'] = ref_pv[:,1]
+        ref['ev'] = ref_ev        
+        ref['pv'] = ref_pv
         ref['v0'], ref['e0'], ref['p0'], ref['b0'] = ref_min
         
         eos_store = {}
@@ -51,9 +52,9 @@ def test():
                             method=method)
             eos.fit()
             now = {}
-            now['ev_v'], now['ev_e'] = eos.get_ev()
-            now['pv_v'], now['pv_p'] = eos.get_pv()
-            now['v0'], now['e0'], now['p0'], now['b0'] = eos.get_min()
+            now['ev'] = eos.ev
+            now['pv'] = eos.pv
+            now.update(eos.get_min())
             
             # compare to reference
             for key, val in ref.iteritems():
@@ -64,14 +65,22 @@ def test():
                     np.testing.assert_almost_equal(now[key], ref[key],
                                                    decimal=3)
             eos_store[method] = eos
-        
-        # Test other attrs between methods 'ev' and 'pv' among each other for
-        # which we do not have external ref data.
-        print "bv_v"
-        np.testing.assert_array_almost_equal(eos_store['ev'].bv_v, 
-                                             eos_store['pv'].bv_v)
-        print "bv_b"
-        np.testing.assert_array_almost_equal(eos_store['ev'].bv_b, 
-                                             eos_store['pv'].bv_b,
+            
+            # internal check: are the splines correct?
+            for name in ['ev', 'pv', 'bv']:
+                # (N,2) arrays self.{ev,pv,bv}
+                data = getattr(eos, name)
+                vv = data[:,0]
+                yy = data[:,1]
+                # self.spl_{ev,pv,bv}
+                spl = getattr(eos, 'spl_' + name)
+                np.testing.assert_array_almost_equal(yy, spl(vv))
+
+
+        # Other attrs for which we do not have external ref data. Test only
+        # among the two methods 'ev' and 'pv'.
+        print "bv"
+        np.testing.assert_array_almost_equal(eos_store['ev'].bv, 
+                                             eos_store['pv'].bv,
                                              decimal=2)
         

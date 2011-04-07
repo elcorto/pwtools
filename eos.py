@@ -10,58 +10,68 @@ import subprocess
 import numpy as np
 from pwtools import common, constants, num
 from pwtools.parse import FlexibleGetters
-##from scipy.interpolate import splrep, splev
 
 class ExternEOS(FlexibleGetters):
     """Base class for calling extern (Fortran) EOS-fitting apps. The class
-    writes an input file, calls the app, loads E-V fitted data and loads or
-    calcutates P-V data.
-    
-    The number of data points for the returned arrays (fitted curves) are
+    writes an input file, calls the app, loads E(V) fitted data and loads or
+    calcutates P(V), B(V).
+
+    The number N of data points for the returned arrays (fitted curves) are
     handled by derived classes.
+
+    We have three "representations" of the data:
+    (a) input data E(V) : self.volume, self.energy
+    (b) fitted or calculated points : self.{ev,pv,bv} -- 2d arrays (N,2)
+        where N is the number of returned fitted points from the fitting app. N
+        depends in the fitting app. For instance, in ElkEOSFit, you can use
+        `npoints` to set N.
+    (c) Splines thru fitted or calculated (N,2) data ev,pv,bv :
+        self.spl_{ev,pv,bv}.        
 
     methods:
     --------
-    fit() : fit E-V data
-    get_ev() : return tuple (ev_v, ev_e), see below
-    get_pv() : return tuple (pv_v, pv_p), see below
-    get_bv() : return tuple (bv_v, bv_b), see below
-    get_min() : return V0, E0, P0, B0 at min(energy), hint: If the
+    fit() : call this to fit data and calculate pressure etc
+    get_min() : return properties at min(energy), hint: If the
         pressure is not very close to zero (say ~ 1e-10), then your E-V data is
-        incorrect. Usually, this is because of poorly converged phonon
-        calculations (low ecut, too few q-points).
+        incorrect. Usually, this is because of poorly converged
+        calculations (low ecut, too few k-points).
+    get_spl_{ev,pv,bv}() : Return a Spline object for the fitted data.
 
     attributes:
     -----------
-    After calling fit(), these attrs are available. They are also returned by
-    get_{ev,pv,bv}.
-        self.ev_v, self.pv_v, self.bv_v : volume [Bohr^3] for E(V), P(V), B(V)
-        self.ev_e : energy E(V) [Ry]
-        self.pv_p : pressure P(V) [GPa]
-        self.bv_b : bulk modulus B(V) [GPa] 
+    After calling fit(), these attrs are available. All are 2d arrays (N,2),
+    see notes below regarding N.
+        self.ev : [volume [Bohr^3], energy E(V) [Ry]]
+        self.pv : [volume [Bohr^3], pressure P(V) [GPa]]
+        self.bv : [volume [Bohr^3], bulk modulus B(V) [GPa]]
+    Splines self.spl_* should be obtained by the self.get_spl_* methods, rather
+    then attr access self.spl_*. This is because they are calculated only when
+    requested, not by default in fit().
 
-    >>> eos = SomeEOSClass(app='super_fitting_app.x', energy=e, volume=v)
+    >>> eos = SomeEOSClass(app='super_fitting_app.x', energy=ee, volume=vv)
     >>> eos.fit()
-    >>> plot(v,e, 'o-', label='data')
-    >>> plot(eos.ev_v, eos.ev_e, label='eos fit')
-    >>> plot(eos.pv_v, eos.pv_p, label='-dE_eos/dV')
+    >>> plot(vv, ee, 'o-', label='data')
+    >>> plot(eos.ev[:,0], eos.ev[:,1], label='eos fit')
+    >>> plot(eos.pv[:,0], eos.pv[:,1], label='P=-dE/dV')
+    >>> plot(eos.ev[:,0], eos.get_spl_ev()(eos.ev[:,0]), label='spline E(V)')
+    >>> plot(eos.pv[:,0], eos.get_spl_pv()(eos.pv[:,0]), label='spline P(V)')
+    >>> print "min:", eos.get_min()
 
     notes:
     ------
-    We distinguish between the volume "x-axis" for energy (ev_v) and pressure
-    (pv_v) b/c, depending on how P=-dE_eos/dV is calculated, these may have
-    different length (if the pressure is calculated by finite differences, for
-    instance).
+    We distinguish between the volume axis for energy (ev[:,0]) and pressure
+    (pv[:,0]) b/c, depending on how P=-dE/dV is calculated, these may have
+    different length. For instance, if the pressure is calculated by finite
+    differences, then ev.shape[0] == N, pv.shape[0] == N-1 .
     """
     # Derived classes:
     # ----------------
-    # Implement _fit(), which sets self.fitdata_{energy, pressure}.
+    # Implement _fit(), which sets self.{ev,pv}.
     #
-    # self.fitdata_{energy, pressure} : 2d array, shape (len(volume), 2):
-    #       [volume[Bohr^3], {energy[Ry], pressure[GPa]}]
-    #     Derived classed must conform to this in their _fit() method. We use
-    #     the fitdata_* arrays b/c the fitting apps usually write their results
-    #     in that format -- just np.loadtxt() that.
+    # ev : 2d array, shape (number_of_fit_points, 2): [volume [Bohr^3], energy [Ry]]
+    # pv : 2d array, shape (number_of_fit_points, 2): [volume [Bohr^3], pressure [GPa]]
+    # 
+    # Derived classed must conform to this in their _fit() method.
     def __init__(self, app=None, energy=None, volume=None, dir=None,
                  method='ev', verbose=True):
         """
@@ -105,21 +115,44 @@ class ExternEOS(FlexibleGetters):
     
     def _fit(self):
         """Fit E-V data (self.energy, self.volume) and set 
-            self.fitdata_energy
-            self.fitdata_pressure
-        This is the interface which derived classes must implement.            
+            self.ev
+            self.pv
+        This is the interface which derived classes must implement. If bv is
+        not calculated by the fitting tool, use smth like num.deriv_spl() to
+        calculate the pressure P=-dE/dV.            
         """
-        self.fitdata_energy = None
-        self.fitdata_pressure = None
+        self.ev = None
+        self.pv = None
     
+    def fit(self, *args, **kwargs):
+        """Fit E-V data (self.energy, self.volume) and set 
+            self.ev
+            self.pv
+        (done by self._fit()) and calculate self.bv .
+        """            
+        self._fit(*args, **kwargs)
+        self.bv = self.calc_bv()
+
+    # Make internal spline representations accessible to the user.
+    # XXX how about using @property for another way to automatically invoke the
+    # getter? Can we use this in FlexibleGetters, too?
     def get_spl_ev(self):
-        return num.Spline(*self.get_ev())
+        if self.is_set_attr('spl_ev'):
+            return self.spl_ev
+        else:            
+            return num.Spline(*self.get_ev_tup())
     
     def get_spl_pv(self):
-        return num.Spline(*self.get_pv())
+        if self.is_set_attr('spl_pv'):
+            return self.spl_pv
+        else:            
+            return num.Spline(*self.get_pv_tup())
     
     def get_spl_bv(self):
-        return num.Spline(*self.get_bv())
+        if self.is_set_attr('spl_bv'):
+            return self.spl_bv
+        else:            
+            return num.Spline(*self.get_bv_tup())
     
     def set_method(self, method):
         """Set self.method, a.k.a. switch to another method.
@@ -131,30 +164,7 @@ class ExternEOS(FlexibleGetters):
         """
         self.method = method
 
-    def fit(self, *args, **kwargs):
-        """Fit E-V data (self.energy, self.volume) and set 
-            self.fitdata_energy
-            self.fitdata_pressure
-        Set shortcut attrs
-            self.ev_v
-            self.ev_e
-            self.pv_v
-            self.pv_p
-            self.bv_v
-            self.bv_b
-        """            
-        # Assume 
-        #   fitdata_*[:,0] = volume
-        #   fitdata_*[:,1] = <data>
-        # shortcuts
-        self._fit(*args, **kwargs)   
-        self.ev_v = self.fitdata_energy[:,0]
-        self.ev_e = self.fitdata_energy[:,1]
-        self.pv_v = self.fitdata_pressure[:,0]
-        self.pv_p = self.fitdata_pressure[:,1]
-        self.bv_v, self.bv_b = self.get_bv()
-
-    def get_ev(self):
+    def get_ev_tup(self):
         """
         returns:
         --------
@@ -162,9 +172,9 @@ class ExternEOS(FlexibleGetters):
         v : volume [Bohr^3] 
         e : energy [Ry]
         """
-        return (self.ev_v, self.ev_e)
+        return (self.ev[:,0], self.ev[:,1])
     
-    def get_pv(self):
+    def get_pv_tup(self):
         """
         returns:
         --------
@@ -172,40 +182,58 @@ class ExternEOS(FlexibleGetters):
         v : volume [Bohr^3] 
         p : pressure [GPa]
         """
-        return (self.pv_v, self.pv_p)
+        return (self.pv[:,0], self.pv[:,1])
+    
+    def get_bv_tup(self):
+        """
+        returns:
+        --------
+        v,b
+        v : volume [Bohr^3] 
+        b : bulk modulus [GPa]
+        """
+        return (self.bv[:,0], self.bv[:,1])
+    
+    # XXX backward compat
+    def get_ev(self):
+        return self.get_ev_tup()
+    
+    def get_pv(self):
+        return self.get_pv_tup()
     
     def get_bv(self):
+        return self.get_bv_tup()
+    # XXX backward compat
+
+    def calc_bv(self):
         # B = V*d^2E/dV^2 = -V*dP/dV
         if self.method == 'pv':
             self.check_get_attr('spl_pv')
-            pv_v, pv_p = self.get_pv()
-            return pv_v, -pv_v * self.spl_pv(pv_v, der=1)
+            vv = self.pv[:,0]
+            return np.array([vv, -vv * self.spl_pv(vv, der=1)]).T
         elif self.method == 'ev':
             self.check_get_attr('spl_ev')
-            ev_v, ev_e = self.get_ev()
             # Ry / Bohr^3 -> GPa
             fac = constants.Ry_to_J / constants.a0**3.0 / 1e9
-            return ev_v, ev_v * self.spl_ev(ev_v, der=2) * fac
+            vv = self.ev[:,0]
+            return np.array([vv, vv * self.spl_ev(vv, der=2) * fac]).T
         else:
             raise StandardError("unknown method: '%s'" %method)
-
-    def get_min(self):
+    
+    # XXX behave : backward compat
+    def get_min(self, behave='new'):
         """
-        args:
-        -----
-        method : str, {'pv', 'ev'}
-            pv: min based on P(V) 
-            ev: min based on E(V) 
         returns:
         --------
-        array([v0, e0, p0, b0]) : volume, energy, pressure, bulk modulus at
+        a dict {v0, e0, p0, b0} : volume, energy, pressure, bulk modulus at
             energy min
+        or an array of length 4 if behave=='old'.            
         """
         self.check_get_attr('spl_pv')
         self.check_get_attr('spl_ev')
         self.check_get_attr('spl_bv')
         if self.method == 'pv':
-            v0 = self.spl_pv.invsplev(0.0)
+            v0 = self.spl_pv.get_root()
         elif self.method == 'ev':
             v0 = self.spl_ev.get_min()
         else:
@@ -213,8 +241,17 @@ class ExternEOS(FlexibleGetters):
         p0 = self.spl_pv(v0)
         e0 = self.spl_ev(v0)
         b0 = self.spl_bv(v0)
-        return np.array([v0, e0, p0, b0])
-      
+        if behave == 'old':
+            return np.array([v0, e0, p0, b0])
+        elif behave == 'new':            
+            dct = {}
+            dct['v0'] = v0
+            dct['e0'] = e0
+            dct['p0'] = p0
+            dct['b0'] = b0
+            return dct
+        else:
+            raise StandardError("unknown value for `behave`: %s" %str(behave))
     
     def call(self, cmd):
         """
@@ -234,9 +271,9 @@ class ExternEOS(FlexibleGetters):
 
 class BossEOSFit(ExternEOS):
     """eosfit.x from WIEN2k modified by The Boss
-
-    The returned arrays from get_pv() are 1 shorter than the results of
-    get_ev() b/c the pressure is calculated by finite differences.
+    
+    self.{ev,bv,pv} all have the same shape[0] b/c we do not use finite
+    differences for derivatives.
 
     notes:
     ------
@@ -266,17 +303,17 @@ class BossEOSFit(ExternEOS):
         if self.verbose:
             print out
         # [V [Bohr^3], E [Ry]]
-        self.fitdata_energy = np.loadtxt(os.path.join(self.dir,'eos.fit'))
+        self.ev = np.loadtxt(os.path.join(self.dir,'eos.fit'))
         # [V [Bohr^3], P [GPa]]
         # P = -dE/dV
         # Ry / Bohr^3 -> Pa -> GPa
         fac = constants.Ry_to_J / constants.a0**3 / 1e9
-        vol, dEdV = num.deriv_fd(self.fitdata_energy[:,1], 
-                                 self.fitdata_energy[:,0], 
-                                 n=1)
-        self.fitdata_pressure = np.empty((vol.shape[0], 2), dtype=float)
-        self.fitdata_pressure[:, 1] = -dEdV*fac
-        self.fitdata_pressure[:, 0] = vol
+        vol, dEdV = num.deriv_spl(self.ev[:,1], 
+                                  self.ev[:,0], 
+                                  n=1)
+        self.pv = np.empty((vol.shape[0], 2), dtype=float)
+        self.pv[:, 0] = vol
+        self.pv[:, 1] = -dEdV*fac
 
 
 class ElkEOSFit(ExternEOS):
@@ -286,8 +323,9 @@ class ElkEOSFit(ExternEOS):
 
     Note that the data produced by eos.x is divided by natoms and that energy
     is in Hartree. We remove the normalization and convert Ha -> Ry.
-
-    get_ev() and get_pv() return arrays of the same length.
+    
+    self.{ev,bv,pv} all have the same shape[0] b/c we do not use finite
+    differences for derivatives.
     """
     def __init__(self, app='eos.x', natoms=1, name='foo', etype=1, 
                  npoints=300, **kwargs):
@@ -378,10 +416,10 @@ class ElkEOSFit(ExternEOS):
         fitev = np.loadtxt(os.path.join(self.dir,'EVPAI.OUT')) * self.natoms
         # convert energy back to Ry
         fitev[:,1] *= 2.0
-        self.fitdata_energy = fitev
+        self.ev = fitev
         fitpv = np.loadtxt(os.path.join(self.dir,'PVPAI.OUT'))
         fitpv[:,0] *= self.natoms
-        self.fitdata_pressure = fitpv
+        self.pv = fitpv
 
 # backward compat
 BossEOSfit = BossEOSFit
