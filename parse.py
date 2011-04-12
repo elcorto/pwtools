@@ -508,29 +508,14 @@ class CifFile(StructureFileParser):
     --------
     See StructureFileParser
 
-    extra members:
-    --------------
-    celldm : array (6,), PWscf celldm, see [2]
-        [a, b/a, c/a, cos(alpha), cos(beta), cos(gamma)]
-        NOTE: 'a' IS ALWAYS IN BOHR, NOT ANGSTROM!!
-    
     notes:
     ------
     cif parsing:
         We expect PyCifRW [1] to be installed, which provides the CifFile
         module.
-    cell dimensions:
-        We extract
-        _cell_length_a
-        _cell_length_b
-        _cell_length_c
-        _cell_angle_alpha
-        _cell_angle_beta
-        _cell_angle_gamma
-        and transform them to pwscf-style celldm. 
     atom positions:
         Cif files contain "fractional" coords, which is just 
-        "ATOMIC_POSITIONS crystal" in PWscf.
+        "ATOMIC_POSITIONS crystal" in PWscf, "xred" in Abinit.
     
     refs:
     -----
@@ -548,7 +533,6 @@ class CifFile(StructureFileParser):
         """
         StructureFileParser.__init__(self, filename)
         self.block = block
-        self.set_attr_lst(self.attr_lst + ['celldm'])
     
     def cif_str2float(self, st):
         """'7.3782(7)' -> 7.3782"""
@@ -618,20 +602,6 @@ class CifFile(StructureFileParser):
         self.check_get_attr('symbols')
         return len(self.symbols)
     
-    # XXX remove this, NOT consistent w/ API, can be obtained by
-    # crys.cc2celldm()
-    def get_celldm(self):
-        self.check_get_attr('_cif_dct')
-        celldm = []
-        # ibrav 14, celldm(1) ... celldm(6)
-        celldm.append(self._cif_dct['a']/constants.a0_to_A) # Angstrom -> Bohr
-        celldm.append(self._cif_dct['b']/self._cif_dct['a'])
-        celldm.append(self._cif_dct['c']/self._cif_dct['a'])
-        celldm.append(cos(self._cif_dct['alpha']*pi/180))
-        celldm.append(cos(self._cif_dct['beta']*pi/180))
-        celldm.append(cos(self._cif_dct['gamma']*pi/180))
-        return np.asarray(celldm)
-
 
 class PDBFile(StructureFileParser):
     """Very very simple pdb file parser. Extract only ATOM/HETATM and CRYST1

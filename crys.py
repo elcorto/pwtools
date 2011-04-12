@@ -285,6 +285,7 @@ def cc2celldm(cryst_const, fac=1.0):
 
     args:
     -----
+    %(cryst_const_doc)s
     fac : float, optional
         conversion a[any unit] -> a[Bohr]
     
@@ -303,11 +304,13 @@ def cc2celldm(cryst_const, fac=1.0):
     celldm[5] = cos(gamma*pi/180.0)
     return celldm
 
+@crys_add_doc
 def celldm2cc(celldm, fac=1.0):
     """Convert PWscf celldm to cryst_const.
     
     args:
     -----
+    %(celldm)s
     fac : float, optional
         conversion a[Bohr] -> a[any unit]
     """

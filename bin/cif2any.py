@@ -30,6 +30,7 @@ mass_unique = [periodic_table.pt[sym]['mass'] for sym in abiin.symbols_unique]
 atspec = pwscf.atspec_str(abiin.symbols_unique, 
                           mass_unique, 
                           [sym + '.UPF' for sym in abiin.symbols_unique])
+celldm = crys.cc2celldm(pp.cryst_const, fac=1/constants.a0_to_A)
 
 print bar
 print("""NOTE: celldm is valid only for ibrav=0 (pwscf)! The .cif file is
@@ -41,8 +42,8 @@ print bar
 print "PWSCF"
 print bar
 
-print "celldm (a[Bohr], b/a, c/a, cos(bc), cos(ac), cos(ab):\n%s\n" %str_arr(pp.celldm)
-for ii, cd in enumerate(pp.celldm):
+print "celldm (a[Bohr], b/a, c/a, cos(bc), cos(ac), cos(ab):\n%s\n" %str_arr(celldm)
+for ii, cd in enumerate(celldm):
     print "celldm(%i) = %.16e" %(ii+1, cd)
 print "ibrav = 0"
 print "nat = %i" %pp.natoms    
