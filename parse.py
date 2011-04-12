@@ -445,28 +445,11 @@ class FileParser(FlexibleGetters):
         else:
             raise StandardError("self.fd is None or closed")
 
-# Idea:
-#
-# Structure : single struct -> Atoms in ASE, ATM all classes derived from
-#   StructureFileParser have this character (CifFile, etc)
-#   
-# Trajectory : for trajectories, some arrays are 3d
-#   This is like Pw*OutputFile.
-# 
-# Both as input for crys.write_*, crys.rpdf() etc
-#
-# Most usefull feature: Must hold attr self.coords_frac, derived classes must
-# define getter (how to get fractional coords), i.e. PwOutputFile must know all
-# about pwscf's ibrav etc. This means we must implement all 14 bravais lattices
-# or map pwscf's ibrav to ASE.lattice
-#
-# BUT: How to best combine parser class and structure class?
-
 
 class StructureFileParser(FileParser):
     """Base class for structure file (pdb, cif, etc) and input file parsers.
     A file parsed by this class is supposed to contain infos about an atomic
-    structure.
+    structure. This is like ase.Atoms.
     
     Classes derived from this one must provide the following members. If a
     particular information is not present in the parsed file, the corresponding
@@ -482,12 +465,14 @@ class StructureFileParser(FileParser):
     self.cryst_const : array (6,) with crystallographic costants
         [a,b,c,alpha,beta,gamma]
     self.natoms : number of atoms
+    
+    Note that cell and cryst_const contain the same information (redundancy).
 
-    convenience attributes:
-    -----------------------
-    self.atpos_str : a string representing the ATOMIC_POSITIONS card in a pw.x
-        in/out file
-
+    convenience getters:
+    -------------------
+    get_atpos_str     
+    get_mass         
+    
     Unless explicitly stated, we DO NOT DO any unit conversions with the data
     parsed out of the files. It is up to the user (and derived classes) to
     handle that. 
@@ -495,13 +480,24 @@ class StructureFileParser(FileParser):
     def __init__(self, filename=None):
         FileParser.__init__(self, filename)
         self.set_attr_lst(['coords', 'symbols', 'cryst_const', 'cell',
-                           'natoms', 'atpos_str'])
+                           'natoms'])
 
-    # Convenience getters
     def get_atpos_str(self):
+        """Return a string representing the ATOMIC_POSITIONS card in a pw.x
+        in/out file."""
         self.check_get_attr('coords')
         self.check_get_attr('symbols')
         return atpos_str(self.symbols, self.coords)
+    
+    def get_mass(self):
+        """1D array of atomic masses in amu (atomic mass unit 1.660538782e-27
+        kg as in periodic table). The order is the one from self.symbols."""
+        self.check_get_attr('symbols')
+        if self.is_set_attr('symbols'):
+            return np.array([periodic_table.pt[sym]['mass'] for sym in
+                             self.symbols])
+        else:
+            return None
     
 
 class CifFile(StructureFileParser):
@@ -622,6 +618,8 @@ class CifFile(StructureFileParser):
         self.check_get_attr('symbols')
         return len(self.symbols)
     
+    # XXX remove this, NOT consistent w/ API, can be obtained by
+    # crys.cc2celldm()
     def get_celldm(self):
         self.check_get_attr('_cif_dct')
         celldm = []
@@ -2121,7 +2119,13 @@ class AbinitMDOptOutputFile(AbinitSCFOutputFile):
         else:
             return None
                                  
-
+# TODO 
+# * New AbinitMDOutputFile for ionmov 8, inherit from AbinitMDOptOutputFile,
+#   add temperature stuff, inherit is then:
+#   AbinitSCFOutputFile -> AbinitMDOptOutputFile -> AbinitMDOutputFile ->
+#   AbinitVCMDOutputFile
+# * Add _get_velocity_raw to AbinitMDOutputFile, use [...,::2] here, but not in
+#   AbinitMDOptOutputFile
 class AbinitVCMDOutputFile(AbinitMDOptOutputFile):
     """Parse ionmov 13 output (NPT MD with the MTTK method).
 
@@ -2144,12 +2148,18 @@ class AbinitVCMDOutputFile(AbinitMDOptOutputFile):
     "xred" etc at the beginning. Use AbinitSCFOutputFile for the MD output to
     parse start structure quantities.
     """
-    # double printing with ionmov 13: This applies to
-    #         * coord_frac
-    #         * forces
-    #     Except for the 1st coord (=start struct, MOLDYN STEP 0), all are
-    #     printed twice. Take every second item [*] with numpy indexing
-    #     array[...,::2]. nstep = (nstep_raw - 1)/2 + 1 (+1 for step 0)
+    # double printing with ionmov 13 
+    # ------------------------------
+    # This applies to
+    #     Cartesian coordinates (xcart) [bohr]
+    #     Reduced coordinates (xred)
+    #     Cartesian forces (fcart) [Ha/bohr]; max,rms= ... (free atoms)
+    #     Reduced forces (fred)
+    #     Cartesian velocities (vel) [bohr*Ha/hbar]; max,rms= ... (free atoms)
+    #
+    # Except for the 1st coord (=start struct, MOLDYN STEP 0), all are printed
+    # twice. Take every second item [*] with numpy indexing array[...,::2].
+    # nstep = (nstep_raw - 1)/2 + 1 (+1 for step 0)
     #         moldyn_0 *
     #         moldyn_1
     #         moldyn_1 *
@@ -2159,10 +2169,11 @@ class AbinitVCMDOutputFile(AbinitMDOptOutputFile):
     #         moldyn_{nstep-1}
     #         moldyn_{nstep-1} *
     #
-    # ionmov 2,3,8 (others not tested, see AbinitMDOptOutputFile):
-    #     * coords, forces etc not double-printed, same regex, but don't use
-    #       [...,::2] -> we use _get_{forces,coord_frac}_raw()
-    #     * printed differently: ekin, etot 
+    # ionmov 2,3,8 (others not tested, see AbinitMDOptOutputFile)
+    # -----------------------------------------------------------
+    # * coords, forces etc not double-printed, same regex, but don't use
+    #   [...,::2] -> we use _get_{forces,coord_frac}_raw()
+    # * printed differently: ekin, etot 
     # 
     def __init__(self, filename=None):
         AbinitSCFOutputFile.__init__(self, filename)

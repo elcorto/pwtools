@@ -49,7 +49,7 @@ print "nat = %i" %pp.natoms
 print "ntyp = %i" %abiin.ntypat
 print "CELL_PARAMETERS alat\n%s" %str_arr(pp.cell / pp.cryst_const[0])
 print "ATOMIC_SPECIES\n%s" %atspec
-print "ATOMIC_POSITIONS crystal\n%s" %pp.atpos_str
+print "ATOMIC_POSITIONS crystal\n%s" %pp.get_atpos_str()
 
 print bar
 print "ABINIT"
