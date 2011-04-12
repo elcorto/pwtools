@@ -4,6 +4,7 @@
 
 import numpy as np
 from pwtools.common import assert_cond as _assert
+from pwtools import common
 
 def fac(n):
     """Factorial n!. Returns integer."""
@@ -164,7 +165,7 @@ def unique2d(arr, what='row'):
         return np.asarray(uniq).T
 
 
-def nested_loops(lists, ret_all=False):
+def nested_loops(lists, ret_all=False, flatten=False):
     """Nonrecursive version of nested loops of arbitrary depth. Pure Python
     version (no numpy).
     
@@ -178,7 +179,9 @@ def nested_loops(lists, ret_all=False):
     ret_all : bool
         True: return perms, perm_idxs
         False: return perms
-    
+    flatten : bool
+        Flatten each entry in returned list. 
+
     returns:
     --------
     perms : list of lists with permuted objects
@@ -232,17 +235,12 @@ def nested_loops(lists, ret_all=False):
      [2, 'b', <ufunc 'cos'>],
      [2, 'c', <ufunc 'sin'>],
      [2, 'c', <ufunc 'cos'>]]
-    # if values of different lists should be varied together
+    # If values of different lists should be varied together, use zip(). Note
+    # that you get nested lists back. Use flatten=True to get flattened lists.
     >>> nested_loops([zip([1,2], ['a', 'b']), [88, 99]])
     [[(1, 'a'), 88], [(1, 'a'), 99], [(2, 'b'), 88], [(2, 'b'), 99]]
-    >>> from pwtools import common
-    >>> for x in nested_loops([zip([1,2], ['a', 'b']), [88, 99]]): 
-    ...     print common.flatten(x)
-    ...
-    [1, 'a', 88]
-    [1, 'a', 99]
-    [2, 'b', 88]
-    [2, 'b', 99]
+    >>> nested_loops([zip([1,2], ['a', 'b']), [88, 99]], flatten=True)
+    [[1, 'a', 88], [1, 'a', 99], [2, 'b', 88], [2, 'b', 99]]
     """
     lens = map(len, lists)
     mx_idxs = [x - 1 for x in lens]
@@ -268,6 +266,7 @@ def nested_loops(lists, ret_all=False):
         perm_idxs.append(idxs[:])
         perms.append([lists[j][k] for j,k in enumerate(idxs)])
         idxs[-1] += 1
+    perms = [common.flatten(xx) for xx in perms] if flatten else perms
     if ret_all:
         return perms, perm_idxs
     else:
