@@ -144,42 +144,13 @@ class Structure(FlexibleGetters):
         self.assert_attr('symbols') 
         return len(self.symbols)
     
+    # XXX if we do this here (Pwscf), then we shall also calculate Abinit stuff
+    # (see abinit.AbinitInput).
     def get_atpos_str(self, coords_attr='coords'):
         req = [coords_attr, 'symbols']
         self.check_get_attrs(req)
         self.assert_attrs(req)
         return atpos_str(self.symbols, getattr(self, coords_attr))
-    
-    def get_celldm(self, fac=1.0):
-        """
-        Calculate PWscf `celldm`.
-        args:
-        -----
-        fac : float, optional
-            conversion factor to Bohr
-        
-        returns:
-        --------
-        celldm : array (6,), PWscf celldm
-            [a, b/a, c/a, cos(alpha), cos(beta), cos(gamma)]
-            `a` is in Bohr.
-        """            
-        self.check_get_attr('cryst_const')
-        self.assert_attr('cryst_const')
-        celldm = np.empty((6,), dtype=np.float)
-        a = self.cryst_const[0]
-        b = self.cryst_const[1]
-        c = self.cryst_const[2]
-        alpha = self.cryst_const[3]
-        beta  = self.cryst_const[4]
-        gamma = self.cryst_const[5]
-        celldm[0] = a*fac
-        celldm[1] = b/a
-        celldm[2] = c/a
-        celldm[3] = cos(alpha*pi/180.0)
-        celldm[4] = cos(beta*pi/180.0)
-        celldm[5] = cos(gamma*pi/180.0)
-        return celldm
     
     def get_ase_atoms(self):
         """Return ASE Atoms object. Obviously, you must have ASE installed."""

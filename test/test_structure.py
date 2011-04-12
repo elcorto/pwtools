@@ -53,8 +53,7 @@ def test():
                    'cell',
                    'cryst_const',
                    'natoms',
-                   'atpos_str',
-                   'celldm']
+                   ]
     for name in st.attr_lst:
         eval("st.get_%s()" %name)
     try:
