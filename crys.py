@@ -6,7 +6,6 @@
 from math import acos, pi, sin, cos, sqrt
 from itertools import izip
 import textwrap
-import tempfile
 import time
 import os
 
@@ -979,17 +978,23 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None), align='rows',
     
     examples:
     ---------
-    # 2 selections (O and H atoms, time step 3000 to end)
-    >>> pp = parse.PwOutputFile(...)
-    >>> pp.parse()
+    # 2 selections (O and H atoms, average time step 3000 to end)
+    >>> pwout = parse.PwOutputFile(...)
+    >>> pwin = parse.PwInputFile(...)
+    >>> pwout.parse()
     # lattice constant, assume cubic box
     >>> alat = 5
     >>> cell = np.identity(3)*alat
     # transform to crystal coords (simple for cubic box, can also use 
     # coord_trans()), result is 3d array (natoms, 3, nstep)
-    >>> coords = pp.coords / alat
+    #   coords = crys.coord_trans(pwout.coords, 
+    #                             old=np.identity(3), 
+    #                             new=np.identity(3)*alat,
+    #                             align='rows', 
+    #                             axis=1)
+    >>> coords = pwout.coords / alat
     # make selections, numpy rocks!
-    >>> sy = np.array(pp.infile.symbols)
+    >>> sy = np.array(pwin.get_symbols())
     >>> msk1 = sy=='O'; msk2 = sy=='H'
     # do time slice here or with `tslice` kwd
     >>> clst = [coords[msk1,:,3000:], coords[msk2,:,3000:]]
@@ -1303,7 +1308,7 @@ def vmd_measure_gofr(coords, cell, symbols, dr, rmax='auto', selstr1='all', sels
     xsffn : str, optional (auto generated)
         temp file where .axsf file generated from `coords` is written to and
         loaded by VMD
-    tmpdir : str, optional
+    tmpdir : str, optional (auto generated)
         dir where auto-generated tmp files are written
     keepfiles : bool, optional
         Whether to delete `datafn` and `scriptfn`.
@@ -1371,15 +1376,14 @@ def vmd_measure_gofr(coords, cell, symbols, dr, rmax='auto', selstr1='all', sels
     # average many timesteps. But the writing of the .axsf file here is
     # actually the bottleneck and makes this function slower.
     assert None not in [dr, rmax], "`dr` or `rmax` is None"
-    tmpstr = tempfile.mktemp(prefix='', dir='')
     if datafn is None:
-        datafn = os.path.join(tmpdir, "vmd_data_%s" %tmpstr)
+        datafn = os.path.join(tmpdir, "vmd_data")
     if scriptfn is None:
-        scriptfn = os.path.join(tmpdir, "vmd_script_%s" %tmpstr)
+        scriptfn = os.path.join(tmpdir, "vmd_script")
     if logfn is None:
-        logfn = os.path.join(tmpdir, "vmd_log_%s" %tmpstr)
+        logfn = os.path.join(tmpdir, "vmd_log")
     if xsffn is None:
-        xsffn = os.path.join(tmpdir, "vmd_xsf_%s" %tmpstr)
+        xsffn = os.path.join(tmpdir, "vmd_xsf")
     if align == 'cols':
         cell = cell.T
     cc = cell2cc(cell)

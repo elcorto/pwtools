@@ -36,9 +36,9 @@ if __name__ == '__main__':
     tslice = np.s_[-1]
     coords_lst = [coords[msk1,...,tslice], coords[msk2,...,tslice]]
     cdct['O:Ca:-1:-1'] = coords_lst
-    tslice = np.s_[1:]
+    tslice = np.s_[0:]
     coords_lst = [coords[msk1,...,tslice], coords[msk2,...,tslice]]
-    cdct['O:Ca:1:-1'] = coords_lst
+    cdct['O:Ca:0:-1'] = coords_lst
     
     # Ca_O
     symbols = np.array(pwin.symbols)
@@ -47,9 +47,9 @@ if __name__ == '__main__':
     tslice = np.s_[-1]
     coords_lst = [coords[msk1,...,tslice], coords[msk2,...,tslice]]
     cdct['Ca:O:-1:-1'] = coords_lst
-    tslice = np.s_[1:]
+    tslice = np.s_[0:]
     coords_lst = [coords[msk1,...,tslice], coords[msk2,...,tslice]]
-    cdct['Ca:O:1:-1'] = coords_lst
+    cdct['Ca:O:0:-1'] = coords_lst
     
     # O_H
     symbols = np.array(pwin.symbols)
@@ -58,17 +58,17 @@ if __name__ == '__main__':
     tslice = np.s_[-1]
     coords_lst = [coords[msk1,...,tslice], coords[msk2,...,tslice]]
     cdct['O:H:-1:-1'] = coords_lst
-    tslice = np.s_[1:]
+    tslice = np.s_[0:]
     coords_lst = [coords[msk1,...,tslice], coords[msk2,...,tslice]]
-    cdct['O:H:1:-1'] = coords_lst
+    cdct['O:H:0:-1'] = coords_lst
     
     # all_all
     tslice = np.s_[-1]
     coords_lst = [coords[...,tslice], coords[...,tslice]]
     cdct['all:all:-1:-1'] = coords_lst
-    tslice = np.s_[1:]
+    tslice = np.s_[0:]
     coords_lst = [coords[...,tslice], coords[...,tslice]]
-    cdct['all:all:1:-1'] = coords_lst
+    cdct['all:all:0:-1'] = coords_lst
 
     dr = 0.1
     for key, val in cdct.iteritems():
@@ -101,6 +101,7 @@ if __name__ == '__main__':
                                   tmpdir=tmpdir,
                                   full_output=True)
         print("rmax_auto: %f" %rmax_auto)
+        print("rmax_auto_vmd: %f" %rmax_auto_vmd)
         plt.figure()
         plt.plot(rad, hist, 'b')
         plt.plot(rad_vmd, hist_vmd, 'r')
