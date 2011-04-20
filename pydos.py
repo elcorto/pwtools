@@ -228,7 +228,7 @@ def fvacf(vel, m=None, method=2, nthreads=None):
 def direct_pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
                 axis=-1):
     """Compute PDOS without the VACF by direct FFT of the atomic velocities.
-    We call this Direct Method. Integral area is normalized "area".
+    We call this Direct Method. Integral area is normalized to "area".
     
     args:
     -----
@@ -257,7 +257,7 @@ def direct_pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
 
     refs:
     -----
-    [1] Phys Rev B 47(9) 1993
+    [1] Phys Rev B 47(9) 4863, 1993
     """
     # * fft_vel: array of vel2.shape, axis="axis" is the fft of the arrays along
     #   axis 1 of vel2

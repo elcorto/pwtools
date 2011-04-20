@@ -850,7 +850,7 @@ def coord_trans(coords, old=None, new=None, copy=True, axis=-1, align='cols'):
     common.assert_cond(old.shape[0] == old.shape[1], 
                       "`old` and `new` must be square")
     # arr.T and arr.swapaxes() are no in-place operations, just views, input
-    # arrays are not changed, but copy() b/c we ca overwrite coords
+    # arrays are not changed, but copy() b/c we can overwrite coords
     _coords = coords.copy() if copy else coords
     mx_axis = _coords.ndim - 1
     axis = mx_axis if (axis == -1) else axis

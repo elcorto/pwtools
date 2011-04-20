@@ -26,14 +26,13 @@ def test():
     coords['cart2'] = coords['cart']*5
 
     # some other coord sys
-    #
-    # swapaxes : transform (10,3,200) -> (10,200,3) -> coord_trans -> transform
-    # back to (10,2,300); for coord_trans, the last axis must have dim 3
     cell1 = rand((3,3))
-    coords['cell1'] = coord_trans(coords['cart'].swapaxes(-1,-2),
+    # coord_trans: axis=1 specifies the "x,y,z"-axis of dimension 3
+    coords['cell1'] = coord_trans(coords['cart'],
                                   old=np.identity(3), 
                                   new=cell1,
-                                  align='rows').swapaxes(-1,-2)
+                                  axis=1,
+                                  align='rows')
 
     dos = {}
     for key, val in coords.iteritems():
