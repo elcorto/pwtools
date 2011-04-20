@@ -145,7 +145,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.fftpack import fft
 ##from scipy import signal
-from pwtools import pydos, corr, constants, common, num, signal
+from pwtools import pydos, constants, common, num, signal
 
 rand = np.random.rand
 pj = os.path.join
