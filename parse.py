@@ -1651,23 +1651,23 @@ class AbinitSCFOutputFile(FileParser):
         FileParser.__init__(self, filename)
         self.set_attr_lst([\
             'acell',
-            'rprim',
-            'cryst_const',
-            'typat',
-            'znucl',
-            'symbols',
-            'etot', 
-            'stresstensor', 
-            'pressure', 
-            'mass',
-            'coords_frac', 
             'cell', 
-            'natoms', 
-            'volume',
-            'forces_rms',
+            'coords_frac', 
+            'cryst_const',
+            'etot', 
             'forces',
+            'forces_rms',
+            'mass',
+            'natoms', 
             'nkpt',
             'nstep_scf',
+            'pressure', 
+            'rprim',
+            'stresstensor', 
+            'symbols',
+            'typat',
+            'volume',
+            'znucl',
             ])
     
         # Conceptually not needed for SCF, but some quantities are printed and
@@ -2147,14 +2147,13 @@ class AbinitVCMDOutputFile(AbinitMDOptOutputFile):
     # * printed differently: ekin, etot 
     # 
     def __init__(self, filename=None):
-        AbinitSCFOutputFile.__init__(self, filename)
+        AbinitMDOptOutputFile.__init__(self, filename)
         self.time_axis = -1
         attr_lst = self.attr_lst + \
         [\
-        'etot_ekin',
-        'rprim',
         'ekin', 
         'ekin_vel',
+        'etot_ekin',
         'temperature', 
         'velocity',
         ]
