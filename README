@@ -26,7 +26,7 @@ general-purpose pre- and postprocessing tool. Current featues include:
 - thermodynamic properties in the quasi-harmonic approximation from phonon
   density of states  
 - MD analayis: radial pair distribution function (own implementation and VMD
-  interface), RMS, RMSD
+  [10] interface), RMS, RMSD
 - unit cell related tools: super cell building, coordinate transformation,
   convert back and forth between unit cell vectors and crystallographic
   constants
@@ -111,11 +111,13 @@ Suggested:
         functions will not work (Cif and CML parsing currently). If you wish,
         uncomment the warnings at the top of parse.py .
     examples/*, mpl.py
-        * matplotlib
+        * matplotlib, Debian: aptitude install python-matplotlib
+    examples/rpdf/
+        * VMD [10]
     eos.py
         * The tool "eos" from the Elk code [8] must be on your path. Note that
-          the executable is assumed to be named "eos.x". For details, see
-          eos.ElkEOSFit .
+          the executable is assumed to be named "eos.x". See
+          pwtools.eos.ElkEOSFit for usage.
 
 Optional:
     examples/
@@ -280,6 +282,6 @@ Refs
 [7] http://www.crummy.com/software/BeautifulSoup
 [8] http://elk.sourceforge.net
 [9] http://www.cpmd.org
-
+[10] http://www.ks.uiuc.edu/Research/vmd/
 
 # vim:comments=fb\:*
