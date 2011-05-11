@@ -19,12 +19,86 @@
 #   files, pure-python versions, although they have much more code, are faster. 
 #   But who cares if the files are small. For big files, grep&friends win + much
 #   less code here.
-# * The tested egrep's don't know the "\s" character class for whitespace
-#   as sed, Perl, Python or any other sane regex implementation does. Use 
-#   "[ ]" instead.
+# * The tested egrep versions don't know the "\s" character class for
+#   whitespace as sed, Perl, Python or any other sane regex implementation
+#   does. Use "[ ]" instead.
+#
+# 
+# Using parse(), get_<attr>() and dump()
+# --------------------------------------
+# 
+# All parsing classes are derived from FlexibleGetters -> FileParser.
+# 
+# * After initialization
+#       pp = SomeParsingClass(<filename>), all attrs whoose name is in 
+#   pp.attr_lst will be set to None.
+# 
+# * parse() will do 
+#       self.<attr> = self.get_<attr>() 
+#   for each <attr> in self.attr_lst, thus setting self.<attr> to a defined
+#   value: None if nothing was found in the file or not None else
+# 
+# * All getters get_<attr>() will do their parsing action, possibly
+#   looking for a file self.filename, regardless of the fact that the attribute
+#   self.<attr> may already be defined (e.g. if parse() has been called before).
+#
+# * For interactive use, prefer get_<attr>() over parse().
+# 
+# * Use dump() only for temporary storage and fast re-reading.
+# 
+# * Keep the original parsed output file around (self.filename), avoid
+#   get_txt().
+# 
+# * Use relative paths in <filename>.
+# 
+# * If loading a dump()'ed pickle file from disk,
+#       pp=common.cpickle_load(...)
+#   then use direct attr access
+#       pp.<attr>
+#   instead of 
+#       pp.get_<attr>()
+#   b/c latter would simply parse again.
+# 
+# For debugging, we still have many getters which produce redundant
+# information, e.g. 
+#     cell + cryst_const + cryst_const_angles_lengths
+#     forces + forces_rms
+#     ...
+# especially in MD parsers, not so much in StructureFileParser drived
+# classes. If parse() is used, all this information retrieved and stored.
+#
+# Using parse():    
+# 
+# Pro: 
+# * Simplicity. *All* getters are called when parse() is
+#   invoked. You get it all.
+# * In theory, you can delete the file pointed to by self.filename, assuming
+#   all getters have extracted all information that you need.
+# Con:      
+# * The object is full of (potentially big) arrays holding redundant
+#   information. Thus, the dump()'ed file may be large. 
+# * Parsing may be slow if each getter (of possibly many) is called.
+#
+# Using get_<attr>():
+# 
+# Pro: 
+# * Small dump()'ed binary file.
+# Con:
+# * If you load the object later on and call a getter, it may be looking for a file 
+#   self.filename again.
+#   You must keep the original output file around (which one usually does
+#   anyway). Also it is a good idea to use *relative* paths for that reason.
+#
+# Note on get_txt():
+# 
+# If a file parser calls get_txt(), then this has these effects: (1) It can
+# slow down parsing for big files and (2) the saved binary file (by using
+# dump()) will have at least the size of the text file. While the original file
+# could then be deleted in theory, the dump()'ed file becomes unwieldly to work
+# with.
 
-import re
-import os
+
+import re, sys, os
 from math import acos, pi, sin, cos, sqrt
 from itertools import izip
 from cStringIO import StringIO
@@ -47,7 +121,7 @@ except ImportError:
     print("%s: Warning: Cannot import BeautifulSoup. " 
     "Parsing XML/HTML/CML files will not work." %__file__)
 
-from pwtools import io, common, constants, regex, crys, periodic_table
+from pwtools import io, common, constants, regex, crys, periodic_table, num
 from pwtools.verbose import verbose
 from pwtools.pwscf import atpos_str
 com = common
@@ -212,6 +286,21 @@ def arr2d_from_txt(txt, dtype=np.float):
     else:
         return np.atleast_2d(np.loadtxt(StringIO(txt))).astype(dtype)
 
+def axis_lens(seq, axis=0):
+    """
+    example:
+    --------
+    >>> axis_lens([arange(100), np.array([1,2,3]), None, rand(5,3)])
+    [100, 3, 0, 5]
+    """
+    ret = []
+    for xx in seq:
+        try:
+            ret.append(xx.shape[axis])
+        except AttributeError:
+            ret.append(0)
+    return ret            
+
 #-----------------------------------------------------------------------------
 # Parsers
 #-----------------------------------------------------------------------------
@@ -219,7 +308,9 @@ def arr2d_from_txt(txt, dtype=np.float):
 # XXX Can this be done using @property ? 
 class FlexibleGetters(object):
     """Base class. Implements a mechanism which allows to call getters in
-    arbitrary order, even if they depend on each other.
+    arbitrary order, even if they depend on each other. The mechanism also
+    assured that the code in each getter is only executed once (by using checks
+    with self.is_set_attr()).
     
     For each attr, there must exist a getter. We define the convention 
       self.foo  -> self.get_foo() 
@@ -227,9 +318,9 @@ class FlexibleGetters(object):
       self._baz -> self._get_baz() # note the underscores
       ... 
     
-    self.attr_list is an *optional* list of strings, each is the name of a data
+    self.attr_lst is an *optional* list of strings, each is the name of a data
     attribute, e.g. ['foo', 'bar', '_baz', ...].       
-    Derived classes can override self.attr_list by using self.set_attr_lst().
+    Derived classes can override self.attr_lst by using self.set_attr_lst().
     
     Example:
         def __init__(self):
@@ -253,12 +344,12 @@ class FlexibleGetters(object):
             self.check_get_attr('_baz')
             return do_stuff(self._baz, self.bar)
     
-    Setting self.attr_list is optional. It is supposed to be used only in
+    Setting self.attr_lst is optional. It is supposed to be used only in
     get_all(). The check_get_attr() - method works without it, too. 
     """ 
     # Notes for derived classes (long explaination):
     #
-    # In this class we define a number of members (self.member1, self.member2,
+    # In this class we define a number of members (self.foo, self.bar,
     # ...) which shall all be set by the get_all() method.
     #
     # There are 3 ways of doing it:
@@ -267,13 +358,13 @@ class FlexibleGetters(object):
     #    Con: One might forget to implement the setting of a member.
     # 
     # 2) Implement get_all() so that for each data member of the API, we have
-    #       self.member1 = self.get_member1()
-    #       self.member2 = self.get_member2()
+    #       self.foo = self.get_foo()
+    #       self.bar = self.get_bar()
     #       ...
     #    and put the code for each member in a separate getter. This is good
     #    coding style, but often data needs to be shared between getters (e.g.
-    #    get_member1() needs member2, which is the result of self.member2 =
-    #    self.get_member2(). This means that in general the calling order
+    #    get_foo() needs bar, which is the result of self.bar =
+    #    self.get_bar(). This means that in general the calling order
     #    of the getters is important and is different in each get_all() of each
     #    derived class.
     #    Con: One might forget to call a getter in get_all() and/or in the wrong 
@@ -282,7 +373,7 @@ class FlexibleGetters(object):
     # 3) Implement all getters such that they can be called in arbitrary order.
     #    Then in each get_all(), one does exactly the same:
     #
-    #        attr_lst = ['member1', 'member2', ...]
+    #        attr_lst = ['foo', 'bar', ...]
     #        for attr in attr_lst:
     #            self.check_get_attr(attr)
     #    
@@ -293,20 +384,20 @@ class FlexibleGetters(object):
     #    If again one getter needs a return value of another getter, one has to
     #    transform
     #    
-    #       def get_member1(self):
-    #           return do_stuff(self.member2)
+    #       def get_foo(self):
+    #           return do_stuff(self.bar)
     #    to 
     #       
-    #       def get_member1(self):
-    #           self.check_get_attr('member2')                <<<<<<<<<<<<
-    #           return do_stuff(self.member2)
+    #       def get_foo(self):
+    #           self.check_get_attr('bar')                <<<<<<<<<<<<
+    #           return do_stuff(self.bar)
     #
     #    If one does
-    #        self.member1 = self.get_member1()
-    #        self.member2 = self.get_member2()
+    #        self.foo = self.get_foo()
+    #        self.bar = self.get_bar()
     #        ....
-    #    then some calls may in fact be redundant b/c e.g. get_member1() has
-    #    already been called inside get_member2(). There is NO big overhead in
+    #    then some calls may in fact be redundant b/c e.g. get_foo() has
+    #    already been called inside get_bar(). There is NO big overhead in
     #    this approach b/c in each getter we test with check_get_attr() if a
     #    needed other member is already set.
     #    
@@ -315,8 +406,8 @@ class FlexibleGetters(object):
     #    getter get_newmember() in each class and extend the list of API
     #    members by 'newmember').
     #
-    #    One drawback: Beware of cyclic dependencies (i.e. get_member2 ->
-    #    get_member1 -> get_member2 -> ...). Always test the implementation!
+    #    One drawback: Beware of cyclic dependencies (i.e. get_bar ->
+    #    get_foo -> get_bar -> ...). Always test the implementation!
     
     def __init__(self):
         self.set_attr_lst([])
@@ -371,6 +462,7 @@ class FlexibleGetters(object):
             return False
     
     def is_set_attrs(self, attr_lst):
+        assert common.is_seq(attr_lst), "attr_lst must be a sequence"
         for attr in attr_lst:
             if not self.is_set_attr(attr):
                 return False
@@ -406,8 +498,8 @@ class FlexibleGetters(object):
 class FileParser(FlexibleGetters):
     """Base class for file parsers.
     
-    All getters are called in the default self.parse() which can, of course, be
-    overridden in derived classes.
+    All getters are called in the default self.parse() which can be overridden
+    in derived classes.
     """
     def __init__(self, filename=None):
         """
@@ -456,8 +548,8 @@ class StructureFileParser(FileParser):
     particular information is not present in the parsed file, the corresponding
     member must be None.
     
-    parsing results:
-    ----------------
+    parsing results
+    ---------------
     self.coords : ndarray (natoms, 3) with atom coords
     self.symbols : list (natoms,) with strings of atom symbols, must match the
         order of the rows of self.coords
@@ -469,11 +561,13 @@ class StructureFileParser(FileParser):
     
     Note that cell and cryst_const contain the same information (redundancy).
 
-    convenience getters:
+    convenience getters
     -------------------
     get_atpos_str     
     get_mass         
     
+    units
+    -----
     Unless explicitly stated, we DO NOT DO any unit conversions with the data
     parsed out of the files. It is up to the user (and derived classes) to
     handle that. 
@@ -502,12 +596,7 @@ class StructureFileParser(FileParser):
     
 
 class CifFile(StructureFileParser):
-    """Extract cell parameters and atomic positions from Cif files. This
-    data can be directly included in a pw.x input file. 
-
-    members:
-    --------
-    See StructureFileParser
+    """Parse Cif file.
 
     notes:
     ------
@@ -801,13 +890,25 @@ class PwInputFile(StructureFileParser):
     
     notes:
     ------
-    self.cell (CELL_PARAMETERS) in pw.in is units of alat
-    (=celldm(1)). If we have an entry in pw.in to determine alat:
-    system:celldm(1) or sysetm:A, then the cell parameters will be multiplied
-    with that *only* for the calculation of self.cryst_const. Then [a,b,c] =
-    cryst_const[:3] will have the right unit (Bohr). A warning will be issued
-    if neither is found. self.cell will be returned as it is in the
-    file.
+    self.cell is parsed from CELL_PARAMETERS, and no unit conversion is done
+    for this, but a conversion is attempted for cryst_const, if alat is found.
+    
+    PWscf unit conventions are a little wicked. In PWscf, the first lattice
+    constant "a" is named alat (=celldm(1)). If that is present in the file,
+    then CELL_PARAMETERS in pw.in is in units of alat, i.e. the "normal" cell
+    in Bohr or Angstroms divided by alat. If not, then CELL_PARAMETERS is
+    assumed to be the "normal" cell, i.e. alat is unity.
+    
+    Now the magic: If we have an entry in pw.in to determine alat:
+    system:celldm(1) or system:A, then self.cell will be multiplied with that
+    *only* for the calculation of self.cryst_const. Then [a,b,c] =
+    cryst_const[:3] will have the right unit (e.g. Bohr). A warning will be
+    issued if neither is found. self.cell will be returned as it is in the
+    file, which will in fact be the "normal" cell. 
+    
+    So, if alat is found, you *cannot* convert back and forth between cell and
+    cryst_const by using e.g. crys.cell2cc()/cc2cell(), but only between
+    cell*alat and cryst_const !
     """
 
     def __init__(self, filename=None):
@@ -1018,6 +1119,8 @@ class PwInputFile(StructureFileParser):
         self.check_get_attr('atspec')
         self.fd.seek(0)
         verbose("[get_atpos] reading ATOMIC_POSITIONS from %s" %self.filename)
+        # XXX {3}: will not work for atomic pos. w/ fixed DOFs, i.e.
+        #   Al 0.9  0.5   0.1  0 0 1
         rex = re.compile(r'\s*([a-zA-Z]+)((\s+' + regex.float_re + '){3})\s*')
         self.fd, flag, line = scan_until_pat(self.fd, 
                                                pat="atomic_positions", 
@@ -1583,7 +1686,7 @@ class CPOutputFile(PwOutputFile):
         return np.loadtxt(self.evpfilename)
 
     def get_stresstensor(self):
-        verbose("getting stress tensor")
+        verbose("getting stresstensor")
         key = "Total stress"
         cmd = "grep '%s' %s | wc -l" %(key, self.filename)
         nstep = nstep_from_txt(com.backtick(cmd))
@@ -1612,12 +1715,26 @@ class CPOutputFile(PwOutputFile):
 
 
 class AbinitSCFOutputFile(FileParser):
-    """ Parse Abinit SCF output (ionmov = optcell = 0).
-
-    PwOutputFile works for SCF and MD-like calculations. In Abinit, too many
-    quantities are printed differently in the SCF output. Each trajectory-like
-    quantity of shape (X,Y,nstep) in Abinit{MDOpt,VCMD}OutputFile has shape
-    (X,Y) here, i.e. only 2d array.
+    """Parse Abinit SCF output (ionmov = optcell = 0). 
+    
+    PwOutputFile works for SCF and MD-like calculations. If used on an SCF
+    output, all MD-like arrays have a time axis and nstep=1.
+    In Abinit, too many quantities are printed differently in the SCF output.
+    Each trajectory-like quantity of shape (...,nstep) in
+    Abinit{MD,VCMD}OutputFile has shape (...) here, i.e. one dimension less (no
+    time axis), that is, we treat the SCF case explicitly as "scalar".
+    
+    There are two types of getters defined here:
+    
+    (1) Usual getters which grep for a single value / array / block. These are
+    tested with SCF output. If used for MD-like output, they *may* return the
+    corresponding value for the fist time step, but this is not guaranteed and
+    depends on how stuff is printed. Do not rely on that.
+    
+    (2) getters for common quantities to be used in derived classes (MD), see
+    _get_*_raw(). They return arrays with a time axis, i.e. at least 2d. Here
+    in the SCF case, we simply use the first value along the time axis (SCF is
+    "scalar").
     """
     # notes:
     # ------
@@ -1650,29 +1767,55 @@ class AbinitSCFOutputFile(FileParser):
     def __init__(self, filename=None):
         FileParser.__init__(self, filename)
         self.set_attr_lst([\
-            'acell',
+            'angles',
             'cell', 
             'coords_frac', 
             'cryst_const',
+            'cryst_const_angles_lengths',
             'etot', 
             'forces',
             'forces_rms',
+            'lengths',
             'mass',
             'natoms', 
             'nkpt',
             'nstep_scf',
             'pressure', 
-            'rprim',
             'stresstensor', 
             'symbols',
             'typat',
             'volume',
             'znucl',
             ])
-    
+
         # Conceptually not needed for SCF, but some quantities are printed and
-        # grepped more than once (stresstensor).
+        # grepped more than once (e.g. stresstensor).
         self.time_axis = -1
+    
+    def dump(self, *args, **kwargs):
+        if kwargs.has_key('slim'):
+            slim = kwargs['slim']
+            kwargs.pop('slim')
+        else:
+            slim = True
+        if slim:
+            if self.is_set_attr('_angles_raw'):
+                del self._angles_raw
+            if self.is_set_attr('_coords_frac_raw'):
+                del self._coords_frac_raw
+            if self.is_set_attr('_forces_raw'):
+                del self._forces_raw
+            if self.is_set_attr('_lengths_raw'):
+                del self._lengths_raw
+            if self.is_set_attr('_nstep_scf_raw'):
+                del self._nstep_scf_raw
+            if self.is_set_attr('_stresstensor_raw'):
+                del self._stresstensor_raw
+            if self.is_set_attr('_velocity_raw'):
+                del self._velocity_raw
+            if self.is_set_attr('_volume_raw'):
+                del self._volume_raw
+        FileParser.dump(self, *args, **kwargs)     
 
     def _get_stresstensor_raw(self):
         # In abinit output:
@@ -1742,13 +1885,80 @@ class AbinitSCFOutputFile(FileParser):
               sed -re 's/.*ucvol.*=\s*(%s)($|\s*.*)/\1/'" %(self.filename,
               regex.float_re)
         return arr1d_from_txt(com.backtick(cmd))
+    
+    def _get_angles_raw(self, retall=False):
+        verbose("getting _angles_raw")
+        results = []
+        cmds = [\
+            r"egrep -A1 'Angles.*\[degrees\].*' %s | \
+            grep -v -e '--' -e 'Angles'" %self.filename,
+            # The two below are almost the same ("angles" vs "Angles") but
+            # egrep -i is terribly slow.
+            "egrep 'angles.*=[ ]+[0-9]+' %s | \
+             awk '{print $3\" \"$4\" \"$5}'" %self.filename,
+            #
+            "egrep 'Angles.*=[ ]+[0-9]+' %s | \
+             awk '{print $3\" \"$4\" \"$5}'" %self.filename,
+            ]             
+        for cmd in cmds:
+            results.append(arr2d_from_txt(com.backtick(cmd)))
+        # Simple heuristic: Use output from the pattern which found the most
+        # results.
+        ret = results[np.argmax(axis_lens(results, axis=0))]
+        if retall:
+            return ret, cmds, results
+        else:
+            del results
+            return ret
 
+    def _get_lengths_raw(self, retall=False):
+        verbose("getting _lengths_raw")
+        results = []
+        cmds = [\
+            r"egrep -A1 'Lengths[ ]+\[' %s | \
+            grep -v -e '--' -e 'Lengths'" %self.filename,
+            #
+            "grep 'lengths=' %s | \
+            awk '{print $2\" \"$3\" \"$4}'" %self.filename,
+            #
+            "grep 'length scales=' %s | \
+            awk '{print $3\" \"$4\" \"$5}'" %self.filename,
+            ]             
+        for cmd in cmds:
+            results.append(arr2d_from_txt(com.backtick(cmd)))
+        ret = results[np.argmax(axis_lens(results, axis=0))]
+        if retall:
+            return ret, cmds, results
+        else:
+            del results
+            return ret
+    
+    def get_lengths(self):
+        verbose("getting lengths")
+        req = ['_lengths_raw']
+        self.check_get_attrs(req)
+        if self.is_set_attrs(req):
+            return self._lengths_raw[0,:]
+        else:
+            return None
+    
+    def get_angles(self):
+        verbose("getting angles")
+        req = ['_angles_raw']
+        self.check_get_attrs(req)
+        if self.is_set_attrs(req):
+            return self._angles_raw[0,:]
+        else:
+            return None
+    
     def get_stresstensor(self):
-        """Return the last printed stresstensor."""
+        """Return the first printed stresstensor."""
+        verbose("getting stresstensor")
         req = ['_stresstensor_raw']
         self.check_get_attrs(req)
         if self.is_set_attrs(req):
-            return self._stresstensor_raw[...,-1]
+            assert self.time_axis == -1
+            return self._stresstensor_raw[...,0]
         else:
             return None
     
@@ -1757,7 +1967,7 @@ class AbinitSCFOutputFile(FileParser):
         req = ['_nstep_scf_raw']
         self.check_get_attrs(req)
         if self.is_set_attrs(req):
-            return self._nstep_scf_raw[-1]
+            return self._nstep_scf_raw[0]
         else:
             return None
     
@@ -1770,12 +1980,6 @@ class AbinitSCFOutputFile(FileParser):
         else:
             return None
      
-    def get_rprim(self):
-        verbose("getting rprim")
-        cmd = "egrep '^[ ]+rprim[ ]+' -A2 %s | grep -v -e '--' | head -n3 \
-                | sed -re 's/rprim//'" %self.filename
-        return arr2d_from_txt(com.backtick(cmd))
-    
     def get_coords_frac(self):
         verbose("getting coords_frac")
         req = ['natoms']
@@ -1788,6 +1992,8 @@ class AbinitSCFOutputFile(FileParser):
         else:
             return None
     
+    # XXX for MD-like, it greps the *last* printed block (the one in the
+    #   summary)!
     # fcart is in Ha/Bohr, we don't parse the eV/Angstrom b/c that can be
     # calculated easily
     def get_forces(self):
@@ -1814,39 +2020,34 @@ class AbinitSCFOutputFile(FileParser):
     
     def get_cell(self):
         verbose("getting cell")
-        req = ['rprim', 'acell']
+        req = ['cryst_const']
         self.check_get_attrs(req)
         if self.is_set_attrs(req):
-            return self.rprim*self.acell[:,None]       
+            return crys.cc2cell(self.cryst_const)
         else:
             return None
-    
+
     def get_cryst_const(self):
         verbose("getting cryst_const")
-        req = ['cell']
+        return self.get_cryst_const_angles_lengths()
+
+    def get_cryst_const_angles_lengths(self):
+        verbose("getting cryst_const_angles_lengths")
+        req = ['angles', 'lengths']
         self.check_get_attrs(req)
         if self.is_set_attrs(req):
-            return crys.cell2cc(self.cell)      
+            return np.concatenate((self.lengths, self.angles)) 
         else:
             return None
     
     def get_volume(self):
+        """Return first printed volume."""
         verbose("getting volume")
         req = ['_volume_raw']
         self.check_get_attrs(req)
         ret = self._volume_raw
-        return ret if ret is None else ret[-1]
+        return ret if ret is None else ret[0]
 
-    def get_acell(self):
-        verbose("getting acell")
-        cmd = "egrep '^[ ]+acell' %s | head -n1 | awk '{print $2\" \"$3\" \"$4}'" %self.filename
-        return arr1d_from_txt(com.backtick(cmd))
-    
-##    def get_shiftk(self):
-##        verbose("getting shiftk")
-##        cmd = "egrep '^[ ]+shiftk' %s | head -n1 | awk '{print $2\" \"$3\" \"$4}'" %self.filename
-##        return arr1d_from_txt(com.backtick(cmd))
-    
     def get_natoms(self):
         verbose("getting natoms")
         cmd = r"egrep '^[ ]*natom' %s | tail -n1 | awk '{print $2}'" %self.filename
@@ -1857,6 +2058,7 @@ class AbinitSCFOutputFile(FileParser):
         
         typat 1 1 2 1 
             2 1 2 
+        xred ...            
         
         i.e. a multi-line entry where the number of lines is not known. Things
         like "xred", "fcart" etc. are easier b/c we know the number of lines,
@@ -1864,21 +2066,24 @@ class AbinitSCFOutputFile(FileParser):
 
         notes:
         ------
-        We read numbers until the next keyword (typat, xred, ...) is found. We
-        make use of the fact that we don't need to operate line-wise like grep.
-        The whole file is a single string (maybe slow for large files). I'm
-        pretty sure that there is a clever sed line to do this even faster.
-        Ideas, anyone?
+        With re.search(), we read numbers until the next keyword (xred, ...) is
+        found. We make use of the fact that we don't need to operate line-wise
+        like grep or sed. The text to be searched is the line "typat ..." +
+        `natoms` lines of context as a single string (possibly with newlines),
+        which is guaranteed to be enough. I'm pretty sure that there is a
+        clever awk line to do this even faster. Ideas, anyone?
         """
         # For only one line:
         # cmd = "grep '^[ ]*typat' %s | head -n1 | sed -re 's/typat//'" %self.filename
         # return arr1d_from_txt(com.backtick(cmd))
         verbose("getting typat")
-        req = ['txt']
+        req = ['natoms']
         self.check_get_attrs(req)
         if self.is_set_attrs(req):
+            cmd = "egrep -A%i '^[ ]+typat' %s | head -n%i" %(self.natoms,
+                self.filename, self.natoms)
             rex = re.compile(r"\s+typat\s+([^a-zA-Z][\s0-9]+)")
-            match = rex.search(self.txt)
+            match = rex.search(com.backtick(cmd))
             if match is None:
                 return None
             else:
@@ -1933,81 +2138,42 @@ class AbinitSCFOutputFile(FileParser):
         return self.get_nkpt()
 
 
-class AbinitMDOptOutputFile(AbinitSCFOutputFile):
-    """Parse MD-like optimization output.
+class AbinitMDOutputFile(AbinitSCFOutputFile):
+    """Parse MD-like output.
 
     Tested: 
-        ionmov 2 + optcell 0 (only ions)
-        ionmov 2 + optcell 2 (ions + cell)
-    """
-    # `cell` is printed as rprimd, so rprim is not needed here. But it is
-    # calculated from acell and cell, b/c get_rprim() is otherwise the one from
-    # AbinitSCFOutputFile, which greps something different.
-    #
-    # In AbinitVCMDOutputFile, we calculate cell from acell and rprim. 
+        ionmov 2 + optcell 0 (optimization: only ions)
+        ionmov 2 + optcell 1 (?)
+        ionmov 2 + optcell 2 (optimization: ions + cell)
+        ionmov 8             (md)
     
+    attrs set by parse()
+    --------------------
+    See AbinitSCFOutputFile, plus:
+    nstep
+    velocity
+    ekin_vel
+    temperature
+    """
+    # For ionmov=2, `cell` is printed as rprimd, which can be used.
+    #
+    # get_cell(): Do not calculate cell from rprim + acell. Our old assumption
+    # that acell is constant and rprim is changed in the output is actually
+    # only confirmed for ionmov 13 + optcell 2. Instead, some ionmov/optcell
+    # combos change acell and leave rprim constant. Calculate cell only from
+    # angles and lengths (a.k.a cryst_const) which seem to be printed in all
+    # cases or grep directly from "rprimd".
     def __init__(self, filename=None):
         AbinitSCFOutputFile.__init__(self, filename)
         self.time_axis = -1
         attr_lst = self.attr_lst + \
-        ['angles',
-         'lengths',
-         'nstep', 
+        ['nstep', 
+         'velocity',
+         'ekin_vel',
+         'temperature', 
         ]
         self.set_attr_lst(attr_lst)
     
-    def get_nstep_scf(self):
-        verbose("getting nstep_scf")
-        req = ['_nstep_scf_raw']
-        self.check_get_attrs(req)
-        ret = self._nstep_scf_raw
-        return None if ret is None else ret
-
-    def get_angles(self):
-        verbose("getting angles")
-        cmd = r"egrep -A1 'Angles.*=[ ]+.*\[degrees\].*' %s | \
-                grep -v -e '--' -e 'Angles'" %self.filename
-        return arr2d_from_txt(com.backtick(cmd))
-    
-    def get_lengths(self):
-        verbose("getting lengths")
-        cmd = r"egrep -A1 'Lengths[ ]+\[' %s | \
-              grep -v -e '--' -e 'Lengths'" %self.filename
-        return arr2d_from_txt(com.backtick(cmd))
-    
-    def get_cryst_const(self):
-        verbose("getting cryst_const")
-        req = ['angles', 'lengths']
-        self.check_get_attrs(req)
-        if self.is_set_attrs(req):
-            n1 = self.angles.shape[-1]
-            n2 = self.lengths.shape[-1]
-            assert n1 == n2, "nstep different: angles(%i) and lengths(%i)" %(n1,n2)
-            return np.concatenate((self.lengths, self.angles), axis=1)
-        else:
-            return None
-    
-    def get_cell(self):
-        verbose("getting cell")
-        key = 'rprimd'
-        cmd = 'grep %s %s | wc -l' %(key, self.filename)
-        nstep = nstep_from_txt(com.backtick(cmd))
-        cmd = "grep -A3 '%s' %s | grep -v -e '%s' -e '--'" \
-              %(key, self.filename, key)
-        return traj_from_txt(com.backtick(cmd),
-                             shape=(3,3,nstep),
-                             axis=self.time_axis)
-    
-    def get_rprim(self):
-        verbose("getting rprim")
-        req = ['cell', 'acell']
-        self.check_get_attrs(req)
-        if self.is_set_attrs(req):
-            assert self.time_axis == -1
-            return self.cell/self.acell[:,None,None]       
-        else:
-            return None
-
     def _get_coords_frac_raw(self):
         verbose("getting _coords_frac_raw")
         self.check_get_attr('natoms')
@@ -2021,11 +2187,6 @@ class AbinitMDOptOutputFile(AbinitSCFOutputFile):
                              shape=(natoms,3,nstep),
                              axis=self.time_axis)
     
-    def get_coords_frac(self):
-        self.check_get_attr('_coords_frac_raw')
-        ret = self._coords_frac_raw 
-        return None if ret is None else ret
-
     def _get_forces_raw(self):
         verbose("getting _forces_raw")
         self.check_get_attr('natoms')
@@ -2039,19 +2200,103 @@ class AbinitMDOptOutputFile(AbinitSCFOutputFile):
                              shape=(natoms,3,nstep),
                              axis=self.time_axis)
     
-    def get_forces(self):
-        self.check_get_attr('_forces_raw')
-        ret = self._forces_raw
-        return None if ret is None else ret
-    
+    def _get_velocity_raw(self):
+        verbose("getting _velocity_raw")
+        self.check_get_attr('natoms')
+        natoms = self.natoms
+        key = 'Cartesian velocities (vel)'
+        cmd = "grep '%s' %s | wc -l" %(key, self.filename)
+        nstep_raw = nstep_from_txt(com.backtick(cmd))
+        cmd = "grep -A%i '%s' %s | grep -v -e '%s' -e '--'" \
+              %(natoms, key, self.filename, key)
+        return traj_from_txt(com.backtick(cmd),
+                             shape=(natoms,3,nstep_raw),
+                             axis=self.time_axis)
+        
     # XXX For our test data, this is a little different from
     # crys.rms3d(pp.forces, axis=-1, nitems='all'), but normalization (1st
     # value at step 0) seems correct
-    def get_forces_rms(self):
-        verbose("getting forces_rms")
+    def _get_forces_rms_raw(self):
+        verbose("getting _forces_rms_raw")
         key = 'Cartesian forces.*fcart.*rms'
         cmd = "grep '%s' %s | awk '{print $7}'" %(key, self.filename)
         return arr1d_from_txt(com.backtick(cmd))
+    
+    def get_coords_frac(self):
+        verbose("getting coords_frac")
+        self.check_get_attr('_coords_frac_raw')
+        return self._coords_frac_raw 
+
+    def get_forces(self):
+        verbose("getting forces")
+        self.check_get_attr('_forces_raw')
+        return self._forces_raw
+    
+    def get_velocity(self):
+        verbose("getting velocity")
+        self.check_get_attr('_velocity_raw')
+        return self._velocity_raw
+    
+    def get_nstep_scf(self):
+        verbose("getting nstep_scf")
+        self.check_get_attr('_nstep_scf_raw')
+        return self._nstep_scf_raw
+
+    def get_angles(self):
+        verbose("getting angles")
+        self.check_get_attr('_angles_raw')
+        return self._angles_raw
+    
+    def get_lengths(self):
+        verbose("getting lengths")
+        self.check_get_attr('_lengths_raw')
+        return self._lengths_raw
+    
+    def get_volume(self):
+        verbose("getting volume")
+        self.check_get_attr('_volume_raw')
+        return self._volume_raw
+
+    def get_forces_rms(self):
+        verbose("getting forces_rms")
+        self.check_get_attr('_forces_rms_raw')
+        return self._forces_rms_raw
+    
+    def get_cryst_const_angles_lengths(self):
+        verbose("getting cryst_const_angles_lengths")
+        req = ['angles', 'lengths']
+        self.check_get_attrs(req)
+        if self.is_set_attrs(req):
+            n1 = self.angles.shape[0]
+            n2 = self.lengths.shape[0]
+            if n1 != n2: 
+                print("warning: nstep different: angles(%i) and lengths(%i),"
+                      " using smaller value starting at end" %(n1,n2))
+                nn = min(n1,n2)
+            else:
+                nn = n1
+            return np.concatenate((self.lengths[-nn:,:], self.angles[-nn:,:]), 
+                                  axis=1)
+        else:
+            return None
+    
+    def get_cryst_const(self):
+        verbose("getting cryst_const")
+        return self.get_cryst_const_angles_lengths()
+
+    def get_cell(self):
+        verbose("getting cell")
+        req = ['cryst_const']
+        self.check_get_attrs(req)
+        if self.is_set_attrs(req):
+            assert self.time_axis == -1
+            nstep = self.cryst_const.shape[0]
+            cell = np.empty((3,3,nstep))
+            for ii in range(nstep):
+                cell[...,ii] = crys.cc2cell(self.cryst_const[ii,:])
+            return cell                
+        else:
+            return None
     
     def get_nstep(self):
         verbose("getting nstep")
@@ -2061,12 +2306,6 @@ class AbinitMDOptOutputFile(AbinitSCFOutputFile):
         else:
             return None
  
-    def get_volume(self):
-        verbose("getting volume")
-        req = ['_volume_raw']
-        self.check_get_attrs(req)
-        return self._volume_raw
-    
     def get_etot(self):
         verbose("getting etot")
         key = 'Total energy (etotal).*='
@@ -2082,27 +2321,59 @@ class AbinitMDOptOutputFile(AbinitSCFOutputFile):
         else:
             return None
             
-    def get_stresstensor(self):
-        req = ['_stresstensor_raw']
+    def get_ekin_vel(self):
+        """Kinetic energy in Ha. Sum of Ekin_i from all atoms, obtained from
+        velocities. Ekin = sum(i=1...natoms) Ekin_i = 3/2 * natoms * kb*T
+
+        notes:
+        ------
+        This is for verification only. It's the same as self.ekin but due to
+        the way stuff is printed in the outfile, the first velocities are zero,
+        but the first ekin value is already ekin_vel[1], so
+            ekin_vel[1:] == ekin[:-1]
+        """
+        verbose("getting ekin_vel")
+        req = ['velocity', 'mass']
         self.check_get_attrs(req)
         if self.is_set_attrs(req):
-            return self._stresstensor_raw
+            # self.velocity [a0*Ha/hbar], self.ekin [Ha], self.ekin_vel [Ha]
+            vv = self.velocity
+            mm = self.mass
+            amu = constants.amu
+            a0 = constants.a0
+            Ha = constants.Ha
+            hbar = constants.hbar
+            assert self.time_axis == -1
+            return (((vv*a0*Ha/hbar)**2.0).sum(axis=1)*mm[:,None]*amu/2.0).sum(axis=0)/Ha
         else:
             return None
-                                 
-# TODO 
-# * New AbinitMDOutputFile for ionmov 8, inherit from AbinitMDOptOutputFile,
-#   add temperature stuff, inherit is then:
-#   AbinitSCFOutputFile -> AbinitMDOptOutputFile -> AbinitMDOutputFile ->
-#   AbinitVCMDOutputFile
-# * Add _get_velocity_raw to AbinitMDOutputFile, use [...,::2] here, but not in
-#   AbinitMDOptOutputFile
-class AbinitVCMDOutputFile(AbinitMDOptOutputFile):
+    
+    def get_temperature(self):
+        """Abinit does not print temperature. Not sure if T fluctuates or is
+        constant at each step with MTTK (ionmov 13 + optcell 2).
+            Ekin = 3/2 * natoms * kb * T
+        This can be seen from abinit/src/95_drive/moldyn.f90 (kb_HaK: K->Ha)
+          ! v2gauss is twice the kinetic energy
+          v2gauss = ...
+          ...
+          write(message, '(a,d12.5,a,D12.5)' )&
+          ' --- Effective temperature',v2gauss/(3*dtset%natom*kb_HaK),' From variance', sigma2
+        """      
+        verbose("getting temperature")
+        req = ['ekin_vel', 'natoms']
+        self.check_get_attrs(req)
+        if self.is_set_attrs(req):
+            return self.ekin_vel * constants.Eh / self.natoms / constants.kb * (2.0/3.0)
+        else:
+            return None
+ 
+
+class AbinitVCMDOutputFile(AbinitMDOutputFile):
     """Parse ionmov 13 output (NPT MD with the MTTK method).
 
     This works for ionmov 13 + optcell 0,1,2. With optcell 0 (fixed cell
     actually), some cell related quantities are None. See
-    test/test_abinit_ionmom*.py
+    test/test_abinit_md.py
 
     notes:
     ------
@@ -2140,76 +2411,28 @@ class AbinitVCMDOutputFile(AbinitMDOptOutputFile):
     #         moldyn_{nstep-1}
     #         moldyn_{nstep-1} *
     #
-    # ionmov 2,3,8 (others not tested, see AbinitMDOptOutputFile)
+    # ionmov 2,3,8 (others not tested, see AbinitMDOutputFile)
     # -----------------------------------------------------------
     # * coords, forces etc not double-printed, same regex, but don't use
-    #   [...,::2] -> we use _get_{forces,coord_frac}_raw()
+    #   [...,::2] -> we use _get_*_raw()
     # * printed differently: ekin, etot 
     # 
     def __init__(self, filename=None):
-        AbinitMDOptOutputFile.__init__(self, filename)
+        AbinitMDOutputFile.__init__(self, filename)
         self.time_axis = -1
         attr_lst = self.attr_lst + \
         [\
         'ekin', 
-        'ekin_vel',
         'etot_ekin',
-        'temperature', 
-        'velocity',
         ]
         self.set_attr_lst(attr_lst)
-    
-    def get_angles(self):
-        verbose("getting angles")
-        cmd = "grep 'angles.*degrees' %s | awk '{print $3\" \"$4\" \"$5}'" %self.filename
-        return arr2d_from_txt(com.backtick(cmd))
-    
-    def get_lengths(self):
-        verbose("getting lengths")
-        cmd = "grep 'lengths=' %s | awk '{print $2\" \"$3\" \"$4}'" %self.filename
-        return arr2d_from_txt(com.backtick(cmd))
-    
-    def get_rprim(self):
-        verbose("getting rprim")
-        key = 'rprim='
-        cmd = 'grep %s %s | wc -l' %(key, self.filename)
-        nstep = nstep_from_txt(com.backtick(cmd))
-        cmd = "grep %s -A2 %s | grep -v -e '--' | sed -re 's/%s//'" \
-            %(key, self.filename, key)
-        return traj_from_txt(com.backtick(cmd),
-                             shape=(3,3,nstep),
-                             axis=self.time_axis)
-    
+
     def get_etot_ekin(self):
         verbose("getting etot_ekin")
         key = 'KIN+POT.En.'
         cmd = "grep '%s' %s | awk '{print $2}'" %(key, self.filename)
         return arr1d_from_txt(com.backtick(cmd))
     
-    def get_cell(self):
-        verbose("getting cell")
-        req = ['rprim', 'acell']
-        self.check_get_attrs(req)
-        if self.is_set_attrs(req):
-            assert self.time_axis == -1
-            return self.rprim*self.acell[:,None,None]       
-        else:
-            return None
-    
-    def get_velocity(self):
-        verbose("getting velocity")
-        self.check_get_attr('natoms')
-        natoms = self.natoms
-        key = 'Cartesian velocities (vel)'
-        cmd = "grep '%s' %s | wc -l" %(key, self.filename)
-        nstep_raw = nstep_from_txt(com.backtick(cmd))
-        cmd = "grep -A%i '%s' %s | grep -v -e '%s' -e '--'" \
-              %(natoms, key, self.filename, key)
-        ret = traj_from_txt(com.backtick(cmd),
-                            shape=(natoms,3,nstep_raw),
-                            axis=self.time_axis)
-        return None if ret is None else ret[...,::2]                            
-   
     def get_coords_frac(self):
         verbose("getting coords_frac")
         self.check_get_attr('_coords_frac_raw')
@@ -2222,6 +2445,18 @@ class AbinitVCMDOutputFile(AbinitMDOptOutputFile):
         ret = self._forces_raw
         return None if ret is None else ret[...,::2]                            
     
+    def get_velocity(self):
+        verbose("getting velocity")
+        self.check_get_attr('_velocity_raw')
+        ret = self._velocity_raw
+        return None if ret is None else ret[...,::2]                            
+    
+    def get_forces_rms(self):
+        verbose("getting forces_rms")
+        self.check_get_attr('_forces_rms_raw')
+        ret = self._forces_rms_raw
+        return None if ret is None else ret[...,::2]                            
+    
     def get_etot(self):
         verbose("getting etot")
         key = 'end of Moldyn step.*POT.En.'
@@ -2229,6 +2464,7 @@ class AbinitVCMDOutputFile(AbinitMDOptOutputFile):
         return arr1d_from_txt(com.backtick(cmd))
 
     def get_ekin(self):
+        """Must be the same as ekin_vel."""
         verbose("getting ekin")
         req = ['etot_ekin', 'etot']
         self.check_get_attrs(req)
@@ -2237,53 +2473,6 @@ class AbinitVCMDOutputFile(AbinitMDOptOutputFile):
         else:
             return None
     
-    def get_ekin_vel(self):
-        """Kinetic energy in Ha. Sum of Ekin_i from all atoms, obtained from
-        velocities. Ekin = sum(i=1...natoms) Ekin_i = 3/2 * natoms * kb*T
-
-        notes:
-        ------
-        This is for verification only. It's the same as self.ekin but due to
-        the way stuff is printed in the outfile, the first velocities are zero,
-        but the first ekin value is already ekin_vel[1], so
-            ekin_vel[1:] == ekin[:-1]
-        """
-        verbose("getting ekin_vel")
-        req = ['velocity', 'mass']
-        self.check_get_attrs(req)
-        if self.is_set_attrs(req):
-            # self.velocity [a0*Ha/hbar], self.ekin [Ha], self.ekin_vel [Ha]
-            vv = self.velocity
-            mm = self.mass
-            amu = constants.amu
-            a0 = constants.a0
-            Ha = constants.Ha
-            hbar = constants.hbar
-            assert self.time_axis == -1
-            return (((vv*a0*Ha/hbar)**2.0).sum(axis=1)*mm[:,None]*amu/2.0).sum(axis=0)/Ha
-        else:
-            return None
-    
-    # XXX experimental: Abinit does not print temperature. Not sure if T
-    # fluctuates or is constant at each step with MTTK (ionmov 13 + optcell 2).
-    #
-    #   Ekin = 3/2 * natoms * kb * T
-    # 
-    # This can be seen from abinit/src/95_drive/moldyn.f90 (kb_HaK: K->Ha)
-    #   ! v2gauss is twice the kinetic energy
-    #   v2gauss = ...
-    #   ...
-    #   write(message, '(a,d12.5,a,D12.5)' )&
-    #   ' --- Effective temperature',v2gauss/(3*dtset%natom*kb_HaK),' From variance', sigma2
-    def get_temperature(self):
-        verbose("getting temperature")
-        req = ['ekin', 'natoms']
-        self.check_get_attrs(req)
-        if self.is_set_attrs(req):
-            return self.ekin * constants.Eh / self.natoms / constants.kb * (2.0/3.0)
-        else:
-            return None
- 
 
 class Grep(object):
     """Maximum felxibility!
@@ -2449,3 +2638,6 @@ class Grep(object):
     def grep(self, dir):
         # backwards compat only
         return self.grepdir(dir)
+
+# backward compat
+AbinitMDOptOutputFile = AbinitMDOutputFile

@@ -477,7 +477,7 @@ def write_xyz(filename, coords, cell, symbols, align='rows', name='pwtools_dummy
 
 
 def write_axsf(filename, coords, cell, symbols, forces=None):
-    """Write variable-cell animated XSF file. For only one unit cell (single
+    """Write (variable-cell) animated XSF file. For only one unit cell (single
     structure), provide only 2d arrays.
     
     For fixed-cell trajectories use (i) one 2d array for `cell` or (ii) a 3d

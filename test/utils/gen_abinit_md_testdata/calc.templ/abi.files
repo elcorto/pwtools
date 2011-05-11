@@ -1,0 +1,8 @@
+abi.in
+abi.out
+XXXSCRATCH/XXXPREFIX_in
+XXXSCRATCH/XXXPREFIX_out
+XXXSCRATCH/XXXPREFIX_tmp
+~/soft/lib/abinit/pseudo/13-Al.GGA.fhi
+~/soft/lib/abinit/pseudo/07-N.GGA.fhi
+

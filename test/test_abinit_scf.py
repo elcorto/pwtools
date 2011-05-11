@@ -1,5 +1,8 @@
+import numpy as np
 from pwtools.parse import AbinitSCFOutputFile
-from pwtools import common
+from pwtools import common, crys
+
+assrt_aae = lambda x,y: np.testing.assert_array_almost_equal(x,y)
 
 def check(pp, none_attrs=[]):
     for attr_name in pp.attr_lst:
@@ -8,11 +11,14 @@ def check(pp, none_attrs=[]):
             assert getattr(pp, attr_name) is not None
 
 def test():
-    
     filename = 'files/abi_scf.out'
     print("testing: %s" %filename)
     common.system('gunzip %s.gz' %filename)
     pp = AbinitSCFOutputFile(filename=filename)
     pp.parse()
     check(pp)
+    # check consistency
+    assrt_aae(crys.rms(pp.forces), pp.forces_rms)
+    assrt_aae(crys.cell2cc(pp.cell), pp.cryst_const)
+    assrt_aae(crys.volume_cc(pp.cryst_const), pp.volume)
     common.system('gzip %s' %filename)

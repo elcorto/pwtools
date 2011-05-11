@@ -1,0 +1,58 @@
+# vim:syn=sh
+
+# calculation
+ionmov 13
+optcell 1
+ntime 5
+dtion 20
+
+# temperature
+mditemp 300
+mdftemp 300
+# ionmov 13, 1 thermostat in chain, 
+#   ignored in case ionmov 8
+nnos 1
+qmass 44244.3229986
+bmass 18435.1345828 
+# ionmov 8, seems like only 1 thermostat possible, 
+#   ignored in case ionmov 13
+noseinert 44244.3229986
+
+# scf/fft
+ecut 30
+toldfe 1.0d-8        
+nstep 50   
+diemac 3.0
+
+# optcell > 0 tricks
+dilatmx 1.1000000000000001e+00
+ecutsm 2.9999999999999999e-01
+
+# k-points
+ngkpt 4 4 2
+kptopt 1 # or 2
+nshiftk 1
+shiftk 0.5 0.5 0.5
+chksymbreak 1
+spgroup 1
+
+# structure
+acell 5.9098153292999998e+00    5.9098153292999998e+00    9.4716978420999993e+00
+angdeg 9.0000000000000000e+01    9.0000000000000000e+01    1.1999999999999999e+02
+natom 4        
+ntypat 2          
+znucl 13 7           
+typat 1 1 2 2  
+xred
+3.3333333333333298e-01    6.6666666666666696e-01    -3.2594941348443101e-03
+6.6666666666666696e-01    3.3333333333333298e-01    4.9674050586515600e-01
+3.3333333333333298e-01    6.6666666666666696e-01    3.7825949413484400e-01
+6.6666666666666696e-01    3.3333333333333298e-01    8.7825949413484405e-01
+vel
+   1.31972122206058E-04  2.20026665928643E-04  1.70272383415383E-05
+  -8.85139589136029E-05 -1.76958257633157E-04 -9.01230234033499E-05
+   3.00753196920958E-04  9.59151689986886E-05  1.29923157210166E-04
+   1.10579018565878E-04 -2.30916351265527E-04  2.14632216912787E-04
+
+# paral
+localrdwf 0 # cluster w/o parallel FS

@@ -98,9 +98,4 @@ plotting dispersions
 * Finish functions for parsing and plotting dispersions (pwscf.py, kpath.py).
   Remove unused and redundant stuff.
 
-abinit MDs
-----------
-* Implement parser for ionmov 8. Add that to the newly implemented cmd line
-  opts in bin/abi2axsf.py
-
 # vim:comments=fb\:*
