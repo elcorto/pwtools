@@ -216,6 +216,7 @@ def arr2d_from_txt(txt, dtype=np.float):
 # Parsers
 #-----------------------------------------------------------------------------
 
+# XXX Can this be done using @property ? 
 class FlexibleGetters(object):
     """Base class. Implements a mechanism which allows to call getters in
     arbitrary order, even if they depend on each other.

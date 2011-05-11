@@ -135,7 +135,7 @@ class ExternEOS(FlexibleGetters):
 
     # Make internal spline representations accessible to the user.
     # XXX how about using @property for another way to automatically invoke the
-    # getter? Can we use this in FlexibleGetters, too?
+    # getter?
     def get_spl_ev(self):
         if self.is_set_attr('spl_ev'):
             return self.spl_ev
