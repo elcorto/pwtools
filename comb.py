@@ -44,79 +44,64 @@ def _swap(arr, i, j):
     return aa
 
 
-def permute(a, id=True, skip_equal=False):
-    """Store permutations of `a` in a list.
-    
+def ipermute(seq):
+    """Calculate all N! permutations of sequence `seq` (return generator
+    object). This function was written before itertools.permutations()
+    existed, which is actually much faster.
+
     args:
     -----
-    a : 1d list to permute
-    id : bool 
-        False : store all perms but not the identity (i.e. a
-            itself), max. N!-1 perms are returned
-    skip_equal : bool
-        True : skip permuations which occur multiple times
-
-    returns:
+    seq : 1d list to permute, len(seq) = N
+    
+    example:
     --------
-    list of lists with permutations
+    >>> import itertools
+    >>> [x for x in ipermute([1,2,3])]
+    [[1, 2, 3], [2, 1, 3], [3, 1, 2], [1, 3, 2], [2, 3, 1], [3, 2, 1]]
+    >>> [x for x in itertools.permutations([1,2,3])]
+    [(1, 2, 3), (1, 3, 2), (2, 1, 3), (2, 3, 1), (3, 1, 2), (3, 2, 1)]
+    # only unique ones
+    >>> set([x for x in itertools.permutations([1,0,0])])
+    set([(0, 0, 1), (0, 1, 0), (1, 0, 0)])
 
     notes:
     ------
-    Algo:
-        We use the Countdown QuickPerm Algorithm [1]. Works like Heap's
+    algo : We use the Counting QuickPerm Algorithm [1]. Works like Heap's
         Algorithm [2,3], but not recursive. Uses N!-1 swaps.
-    
-    Number of perms:
-        Ordinary permutations yield len(a)! == N! permutations. But if one
-        wants to permute a list, where not all elements are unique 
-            a = [1,2,3,4,5,6]
-        but there are m=1,...,M groups, each of which has p_m equal members
-            a = [1,3,3,5,5,5]  p_1 = 1 [1x 1], p_2 = 2 [2x 3], p_3 = 3 [3x 5]
-        then the number of perms reduces to 
-            N! / (p_1! * p_2! *... * p_M!)
-            p_1 + ... + p_M = N
-        This function just takes a list and permutes it, yielding N! perms.
-        With sikp_equal, you can skip equal permutations out of the N!, which
-        occur of `a` has the above form.
 
     refs:
-    [1] http://www.geocities.com/permute_it/ 
+    [1] http://permute.tchs.info/quickperm.php
     [2] www.cs.princeton.edu/~rs/talks/perms.pdf, page 12
     [3] http://www.cut-the-knot.org/do_you_know/AllPerm.shtml
     """
     # copy input
-    aa = list(a)[:]
-    if id:
-        lst = [aa]
-    else:
-        lst = []
+    aa = list(seq)[:]
     n = len(aa)
-    p = range(n+1)
+    p = [0]*n
     i = 1
+    # first permutation is the input
+    yield aa[:]
     while i < n:
-        p[i] -= 1
-        if i % 2 == 1:
-            j = p[i]
+        if p[i] < i:
+            if (i % 2) == 0:
+                j = 0
+            else:
+                j = p[i]
+            # copy
+            # swap a[i] <-> a[j]
+            tmp = aa[j]
+            aa[j] = aa[i]
+            aa[i] = tmp
+            p[i] += 1
+            i = 1
+            yield aa[:]
         else:
-            j = 0
-        # swap a[i] <-> a[j]
-        tmp = aa[i]
-        aa[i] = aa[j]
-        aa[j] = tmp
-        if skip_equal:
-            if not (aa in lst):
-                # aa[:] -> append a *copy*, only "aa" would append a pointer to
-                # the current "aa", and that is changed in the next loop 
-                lst.append(aa[:])
-        else:            
-            lst.append(aa[:])
-        # restore p to start value [0, 1, ..., n]
-        i = 1
-        while p[i] == 0:
-            p[i] = i
+            p[i] = 0
             i += 1
-    return lst
 
+def permute(*args, **kwargs):
+    """See ipermute()."""
+    return [x for x in ipermute(*args, **kwargs)]
 
 def unique2d(arr, what='row'):
     """Reduce 2d array `arr` to a 2d array with unique rows (or cols).
@@ -312,6 +297,8 @@ def main():
     for aa in lst:
         print aa
 
+# alias
+factorial = fac
 
 if __name__ == '__main__':
     import sys
