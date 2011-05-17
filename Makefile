@@ -22,64 +22,13 @@
 #     $ make
 # 
 # It should result in a file "_flib.so".
-# No Fortran compiler is explicitly named. f2py tries to find one on your
-# system.
-# 
-# To see if f2py (numpy.distutils actually) picks up the correct compiler or if
-# you want to specify a different one, try
-# 
-#     $ f2py -c --help-fcompiler
-# 
-# On my system, I get
-# 
-#     $ f2py -c --help-fcompiler
-#     IntelEM64TFCompiler instance properties:
-#       archiver        = ['/opt/intel/fce/9.1.036/bin/ifort', '-cr']
-#       compile_switch  = '-c'
-#       compiler_f77    = ['/opt/intel/fce/9.1.036/bin/ifort', '-FI', '-w90', '-
-#                         w95', '-KPIC', '-cm', '-O3', '-unroll']
-#       compiler_f90    = ['/opt/intel/fce/9.1.036/bin/ifort', '-FR', '-KPIC', '-
-#                         cm', '-O3', '-unroll']
-#       compiler_fix    = ['/opt/intel/fce/9.1.036/bin/ifort', '-FI', '-KPIC', '-
-#                         cm', '-O3', '-unroll']
-#       libraries       = []
-#       library_dirs    = []
-#       linker_exe      = None
-#       linker_so       = ['/opt/intel/fce/9.1.036/bin/ifort', '-shared', '-
-#                         shared', '-nofor_main']
-#       object_switch   = '-o '
-#       ranlib          = ['/opt/intel/fce/9.1.036/bin/ifort']
-#       version         = LooseVersion ('9.1')
-#       version_cmd     = ['/opt/intel/fce/9.1.036/bin/ifort', '-FI', '-V', '-c',
-#                         '/tmp/tmp1s5-5d/ZDLAG6.f', '-o', '/tmp/tmp1s5-
-#                         5d/ZDLAG6.o']
-#     Fortran compilers found:
-#       --fcompiler=intelem  Intel Fortran Compiler for EM64T-based apps (9.1)
-#     Compilers available for this platform, but not found:
-#       --fcompiler=absoft  Absoft Corp Fortran Compiler
-#       --fcompiler=compaq  Compaq Fortran Compiler
-#       --fcompiler=g95     G95 Fortran Compiler
-#       --fcompiler=gnu     GNU Fortran 77 compiler
-#       --fcompiler=gnu95   GNU Fortran 95 compiler
-#       --fcompiler=intel   Intel Fortran Compiler for 32-bit apps
-#       --fcompiler=intele  Intel Fortran Compiler for Itanium apps
-#       --fcompiler=lahey   Lahey/Fujitsu Fortran 95 Compiler
-#       --fcompiler=nag     NAGWare Fortran 95 Compiler
-#       --fcompiler=pg      Portland Group Fortran Compiler
-#       --fcompiler=vast    Pacific-Sierra Research Fortran 90 Compiler
-#     Compilers not available on this platform:
-#       --fcompiler=hpux     HP Fortran 90 Compiler
-#       --fcompiler=ibm      IBM XL Fortran Compiler
-#       --fcompiler=intelev  Intel Visual Fortran Compiler for Itanium apps
-#       --fcompiler=intelv   Intel Visual Fortran Compiler for 32-bit apps
-#       --fcompiler=mips     MIPSpro Fortran Compiler
-#       --fcompiler=none     Fake Fortran compiler
-#       --fcompiler=sun      Sun or Forte Fortran 95 Compiler
-#     For compiler details, run 'config_fc --verbose' setup command.
-# 
-# So it has correctly found my ifort 9.1 and uses that by default. If you want
-# another compiler, e.g. gfortran, modify F2PY_FLAGS to use
-# --fcompiler=gnu95 or set --f90exec=/usr/bin/gfortran directly.     
+#
+# Compiler
+# --------
+# Instead of letting numpy.distutils pick a compiler + special flags, which is
+# not trivial and therefore almost never works, it is much easier to simply
+# define the compiler to use + architecture-specific flags. See F90 and ARCH
+# below.
 # 
 # OpenMP 
 # ------
@@ -124,25 +73,25 @@ SO=$(EXT_MODULE).so
 # Usually, just "f2py" should be fine.	
 F2PY=f2py
 
-# ARCH below is for Intel Core i7
+# ARCH below is for Intel Core i7 / Xeon. If you don't know what your CPU is
+# capable of (hint: see /etc/proc/cpuinfo) then use "ARCH=".
+#
+# Wanny try OpenMP? Then uncomment *_OMP_F90_FLAGS.
+
+# gfortran
 F90=gfortran
 F90FLAGS=-x f95-cpp-input 
 ARCH=-mmmx -msse4.2 
-#
+OMP_F90_FLAGS=-fopenmp -D__OPENMP
+F2PY_OMP_F90_FLAGS=-lgomp
+
+# ifort 11.1
 ##F90=ifort
 ##F90FLAGS=-fpp
 ##ARCH=-xSSE4.2
-
-# Wanny try OpenMP? Then uncomment below.
-#
-# gfortran
-OMP_F90_FLAGS=-fopenmp -D__OPENMP
-F2PY_OMP_F90_FLAGS=-lgomp
-#
-# ifort 11.1
 ##OMP_F90_FLAGS=-openmp -D__OPENMP 
 ##F2PY_OMP_F90_FLAGS=-liomp5
-#
+
 # no OpenMP
 ##OMP_F90_FLAGS=
 ##F2PY_OMP_F90_FLAGS=
@@ -152,13 +101,11 @@ F2PY_OMP_F90_FLAGS=-lgomp
 # numpy.distutils has default -03 for fcompiler. --f90flags="-02" does NOT
 # override this. We get "-O3 -O2" and a compiler warning. We have to use f2py's
 # --opt= flag.
-# 
-# On cartman (AMD X4 Phenom), numpy.distutils falsely sets "-march=k6-2".
-# So we set f2py's --arch flag manually.
-F2PY_FLAGS=--opt='-O3' \
+F2PY_FLAGS=--opt='-O2' \
 			--f90exec=$(F90) \
 			--arch="$(ARCH)" \
-			--f90flags="$(F90FLAGS) $(OMP_F90_FLAGS)" $(F2PY_OMP_F90_FLAGS) \
+			--f90flags="$(F90FLAGS) $(OMP_F90_FLAGS)" \
+			$(F2PY_OMP_F90_FLAGS) \
 ##			-DF2PY_REPORT_ON_ARRAY_COPY=1 \
 
 #--- targets ----------------------------------------------------------------
