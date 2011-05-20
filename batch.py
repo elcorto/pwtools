@@ -369,11 +369,10 @@ class ParameterStudy(object):
         params_lst : list of lists
             The "parameter sets". Each sublist is a set of calculation
             parameters as SQLEntry instances: 
-                params_lst = \
-                    [[SQLEntry(...), SQLEntry(...), ...], # calc_dir/0
-                     [SQLEntry(...), SQLEntry(...), ...], # calc_dir/1
-                     ...
-                    ] 
+                [[SQLEntry(...), SQLEntry(...), ...], # calc_dir/0
+                 [SQLEntry(...), SQLEntry(...), ...], # calc_dir/1
+                 ...
+                ] 
             For each sublist, a separate calculation dir is created and
             populated with files based on `templates`. The `key` attribute of
             each SQLEntry will be converted to a placeholder in each
