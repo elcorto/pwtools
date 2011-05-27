@@ -474,8 +474,9 @@ class ParameterStudy(object):
 
 
 def sql_column(key, sqltype, lst, sqlval_func=lambda x: x, fileval_func=lambda x: x):
-    """Convert `lst` to list of SQLEntry instances of the same column name
-    `key` and `sqltype`. 
+    """Convert a list `lst` of values of the same type (i.e. all floats) to a
+    list of SQLEntry instances of the same column name `key` and `sqltype`
+    (e.g. 'float'). 
 
     See ParameterStudy for applications.
      
@@ -513,6 +514,89 @@ def sql_column(key, sqltype, lst, sqlval_func=lambda x: x, fileval_func=lambda x
                      sqlval=sqlval_func(x), 
                      fileval=fileval_func(x)) for x in lst]
 
+
+def sql_matrix(lists, header, sqlval_funcs=None, fileval_funcs=None):
+    """Convert each entry in a list of lists ("matrix" = sql table) to an
+    SQLEntry based on `header`. This can be used to quickly convert the result
+    of comb.nested_loops() (nested lists) to input `params_lst` for
+    ParameterStudy.
+    
+    The entries in the lists can have arbitrary values, but each "column"
+    should have the same type. Each sublist (= row) can be viewed as a row in
+    an sql database, each column as input for sql_column().
+    
+    args:
+    -----
+    lists : list of lists 
+    header : sequence 
+        [('foo', 'integer'), ('bar', 'float'), ...], see
+        sql.SQLiteDB
+    sqlval_funcs, fileval_funcs: {None, dict}
+        For certain (or all) columns, you can specify a sqlval_func /
+        fileval_func. They have the same meaning as in sql_column().
+        E.g. sql_matrix(..., fileval_funcs={'foo': lambda x: str(x)+'-value'})
+        would set fileval_func for the whole column 'foo'.
+    
+    returns:
+    --------
+    list of lists
+
+    example:
+    --------
+    >>> lists=comb.nested_loops([[1.0,2.0,3.0], zip(['a', 'b'], [888, 999])],
+    ...                         flatten=True)
+    >>> lists
+    [[1.0, 'a', 888],
+     [1.0, 'b', 999],
+     [2.0, 'a', 888],
+     [2.0, 'b', 999],
+     [3.0, 'a', 888],
+     [3.0, 'b', 999]]
+    >>> header=[('col0', 'float'), ('col1', 'text'), ('col2', 'integer')]
+    >>> m=batch.sql_matrix(lists, header)
+    >>> for row in m:
+    ...     print [(xx.key, xx.fileval) for xx in row]
+    ...
+    [('col0', 1.0), ('col1', 'a'), ('col2', 888)]
+    [('col0', 1.0), ('col1', 'b'), ('col2', 999)]
+    [('col0', 2.0), ('col1', 'a'), ('col2', 888)]
+    [('col0', 2.0), ('col1', 'b'), ('col2', 999)]
+    [('col0', 3.0), ('col1', 'a'), ('col2', 888)]
+    [('col0', 3.0), ('col1', 'b'), ('col2', 999)]
+    >>> m=batch.sql_matrix(lists, header, fileval_funcs={'col0': lambda x: x*100})
+    >>> for row in m:
+    ...     print [(xx.key, xx.fileval) for xx in row]
+    ...
+    [('col0', 100.0), ('col1', 'a'), ('col2', 888)]
+    [('col0', 100.0), ('col1', 'b'), ('col2', 999)]
+    [('col0', 200.0), ('col1', 'a'), ('col2', 888)]
+    [('col0', 200.0), ('col1', 'b'), ('col2', 999)]
+    [('col0', 300.0), ('col1', 'a'), ('col2', 888)]
+    [('col0', 300.0), ('col1', 'b'), ('col2', 999)]
+    """
+    ncols = len(header)
+    ncols2 = len(lists[0])
+    keys = [entry[0] for entry in header]
+    assert ncols == ncols2, ("number of columns differ: lists (%i), "
+        "header (%i)" %(ncols2, ncols))
+    _sqlval_funcs = dict([(key, lambda x: x) for key in keys])
+    _fileval_funcs = dict([(key, lambda x: x) for key in keys])
+    if sqlval_funcs is not None:
+        _sqlval_funcs.update(sqlval_funcs)
+    if fileval_funcs is not None:
+        _fileval_funcs.update(fileval_funcs)
+    newlists = []        
+    for row in lists:
+        newrow = []
+        for ii, entry in enumerate(row):
+            key = header[ii][0]
+            sqltype = header[ii][1]
+            newrow.append(SQLEntry(key=key,
+                                   sqltype=sqltype,
+                                   sqlval=_sqlval_funcs[key](entry),
+                                   fileval=_fileval_funcs[key](entry)))
+        newlists.append(newrow)                                   
+    return newlists            
 
 def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s"):
     """Convergence table. Assume that quantity `xx` was varied, resulting in
