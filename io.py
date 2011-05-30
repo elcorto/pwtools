@@ -341,7 +341,7 @@ def wien_sgroup_input(lat_symbol, symbols, atpos_crystal, cryst_const):
     / ------------------------------------------------------------------
     """
     atpos_crystal = np.asarray(atpos_crystal)
-    assert_cond(len(symbols) == atpos_crystal.shape[0], 
+    common.assert_cond(len(symbols) == atpos_crystal.shape[0], 
         "len(symbols) != atpos_crystal.shape[0]")
     empty = '\n\n'
     txt = "/ lattice type symbol\n%s" %lat_symbol
@@ -353,7 +353,7 @@ def wien_sgroup_input(lat_symbol, symbols, atpos_crystal, cryst_const):
     txt += empty
     txt += "/ atom list (crystal cooords)\n"
     fmt = ' '.join(['%.16e']*3)
-    for sym, coord in izip(symbols, atpos_crystal):
+    for sym, coord in zip(symbols, atpos_crystal):
         txt += fmt % tuple(coord) + '\n' + sym + '\n'
     return txt
 
