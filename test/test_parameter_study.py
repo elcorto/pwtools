@@ -32,28 +32,25 @@ def test():
     machine = batch.local
     calc_dir = pj(testdir, 'calc_test_1d_1col')
     prefix = 'convergence'
-    # Specify template files in templ_dir.
-    templates = \
-        {'pw': batch.FileTemplate(basename='pw.in', 
-                                  templ_dir=templ_dir), 
-        }
-    # Add machine template file to the dict of templates. The idea is to use
-    # this rather then spefifying it by hand b/c the machine object may have
-    # things like "scratch" etc already predefined.        
-    # You can also loop over many machines here to write the same input for
-    # several machines = [batch.local, batch.adde, ...]. For that to work, you
-    # must have machine.jobfn as template for each machine in templ_dir.
+    # Specify template files in templ_dir. Add machine template file to the
+    # list of templates. The idea is to use this rather than spefifying it by
+    # hand b/c the machine object may have things like "scratch" etc already
+    # predefined. You can also loop over many machines here to write the same
+    # input for several machines = [batch.local, batch.adde, ...]. For that to
+    # work, you must have machine.jobfn as template for each machine in
+    # templ_dir.
     # for m in machines:
-    #     templates[m.jobfn] = ...
-    templates[machine.jobfn] = batch.FileTemplate(basename=machine.jobfn,
-                                                  templ_dir=templ_dir)
+    #     templates.append(...)
+    templates = [batch.FileTemplate(basename=fn, templ_dir=templ_dir) \
+                 for fn in ['pw.in', machine.jobfn]]
     # raw values to be varied
     _ecutwfc = [25, 50, 75]
-    # [SQLEntry(...), 
-    #  SQLEntry(...), 
-    #  SQLEntry(...)]
+    # [SQLEntry(...), SQLEntry(...), SQLEntry(...)]
     ecutwfc = batch.sql_column('ecutwfc', 'float', _ecutwfc)
-    # only one parameter "ecutwfc" per calc (sublists of length 1) -> one sql column
+    # only one parameter "ecutwfc" per calc (sublists of length 1) -> one sql
+    # column. nested_loops(): transform
+    # [SQLEntry(...), SQLEntry(...), SQLEntry(...)]
+    # ->
     # [[SQLEntry(...)], # calc_dir/0
     #  [SQLEntry(...)], # calc_dir/1
     #  [SQLEntry(...)]] # calc_dir/2
@@ -99,7 +96,7 @@ def test():
     #--------------------------------------------------------------------------
     ecutwfc = batch.sql_column('ecutwfc', 'float', [100, 150])
     pw_mkl = batch.sql_column('pw_mkl', 'text', ['yes', 'yes'])
-    params_lst = comb.nested_loops([zip(ecutwfc, pw_mkl)])
+    params_lst = comb.nested_loops([zip(ecutwfc, pw_mkl)], flatten=True)
     calc = batch.ParameterStudy(machine=machine, 
                                 templates=templates, 
                                 params_lst=params_lst, 
@@ -138,7 +135,29 @@ def test():
     # 
     # # vary par1 and par2 together, and par3 -> 2d grid w/ par1+par2 on one
     # axis and par3 on the other
-    # >>> params_lst = comb.nested_loops([zip(par1, par2), par3])
+    # >>> params_lst = comb.nested_loops([zip(par1, par2), par3], flatten=True)
     #
     # That's all.
+    
+    #--------------------------------------------------------------------------
+    # Repeat first test, but whith templates = dict, w/o verification though
+    #--------------------------------------------------------------------------
+    machine = batch.local
+    calc_dir = pj(testdir, 'calc_test_1d_1col_templdict')
+    prefix = 'convergence'
+    templates = \
+        {'pw': batch.FileTemplate(basename='pw.in', 
+                                  templ_dir=templ_dir), 
+        }
+    templates[machine.jobfn] = batch.FileTemplate(basename=machine.jobfn,
+                                                  templ_dir=templ_dir)
+
+    _ecutwfc = [25, 50, 75]
+    ecutwfc = batch.sql_column('ecutwfc', 'float', _ecutwfc)
+    params_lst = comb.nested_loops([ecutwfc])
+    calc = batch.ParameterStudy(machine=machine, 
+                                templates=templates, 
+                                params_lst=params_lst, 
+                                prefix=prefix)
+    calc.write_input(calc_dir=calc_dir)
 

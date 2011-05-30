@@ -274,8 +274,9 @@ class Calculation(object):
         machine : instance of batch.Machine
             The get_sql_record() method is used to add machine-specific
             parameters to the FileTemplates.
-        templates : dict 
-            Dict of FileTemplate instances. 
+        templates : dict or list
+            Dict or list of FileTemplate instances. Dict is here for backward
+            compat, but the keys are actually not used at all.
         params : sequence of SQLEntry instances
             A single "parameter set". The `key` attribute (=sql column name) of
             each SQLEntry will be converted to a placeholder in each
@@ -287,7 +288,11 @@ class Calculation(object):
             The number of this calculation. Useful in ParameterStudy.
         """
         self.machine = machine
-        self.templates = templates
+        if type(templates) == type([]):
+            self.templates = dict([(ii, val) for ii,val in \
+                                   enumerate(templates)])
+        else:
+            self.templates = templates
         self.params = params
         self.prefix = prefix
         self.idx = idx
