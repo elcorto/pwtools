@@ -1557,7 +1557,7 @@ class PwOutputFile(FileParser):
         cmd = r"egrep 'Total[ ]+force[ ]*=.*Total' %s \
             | sed -re 's/^.*Total\s+force\s*=\s*(.*)\s*Total.*/\1/'" \
             %self.filename
-        return arr2d_from_txt(com.backtick(cmd))
+        return arr1d_from_txt(com.backtick(cmd))
 
     def get_nstep_scf(self):
         verbose("getting nstep_scf")
