@@ -20,11 +20,8 @@
 
 
 import sys
-
-from pwtools import parse, crys
-
+from pwtools import parse, io
 fn = sys.argv[1]
 pp = parse.CifFile(fn)
 pp.parse()
-
-print crys.wien_sgroup_input('P', pp.symbols, pp.coords, pp.cryst_const)
+print io.wien_sgroup_input('P', pp.symbols, pp.coords, pp.cryst_const)
