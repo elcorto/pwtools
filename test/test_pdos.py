@@ -8,7 +8,7 @@ def test():
     filename = 'files/pw.md.out'
     infile = 'files/pw.md.in'
     common.system('gunzip %s.gz' %filename)
-    pwout = parse.PwOutputFile(filename)
+    pwout = parse.PwMDOutputFile(filename)
     pwin = parse.PwInputFile(infile)
     pwin.parse()
     pwout.parse()
@@ -43,10 +43,10 @@ def test():
     # only
     #   V=velocity(coords).
     V = pd.velocity(coords)
-    m = pwin.massvec
+    mass = pwin.mass
     dt = float(pwin.namelists['control']['dt'])*constants.tryd
-    fd, dd = pd.direct_pdos(V, m=m, dt=dt)
-    fv, dv = pd.vacf_pdos(V, m=m, dt=dt, mirr=True)
+    fd, dd = pd.direct_pdos(V, m=mass, dt=dt)
+    fv, dv = pd.vacf_pdos(V, m=mass, dt=dt, mirr=True)
 
     np.testing.assert_array_almost_equal(fd, fv, err_msg="freq not equal")
     np.testing.assert_array_almost_equal(dd, dv, err_msg="dos not equal")

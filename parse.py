@@ -24,16 +24,27 @@
 #   does. Use "[ ]" instead.
 #
 # 
-# Using parse(), get_<attr>() and dump()
-# --------------------------------------
+# Using Parsing classes
+# ---------------------
 # 
-# All parsing classes are derived from FlexibleGetters -> FileParser.
+# All parsing classes 
+#     PwSCFOutputFile
+#     PwMDOutputFile
+#     PwVCMDOutputFile
+#     AbinitSCFOutputFile
+#     AbinitMDOutputFile
+#     AbinitVCMDOutputFile
+# are derived from FlexibleGetters -> FileParser.
+#
+# As a general rule: If a getter (self.get_<attr>() or self._get_<attr>_raw()
+# cannot find anything in the file, it returns None. All getters which depend
+# on it will also return None.
 # 
 # * After initialization
 #       pp = SomeParsingClass(<filename>), all attrs whoose name is in 
 #   pp.attr_lst will be set to None.
 # 
-# * parse() will do 
+# * parse() will invoke self.check_get_attr(<attr>), which does 
 #       self.<attr> = self.get_<attr>() 
 #   for each <attr> in self.attr_lst, thus setting self.<attr> to a defined
 #   value: None if nothing was found in the file or not None else
@@ -42,7 +53,8 @@
 #   looking for a file self.filename, regardless of the fact that the attribute
 #   self.<attr> may already be defined (e.g. if parse() has been called before).
 #
-# * For interactive use, prefer get_<attr>() over parse().
+# * For interactive use (you need <attr> only once), prefer get_<attr>() over
+#   parse().
 # 
 # * Use dump() only for temporary storage and fast re-reading.
 # 
@@ -63,6 +75,7 @@
 # information, e.g. 
 #     cell + cryst_const + cryst_const_angles_lengths
 #     forces + forces_rms
+#     _<attr>_raw + <attr> (where <attr> = cell, forces, ...)
 #     ...
 # especially in MD parsers, not so much in StructureFileParser drived
 # classes. If parse() is used, all this information retrieved and stored.
@@ -82,12 +95,11 @@
 # Using get_<attr>():
 # 
 # Pro: 
-# * Small dump()'ed binary file.
+# * You only parse what you really need.
 # Con:
-# * If you load the object later on and call a getter, it may be looking for a file 
-#   self.filename again.
-#   You must keep the original output file around (which one usually does
-#   anyway). Also it is a good idea to use *relative* paths for that reason.
+# * self.<attr> will NOT be set, since get_<attr>() only returns <attr> but
+#   doesn't set self.<attr> = self.get_<attr>(), so dump() wouls save an
+#   "empty" file
 #
 # Note on get_txt():
 # 
@@ -163,15 +175,6 @@ def scan_until_pat(fh, pat="atomic_positions", err=True, retline=False):
     example file (pw.x input):
         
         [...]
-        CELL_PARAMETERS
-           4.477898982  -0.031121661   0.004594438
-          -2.231322621   3.882493243  -0.004687159
-           0.012261087  -0.006915066  12.050227607
-        ATOMIC_SPECIES
-        Si 28.0855 Si.LDA.fhi.UPF
-        O 15.9994 O.LDA.fhi.UPF   
-        Al 26.981538 Al.LDA.fhi.UPF
-        N 14.0067 N.LDA.fhi.UPF
         ATOMIC_POSITIONS alat                              <---- fh at this pos
         Al       4.482670384  -0.021685570   4.283770714         returned
         Al       2.219608875   1.302084775   8.297440557
@@ -189,7 +192,6 @@ def scan_until_pat(fh, pat="atomic_positions", err=True, retline=False):
     #   lose data
     # 
     # Must return line at file position instead.
-     
     for line in fh:
         if line.strip().lower().startswith(pat):
             if retline:
@@ -203,49 +205,6 @@ def scan_until_pat(fh, pat="atomic_positions", err=True, retline=False):
         return fh, 0, line
     return fh, 0
 
-
-def scan_until_pat2(fh, rex, err=True, retmatch=False):
-    """
-    *Slightly* faster than scan_until_pat().
-
-    args:
-    ----
-    fh : file like object
-    rex : Regular Expression Object with compiled pattern for re.match().
-    err : bool, raise error at end of file b/c pattern was not found
-    retmatch : bool, return current Match Object
-    
-    returns:
-    --------
-    fh : file like object
-    flag : int
-    {match : re Match Object}
-
-    notes:
-    ------
-    For this function to be fast, you must pass in a compiled re object. 
-        rex = re.compile(...)
-        fh, flag = scan_until_pat2(fh, rex)
-    or 
-        fh, flag = scan_until_pat2(fh, re.compile(...))
-    BUT, if you call this function often (e.g. in a loop) with the same
-    pattern, use the first form, b/c otherwise re.compile(...) is evaluated in
-    each loop pass. Then, this would essentially be the same as using
-    re.match() directly.
-    """
-    for line in fh:
-        match = rex.match(line)
-        if match is not None:
-            if retmatch:
-                return fh, 1, match
-            return fh, 1
-    if err:
-        raise StandardError("end of file '%s', pattern "
-            "not found" %fh)
-    # nothing found = end of file, rex.match(line) should be == None
-    if retmatch:
-        return fh, 0, match
-    return fh, 0
 
 def int_from_txt(txt):
     if txt.strip() == '':
@@ -323,26 +282,33 @@ class FlexibleGetters(object):
     Derived classes can override self.attr_lst by using self.set_attr_lst().
     
     Example:
-        def __init__(self):
-            self.set_attr_lst(['foo', 'bar', '_baz'])
-            self.get_all()
-        
-        def get_all(self):
-            for attr in self.attr_lst:
-                self.check_get_attr(attr)
-        
-        # Getters call each other
-        def _get_baz(self):
-            return self.calc_baz()
-        
-        def get_bar(self):
-            check_get_attr('_baz')
-            return self.calc_stuff(self._baz)**2.0
+        class MySuperParsingClass(FlexibleGetters):
+            def __init__(self):
+                self.set_attr_lst(['foo', 'bar', '_baz'])
+                self.get_all()
+            
+            def get_all(self):
+                "Sets self.foo, self.bar and self._baz by calling their
+                getters"
+                for attr in self.attr_lst:
+                    self.check_get_attr(attr)
+            
+            # Getters call each other
+            def _get_baz(self):
+                return self.calc_baz()
+            
+            def get_bar(self):
+                self.check_get_attr('_baz')
+                return None if (not self.is_set_attr('_baz')) else \
+                    self.calc_stuff(self._baz)**2.0
 
-        def get_foo(self):
-            self.check_get_attr('bar')
-            self.check_get_attr('_baz')
-            return do_stuff(self._baz, self.bar)
+            def get_foo(self):
+                required = ['bar', '_baz']
+                self.check_get_attrs(required)
+                if self.is_set_attrs(required):
+                    return do_stuff(self._baz, self.bar)
+                else:
+                    return None
     
     Setting self.attr_lst is optional. It is supposed to be used only in
     get_all(). The check_get_attr() - method works without it, too. 
@@ -494,6 +460,42 @@ class FlexibleGetters(object):
         for attr in attr_lst:
             self.check_get_attr(attr)
     
+    def raw_slice_get(self, attr_name, sl, axis):
+        """Shortcut method:
+        * call check_get_attr(_<attr_name>_raw) -> set
+          self._<attr_name>_raw to None or smth else
+        * if set, return self._<attr_name>_raw sliced by `sl` along `axis`,
+          else return None
+        """
+        verbose("getting %s" %attr_name)
+        raw_attr_name = '_%s_raw' %attr_name
+        self.check_get_attr(raw_attr_name)
+        if self.is_set_attr(raw_attr_name):
+            arr = getattr(self, raw_attr_name)
+            ret = num.slicetake(arr, sl, axis) 
+            # slicetake always returns an array, retuen scalar if ret =
+            # array([10]) etc
+            if (ret.ndim == 1) and (len(ret) == 1):
+                return ret[0]
+            else:
+                return ret
+        else:
+            return None
+    
+    def raw_return(self, attr_name):
+        """Call check_get_attr(_<attr_name>_raw) and return it if set, else
+        None. This is faster but the same the same as 
+            raw_slice_get(<attr_name>, sl=slice(None), axis=0)
+        or axis=1 or any other valid axis.
+        """
+        verbose("getting %s" %attr_name)
+        raw_attr_name = '_%s_raw' %attr_name
+        self.check_get_attr(raw_attr_name)
+        if self.is_set_attr(raw_attr_name):
+            return getattr(self, raw_attr_name)
+        else:
+            return None
+ 
 
 class FileParser(FlexibleGetters):
     """Base class for file parsers.
@@ -884,9 +886,9 @@ class PwInputFile(StructureFileParser):
         see self.get_namelists()
     kpoints : dict
         see self.get_kpoints()
-    massvec : 1d array (natoms,)
+    mass : 1d array (natoms,)
         Array of masses of all atoms in the order listed in
-        ATOMIC_POSITIONS. This is actually self.atpos['massvec'].
+        ATOMIC_POSITIONS. This is actually self.atpos['mass'].
     
     notes:
     ------
@@ -928,11 +930,11 @@ class PwInputFile(StructureFileParser):
                                            'atpos', \
                                            'namelists', \
                                            'kpoints', \
-                                           'massvec'])
+                                           'mass'])
     
-    def get_massvec(self):
+    def get_mass(self):
         self.check_get_attr('atpos')
-        return self.atpos['massvec']
+        return self.atpos['mass']
 
     def get_symbols(self):
         self.check_get_attr('atpos')
@@ -950,10 +952,10 @@ class PwInputFile(StructureFileParser):
         self.check_get_attr('cell')
         self.check_get_attr('namelists')
         alat_conv_dct = {'celldm(1)': 1,
-                         'A': 1/constants.a0_to_A}
+                         'a': 1/constants.a0_to_A}
         nl_system = self.namelists['system']
         alat_found = False
-        for key, conv_fac in alat_conv_dct.iteritems():                    
+        for key, conv_fac in alat_conv_dct.iteritems():
             if nl_system.has_key(key):
                 celldm1 = float(nl_system[key])*conv_fac
                 alat_found = True
@@ -1091,12 +1093,12 @@ class PwInputFile(StructureFileParser):
         
         returns:
         --------
-        {'coords': coords, 'natoms': natoms, 'massvec': massvec, 'symbols':
+        {'coords': coords, 'natoms': natoms, 'mass': mass, 'symbols':
         symbols, 'unit': unit}
         
         coords : ndarray,  (natoms, 3)
         natoms : int
-        massvec : 1d array, (natoms,)
+        mass : 1d array, (natoms,)
         symbols : list of strings, (natoms,), ['Al', 'A', 'Si', ...]
         unit : string, 'alat', 'crystal', etc.
 
@@ -1154,8 +1156,8 @@ class PwInputFile(StructureFileParser):
         natoms = coords.shape[0]
         masses = self.atspec['masses']
         atspec_symbols = self.atspec['symbols']
-        massvec = np.array([masses[atspec_symbols.index(s)] for s in symbols], dtype=float)
-        return {'coords': coords, 'natoms': natoms, 'massvec': massvec, 'symbols':
+        mass = np.array([masses[atspec_symbols.index(s)] for s in symbols], dtype=float)
+        return {'coords': coords, 'natoms': natoms, 'mass': mass, 'symbols':
             symbols, 'unit': unit}
 
 
@@ -1291,55 +1293,10 @@ class PwInputFile(StructureFileParser):
                 'kpoints': kpoints}
 
 
-class PwOutputFile(FileParser):
-    """Parse a pw.x output file. This class is primarily geared towards
-    pw.x MD runs but also works for other calculation types. Tested so far: 
-    md, scf, relax, vc-relax. For vc-md, see PwVCMDOutputFile. 
-
-    For scf-like calculations, where we have in fact only 1 "time step", all
-    trajectory-like 3d arrays have nstep=1, i.e. coords: (natoms, 3, 1).
-    
-    members:
-    --------
-    etot : 1d array (nstep,)
-    ekin : 1d array (nstep,)
-    stresstensor : 3d array (3, 3, nstep) 
-        stress tensor for each step 
-    pressure : 1d array (nstep,) 
-        This is parsed from the "P= ... kbar" lines and the value is actually
-        1/3*trace(stresstensor)
-    temperature : 1d array (nstep,)
-    coords : 3d array (natoms, 3, nstep)
-    start_coords : 2d array
-        atomic coords of the start unit cell in cartesian alat units
-    cell : 3d array (3, 3, nstep) 
-        prim. basis vectors for each step
-    start_cell : 2d array
-        start prim. basis vectors from the output file in alat units, parsed
-        from "crystal axes: (cart. coord. in units of a_0)"
-    nstep : scalar 
-        number of MD steps
-    natoms : scalar 
-        number of atoms
-    volume : 1d array (nstep,)
-    start_volume : float
-        the volume of the start unit cell
-    total_force : 1d array (nstep,)
-        The "total force" parsed from lines "Total force =" after the "Forces
-        acting on atoms" block.
-    forces : 3d array (natoms, 3, nstep)
-    forces_rms : 1d array (nstep,) of RMS of the forces, each forces[...,i] is
-        normalized to 3*natoms
-    nkpoints : number of kpoints        
-    time_axis : the time axis along which all 3d arrays have 2d arrays lined
-        up; e.g. `coords` has 2d arrays with atomic coords[:,:,i] for
-        i=0,...,nstep-1; time_axis is currently hardcoded to -1, i.e. the last
-        axis
-
-    Members, whose corresponding data in the file is not present or cannot
-    parsed b/c regexes don't match, are None.
-    E.g. if there are no CELL_PARAMETERS printed in the output file, then
-    self.cell == None.
+class PwSCFOutputFile(FileParser):
+    """Parse a pw.x SCF output file. Some getters (_get_<attr>_raw) work for
+    MD-like output, too. Here in the SCF case, only the first item along the
+    time axis is returned and should only be used on calculation='scf' output.
 
     notes:
     ------
@@ -1355,11 +1312,6 @@ class PwOutputFile(FileParser):
     #     of the returned array auttomatically based on the self.time_axis
     #     setting alone. If you want to change this, then manually fix the
     #     "shape" kwarg to io.readtxt() in all getters which return a 3d array.
-    # 
-    # Possible optimization: Use get_txt() to read in the file to parse and use
-    #     only python's re module. Would spare us spawning child processes for
-    #     grep/sed/awk. But grep is probably faster for large files and has
-    #     some very nice features, too.
     def __init__(self, filename=None):
         """
         args:
@@ -1369,34 +1321,131 @@ class PwOutputFile(FileParser):
         FileParser.__init__(self, filename)
         self.time_axis = -1
         self.set_attr_lst([\
-        'nstep', 
-        'nstep_scf', 
-        'etot', 
-        'ekin', 
-        'stresstensor', 
-        'pressure', 
-        'temperature', 
-        'coords', 
         'cell', 
-        'natoms', 
-        'volume',
-        'total_force',
+        'coords', 
+        'etot', 
         'forces',
         'forces_rms',
-        'start_volume',
-        'start_cell',
-        'start_coords',
+        'natoms', 
         'nkpoints',
+        'nstep_scf', 
+        'pressure', 
+        'stresstensor', 
+        'total_force',
+        'volume',
         ])
         
-    def get_nstep(self):
-        verbose("getting nstep")
-        self.check_get_attr('coords')
-        if self.coords is not None:
-            return self.coords.shape[self.time_axis]
+    def _get_stresstensor_raw(self):
+        verbose("getting _stresstensor_raw")
+        key = 'P='
+        cmd = "grep %s %s | wc -l" %(key, self.filename)
+        nstep = nstep_from_txt(com.backtick(cmd))
+        cmd = "grep -A3 '%s' %s | grep -v -e %s -e '--'| \
+              awk '{printf $4\"  \"$5\"  \"$6\"\\n\"}'" \
+              %(key, self.filename, key)
+        return traj_from_txt(com.backtick(cmd), 
+                             shape=(3,3,nstep),
+                             axis=self.time_axis)              
+
+    def _get_etot_raw(self):
+        verbose("getting _etot_raw")
+        cmd =  r"grep '^!' %s | awk '{print $5}'" %self.filename
+        return arr1d_from_txt(com.backtick(cmd))
+    
+    def _get_pressure_raw(self):
+        verbose("getting _pressure_paw")
+        cmd = r"grep P= %s | awk '{print $6}'" %self.filename
+        return arr1d_from_txt(com.backtick(cmd))
+     
+    def _get_forces_raw(self):
+        verbose("getting _forces_raw")
+        self.check_get_attr('natoms')
+        natoms = self.natoms
+        # nstep: get it from outfile b/c the value in any input file will be
+        # wrong if the output file is a concatenation of multiple smaller files
+        key = r'Forces\s+acting\s+on\s+atoms.*$'
+        cmd = r"egrep '%s' %s | wc -l" %(key.replace(r'\s', r'[ ]'), self.filename)
+        nstep = nstep_from_txt(com.backtick(cmd))
+        # forces
+        cmd = "grep 'atom.*type.*force' %s \
+            | awk '{print $7\" \"$8\" \"$9}'" %self.filename
+        return traj_from_txt(com.backtick(cmd), 
+                             shape=(natoms,3,nstep),
+                             axis=self.time_axis)
+    
+    def _get_total_force_raw(self):
+        verbose("getting _total_force_raw")
+        cmd = r"egrep 'Total[ ]+force[ ]*=.*Total' %s \
+            | sed -re 's/^.*Total\s+force\s*=\s*(.*)\s*Total.*/\1/'" \
+            %self.filename
+        return arr1d_from_txt(com.backtick(cmd))
+
+    def _get_forces_rms_raw(self):
+        verbose("getting _forces_rms_raw")
+        req = ['_forces_raw']
+        self.check_get_attrs(req)
+        if self.is_set_attrs(req):
+            return crys.rms3d(self._forces_raw, axis=self.time_axis) 
         else:
             return None
     
+    def _get_nstep_scf_raw(self):
+        verbose("getting _nstep_scf_raw")
+        cmd = r"grep 'convergence has been achieved in' %s | awk '{print $6}'" \
+            %self.filename
+        return arr1d_from_txt(com.backtick(cmd), dtype=int)
+
+    def get_stresstensor(self):
+        return self.raw_slice_get('stresstensor', sl=0, axis=self.time_axis)
+
+    def get_etot(self):
+        return self.raw_slice_get('etot', sl=0, axis=0)
+    
+    def get_pressure(self):
+        return self.raw_slice_get('pressure', sl=0, axis=0)
+    
+    def get_forces(self):
+        return self.raw_slice_get('forces', sl=0, axis=self.time_axis)
+    
+    def get_total_force(self):
+        return self.raw_slice_get('total_force', sl=0, axis=0)
+    
+    def get_forces_rms(self):
+        return self.raw_slice_get('forces_rms', sl=0, axis=0)
+    
+    def get_nstep_scf(self):
+        return self.raw_slice_get('nstep_scf', sl=0, axis=0)
+    
+    def get_cell(self):
+        """Grep start cell from pw.out. This is always in alat
+        units, but printed with much less precision compared to the input file.
+        If you need this information for further calculations, use the input
+        file value."""
+        verbose("getting start cell parameters")
+        cmd = "grep -A3 'crystal.*axes.*units.*a_0' %s | tail -n3 | \
+               awk '{print $4\" \"$5\" \"$6}'" %(self.filename)
+        return arr2d_from_txt(com.backtick(cmd))
+    
+    def get_coords(self):
+        """Grep start ATOMIC_POSITIONS from pw.out. This is always in cartesian
+        alat units and printed with low precision. The start coords in the
+        format given in the input file is just infile.coords. This should be
+        the same as
+        >>> pp = PwSCFOutputFile(...)
+        >>> pp.parse()
+        >>> crys.coord_trans(pp.coords, 
+        >>>                  old=np.identity(3), 
+        >>>                  new=pp.cell, 
+        >>>                  align='rows')
+        """
+        verbose("getting start coords")
+        self.check_get_attr('natoms')
+        natoms = self.natoms
+        cmd = r"grep -A%i 'positions.*a_0.*units' %s | tail -n%i | \
+              sed -re 's/.*\((.*)\)/\1/g'" \
+              %(natoms, self.filename, natoms)
+        return arr2d_from_txt(com.backtick(cmd))
+
     def get_natoms(self):
         verbose("getting natoms")
         cmd = r"grep 'number.*atoms/cell' %s | \
@@ -1409,21 +1458,53 @@ class PwOutputFile(FileParser):
             sed -re 's/.*points=\s*([0-9]+)\s*.*/\1/'" %self.filename
         return int_from_txt(com.backtick(cmd))
 
-    def get_stresstensor(self):
-        verbose("getting stress tensor")
-        key = 'P='
-        cmd = "grep %s %s | wc -l" %(key, self.filename)
-        nstep = nstep_from_txt(com.backtick(cmd))
-        cmd = "grep -A3 '%s' %s | grep -v -e %s -e '--'| \
-              awk '{printf $4\"  \"$5\"  \"$6\"\\n\"}'" \
-              %(key, self.filename, key)
-        return traj_from_txt(com.backtick(cmd), 
-                             shape=(3,3,nstep),
-                             axis=self.time_axis)              
+    def get_volume(self):
+        verbose("getting volume")
+        ret_str = com.backtick(r"grep 'unit-cell.*volume' %s | head -n1 | sed -re \
+                                's/.*volume\s*=\s*(.*?)\s+.*a.u..*/\1/'"
+                                %self.filename)
+        if ret_str.strip() == '':
+            return None
+        else:            
+            return float(ret_str)
 
-    def get_etot(self):
-        verbose("getting etot")
-        cmd =  r"grep '^!' %s | awk '{print $5}'" %self.filename
+
+class PwMDOutputFile(PwSCFOutputFile):
+    """Parse pw.x MD-like output. Tested so far: 
+    md, relax, vc-relax. For vc-md, see PwVCMDOutputFile. 
+    """
+    def __init__(self, *args, **kwargs):
+        PwSCFOutputFile.__init__(self, *args, **kwargs)
+        self.attr_lst += [\
+            'nstep', 
+            'ekin', 
+            'temperature',
+            ]
+
+    def get_nstep(self):
+        verbose("getting nstep")
+        self.check_get_attr('coords')
+        if self.is_set_attr('coords'):
+            return self.coords.shape[self.time_axis]
+        else:
+            return None
+    
+    def get_volume(self):
+        """For vc-relax, vc-md, pw.x prints stuff like
+            ,----------
+            | unit-cell volume          =    1725.5120 (a.u.)^3
+            | new unit-cell volume =   1921.49226 a.u.^3 (   284.73577 Ang^3 )
+            | new unit-cell volume =   1873.15813 a.u.^3 (   277.57339 Ang^3 )
+            | new unit-cell volume =   1836.54519 a.u.^3 (   272.14792 Ang^3 )
+            | ...
+            `----------
+        i.e. the vol of the start cell and then all new cells until
+        convergence. Here, we only grep for the NEW cell values, which should
+        occur nstep times.
+        """
+        verbose("getting volume")
+        cmd = r"grep 'new.*volume' %s | sed -re \
+               's/.*volume\s*=\s*(.*?)\s+.*a.u..*/\1/'" %self.filename
         return arr1d_from_txt(com.backtick(cmd))
     
     def get_ekin(self):
@@ -1431,11 +1512,6 @@ class PwOutputFile(FileParser):
         cmd = r"grep 'kinetic energy' %s | awk '{print $5}'" %self.filename
         return arr1d_from_txt(com.backtick(cmd))
 
-    def get_pressure(self):
-        verbose("getting pressure")
-        cmd = r"grep P= %s | awk '{print $6}'" %self.filename
-        return arr1d_from_txt(com.backtick(cmd))
-     
     def get_temperature(self):
         verbose("getting temperature")
         cmd = r"egrep 'temperature[ ]*=' %s " %self.filename + \
@@ -1460,50 +1536,6 @@ class PwOutputFile(FileParser):
                              shape=(natoms,3,nstep),
                              axis=self.time_axis)              
     
-    def get_start_coords(self):
-        """Grep start ATOMIC_POSITIONS from pw.out. This is always in cartesian
-        alat units. The start coords in the format given in the input file is
-        just infile.coords. This should be the same as
-        >>> p = PwOutputFile(...)
-        >>> p.parse()
-        >>> crys.coord_trans(p.start_coords, 
-        >>>                  old=np.identity(3), 
-        >>>                  new=p.start_cell, 
-        >>>                  align='rows')
-        """
-        verbose("getting start coords")
-        self.check_get_attr('natoms')
-        natoms = self.natoms
-        cmd = r"grep -A%i 'positions.*a_0.*units' %s | tail -n%i | \
-              sed -re 's/.*\((.*)\)/\1/g'" \
-              %(natoms, self.filename, natoms)
-        return arr2d_from_txt(com.backtick(cmd))
-
-    def get_forces(self):
-        verbose("getting forces")
-        self.check_get_attr('natoms')
-        natoms = self.natoms
-        # nstep: get it from outfile b/c the value in any input file will be
-        # wrong if the output file is a concatenation of multiple smaller files
-        key = r'Forces\s+acting\s+on\s+atoms.*$'
-        cmd = r"egrep '%s' %s | wc -l" %(key.replace(r'\s', r'[ ]'), self.filename)
-        nstep = nstep_from_txt(com.backtick(cmd))
-        # forces
-        cmd = "grep 'atom.*type.*force' %s \
-            | awk '{print $7\" \"$8\" \"$9}'" %self.filename
-        return traj_from_txt(com.backtick(cmd), 
-                             shape=(natoms,3,nstep),
-                             axis=self.time_axis)
-    
-    def get_forces_rms(self):
-        verbose("getting forces_rms")
-        req = ['forces']
-        self.check_get_attrs(req)
-        if self.is_set_attrs(req):
-            return crys.rms3d(self.forces, axis=self.time_axis) 
-        else:
-            return None
-
     def get_cell(self):
         verbose("getting cell")
         # nstep
@@ -1516,59 +1548,31 @@ class PwOutputFile(FileParser):
                              shape=(3,3,nstep),
                              axis=self.time_axis)
     
-    def get_start_cell(self):
-        """Grep start cell from pw.out. This is always in alat
-        units."""
-        verbose("getting start cell parameters")
-        cmd = "grep -A3 'crystal.*axes.*units.*a_0' %s | tail -n3 | \
-               awk '{print $4\" \"$5\" \"$6}'" %(self.filename)
-        return arr2d_from_txt(com.backtick(cmd))
-    
-    def get_volume(self):
-        """For vc-relax, vc-md, pw.x prints stuff like
-            ,----------
-            | unit-cell volume          =    1725.5120 (a.u.)^3
-            | new unit-cell volume =   1921.49226 a.u.^3 (   284.73577 Ang^3 )
-            | new unit-cell volume =   1873.15813 a.u.^3 (   277.57339 Ang^3 )
-            | new unit-cell volume =   1836.54519 a.u.^3 (   272.14792 Ang^3 )
-            | ...
-            `----------
-        i.e. the vol of the start cell and then all new cells until
-        convergence. Here, we only grep for the NEW cell values, which should
-        occur nstep times.
-        """
-        verbose("getting volume")
-        cmd = r"grep 'new.*volume' %s | sed -re \
-               's/.*volume\s*=\s*(.*?)\s+.*a.u..*/\1/'" %self.filename
-        return arr1d_from_txt(com.backtick(cmd))
-    
-    def get_start_volume(self):
-        verbose("getting start volume")
-        ret_str = com.backtick(r"grep 'unit-cell.*volume' %s | head -n1 | sed -re \
-                                's/.*volume\s*=\s*(.*?)\s+.*a.u..*/\1/'"
-                                %self.filename)
-        if ret_str.strip() == '':
-            return None
-        else:            
-            return float(ret_str)
+    def get_stresstensor(self):
+        return self.raw_return('stresstensor')
 
+    def get_etot(self):
+        return self.raw_return('etot')
+    
+    def get_pressure(self):
+        return self.raw_return('pressure')
+    
+    def get_forces(self):
+        return self.raw_return('forces')
+    
     def get_total_force(self):
-        verbose("getting total force")
-        cmd = r"egrep 'Total[ ]+force[ ]*=.*Total' %s \
-            | sed -re 's/^.*Total\s+force\s*=\s*(.*)\s*Total.*/\1/'" \
-            %self.filename
-        return arr1d_from_txt(com.backtick(cmd))
-
-    def get_nstep_scf(self):
-        verbose("getting nstep_scf")
-        cmd = r"grep 'convergence has been achieved in' %s | awk '{print $6}'" \
-            %self.filename
-        return arr1d_from_txt(com.backtick(cmd), dtype=int)
-
+        return self.raw_return('total_force')
     
-class PwVCMDOutputFile(PwOutputFile):
+    def get_forces_rms(self):
+        return self.raw_return('forces_rms')
+    
+    def get_nstep_scf(self):
+        return self.raw_return('nstep_scf')
+
+
+class PwVCMDOutputFile(PwMDOutputFile):
     def __init__(self, *args, **kwargs):
-        PwOutputFile.__init__(self, *args, **kwargs)
+        PwMDOutputFile.__init__(self, *args, **kwargs)
         self.set_attr_lst(self.attr_lst + ['_datadct', 'econst'])
 
     def _get_datadct(self):
@@ -1603,12 +1607,10 @@ class PwVCMDOutputFile(PwOutputFile):
 class AbinitSCFOutputFile(FileParser):
     """Parse Abinit SCF output (ionmov = optcell = 0). 
     
-    PwOutputFile works for SCF and MD-like calculations. If used on an SCF
-    output, all MD-like arrays have a time axis and nstep=1.
-    In Abinit, too many quantities are printed differently in the SCF output.
-    Each trajectory-like quantity of shape (...,nstep) in
-    Abinit{MD,VCMD}OutputFile has shape (...) here, i.e. one dimension less (no
-    time axis), that is, we treat the SCF case explicitly as "scalar".
+    Each trajectory-like quantity of shape (x,y,nstep) or (nstep, z) in
+    Abinit{MD,VCMD}OutputFile has shape (x,y) or (z,) here, i.e. one dimension
+    less (no time axis). We treat the SCF case explicitly as "scalar". The
+    first value along time_axis is returned.
     
     There are two types of getters defined here:
     
@@ -1820,43 +1822,20 @@ class AbinitSCFOutputFile(FileParser):
             return ret
     
     def get_lengths(self):
-        verbose("getting lengths")
-        req = ['_lengths_raw']
-        self.check_get_attrs(req)
-        if self.is_set_attrs(req):
-            return self._lengths_raw[0,:]
-        else:
-            return None
-    
+        return self.raw_slice_get('lengths', sl=0, axis=0)
+
     def get_angles(self):
-        verbose("getting angles")
-        req = ['_angles_raw']
-        self.check_get_attrs(req)
-        if self.is_set_attrs(req):
-            return self._angles_raw[0,:]
-        else:
-            return None
+        return self.raw_slice_get('angles', sl=0, axis=0)
     
     def get_stresstensor(self):
-        """Return the first printed stresstensor."""
-        verbose("getting stresstensor")
-        req = ['_stresstensor_raw']
-        self.check_get_attrs(req)
-        if self.is_set_attrs(req):
-            assert self.time_axis == -1
-            return self._stresstensor_raw[...,0]
-        else:
-            return None
+        return self.raw_slice_get('stresstensor', sl=0, axis=self.time_axis)
     
     def get_nstep_scf(self):
-        verbose("getting nstep_scf")
-        req = ['_nstep_scf_raw']
-        self.check_get_attrs(req)
-        if self.is_set_attrs(req):
-            return self._nstep_scf_raw[0]
-        else:
-            return None
+        return self.raw_slice_get('nstep_scf', sl=0, axis=0)
     
+    def get_volume(self):
+        return self.raw_slice_get('volume', sl=0, axis=0)
+
     def get_pressure(self):
         """As in PWscf, pressure = 1/3*trace(stresstensor)."""
         verbose("getting pressure")
@@ -1926,14 +1905,6 @@ class AbinitSCFOutputFile(FileParser):
         else:
             return None
     
-    def get_volume(self):
-        """Return first printed volume."""
-        verbose("getting volume")
-        req = ['_volume_raw']
-        self.check_get_attrs(req)
-        ret = self._volume_raw
-        return ret if ret is None else ret[0]
-
     def get_natoms(self):
         verbose("getting natoms")
         cmd = r"egrep '^[ ]*natom' %s | tail -n1 | awk '{print $2}'" %self.filename
@@ -2109,44 +2080,28 @@ class AbinitMDOutputFile(AbinitSCFOutputFile):
         return arr1d_from_txt(com.backtick(cmd))
     
     def get_coords_frac(self):
-        verbose("getting coords_frac")
-        self.check_get_attr('_coords_frac_raw')
-        return self._coords_frac_raw 
+        return self.raw_return('coords_frac')
 
     def get_forces(self):
-        verbose("getting forces")
-        self.check_get_attr('_forces_raw')
-        return self._forces_raw
+        return self.raw_return('forces')
     
     def get_velocity(self):
-        verbose("getting velocity")
-        self.check_get_attr('_velocity_raw')
-        return self._velocity_raw
+        return self.raw_return('velocity')
     
     def get_nstep_scf(self):
-        verbose("getting nstep_scf")
-        self.check_get_attr('_nstep_scf_raw')
-        return self._nstep_scf_raw
+        return self.raw_return('nstep_scf')
 
     def get_angles(self):
-        verbose("getting angles")
-        self.check_get_attr('_angles_raw')
-        return self._angles_raw
+        return self.raw_return('angles')
     
     def get_lengths(self):
-        verbose("getting lengths")
-        self.check_get_attr('_lengths_raw')
-        return self._lengths_raw
+        return self.raw_return('lengths')
     
     def get_volume(self):
-        verbose("getting volume")
-        self.check_get_attr('_volume_raw')
-        return self._volume_raw
+        return self.raw_return('volume')
 
     def get_forces_rms(self):
-        verbose("getting forces_rms")
-        self.check_get_attr('_forces_rms_raw')
-        return self._forces_rms_raw
+        return self.raw_return('forces_rms')
     
     def get_cryst_const_angles_lengths(self):
         verbose("getting cryst_const_angles_lengths")
@@ -2319,6 +2274,8 @@ class AbinitVCMDOutputFile(AbinitMDOutputFile):
         cmd = "grep '%s' %s | awk '{print $2}'" %(key, self.filename)
         return arr1d_from_txt(com.backtick(cmd))
     
+    # Could also use 
+    #   raw_slice_get('coords', sl=slice(None, None, 2), axis=self.time_axis)
     def get_coords_frac(self):
         verbose("getting coords_frac")
         self.check_get_attr('_coords_frac_raw')
@@ -2527,3 +2484,4 @@ class Grep(object):
 
 # backward compat
 AbinitMDOptOutputFile = AbinitMDOutputFile
+PwOutputFile = PwMDOutputFile

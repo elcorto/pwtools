@@ -1,11 +1,10 @@
+from pwtools.parse import PwMDOutputFile
+from pwtools import common
+
 def test():    
-    from pwtools.parse import PwOutputFile
-    from pwtools import common
-
     filename = 'files/pw.md.out'
-
     common.system('gunzip %s.gz' %filename)
-    pp = PwOutputFile(filename=filename)
+    pp = PwMDOutputFile(filename=filename)
     pp.parse()
     common.print_dct(pp.__dict__)
     none_attrs = ['cell',

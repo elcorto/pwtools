@@ -1,12 +1,10 @@
+from pwtools.parse import PwSCFOutputFile
+from pwtools import common
 
 def test():
-    from pwtools.parse import PwOutputFile
-    from pwtools import common
-
     filename = 'files/pw.scf.out'
-
     common.system('gunzip %s.gz' %filename)
-    pp = PwOutputFile(filename=filename)
+    pp = PwSCFOutputFile(filename=filename)
     pp.parse()
     common.print_dct(pp.__dict__)
     none_attrs = ['nstep', 

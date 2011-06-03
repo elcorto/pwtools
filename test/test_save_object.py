@@ -1,10 +1,10 @@
-# Data persistence. Parse some data into a PwOutputFile object and save the
+# Data persistence. Parse some data into a PwMDOutputFile object and save the
 # whole object in binary to disk using the dump() method, which actually uses
 # cPickle. 
 
 import os
 import numpy as np
-from pwtools.parse import PwOutputFile
+from pwtools.parse import PwMDOutputFile
 from pwtools import common
 from testenv import testdir
 
@@ -14,7 +14,7 @@ def test():
     dumpfile = os.path.join(testdir, 'pw.md.pk')
 
     common.system('gunzip %s.gz' %filename)
-    c = PwOutputFile(filename=filename)
+    c = PwMDOutputFile(filename=filename)
     print ">>> parsing ..."
     c.parse()
     print ">>> ... done"
@@ -24,7 +24,7 @@ def test():
     print ">>> ... done"
 
     print ">>> loading ..."
-    c2 = PwOutputFile()
+    c2 = PwMDOutputFile()
     c2.load(dumpfile)
     print ">>> ... done"
 

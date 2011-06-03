@@ -30,6 +30,8 @@ ase interface and some ideas on how to not use plain 3d arrays
 
 * Implement trajectories as list-like objects which represent a sequence of
   Atoms. That's all. For details, see below. 
+  XXX Possible problem: b/c of the grep approach to parsing trajectories, we
+  cannot guarantee that all 3d arrays have the same length along the time axis!
 
 * Get rid of parse.py's CifFile, PDBFile, CMLFile etc. Use ase.io.read() or
   io.read_* and return Atoms. 
@@ -65,33 +67,10 @@ tests
 -----
 * Handle known fails with nose.
 
-parse.py
---------
-* Currently, we have an inconsistency for scf/md output parsers. In case of SCF,
-  all Abinit quantities have one dimension less.     
-    Pw*OutputFile: 
-        * works for MD-like (many time steps) and SCF (one time step)
-        * For SCF, all trajectory-like arrays are at least 2d and have
-          nstep=1 along the time axis, e.g. pressure.shape = (1,): can be
-          scalar, coords.shape = (natoms, 3, 1): can be 2d (natoms, 3) 
-    Abinit*OutputFile
-        * for MD-like output, they behave as their Pw* counterparts
-        * BUT we have AbinitSCFOutputFile, where each trajectory-like 
-          array (nstep,...) or (...,nstep) does NOT have the time axis,
-          i.e. pressure is scalar, coords is (natoms, 3)
-        * We use _get_foo_raw() to parse the trajectory-like array and use that
-          to return "scalar" values (last value along time axis) or the full
-          trajectory.
-   We have this situation b/c it is difficult to define an API b/c the parsers
-   are constantly evolving. ATM, we stick to this "convention" in order to not
-   break backward compat, but some day, we must decide for one of the two
-   schemes: 
-   treat SCF as "scalar":
-     * Implement class PwSCFOutputFile(PwOutputFile) and return the last value
-       along time axis, e.g. pressure[-1], coords[...,-1].
-   treat SCF as MD w/ nstep=1
-     * In AbinitSCFOutputFile, add time axis (np.atleast_{2d,3d} or newaxis
-       tricks) for each array.
+abinit.AbinitInput
+------------------
+* Rename or incorporate into structure.Structure, as this stuff is also useful
+  for other input files.
 
 plotting dispersions
 --------------------
