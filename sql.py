@@ -218,9 +218,11 @@ class SQLiteDB(object):
 
     def commit(self):
         self.conn.commit()
-
-    def __del__(self):
+    
+    def finish(self):
         self.commit()
         self.cur.close()
 
+    def __del__(self):
+        self.finish()
 
