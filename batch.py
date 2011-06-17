@@ -130,7 +130,7 @@ class FileTemplate(object):
             example: basename = pw.in
                 template = calc.templ/pw.in
                 target   = calc/0/pw.in
-        keys : {None, list of strings)
+        keys : {None, list of strings, []}
             keys=None: All keys dct.keys() in self.write() are used. This is
                 useful if you have a dict holding many keys, whose placeholders
                 are spread across files. Then this will just replace every
@@ -321,8 +321,8 @@ class Calculation(object):
 
 
 class ParameterStudy(object):
-    """Class to represent a (pwscf) parameter study, i.e. a number of
-    Calculations.
+    """Class to represent a parameter study, i.e. a number of Calculations,
+    based on template files.
     
     methods:
     --------
@@ -363,7 +363,70 @@ class ParameterStudy(object):
     
     example:
     --------
-    See test/test_parameter_study.py
+    The `params_lst` list of lists is a "matrix" which in fact represents the
+    sqlite database table. A very simple example is a 2x2 setup:
+        [[SQLEntry(key='foo', sqltype='float', sqlval=1.0), 
+          SQLEntry(key='bar', sqltype='text', sqlval='lala')],
+         [SQLEntry(key='foo', sqltype='float', sqlval=2.0), 
+          SQLEntry(key='bar', sqltype='text', sqlval='huhu')]]
+    Here we have 2 parameters "foo" and "bar" and the sqlite db would
+    thus have two columns.              
+        foo   bar
+        ---   ---
+        1.0   lala
+        2.0   huhu
+    Each row (or record in sqlite) will be one Calculation, getting
+    it's own dir.
+
+    The most simple case is when we vary only one parameter (e.g. the
+    cutoff):
+        [[SQLEntry(key='foo', sqltype='float', sqlval=1.0)], 
+         [SQLEntry(key='foo', sqltype='float', sqlval=2.0)]]
+    and
+        foo   
+        ---   
+        1.0   
+        2.0 
+    Note that you have one entry per row [[...], [...]], like in a
+    column vector, b/c "foo" is a *column* in the database and b/c each
+    calculation is represented by one row (record).
+    
+    More complex examples:
+
+    Vary two (three, ...) params on a 2d (3d, ...) grid: In fact, the
+    way you are constructing params_lst is only a matter of zip() and
+    comb.nested_loops().
+    
+    >>> par1 = batch.sql_column('par1', 'float', [1,2,3])
+    >>> par2 = batch.sql_column('par2', 'text', ['a','b'])
+    >>> par3 = ...
+    
+    # 2d grid
+    >>> params_lst = comb.nested_loops([par1, par2])
+    
+    # 3d grid   
+    >>> params_lst = comb.nested_loops([par1, par2, par3])
+    
+    # vary par1 and par2 together, and par3 -> 2d grid w/ par1+par2 on one
+    axis and par3 on the other
+    >>> params_lst = comb.nested_loops([zip(par1, par2), par3], flatten=True)
+    
+    That's all.
+    
+    An alternative way of doing this is using sql_matrix:
+    >>> pars = comb.nested_loops([[1,2,3], ['a', 'b']])
+    >>> params_lst = batch.sql_matrix(pars, [('par1', 'float'), 
+    >>>                                      ('par2', 'text')])
+
+    Even more complex:
+    See test/test_parameter_study.py, esp. the test "Incomplete parameter
+    sets".
+
+    see also:
+    ---------
+    comb.nested_loops
+    sql_column
+    sql_matrix
     """
     def __init__(self, machine, templates, params_lst, prefix='calc',
                  db_name='calc.db', db_table='calc'):
@@ -382,9 +445,14 @@ class ParameterStudy(object):
             populated with files based on `templates`. The `key` attribute of
             each SQLEntry will be converted to a placeholder in each
             FileTemplate and an attempt to replacement in the template files is
-            made. Note: Each sublist (parameter set) is flattened, so that it
+            made. Thus, the way placeholders are created is defined in
+            FileTemplate, not here!
+            Note: Each sublist (parameter set) is flattened, so that it
             can in fact be a nested list, e.g. params_lst = the result of a
-            complex comb.nested_loops() call.
+            complex comb.nested_loops() call. Also, sublists need not have the
+            same length or `key` attributes per entry ("incomplete parameter
+            sets"). The sqlite table header is compiled from all distinct
+            `key`s found.
         prefix : str, optional
             Calculation name. From this, the prefix for pw.in files and job
             name etc. will be built. By default, a string "_run<idx>" is
@@ -460,21 +528,24 @@ class ParameterStudy(object):
             run_txt += "cd %i && %s %s && cd $here && sleep %i\n" %(idx,\
                         self.machine.subcmd, self.machine.jobfn, sleep)
         common.file_write(pj(calc_dir, 'run.sh'), run_txt)
-        
-        record = sql_records[0]
+        # for incomplete parameters: collect header parts from all records and
+        # make a set = unique entries
+        raw_header = [(key, entry.sqltype) for record in sql_records \
+            for key, entry in record.iteritems()]
+        header = list(set(raw_header))
         if have_new_db:
-            header = [(key, entry.sqltype) for key, entry in record.iteritems()]
             sqldb.create_table(header)
         else:
-            for key, entry in record.iteritems():
-                if not sqldb.has_column(key):
-                    sqldb.add_column(key, entry.sqltype)
+            for record in sql_records:
+                for key, entry in record.iteritems():
+                    if not sqldb.has_column(key):
+                        sqldb.add_column(key, entry.sqltype)
         for record in sql_records:
             sqlvals = ",".join(str(entry.sqlval) for entry in record.itervalues())
             cmd = "insert into %s (%s) values (%s)" %(self.db_table,
                                                       ",".join(record.keys()), 
                                                       sqlvals)
-            sqldb.execute(cmd) 
+            sqldb.execute(cmd)
         sqldb.commit()
 
 

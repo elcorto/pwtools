@@ -3,3 +3,4 @@ ecutwfc=XXXECUTWFC
 ecutrho=XXXECUTRHO
 kpoints=XXXKPOINTS
 prefix=XXXPREFIX
+conv_thr=XXXCONV_THR

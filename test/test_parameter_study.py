@@ -5,6 +5,16 @@
 #
 # We do not replace all placeholders in some examples, so do not wonder why the
 # resulting "input files" sometimes still contain placeholders.
+#
+# There are actually 3 usage patterns:
+#
+# (1) Use 1 list per parameter + comb.nested_loops() to fill the param table:
+#   get nested lists. Use batch.sql_matrix() with a header.
+# (2)  Use 1 list per parameter, transform them with batch.sql_column(), then
+#   use comb.nested_loops() with these lists. This is the older way to get the
+#   same result as in (1): A full parameter table. 
+# (3) Use direct loops + SQLEntry to fill the table "by hand". Most flexible
+#   way.  
 
 import os
 import numpy as np
@@ -54,6 +64,7 @@ def test():
     # [[SQLEntry(...)], # calc_dir/0
     #  [SQLEntry(...)], # calc_dir/1
     #  [SQLEntry(...)]] # calc_dir/2
+    # or simply [[xx] for x in ecutfwc] 
     params_lst = comb.nested_loops([ecutwfc])
     calc = batch.ParameterStudy(machine=machine, 
                                 templates=templates, 
@@ -118,28 +129,6 @@ def test():
         assert prefix + '_run%i' %idx == file_get(jobfn, 'prefix')
 
     #--------------------------------------------------------------------------
-    # Vary two (three, ...) params on a 2d (3d, ...) grid
-    #--------------------------------------------------------------------------
-    # This is more smth for the examples/, not tests. In fact, the way you are
-    # constructing params_lst is only a matter of zip() and comb.nested_loops().
-     
-    # >>> par1 = batch.sql_column('par1', 'float', [1,2,3])
-    # >>> par2 = batch.sql_column('par2', 'text', ['a','b'])
-    # >>> par3 = ...
-    #
-    # # 2d grid
-    # >>> params_lst = comb.nested_loops([par1, par2])
-    # 
-    # # 3d grid   
-    # >>> params_lst = comb.nested_loops([par1, par2, par3])
-    # 
-    # # vary par1 and par2 together, and par3 -> 2d grid w/ par1+par2 on one
-    # axis and par3 on the other
-    # >>> params_lst = comb.nested_loops([zip(par1, par2), par3], flatten=True)
-    #
-    # That's all.
-    
-    #--------------------------------------------------------------------------
     # Repeat first test, but whith templates = dict, w/o verification though
     #--------------------------------------------------------------------------
     machine = batch.local
@@ -161,3 +150,66 @@ def test():
                                 prefix=prefix)
     calc.write_input(calc_dir=calc_dir)
 
+    #--------------------------------------------------------------------------
+    # Incomplete parameter sets
+    #--------------------------------------------------------------------------
+
+    # Use this to fill the parameter table with arbitrarily complex patterns by
+    # explicit loops and direct SQLEntry construction. This makes sense if you
+    # have many placeolders where only certain combinations make sense and you
+    # don't want to invent default values for the others to "fill the gaps": In
+    # the example below, we have 10 columns: subcmd, name, conv_thr, scratch,
+    # kpoints, idx, jobfn, prefix, home, ecutwfc (some come from
+    # batch.<machine>). Normally, one would have to fill each entry in each row
+    # i.e. construct a full table. This is done by each params_lst sublist
+    # beeing a list of length 10 (i.e. for each parameter). This is not
+    # necessary with "incomplete parameter sets". For each row (= Calculation),
+    # just set the paeameters which wou want to vary. The others are NULL by
+    # default.
+    # 
+    # Note that empty fields are NULL in sqlite and None in Python. Do queries
+    # with
+    #   "select * from calc where ecutwfc IS NULL"
+
+    # subcmd      name        conv_thr    scratch     kpoints     idx         jobfn       prefix            home             ecutwfc   
+    # ----------  ----------  ----------  ----------  ----------  ----------  ----------  ----------------  ---------------  ----------
+    # bash        local                   /tmp                    0           job.local   convergence_run0  /home/schmerler  25.0      
+    # bash        local                   /tmp                    1           job.local   convergence_run1  /home/schmerler  50.0      
+    # bash        local                   /tmp        2 2 2 0 0   2           job.local   convergence_run2  /home/schmerler            
+    # bash        local                   /tmp        4 4 4 0 0   3           job.local   convergence_run3  /home/schmerler            
+    # bash        local       1.0e-08     /tmp        6 6 6 0 0   4           job.local   convergence_run4  /home/schmerler  75.0    
+
+    machine = batch.local
+    # make sure that scratch == '/tmp'
+    machine.scratch = '/tmp'
+    calc_dir = pj(testdir, 'calc_test_incomplete')
+    prefix = 'convergence'
+    templates = [batch.FileTemplate(basename='pw.in', templ_dir=templ_dir)] 
+    templates.append(batch.FileTemplate(basename=machine.jobfn,
+                                        templ_dir=templ_dir))
+    
+    params = []
+    # The first two rows (=parameter sets) vary only "ecutwfc". No default
+    # values for the other columns have to be invented. They are simply NULL.
+    #   [[SQLEntry(...,25)],
+    #    [SQLEntry(...,50)]]
+    for xx in [25,50]:
+        params.append([sql.SQLEntry(key='ecutwfc', sqltype='float', sqlval=xx)])
+    # Row 2 and 3 vary only kpoints, leaving ecutwfc=NULL this time.
+    for xx in ['2 2 2 0 0 0', '4 4 4 0 0 0']:
+        params.append([sql.SQLEntry(key='kpoints', sqltype='text', sqlval=xx)])
+    # Now, one row with 3 columns. You can add parameters (column names)
+    # whenever you want. They are appended to the bottom if the table. Default
+    # values for erlier rows are NULL.
+    params.append([sql.SQLEntry(key='ecutwfc', sqltype='float', sqlval=75),
+                   sql.SQLEntry(key='kpoints', sqltype='text', sqlval='6 6 6 0 0 0'),
+                   sql.SQLEntry(key='conv_thr', sqltype='float', sqlval=1e-8)])
+    calc = batch.ParameterStudy(machine=machine, 
+                                templates=templates, 
+                                params_lst=params, 
+                                prefix=prefix)
+    calc.write_input(calc_dir=calc_dir)
+    db = sql.SQLiteDB(pj(calc_dir, 'calc.db'), table='calc')
+    assert db.get_list1d('select conv_thr from calc') == [None]*4 +[1e-8]
+    assert db.get_list1d('select ecutwfc from calc') == [25.0, 50.0, None, None, 75.0]
+    assert db.get_list1d('select scratch from calc') == ['/tmp']*5
