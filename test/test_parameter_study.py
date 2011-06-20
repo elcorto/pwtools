@@ -9,8 +9,8 @@
 # There are actually 3 usage patterns:
 #
 # (1) Use 1 list per parameter + comb.nested_loops() to fill the param table:
-#   get nested lists. Use batch.sql_matrix() with a header.
-# (2)  Use 1 list per parameter, transform them with batch.sql_column(), then
+#   get nested lists. Use sql.sql_matrix() with a header.
+# (2)  Use 1 list per parameter, transform them with sql.sql_column(), then
 #   use comb.nested_loops() with these lists. This is the older way to get the
 #   same result as in (1): A full parameter table. 
 # (3) Use direct loops + SQLEntry to fill the table "by hand". Most flexible
@@ -54,9 +54,9 @@ def test():
     templates = [batch.FileTemplate(basename=fn, templ_dir=templ_dir) \
                  for fn in ['pw.in', machine.jobfn]]
     # raw values to be varied
-    _ecutwfc = [25, 50, 75]
+    _ecutwfc = [25.0, 50.0, 75.0]
     # [SQLEntry(...), SQLEntry(...), SQLEntry(...)]
-    ecutwfc = batch.sql_column('ecutwfc', 'float', _ecutwfc)
+    ecutwfc = sql.sql_column(key='ecutwfc', lst=_ecutwfc)
     # only one parameter "ecutwfc" per calc (sublists of length 1) -> one sql
     # column. nested_loops(): transform
     # [SQLEntry(...), SQLEntry(...), SQLEntry(...)]
@@ -75,7 +75,7 @@ def test():
     db = sql.SQLiteDB(pj(calc_dir, 'calc.db'), table='calc')
     header = [(x[0].lower(), x[1].lower()) for x in db.get_header()]
     assert ('idx', 'integer') in header
-    assert ('ecutwfc', 'float') in header
+    assert ('ecutwfc', 'real') in header
     assert ('scratch', 'text') in header
     assert ('prefix', 'text') in header
     idx_lst = db.get_list1d("select idx from calc")
@@ -105,8 +105,8 @@ def test():
     # Add more ecutwfc to the same study + one column of misc information. Vary
     # two parameters (ecutwfc, pw_mkl) *together* using the zip() trick.
     #--------------------------------------------------------------------------
-    ecutwfc = batch.sql_column('ecutwfc', 'float', [100, 150])
-    pw_mkl = batch.sql_column('pw_mkl', 'text', ['yes', 'yes'])
+    ecutwfc = sql.sql_column(key='ecutwfc', lst=[100.0, 150.0])
+    pw_mkl = sql.sql_column(key='pw_mkl',  lst=['yes', 'yes'])
     params_lst = comb.nested_loops([zip(ecutwfc, pw_mkl)], flatten=True)
     calc = batch.ParameterStudy(machine=machine, 
                                 templates=templates, 
@@ -141,8 +141,8 @@ def test():
     templates[machine.jobfn] = batch.FileTemplate(basename=machine.jobfn,
                                                   templ_dir=templ_dir)
 
-    _ecutwfc = [25, 50, 75]
-    ecutwfc = batch.sql_column('ecutwfc', 'float', _ecutwfc)
+    _ecutwfc = [25.0, 50.0, 75.0]
+    ecutwfc = sql.sql_column(key='ecutwfc', lst=_ecutwfc)
     params_lst = comb.nested_loops([ecutwfc])
     calc = batch.ParameterStudy(machine=machine, 
                                 templates=templates, 
@@ -193,17 +193,17 @@ def test():
     # values for the other columns have to be invented. They are simply NULL.
     #   [[SQLEntry(...,25)],
     #    [SQLEntry(...,50)]]
-    for xx in [25,50]:
-        params.append([sql.SQLEntry(key='ecutwfc', sqltype='float', sqlval=xx)])
+    for xx in [25.0,50.0]:
+        params.append([sql.SQLEntry(key='ecutwfc', sqlval=xx)])
     # Row 2 and 3 vary only kpoints, leaving ecutwfc=NULL this time.
     for xx in ['2 2 2 0 0 0', '4 4 4 0 0 0']:
-        params.append([sql.SQLEntry(key='kpoints', sqltype='text', sqlval=xx)])
+        params.append([sql.SQLEntry(key='kpoints', sqlval=xx)])
     # Now, one row with 3 columns. You can add parameters (column names)
     # whenever you want. They are appended to the bottom if the table. Default
     # values for erlier rows are NULL.
-    params.append([sql.SQLEntry(key='ecutwfc', sqltype='float', sqlval=75),
-                   sql.SQLEntry(key='kpoints', sqltype='text', sqlval='6 6 6 0 0 0'),
-                   sql.SQLEntry(key='conv_thr', sqltype='float', sqlval=1e-8)])
+    params.append([sql.SQLEntry(key='ecutwfc', sqlval=75.0),
+                   sql.SQLEntry(key='kpoints', sqlval='6 6 6 0 0 0'),
+                   sql.SQLEntry(key='conv_thr', sqlval=1e-8)])
     calc = batch.ParameterStudy(machine=machine, 
                                 templates=templates, 
                                 params_lst=params, 

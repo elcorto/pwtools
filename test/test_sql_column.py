@@ -1,21 +1,36 @@
-from pwtools.batch import sql_column
+from pwtools.sql import sql_column
 
 def test():
-    x = sql_column('foo', 'integer', [1,2,3])
+    x = sql_column(key='foo', 
+                   sqltype='integer', 
+                   lst=[1,2,3])
     for num, xx in zip([1,2,3], x):
         assert xx.sqlval == num
         assert xx.fileval == num
     
-    x = sql_column('foo', 'integer', [1,2,3], fileval_func=lambda z: "k=%i"%z)
+    x = sql_column(key='foo', 
+                   sqltype='integer', 
+                   lst=[1,2,3], 
+                   fileval_func=lambda z: "k=%i"%z)
     for num, xx in zip([1,2,3], x):
         assert xx.sqlval == num
         assert xx.fileval == "k=%i" %num 
 
-    x = sql_column('foo', 
-                   'integer', 
-                   [1,2,3], 
+    x = sql_column(key='foo', 
+                   sqltype='integer', 
+                   lst=[1,2,3], 
                    sqlval_func=lambda z: z**2,
                    fileval_func=lambda z: "k=%i"%z)
     for num, xx in zip([1,2,3], x):
         assert xx.sqlval == num**2
         assert xx.fileval == "k=%i" %num        
+
+    for xx in sql_column('foo', [1,2]):
+        assert xx.sqltype == 'INTEGER'
+    for xx in sql_column('foo', [1.0,2.0]):
+        assert xx.sqltype == 'REAL'
+    try:    
+        for xx in sql_column('foo', [1,2.0]):
+            assert xx.sqltype == 'INTEGER'
+    except AssertionError:
+        print "KNOWNFAIL: mixed types"

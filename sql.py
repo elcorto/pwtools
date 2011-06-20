@@ -1,9 +1,25 @@
-import sqlite3
+import sqlite3, types
 import numpy as np
 from pwtools import common
+from itertools import izip
+    
+def find_sqltype(val):
+    mapping = {\
+        types.NoneType:    'NULL',
+        types.IntType:     'INTEGER',
+        types.LongType:    'INTEGER',
+        types.FloatType:   'REAL',  # 'FLOAT' also works
+        types.StringTypes: 'TEXT',  # StringType + UnicodeType
+        types.BufferType:  'BLOB'}
+    for typ in mapping.keys():
+        if isinstance(val, typ):
+            return mapping[typ]
+    raise StandardError("type '%s' unknown, cannot find mapping "
+        "to sqlite3 type" %str(type(val)))
+        
 
 class SQLEntry(object):
-    def __init__(self, sqltype=None, sqlval=None, fileval=None, key=None):
+    def __init__(self, sqlval=None, sqltype=None, fileval=None, key=None):
         """Represent an entry in a SQLite database. An entry is one single
         value of one column and record (record = row). 
         
@@ -16,14 +32,16 @@ class SQLEntry(object):
         
         args:
         -----
-        sqltype : str
-            A string (not case sentitive) which determines the SQL type of the
-            entry: 'integer', 'real', ...
         sqlval : the value of the entry
             If it is a string, it is automatically quoted to match SQLite
             syntax rules, e.g. 'lala' -> "'lala'", which appears as 'lala' in
             the db.
-        fileval : optional, {None, <anything>}
+        sqltype : {str, None}
+            A string (not case sentitive) which determines the sqlite type of the
+            entry: 'integer', 'real', 'null', ... If None then automatic type
+            detection will be attempted. Only default types are supported, see
+            notes below.
+        fileval : {None, <anything>}
             If not None, then this is the value of the entry that it has in
             another context (actually used in the input file). If None, then
             fileval = val. 
@@ -36,7 +54,6 @@ class SQLEntry(object):
                 % create table calc (key1 sqltype1, key2 sqltype2, ...)
             For example:
                 % create table calc (idx integer, ecutwfc float, ...)
-
 
         notes:
         ------
@@ -51,11 +68,12 @@ class SQLEntry(object):
             unicode         TEXT
             buffer          BLOB
         """
-        self.sqltype = sqltype
-        self.fileval = sqlval if fileval is None else fileval
+        self.sqltype = find_sqltype(sqlval) if sqltype is None else \
+                       sqltype.upper()
         self.sqlval = self._fix_sqlval(sqlval)
+        self.fileval = sqlval if fileval is None else fileval
         self.key = key
-
+    
     def _fix_sqlval(self, sqlval):
         if isinstance(sqlval, str):
             # "lala" -> "'lala'"
@@ -226,3 +244,161 @@ class SQLiteDB(object):
     def __del__(self):
         self.finish()
 
+
+# XXX old behavior in argument list: key, sqltype, lst. If you want this, then
+# either replace sql_column -> sql_column_old in your script or explitely use 
+# sql_column(key=..., sqltype=..., lst=...).
+def sql_column_old(key, sqltype, lst, sqlval_func=lambda x: x, fileval_func=lambda x: x):
+    """
+    example:
+    --------
+    >>> _vals = [25,50,75]
+    >>> vals = sql_column('ecutfwc', 'float', _vals, 
+    ...                   fileval_func=lambda x: 'ecutfwc=%s'%x)
+    >>> for v in vals:
+    ...     print v.key, v.sqltype, v.sqlval, v.fileval
+    ecutfwc float 25 ecutfwc=25
+    ecutfwc float 50 ecutfwc=50
+    ecutfwc float 75 ecutfwc=75
+    """
+    return [SQLEntry(key=key, 
+                     sqltype=sqltype, 
+                     sqlval=sqlval_func(x), 
+                     fileval=fileval_func(x)) for x in lst]
+
+
+def sql_column(key, lst, sqltype=None, sqlval_func=lambda x: x, fileval_func=lambda x: x):
+    """Convert a list `lst` of values of the same type (i.e. all floats) to a
+    list of SQLEntry instances of the same column name `key` and `sqltype`
+    (e.g. 'float'). 
+
+    See ParameterStudy for applications.
+     
+    args:
+    -----
+    key : str
+        sql column name
+    lst : sequence of arbitrary values, these will be SQLEntry.sqlval
+    sqltype : str, optional
+        sqlite type, if None then it is determined from the first entry in
+        `lst` (possibly modified by sqlval_func)
+    sqlval_func : callable, optional
+        Function to transform each entry lst[i] to SQLEntry.sqlval
+        Default is sqlval = lst[i].
+    fileval_func : callable, optional
+        Function to transform each entry lst[i] to SQLEntry.fileval
+        Default is fileval = lst[i].
+        example:
+            lst[i] = '23'
+            fileval = 'value = 23'
+            fileval_func = lambda x: "value = %s" %str(x)
+    
+    example:
+    --------
+    >>> vals = sql_column('ecutfwc', [25.0, 50.0, 75.0], 
+    ...                   fileval_func=lambda x: 'ecutfwc=%s'%x)
+    >>> for v in vals:
+    ...     print v.key, v.sqltype, v.sqlval, v.fileval
+    ecutfwc REAL 25.0 ecutfwc=25.0 
+    ecutfwc REAL 50.0 ecutfwc=50.0
+    ecutfwc REAL 75.0 ecutfwc=75.0
+    """
+    sqlval_lst = [sqlval_func(x) for x in lst]
+    fileval_lst = [fileval_func(x) for x in lst]
+    types = [type(x) for x in sqlval_lst]
+    assert len(set(types)) == 1, ("after sqlval_func(), not all entries in "
+        "sqlval_lst have the same type: %s" %str(types))
+    _sqltype = find_sqltype(sqlval_lst[0]) if sqltype is None \
+        else sqltype.upper()
+    return [SQLEntry(key=key, 
+                     sqltype=_sqltype, 
+                     sqlval=sv, 
+                     fileval=fv) for sv,fv in \
+                        izip(sqlval_lst, fileval_lst)]
+
+
+def sql_matrix(lists, header, sqlval_funcs=None, fileval_funcs=None):
+    """Convert each entry in a list of lists ("matrix" = sql table) to an
+    SQLEntry based on `header`. This can be used to quickly convert the result
+    of comb.nested_loops() (nested lists) to input `params_lst` for
+    ParameterStudy.
+    
+    The entries in the lists can have arbitrary values, but each "column"
+    should have the same type. Each sublist (= row) can be viewed as a row in
+    an sql database, each column as input for sql_column().
+    
+    Automatic sql type detection is not implemented. You must specify the
+    column type in `header`.
+
+    args:
+    -----
+    lists : list of lists 
+    header : sequence 
+        [('foo', 'integer'), ('bar', 'float'), ...], see
+        sql.SQLiteDB
+    sqlval_funcs, fileval_funcs: {None, dict}
+        For certain (or all) columns, you can specify a sqlval_func /
+        fileval_func. They have the same meaning as in sql_column().
+        E.g. sql_matrix(..., fileval_funcs={'foo': lambda x: str(x)+'-value'})
+        would set fileval_func for the whole column 'foo'.
+    
+    returns:
+    --------
+    list of lists
+
+    example:
+    --------
+    >>> lists=comb.nested_loops([[1.0,2.0,3.0], zip(['a', 'b'], [888, 999])],
+    ...                         flatten=True)
+    >>> lists
+    [[1.0, 'a', 888],
+     [1.0, 'b', 999],
+     [2.0, 'a', 888],
+     [2.0, 'b', 999],
+     [3.0, 'a', 888],
+     [3.0, 'b', 999]]
+    >>> header=[('col0', 'float'), ('col1', 'text'), ('col2', 'integer')]
+    >>> m=batch.sql_matrix(lists, header)
+    >>> for row in m:
+    ...     print [(xx.key, xx.fileval) for xx in row]
+    ...
+    [('col0', 1.0), ('col1', 'a'), ('col2', 888)]
+    [('col0', 1.0), ('col1', 'b'), ('col2', 999)]
+    [('col0', 2.0), ('col1', 'a'), ('col2', 888)]
+    [('col0', 2.0), ('col1', 'b'), ('col2', 999)]
+    [('col0', 3.0), ('col1', 'a'), ('col2', 888)]
+    [('col0', 3.0), ('col1', 'b'), ('col2', 999)]
+    >>> m=batch.sql_matrix(lists, header, fileval_funcs={'col0': lambda x: x*100})
+    >>> for row in m:
+    ...     print [(xx.key, xx.fileval) for xx in row]
+    ...
+    [('col0', 100.0), ('col1', 'a'), ('col2', 888)]
+    [('col0', 100.0), ('col1', 'b'), ('col2', 999)]
+    [('col0', 200.0), ('col1', 'a'), ('col2', 888)]
+    [('col0', 200.0), ('col1', 'b'), ('col2', 999)]
+    [('col0', 300.0), ('col1', 'a'), ('col2', 888)]
+    [('col0', 300.0), ('col1', 'b'), ('col2', 999)]
+    """
+    ncols = len(header)
+    ncols2 = len(lists[0])
+    keys = [entry[0] for entry in header]
+    assert ncols == ncols2, ("number of columns differ: lists (%i), "
+        "header (%i)" %(ncols2, ncols))
+    _sqlval_funcs = dict([(key, lambda x: x) for key in keys])
+    _fileval_funcs = dict([(key, lambda x: x) for key in keys])
+    if sqlval_funcs is not None:
+        _sqlval_funcs.update(sqlval_funcs)
+    if fileval_funcs is not None:
+        _fileval_funcs.update(fileval_funcs)
+    newlists = []        
+    for row in lists:
+        newrow = []
+        for ii, entry in enumerate(row):
+            key = header[ii][0]
+            sqltype = header[ii][1]
+            newrow.append(SQLEntry(key=key,
+                                   sqltype=sqltype,
+                                   sqlval=_sqlval_funcs[key](entry),
+                                   fileval=_fileval_funcs[key](entry)))
+        newlists.append(newrow)                                   
+    return newlists    

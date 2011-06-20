@@ -96,15 +96,29 @@ def test():
     assert db2.get_header() == header2
 
     # --- SQLEntry ----------------------------------------------------
-    x = SQLEntry('integer', 1)
+    x = SQLEntry(1, 'integer')
     assert x.sqlval == 1
-    assert x.sqltype == 'integer'
+    assert x.sqltype == 'INTEGER'
     assert x.fileval == 1
-    x = SQLEntry(sqltype='integer', sqlval=1)
+    x = SQLEntry(sqltype='INTEGER', sqlval=1)
     assert x.sqlval == 1
-    assert x.sqltype == 'integer'
+    assert x.sqltype == 'INTEGER'
     assert x.fileval == 1
     x = SQLEntry(sqltype='text', sqlval='lala', fileval='xx\nlala')
     assert x.sqlval == "'lala'"
-    assert x.sqltype == 'text'
+    assert x.sqltype == 'TEXT'
     assert x.fileval == 'xx\nlala'
+    # auto type detection
+    mapping = \
+        [('NULL',     None),    
+         ('INTEGER',  1),       
+         ('INTEGER',  long(1)), 
+         ('REAL',     1.0),     
+         ('TEXT',     'xx'),    
+         ('TEXT',     u'xx'),   
+         ('BLOB',     np.array([1,2,3]).data)]
+    for sqltype, val in mapping:
+        print val, sqltype
+        x = SQLEntry(sqlval=val)
+        assert x.sqltype == sqltype
+    

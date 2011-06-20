@@ -6,6 +6,9 @@ from pwtools.sql import SQLEntry, SQLiteDB
 from pwtools.verbose import verbose
 pj = os.path.join
 
+# backwd compat
+from pwtools.sql import sql_column, sql_matrix
+
 class Machine(object):
     """This is a container for machine-specific stuff. Most of the
     machine-specific settings can (and should) be placed in the corresponding
@@ -93,33 +96,43 @@ class FileTemplate(object):
     This will take a template file calc.templ/pw.in, replace the placeholders
     "@prefix@" and "@ecutwfc@" with some values and write the file to
     calc/0/pw.in .
-
+    
+    # Fist, set up a dictionary which maps placeholder to values. Remember,
+    # that the placeholders in the files will be obtained by processing the
+    # dictionary keys with `func`. In the example, this will be
+    #   'prefix' -> '@prefix@'
+    #   'ecutwfc' -> '@ecutwfc@'
+    >>> dct = {}
+    >>> dct['prefix'] = 'foo_run_1'
+    >>> dct['ecutwfc'] = 23.0
+    >>>
+    # Not specifying the `keys` agrument to FileTemplate will instruct the
+    # write() method to replace all placeholders in the template file which
+    # match the placeholders defined by dct.keys(). This is the most simple
+    # case.
+    #
+    >>> templ = FileTemplate(basename='pw.in',
+    ...                      templ_dir='calc.templ', 
+    ...                      func=lambda x: "@%s@" %x)
+    >>> templ.write(dct, 'calc/0')
+    >>> 
+    # Now with `keys` explicitely.
+    #
     >>> templ = FileTemplate(basename='pw.in',
     ...                      keys=['prefix', 'ecutwfc'],
     ...                      templ_dir='calc.templ',
     ...                      func=lambda x: "@%s@" %x)
-    >>> dct = {}
-    >>> dct['prefix'] = 'foo_run_1'
-    >>> dct['ecutwfc'] = 23.0
     >>> templ.write(dct, 'calc/0')
-    #
-    # Not specifying keys will instruct write() to replace all placeholders in
-    # the template file which match the placeholders defined by dct.keys().
-    #
-    >>> templ2 = FileTemplate(basename='pw.in',
-    ...                       templ_dir='calc.templ', 
-    ...                       func=lambda x: "@%s@" %x)
-    >>> templ2.write(dct, 'calc/0')
+    >>>
     #
     # or with SQL foo in a parameter study
     #
     >>> from sql import SQLEntry
     >>> dct = {}                     
-    >>> dct['prefix']  = SQLEntry(sqltype='text',  sqlval='foo_run_1')
-    >>> sct['ecutwfc'] = SQLEntry(sqltype='float', sqlval=23.0)
-    >>> templ2.writesql(dct, 'calc/0')
+    >>> dct['prefix']  = SQLEntry(sqlval='foo_run_1')
+    >>> sct['ecutwfc'] = SQLEntry(sqlval=23.0)
+    >>> templ.writesql(dct, 'calc/0')
     """
-    
     def __init__(self, basename='pw.in', keys=None, templ_dir='calc.templ',
                  func=lambda x:'XXX'+x.upper()):
         """
@@ -298,8 +311,8 @@ class Calculation(object):
         self.idx = idx
         
         self.sql_record = {}
-        self.sql_record['idx']      = SQLEntry('integer'  , self.idx)
-        self.sql_record['prefix']   = SQLEntry('text'     , self.prefix)
+        self.sql_record['idx'] = SQLEntry(sqltype='integer', sqlval=self.idx)
+        self.sql_record['prefix']   = SQLEntry(sqltype='text',sqlval=self.prefix)
         self.sql_record.update(self.machine.get_sql_record())
         for entry in self.params:
             self.sql_record[entry.key] = entry
@@ -364,41 +377,41 @@ class ParameterStudy(object):
     example:
     --------
     The `params_lst` list of lists is a "matrix" which in fact represents the
-    sqlite database table. A very simple example is a 2x2 setup:
-        [[SQLEntry(key='foo', sqltype='float', sqlval=1.0), 
-          SQLEntry(key='bar', sqltype='text', sqlval='lala')],
-         [SQLEntry(key='foo', sqltype='float', sqlval=2.0), 
-          SQLEntry(key='bar', sqltype='text', sqlval='huhu')]]
-    Here we have 2 parameters "foo" and "bar" and the sqlite db would
-    thus have two columns.              
-        foo   bar
-        ---   ---
-        1.0   lala
-        2.0   huhu
-    Each row (or record in sqlite) will be one Calculation, getting
-    it's own dir.
-
+    sqlite database table. 
+    
     The most simple case is when we vary only one parameter (e.g. the
     cutoff):
-        [[SQLEntry(key='foo', sqltype='float', sqlval=1.0)], 
-         [SQLEntry(key='foo', sqltype='float', sqlval=2.0)]]
-    and
+        [[SQLEntry(key='foo', sqlval=1.0)], 
+         [SQLEntry(key='foo', sqlval=2.0)]]
+    The sqlite database would have one column and look like this:
         foo   
         ---   
-        1.0   
-        2.0 
+        1.0   # calc_dir/0
+        2.0   # calc_dir/0
     Note that you have one entry per row [[...], [...]], like in a
     column vector, b/c "foo" is a *column* in the database and b/c each
     calculation is represented by one row (record).
     
+    Another example is a 2x2 setup (vary 2 parameters 'foo' and 'bar').
+      [[SQLEntry(key='foo', sqlval=1.0), SQLEntry(key='bar', sqlval='lala')],
+       [SQLEntry(key='foo', sqlval=2.0), SQLEntry(key='bar', sqlval='huhu')]]
+    Here we have 2 parameters "foo" and "bar" and the sqlite db would
+    thus have two columns.              
+        foo   bar
+        ---   ---
+        1.0   lala  # calc_dir/0
+        2.0   huhu  # calc_dir/1
+    Each row (or record in sqlite) will be one Calculation, getting
+    it's own dir.
+
     More complex examples:
 
     Vary two (three, ...) params on a 2d (3d, ...) grid: In fact, the
     way you are constructing params_lst is only a matter of zip() and
     comb.nested_loops().
     
-    >>> par1 = batch.sql_column('par1', 'float', [1,2,3])
-    >>> par2 = batch.sql_column('par2', 'text', ['a','b'])
+    >>> par1 = sql.sql_column('par1', [1,2,3])
+    >>> par2 = sql.sql_column('par2', ['a','b'])
     >>> par3 = ...
     
     # 2d grid
@@ -413,10 +426,10 @@ class ParameterStudy(object):
     
     That's all.
     
-    An alternative way of doing this is using sql_matrix:
+    An alternative way of doing the 2d grid is using sql_matrix:
     >>> pars = comb.nested_loops([[1,2,3], ['a', 'b']])
-    >>> params_lst = batch.sql_matrix(pars, [('par1', 'float'), 
-    >>>                                      ('par2', 'text')])
+    >>> params_lst = sql.sql_matrix(pars, [('par1', 'integer'), 
+    >>>                                    ('par2', 'text')])
 
     Even more complex:
     See test/test_parameter_study.py, esp. the test "Incomplete parameter
@@ -425,8 +438,8 @@ class ParameterStudy(object):
     see also:
     ---------
     comb.nested_loops
-    sql_column
-    sql_matrix
+    sql.sql_column
+    sql.sql_matrix
     """
     def __init__(self, machine, templates, params_lst, prefix='calc',
                  db_name='calc.db', db_table='calc'):
@@ -530,7 +543,7 @@ class ParameterStudy(object):
         common.file_write(pj(calc_dir, 'run.sh'), run_txt)
         # for incomplete parameters: collect header parts from all records and
         # make a set = unique entries
-        raw_header = [(key, entry.sqltype) for record in sql_records \
+        raw_header = [(key, entry.sqltype.upper()) for record in sql_records \
             for key, entry in record.iteritems()]
         header = list(set(raw_header))
         if have_new_db:
@@ -539,7 +552,7 @@ class ParameterStudy(object):
             for record in sql_records:
                 for key, entry in record.iteritems():
                     if not sqldb.has_column(key):
-                        sqldb.add_column(key, entry.sqltype)
+                        sqldb.add_column(key, entry.sqltype.upper())
         for record in sql_records:
             sqlvals = ",".join(str(entry.sqlval) for entry in record.itervalues())
             cmd = "insert into %s (%s) values (%s)" %(self.db_table,
@@ -547,132 +560,6 @@ class ParameterStudy(object):
                                                       sqlvals)
             sqldb.execute(cmd)
         sqldb.commit()
-
-
-def sql_column(key, sqltype, lst, sqlval_func=lambda x: x, fileval_func=lambda x: x):
-    """Convert a list `lst` of values of the same type (i.e. all floats) to a
-    list of SQLEntry instances of the same column name `key` and `sqltype`
-    (e.g. 'float'). 
-
-    See ParameterStudy for applications.
-     
-    args:
-    -----
-    key : str
-        sql column name
-    sqltype : str
-        sqlite type
-    lst : sequence of arbitrary values, these will be SQLEntry.sqlval
-    sqlval_func : callable, optional
-        Function to transform each entry lst[i] to SQLEntry.sqlval
-        Default is sqlval = lst[i].
-    fileval_func : callable, optional
-        Function to transform each entry lst[i] to SQLEntry.fileval
-        Default is fileval = lst[i].
-        example:
-            lst[i] = '23'
-            fileval = 'value = 23'
-            fileval_func = lambda x: "value = %s" %str(x)
-    
-    example:
-    --------
-    >>> _vals = [25,50,75]
-    >>> vals = sql_column('ecutfwc', 'float', _vals, 
-    ...                   fileval_func=lambda x: 'ecutfwc=%s'%x)
-    >>> for v in vals:
-    ...     print v.key, v.sqltype, v.sqlval, v.fileval
-    ecutfwc float 25 ecutfwc=25
-    ecutfwc float 50 ecutfwc=50
-    ecutfwc float 75 ecutfwc=75
-    """
-    return [SQLEntry(key=key, 
-                     sqltype=sqltype, 
-                     sqlval=sqlval_func(x), 
-                     fileval=fileval_func(x)) for x in lst]
-
-
-def sql_matrix(lists, header, sqlval_funcs=None, fileval_funcs=None):
-    """Convert each entry in a list of lists ("matrix" = sql table) to an
-    SQLEntry based on `header`. This can be used to quickly convert the result
-    of comb.nested_loops() (nested lists) to input `params_lst` for
-    ParameterStudy.
-    
-    The entries in the lists can have arbitrary values, but each "column"
-    should have the same type. Each sublist (= row) can be viewed as a row in
-    an sql database, each column as input for sql_column().
-    
-    args:
-    -----
-    lists : list of lists 
-    header : sequence 
-        [('foo', 'integer'), ('bar', 'float'), ...], see
-        sql.SQLiteDB
-    sqlval_funcs, fileval_funcs: {None, dict}
-        For certain (or all) columns, you can specify a sqlval_func /
-        fileval_func. They have the same meaning as in sql_column().
-        E.g. sql_matrix(..., fileval_funcs={'foo': lambda x: str(x)+'-value'})
-        would set fileval_func for the whole column 'foo'.
-    
-    returns:
-    --------
-    list of lists
-
-    example:
-    --------
-    >>> lists=comb.nested_loops([[1.0,2.0,3.0], zip(['a', 'b'], [888, 999])],
-    ...                         flatten=True)
-    >>> lists
-    [[1.0, 'a', 888],
-     [1.0, 'b', 999],
-     [2.0, 'a', 888],
-     [2.0, 'b', 999],
-     [3.0, 'a', 888],
-     [3.0, 'b', 999]]
-    >>> header=[('col0', 'float'), ('col1', 'text'), ('col2', 'integer')]
-    >>> m=batch.sql_matrix(lists, header)
-    >>> for row in m:
-    ...     print [(xx.key, xx.fileval) for xx in row]
-    ...
-    [('col0', 1.0), ('col1', 'a'), ('col2', 888)]
-    [('col0', 1.0), ('col1', 'b'), ('col2', 999)]
-    [('col0', 2.0), ('col1', 'a'), ('col2', 888)]
-    [('col0', 2.0), ('col1', 'b'), ('col2', 999)]
-    [('col0', 3.0), ('col1', 'a'), ('col2', 888)]
-    [('col0', 3.0), ('col1', 'b'), ('col2', 999)]
-    >>> m=batch.sql_matrix(lists, header, fileval_funcs={'col0': lambda x: x*100})
-    >>> for row in m:
-    ...     print [(xx.key, xx.fileval) for xx in row]
-    ...
-    [('col0', 100.0), ('col1', 'a'), ('col2', 888)]
-    [('col0', 100.0), ('col1', 'b'), ('col2', 999)]
-    [('col0', 200.0), ('col1', 'a'), ('col2', 888)]
-    [('col0', 200.0), ('col1', 'b'), ('col2', 999)]
-    [('col0', 300.0), ('col1', 'a'), ('col2', 888)]
-    [('col0', 300.0), ('col1', 'b'), ('col2', 999)]
-    """
-    ncols = len(header)
-    ncols2 = len(lists[0])
-    keys = [entry[0] for entry in header]
-    assert ncols == ncols2, ("number of columns differ: lists (%i), "
-        "header (%i)" %(ncols2, ncols))
-    _sqlval_funcs = dict([(key, lambda x: x) for key in keys])
-    _fileval_funcs = dict([(key, lambda x: x) for key in keys])
-    if sqlval_funcs is not None:
-        _sqlval_funcs.update(sqlval_funcs)
-    if fileval_funcs is not None:
-        _fileval_funcs.update(fileval_funcs)
-    newlists = []        
-    for row in lists:
-        newrow = []
-        for ii, entry in enumerate(row):
-            key = header[ii][0]
-            sqltype = header[ii][1]
-            newrow.append(SQLEntry(key=key,
-                                   sqltype=sqltype,
-                                   sqlval=_sqlval_funcs[key](entry),
-                                   fileval=_fileval_funcs[key](entry)))
-        newlists.append(newrow)                                   
-    return newlists            
 
 def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s"):
     """Convergence table. Assume that quantity `xx` was varied, resulting in
