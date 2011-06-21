@@ -18,9 +18,7 @@
 # 1.1.0 .. 1.4.x). 
 # 
 # Just try 
-#     
 #     $ make
-# 
 # It should result in a file "_flib.so".
 #
 # Compiler
@@ -42,14 +40,14 @@
 # Setting the number of threads:  
 # 	
 # 	$ export OMP_NUM_THREADS=2
-# 	$ python -c "import numpy as np; import pwtools; \
-# 	             pwtools.pydos.fvacf(np.random.rand(10,3,200))"
+# 	$ python -c "import numpy as np; from pwtools.pydos import fvacf; \
+# 	             fvacf(np.random.rand(1000,3,5000))"
 # 
-# does work. If this env var is NOT set, then OpenMP uses all available cores
-# (e.g. 4 on a quad-core box).
+# If this env var is NOT set, then OpenMP uses all available cores (e.g. 4 on a
+# quad-core box).
 # 
 # IMPORTANT: 
-# 	Note that we may have found an f2py bug (see test/test_f2py_flib_openmp.py)
+# 	Note that we may have found a f2py bug (see test/test_f2py_flib_openmp.py)
 # 	re. OMP_NUM_THREADS. We have a workaround for that in pydos.fvacf().
 #
 # There is also an optional arg 'nthreads' to _flib.vacf(). If this is
@@ -74,7 +72,7 @@ SO=$(EXT_MODULE).so
 F2PY=f2py
 
 # ARCH below is for Intel Core i7 / Xeon. If you don't know what your CPU is
-# capable of (hint: see /etc/proc/cpuinfo) then use "ARCH=".
+# capable of (hint: see /proc/cpuinfo) then use "ARCH=".
 #
 # Wanny try OpenMP? Then uncomment *_OMP_F90_FLAGS.
 
@@ -88,7 +86,7 @@ F2PY_OMP_F90_FLAGS=-lgomp
 # ifort 11.1
 ##F90=ifort
 ##F90FLAGS=-fpp
-##ARCH=-xSSE4.2
+##ARCH=-xHost
 ##OMP_F90_FLAGS=-openmp -D__OPENMP 
 ##F2PY_OMP_F90_FLAGS=-liomp5
 
