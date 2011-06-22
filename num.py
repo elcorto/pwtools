@@ -127,11 +127,12 @@ def deriv_fd(y, x=None, n=1):
     see also:
     ---------
     numpy.diff()
+    numpy.gradient()
     """
     assert n > 0, "n <= 0 makes no sense"
     if n > 1:
-        x,y = deriv(y, x, n=1)
-        return deriv(y, x, n=n-1)
+        x,y = deriv_fd(y, x, n=1)
+        return deriv_fd(y, x, n=n-1)
     else:            
         if x is None:
             x = np.arange(len(y))
@@ -139,7 +140,7 @@ def deriv_fd(y, x=None, n=1):
         return x[:-1]+.5*dx, np.diff(y)/dx
 
 
-def deriv_spl(y, x=None, xnew=None, n=1, k=3, fullout=True):
+def deriv_spl(y, x=None, xnew=None, n=1, fullout=True, **splrep_kwargs):
     """n-th derivative for 1d arrays of possibly nonuniformly sampled data.
     Returns matching x-axis for plotting. Splines are used.
     
@@ -151,10 +152,9 @@ def deriv_spl(y, x=None, xnew=None, n=1, k=3, fullout=True):
         x-axis to evaluate the derivative, if None then xnew=x
     n : int
         order of the derivative, can only be <= k 
-    k : int
-        order of the spline; k=n is not recommended, use at least k=n+1
     fullout : bool
         return xd, yd or just yd
+    splrep_kwargs : keyword args to scipy.interpolate.splrep, default: k=3, s=0
 
     returns:
     --------
@@ -176,12 +176,14 @@ def deriv_spl(y, x=None, xnew=None, n=1, k=3, fullout=True):
         x = np.arange(len(y))
     if xnew is None:
         xnew = x
-    yd = splev(xnew, splrep(x, y, s=0, k=k), der=n)
+    for key, val in {'s':0, 'k':3}.iteritems():
+        if not splrep_kwargs.has_key(key):
+            splrep_kwargs[key] = val
+    yd = splev(xnew, splrep(x, y, **splrep_kwargs), der=n)
     if fullout:
         return xnew, yd
     else:
         return yd
-
 
 def _splroot(x, y, der=0):
     # helper for find{min,root}
