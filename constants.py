@@ -143,4 +143,5 @@ Bohr_to_Ang = a0_to_A
 Hartree = Ha
 Rydberg = Ry
 Angstrom = Ang
+eV = e0 # J
 
