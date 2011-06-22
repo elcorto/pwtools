@@ -564,16 +564,16 @@ def rms3d(arr, axis=-1, nitems='all'):
     
 
 def rmsd(coords_cart, ref_idx=0, axis=-1):
-    """Root mean square distance of an MD trajectory of a whole atomic
-    structure. The normalization constant is the number of atoms
-    (coords_cart.shape[0]).
+    """Root mean square distance over an MD trajectory. The normalization
+    constant is the number of atoms (coords_cart.shape[0]).
     
     args:
     -----
     coords_cart : 3d array 
-        atom coords, time axis `axis`, natoms axis must be 0
+        Cartesian coords, time axis `axis`, natoms axis must be 0, i.e. shape =
+        (natoms, ....)
     ref_idx : time index of the reference structure (i.e. 0 to compare with the
-        start structure).
+        start structure, -1 for the last along `axis`).
     axis : int
         time axis in `coords_cart`
     
