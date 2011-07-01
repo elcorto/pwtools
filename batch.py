@@ -563,10 +563,14 @@ class ParameterStudy(object):
 
 def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s"):
     """Convergence table. Assume that quantity `xx` was varied, resulting in
-    `yy` values. Return a string (table) listing x,y and diff(y), where
-    each row of diff(y) is the difference to the *next* row.
+    `yy` values. Return a string (table) listing 
+        x, y, diff-next, diff-last 
+    where each row of diff-next is np.diff(y), i.e. the difference to the *next*
+    row and diff-last the difference to the lase value yy[-1].
     
-    Useful for quickly viewing the results of a convergence study.
+    Useful for quickly viewing the results of a convergence study, where we
+    assume that the sequence yy[0], yy[1], ... yy[-1] converges to some
+    constant value.
 
     args:
     -----
@@ -580,18 +584,21 @@ def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s"):
     >>> kpoints = ['2 2 2', '4 4 4', '8 8 8']
     >>> etot = [-300.0, -310.0, -312.0]
     >>> print conv_table(kpoints, etot)
-          2 2 2      -300.0000       -10.0000
-          4 4 4      -310.0000        -2.0000
-          8 8 8      -312.0000         0.0000
+              x              y      diff-next      diff-last
+          2 2 2      -300.0000       -10.0000        12.0000
+          4 4 4      -310.0000        -2.0000         2.0000
+          8 8 8      -312.0000         0.0000         0.0000
     """
     yy = np.asarray(yy, dtype=np.float)
     lenxx = len(xx)
-    dyy = np.zeros((lenxx,), dtype=np.float)
-    dyy[:-1] = np.diff(yy)
-    st = ""
-    fmtstr = "%s%s%s\n" %(sfmt,ffmt,ffmt)
+    dyy = yy[:,None].repeat(2,1)
+    dyy[-1,0] = 0.0
+    dyy[:-1,0] = np.diff(yy)
+    dyy[:,1] -= yy[-1]
+    st = (sfmt*4 + "\n") %("x", "y", "diff-next", "diff-last")
+    fmtstr = ("%s"*4 + "\n") %((sfmt,) + (ffmt,)*3)
     for idx in range(lenxx):
-        st += fmtstr %(xx[idx], yy[idx], dyy[idx])
+        st += fmtstr %(xx[idx], yy[idx], dyy[idx,0], dyy[idx,1])
     return st
 
 # Settings for the machines which we frequently use.
