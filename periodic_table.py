@@ -127,4 +127,5 @@ pt={\
 'Uup':   {'number': 115, 'mass': 288             },                   
 'Uuh':   {'number': 116, 'mass': 293             },                   
 'Uuo':   {'number': 118, 'mass': 294             },                    
+'Xx':    {'number': -1,  'mass': -1              },                    
 }
