@@ -5,6 +5,7 @@
 import os
 import numpy as np
 from pwtools.sql import SQLiteDB, SQLEntry
+from pwtools import sql
 from pwtools import common
 from testenv import testdir
 pj = os.path.join
@@ -16,7 +17,7 @@ def test():
     if os.path.exists(dbfn):
         os.remove(dbfn)
 
-    header = [('idx', 'INTEGER'), ('foo', 'FLOAT'), ('bar', 'TEXT')]
+    header = [('idx', 'INTEGER'), ('foo', 'REAL'), ('bar', 'TEXT')]
     db = SQLiteDB(dbfn, table='calc')
     db.execute("CREATE TABLE calc (%s)" %','.join("%s %s" %(x[0], x[1]) \
                                                   for x in header)) 
@@ -90,7 +91,7 @@ def test():
     
     # create_table()
     dbfn2 = pj(testdir, 'test2.db')
-    header2 = [('a', 'FLOAT'), ('b', 'TEXT')]
+    header2 = [('a', 'REAL'), ('b', 'TEXT')]
     db2 = SQLiteDB(dbfn2, table='foo')
     db2.create_table(header2)
     assert db2.get_header() == header2
@@ -122,3 +123,9 @@ def test():
         x = SQLEntry(sqlval=val)
         assert x.sqltype == sqltype
     
+    # uppercase type magic
+    assert sql.fix_sqltype('integer') == 'INTEGER'
+    assert sql.fix_sqltype('float') == 'REAL'
+    assert sql.fix_sql_header([('a', 'text'), ('b', 'float')]) == \
+           [('a', 'TEXT'), ('b', 'REAL')]
+

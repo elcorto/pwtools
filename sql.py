@@ -16,7 +16,16 @@ def find_sqltype(val):
             return mapping[typ]
     raise StandardError("type '%s' unknown, cannot find mapping "
         "to sqlite3 type" %str(type(val)))
-        
+
+def fix_sqltype(sqltype):
+    st = sqltype.upper()
+    if st == 'FLOAT':
+        st = 'REAL'
+    return st        
+
+def fix_sql_header(header):
+    return [(x[0], fix_sqltype(x[1])) for x in header]
+
 
 class SQLEntry(object):
     def __init__(self, sqlval=None, sqltype=None, fileval=None, key=None):
@@ -69,7 +78,7 @@ class SQLEntry(object):
             buffer          BLOB
         """
         self.sqltype = find_sqltype(sqlval) if sqltype is None else \
-                       sqltype.upper()
+                       fix_sqltype(sqltype)
         self.sqlval = self._fix_sqlval(sqlval)
         self.fileval = sqlval if fileval is None else fileval
         self.key = key
@@ -181,12 +190,12 @@ class SQLiteDB(object):
         """
         if not self.has_column(col):
             self.execute("ALTER TABLE %s ADD COLUMN %s %s" \
-                        %(self.table, col, sqltype))
+                        %(self.table, col, fix_sqltype(sqltype)))
     
     def add_columns(self, header):
         """Convenience function to add multiple columns from `header`. See
         get_header()."""
-        for entry in header:
+        for entry in fix_sql_header(header):
             self.add_column(*entry)
 
     def get_header(self):
@@ -213,7 +222,7 @@ class SQLiteDB(object):
         """
         self.execute("CREATE TABLE %s (%s)" %(self.table, 
                                             ','.join("%s %s" %(x[0], x[1]) \
-                                            for x in header)))
+                                            for x in fix_sql_header(header))))
     
     def get_list1d(self, *args, **kwargs):
         """Shortcut for commonly used functionality: If one extracts a single
