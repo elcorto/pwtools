@@ -2,7 +2,15 @@ import sqlite3, types
 import numpy as np
 from pwtools import common
 from itertools import izip
-    
+
+def get_test_db():
+    db = SQLiteDB(':memory:', table='calc')
+    db.create_table([('a', 'TEXT'), ('b', 'FLOAT')])
+    db.execute("insert into calc (a,b) values ('lala', 1.0)")
+    db.execute("insert into calc (a,b) values ('huhu', 2.0)")
+    db.finish()
+    return db
+
 def find_sqltype(val):
     mapping = {\
         types.NoneType:    'NULL',
@@ -242,6 +250,14 @@ class SQLiteDB(object):
         Usful for 2d arrays, i.e. convert result of extracting >1 columns to
         numpy 2d array. The result depends on the data types of the columns."""
         return np.array(self.execute(*args, **kwargs).fetchall())
+    
+    def get_dict(self, cols=None):
+        dct = {}
+        cols = [x[0] for x in self.get_header()] if cols is None else cols
+        for entry in cols:
+            col = entry[0]
+            dct[str(col)] = self.get_list1d("select %s from %s" %(col, self.table))
+        return dct            
 
     def commit(self):
         self.conn.commit()
