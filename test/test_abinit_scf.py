@@ -9,6 +9,7 @@ def check(pp, none_attrs=[]):
         print("    attr: %s" %attr_name)
         if not attr_name in none_attrs:
             assert getattr(pp, attr_name) is not None
+    assert pp.scf_converged is True            
 
 def test():
     filename = 'files/abi_scf.out'

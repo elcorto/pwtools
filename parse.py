@@ -237,13 +237,13 @@ def arr1d_from_txt(txt, dtype=np.float):
     if txt.strip() == '':
         return None
     else:
-        return np.atleast_1d(np.loadtxt(StringIO(txt))).astype(dtype)
+        return np.atleast_1d(np.loadtxt(StringIO(txt), dtype=dtype))
 
 def arr2d_from_txt(txt, dtype=np.float):
     if txt.strip() == '':
         return None
     else:
-        return np.atleast_2d(np.loadtxt(StringIO(txt))).astype(dtype)
+        return np.atleast_2d(np.loadtxt(StringIO(txt), dtype=dtype))
 
 def axis_lens(seq, axis=0):
     """
@@ -452,13 +452,21 @@ class FlexibleGetters(object):
         if not self.is_set_attr(attr):
             raise AssertionError("attr '%s' is not set" %attr)
     
+    def assert_get_attr(self, attr):
+        self.check_get_attr(attr)
+        self.assert_attr(attr)
+
+    def check_get_attrs(self, attr_lst):
+        for attr in attr_lst:
+            self.check_get_attr(attr)
+    
     def assert_attrs(self, attr_lst):
         for attr in attr_lst:
             self.assert_attr(attr)
     
-    def check_get_attrs(self, attr_lst):
+    def assert_get_attrs(self, attr_lst):
         for attr in attr_lst:
-            self.check_get_attr(attr)
+            self.assert_get_attr(attr)
     
     def raw_slice_get(self, attr_name, sl, axis):
         """Shortcut method:
@@ -495,7 +503,7 @@ class FlexibleGetters(object):
             return getattr(self, raw_attr_name)
         else:
             return None
- 
+    
 
 class FileParser(FlexibleGetters):
     """Base class for file parsers.
@@ -1333,6 +1341,7 @@ class PwSCFOutputFile(FileParser):
         'stresstensor', 
         'total_force',
         'volume',
+        'scf_converged',
         ])
         
     def _get_stresstensor_raw(self):
@@ -1468,6 +1477,14 @@ class PwSCFOutputFile(FileParser):
         else:            
             return float(ret_str)
 
+    def get_scf_converged(self):
+        verbose("getting scf_converged")
+        cmd = "grep 'convergence has been achieved in.*iterations' %s" %self.filename
+        if com.backtick(cmd).strip() != "":
+            return True
+        else:
+            return False
+    
 
 class PwMDOutputFile(PwSCFOutputFile):
     """Parse pw.x MD-like output. Tested so far: 
@@ -1674,6 +1691,7 @@ class AbinitSCFOutputFile(FileParser):
             'typat',
             'volume',
             'znucl',
+            'scf_converged',
             ])
 
         # Conceptually not needed for SCF, but some quantities are printed and
@@ -1989,6 +2007,14 @@ class AbinitSCFOutputFile(FileParser):
         verbose("getting nkpt")
         cmd = "grep '^[ ]*nkpt' %s | head -n1 | sed -re 's/nkpt//'" %self.filename
         return int_from_txt(com.backtick(cmd))
+    
+    def get_scf_converged(self):
+        verbose("getting scf_converged")
+        cmd = "grep 'At SCF step.*converged' %s" %self.filename
+        if com.backtick(cmd).strip() != "":
+            return True
+        else:
+            return False
     
     # alias
     def get_nkpoints(self):
@@ -2316,6 +2342,183 @@ class AbinitVCMDOutputFile(AbinitMDOutputFile):
         else:
             return None
     
+
+class CpmdSCFOutputFile(FileParser):
+    """Parse output from a CPMD "single point calculation", which is an SCF
+    calculation:
+    &CPMD
+        OPTIMIZE WAVEFUNCTION
+        CONVERGENCE ORBITALS
+            1.0d-7
+        PRINT ON FORCES COORDINATES
+        STRESS TENSOR
+            1
+        ODIIS NO_RESET=10
+            20
+        MAXITER
+            100
+        FILEPATH
+            /tmp
+    &END
+    """
+    def __init__(self, filename=None):
+        """
+        args:
+        -----
+        filename : file to parse
+        """        
+        FileParser.__init__(self, filename)
+        self.time_axis = -1
+        self.set_attr_lst([\
+        'cell', 
+        'coords_frac', 
+        'symbols',
+        'etot', 
+        'forces',
+        'natoms', 
+        'nkpoints',
+        'nstep_scf', 
+        'pressure', 
+        'stresstensor', 
+        'volume',
+        'scf_converged',
+        ])
+        
+    def _get_coords_forces(self):
+        """ Low precision cartesian Bohr coords + forces (Ha / Bohr) I guess.
+        Only printed on this form if we use 
+        &CPMD
+            PRINT ON COORDINATES FORCES
+        &END
+        """
+        verbose("getting _coords_forces")
+        self.check_get_attr('natoms')
+        if self.is_set_attr('natoms'):
+            cmd = "egrep -A%i 'ATOM[ ]+COORDINATES[ ]+GRADIENTS' %s \
+                  | tail -n%i \
+                  | awk '{print $3\" \"$4\" \"$5\" \"$6\" \"$7\" \"$8}'" \
+                  %(self.natoms, self.filename, self.natoms)
+            return arr2d_from_txt(com.backtick(cmd))                  
+        else:
+            return None
+    
+    def _get_scale_file_content(self):
+        """Read GEOMETRY.scale file"""
+        dr = os.path.dirname(self.filename)
+        fn = os.path.join(dr, 'GEOMETRY.scale')
+        if os.path.exists(fn):
+            cmd = "grep -A3 'CELL MATRIX (BOHR)' %s | tail -n3" %fn
+            cell = arr2d_from_txt(com.backtick(cmd))
+            self.assert_get_attr('natoms')
+            cmd = "grep -A%i 'SCALED ATOMIC COORDINATES' %s | tail -n%i" \
+                  %(self.natoms, fn, self.natoms)
+            arr = arr2d_from_txt(com.backtick(cmd), dtype=str)
+            coords_frac = arr[:,:3].astype(np.float)
+            symbols = arr[:,3].tolist()
+            return {'coords_frac': coords_frac, 
+                    'symbols': symbols,
+                    'cell': cell}
+        else:
+            return None
+
+    def get_stresstensor(self):
+        # kbar
+        verbose("getting stresstensor")
+        cmd = "grep -A3 'TOTAL STRESS TENSOR' %s | tail -n3" %self.filename
+        return arr2d_from_txt(com.backtick(cmd))              
+
+    def get_etot(self):
+        # Ha
+        verbose("getting etot")
+        cmd =  r"grep 'TOTAL ENERGY =' %s | tail -n1 | awk '{print $5}'" %self.filename
+        return float_from_txt(com.backtick(cmd))
+    
+    def get_pressure(self):
+        # kbar
+        verbose("getting pressure")
+        self.check_get_attr('stresstensor')
+        if self.is_set_attr('stresstensor'):
+            return np.trace(self.stresstensor) / 3.0
+        else:
+            return None
+     
+##    def get_cell(self):
+##        # cartesian bohr
+##        verbose("getting cell parameters")
+##        cmd = "grep 'LATTICE VECTOR A' %s | \
+##               awk '{print $4\" \"$5\" \"$6}'" %(self.filename)
+##        return arr2d_from_txt(com.backtick(cmd))
+    
+##    def get_coords(self):
+##        # cartesian bohr
+##        verbose("getting coords")
+##        self.check_get_attr('_coords_forces')
+##        if self.is_set_attr('_coords_forces'):
+##            return self._coords_forces[:,0:3]
+##        else:
+##            return None
+    
+    def get_cell(self):
+        """Cell in Bohr."""
+        verbose("getting cell")
+        req = '_scale_file_content'
+        self.check_get_attr(req)
+        return self._scale_file_content['cell'] if self.is_set_attr(req) \
+            else None
+    
+    def get_coords_frac(self):
+        verbose("getting coords_frac")
+        req = '_scale_file_content'
+        self.check_get_attr(req)
+        return self._scale_file_content['coords_frac'] if self.is_set_attr(req) \
+            else None
+ 
+    def get_symbols(self):
+        verbose("getting symbols")
+        req = '_scale_file_content'
+        self.check_get_attr(req)
+        return self._scale_file_content['symbols'] if self.is_set_attr(req) \
+            else None
+ 
+    def get_forces(self):
+        verbose("getting forces")
+        self.check_get_attr('_coords_forces')
+        if self.is_set_attr('_coords_forces'):
+            return self._coords_forces[:,3:]
+        else:
+            return None
+    
+    def get_natoms(self):
+        verbose("getting natoms")
+        cmd = r"grep 'NUMBER OF ATOMS' %s | awk '{print $4}'" %self.filename
+        return int_from_txt(com.backtick(cmd))
+    
+    def get_nkpoints(self):
+        verbose("getting nkpoints")
+        cmd = r"grep 'NUMBER OF SPECIAL K POINTS' %s | \
+            sed -re 's/.*COORDINATES\):\s*([0-9]+)\s*.*/\1/'" %self.filename
+        return int_from_txt(com.backtick(cmd))
+
+    def get_volume(self):
+        verbose("getting volume")
+        cmd = r"grep 'INITIAL VOLUME' %s" %self.filename + \
+              r"| sed -re 's/.*\):\s+(" + regex.float_re + r")\s*/\1/'" 
+        return float_from_txt(com.backtick(cmd))
+
+    def get_nstep_scf(self):
+        verbose("getting nstep_scf")
+        cmd = r"grep -B2 'RESTART INFORMATION WRITTEN' %s | head -n1 \
+              | awk '{print $1}'" %self.filename
+        return int_from_txt(com.backtick(cmd))
+   
+    def get_scf_converged(self):
+        verbose("getting scf_converged")
+        cmd = "grep 'BUT NO CONVERGENCE' %s" %self.filename
+        if com.backtick(cmd).strip() == "":
+            return True
+        else:
+            return False
+
 
 class Grep(object):
     """Maximum felxibility!
