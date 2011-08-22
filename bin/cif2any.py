@@ -112,10 +112,10 @@ print """\
 &END"""\
     %("\n".join([" "*8 + "%.16e" %x for x in struct.cryst_const]),)
 print "\n&ATOMS"
-for sym, nn in struct.nspecies.iteritems():
+for sym, natoms in struct.nspecies.iteritems():
     mask = np.array(struct.symbols) == sym
-    print "*%s.psp\n    LMAX=??? LOC=???" %sym
-    print "    %i" %nn
+    print "*%s.psp\n    LMAX=XXXLMAX_%s LOC=XXXLOC_%s" %((sym,) + (sym.upper(),)*2)
+    print "    %i" %natoms
     print str_arr(struct.coords_frac[mask,:])    
 print "&END"
 
