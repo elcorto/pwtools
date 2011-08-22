@@ -28,12 +28,9 @@
 # ---------------------
 # 
 # All parsing classes 
-#     PwSCFOutputFile
-#     PwMDOutputFile
-#     PwVCMDOutputFile
-#     AbinitSCFOutputFile
-#     AbinitMDOutputFile
-#     AbinitVCMDOutputFile
+#     Pw*OutputFile
+#     Abinit*OutputFile
+#     Cpmd*OutputFile
 # are derived from FlexibleGetters -> FileParser.
 #
 # As a general rule: If a getter (self.get_<attr>() or self._get_<attr>_raw()
@@ -521,8 +518,10 @@ class FileParser(FlexibleGetters):
         self.filename = filename
         if self.filename is not None:
             self.fd = open(self.filename, 'r')
+            self.basedir = os.path.dirname(self.filename)
         else:
             self.fd = None
+            self.basedir = None
     
     def __del__(self):
         """Destructor. If self.fd has not been closed yet (in self.parse()),
@@ -2345,21 +2344,37 @@ class AbinitVCMDOutputFile(AbinitMDOutputFile):
 
 class CpmdSCFOutputFile(FileParser):
     """Parse output from a CPMD "single point calculation", which is an SCF
-    calculation:
-    &CPMD
-        OPTIMIZE WAVEFUNCTION
-        CONVERGENCE ORBITALS
-            1.0d-7
-        PRINT ON FORCES COORDINATES
-        STRESS TENSOR
-            1
-        ODIIS NO_RESET=10
-            20
-        MAXITER
-            100
-        FILEPATH
-            /tmp
-    &END
+    calculation. Some extra files are assumed to be in the same directory as
+    self.filename.
+    
+    extra files:
+        GEOMETRY.scale
+    
+    notes:
+    ------
+    * The SYSTEM section must have SCALE such that a file GEOMETRY.scale is
+      written.
+    * To have forces in the output, use PRINT ON FORCES COORDINATES in the CPMD
+      section.
+
+        &CPMD
+            OPTIMIZE WAVEFUNCTION
+            CONVERGENCE ORBITALS
+                1.0d-7
+            PRINT ON FORCES COORDINATES
+            STRESS TENSOR
+                1
+            ODIIS NO_RESET=10
+                20
+            MAXITER
+                100
+            FILEPATH
+                /tmp
+        &END
+        &SYSTEM
+            SCALE 
+            ....
+        &END    
     """
     def __init__(self, filename=None):
         """
@@ -2375,6 +2390,7 @@ class CpmdSCFOutputFile(FileParser):
         'symbols',
         'etot', 
         'forces',
+        'mass',
         'natoms', 
         'nkpoints',
         'nstep_scf', 
@@ -2386,10 +2402,12 @@ class CpmdSCFOutputFile(FileParser):
         
     def _get_coords_forces(self):
         """ Low precision cartesian Bohr coords + forces (Ha / Bohr) I guess.
-        Only printed on this form if we use 
+        Only printed in this form if we use 
         &CPMD
             PRINT ON COORDINATES FORCES
         &END
+        Forces with more precision are printed in the files TRAJECTORY or
+        FTRAJECTORY, but only for MD runs.
         """
         verbose("getting _coords_forces")
         self.check_get_attr('natoms')
@@ -2402,10 +2420,9 @@ class CpmdSCFOutputFile(FileParser):
         else:
             return None
     
-    def _get_scale_file_content(self):
-        """Read GEOMETRY.scale file"""
-        dr = os.path.dirname(self.filename)
-        fn = os.path.join(dr, 'GEOMETRY.scale')
+    def _get_scale_file(self):
+        """Read GEOMETRY.scale file with fractional coords."""
+        fn = os.path.join(self.basedir, 'GEOMETRY.scale')
         if os.path.exists(fn):
             cmd = "grep -A3 'CELL MATRIX (BOHR)' %s | tail -n3" %fn
             cell = arr2d_from_txt(com.backtick(cmd))
@@ -2420,6 +2437,15 @@ class CpmdSCFOutputFile(FileParser):
                     'cell': cell}
         else:
             return None
+    
+    def _get_cell_raw(self):
+        """2d array `cell` in Bohr for fixed-cell MD or SCF from GEOMETRY.scale
+        file."""
+        verbose("getting _cell")
+        req = '_scale_file'
+        self.check_get_attr(req)
+        return self._scale_file['cell'] if self.is_set_attr(req) \
+            else None
 
     def get_stresstensor(self):
         # kbar
@@ -2442,42 +2468,32 @@ class CpmdSCFOutputFile(FileParser):
         else:
             return None
      
-##    def get_cell(self):
-##        # cartesian bohr
-##        verbose("getting cell parameters")
-##        cmd = "grep 'LATTICE VECTOR A' %s | \
-##               awk '{print $4\" \"$5\" \"$6}'" %(self.filename)
-##        return arr2d_from_txt(com.backtick(cmd))
-    
-##    def get_coords(self):
-##        # cartesian bohr
-##        verbose("getting coords")
-##        self.check_get_attr('_coords_forces')
-##        if self.is_set_attr('_coords_forces'):
-##            return self._coords_forces[:,0:3]
-##        else:
-##            return None
-    
     def get_cell(self):
         """Cell in Bohr."""
-        verbose("getting cell")
-        req = '_scale_file_content'
-        self.check_get_attr(req)
-        return self._scale_file_content['cell'] if self.is_set_attr(req) \
-            else None
+        return self.raw_return('cell')
     
     def get_coords_frac(self):
         verbose("getting coords_frac")
-        req = '_scale_file_content'
+        req = '_scale_file'
         self.check_get_attr(req)
-        return self._scale_file_content['coords_frac'] if self.is_set_attr(req) \
+        return self._scale_file['coords_frac'] if self.is_set_attr(req) \
             else None
  
+    def get_mass(self):
+        # mass in amu = 1.660538782e-27 kg
+        verbose("getting mass")
+        self.check_get_attr('symbols')
+        if self.is_set_attr('symbols'):
+            return np.array([periodic_table.pt[sym]['mass'] for sym in
+                             self.symbols])
+        else:
+            return None
+    
     def get_symbols(self):
         verbose("getting symbols")
-        req = '_scale_file_content'
+        req = '_scale_file'
         self.check_get_attr(req)
-        return self._scale_file_content['symbols'] if self.is_set_attr(req) \
+        return self._scale_file['symbols'] if self.is_set_attr(req) \
             else None
  
     def get_forces(self):
@@ -2489,9 +2505,18 @@ class CpmdSCFOutputFile(FileParser):
             return None
     
     def get_natoms(self):
+        """Number of atoms. Apparently only printed as "NUMBER OF ATOMS ..." in
+        the SCF case, not in MD. So we use wc -l on the GEOMETRY file, which
+        has `natoms` lines (normally) and 6 colunms. Sometimes (so far seen in
+        variable cell calcs) there are some additional lines w/ 3 columns,
+        which we skip."""
         verbose("getting natoms")
-        cmd = r"grep 'NUMBER OF ATOMS' %s | awk '{print $4}'" %self.filename
-        return int_from_txt(com.backtick(cmd))
+        fn = os.path.join(self.basedir, 'GEOMETRY')
+        if os.path.exists(fn):
+            cmd = "egrep '([0-9][ ]+.*){5,}' %s | wc -l" %fn
+            return int_from_txt(com.backtick(cmd))
+        else:
+            return None
     
     def get_nkpoints(self):
         verbose("getting nkpoints")
@@ -2518,6 +2543,296 @@ class CpmdSCFOutputFile(FileParser):
             return True
         else:
             return False
+
+
+class CpmdMDOutputFile(CpmdSCFOutputFile):
+    """CPMD MD output. Works with BO-MD and CP-MD, fixed and variable cell.
+    Some attrs may be None or have different shapes (2d va 3d arrays) depending
+    on what type of MD is parsed and what info/files are available.
+
+    extra files:
+        GEOMETRY.scale
+        GEOMETRY
+        TRAJECTORY
+        ENERGIES
+        (FTRAJECTORY)
+        (CELL) 
+        (STRESS)
+    
+    notes:
+    ------
+    The input should look like that.
+    &CPMD
+        MOLECULAR DYNAMICS {BO,CP}
+        (PARRINELLO-RAHMAN NPT)
+        PRINT ON FORCES COORDINATES
+        TRAJECTORY XYZ FORCES
+        STRESS TENSOR
+            <step>
+        ...
+    &END
+
+    &SYSTEM
+        SCALE
+        ...
+    &END
+    
+    Tested with 3.15.1, the following extra files are always written.
+        GEOMETRY.scale
+        GEOMETRY
+        TRAJECTORY
+        ENERGIES
+
+    The following extra files are written (+) or not (-) for these cases if the
+    input follows the example above.
+    
+    MOLECULAR DYNAMICS BO
+        +FTRAJECTORY
+        -CELL
+        -STRESS         # why!?
+
+    MOLECULAR DYNAMICS CP
+        +FTRAJECTORY
+        -CELL
+        +STRESS
+    
+    MOLECULAR DYNAMICS BO
+    PARRINELLO-RAHMAN NPT
+        -FTRAJECTORY    # why!?
+        +CELL
+        +STRESS
+    
+    MOLECULAR DYNAMICS CP
+    PARRINELLO-RAHMAN NPT
+        not tested yet ... stay tuned
+    """        
+    def __init__(self, filename=None):
+        """
+        args:
+        -----
+        filename : file to parse
+        """        
+        CpmdSCFOutputFile.__init__(self, filename)
+        self.time_axis = -1
+        self.set_attr_lst([\
+        'cell', 
+        'coords_frac', 
+        'econst',
+        'ekinc',
+        'etot', 
+        'forces',
+        'mass',
+        'natoms', 
+        'nstep',
+        'pressure', 
+        'stresstensor', 
+        'symbols',
+        'temperature',
+        'velocity',
+        'volume',
+        ])
+    
+        # NFI EKINC TEMPP EKS ECLASSIC EHAM DIS TCPU
+        # For BO-MD, some are always 0.0, but all columns are there.
+        self._energies_order = \
+            {'nfi': 0,
+             'ekinc': 1,
+             'tempp': 2,
+             'eks': 3,
+             'eclassic': 4,
+             'eham': 5,
+             'dis': 6,
+             'tcpu': 7}
+    
+    def _get_energies_file(self):
+        fn = os.path.join(self.basedir, 'ENERGIES')
+        if os.path.exists(fn):
+            arr = np.loadtxt(fn)
+            dct = {}
+            for key, idx in self._energies_order.iteritems():
+                dct[key] = arr[:,idx]
+            del arr
+            return dct
+        else:
+            return None
+    
+    def _get_coords_vel_forces(self):
+        """Parse (F)TRAJECTORY file."""
+        # cols (both files):
+        #   0:   natoms x nfi (natoms x 1, natoms x 2, ...)
+        #   1-3: x,y,z cartesian coords [Bohr]
+        #   4-6: x,y,z cartesian velocites [Bohr / th ] 
+        #        th = Hartree time =  0.024189 fs
+        # FTRAJECTORY extra:       
+        #   7-9: x,y,z cartesian forces [Ry / Bohr]
+        self.assert_get_attr('natoms')
+        assert self.time_axis == -1
+        have_file = False
+        have_forces = False
+        fn_tr = os.path.join(self.basedir, 'TRAJECTORY')
+        fn_ftr = os.path.join(self.basedir, 'FTRAJECTORY')
+        if os.path.exists(fn_ftr):
+            have_forces = True
+            have_file = True
+            ncols = 10
+            fn = fn_ftr
+        elif os.path.exists(fn_tr):            
+            have_forces = False
+            have_file = True
+            ncols = 7
+            fn = fn_tr
+        if have_file:
+            cmd = "wc -l %s | awk '{print $1}'" %fn
+            nlines = int_from_txt(com.backtick(cmd))
+            nstep = float(nlines) / float(self.natoms)
+            assert nstep % 1.0 == 0.0, (str(self.__class__) + \
+                "nlines is not a multiple of nstep in %s" %fn)
+            nstep = int(nstep)
+            arr = io.readtxt(fn, axis=-1, shape=(self.natoms, ncols, nstep))
+            dct = {}
+            dct['coords'] = arr[:,1:4,:]
+            dct['velocity'] = arr[:,4:7,:]
+            dct['forces'] = arr[:,7:,:] if have_forces else None
+            return dct
+        else:           
+            return None
+    
+    def get_cell(self):
+        """Parse CELL file. Cell in Bohr. If CELL is not there, return 2d cell
+        from GEOMETRY.scale (self.cell from CpmdSCFOutputFile)."""
+        # So far tested CELL files have 6 cols: 
+        # 1-3: x,y,z cell vectors
+        # 4-6: cell forces? ditch them for now ...
+        fn = os.path.join(self.basedir, 'CELL')
+        if os.path.exists(fn):
+            cmd = "head -n2 %s | tail -n1 | wc | awk '{print $2}'" %fn
+            ncols = int_from_txt(com.backtick(cmd))
+            cmd = "grep 'CELL PARAMETERS' %s | wc -l" %fn
+            nstep = int_from_txt(com.backtick(cmd))
+            cmd = "grep -A3 'CELL PARAMETERS' %s | grep -v 'CELL'" %fn
+            assert self.time_axis == -1
+            arr = traj_from_txt(com.backtick(cmd), 
+                                shape=(3,ncols,nstep),
+                                axis=self.time_axis)
+            return arr[:,:3,:]                                
+        else:
+            return self.raw_return('cell') # 2d
+
+    def get_coords(self):
+        """Cartesian coords [Bohr]."""
+        req = '_coords_vel_forces'
+        self.check_get_attr(req)
+        return self._coords_vel_forces['coords'] if self.is_set_attr(req) \
+            else None
+    
+    def get_coords_frac(self):
+        req = ['coords', 'cell', 'natoms']
+        self.check_get_attrs(req)
+        if self.is_set_attrs(req):
+            nstep = self.coords.shape[-1]
+            assert self.time_axis == -1
+            assert self.coords.shape == (self.natoms,3,nstep)
+            axis = self.coords.shape.index(3)
+            # cell in Bohr
+            if self.cell.ndim == 2:
+                assert self.cell.shape == (3,3)
+                coords_frac = crys.coord_trans(self.coords, 
+                                               old=np.identity(3),
+                                               new=self.cell,
+                                               axis=axis,
+                                               align='rows')
+                return coords_frac                                               
+            else:
+                assert self.cell.shape == (3,3,nstep)
+                arr = np.array([crys.coord_trans(self.coords[...,ii],
+                                                 old=np.identity(3),
+                                                 new=self.cell[...,ii],
+                                                 axis=axis,
+                                                 align='rows') \
+                                for ii in range(nstep)])
+                # arr: (nstep, natoms, 3) -> (natoms, 3, nstep)
+                return np.rollaxis(arr, 0, 3)
+        else:
+            return None
+
+    def get_econst(self):
+        req = '_energies_file'
+        self.check_get_attr(req)
+        return self._energies_file['eham'] if self.is_set_attr(req) \
+            else None
+
+    def get_ekinc(self):
+        req = '_energies_file'
+        self.check_get_attr(req)
+        return self._energies_file['ekinc'] if self.is_set_attr(req) \
+            else None
+
+    def get_etot(self):
+        req = '_energies_file'
+        self.check_get_attr(req)
+        return self._energies_file['eks'] if self.is_set_attr(req) \
+            else None
+
+    def get_forces(self):
+        """Cartesian forces [Ry/Bohr]."""
+        req = '_coords_vel_forces'
+        self.check_get_attr(req)
+        return self._coords_vel_forces['forces'] if self.is_set_attr(req) \
+            else None
+    
+    def get_nstep(self):
+        req = '_energies_file'
+        self.check_get_attr(req)
+        return int(self._energies_file['nfi'][-1]) if self.is_set_attr(req) \
+            else None
+    
+    def get_pressure(self):
+        # kbar
+        self.check_get_attr('stresstensor')
+        if self.is_set_attr('stresstensor'):
+            assert self.time_axis == -1
+            assert self.stresstensor.ndim == 3
+            return np.trace(self.stresstensor,axis1=0, axis2=1)/3.0
+        else:
+            return None
+     
+    def get_stresstensor(self):
+        """Stress tensor from STRESS file if available."""
+        # kbar
+        fn = os.path.join(self.basedir, 'STRESS')
+        if os.path.exists(fn):
+            cmd = "grep 'TOTAL STRESS' %s | wc -l" %fn
+            nstep = int_from_txt(com.backtick(cmd))
+            cmd = "grep -A3 'TOTAL STRESS TENSOR' %s | grep -v TOTAL" %fn
+            return traj_from_txt(com.backtick(cmd), 
+                                 shape=(3,3,nstep),
+                                 axis=self.time_axis)              
+        else:
+            return None
+    
+    def get_temperature(self):
+        req = '_energies_file'
+        self.check_get_attr(req)
+        return self._energies_file['tempp'] if self.is_set_attr(req) \
+            else None
+    
+    def get_velocity(self):
+        """Cartesian velocity [Bohr/th]."""
+        req = '_coords_vel_forces'
+        self.check_get_attr(req)
+        return self._coords_vel_forces['velocity'] if self.is_set_attr(req) \
+            else None
+   
+    # "Disable" some inherited methods. Now, C++ style private methods would
+    # come in handy.
+    def get_nstep_scf(self):
+        return None
+
+    def get_scf_converged(self):
+        return None
+    
+    def _get_coords_forces(self):
+        return None
 
 
 class Grep(object):

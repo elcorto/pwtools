@@ -63,6 +63,10 @@ ase interface and some ideas on how to not use plain 3d arrays
   while storing coords, cell etc more efficiently (like PwOutputFile as 3d
   arrays :). Then, add get_ase_traj() to PwOutputFile etc.
 
+* io.write_*: make coords = cartesian and skip the coord trans which is
+  currently forced, add input arg coords_frac for fractional, do coord trans
+  only here
+
 tests
 -----
 * Handle known fails with nose.

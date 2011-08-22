@@ -4,11 +4,10 @@ from pwtools import common
 pj = os.path.join
 
 def test():
-    dr = 'files/cpmd'
-    fns = [pj(dr, fn) for fn in 'cpmd.scf.out', 'GEOMETRY.scale']
-    filename = pj(dr, 'cpmd.scf.out')
-    for fn in fns:
-        common.system('gunzip %s.gz' %fn)
+    basedr = 'files/cpmd'
+    dr = 'files/cpmd/scf'
+    common.system('tar -C %s -xzf %s.tgz' %(basedr, dr))
+    filename = os.path.join(dr, 'cpmd.out')
     pp = CpmdSCFOutputFile(filename=filename)
     pp.parse()
     common.print_dct(pp.__dict__)
@@ -17,6 +16,4 @@ def test():
         attr = getattr(pp, attr_name)
         if attr_name not in none_attrs:
             assert attr is not None, "FAILED: %s" %attr_name
-    assert pp.scf_converged is True
-    for fn in fns:
-        common.system('gzip %s' %fn)
+    common.system('rm -r %s' %dr)

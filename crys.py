@@ -661,7 +661,17 @@ def pbc_wrap(coords, copy=True, mask=[True]*3, xyz_axis=-1):
 
 
 def coord_trans(coords, old=None, new=None, copy=True, axis=-1, align='cols'):
-    """General-purpose n-dimensional coordinate transformation.
+    """General-purpose n-dimensional coordinate transformation. `coords` can
+    have arbitrary dimension, i.e. it can contain many vectors to be
+    transformed at once. But `old` and `new` must have ndim=2, i.e. only one
+    old and new coord sys for all vectors in `coords`. 
+
+    If you want to transform an MD trajectory from a variable cell run, you
+    have smth like this:
+        coords.shape = (natoms, 3, nstep)
+        old.shape/new.shape = (3,3,nstep)
+    You have a set of old and new coordinate systems at each step. 
+    Then, use a loop over all time steps and call this function nstep times.
     
     args:
     -----
@@ -674,7 +684,7 @@ def coord_trans(coords, old=None, new=None, copy=True, axis=-1, align='cols'):
             2d : The matrix must have shape (N,M), i.e. N vectors to be
                 transformed are the *rows*.
             3d : coords must have shape (..., M)
-        If `coords` has a different shape, use `axis`.             
+        If `coords` has a different shape, use `axis` to define the M-axis.
     old, new : 2d arrays (M,M)
         matrices with the old and new basis vectors as rows or cols
     copy : bool, optional
@@ -696,11 +706,11 @@ def coord_trans(coords, old=None, new=None, copy=True, axis=-1, align='cols'):
     # Taken from [1].
     >>> import numpy as np
     >>> import math
-    >>> v = np.array([1.0,1.5])
+    >>> v_I = np.array([1.0,1.5])
     >>> I = np.identity(2)
     >>> X = math.sqrt(2)/2.0*np.array([[1,-1],[1,1]])
     >>> Y = np.array([[1,1],[0,1]])
-    >>> coord_trans(v,I,I)
+    >>> coord_trans(v_I,I,I)
     array([ 1. ,  1.5])
     >>> v_X = coord_trans(v,I,X)
     >>> v_Y = coord_trans(v,I,Y)
@@ -713,17 +723,16 @@ def coord_trans(coords, old=None, new=None, copy=True, axis=-1, align='cols'):
     >>> coord_trans(v_X,X,I)
     array([ 1. ,  1.5])
     
-    >>> coordsold = np.random.rand(30,200,3)
+    >>> c_old = np.random.rand(30,200,3)
     >>> old = np.random.rand(3,3)
     >>> new = np.random.rand(3,3)
-    >>> coordsnew = coord_trans(coordsold, old=old, new=new)
-    >>> coordsold2 = coord_trans(coordsnew, old=new, new=old)
-    >>> np.testing.assert_almost_equal(coordsold, coordsold2)
+    >>> c_new = coord_trans(c_old, old=old, new=new)
+    >>> c_old2 = coord_trans(c_new, old=new, new=old)
+    >>> np.testing.assert_almost_equal(c_old, c_old2)
     
-    # these do the same: A, B have vecs as rows
-    >>> coordsB1=coord_trans(coordsold, old=old, new=new, align='rows') 
-    >>> coordsB2=coord_trans(coordsold, old=old.T, new=new.T, align='cols') 
-    >>> np.testing.assert_almost_equal(coordsold, coordsold2)
+    >>> c_new1=coord_trans(c_old, old=old, new=new, align='rows') 
+    >>> c_new2=coord_trans(c_old, old=old.T, new=new.T, align='cols') 
+    >>> np.testing.assert_almost_equal(c_new1, c_new2)
     
     # If you have an array of shape, say (10,3,100), i.e. the last dimension is
     # NOT 3, then use numpy.swapaxes() or axis:
@@ -753,8 +762,7 @@ def coord_trans(coords, old=None, new=None, copy=True, axis=-1, align='cols'):
     #     Y . v_Y = X . v_X = I . v_I = v_I
     #     v_Y = Y^-1 . X . v_X = A . v_X
     # 
-    # From linalg we know that (A . B)^T = B^T . A^T, so the problem written
-    # for *row* vectors v^T is
+    # (A . B)^T = B^T . A^T, so for *row* vectors v^T, we have
     #     
     #     v_Y^T = (A . v_X)^T = v_X^T . A^T
     # 
@@ -771,6 +779,12 @@ def coord_trans(coords, old=None, new=None, copy=True, axis=-1, align='cols'):
     #            [--- a2 ---]] 
     # 
     # we have
+    #
+    #                   | [[--- a0 ---], 
+    #                   |  [--- a1 ---], 
+    #                   |  [--- a2 ---]]
+    #     ------------------------
+    #     [--- v_X ---] |  [--- v_Y---]
     #
     #     v_Y^T = v_X^T . A^T = 
     #
@@ -789,60 +803,87 @@ def coord_trans(coords, old=None, new=None, copy=True, axis=-1, align='cols'):
     # for which v.T == v, i.e. the transpose is not defined and so dot(A, v_X)
     # == dot(v_X, A.T).
     #
-    # In general, if we don't have one vector `v` but an array R (N,M) of row
+    # In general, we don't have one vector v_X but an array R_X (N,M) of row
     # vectors:
     #     
-    #     R = [[--- r0 ---],
-    #          [--- r1 ---],
-    #          ...
-    #          [-- rN-1 --]]
+    #     R_X = [[--- v_X0 ---],
+    #            [--- v_X1 ---],
+    #            ...
+    #            [-- v_XN-1 --]]
     #
-    # it's more practical to use dot(R,A.T) instead of dot(A,R) b/c of numpy
-    # array broadcasting.
-    #         
-    # shape of `R`:
-    # -------------
-    #     
-    # If we want to use fast numpy array broadcasting to transform many `v`
-    # vectors at once, we must use the form dot(R,A.T) or, well, transform R to
-    # have the vectors as cols: dot(A,R.T)).T .
-    # The shape of `R` doesn't matter, as long as the last dimension matches
-    # the dimensions of A (e.g. R: shape = (n,m,3), A: (3,3), dot(R,A.T): shape
+    # We want to use fast numpy array broadcasting to transform the `v_X`
+    # vectors at once and therefore must use the form dot(R_X,A.T) or, well,
+    # transform R_X to have the vectors as cols: dot(A,R_X.T)).T . The shape of
+    # `R_X` doesn't matter, as long as the last dimension matches the
+    # dimensions of A (e.g. R_X: shape = (n,m,3), A: (3,3), dot(R_X,A.T): shape
     # = (n,m,3)).
-    #  
-    # 1d: R.shape = (3,)
-    # R == v = [x,y,z] 
-    # -> dot(A, v) == dot(v,A.T) = [x', y', z']
-    #
-    # 2d: R.shape = (N,3)
-    # Array of coords of N atoms, R[i,:] = coord of i-th atom. The dot
-    # product is broadcast along the first axis of R (i.e. *each* row of R is
-    # dot()'ed with A.T).
-    # R = 
-    # [[x0,       y0,     z0],
-    #  [x1,       y1,     z1],
-    #   ...
-    #  [x(N-1),   y(N-1), z(N-1)]]
-    # -> dot(R,A.T) = 
-    # [[x0',     y0',     z0'],
-    #  [x1',     y1',     z1'],
-    #   ...
-    #  [x(N-1)', y(N-1)', z(N-1)']]
     # 
-    # 3d: R.shape = (natoms, nstep, 3) 
-    # R[i,j,:] is the shape (3,) vec of coords for atom i at time step j.
+    # 1d: R.shape = (3,)
+    # R_X == v_X = [x,y,z] 
+    # R_Y = dot(A, R_X) 
+    #     = dot(R_X,A.T) 
+    #     = dot(R_X, dot(inv(Y), X).T) 
+    #     = linalg.solve(Y, dot(X, R_X))
+    #     = [x', y', z']
+    #
+    # >>> X=rand(3,3); v_X=rand(3); Y=rand(3,3)
+    # >>> v_Y1=dot(v_X, dot(inv(Y), X).T)
+    # >>> v_Y2=linalg.solve(Y, dot(X,v_X))
+    # >>> v_Y1-v_Y2
+    # array([ 0.,  0.,  0.])
+    #
+    # 2d: R_X.shape = (N,3)
+    # Array of coords of N atoms, R_X[i,:] = coord of i-th atom. The dot
+    # product is broadcast along the first axis of R_X (i.e. *each* row of R_X is
+    # dot()'ed with A.T).
+    # R_X = [[x0,       y0,     z0],
+    #        [x1,       y1,     z1],
+    #         ...
+    #        [x(N-1),   y(N-1), z(N-1)]]
+    # R_Y = dot(R,A.T) = 
+    #       [[x0',     y0',     z0'],
+    #        [x1',     y1',     z1'],
+    #         ...
+    #        [x(N-1)', y(N-1)', z(N-1)']]
+    #
+    # >>> X=rand(3,3); v_X=rand(5,3); Y=rand(3,3)
+    # >>> v_Y1=dot(v_X, dot(inv(Y), X).T) 
+    # >>> v_Y2=linalg.solve(Y, dot(v_X,X.T).T).T
+    # >>> v_Y1-v_Y2
+    # array([[ -3.05311332e-16,   2.22044605e-16,   4.44089210e-16],
+    #        [  4.44089210e-16,   1.11022302e-16,  -1.33226763e-15],
+    #        [ -4.44089210e-16,   0.00000000e+00,   1.77635684e-15],
+    #        [  2.22044605e-16,   2.22044605e-16,   0.00000000e+00],
+    #        [ -2.22044605e-16,   0.00000000e+00,   0.00000000e+00]])
+    # Here we used the fact that linalg.solve can solve for many rhs's at the
+    # same time (Ax=b, A:(M,M), b:(M,N) where the rhs's are the columns of b).
+    #
+    # 3d: R_X.shape = (natoms, nstep, 3) 
+    # R_X[i,j,:] is the shape (3,) vec of coords for atom i at time step j.
     # Broadcasting along the first and second axis. 
-    # These loops have the same result as newR=dot(R, A.T):
-    #     # New coords in each (nstep, 3) matrix R[i,...] containing coords
+    # These loops have the same result as R_Y=dot(R_X, A.T):
+    #
+    #     # New coords in each (nstep, 3) matrix R_X[i,...] containing coords
     #     # of atom i for each time step. Again, each row is dot()'ed.
-    #     for i in xrange(R.shape[0]):
-    #         newR[i,...] = dot(R[i,...],A.T)
+    #     for i in xrange(R_X.shape[0]):
+    #         R_Y[i,...] = dot(R_X[i,...],A.T)
     #     
-    #     # same as example with 2d array: R[:,j,:] is a matrix with atom
+    #     # same as example with 2d array: R_X[:,j,:] is a matrix with atom
     #     # coord on each row at time step j
-    #     for j in xrange(R.shape[1]):
-    #             newR[:,j,:] = dot(R[:,j,:],A.T)
-    
+    #     for j in xrange(R_X.shape[1]):
+    #             R_Y[:,j,:] = dot(R_X[:,j,:],A.T)
+    # Here, linalg.solve cannot be used b/c R_X is 3d. 
+    #
+    # It is said that calculating the inverse should be avoided where possible.
+    # In the 1d and 2d case, there are two ways to calculate the transformation:
+    #   (i)  A = dot(inv(Y), X), R_Y=dot(R_X, A.T)
+    #   (ii) R_I = dot(R_X, X.T), linalg.solve(Y, R_I.T).T
+    # So, one can use linalg.solve() instead. But this is not possible for the
+    # nd case (R_X.ndim > 2). Maybe numpy's
+    #   (i)  tensordot + (tensor)inv
+    #   (ii) tensorsolve
+    # But their docstrings are too cryptic for me, sorry.  
+     
     common.assert_cond(old.ndim == new.ndim == 2, 
                        "`old` and `new` must be rank 2 arrays")
     common.assert_cond(old.shape == new.shape, 
