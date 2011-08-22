@@ -54,11 +54,19 @@ def test():
     df = fd[1] - fd[0]
     print "Nyquist freq [Hz]: %e" %(0.5/dt)
     print "df [Hz] %e:" %df
+    
+    # API
+    fd, dd, ffd, fdd, si = pd.direct_pdos(V, m=mass, dt=dt, full_out=True)
+    fv, dv, ffv, fdv, si, vacf, fft_vacf = pd.vacf_pdos(V, m=mass, dt=dt,
+                                                        mirr=True, full_out=True)
 
-    ##from matplotlib import pyplot as plt
-    ##plt.plot(fd, dd, label='direct')
-    ##plt.plot(fv, dv, label='vacf')
-    ##plt.legend()
-    ##plt.show()
+    # Test padding for speed.
+    fd, dd, ffd, fdd, si = pd.direct_pdos(V, m=mass, dt=dt, pad_tonext=True, \
+                           full_out=True)
+    assert len(fd) == len(dd)
+    assert len(ffd) == len(fdd)
+    # If `pad_tonext` is used, full fft array lengths must be a power of two.
+    assert len(ffd) >= 2*V.shape[-1] - 1
+    assert np.log2(len(ffd)) % 1.0 == 0.0
 
     common.system('gzip %s' %filename)
