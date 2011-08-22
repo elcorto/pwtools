@@ -30,6 +30,10 @@ def file_get(fn, key):
         if ll.strip().startswith(key):
             return ll.split('=')[1].strip()
 
+local = batch.Machine(name='local',
+                      subcmd='bash',
+                      scratch='/tmp',
+                      jobfn='job.local')
 def test():    
     pj = os.path.join
     templ_dir = 'files/calc.templ'
@@ -39,15 +43,15 @@ def test():
     #--------------------------------------------------------------------------
     # This may look overly complicated but in fact 50% of the code is only
     # verification.
-    machine = batch.local
+    machine = local
     calc_dir = pj(testdir, 'calc_test_1d_1col')
     prefix = 'convergence'
     # Specify template files in templ_dir. Add machine template file to the
     # list of templates. The idea is to use this rather than spefifying it by
     # hand b/c the machine object may have things like "scratch" etc already
     # predefined. You can also loop over many machines here to write the same
-    # input for several machines = [batch.local, batch.adde, ...]. For that to
-    # work, you must have machine.jobfn as template for each machine in
+    # input for several machines = [Machine(...), Machine(...), ...]. For that
+    # to work, you must have machine.jobfn as template for each machine in
     # templ_dir.
     # for m in machines:
     #     templates.append(...)
@@ -131,7 +135,7 @@ def test():
     #--------------------------------------------------------------------------
     # Repeat first test, but whith templates = dict, w/o verification though
     #--------------------------------------------------------------------------
-    machine = batch.local
+    machine = local
     calc_dir = pj(testdir, 'calc_test_1d_1col_templdict')
     prefix = 'convergence'
     templates = \
@@ -179,7 +183,7 @@ def test():
     # bash        local                   /tmp        4 4 4 0 0   3           job.local   convergence_run3  /home/schmerler            
     # bash        local       1.0e-08     /tmp        6 6 6 0 0   4           job.local   convergence_run4  /home/schmerler  75.0    
 
-    machine = batch.local
+    machine = local
     # make sure that scratch == '/tmp'
     machine.scratch = '/tmp'
     calc_dir = pj(testdir, 'calc_test_incomplete')

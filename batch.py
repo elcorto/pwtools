@@ -26,8 +26,8 @@ class Machine(object):
     get_sql_record() : Return a dict of SQLEntry instances. Each key is a
         attr name from self.attr_lst.        
     """
-    def __init__(self, name=None, subcmd=None, scratch=None, bindir=None, 
-                 pseudodir=None, jobfn=None, home=None):
+    def __init__(self, name=None, subcmd=None, scratch=None, 
+                 jobfn=None, home=None):
         """
         args:
         -----
@@ -37,10 +37,6 @@ class Machine(object):
             shell command to submit jobfiles (e.g. 'bsub <', 'qsub')
         scratch : str
             scratch dir
-        bindir : str
-            dir where binaries live
-        pseudodir : str
-            esp. for pwscf: dir where pseudopotentials live
         jobfn : str
             basename of jobfile, can be used as FileTemplate(basename=jobfn)
         home : str
@@ -50,8 +46,6 @@ class Machine(object):
         self.name = name
         self.subcmd = subcmd
         self.scratch = scratch
-        self.bindir = bindir
-        self.pseudodir = pseudodir
         self.home = home
         # extra
         if os.sep in jobfn:
@@ -62,8 +56,6 @@ class Machine(object):
         self.attr_lst = ['name',
                          'subcmd', 
                          'scratch',
-                         'bindir',
-                         'pseudodir',
                          'jobfn',
                          'home'
                          ]
@@ -76,6 +68,16 @@ class Machine(object):
                 dct[key] = SQLEntry(sqltype='TEXT', sqlval=val)
         return dct
     
+    def get_queue(self, ncores):
+        """Return string with batch queue name based on requested number of
+        cores `ncores`.
+
+        args:
+        -----
+        ncores : int
+        """
+        return None
+
 
 class FileTemplate(object):
     """Class to represent a template file in parameter studies.
@@ -600,29 +602,3 @@ def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s"):
     for idx in range(lenxx):
         st += fmtstr %(xx[idx], yy[idx], dyy[idx,0], dyy[idx,1])
     return st
-
-# Settings for the machines which we frequently use.
-adde = Machine(name='adde',
-               subcmd='qsub',
-               scratch='/local/scratch/schmerler',
-               home='/home/schmerler',
-               jobfn='job.sge.adde')
-
-mars = Machine(name='mars',
-               subcmd='bsub <',
-               scratch='/fastfs/schmerle',
-               home='/home/schmerle',
-               jobfn='job.lsf.mars')
-
-deimos = Machine(name='deimos',
-               subcmd='bsub <',
-               scratch='/fastfs/schmerle',
-               home='/home/schmerle',
-               jobfn='job.lsf.deimos')
-
-local = Machine(name='local',
-               subcmd='bash',
-               scratch='/tmp',
-               home='/home/schmerler',
-               jobfn='job.local')
-
