@@ -2631,25 +2631,71 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
         'velocity',
         'volume',
         ])
-    
-        # NFI EKINC TEMPP EKS ECLASSIC EHAM DIS TCPU
-        # For BO-MD, some are always 0.0, but all columns are there.
-        self._energies_order = \
-            {'nfi': 0,
-             'ekinc': 1,
-             'tempp': 2,
-             'eks': 3,
-             'eclassic': 4,
-             'eham': 5,
-             'dis': 6,
-             'tcpu': 7}
+        
+        # The order of columns in the ENERGIES file depends on what type of MD
+        # we are running. This is most unpleasant. 
+        #
+        # XXX Currently we rely on the fact that each tested case has a
+        # different number of columns, but this is very kackish b/c it is not
+        # guaranteed to be unique! Maybe, we should let the user set
+        # self.energies_order in the constructor.
+        #
+        # MOLECULAR DYNAMICS {CP,BO}
+        # PARRINELLO-RAHMAN NPT
+        # ODIIS
+        #     NFI EKINC EKINH TEMPP EKS ECLASSIC EHAM DIS TCPU
+        #
+        # MOLECULAR DYNAMICS {CP,BO}
+        # ODISS
+        #     NFI EKINC TEMPP EKS ECLASSIC EHAM DIS TCPU
+        #
+        # MOLECULAR DYNAMICS {CP,BO}
+        # LANCZOS DIAGONALIZATION
+        #     NFI TEMPP EKS ECLASSIC DIS TCPU
+        #
+        # For BO-MD + ODIIS, some columns are always 0.0, but all are there
+        # (e.g. EKINC is there but 0.0 b/c not defined for BOi, only CP).
+        self._energies_order = {\
+            9:\
+                {'nfi': 0,
+                 'ekinc': 1,
+                 'ekinh': 2,
+                 'tempp': 3,
+                 'eks': 4,
+                 'eclassic': 5,
+                 'eham': 6,
+                 'dis': 7,
+                 'tcpu': 8},
+            8:\
+                {'nfi': 0,
+                 'ekinc': 1,
+                 'tempp': 2,
+                 'eks': 3,
+                 'eclassic': 4,
+                 'eham': 5,
+                 'dis': 6,
+                 'tcpu': 7},
+            6:\
+                {'nfi': 0,
+                 'tempp': 1,
+                 'eks': 2,
+                 'eclassic': 3,
+                 'dis': 4,
+                 'tcpu': 5},
+            }                 
     
     def _get_energies_file(self):
         fn = os.path.join(self.basedir, 'ENERGIES')
         if os.path.exists(fn):
             arr = np.loadtxt(fn)
+            ncols = arr.shape[-1]
+            if ncols not in self._energies_order.keys():
+                raise StandardError("only %s columns supported in "
+                    "ENERGIES file" %str(self._energies_order.keys()))
+            else:
+                order = self._energies_order[ncols]
             dct = {}
-            for key, idx in self._energies_order.iteritems():
+            for key, idx in order.iteritems():
                 dct[key] = arr[:,idx]
             del arr
             return dct
@@ -2664,7 +2710,7 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
         #   4-6: x,y,z cartesian velocites [Bohr / th ] 
         #        th = Hartree time =  0.024189 fs
         # FTRAJECTORY extra:       
-        #   7-9: x,y,z cartesian forces [Ry / Bohr]
+        #   7-9: x,y,z cartesian forces [Ha / Bohr]
         self.assert_get_attr('natoms')
         assert self.time_axis == -1
         have_file = False
@@ -2756,16 +2802,23 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
             return None
 
     def get_econst(self):
-        req = '_energies_file'
-        self.check_get_attr(req)
-        return self._energies_file['eham'] if self.is_set_attr(req) \
-            else None
+        req = ['_energies_file', 'etot']
+        self.check_get_attrs(req)
+        if self.is_set_attrs(req):
+            if self._energies_file.has_key('eham'):
+                return self._energies_file['eham'] 
+            else:
+                return self.etot
+        else:
+            return None
 
     def get_ekinc(self):
         req = '_energies_file'
         self.check_get_attr(req)
-        return self._energies_file['ekinc'] if self.is_set_attr(req) \
-            else None
+        if self.is_set_attr(req) and self._energies_file.has_key('ekinc'):
+            return self._energies_file['ekinc']
+        else:
+            return None
 
     def get_etot(self):
         req = '_energies_file'
@@ -2774,7 +2827,7 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
             else None
 
     def get_forces(self):
-        """Cartesian forces [Ry/Bohr]."""
+        """Cartesian forces [Ha/Bohr]."""
         req = '_coords_vel_forces'
         self.check_get_attr(req)
         return self._coords_vel_forces['forces'] if self.is_set_attr(req) \
