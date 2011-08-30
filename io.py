@@ -10,7 +10,7 @@ from pwtools.decorators import open_and_close, crys_add_doc
 from pwtools.common import PydosConfigParser, frepr
 from pwtools.verbose import verbose
 from pwtools import common, crys, constants
-from pwtools.pwscf import atpos_str
+from pwtools.pwscf import atpos_str, atpos_str_fast
 
 # Cif parser
 try:
@@ -473,7 +473,7 @@ def write_xyz(filename, coords, cell, symbols, align='rows', name='pwtools_dummy
             sl[time_axis] = istep
         xyz_str += "%i\n%s\n%s\n" %(natoms,
                                   name + '.%i' %(istep + 1),
-                                  atpos_str(symbols, coords_cart[sl]),
+                                  atpos_str_fast(symbols, coords_cart[sl]),
                                   )
     common.file_write(filename, xyz_str)
 
@@ -540,6 +540,11 @@ def write_axsf(filename, coords, cell, symbols, forces=None):
     #     is (fractional or cartesian Angstrom). Only the latter case results
     #     in a correctly displayed structure in xcrsyden. So we use that.
     #
+    # Speed: The only time-consuming step is calling atpos_str*() in the loop
+    #     b/c that transforms *every* single float to a string, which
+    #     effectively is a double loop over `ccf`. No way to get faster w/ pure
+    #     Python.
+    #
     # 3d arrays: Normally, we would calculate the coord trans coords ->
     #     coords_cart (fractional -> cartesian) before the loop using
     #     numpy.dot(). But if `cell` is 3d too (cell[...,i] = cell for each
@@ -550,7 +555,10 @@ def write_axsf(filename, coords, cell, symbols, forces=None):
     #         coords[i,j,k]; i=0...natoms-1, j=0...2, k=0...nstep-1
     #         cell[l,m,n]; l,m=0..2, n=0...nstep-1, vectors are rows cell[l,:,n]
     #         coords_cart[i,m,k] = sum(j=0..2) coords[i,j,k] * cell[j,m,k]
-    #     But this does not matter b/c we cannot avoid the loop anyway.
+    #     But this does not matter b/c (i) even in the loop the dot() is
+    #     blazingly fast and (ii) we cannot avoid the loop anyway b/c
+    #     building up the string to write has to be done in the loop.
+    # 
     atoms_axis = 0
     xyz_axis = 1
     time_axis = 2
@@ -585,11 +593,13 @@ def write_axsf(filename, coords, cell, symbols, forces=None):
         ccf[:,3:] = _forces[sl_forces]
         # for now PRIMVEC == CONVVEC
         axsf_str += "\nPRIMVEC %i\n%s\nCONVVEC %i\n%s" %(istep+1,
-                                                         common.str_arr(_cell[sl_cell]),
+                                                         common.str_arr(_cell[sl_cell],
+                                                                        zero_eps=False),
                                                          istep+1,                  
-                                                         common.str_arr(_cell[sl_cell]))
+                                                         common.str_arr(_cell[sl_cell],
+                                                                        zero_eps=False))
         axsf_str += "\nPRIMCOORD %i\n%i 1\n%s" %(istep+1,
                                                  natoms,
-                                                 atpos_str(symbols, 
-                                                           ccf))
+                                                 atpos_str_fast(symbols, 
+                                                                ccf))
     common.file_write(filename, axsf_str)

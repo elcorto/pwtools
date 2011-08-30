@@ -1,5 +1,6 @@
 import numpy as np
-from pwtools import crys
+from pwtools import crys, common
+rand = np.random.rand
 
 def test():
     cell = np.identity(3)
@@ -108,3 +109,32 @@ def test():
     sc = crys.scell(coords, cell, (1,1,1), symbols=None)
     assert sc['symbols'] is None
     
+    # scell3d
+    natoms = 4
+    nstep = 100
+    symbols = ['X%i' %idx for idx in range(natoms)]
+    # cell 2d
+    coords = rand(natoms, 3, nstep)
+    cell = rand(3,3)
+    dims = (2,3,4)
+    nmask = np.prod(dims)
+    sc = crys.scell3d(coords, cell, dims, symbols)
+    assert sc['coords'].shape == (nmask*natoms, 3, nstep)
+    assert sc['symbols'] == common.flatten([['X%i' %idx]*nmask for idx in \
+                                            range(natoms)])
+    assert sc['cell'].shape == (3,3)                                            
+    np.testing.assert_array_almost_equal(sc['cell'], 
+                                         cell * np.asarray(dims)[:,None])
+    # cell 3d
+    coords = rand(natoms, 3, nstep)
+    cell = rand(3,3,nstep)
+    dims = (2,3,4)
+    nmask = np.prod(dims)
+    sc = crys.scell3d(coords, cell, dims, symbols)
+    assert sc['coords'].shape == (nmask*natoms, 3, nstep)
+    assert sc['symbols'] == common.flatten([['X%i' %idx]*nmask for idx in \
+                                            range(natoms)])
+    assert sc['cell'].shape == (3,3,nstep) 
+    np.testing.assert_array_almost_equal(sc['cell'], 
+                                         cell * np.asarray(dims)[:,None,None])
+

@@ -307,6 +307,10 @@ def str_arr(arr, fmt='%.16e', delim=' '*4, zero_eps=True):
     if _arr.ndim == 1:
         return delim.join([fmt]*_arr.size) % tuple(_arr)
     elif _arr.ndim == 2:
+        # slightly faster:
+        #   nrows = _arr.shape[0]
+        #   ncols = _arr.shape[1]
+        #   return (delim.join([fmt]*ncols) + '\n')*nrows % tuple(_arr.flatten())
         _fmt = delim.join([fmt]*_arr.shape[1])
         lst = [_fmt % tuple(row) for row in _arr]
         return '\n'.join(lst)

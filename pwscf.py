@@ -36,8 +36,44 @@ def atpos_str(symbols, coords, fmt="%.16e", zero_eps=True):
     coords = np.asarray(coords)
     assert len(symbols) == coords.shape[0], "len(symbols) != coords.shape[0]"
     _coords = fix_eps(coords) if zero_eps else coords
-    txt = '\n'.join(symbols[i] + '\t' +  str_arr(row, fmt=fmt) \
+    txt = '\n'.join("%s\t%s" %(symbols[i], str_arr(row, fmt=fmt, zero_eps=False)) \
         for i,row in enumerate(_coords))
+    return txt        
+
+
+def atpos_str_fast(symbols, coords, work=None):
+    """Fast version of atpos_str() for usage in loops. We use a fixed string
+    dtype '|S20' to convert the array `coords` to string form. We also avoid
+    all assert's etc for speed.
+    
+    args:
+    -----
+    symbols : list of strings with atom symbols, (natoms,), must match with the
+        rows of coords
+    coords : array (natoms, 3) with atomic coords, can also be (natoms, >3) to
+        add constraints on atomic forces in PWscf
+    work : optional, array of shape (coords.shape[0], coords.shape[1]+1)
+        Pre-allocated work array. This can be the result of numpy.empty(). It
+        is used to temporarily store the string dtype array.
+
+    returns:
+    --------
+    string
+    """
+    # The string dtype + flatten trick is the fastest way to convert a numpy
+    # array to string. However the number of digits is limited to 11 (at least
+    # on my 64 bit machine). Formatting like '%e' cannot be used. It is like a
+    # fixed digit form of '%f'. Needs about 2/3 of the time of atpos_str(), so
+    # the speedup is OK, but not very high. String operations are slow. The
+    # next thing would be Cython or so.
+    # work: Even allocations in a loop are fast, so using `work` brings next to
+    # nothing.
+    nrows = coords.shape[0]
+    ncols = coords.shape[1]
+    arr = np.empty((nrows, ncols+1), dtype='|S20') if work is None else work
+    arr[:,0] = symbols
+    arr[:,1:] = coords
+    txt = ('  '.join(['%s']*(ncols+1)) + '\n')*nrows %tuple(arr.flatten())
     return txt        
 
 

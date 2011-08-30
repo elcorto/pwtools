@@ -456,7 +456,8 @@ def scell(coords, cell, dims, symbols=None, align='rows'):
     coords : array (N*natoms, 3)
         Atomic crystal coords in the super cell w.r.t `cell`, i.e.
         the numbers are in [0,1].
-    cell : array (3,3), basis vecs of the super cell
+    cell : array (3,3) 
+        basis vecs of the super cell
     """
     assert_cond(cell.shape == (3,3), "cell must be (3,3) array")
     if align == 'cols':
@@ -471,22 +472,22 @@ def scell(coords, cell, dims, symbols=None, align='rows'):
     #   mod(ni, floor(ni)) == 0.0)
     #
     # original cell:
-    # coords[i,:] = r_i = position vect of atom i in the unit cell in *crystal*
-    #           coords!!
+    # coords[i,:] = position vect of atom i in the unit cell in *crystal*
+    #   coords!!
     # 
     # super cell:
-    # r*_i = r_i + [n1, n2, n3]
+    # sc_coords[i,:] = coords[i,:] + [n1, n2, n3]
     #   for all permutations (see scell_mask()) of n1, n2, n3.
     #   ni = 0, ..., dim_i - 1, i = 1,2,3
     #
     # sc_coords : crystal coords w.r.t the *old* cell, i.e. the entries are in
     # [0,(max(dims))], not [0,1], is scaled below
     #
-    ##sc_symbols, sc_coords = raw_scell(coords, mask, symbols, behave='new')
     nmask = mask.shape[0]
     natoms = coords.shape[0]
     sc_symbols = np.array(symbols).repeat(nmask).tolist() if (symbols \
                  is not None) else None
+    # (natoms, 1, 3) + (1, nmask, 3) -> (natoms, nmask, 3)
     sc_coords = (coords[:,None] + mask[None,:]).reshape(natoms*nmask,3)
     # scale cell acording to super cell dims
     sc_cell = cell * np.asarray(dims)[:,None]
@@ -498,6 +499,57 @@ def scell(coords, cell, dims, symbols=None, align='rows'):
     return {'symbols': sc_symbols, 'coords': sc_coords, 
             'cell': sc_cell}
 
+@crys_add_doc
+def scell3d(coords, cell, dims, symbols=None):
+    """Build supercell of a trajectory (i.e. not just a single structure) based
+    on `dims`. It scales the unit cell to the dims of the super cell and
+    returns crystal atomic positions w.r.t. this cell.
+
+    This is a special-case version of scell() for trajectories, where at least
+    `coords` must be a 3d array.
+    
+    args:
+    -----
+    coords : 3d array, (natoms, 3, nstep) with atomic positions in *crystal*
+        coordinates (i.e. in units of the basis vecs in `cell`)
+    cell : 2d (3,3) or 3d (3,3,NSTEP) array with unit cell(s)
+    dims : tuple (nx, ny, nz) for a N = nx * ny * nz supercell
+    symbols : {sequence (natoms,), None}, optional
+        List of strings with atom symbols, (natoms,), must match with the
+        rows of `coords`. If None then the returned `symbols` for the supercell
+        are also None.
+    %(align_doc)s
+
+    returns:
+    --------
+    dict {symbols, coords, cell}
+    symbols : list of strings with atom symbols for the supercell, (N*natoms,)
+        or None
+    coords : array (N*natoms, 3, nstep)
+        Atomic crystal coords in the super cell w.r.t `cell`, i.e.
+        the numbers are in [0,1].
+    cell : array (3,3) or (3,3,nstep) 
+        basis vecs of the super cell
+    """
+    mask = scell_mask(*tuple(dims))
+    nmask = mask.shape[0]
+    natoms = coords.shape[0]
+    nstep = coords.shape[-1]
+    sc_symbols = np.array(symbols).repeat(nmask).tolist() if (symbols \
+                 is not None) else None
+    # cool, eh?                 
+    sc_coords = (coords[:,None,...] + mask[...,None][None,...]).reshape(natoms*nmask,3,nstep)
+    if cell.ndim == 2:
+        sc_cell = cell * np.asarray(dims)[:,None]
+    elif cell.ndim == 3:
+        sc_cell = cell * np.asarray(dims)[:,None,None]
+    else:
+        raise StandardError("only cell.ndim == 2 or 3 allowed")
+    sc_coords[:,0,:] /= dims[0]
+    sc_coords[:,1,:] /= dims[1]
+    sc_coords[:,2,:] /= dims[2]
+    return {'symbols': sc_symbols, 'coords': sc_coords, 
+            'cell': sc_cell}
 
 #-----------------------------------------------------------------------------
 # atomic coords processing / evaluation, MD analysis
