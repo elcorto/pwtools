@@ -109,7 +109,8 @@ def toslice(val):
     slice(1, 5, None)
     """
     assert_cond(isinstance(val, types.StringType), "input must be string")
-    # FIXME
+    # XXX This is fixed in numpy 1.5.1:
+    #   https://github.com/numpy/numpy/commit/9089036b
     # np.s_ doesn't work for slices starting at end, like
     # >>> a = array([1,2,3,4,5,6])
     # >>> a[-2:]
@@ -118,8 +119,9 @@ def toslice(val):
     # array([], dtype=int64)
     # >>> np.s_[-2:]
     # slice(9223372036854775805, None, None)
-    if val.stip().startswith('-'):
-        raise StandardError("Some minus slices (e.g -2:) not supported")
+    if val.strip().startswith('-'):
+        raise StandardError("Some minus slices (e.g -2:) not supported. "
+            "Use [<start>[:<step>]:<end>] as workaround.")
     # This eval() trick works but seems hackish. Better ideas, anyone?
     return eval('np.s_[%s]' %val)
 
