@@ -5,18 +5,12 @@ def test():
     import os
     import numpy as np
     from testenv import testdir
-
     pj = os.path.join
-    ##rand = np.random.rand
 
     def write_read_check(fn, arr, type='txt', axis=-1):
         print fn + ' ...'
         io.writearr(fn, arr, type=type, axis=axis)
         a = io.readarr(fn, type=type)
-        ##if (a == arr).all():
-        ##    print "... ok"
-        ##else:
-        ##    print "... FAIL!"
         assert (a == arr).all()
 
     def write_read_check_raw(fn, arr, axis=None, shape=None):
@@ -24,10 +18,6 @@ def test():
         io.writetxt(fn, arr, axis=axis)
         # ignore file header
         a = io.readtxt(fn, axis=axis, shape=shape)
-        ##if (a == arr).all():
-        ##    print "... ok"
-        ##else:
-        ##    print "... FAIL!"
         assert (a == arr).all()
 
     # 1d
@@ -65,4 +55,16 @@ def test():
 
     fn = pj(testdir, 'a3d2r.txt')
     write_read_check_raw(fn, a, axis=2, shape=shape)
-
+    
+    # API
+    shape = (3, 5)
+    arr = np.arange(0, np.prod(shape)).reshape(shape)
+    fn = pj(testdir, 'a2d_api.txt')
+    fh = open(fn, 'w')
+    fh.write('@@ some comment\n')
+    fh.write('@@ some comment\n')
+    fh.write('@@ some comment\n')
+    np.savetxt(fh, arr)
+    fh.close()
+    a = io.readtxt(fn, shape=shape, axis=-1, comments='@@')
+    assert (a == arr).all()

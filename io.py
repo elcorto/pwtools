@@ -139,7 +139,7 @@ def writetxt(fn, arr, axis=-1, maxdim=TXT_MAXDIM):
 
 @open_and_close
 def readtxt(fh, axis=None, shape=None, header_maxlines=HEADER_MAXLINES,
-            header_comment=HEADER_COMMENT, maxdim=TXT_MAXDIM):
+            header_comment=HEADER_COMMENT, maxdim=TXT_MAXDIM, **kwargs):
     """Read arrays from .txt file using np.loadtxt(). 
     
     If the file stores a 3d array as consecutive 2d arrays, the file header
@@ -159,6 +159,8 @@ def readtxt(fh, axis=None, shape=None, header_maxlines=HEADER_MAXLINES,
     fh : file_like
     axis : int
     shape : tuple
+    **kwargs : keyword args passed to numpy.loadtxt(), e.g. comments='@@' to
+        ignore weird lines etc.
 
     returns:
     --------
@@ -196,7 +198,7 @@ def readtxt(fh, axis=None, shape=None, header_maxlines=HEADER_MAXLINES,
         return np.array([])
     else:
         fh.seek(0)
-        read_arr = np.loadtxt(fh)
+        read_arr = np.loadtxt(fh, **kwargs)
     
     # 1d and 2d
     if ndim <= 2:
