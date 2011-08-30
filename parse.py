@@ -2703,7 +2703,9 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
             return None
     
     def _get_coords_vel_forces(self):
-        """Parse (F)TRAJECTORY file."""
+        """Parse (F)TRAJECTORY file. Ignore lines which say
+        "<<<<<<  NEW DATA  >>>>>>" from restarts.
+        """
         # cols (both files):
         #   0:   natoms x nfi (natoms x 1, natoms x 2, ...)
         #   1-3: x,y,z cartesian coords [Bohr]
@@ -2728,13 +2730,14 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
             ncols = 7
             fn = fn_tr
         if have_file:
-            cmd = "wc -l %s | awk '{print $1}'" %fn
+            cmd = "grep -v '<<<<' %s | wc -l | awk '{print $1}'" %fn
             nlines = int_from_txt(com.backtick(cmd))
             nstep = float(nlines) / float(self.natoms)
             assert nstep % 1.0 == 0.0, (str(self.__class__) + \
                 "nlines is not a multiple of nstep in %s" %fn)
             nstep = int(nstep)
-            arr = io.readtxt(fn, axis=-1, shape=(self.natoms, ncols, nstep))
+            arr = io.readtxt(fn, axis=-1, shape=(self.natoms, ncols, nstep),
+                            comments='<<<<')
             dct = {}
             dct['coords'] = arr[:,1:4,:]
             dct['velocity'] = arr[:,4:7,:]
