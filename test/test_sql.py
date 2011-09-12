@@ -76,7 +76,7 @@ def test():
     assert db.get_header() == header
     db.execute("UPDATE %s SET baz='xx' where idx==0" %db.table)
     db.execute("UPDATE %s SET baz='yy' where idx==1" %db.table)
-    db.execute("UPDATE %s SET baz='zz' where idx==2" %db.table)
+    db.execute("UPDATE %s SET baz=? where idx==2" %db.table, ('zz',))
     db.commit()
     print common.backtick("sqlite3 %s 'select * from calc'" %dbfn)
     print db.execute("select baz from calc").fetchall()
@@ -106,7 +106,7 @@ def test():
     assert x.sqltype == 'INTEGER'
     assert x.fileval == 1
     x = SQLEntry(sqltype='text', sqlval='lala', fileval='xx\nlala')
-    assert x.sqlval == "'lala'"
+    assert x.sqlval == 'lala'
     assert x.sqltype == 'TEXT'
     assert x.fileval == 'xx\nlala'
     # auto type detection

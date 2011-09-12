@@ -49,10 +49,8 @@ class SQLEntry(object):
         
         args:
         -----
-        sqlval : the value of the entry
-            If it is a string, it is automatically quoted to match SQLite
-            syntax rules, e.g. 'lala' -> "'lala'", which appears as 'lala' in
-            the db.
+        sqlval : Any Python type (str, unicode, float, integer, ...)
+            the value of the entry
         sqltype : {str, None}
             A string (not case sentitive) which determines the sqlite type of the
             entry: 'integer', 'real', 'null', ... If None then automatic type
@@ -87,18 +85,10 @@ class SQLEntry(object):
         """
         self.sqltype = find_sqltype(sqlval) if sqltype is None else \
                        fix_sqltype(sqltype)
-        self.sqlval = self._fix_sqlval(sqlval)
+        self.sqlval = sqlval
         self.fileval = sqlval if fileval is None else fileval
         self.key = key
     
-    def _fix_sqlval(self, sqlval):
-        if isinstance(sqlval, str):
-            # "lala" -> "'lala'"
-            # 'lala' -> "'lala'"
-            return repr(sqlval)
-        else:
-            return sqlval
-
 
 class SQLiteDB(object):
     """Small convenience inerface class for sqlite3. It abstacts away the
@@ -117,7 +107,7 @@ class SQLiteDB(object):
     >>> db = SQLiteDB('test.db', table='calc')
     >>> db.create_table([('a', 'float'), ('b', 'text')])
     >>> db.execute("insert into %s ('a', 'b') values (1.0, 'lala')" %db.table)
-    >>> db.execute("insert into %s ('a', 'b') values (2.0, 'huhu')" %db.table)
+    >>> db.execute("insert into %s ('a', 'b') values (?,?)" %db.table, (2.0, 'huhu'))
     # iterator
     >>> for record in db.execute("select * from calc"):
     ...     print record
@@ -137,6 +127,29 @@ class SQLiteDB(object):
     >>> db.get_array("select a,c from calc")
     array([[ 1.,  5.],
            [ 2.,  5.]])
+    
+    notes:
+    ------
+    There are actually 2 methods to put entries into the db. Fwiw, this is a
+    general sqlite3 (module) note.
+
+    1) Use sqlite3 placeholder syntax. This is recommended. Here, automatic
+       type conversion Python -> sqlite is done by the sqlite3 module. For
+       instance, double numbers (i.e. Python float type) will be correctly
+       stored as double by SQLite default.
+       
+       >>> db.execute("insert into calc ('a', 'b') values (?,?)", (1.0, 'lala'))
+    
+    2) Write values directly into sql command. Here all values are actually
+       strings.        
+       >>> db.execute("insert into calc ('a', 'b') values (1.0, 'lala')")
+       >>> db.execute("insert into calc ('a', 'b') values (%e, '%s')" %(1.0, 'lala')")
+       
+       There are some caveats. For example, the string ('lala' in the example)
+       must appear *qsingle-quoted* in the sqlite cmd to be recognized as such.
+       Also aviod things like `"... %s" %str(1.0)`. This will truncate the
+       float after less then 16 digits and thus store the 8-byte float with
+       less precision! 
     """
     def __init__(self, db_fn, table=None):
         """

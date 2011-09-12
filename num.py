@@ -307,7 +307,7 @@ class Spline(object):
 
     def invsplev(self, y0, x0=None, xab=None):
         """Lookup x for a given y, i.e. "inverse spline evaluation", hence
-        the same. Find xx where y(xx) == y0 by calculating the root of y(x) -
+        the name. Find xx where y(xx) == y0 by calculating the root of y(x) -
         y0. We can use Newton's (x0) or Brent's (xab) methods. Use only one of
         them. If neither is given, we use xab=[x[0], x[-1]].
        

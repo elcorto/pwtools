@@ -9,11 +9,11 @@
 # There are actually 3 usage patterns:
 #
 # (1) Use 1 list per parameter + comb.nested_loops() to fill the param table:
-#   get nested lists. Use sql.sql_matrix() with a header.
-# (2)  Use 1 list per parameter, transform them with sql.sql_column(), then
-#   use comb.nested_loops() with these lists. This is the older way to get the
-#   same result as in (1): A full parameter table. 
-# (3) Use direct loops + SQLEntry to fill the table "by hand". Most flexible
+#   get nested lists. Use sql.sql_matrix() with a header - the seldomly used
+#   way.
+# (2) Use 1 list per parameter, transform them with sql.sql_column(), then
+#   use comb.nested_loops() with these lists - the common way.
+# (3) Use direct loops + SQLEntry to fill the table "by hand" - the flexible
 #   way.  
 
 import os
@@ -42,7 +42,14 @@ def test():
     # vary 1 parameter -- single loop
     #--------------------------------------------------------------------------
     # This may look overly complicated but in fact 50% of the code is only
-    # verification.
+    # verification. 
+    #
+    # database:
+    # idx  ecutwfc .. some more cols ..
+    # ---  -------
+    # 0    25.0
+    # 1    50.0
+    # 2    75.0
     machine = local
     calc_dir = pj(testdir, 'calc_test_1d_1col')
     prefix = 'convergence'
@@ -106,9 +113,23 @@ def test():
     
     
     #--------------------------------------------------------------------------
+    # Incomplete parameter sets I and zip().
     # Add more ecutwfc to the same study + one column of misc information. Vary
     # two parameters (ecutwfc, pw_mkl) *together* using the zip() trick.
     #--------------------------------------------------------------------------
+
+    # database:
+    # idx  ecutwfc pw_mkl  .. some more cols ..
+    # ---  ------- ------
+    # 0    25.0    
+    # 1    50.0
+    # 2    75.0
+    # 3    100.0   'yes'
+    # 4    150.0   'yes'
+    #
+    # Empty fields for idx=0,1,2 in col `pw_mkl` are NULL (sqlite type), like
+    # None in Python. This is a simple example of "incomplete parameter sets".
+    #
     ecutwfc = sql.sql_column(key='ecutwfc', lst=[100.0, 150.0])
     pw_mkl = sql.sql_column(key='pw_mkl',  lst=['yes', 'yes'])
     params_lst = comb.nested_loops([zip(ecutwfc, pw_mkl)], flatten=True)
@@ -117,11 +138,13 @@ def test():
                                 params_lst=params_lst, 
                                 prefix=prefix)
     calc.write_input(calc_dir=calc_dir)
+    # asserts ...
     db = sql.SQLiteDB(pj(calc_dir, 'calc.db'), table='calc')
     header = [(x[0].lower(), x[1].lower()) for x in db.get_header()]
     assert ('pw_mkl', 'text') in header
     idx_lst = db.get_list1d("select idx from calc")
     assert idx_lst == [0,1,2,3,4]
+    assert db.get_list1d("select pw_mkl from calc where idx <=2") == [None]*3
     for idx, ecut in zip([3,4], [100, 150]):
         pwfn = pj(calc_dir, str(idx), 'pw.in')
         jobfn = pj(calc_dir, str(idx), machine.jobfn)
@@ -135,6 +158,9 @@ def test():
     #--------------------------------------------------------------------------
     # Repeat first test, but whith templates = dict, w/o verification though
     #--------------------------------------------------------------------------
+    #
+    # This tests backwd compat API where the `templates` arg to ParameterStudy
+    # can be a dict, too. Nowadays, we use lists instead.
     machine = local
     calc_dir = pj(testdir, 'calc_test_1d_1col_templdict')
     prefix = 'convergence'
@@ -155,7 +181,7 @@ def test():
     calc.write_input(calc_dir=calc_dir)
 
     #--------------------------------------------------------------------------
-    # Incomplete parameter sets
+    # Incomplete parameter sets II
     #--------------------------------------------------------------------------
 
     # Use this to fill the parameter table with arbitrarily complex patterns by
@@ -174,7 +200,9 @@ def test():
     # Note that empty fields are NULL in sqlite and None in Python. Do queries
     # with
     #   "select * from calc where ecutwfc IS NULL"
-
+    # The syntax "... ecutfwc==NULL" is wrong.  
+    #
+    # database:
     # subcmd      name        conv_thr    scratch     kpoints     idx         jobfn       prefix            home             ecutwfc   
     # ----------  ----------  ----------  ----------  ----------  ----------  ----------  ----------------  ---------------  ----------
     # bash        local                   /tmp                    0           job.local   convergence_run0  /home/schmerler  25.0      
@@ -193,12 +221,14 @@ def test():
                                         templ_dir=templ_dir))
     
     params = []
+    # Row with 1 column:
     # The first two rows (=parameter sets) vary only "ecutwfc". No default
     # values for the other columns have to be invented. They are simply NULL.
     #   [[SQLEntry(...,25)],
     #    [SQLEntry(...,50)]]
     for xx in [25.0,50.0]:
         params.append([sql.SQLEntry(key='ecutwfc', sqlval=xx)])
+    # Row with 1 column:    
     # Row 2 and 3 vary only kpoints, leaving ecutwfc=NULL this time.
     for xx in ['2 2 2 0 0 0', '4 4 4 0 0 0']:
         params.append([sql.SQLEntry(key='kpoints', sqlval=xx)])
@@ -217,3 +247,16 @@ def test():
     assert db.get_list1d('select conv_thr from calc') == [None]*4 +[1e-8]
     assert db.get_list1d('select ecutwfc from calc') == [25.0, 50.0, None, None, 75.0]
     assert db.get_list1d('select scratch from calc') == ['/tmp']*5
+    # some columns actually depend on batch.Machine
+    hdr = [('subcmd', 'TEXT'),  # machine
+           ('name', 'TEXT'),    # machine
+           ('conv_thr', 'REAL'), 
+           ('scratch', 'TEXT'), 
+           ('kpoints', 'TEXT'), 
+           ('idx', 'INTEGER'),  # automatic by ParameterStudy
+           ('jobfn', 'TEXT'),   # machine
+           ('prefix', 'TEXT'),  # automatic by ParameterStudy
+           ('ecutwfc', 'REAL')]
+    db_hdr = db.get_header()           
+    for colspec in hdr:
+        assert colspec in db_hdr

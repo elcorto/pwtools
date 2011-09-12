@@ -556,12 +556,13 @@ class ParameterStudy(object):
                     if not sqldb.has_column(key):
                         sqldb.add_column(key, entry.sqltype.upper())
         for record in sql_records:
-            sqlvals = ",".join(str(entry.sqlval) for entry in record.itervalues())
-            cmd = "insert into %s (%s) values (%s)" %(self.db_table,
-                                                      ",".join(record.keys()), 
-                                                      sqlvals)
-            sqldb.execute(cmd)
+            cmd = "insert into %s (%s) values (%s)"\
+                %(self.db_table,
+                  ",".join(record.keys()),
+                  ",".join(['?']*len(record.keys())))
+            sqldb.execute(cmd, tuple(entry.sqlval for entry in record.itervalues()))
         sqldb.commit()
+
 
 def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s"):
     """Convergence table. Assume that quantity `xx` was varied, resulting in
