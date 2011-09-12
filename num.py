@@ -35,10 +35,12 @@ def vlinspace(a, b, num, endpoint=True):
     """
     assert a.ndim == b.ndim == 1, "expect 1d arrays"
     assert len(a) == len(b), "`a` and `b` must have equal length"
+    assert num >= 1, "`num` must be >= 1"
     # distance vec connecting a and b
     dv = b-a
     if endpoint:
-        ddv = dv/float(num-1)
+        # If num == 1, then the value of `ddv` doesn't matter b/c ret == a.
+        ddv = 0 if (num == 1) else dv/float(num-1)
     else:        
         ddv = dv/float(num)
     ret = np.empty((num, len(dv)), dtype=float)
