@@ -9,6 +9,7 @@ def test():
     common.print_dct(pp.__dict__)
     none_attrs = ['cell',
                   'volume',
+                  'scf_converged'
                  ]             
     for attr_name in pp.attr_lst:
         attr = getattr(pp, attr_name)

@@ -1456,13 +1456,13 @@ class PwSCFOutputFile(FileParser):
 
     def get_natoms(self):
         verbose("getting natoms")
-        cmd = r"grep 'number.*atoms/cell' %s | \
+        cmd = r"grep 'number.*atoms/cell' %s | head -n1 | \
               sed -re 's/.*=\s+([0-9]+).*/\1/'" %self.filename
         return int_from_txt(com.backtick(cmd))
     
     def get_nkpoints(self):
         verbose("getting nkpoints")
-        cmd = r"grep 'number of k points=' %s | \
+        cmd = r"grep 'number of k points=' %s | head -n1 | \
             sed -re 's/.*points=\s*([0-9]+)\s*.*/\1/'" %self.filename
         return int_from_txt(com.backtick(cmd))
 
@@ -1585,6 +1585,9 @@ class PwMDOutputFile(PwSCFOutputFile):
     def get_nstep_scf(self):
         return self.raw_return('nstep_scf')
 
+    def get_scf_converged(self):
+        return None
+    
 
 class PwVCMDOutputFile(PwMDOutputFile):
     def __init__(self, *args, **kwargs):
