@@ -228,7 +228,7 @@ def traj_from_txt(txt, shape, axis=-1, dtype=np.float):
     if txt.strip() == '':
         return None
     else:
-        return io.readtxt(StringIO(txt), axis=axis, shape=shape).astype(dtype)
+        return io.readtxt(StringIO(txt), axis=axis, shape=shape, dtype=dtype)
 
 def arr1d_from_txt(txt, dtype=np.float):
     if txt.strip() == '':

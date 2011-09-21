@@ -211,7 +211,7 @@ def readtxt(fh, axis=None, shape=None, header_maxlines=HEADER_MAXLINES,
         #   shape_2d_chunk =  (50, 3)
         shape_2d_chunk = shape[:axis] + shape[(axis+1):]
         # (50, 1000, 3) : natoms = 50, nstep = 1000, 3 = x,y,z
-        arr = np.empty(shape)
+        arr = np.empty(shape, dtype=read_arr.dtype)
         # read_arr: (50*1000, 3)
         expect_shape = (shape_2d_chunk[0]*shape[axis],) + (shape_2d_chunk[1],)
         common.assert_cond(read_arr.shape == expect_shape, 

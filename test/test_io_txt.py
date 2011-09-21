@@ -1,5 +1,7 @@
 # Test new text input and output
 
+from StringIO import StringIO
+
 def test():
     from pwtools import io
     import os
@@ -68,3 +70,9 @@ def test():
     fh.close()
     a = io.readtxt(fn, shape=shape, axis=-1, comments='@@')
     assert (a == arr).all()
+
+    txt = "1.0 2.0 3\n4   5   6\n"
+    arr = io.readtxt(StringIO(txt), shape=(2,3), axis=-1, dtype=float)
+    assert arr.dtype == np.array([1.0]).dtype
+    arr = io.readtxt(StringIO(txt), shape=(2,3), axis=-1, dtype=int)
+    assert arr.dtype == np.array([1]).dtype
