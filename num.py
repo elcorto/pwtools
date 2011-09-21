@@ -234,12 +234,12 @@ def findroot(x, y):
 
 
 class Spline(object):
-    """Wrapper around scipy.interpolate.splrep/splev with some nice features
-    like y->x lookup and interpolation accuracy check etc. It basically
-    simplifies setting up a spline interpolation and holds x-y data plus the
-    spline knots (self.tck) together in one place. You can work with the
-    methods here, but you can also use the normal tck (self.tck) in
-    scipy.interpolation.splev() etc.
+    """Like scipy.interpolate.UnivariateSpline, this is a wrapper around
+    scipy.interpolate.splrep/splev with some nice features like y->x lookup and
+    interpolation accuracy check etc. It basically simplifies setting up a
+    spline interpolation and holds x-y data plus the spline knots (self.tck)
+    together in one place. You can work with the methods here, but you can also
+    use the normal tck (self.tck) in scipy.interpolate.splev() etc.
 
     example:
     --------
@@ -276,11 +276,9 @@ class Spline(object):
         self.y = y
         self.eps = eps
         assert (np.diff(self.x) >= 0.0).all(), ("x wronly ordered")
-        for key, val in {'s':0, 'k':3}.iteritems():
-            if not splrep_kwargs.has_key(key):
-                splrep_kwargs[key] = val
-        self.splrep_kwargs = splrep_kwargs
-        self.tck = splrep(self.x, self.y, **splrep_kwargs)
+        self.splrep_kwargs = {'s':0, 'k':3}
+        self.splrep_kwargs.update(splrep_kwargs)
+        self.tck = splrep(self.x, self.y, **self.splrep_kwargs)
         if checkeps:
             err = np.abs(self.splev(self.x) - self.y)
             assert (err < self.eps).all(), \
@@ -291,6 +289,22 @@ class Spline(object):
         return self.splev(*args, **kwargs)
 
     def _findroot(self, func, x0=None, xab=None):
+        """Find root of `func` by Newton's method if `x0` is given or Brent's
+        method if `xab` is given.
+
+        args:
+        -----
+        func : callable, must accept a scalar and retun a scalar
+        x0 : float
+            start guess for Newton's secant method
+        xab : sequence of length 2
+            start bracket for Brent's method, root must lie in between
+        
+        returns:
+        --------
+        xx : scalar
+            the root of func(x)
+        """
         if x0 is not None:
             xx = newton(func, x0)
         else:
@@ -309,9 +323,9 @@ class Spline(object):
 
     def invsplev(self, y0, x0=None, xab=None):
         """Lookup x for a given y, i.e. "inverse spline evaluation", hence
-        the name. Find xx where y(xx) == y0 by calculating the root of y(x) -
+        the name. Find x where y(x) == y0 by calculating the root of y(x) -
         y0. We can use Newton's (x0) or Brent's (xab) methods. Use only one of
-        them. If neither is given, we use xab=[x[0], x[-1]].
+        them. If neither is given, we use xab=[x[0], x[-1]] and Brent.
        
         There are a few caveats. The result depends the nature of the
         underlying x-y curve (is it strictly monotinic -> hopefully one root or
@@ -328,9 +342,9 @@ class Spline(object):
         args:
         -----
         x0 : float
-            start guess for Newton secant method
-        xab : length 2 sequence
-            interval for Brent method
+            start guess for Newton's secant method
+        xab : sequence of length 2
+            start bracket for Brent's method, root must lie in between
         
         returns:
         --------
@@ -348,7 +362,7 @@ class Spline(object):
         return self._findroot(func, x0=x0, xab=xab)
    
     def get_min(self, x0=None, xab=None):
-        """Return xx where y(xx) = min(y) by calculating the root of the
+        """Return x where y(x) = min(y) by calculating the root of the
         spline's 1st derivative.
         
         args:
@@ -364,7 +378,7 @@ class Spline(object):
         return self._findroot(func, x0=x0, xab=xab)
     
     def get_root(self, x0=None, xab=None):
-        """Return xx where y(xx) = 0 by calculating the root of the spline.
+        """Return x where y(x) = 0 by calculating the root of the spline.
         This function is actually redundant b/c it can be done with
         self.invsplev(0.0, ...), i.e. lookup x where y=0, which is exactly the
         root. But we keep it for reference and convenience.

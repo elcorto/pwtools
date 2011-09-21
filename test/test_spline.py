@@ -48,3 +48,8 @@ def test():
 
     # API
     spl = Spline(x,y,k=2,s=0.1,eps=0.11)
+    for kw in ['k', 's']:
+        assert kw in spl.splrep_kwargs.keys()
+    assert spl.splrep_kwargs['k'] == 2       
+    assert spl.splrep_kwargs['s'] == 0.1
+
