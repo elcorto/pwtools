@@ -99,6 +99,13 @@ def _write_header_config(fh, config, header_comment=HEADER_COMMENT,
         fh.write(header_comment + ' ' + line)
     ftmp.close()
 
+def _get_not_none(lst):
+    """Return the one item in ``lst`` which is not None."""
+    nitems = len(lst)
+    assert lst.count(None) == (nitems - 1), "need %i None items" %(nitems - 1,)
+    for item in lst:
+        if item is not None:
+            return item
 
 def writetxt(fn, arr, axis=-1, maxdim=TXT_MAXDIM):
     """Write 1d, 2d or 3d arrays to txt file. 
@@ -361,7 +368,7 @@ def wien_sgroup_input(lat_symbol, symbols, atpos_crystal, cryst_const):
 
 
 @crys_add_doc
-def write_cif(filename, coords, cell, symbols, align='rows'):
+def write_cif(filename, coords_frac, cell, symbols):
     """Q'n'D Cif writer. Should be a method of parse.StructureFileParser ....
     stay tuned.
     
@@ -369,17 +376,14 @@ def write_cif(filename, coords, cell, symbols, align='rows'):
     -----
     filename : str
         name of output .cif file
-    coords : array (natoms,3)
+    coords_frac : array (natoms,3)
         crystal coords
     %(cell_doc)s
-        Unit: Angstrom
+        Unit: Angstrom, vectors are rows
     symbols : list of strings
         atom symbols
-    %(align_doc)s
     """
     ffmt = "%.16e"
-    if align == 'cols':
-        cell = cell.T
     cf = pycifrw_CifFile.CifFile()
     block = pycifrw_CifFile.CifBlock()
     symbols = list(symbols)
@@ -412,9 +416,9 @@ def write_cif(filename, coords, cell, symbols, align='rows'):
                   '_atom_site_type_symbol']
     _xyz2str = lambda arr: [ffmt %x for x in arr]
     data = [symbols, 
-            _xyz2str(coords[:,0]), 
-            _xyz2str(coords[:,1]), 
-            _xyz2str(coords[:,2]),
+            _xyz2str(coords_frac[:,0]), 
+            _xyz2str(coords_frac[:,1]), 
+            _xyz2str(coords_frac[:,2]),
             symbols]
     # "loop_" with multiple columns            
     block.AddCifItem([[data_names], [data]])                
@@ -426,24 +430,26 @@ def write_cif(filename, coords, cell, symbols, align='rows'):
 
 
 @crys_add_doc
-def write_xyz(filename, coords, cell, symbols, align='rows', name='pwtools_dummy_mol_name'):
+def write_xyz(filename, coords_frac=None, coords_cart=None, 
+              cell=None, symbols=None, name='pwtools_dummy_mol_name'):
     """Write VMD-style [VMD] XYZ file.
     
-    B/c we require `coords` to be fractional, we need `cell` to transform to
-    cartesian Angstrom.
+    Works for one structure (coords_*.shape = (natoms, 3)) or trajectories
+    (natoms,3,nstep) with fixed cell (cell.shape = (3,3)).
     
     args:
     -----
     filename : target file name
-    coords : 2d (one unit cell) or 3d array (e.g. MD trajectory)
-        crystal (fractional) coords,
+    coords_{cart,frac} : 2d (one unit cell) or 3d array (e.g. MD trajectory)
+        frac: crystal (fractional) coords,
+        cart: cartesian
         2d: (natoms, 3)
         3d: (natoms, 3, nstep)
     %(cell_doc)s 
-        In Angstrom units.
+        In Angstrom units. Only needed if ``coords_frac`` given. Cell vectors
+        are rows.
     symbols : list of strings (natoms,)
         atom symbols
-    %(align_doc)s
     name : str, optional
         Molecule name.
 
@@ -451,8 +457,7 @@ def write_xyz(filename, coords, cell, symbols, align='rows', name='pwtools_dummy
     -----
     [VMD] http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/xyzplugin.html
     """
-    if align == 'cols':
-        cell = cell.T
+    coords = _get_not_none([coords_frac, coords_cart])
     is3d = coords.ndim == 3
     atoms_axis = 0
     time_axis = -1
@@ -460,13 +465,17 @@ def write_xyz(filename, coords, cell, symbols, align='rows', name='pwtools_dummy
     if is3d:
         nstep = coords.shape[time_axis]
         sl = [slice(None)]*3
-        # (natoms, 3, nstep) -> (natoms, nstep, 3) -> transform -> (natoms, nstep, 3)
-        # -> (natoms, 3, nstep)
-        coords_cart = np.dot(coords.swapaxes(-1,-2), cell).swapaxes(-1,-2)
+        if coords_cart is None:
+            coords_cart = crys.coord_trans(coords_frac, 
+                                           old=cell, 
+                                           new=np.identity(3),
+                                           axis=1,
+                                           align='rows')
     else:
         nstep = 1
         sl = [slice(None)]*2
-        coords_cart = np.dot(coords, cell)
+        if coords_cart is None:
+            coords_cart = np.dot(coords_frac, cell)
     xyz_str = ""
     for istep in range(nstep):
         if is3d:
@@ -478,7 +487,8 @@ def write_xyz(filename, coords, cell, symbols, align='rows', name='pwtools_dummy
     common.file_write(filename, xyz_str)
 
 
-def write_axsf(filename, coords, cell, symbols, forces=None):
+def write_axsf(filename, coords_frac=None, coords_cart=None, cell=None,
+               symbols=None, forces=None):
     """Write (variable-cell) animated XSF file. For only one unit cell (single
     structure), provide only 2d arrays.
     
@@ -494,8 +504,9 @@ def write_axsf(filename, coords, cell, symbols, forces=None):
     args:
     -----
     filename : target file name
-    coords : 2d (one unit cell) or 3d array (e.g. MD trajectory)
-        Crystal (fractional) coords.
+    coords_{cart,frac} : 2d (one unit cell) or 3d array (e.g. MD trajectory)
+        frac: crystal (fractional) coords,
+        cart: cartesian
         2d: (natoms, 3)
         3d: (natoms, 3, nstep)
     cell : 2d or 3d, shape like `coords`.
@@ -503,7 +514,7 @@ def write_axsf(filename, coords, cell, symbols, forces=None):
         cell[...,i] (3d) are the rows.
     symbols : list of strings (natoms,)
         Atom symbols in *one* unit cell.
-    forces : {None, 2d or 3d}, shape like `coords`.
+    forces : {None, 2d or 3d}, shape like `coords`. Optional.
         Forces on atoms in Hartree / Angstrom. If None, then forces are set to
         zero.
    
@@ -559,6 +570,7 @@ def write_axsf(filename, coords, cell, symbols, forces=None):
     #     blazingly fast and (ii) we cannot avoid the loop anyway b/c
     #     building up the string to write has to be done in the loop.
     # 
+    coords = _get_not_none([coords_frac, coords_cart])
     atoms_axis = 0
     xyz_axis = 1
     time_axis = 2
@@ -589,7 +601,10 @@ def write_axsf(filename, coords, cell, symbols, forces=None):
         sl_forces[time_axis] = istep if isnstep_forces else 0
         # ccf = cartesian coords + forces for this step
         ccf = np.empty((natoms,6), dtype=float)
-        ccf[:,:3] = np.dot(_coords[sl_coords], _cell[sl_cell])
+        if coords_cart is None:
+            ccf[:,:3] = np.dot(_coords[sl_coords], _cell[sl_cell])
+        else:
+            ccf[:,:3] = _coords[sl_coords]
         ccf[:,3:] = _forces[sl_forces]
         # for now PRIMVEC == CONVVEC
         axsf_str += "\nPRIMVEC %i\n%s\nCONVVEC %i\n%s" %(istep+1,

@@ -11,10 +11,6 @@ all
 ---
 * Drop verbose.py. Use the logging or warnings module.
 
-* io.write_*(): by using `cryst_const` instead of `cell`, we would get rid of
-  the annoying `align` kwarg. In fact, I think it is really used only
-  crys.coord_trans().
-
 ase interface and some ideas on how to not use plain 3d arrays
 --------------------------------------------------------------
 

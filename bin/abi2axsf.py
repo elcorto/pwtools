@@ -67,7 +67,7 @@ print "... ready"
 
 print "writing ..."
 io.write_axsf(filename=outfile, 
-              coords=coords_frac,
+              coords_frac=coords_frac,
               cell=cell,
               forces=forces,
               symbols=symbols)
