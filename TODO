@@ -80,4 +80,9 @@ plotting dispersions
 * Finish functions for parsing and plotting dispersions (pwscf.py, kpath.py).
   Remove unused and redundant stuff.
 
+parse.Pw*OutputFile
+-------------------
+* Add self.get_symbols(). This would make parsing the input file obsolete in
+  most use cases.
+
 # vim:comments=fb\:*

@@ -1,12 +1,10 @@
 The pwtools package.
 
-=======
 License
 =======
 
 See the files LICENSE and COPYING.
 
-========
 Features
 ========
 
@@ -14,27 +12,27 @@ The package was initially developed to calculate the phonon density of states
 from (ab initio) MD calculations. Over time, the package evolved into a
 general-purpose pre- and postprocessing tool. Current featues include:
 
-- classes to set up calculations (parameter studies) based on template
+* classes to set up calculations (parameter studies) based on template
   input files
-- simple sqlite3 interface with convenience data extraction methods 
-- velocity autocorrelation function from MD trajectories
-- phonon DOS from MD trajectories
-- parsing of PWscf [1] input and output files and Abinit [3] output into Python
-  objects for easy access
-- IO: read cif, cml, pdb, write xsf, cif, xyz  
-- interface to external EOS fitting tools 
-- thermodynamic properties in the quasi-harmonic approximation from phonon
+* simple sqlite3 interface with convenience data extraction methods 
+* velocity autocorrelation function from MD trajectories
+* phonon DOS from MD trajectories
+* parsing of PWscf [qe]_ input and output files, Abinit [abinit]_ and CPMD 
+  [cpmd]_ output into Python objects for easy access
+* IO: read cif, cml, pdb, write xsf, cif, xyz  
+* interface to external EOS fitting tools 
+* thermodynamic properties in the quasi-harmonic approximation from phonon
   density of states  
-- MD analayis: radial pair distribution function (own implementation and VMD
+* MD analayis: radial pair distribution function (own implementation and VMD
   [10] interface), RMS, RMSD
-- unit cell related tools: super cell building, coordinate transformation,
+* unit cell related tools: super cell building, coordinate transformation,
   convert back and forth between unit cell vectors and crystallographic
   constants
 
 Related projects
 ----------------
 
-The very nice ASE [2] project is in some way related. It also stores MD
+The very nice ASE [ase]_ project is in some way related. It also stores MD
 trajectory data in Python objects for further manipulation. It's IO
 capabilities are much more developed. One can convert structure data to an ASE
 Atoms object and use ASE's file writers (see structure.py and
@@ -42,24 +40,28 @@ examples/ase_atoms.py). ASE provides interfaces to a large pile of ab initio
 codes ("calculators"). MD and structure optimization in ASE is coded in Python,
 using only the calculator's SCF engine in every step to get energy and forces.
 Unfortunately, it does not jet provide things like variable cell MD with the
-MTTK [4] method and phonon calculations based on density functional
-perturbation theory like PWscf/PH or Abinit (only supercell frozen phonons can
-be done with the related phonopy package [5]). The focus of the pwtools package
-is to be a handy pre- and postprocessor providing pythonic access to all input
-and output quantities of the used ab initio codes (PWscf, Abinit). 
+MTTK [mttk]_ method, wave function extrapolation for Born-Oppenheimer MD (I
+think) and phonon calculations based on density functional perturbation theory
+like PWscf/PH or Abinit (only supercell frozen phonons can be done with the
+related phonopy package [phonopy]_). The focus of the pwtools package is to be
+a handy pre- and postprocessor providing pythonic access to all input and
+output quantities of the used ab initio codes (PWscf, Abinit, CPMD). 
 
-============
 Installation
 ============
 
-There is no installation script. Just copy the whole package somewhere, e.g.
+There is no installation script. Just copy the whole package somewhere, e.g.::
+
     $ tar -xzf pwtools-0.7.3.tgz
     $ mv pwtools-0.7.3 $HOME/python/pwtools
+
+Some add-on tools can be found in the "pwextern" package [pwextern]_, see
+below.
 
 Path issues (.bashrc/.profile)
 ------------------------------
 
-Suppose all files are in $HOME/python/pwtools/.
+Suppose all files are in $HOME/python/pwtools/::
     
     # makes "import pwtools" possible
     export PYTHONPATH=$PYTHONPATH:$HOME/python
@@ -69,12 +71,11 @@ Suppose all files are in $HOME/python/pwtools/.
 Note that the basename of the dir *must* be named "pwtools" b/c it's the
 package's root dir.
 
-
-Fortran extensions
-------------------
+Fortran extension
+-----------------
 
 To calculate the velocity autocorrelation function (and to pass all tests), you
-want to use a Fortran extension module. See Makefile. Note that this is not
+want to use a Fortran extension module. See ``Makefile``. Note that this is not
 necessary for the "Direct Method" (see below).
 
 Running tests
@@ -89,48 +90,54 @@ Developed mostly with Python 2.5/2.6. Should work with all versions from 2.4
 on, but not yet 3.x. 
 
 With Python 2.6, you may get a DeprecationWarning regarding the sets module
-when the CifFile module from the pycifrw package is imported.
+when the CifFile module from the pycifrw package is imported (unless you
+install the patched version from [pwextern]_.
 
 Add-on packages / other required tools
 --------------------------------------
 
-Must have:
-    * numpy 
-    * scipy
-    * nose (for running tests in test/)  
-    On Debian-based distros, "aptitude install python-numpy python-scipy
-    python-nose" should do it.
-    * Unix tools: grep, sed, awk, tail, wc (for parse.py); gzip/gunzip (for
-      test/*)
+Must have:    
+
+* numpy
+* scipy
+* nose (for running tests in test/)
+* python headers (development files for compiling Fortran extension)  
+* Unix tools: grep, sed, awk, tail, wc (for parse.py); gzip/gunzip (for
+  ``test/``)
+
+Debian: ``aptitude install python-numpy python-scipy python-nose python-dev``
+
+Almost must have:
+  
+* BeautifulSoup [beautifulsoup]_: XML parser (for .cml files)
+  Debian: ``aptitude install python-beautifulsoup``.
+* PyCifRW [pycifrw_orig]_: For Cif files. If you use the version from
+  [pwextern]_, then you even get an install script :)
+* eos (``eos.py``): The tool "eos" from the Elk code [elk]_ must be on your
+  path. Note that the executable is assumed to be named "eos.x". See
+  ``pwtools.eos.ElkEOSFit`` for usage. Can be installed directly from Elk or
+  also [pwextern]_.
+
+Without BeautifulSoup and PyCifRW, you will get import warnings, some parsing
+classes and IO functions will not work (Cif and CML parsing currently) and some
+tests will fail. If you don't need that functionality, uncomment the warnings
+and import statements at the top of ``parse.py`` and ``io.py``.
+Without ``eos``, ``pwtools.eos.ElkEOSFit`` and related tests won't work.
 
 Suggested:
-    parse.py
-        * PyCifRW [6]
-        * BeautifulSoup [7] 
-        Without these, you will get warnings and some parsing classes and IO
-        functions will not work (Cif and CML parsing currently). If you wish,
-        uncomment the warnings at the top of parse.py .
-    examples/*, mpl.py
-        * matplotlib, Debian: aptitude install python-matplotlib
-    examples/rpdf/
-        * VMD [10]
-    eos.py
-        * The tool "eos" from the Elk code [8] must be on your path. Note that
-          the executable is assumed to be named "eos.x". See
-          pwtools.eos.ElkEOSFit for usage.
+
+* matplotlib (``examples/``), ``aptitude install python-matplotlib``
+* VMD [vmd]_ (``examples/rpdf/``), must register before download
 
 Optional:
-    examples/
-        * The "fourier.x" tool from the CPMD [9] contrib sources.
 
-Several add-on/plugin packages are available in the pwextern package. Ask me
-(see LICENSE) if you need help with installing.
+* The "fourier.x" tool from the CPMD [cpmd]_ contrib sources (for
+  ``examples/``). Need to register before download.
 
-=====
 Usage
 =====
 
-See test/test_*.py and examples/ for examples.
+See ``test/test_*.py`` and ``examples/`` for examples.
 
 Velocity autocorrelation function and phonon DOS
 ------------------------------------------------
@@ -140,7 +147,7 @@ an MD trajectory (V is is array of atomic velocities, see pydos.velocity().
 
 (1) vacf way: FFT of the velocity autocorrelation function (vacf):
     V -> VACF -> FFT(VACF) = PDOS, see pydos.vacf_pdos()
-(2) direct way: |FFT(V)**2| = PDOS, see pydos.direct_pdos(), this is much
+(2) direct way: ``|FFT(V)**2|`` = PDOS, see pydos.direct_pdos(), this is much
     faster and mathematically exactly the same, see examples/pdos_methods.py
     and test/test_pdos.py .
 
@@ -162,15 +169,16 @@ Method (1) still exists for historical reasons and as reference.
   2*pi*f. See also examples/pdos_methods.py .
 
 
-==========================
 Units of parsed quantities
 ==========================
 
-We have a lot of machinery to parse PWscf and Abinit output files. Unless
+We have a lot of machinery to parse PWscf,Abinit,CPMD output files. Unless
 otherwise stated, NO unit conversion is done. The user must know which unit the
-parsed data has. 
+parsed data has (Bohr vs. Angstrom, fractional vs. cartesian coords etc).
+Exceptions are for instance the ``coords_frac`` attribute of some classes in
+``parse.py``, where programs explicitely write fractional coords (Abinit,
+CPMD).
 
-=====================
 Format-specific notes
 =====================
 
@@ -180,15 +188,15 @@ Pwscf
 Units
 -----
 
-From http://www.quantum-espresso.org/input-syntax/INPUT_PW.html
-    All quantities whose dimensions are not explicitly specified are in
-    RYDBERG ATOMIC UNITS
-See constants.py
+From http://www.quantum-espresso.org/input-syntax/INPUT_PW.html:
+"All quantities whose dimensions are not explicitly specified are in
+RYDBERG ATOMIC UNITS". See also ``constants.py``.
 
-matdyn.x and phonon dos: With dos=.true., matdyn.x calculates the phonon
-    density of states. The frequency axis in the output file is f in cm^-1.
-    Note that THIS IS NOT THE ANGULAR FREQUENCY omega = 2*pi*f!!! Therefore, if
-    you calculate with this frequency as in "hbar*omega", then use f*2*pi!
+matdyn.x and phonon dos: 
+    With dos=.true., matdyn.x calculates the phonon density of states. The
+    frequency axis in the output file is f in cm^-1. Note that THIS IS NOT THE
+    ANGULAR FREQUENCY omega = 2*pi*f!!! Therefore, if you calculate with this
+    frequency as in "hbar*omega", then use f*2*pi!
 
 Atomic coordinates
 ------------------
@@ -198,9 +206,10 @@ a.u. means a unit or Bohr = a0 = 0.52917720859 Angstrom.
 
 To calculate the PDOS, atomic coordinates from MD trajectories have to be in
 cartesian coordinates. You may have to transform them *before* using them to
-calculate the PDOS. See 
-    test/test_pdos.py 
-    test/test_pdos_coord_trans.py
+calculate the PDOS. See
+
+``test/test_pdos.py``
+``test/test_pdos_coord_trans.py``
 
 This is necessary if you have "ATOMIC_POSITIONS crystal".
 
@@ -208,25 +217,26 @@ The scale (or unit: Bohr, Angstrom, ..., defined by celldm(1) or
 CELL_PARAMETERS) does not matter, b/c currently the integral area under the
 PDOS curve is normalized in pydos.*_pdos(). But coords MUST be cartesian!
 
-For your convenience, here is a list of all possible formats:
+For your convenience, here is a list of all possible formats (from the Pwscf
+help)::
 
-allowed ATOMIC_POSITIONS units (from the Pwscf help):
-   alat    : atomic positions are in cartesian coordinates,
-             in units of the lattice parameter "a" (default)
+    allowed ATOMIC_POSITIONS units:
+       alat    : atomic positions are in cartesian coordinates,
+                 in units of the lattice parameter "a" (default)
 
-   bohr    : atomic positions are in cartesian coordinate,
-             in atomic units (i.e. Bohr)
+       bohr    : atomic positions are in cartesian coordinate,
+                 in atomic units (i.e. Bohr)
 
-   angstrom: atomic positions are in cartesian coordinates,
-             in Angstrom
+       angstrom: atomic positions are in cartesian coordinates,
+                 in Angstrom
 
-   crystal : atomic positions are in crystal coordinates, i.e.
-             in relative coordinates of the primitive lattice vectors
+       crystal : atomic positions are in crystal coordinates, i.e.
+                 in relative coordinates of the primitive lattice vectors
 
 Note: crystal coords are also called fractional coordinates (e.g. in Cif
 files).
 
-summary:
+summary::
 
     ATOMIC_POSITIONS angstrom  -> cartesian angstrom
     ATOMIC_POSITIONS bohr      -> cartesian a.u. 
@@ -234,7 +244,8 @@ summary:
     ATOMIC_POSITIONS alat      -> cartesian alat
     ATOMIC_POSITIONS crystal   -> crystal alat or crystal a.u. (see below)
 
-The unit of CELL_PARAMETERS is only important for ATOMIC_POSITIONS crystal:
+The unit of CELL_PARAMETERS is only important for ATOMIC_POSITIONS crystal::
+
     if celldm(1) present  -> CELL_PARAMETERS in alat -> crystal alat
         => CELL_PARAMETERS = real cell parameter divided by alat
     if not                -> CELL_PARAMETERS in a.u. -> crystal a.u.
@@ -245,43 +256,47 @@ Total force on atoms
 
 Pwscf writes a "Total Force" after the "Forces acting on atoms" section . This
 value is kind of an RMS of the force matrix (f_ij, i=1,natoms j=1,2,3) printed.
-According to .../PW/forces.f90, variable "sumfor", the "Total Force" is
+According to .../PW/forces.f90, variable "sumfor", the "Total Force" is::
+
     sqrt(sum_ij f_ij^2)
+
 But this is not normalized to the number of atoms. Use crys.rms() or
-crys.rms3d() for MD runs where the RMS of each (f_ij) is 
+crys.rms3d() for MD runs where the RMS of each (f_ij) is::
+
     sqrt( (sum_ij f_ij^2) / N )
+
 with N = 3*natoms or N=natoms.   
 
 
 Parsed results
---------------
+==============
 
 Concerns: parse.Pw*File, parse.Abinit*File
 
-Abinit : Here, all relevant quantities are printed in the output files alone
+Abinit: 
+    Here, all relevant quantities are printed in the output files alone
     with enough precision to do further calculations inside these classes (not
     used yet).
-PWscf : Sadly, things like cell information (CELL_PARAMETERS) and kpoint grid
+PWscf: 
+    Sadly, things like cell information (CELL_PARAMETERS) and kpoint grid
     (K_POINTS) are only printed with low precision or not at all in the output
     file. ATM, we parse input and output separately (in recent versions). So,
     calculations based on higher-precision quantities in the input file are not
     automatically done in Pw*File. 
 
-====
-Refs
-====
 
-[1] http://www.quantum-espresso.org
-[2] https://wiki.fysik.dtu.dk/ase
-[3] http://www.abinit.org
-[4] Glenn J. Martyna and Mark E. Tuckerman and Douglas J. Tobias and Michael
+.. [qe] http://www.quantum-espresso.org
+.. [ase] https://wiki.fysik.dtu.dk/ase
+.. [abinit] http://www.abinit.org
+.. [mttk] Glenn J. Martyna and Mark E. Tuckerman and Douglas J. Tobias and Michael
     L. Klein, "Explicit reversible integrators for extended systems
     dynamics", Mol. Phys. 87(5), pp. 1117, 1996
-[5] http://phonopy.sourceforge.net
-[6] http://pycifrw.berlios.de
-[7] http://www.crummy.com/software/BeautifulSoup
-[8] http://elk.sourceforge.net
-[9] http://www.cpmd.org
-[10] http://www.ks.uiuc.edu/Research/vmd/
+.. [phonopy] http://phonopy.sourceforge.net
+.. [pycifrw_orig] http://pycifrw.berlios.de
+.. [pwextern] https://bitbucket.org/elcorto/pwextern-free
+.. [beautifulsoup] http://www.crummy.com/software/BeautifulSoup
+.. [elk] http://elk.sourceforge.net
+.. [cpmd] http://www.cpmd.org
+.. [vmd] http://www.ks.uiuc.edu/Research/vmd/
 
-# vim:comments=fb\:*
+ vim:comments=fb\:*:syn=rst
