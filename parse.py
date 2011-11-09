@@ -1,111 +1,113 @@
-# parse.py
-#
-# Parser classes for different file formats. Input- and output files.
-#  
-# We need the following basic Unix tools installed:
-#   grep/egrep
-#   sed
-#   awk
-#   tail
-#   wc 
-#   ...
-# 
-# Notes:
-# * Some functions/methods are Python-only (mostly for historical reasons ..
-#   code was written once and still works), but most of them actually call
-#   grep/sed/awk. This may not be pythonic, but hey ... these tools rock and
-#   the cmd lines are short.
-# * pwtools.com.backtick() takes "long" to create a child process. So for small
-#   files, pure-python versions, although they have much more code, are faster. 
-#   But who cares if the files are small. For big files, grep&friends win + much
-#   less code here.
-# * The tested egrep versions don't know the "\s" character class for
-#   whitespace as sed, Perl, Python or any other sane regex implementation
-#   does. Use "[ ]" instead.
-#
-# 
-# Using Parsing classes
-# ---------------------
-# 
-# All parsing classes 
-#     Pw*OutputFile
-#     Abinit*OutputFile
-#     Cpmd*OutputFile
-# are derived from FlexibleGetters -> FileParser.
-#
-# As a general rule: If a getter (self.get_<attr>() or self._get_<attr>_raw()
-# cannot find anything in the file, it returns None. All getters which depend
-# on it will also return None.
-# 
-# * After initialization
-#       pp = SomeParsingClass(<filename>), all attrs whoose name is in 
-#   pp.attr_lst will be set to None.
-# 
-# * parse() will invoke self.check_get_attr(<attr>), which does 
-#       self.<attr> = self.get_<attr>() 
-#   for each <attr> in self.attr_lst, thus setting self.<attr> to a defined
-#   value: None if nothing was found in the file or not None else
-# 
-# * All getters get_<attr>() will do their parsing action, possibly
-#   looking for a file self.filename, regardless of the fact that the attribute
-#   self.<attr> may already be defined (e.g. if parse() has been called before).
-#
-# * For interactive use (you need <attr> only once), prefer get_<attr>() over
-#   parse().
-# 
-# * Use dump() only for temporary storage and fast re-reading.
-# 
-# * Keep the original parsed output file around (self.filename), avoid
-#   get_txt().
-# 
-# * Use relative paths in <filename>.
-# 
-# * If loading a dump()'ed pickle file from disk,
-#       pp=common.cpickle_load(...)
-#   then use direct attr access
-#       pp.<attr>
-#   instead of 
-#       pp.get_<attr>()
-#   b/c latter would simply parse again.
-# 
-# For debugging, we still have many getters which produce redundant
-# information, e.g. 
-#     cell + cryst_const + cryst_const_angles_lengths
-#     forces + forces_rms
-#     _<attr>_raw + <attr> (where <attr> = cell, forces, ...)
-#     ...
-# especially in MD parsers, not so much in StructureFileParser drived
-# classes. If parse() is used, all this information retrieved and stored.
-#
-# Using parse():    
-# 
-# Pro: 
-# * Simplicity. *All* getters are called when parse() is
-#   invoked. You get it all.
-# * In theory, you can delete the file pointed to by self.filename, assuming
-#   all getters have extracted all information that you need.
-# Con:      
-# * The object is full of (potentially big) arrays holding redundant
-#   information. Thus, the dump()'ed file may be large. 
-# * Parsing may be slow if each getter (of possibly many) is called.
-#
-# Using get_<attr>():
-# 
-# Pro: 
-# * You only parse what you really need.
-# Con:
-# * self.<attr> will NOT be set, since get_<attr>() only returns <attr> but
-#   doesn't set self.<attr> = self.get_<attr>(), so dump() wouls save an
-#   "empty" file
-#
-# Note on get_txt():
-# 
-# If a file parser calls get_txt(), then this has these effects: (1) It can
-# slow down parsing for big files and (2) the saved binary file (by using
-# dump()) will have at least the size of the text file. While the original file
-# could then be deleted in theory, the dump()'ed file becomes unwieldly to work
-# with.
+"""
+parse.py
 
+Parser classes for different file formats. Input- and output files.
+ 
+We need the following basic Unix tools installed:
+  grep/egrep
+  sed
+  awk
+  tail
+  wc 
+  ...
+
+Notes:
+* Some functions/methods are Python-only (mostly for historical reasons ..
+  code was written once and still works), but most of them actually call
+  grep/sed/awk. This may not be pythonic, but hey ... these tools rock and
+  the cmd lines are short.
+* pwtools.com.backtick() takes "long" to create a child process. So for small
+  files, pure-python versions, although they have much more code, are faster. 
+  But who cares if the files are small. For big files, grep&friends win + much
+  less code here.
+* The tested egrep versions don't know the "\s" character class for
+  whitespace as sed, Perl, Python or any other sane regex implementation
+  does. Use "[ ]" instead.
+
+
+Using Parsing classes
+---------------------
+
+All parsing classes 
+    Pw*OutputFile
+    Abinit*OutputFile
+    Cpmd*OutputFile
+are derived from FlexibleGetters -> FileParser.
+
+As a general rule: If a getter (self.get_<attr>() or self._get_<attr>_raw()
+cannot find anything in the file, it returns None. All getters which depend
+on it will also return None.
+
+* After initialization
+      pp = SomeParsingClass(<filename>), all attrs whoose name is in 
+  pp.attr_lst will be set to None.
+
+* parse() will invoke self.check_get_attr(<attr>), which does 
+      self.<attr> = self.get_<attr>() 
+  for each <attr> in self.attr_lst, thus setting self.<attr> to a defined
+  value: None if nothing was found in the file or not None else
+
+* All getters get_<attr>() will do their parsing action, possibly
+  looking for a file self.filename, regardless of the fact that the attribute
+  self.<attr> may already be defined (e.g. if parse() has been called before).
+
+* For interactive use (you need <attr> only once), prefer get_<attr>() over
+  parse().
+
+* Use dump(foo.pk) only for temporary storage and fast re-reading. Use
+  pwtool.common.cpickle_load(foo.pk). See also the FileParser.load() docstring.
+
+* Keep the original parsed output file around (self.filename), avoid
+  get_txt().
+
+* Use relative paths in <filename>.
+
+* If loading a dump()'ed pickle file from disk,
+      pp=common.cpickle_load(...)
+  then use direct attr access
+      pp.<attr>
+  instead of 
+      pp.get_<attr>()
+  b/c latter would simply parse self.filname again.
+
+For debugging, we still have many getters which produce redundant
+information, e.g. 
+    cell + cryst_const + cryst_const_angles_lengths
+    forces + forces_rms
+    _<attr>_raw + <attr> (where <attr> = cell, forces, ...)
+    ...
+especially in MD parsers, not so much in StructureFileParser drived
+classes. If parse() is used, all this information retrieved and stored.
+
+Using parse():    
+
+Pro: 
+* Simplicity. *All* getters are called when parse() is
+  invoked. You get it all.
+* In theory, you can delete the file pointed to by self.filename, assuming
+  all getters have extracted all information that you need.
+Con:      
+* The object is full of (potentially big) arrays holding redundant
+  information. Thus, the dump()'ed file may be large. 
+* Parsing may be slow if each getter (of possibly many) is called.
+
+Using get_<attr>():
+
+Pro: 
+* You only parse what you really need.
+Con:
+* self.<attr> will NOT be set, since get_<attr>() only returns <attr> but
+  doesn't set self.<attr> = self.get_<attr>(), so dump() would save an
+  "empty" file.
+
+Note on get_txt():
+
+If a file parser calls get_txt(), then this has these effects: (1) It can
+slow down parsing for big files and (2) the saved binary file (by using
+dump()) will have at least the size of the text file. While the original file
+could then be deleted in theory, the dump()'ed file becomes unwieldly to work
+with.
+"""
 
 import re, sys, os
 from math import acos, pi, sin, cos, sqrt
@@ -401,6 +403,8 @@ class FlexibleGetters(object):
         >>> xx.load('foo.pk')
         # load: method 2, probably easier :)
         >>> xx = cPickle.load(open('foo.pk'))
+        # or 
+        >>> xx = common.cpickle_load('foo.pk')
         """
         # this does not work:
         #   self = cPickle.load(...)
@@ -2346,8 +2350,8 @@ class AbinitVCMDOutputFile(AbinitMDOutputFile):
     
 
 class CpmdSCFOutputFile(FileParser):
-    """Parse output from a CPMD "single point calculation", which is an SCF
-    calculation. Some extra files are assumed to be in the same directory as
+    """Parse output from a CPMD "single point calculation" (wave function
+    optimization). Some extra files are assumed to be in the same directory as
     self.filename.
     
     extra files:
@@ -2552,12 +2556,20 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
     """CPMD MD output. Works with BO-MD and CP-MD, fixed and variable cell.
     Some attrs may be None or have different shapes (2d va 3d arrays) depending
     on what type of MD is parsed and what info/files are available.
+    
+    Notes for the commemts below: 
+        {A,B,C} = A or B or C
+        (A) = A is optional
+        (A (B)) = A is optional, but only if present, B is optional
 
-    extra files:
+    Extra files which will be parsed and MUST be present:
         GEOMETRY.scale
         GEOMETRY
         TRAJECTORY
         ENERGIES
+    
+    Extra files which will be parsed and MAY be present depending on the type
+    of MD:
         (FTRAJECTORY)
         (CELL) 
         (STRESS)
@@ -2567,7 +2579,7 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
     The input should look like that.
     &CPMD
         MOLECULAR DYNAMICS {BO,CP}
-        (PARRINELLO-RAHMAN NPT)
+        (PARRINELLO-RAHMAN (NPT))
         PRINT ON FORCES COORDINATES
         TRAJECTORY XYZ FORCES
         STRESS TENSOR
@@ -2580,7 +2592,7 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
         ...
     &END
     
-    Tested with 3.15.1, the following extra files are always written.
+    Tested with CPMD 3.15.1, the following extra files are always written.
         GEOMETRY.scale
         GEOMETRY
         TRAJECTORY
@@ -2607,6 +2619,10 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
     
     MOLECULAR DYNAMICS CP
     PARRINELLO-RAHMAN NPT
+        not tested yet ... stay tuned
+    
+    MOLECULAR DYNAMICS {BO,CP}
+    PARRINELLO-RAHMAN
         not tested yet ... stay tuned
     """        
     def __init__(self, filename=None):
