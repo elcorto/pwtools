@@ -1,10 +1,7 @@
 #!/usr/bin/python
 
 # Parse CPMD MD output file and write .axsf file for xcrysden/VMD.
-# 
-# usage:
-#   cpmd2axsf.py cpmd.out cpmd.axsf
-
+#
 # This script (and the used parsing classes) have been tested extensively, but
 # you should nevertheless verify the output by yourself!
 
@@ -26,11 +23,12 @@ parser.add_option("-r", "--repeat", default="1,1,1",
     [%default]"""))
 parser.add_option("-f", "--force-scaling", default=1.0, type="float",
     help=dd("""\
-    Forces scaling factor.
+    Forces scaling factor. Can be used to scale the length of force vectors in
+    visualization (e.g. xcrysden) if forces are all big (or small).
     [%default]"""))
 parser.add_option("-t", "--timeslice", default=':',
     help=dd("""\
-    Slice for time axis, e.g. '2000:'
+    Slice for time axis, e.g. '2000:' = from step 2000 to end
     [%default]"""))
 opts, args = parser.parse_args()
 
@@ -70,6 +68,8 @@ if repeat != [1,1,1]:
 
 if forces is not None:
     _forces = forces[...,timeslice] * opts.force_scaling
+else:
+    _forces = None
 if cell.ndim == 3:
     _cell = cell[...,timeslice]
 else:
@@ -77,7 +77,7 @@ else:
 
 print "writing ..."
 io.write_axsf(filename=outfile, 
-              coords=coords_frac[...,timeslice],
+              coords_frac=coords_frac[...,timeslice],
               cell=_cell,
               forces=_forces,
               symbols=symbols)

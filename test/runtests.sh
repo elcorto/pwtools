@@ -10,7 +10,7 @@
 #   Be a bit more verbose by calling nosetests -v .
 #   
 #   ./runtests.sh -vs
-#   Print all stdout (like warnings) of all tests.
+#   Print all stdout (like warnings) of all tests (nosetests -vs).
 #   
 #   ./runtests.sh test_foo.py test_bar.py
 #   Run only some tests.
@@ -45,7 +45,10 @@ prnt "... ready"
 cd test/
 
 # HACK: communicate variable to test_*.py modules. All tests which write temp
-# files must import this module and write their files to $testdir.
+# files must import this module and write their files to "testdir":
+# >>> from testenv import testdir
+# >>> filename = os.path.join(testdir, 'foo_tmp.txt')
+# >>> ...
 echo "testdir='$testdir'" > testenv.py
 
 # Purge any compiled files.
