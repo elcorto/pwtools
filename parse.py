@@ -2598,32 +2598,65 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
         TRAJECTORY
         ENERGIES
 
-    The following extra files are written (+) or not (-) for these cases if the
-    input follows the example above.
+    In the listing below, we show which extra files are written (+) or not (-)
+    if the input follows the example above.
     
+    Also, the order of columns in the ENERGIES file depends on what type of MD
+    we are running. In case of BO-MD it depends on the kind of wavefunction
+    optimizer, too! This is most unpleasant. Currently we rely on the fact that
+    each tested case has a different number of columns, but this is very
+    hackish b/c it is not guaranteed to be unique! Maybe, we should let the
+    user set self.energies_order or a keywords mdtype={'cp-npt', 'bo', etc}
+    instead of subclassed for each case. 
+    
+    This is what we tested so far (cpmd 3.15.1). For BO-MD + ODIIS, some
+    columns are always 0.0, but all are there (e.g. EKINC is there but 0.0 b/c
+    not defined for BO, only CP). For BO-MD, we list the wf optimizer (xxx for
+    CP b/c there is none).
+
     MOLECULAR DYNAMICS BO
         +FTRAJECTORY
         -CELL
         -STRESS         # why!?
+      ODISS        
+        NFI EKINC TEMPP EKS ECLASSIC EHAM DIS TCPU 
+      LANCZOS DIAGONALIZATION
+        NFI TEMPP EKS ECLASSIC DIS TCPU
 
     MOLECULAR DYNAMICS CP
         +FTRAJECTORY
         -CELL
         +STRESS
+      xxx        
+        NFI EKINC TEMPP EKS ECLASSIC EHAM DIS TCPU 
     
+    MOLECULAR DYNAMICS BO
+    PARRINELLO-RAHMAN
+        not implemented !
+        
+    MOLECULAR DYNAMICS CP
+    PARRINELLO-RAHMAN
+        -FTRAJECTORY    # why!?
+        +CELL
+        +STRESS
+      xxx        
+        NFI EKINC EKINH TEMPP EKS ECLASSIC EHAM DIS TCPU
+
     MOLECULAR DYNAMICS BO
     PARRINELLO-RAHMAN NPT
         -FTRAJECTORY    # why!?
         +CELL
         +STRESS
+      ODIIS
+        NFI EKINC EKINH TEMPP EKS ECLASSIC EHAM DIS TCPU
     
     MOLECULAR DYNAMICS CP
     PARRINELLO-RAHMAN NPT
-        not tested yet ... stay tuned
-    
-    MOLECULAR DYNAMICS {BO,CP}
-    PARRINELLO-RAHMAN
-        not tested yet ... stay tuned
+        -FTRAJECTORY    # why!?
+        +CELL
+        +STRESS
+      xxx
+        NFI EKINC EKINH TEMPP EKS ECLASSIC EHAM DIS TCPU
     """        
     def __init__(self, filename=None):
         """
@@ -2651,29 +2684,6 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
         'volume',
         ])
         
-        # The order of columns in the ENERGIES file depends on what type of MD
-        # we are running. This is most unpleasant. 
-        #
-        # XXX Currently we rely on the fact that each tested case has a
-        # different number of columns, but this is very kackish b/c it is not
-        # guaranteed to be unique! Maybe, we should let the user set
-        # self.energies_order in the constructor.
-        #
-        # MOLECULAR DYNAMICS {CP,BO}
-        # PARRINELLO-RAHMAN NPT
-        # ODIIS
-        #     NFI EKINC EKINH TEMPP EKS ECLASSIC EHAM DIS TCPU
-        #
-        # MOLECULAR DYNAMICS {CP,BO}
-        # ODISS
-        #     NFI EKINC TEMPP EKS ECLASSIC EHAM DIS TCPU
-        #
-        # MOLECULAR DYNAMICS {CP,BO}
-        # LANCZOS DIAGONALIZATION
-        #     NFI TEMPP EKS ECLASSIC DIS TCPU
-        #
-        # For BO-MD + ODIIS, some columns are always 0.0, but all are there
-        # (e.g. EKINC is there but 0.0 b/c not defined for BOi, only CP).
         self._energies_order = {\
             9:\
                 {'nfi': 0,
