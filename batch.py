@@ -192,7 +192,8 @@ class FileTemplate(object):
         args:
         -----
         dct : dict 
-            key-value pairs, dct.keys() are converted to placeholders
+            key-value pairs, dct.keys() are converted to placeholders with
+            self.func()
         calc_dir : str
             the dir where to write the target file to
         mode : str, {'dct', 'sql'}
@@ -247,7 +248,7 @@ class FileTemplate(object):
 
 
 class Calculation(object):
-    """A single calculation, e.g. in dir calc_mars/0/ .
+    """A single calculation, e.g. in dir calc_foo/0/ .
     
     methods:
     --------
@@ -282,7 +283,7 @@ class Calculation(object):
     # SQLEntry instances. In the dict case, let get_sql_record() raise a
     # warning.
     def __init__(self, machine, templates, params, prefix='calc',
-                 idx=0):
+                 idx=0, calc_dir='calc_dir'):
         """
         args:
         -----
@@ -298,9 +299,13 @@ class Calculation(object):
             FileTemplate and an attempt to replacement in the template files is
             made.
         prefix : str, optional
-            Unique string identifying this calculation.
+            Unique string identifying this calculation. Usually the base of a
+            string for the jobname in a batch queue script. See also ``prefix``
+            in ParameterStudy.
         idx : int, optional
             The number of this calculation. Useful in ParameterStudy.
+        calc_dir : str, optional
+            Calculation directory to which input files are written.
         """
         self.machine = machine
         if type(templates) == type([]):
@@ -311,10 +316,11 @@ class Calculation(object):
         self.params = params
         self.prefix = prefix
         self.idx = idx
+        self.calc_dir = calc_dir
         
         self.sql_record = {}
         self.sql_record['idx'] = SQLEntry(sqltype='integer', sqlval=self.idx)
-        self.sql_record['prefix']   = SQLEntry(sqltype='text',sqlval=self.prefix)
+        self.sql_record['prefix'] = SQLEntry(sqltype='text',sqlval=self.prefix)
         self.sql_record.update(self.machine.get_sql_record())
         for entry in self.params:
             self.sql_record[entry.key] = entry
@@ -322,17 +328,11 @@ class Calculation(object):
     def get_sql_record(self):
         return self.sql_record
 
-    def write_input(self, calc_dir):
-        """
-        args:
-        ----
-        calc_dir : str
-            Calculation directory to which input files are written.
-        """            
-        if not os.path.exists(calc_dir):
-            os.makedirs(calc_dir)
+    def write_input(self):
+        if not os.path.exists(self.calc_dir):
+            os.makedirs(self.calc_dir)
         for templ in self.templates.itervalues():
-            templ.writesql(self.sql_record, calc_dir)
+            templ.writesql(self.sql_record, self.calc_dir)
 
 
 class ParameterStudy(object):
@@ -342,9 +342,10 @@ class ParameterStudy(object):
     methods:
     --------
     write_input : Create calculation dir(s) for each parameter set and write
-        input files. Write sqlite database storing all relevant parameters.
-        Write (bash) shell script to start all calculations (run locally or
-        submitt batch job file, depending on machine.subcmd).
+        input files based on ``templates``. Write sqlite database storing all
+        relevant parameters. Write (bash) shell script to start all
+        calculations (run locally or submitt batch job file, depending on
+        machine.subcmd).
     
     notes:
     ------
@@ -354,18 +355,18 @@ class ParameterStudy(object):
     sets is done and input files are written. 
     
     Calculation dirs are numbered automatically. The default is
-    (write_input()):
-        calc_dir = <root>/<calc_dir_prefix>_<machine>
+        calc_dir = <calc_root>/<calc_dir_prefix>_<machine.name>, e.g.
+        ./calc_foo
     and each calculation for each parameter set
-        calc_dir/0
-        calc_dir/1
-        calc_dir/2
+        ./calc_foo/0
+        ./calc_foo/1
+        ./calc_foo/2
         ...
     
     A sqlite database calc_dir/<db_name> is written. If this class operates
-    on a calc_dir where such a database already exists, then new
-    calculations are added and the numbering of calc dirs continues at the
-    end. 
+    on a calc_dir where such a database already exists, then the default is
+    to append new calculations. The numbering of calc dirs continues at the
+    end. This can be changed with the ``mode`` kwarg of write_input().
     
     Rationale:
     B/c the pattern in which (any number of) parameters will be varied may be
@@ -388,8 +389,8 @@ class ParameterStudy(object):
     The sqlite database would have one column and look like this:
         foo   
         ---   
-        1.0   # calc_dir/0
-        2.0   # calc_dir/0
+        1.0   # calc_foo/0
+        2.0   # calc_foo/1
     Note that you have one entry per row [[...], [...]], like in a
     column vector, b/c "foo" is a *column* in the database and b/c each
     calculation is represented by one row (record).
@@ -401,8 +402,8 @@ class ParameterStudy(object):
     thus have two columns.              
         foo   bar
         ---   ---
-        1.0   lala  # calc_dir/0
-        2.0   huhu  # calc_dir/1
+        1.0   lala  # calc_foo/0
+        2.0   huhu  # calc_foo/1
     Each row (or record in sqlite) will be one Calculation, getting
     it's own dir.
 
@@ -444,7 +445,8 @@ class ParameterStudy(object):
     sql.sql_matrix
     """
     def __init__(self, machine, templates, params_lst, prefix='calc',
-                 db_name='calc.db', db_table='calc'):
+                 db_name='calc.db', db_table='calc', calc_dir=None, calc_root=os.curdir,
+                 calc_dir_prefix='calc'):
         """                 
         args:
         -----
@@ -452,8 +454,8 @@ class ParameterStudy(object):
         params_lst : list of lists
             The "parameter sets". Each sublist is a set of calculation
             parameters as SQLEntry instances: 
-                [[SQLEntry(...), SQLEntry(...), ...], # calc_dir/0
-                 [SQLEntry(...), SQLEntry(...), ...], # calc_dir/1
+                [[SQLEntry(...), SQLEntry(...), ...], # calc_foo/0
+                 [SQLEntry(...), SQLEntry(...), ...], # calc_foo/1
                  ...
                 ] 
             For each sublist, a separate calculation dir is created and
@@ -469,13 +471,21 @@ class ParameterStudy(object):
             sets"). The sqlite table header is compiled from all distinct
             `key`s found.
         prefix : str, optional
-            Calculation name. From this, the prefix for pw.in files and job
+            Calculation name. From this, the prefix for input files and job
             name etc. will be built. By default, a string "_run<idx>" is
             appended to create a unique name.
         db_name : str, optional
             Basename of the sqlite database.
         db_table : str, optional
             Name of the sqlite database table.
+        calc_dir : str, optional
+            Top calculation dir (e.g. 'calc_foo' and each calc in
+            'calc_foo/0, ...').
+            If None then default is <calc_root>/<calc_dir_prefix>_<machine.name>/
+        calc_root : str, optional
+            Root of all dirs.
+        calc_dir_prefix : str, optional
+            Prefix for the top calculation dir (e.g. 'calc' for 'calc_foo').
         """            
         self.machine = machine
         self.templates = templates
@@ -483,66 +493,87 @@ class ParameterStudy(object):
         self.prefix = prefix
         self.db_name = db_name
         self.db_table = db_table
-    
-    def write_input(self, calc_dir=None, root=os.curdir,
-                    calc_dir_prefix='calc', backup=True, sleep=2):
+        self.calc_root = calc_root
+        self.calc_dir_prefix = calc_dir_prefix
+        if calc_dir is None:
+            self.calc_dir = pj(self.calc_root, self.calc_dir_prefix + \
+                               '_%s' %self.machine.name)
+        else:
+            self.calc_dir = calc_dir
+        self.dbfn = pj(self.calc_dir, self.db_name)
+
+    def write_input(self, mode='a', backup=True, sleep=0):
         """
         args:
         -----
-        calc_dir : str, optional
-            Top calculation dir (e.g. 'calc_mars' and each calc in
-            'calc_mars/0, ...').
-            If None then default is <root>/<calc_dir_prefix>_<machine>/
-        root : str, optional
-            Root of all dirs.
-        calc_dir_prefix : str, optional
-            Prefix for the top calculation dir (e.g. 'calc' for 'calc_mars').
+        mode : str, optional
+            Fine tune how to write input files (based on ``templates``) to calc
+            dirs calc_foo/0/, calc_foo/1/, ... . Note that this doesn't change
+            the base dir calc_foo at all, only the subdirs for each calc.
+            {'a', 'w'}
+            'a': Append mode (default). If a previous database is found, then
+                subsequent calculations are numbered based on the last 'idx'.
+                calc_foo/0 # old
+                calc_foo/1 # old
+                calc_foo/2 # new
+                calc_foo/3 # new
+            'w': Write mode. The target dirs are purged and overwritten. Also,
+                the database (self.dbfn) is overwritten. Use this to
+                iteratively tune your inputs, NOT for working on already
+                present results!
+                calc_foo/0 # new
+                calc_foo/1 # new
         backup : bool, optional
-            do a backup of `calc_dir` if it already exists
+            Before writing anything, do a backup of self.calc_dir if it already
+            exists.
         sleep : int, optional
             For the script to start (submitt) all jobs: time in seconds for the
             shell sleep(1) commmand.
         """
-        # calc_mars/, calc_deimos/, ...
-        if calc_dir is None:
-            calc_dir = pj(root, calc_dir_prefix + \
-                          '_%s' %self.machine.name)
-        if os.path.exists(calc_dir):
+        assert mode in ['a', 'w'], "Unknown mode: '%s'" %mode
+        if os.path.exists(self.calc_dir):
             if backup:
-                common.backup(calc_dir)
+                common.backup(self.calc_dir)
+            if mode == 'w':
+                os.remove(self.dbfn)
         else:        
-            os.makedirs(calc_dir)
-        dbfn = pj(calc_dir, self.db_name)
-        have_new_db = not os.path.exists(dbfn)
-        sqldb = SQLiteDB(dbfn, table=self.db_table)
+            os.makedirs(self.calc_dir)
+        have_new_db = not os.path.exists(self.dbfn)
+        # this call creates a file ``self.dbfn`` if it doesn't exist
+        sqldb = SQLiteDB(self.dbfn, table=self.db_table)
         # max_idx: counter for calc dir numbering
         if have_new_db:
             max_idx = -1
         else:
-            if sqldb.has_column('idx'):
-                max_idx = sqldb.execute("select max(idx) from %s" \
-                %self.db_table).fetchone()[0]
-            else:
-                raise StandardError("database '%s': table '%s' has no "
-                      "column 'idx', don't know how to number calcs"
-                      %(self.db_name, self.db_table))
-         
+            if mode == 'a':
+                if sqldb.has_column('idx'):
+                    max_idx = sqldb.execute("select max(idx) from %s" \
+                    %self.db_table).fetchone()[0]
+                else:
+                    raise StandardError("database '%s': table '%s' has no "
+                          "column 'idx', don't know how to number calcs"
+                          %(self.dbfn, self.db_table))
+            elif mode == 'w':
+                max_idx = -1
         run_txt = "here=$(pwd)\n"
         sql_records = []
         for _idx, params in enumerate(self.params_lst):
             params = common.flatten(params)
             idx = max_idx + _idx + 1
-            calc_subdir = pj(calc_dir, str(idx))
+            calc_subdir = pj(self.calc_dir, str(idx))
             calc = Calculation(machine=self.machine,
                                templates=self.templates,
                                params=params,
                                prefix=self.prefix + "_run%i" %idx,
-                               idx=idx)
-            calc.write_input(calc_subdir)                               
+                               idx=idx,
+                               calc_dir=calc_subdir)
+            if mode == 'w' and os.path.exists(calc_subdir):
+                shutil.rmtree(calc_subdir)
+            calc.write_input()                               
             sql_records.append(calc.get_sql_record())
             run_txt += "cd %i && %s %s && cd $here && sleep %i\n" %(idx,\
                         self.machine.subcmd, self.machine.jobfn, sleep)
-        common.file_write(pj(calc_dir, 'run.sh'), run_txt)
+        common.file_write(pj(self.calc_dir, 'run.sh'), run_txt)
         # for incomplete parameters: collect header parts from all records and
         # make a set = unique entries
         raw_header = [(key, entry.sqltype.upper()) for record in sql_records \
@@ -561,7 +592,7 @@ class ParameterStudy(object):
                   ",".join(record.keys()),
                   ",".join(['?']*len(record.keys())))
             sqldb.execute(cmd, tuple(entry.sqlval for entry in record.itervalues()))
-        sqldb.commit()
+        sqldb.finish()
 
 
 def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s"):

@@ -16,7 +16,7 @@
 # (3) Use direct loops + SQLEntry to fill the table "by hand" - the flexible
 #   way.  
 
-import os
+import os, shutil
 import numpy as np
 from pwtools import comb, batch, common
 from pwtools.pwscf import kpointstr_pwin
@@ -34,6 +34,10 @@ local = batch.Machine(name='local',
                       subcmd='bash',
                       scratch='/tmp',
                       jobfn='job.local')
+
+def assrt_aae(*args, **kwargs):
+    np.testing.assert_array_almost_equal(*args, **kwargs)
+
 def test():    
     pj = os.path.join
     templ_dir = 'files/calc.templ'
@@ -80,8 +84,9 @@ def test():
     calc = batch.ParameterStudy(machine=machine, 
                                 templates=templates, 
                                 params_lst=params_lst, 
-                                prefix=prefix)
-    calc.write_input(calc_dir=calc_dir)
+                                prefix=prefix,
+                                calc_dir=calc_dir)
+    calc.write_input()
     # asserts .......
     db = sql.SQLiteDB(pj(calc_dir, 'calc.db'), table='calc')
     header = [(x[0].lower(), x[1].lower()) for x in db.get_header()]
@@ -111,7 +116,6 @@ def test():
         assert machine.scratch == db.execute("select scratch from calc where idx==?",
                                              (idx,)).fetchone()[0]
     
-    
     #--------------------------------------------------------------------------
     # Incomplete parameter sets I and zip().
     # Add more ecutwfc to the same study + one column of misc information. Vary
@@ -136,8 +140,9 @@ def test():
     calc = batch.ParameterStudy(machine=machine, 
                                 templates=templates, 
                                 params_lst=params_lst, 
-                                prefix=prefix)
-    calc.write_input(calc_dir=calc_dir)
+                                prefix=prefix,
+                                calc_dir=calc_dir)
+    calc.write_input()
     # asserts ...
     db = sql.SQLiteDB(pj(calc_dir, 'calc.db'), table='calc')
     header = [(x[0].lower(), x[1].lower()) for x in db.get_header()]
@@ -177,8 +182,9 @@ def test():
     calc = batch.ParameterStudy(machine=machine, 
                                 templates=templates, 
                                 params_lst=params_lst, 
-                                prefix=prefix)
-    calc.write_input(calc_dir=calc_dir)
+                                prefix=prefix,
+                                calc_dir=calc_dir)
+    calc.write_input()
 
     #--------------------------------------------------------------------------
     # Incomplete parameter sets II
@@ -216,10 +222,8 @@ def test():
     machine.scratch = '/tmp'
     calc_dir = pj(testdir, 'calc_test_incomplete')
     prefix = 'convergence'
-    templates = [batch.FileTemplate(basename='pw.in', templ_dir=templ_dir)] 
-    templates.append(batch.FileTemplate(basename=machine.jobfn,
-                                        templ_dir=templ_dir))
-    
+    templates = [batch.FileTemplate(basename=fn, templ_dir=templ_dir) \
+                 for fn in ['pw.in', machine.jobfn]]
     params = []
     # Row with 1 column:
     # The first two rows (=parameter sets) vary only "ecutwfc". No default
@@ -241,8 +245,10 @@ def test():
     calc = batch.ParameterStudy(machine=machine, 
                                 templates=templates, 
                                 params_lst=params, 
-                                prefix=prefix)
-    calc.write_input(calc_dir=calc_dir)
+                                prefix=prefix,
+                                calc_dir=calc_dir)
+    calc.write_input()
+    # asseerts ...
     db = sql.SQLiteDB(pj(calc_dir, 'calc.db'), table='calc')
     assert db.get_list1d('select conv_thr from calc') == [None]*4 +[1e-8]
     assert db.get_list1d('select ecutwfc from calc') == [25.0, 50.0, None, None, 75.0]
@@ -260,3 +266,75 @@ def test():
     db_hdr = db.get_header()           
     for colspec in hdr:
         assert colspec in db_hdr
+
+    #--------------------------------------------------------------------------
+    # check some defaults, don't write input data
+    #--------------------------------------------------------------------------
+    machine = local
+    prefix = 'convergence'
+    templates = [batch.FileTemplate(basename=fn, templ_dir=templ_dir) \
+                 for fn in ['pw.in', machine.jobfn]]
+    _ecutwfc = [25.0, 50.0, 75.0]
+    ecutwfc = sql.sql_column(key='ecutwfc', lst=_ecutwfc)
+    params_lst = comb.nested_loops([ecutwfc])
+    calc = batch.ParameterStudy(machine=machine, 
+                                templates=templates, 
+                                params_lst=params_lst, 
+                                prefix='foo')
+    assert calc.calc_dir == pj(os.curdir, 'calc_%s' % machine.name)
+
+    #--------------------------------------------------------------------------
+    # check mode
+    #--------------------------------------------------------------------------
+    calc_dir = pj(testdir, 'calc_test_1d_mode')
+    machine = local
+    prefix = 'convergence'
+    templates = [batch.FileTemplate(basename=fn, templ_dir=templ_dir) \
+                 for fn in ['pw.in', machine.jobfn]]
+    _ecutwfc = [1.0, 2.0, 3.0]
+    ecutwfc = sql.sql_column(key='ecutwfc', lst=_ecutwfc)
+    params_lst = comb.nested_loops([ecutwfc])
+    calc = batch.ParameterStudy(machine=machine, 
+                                templates=templates, 
+                                params_lst=params_lst, 
+                                prefix=prefix,
+                                calc_dir=calc_dir)
+    # ----- append ----------
+    calc.write_input(mode='a') # or 'w'
+    # asserts .......
+    db = sql.SQLiteDB(pj(calc_dir, 'calc.db'), table='calc')
+    idx_lst = db.get_list1d("select idx from calc")
+    assert idx_lst == [0,1,2]
+    assrt_aae(db.get_array1d("select ecutwfc from calc"), 
+              np.array([1.0, 2.0, 3.0]))
+
+    calc.write_input(mode='a', backup=False)
+    db = sql.SQLiteDB(pj(calc_dir, 'calc.db'), table='calc')
+    idx_lst = db.get_list1d("select idx from calc")
+    assert idx_lst == [0,1,2,3,4,5]
+    assrt_aae(db.get_array1d("select ecutwfc from calc"), 
+              np.array([1.0, 2.0, 3.0]*2))
+    
+    # ----- write ----------
+    shutil.rmtree(calc_dir)
+    calc.write_input(mode='a') # or 'w'
+    db = sql.SQLiteDB(pj(calc_dir, 'calc.db'), table='calc')
+    idx_lst = db.get_list1d("select idx from calc")
+    assert idx_lst == [0,1,2]
+    db.add_column('foo', 'integer')
+    for idx in idx_lst:
+        subdir = pj(calc_dir, str(idx))
+        common.system("touch %s/foo" %subdir)
+        db.execute("update calc set foo=? where idx==?", (idx*100, idx))
+    print db.execute("select * from calc").fetchall()        
+    db.finish()        
+    calc.write_input(mode='w', backup=True)
+    db = sql.SQLiteDB(pj(calc_dir, 'calc.db'), table='calc')
+    idx_lst = db.get_list1d("select idx from calc")
+    assert idx_lst == [0,1,2]
+    assert not db.has_column('foo')
+    # files 'foo' exist only in backup
+    for idx in idx_lst:
+        assert not os.path.exists(pj(calc_dir, str(idx), 'foo'))
+        assert os.path.exists(pj(calc_dir + '.0', str(idx), 'foo'))
+
