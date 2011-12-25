@@ -22,21 +22,20 @@ def add_doc(func):
     dct = {}
     dct['freq'] = \
     """freq : scalar
-        Typical phonon frequency [Hz].
-    """
+        Typical phonon frequency [Hz]."""
     dct['temp'] = \
     """temp : scalar
-        Temperature [K].
-    """
+        Temperature [K]."""
     dct['nf'] = \
     """nf : scalar
         Number of degrees of freedom. Usually ndim*natoms for no constranis
-        with ndim==3 (x,y,z).
-    """
+        with ndim==3 (x,y,z)."""
     dct['ndim'] = \
     """ndim : scalar
-        Number of dimensions. Usually ndim==3 (x,y,z).
-    """
+        Number of dimensions. Usually ndim==3 (x,y,z)."""
+    dct['nnos'] = \
+    """nnos : scalar
+        Length of the NH chain."""
     # Use dictionary string replacement:
     # >>> '%(lala)i %(xxx)s' %{'lala': 3, 'xxx': 'grrr'}
     # '3 grrr'
@@ -55,6 +54,7 @@ def particle_nhc_masses(freq, temp, nf=None, nnos=4):
     %(freq)s
     %(temp)s
     %(nf)s
+    %(nnos)s
 
     returns:
     --------
@@ -80,6 +80,7 @@ def barostat_nhc_masses(freq, temp, ndim=3, nnos=4):
     %(freq)s
     %(temp)s
     %(ndim)s
+    %(nnos)s
 
     returns:
     --------
