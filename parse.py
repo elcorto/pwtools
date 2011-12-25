@@ -1447,8 +1447,7 @@ class PwSCFOutputFile(FileParser):
         >>> pp.parse()
         >>> crys.coord_trans(pp.coords, 
         >>>                  old=np.identity(3), 
-        >>>                  new=pp.cell, 
-        >>>                  align='rows')
+        >>>                  new=pp.cell)
         """
         verbose("getting start coords")
         self.check_get_attr('natoms')
@@ -2817,16 +2816,14 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
                 coords_frac = crys.coord_trans(self.coords, 
                                                old=np.identity(3),
                                                new=self.cell,
-                                               axis=axis,
-                                               align='rows')
+                                               axis=axis)
                 return coords_frac                                               
             else:
                 assert self.cell.shape == (3,3,nstep)
                 arr = np.array([crys.coord_trans(self.coords[...,ii],
                                                  old=np.identity(3),
                                                  new=self.cell[...,ii],
-                                                 axis=axis,
-                                                 align='rows') \
+                                                 axis=axis) \
                                 for ii in range(nstep)])
                 # arr: (nstep, natoms, 3) -> (natoms, 3, nstep)
                 return np.rollaxis(arr, 0, 3)

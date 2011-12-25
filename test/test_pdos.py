@@ -23,7 +23,7 @@ def test():
                                     "set manually here")
             else:        
                 coords = coord_trans(pwout.coords, old=pwin.cell,
-                                     new=np.identity(3), align='rows') 
+                                     new=np.identity(3)) 
         else:
             raise StandardError("error: ibrav != 0, cannot get cell "
                 "parameters from infile set manually here")

@@ -69,7 +69,8 @@ cmd line tools in bin/
   doing more nice things like buildung a supercell of the trajectory. If we
   need this machinery for pw.x output too, then it's time to write pwo2axsf.py
   as a replacement for xcrysden's pwo2xsf.sh . Maybe unify all into smth like 
-  any2axsf.py . Or: Check if ASE can do that already.
+  any2axsf.py. Or make that a method of a Trajectory class -- a method to
+  create a supercell of itself. 
 
 tests
 -----

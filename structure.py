@@ -185,8 +185,7 @@ class Structure(FlexibleGetters):
             self.assert_get_attrs(req)
             return crys.coord_trans(coords=self.coords_frac,
                                     old=self.cell,
-                                    new=np.identity(3),
-                                    align='rows')
+                                    new=np.identity(3))
         else:
             return self.coords
     
@@ -196,8 +195,7 @@ class Structure(FlexibleGetters):
             self.assert_get_attrs(req)
             return crys.coord_trans(coords=self.coords,
                                     old=np.identity(3),
-                                    new=self.cell,
-                                    align='rows')
+                                    new=self.cell)
         else:
             return self.coords_frac
     

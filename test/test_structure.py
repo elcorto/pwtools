@@ -13,8 +13,7 @@ def test():
     coords_frac = np.random.rand(natoms,3)
     coords = crys.coord_trans(coords=coords_frac,
                               old=cell,
-                              new=np.identity(3),
-                              align='rows')
+                              new=np.identity(3))
     symbols = ['H']*natoms
 
     st = Structure(coords=coords,

@@ -469,8 +469,7 @@ def write_xyz(filename, coords_frac=None, coords_cart=None,
             coords_cart = crys.coord_trans(coords_frac, 
                                            old=cell, 
                                            new=np.identity(3),
-                                           axis=1,
-                                           align='rows')
+                                           axis=1)
     else:
         nstep = 1
         sl = [slice(None)]*2

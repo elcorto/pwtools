@@ -31,8 +31,7 @@ def test():
     coords['cell1'] = coord_trans(coords['cart'],
                                   old=np.identity(3), 
                                   new=cell1,
-                                  axis=1,
-                                  align='rows')
+                                  axis=1)
 
     dos = {}
     for key, val in coords.iteritems():

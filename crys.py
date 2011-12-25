@@ -139,7 +139,7 @@ def volume_cc(cryst_const):
 
 
 @crys_add_doc
-def cell2cc(cell, align='rows'):
+def cell2cc(cell):
     """From CELL_PARAMETERS to crystallographic constants a, b, c, alpha, beta,
     gamma. 
     This mapping is unique in the sense that multiple `cell`s will have
@@ -150,7 +150,6 @@ def cell2cc(cell, align='rows'):
     args:
     -----
     %(cell_doc)s
-    %(align_doc)s
 
     returns:
     --------
@@ -163,8 +162,6 @@ def cell2cc(cell, align='rows'):
     """
     cell = np.asarray(cell)
     assert_cond(cell.shape == (3,3), "cell must be (3,3) array")
-    if align == 'cols':
-        cell = cell.T
     cryst_const = np.empty((6,), dtype=float)
     # a = |a|, b = |b|, c = |c|
     cryst_const[:3] = np.sqrt((cell**2.0).sum(axis=1))
@@ -195,7 +192,6 @@ def cc2cell(cryst_const):
     returns:
     --------
     %(cell_doc)s
-        Basis vecs are the rows.
         unit: [a]**3
     
     notes:
@@ -208,8 +204,8 @@ def cc2cell(cryst_const):
         vb : in the x-y plane
       Then, vc is fixed. 
       cell = [[-- va --],
-            [-- vb --],
-            [-- vc --]]
+              [-- vb --],
+              [-- vc --]]
     """
     a = cryst_const[0]
     b = cryst_const[1]
@@ -241,7 +237,7 @@ def cc2cell(cryst_const):
 
 
 @crys_add_doc
-def recip_cell(cell, align='rows'):
+def recip_cell(cell):
     """Reciprocal lattice vectors.
         {a,b,c}* = 2*pi / V * {b,c,a} x {c, a, b}
     
@@ -250,7 +246,6 @@ def recip_cell(cell, align='rows'):
     args:
     -----
     %(cell_doc)s
-    %(align_doc)s
 
     returns:
     --------
@@ -265,8 +260,6 @@ def recip_cell(cell, align='rows'):
     """
     cell = np.asarray(cell)
     assert_cond(cell.shape == (3,3), "cell must be (3,3) array")
-    if align == 'cols':
-        cell = cell.T
     cell_recip = np.empty_like(cell)
     vol = volume_cell(cell)
     a = cell[0,:]
@@ -431,7 +424,7 @@ def raw_scell(coords, mask, symbols, behave='new'):
 
 
 @crys_add_doc
-def scell(coords, cell, dims, symbols=None, align='rows'):
+def scell(coords, cell, dims, symbols=None):
     """Build supercell based on `dims`. It scales the unit cell to the dims of
     the super cell and returns crystal atomic positions w.r.t. this cell.
     
@@ -446,7 +439,6 @@ def scell(coords, cell, dims, symbols=None, align='rows'):
         List of strings with atom symbols, (natoms,), must match with the
         rows of `coords`. If None then the returned `symbols` for the supercell
         are also None.
-    %(align_doc)s
 
     returns:
     --------
@@ -460,10 +452,7 @@ def scell(coords, cell, dims, symbols=None, align='rows'):
         basis vecs of the super cell
     """
     assert_cond(cell.shape == (3,3), "cell must be (3,3) array")
-    if align == 'cols':
-        cell = cell.T
     mask = scell_mask(*tuple(dims))
-    
     # Place each atom N = dim1*dim2*dim3 times in the
     # supercell, i.e. copy unit cell N times. Actually, N-1, since
     # n1=n2=n3=0 is the unit cell itself.
@@ -518,7 +507,6 @@ def scell3d(coords, cell, dims, symbols=None):
         List of strings with atom symbols, (natoms,), must match with the
         rows of `coords`. If None then the returned `symbols` for the supercell
         are also None.
-    %(align_doc)s
 
     returns:
     --------
@@ -712,7 +700,7 @@ def pbc_wrap(coords, copy=True, mask=[True]*3, xyz_axis=-1):
     return tmp        
 
 
-def coord_trans(coords, old=None, new=None, copy=True, axis=-1, align='cols'):
+def coord_trans(coords, old=None, new=None, copy=True, axis=-1):
     """General-purpose n-dimensional coordinate transformation. `coords` can
     have arbitrary dimension, i.e. it can contain many vectors to be
     transformed at once. But `old` and `new` must have ndim=2, i.e. only one
@@ -738,16 +726,14 @@ def coord_trans(coords, old=None, new=None, copy=True, axis=-1, align='cols'):
             3d : coords must have shape (..., M)
         If `coords` has a different shape, use `axis` to define the M-axis.
     old, new : 2d arrays (M,M)
-        matrices with the old and new basis vectors as rows or cols
+        Matrices with the old and new basis vectors as *rows*. Note that in the
+        usual math literature, columns are used. In that case, use ``old.T`` and/or
+        ``new.T``.
     copy : bool, optional
         True: overwrite `coords`
         False: return new array
     axis : the axis along which the length-M vectors are placed in `coords`,
         default is -1, i.e. coords.shape = (...,M)
-    align : string
-        {'cols', 'rows'}
-        cols : basis vecs are columns of `old` and `new`
-        rows : basis vecs are rows    of `old` and `new`
 
     returns:
     --------
@@ -760,8 +746,8 @@ def coord_trans(coords, old=None, new=None, copy=True, axis=-1, align='cols'):
     >>> import math
     >>> v_I = np.array([1.0,1.5])
     >>> I = np.identity(2)
-    >>> X = math.sqrt(2)/2.0*np.array([[1,-1],[1,1]])
-    >>> Y = np.array([[1,1],[0,1]])
+    >>> X = math.sqrt(2)/2.0*np.array([[1,-1],[1,1]]).T
+    >>> Y = np.array([[1,1],[0,1]]).T
     >>> coord_trans(v_I,I,I)
     array([ 1. ,  1.5])
     >>> v_X = coord_trans(v,I,X)
@@ -782,14 +768,10 @@ def coord_trans(coords, old=None, new=None, copy=True, axis=-1, align='cols'):
     >>> c_old2 = coord_trans(c_new, old=new, new=old)
     >>> np.testing.assert_almost_equal(c_old, c_old2)
     
-    >>> c_new1=coord_trans(c_old, old=old, new=new, align='rows') 
-    >>> c_new2=coord_trans(c_old, old=old.T, new=new.T, align='cols') 
-    >>> np.testing.assert_almost_equal(c_new1, c_new2)
-    
     # If you have an array of shape, say (10,3,100), i.e. the last dimension is
     # NOT 3, then use numpy.swapaxes() or axis:
-    >>> coord_trans(arr.swapaxes(1,2), old=..., new=...).swapaxes(1,2)
     >>> coord_trans(arr, old=..., new=..., axis=1)
+    >>> coord_trans(arr.swapaxes(1,2), old=..., new=...).swapaxes(1,2)
 
     refs:
     [1] http://www.mathe.tu-freiberg.de/~eiermann/Vorlesungen/HM/index_HM2.htm
@@ -947,9 +929,6 @@ def coord_trans(coords, old=None, new=None, copy=True, axis=-1, align='cols'):
     _coords = coords.copy() if copy else coords
     mx_axis = _coords.ndim - 1
     axis = mx_axis if (axis == -1) else axis
-    if align == 'rows':
-        old = old.T
-        new = new.T
     # must use `coords[:] = ...`, just `coords = ...` is a new array
     if axis != mx_axis:
         # bring xyz-axis to -1 for broadcasting
@@ -963,11 +942,12 @@ def coord_trans(coords, old=None, new=None, copy=True, axis=-1, align='cols'):
     return _coords
 
 def _trans(coords, old, new):
-    # Helper for coord_trans().
+    """Helper for coord_trans()."""
     common.assert_cond(coords.shape[-1] == old.shape[0], 
                        "last dim of `coords` must match first dim"
                        " of `old` and `new`")
-    return np.dot(coords, np.dot(inv(new), old).T)
+    # The equation works for ``old.T`` and ``new.T`` = columns.
+    return np.dot(coords, np.dot(inv(new.T), old.T).T)
 
 
 def min_image_convention(sij, copy=False):
@@ -990,14 +970,13 @@ def min_image_convention(sij, copy=False):
 
 
 @crys_add_doc
-def rmax_smith(cell, align='cols'):
+def rmax_smith(cell):
     """Helper function for rpdf(). Calculate rmax as in [Smith].
     The cell vecs must be the rows of `cell`.
 
     args:
     -----
     %(cell_doc)s
-    %(align_doc)s
 
     returns:
     --------
@@ -1009,11 +988,9 @@ def rmax_smith(cell, align='cols'):
             http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.57.1696
             1989
     """
-    if align == 'cols':
-        cell = cell.T
-    a = cell[:,0]
-    b = cell[:,1]
-    c = cell[:,2]
+    a = cell[0,:]
+    b = cell[1,:]
+    c = cell[2,:]
     bxc = np.cross(b,c)
     cxa = np.cross(c,a)
     axb = np.cross(a,b)
@@ -1025,7 +1002,7 @@ def rmax_smith(cell, align='cols'):
 
 
 @crys_add_doc
-def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None), align='rows', 
+def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None), 
          pbc=True, full_output=False):
     """Radial pair distribution (pair correlation) function. This is for one
     atomic structure (2d arrays) or a MD trajectory (3d arrays). Can also handle
@@ -1049,8 +1026,6 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None), align='rows',
         float: set value yourself
     tslice : slice object, optional
         Slice for the time axis if coords had 3d arrays.
-    %(align_doc)s 
-        optional
     pbc : bool, optional
         apply minimum image convention
     full_output : bool, optional
@@ -1083,7 +1058,6 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None), align='rows',
     #   coords = crys.coord_trans(pwout.coords, 
     #                             old=np.identity(3), 
     #                             new=np.identity(3)*alat,
-    #                             align='rows', 
     #                             axis=1)
     >>> coords = pwout.coords / alat
     # make selections, numpy rocks!
@@ -1263,8 +1237,6 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None), align='rows',
         raise StandardError("arrays in coords_lst have wrong shape, expect 2d "
                             "or 3d, got [%s, %s]" \
                             %tuple(map(str, [c.shape for c in coords_lst])))
-    if align == 'cols':
-        cell = cell.T
     rmax_auto = rmax_smith(cell)
     if rmax == 'auto':
         rmax = rmax_auto
@@ -1360,7 +1332,7 @@ def vmd_measure_gofr(coords, cell, symbols, dr, rmax='auto', selstr1='all', sels
                      fntype='xsf', first=0,
                      last=-1, step=1, usepbc=1, datafn=None,
                      scriptfn=None, logfn=None, xsffn=None, tmpdir='/tmp', 
-                     keepfiles=False, full_output=False, align='rows'):
+                     keepfiles=False, full_output=False):
     """Call VMD's "measure gofr" command. This is a simple interface which does
     in fact the same thing as the gofr GUI. This is intended as a complementary
     function to rpdf() and should, of course, produce the "same" results.
@@ -1405,7 +1377,6 @@ def vmd_measure_gofr(coords, cell, symbols, dr, rmax='auto', selstr1='all', sels
         dir where auto-generated tmp files are written
     keepfiles : bool, optional
         Whether to delete `datafn` and `scriptfn`.
-    %(align_doc)s
 
     returns:
     --------
@@ -1477,8 +1448,6 @@ def vmd_measure_gofr(coords, cell, symbols, dr, rmax='auto', selstr1='all', sels
         logfn = os.path.join(tmpdir, "vmd_log")
     if xsffn is None:
         xsffn = os.path.join(tmpdir, "vmd_xsf")
-    if align == 'cols':
-        cell = cell.T
     cc = cell2cc(cell)
     if np.abs(cc[3:] - 90.0).max() > 0.1:
         print cell

@@ -83,13 +83,9 @@ def crys_add_doc(func):
     """Decorator to add common docstrings to functions with crystal/unit cell
     related functionallity."""
     dct = {}
-    dct['align_doc'] = \
-    """align: str
-        'rows' : basis vecs are the rows of `cell`
-        'cols' : basis vecs are the columns of `cell`"""
     dct['cell_doc'] = \
     """cell: array, shape (3,3)
-        Matrix with basis vectors."""
+        Matrix with basis vectors as rows."""
     dct['cryst_const_doc'] = \
     """cryst_const: array_like, shape (6,)
         [a, b, c, alpha, beta, gamma]"""

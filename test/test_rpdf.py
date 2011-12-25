@@ -39,6 +39,7 @@ def test():
                    'rmax_auto': np.array(rmax_auto),
                    }
         for key, val in results.iteritems():
-            print("key: %s" %key)
+            print("    key: %s" %key)
             ref = np.loadtxt(pj(dd, "result.%s.%s.txt" %(key, name)))
             np.testing.assert_array_almost_equal(ref, val)
+            print("    key: %s ... ok" %key)

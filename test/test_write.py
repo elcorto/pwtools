@@ -26,8 +26,7 @@ def test():
     coords3d_cart = crys.coord_trans(coords3d_frac, 
                                      old=cell2d, 
                                      new=np.identity(3),
-                                     axis=1,
-                                     align='rows')
+                                     axis=1)
     coords2d_cart = coords3d_cart[...,0]
     symbols = ['H']*2
     forces2d = np.random.random(coords2d_frac.shape)
