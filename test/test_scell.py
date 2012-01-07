@@ -56,7 +56,7 @@ def test():
     # slab
     #
     # Test if old and new implementation behave for a tricky case: natoms == 2
-    # mask.shape[0], i.e. if reshape() behaves correctly in raw_scell().
+    # mask.shape[0], i.e. if reshape() behaves correctly. 
     # Reference generated with old implementation. Default is new.
     cell = np.identity(3)
     coords = np.array([[0.5, 0.5, 0.5],
@@ -132,9 +132,26 @@ def test():
     nmask = np.prod(dims)
     sc = crys.scell3d(coords, cell, dims, symbols)
     assert sc['coords'].shape == (nmask*natoms, 3, nstep)
+    coords2 = np.array([crys.scell(coords[...,ii], 
+                                   cell[...,ii],
+                                   dims, 
+                                   symbols)['coords'] for ii in range(nstep)])
+    coords2 = np.rollaxis(coords2, 0, 3)                             
+    np.testing.assert_array_almost_equal(sc['coords'], coords2) 
     assert sc['symbols'] == common.flatten([['X%i' %idx]*nmask for idx in \
                                             range(natoms)])
     assert sc['cell'].shape == (3,3,nstep) 
     np.testing.assert_array_almost_equal(sc['cell'], 
                                          cell * np.asarray(dims)[:,None,None])
-
+    
+    # methods
+    natoms = 20
+    coords = rand(natoms,3)
+    cell = rand(3,3)
+    dims = (2,3,4)
+    symbols = ['X%i' %ii for ii in range(natoms)]
+    sc1 = crys.scell(coords, cell, dims, symbols, method=1)
+    sc2 = crys.scell(coords, cell, dims, symbols, method=2)
+    assert sc1['symbols'] == sc2['symbols']
+    for key in ['coords', 'cell']:
+        np.testing.assert_array_almost_equal(sc1[key], sc2[key])

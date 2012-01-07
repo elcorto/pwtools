@@ -347,7 +347,7 @@ def scell_mask(dim1, dim2, dim3):
            [ 1.,  0.,  1.],
            [ 1.,  1.,  0.],
            [ 1.,  1.,  1.]])
-    >>> # a "plane" of 4 cells           
+    >>> # 2x2x1 slab = "plane" of 4 cells           
     >>> scell_mask(2,2,1)
     array([[ 0.,  0.,  0.],
            [ 0.,  1.,  0.],
@@ -378,53 +378,7 @@ def scell_mask(dim1, dim2, dim3):
 
 
 @crys_add_doc
-def raw_scell(coords, mask, symbols, behave='new'):
-    """Build supercell based on `mask`. This function does only translate the
-    atomic coords. it does NOT do anything with the crystal axes. See scell()
-    for that.
-
-    NOTE: This is depretacted. The functionality (behave='new') is built into
-    scell() now.
-
-    args:
-    -----
-    coords : 2d array, (natoms, 3) with atomic positions in *crystal* (fractional)
-        coordinates (i.e. in units of the basis vecs in `cell`, for instance in .cif
-        files _atom_site_fract_*), these represent the initial single unit cell
-    mask : what scell_mask() returns, (N, 3)
-    symbols : list of strings with atom symbols, (natoms,), must match with the
-        rows of coords
-    behave : str, {'new', 'old'}        
-
-    returns:
-    --------
-    (symbols, coords)
-    symbols : list of strings with atom symbols, (N*natoms,)
-    coords : array (N*natoms, 3)
-        Atomic crystal coords in the super cell w.r.t the original cell, 
-        i.e. the numbers are not in [0,1], but in [0, max(dims)].
-    """
-    nmask = mask.shape[0]
-    natoms = coords.shape[0]
-    if behave == 'new':   
-        sc_symbols = np.array(symbols).repeat(nmask).tolist()   
-        sc_coords = (coords[:,None] + mask[None,:]).reshape(natoms*nmask,3)
-    elif behave == 'old':        
-        sc_symbols = []
-        sc_coords = np.empty((nmask*natoms, 3), dtype=float)
-        k = 0
-        for iatom in range(coords.shape[0]):
-            for j in range(nmask):
-                sc_symbols.append(symbols[iatom])  
-                sc_coords[k,:] = coords[iatom,:] + mask[j,:]
-                k += 1
-    else:
-        raise
-    return sc_symbols, sc_coords
-
-
-@crys_add_doc
-def scell(coords, cell, dims, symbols=None):
+def scell(coords, cell, dims, symbols=None, method=1):
     """Build supercell based on `dims`. It scales the unit cell to the dims of
     the super cell and returns crystal atomic positions w.r.t. this cell.
     
@@ -439,6 +393,9 @@ def scell(coords, cell, dims, symbols=None):
         List of strings with atom symbols, (natoms,), must match with the
         rows of `coords`. If None then the returned `symbols` for the supercell
         are also None.
+    method : int, optional
+        Switch between numpy-ish (1) or loop (2) implementation. (2) should
+        always produce correct results but is sublty slower.
 
     returns:
     --------
@@ -474,10 +431,23 @@ def scell(coords, cell, dims, symbols=None):
     #
     nmask = mask.shape[0]
     natoms = coords.shape[0]
-    sc_symbols = np.array(symbols).repeat(nmask).tolist() if (symbols \
-                 is not None) else None
-    # (natoms, 1, 3) + (1, nmask, 3) -> (natoms, nmask, 3)
-    sc_coords = (coords[:,None] + mask[None,:]).reshape(natoms*nmask,3)
+    if method == 1:   
+        sc_symbols = np.array(symbols).repeat(nmask).tolist() if (symbols \
+                     is not None) else None
+        # (natoms, 1, 3) + (1, nmask, 3) -> (natoms, nmask, 3)
+        sc_coords = (coords[:,None] + mask[None,:]).reshape(natoms*nmask,3)
+    elif method == 2:        
+        sc_symbols = []
+        sc_coords = np.empty((nmask*natoms, 3), dtype=float)
+        k = 0
+        for iatom in range(coords.shape[0]):
+            for j in range(nmask):
+                if symbols is not None:
+                    sc_symbols.append(symbols[iatom])  
+                sc_coords[k,:] = coords[iatom,:] + mask[j,:]
+                k += 1
+    else:
+        raise StandardError("unknown method: %s" %repr(method))
     # scale cell acording to super cell dims
     sc_cell = cell * np.asarray(dims)[:,None]
     # Rescale crystal coords to new bigger cell (coord_trans
@@ -501,7 +471,7 @@ def scell3d(coords, cell, dims, symbols=None):
     -----
     coords : 3d array, (natoms, 3, nstep) with atomic positions in *crystal*
         coordinates (i.e. in units of the basis vecs in `cell`)
-    cell : 2d (3,3) or 3d (3,3,NSTEP) array with unit cell(s)
+    cell : 2d (3,3) or 3d (3,3,nstep) array with unit cell(s)
     dims : tuple (nx, ny, nz) for a N = nx * ny * nz supercell
     symbols : {sequence (natoms,), None}, optional
         List of strings with atom symbols, (natoms,), must match with the
