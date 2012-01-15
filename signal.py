@@ -19,30 +19,35 @@ def fftsample(a, b, mode='f', mirr=False):
     
     args:
     -----
-    a, b: 1d arrays, see below
+    a, b: scalars, see below
     mode : string, {'f', 't'}
         f : frequency mode
         t : time mode
     mirr: bool, consider mirroring of the signal at t=0 before Fourier
         transform
-
-    f-mode:
-        a : fmax  
-        b : df 
-    t-mode:
-        a : dt 
-        b : N
+    
+    a,b are: 
+        f-mode: fmax, df
+        t-mode: dt, N
 
     returns:
     --------
-    array([x,y])
     f-mode:
-        x: dt  
-        y: N
+        array([dt, N])
     t-mode:
-        x: fmax 
-        y: df
+        array([fmax, df])
     
+    example:
+    --------
+    # fmax = 100 Hz, df = 1 Hz -> you need 200 steps with dt=0.005 sec
+    >>> fftsample(100, 1, mode='f') 
+    array([  5.00000000e-03,   2.00000000e+03])
+    >>> fftsample(5e-3, 2e3, mode='t')
+    array([ 100. ,    1.])
+    # If you mirror, you only need 100 steps
+    >>> fftsample(100, 1, mode='f', mirr=True)
+    array([  5.00000000e-03,   1.00000000e+02])
+
     notes:
     ------
     These relations hold ("v" - down, "^" - up):
