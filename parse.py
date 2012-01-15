@@ -504,7 +504,14 @@ class FlexibleGetters(object):
             return getattr(self, raw_attr_name)
         else:
             return None
-    
+   
+    def get_return_attr(self, attr_name):
+        self.check_get_attr(attr_name)
+        if self.is_set_attr(attr_name):
+            return getattr(self, attr_name)
+        else:
+            return None
+
 
 class FileParser(FlexibleGetters):
     """Base class for file parsers.
@@ -2444,15 +2451,30 @@ class CpmdSCFOutputFile(FileParser):
         else:
             return None
     
-    def _get_cell_raw(self):
+    def _get_cell_2d(self):
         """2d array `cell` in Bohr for fixed-cell MD or SCF from GEOMETRY.scale
         file."""
-        verbose("getting _cell")
+        verbose("getting _cell_2d")
         req = '_scale_file'
         self.check_get_attr(req)
         return self._scale_file['cell'] if self.is_set_attr(req) \
             else None
+    
+    def _get_volume_start(self):
+        verbose("getting _volume_start")
+        cmd = r"grep 'INITIAL VOLUME' %s" %self.filename + \
+              r"| sed -re 's/.*\):\s+(" + regex.float_re + r")\s*/\1/'" 
+        return float_from_txt(com.backtick(cmd))
 
+    def get_volume(self):
+        verbose("getting volume")
+        return self.get_return_attr('_volume_start')
+
+    def get_cell(self):
+        """2D Cell in Bohr."""
+        verbose("getting cell")
+        return self.get_return_attr('_cell_2d')
+    
     def get_stresstensor(self):
         # kbar
         verbose("getting stresstensor")
@@ -2474,10 +2496,6 @@ class CpmdSCFOutputFile(FileParser):
         else:
             return None
      
-    def get_cell(self):
-        """Cell in Bohr."""
-        return self.raw_return('cell')
-    
     def get_coords_frac(self):
         verbose("getting coords_frac")
         req = '_scale_file'
@@ -2530,12 +2548,6 @@ class CpmdSCFOutputFile(FileParser):
             sed -re 's/.*COORDINATES\):\s*([0-9]+)\s*.*/\1/'" %self.filename
         return int_from_txt(com.backtick(cmd))
 
-    def get_volume(self):
-        verbose("getting volume")
-        cmd = r"grep 'INITIAL VOLUME' %s" %self.filename + \
-              r"| sed -re 's/.*\):\s+(" + regex.float_re + r")\s*/\1/'" 
-        return float_from_txt(com.backtick(cmd))
-
     def get_nstep_scf(self):
         verbose("getting nstep_scf")
         cmd = r"grep -B2 'RESTART INFORMATION WRITTEN' %s | head -n1 \
@@ -2556,7 +2568,7 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
     Some attrs may be None or have different shapes (2d va 3d arrays) depending
     on what type of MD is parsed and what info/files are available.
     
-    Notes for the commemts below: 
+    Notes for the comments below: 
         {A,B,C} = A or B or C
         (A) = A is optional
         (A (B)) = A is optional, but only if present, B is optional
@@ -2657,6 +2669,7 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
       xxx
         NFI EKINC EKINH TEMPP EKS ECLASSIC EHAM DIS TCPU
     """        
+
     def __init__(self, filename=None):
         """
         args:
@@ -2667,9 +2680,12 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
         self.time_axis = -1
         self.set_attr_lst([\
         'cell', 
+        'coords', 
         'coords_frac', 
+        'cryst_const', 
         'econst',
-        'ekinc',
+        'ekin_cell',
+        'ekin_electrons',
         'etot', 
         'forces',
         'mass',
@@ -2679,6 +2695,7 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
         'stresstensor', 
         'symbols',
         'temperature',
+        'temperature_cell',
         'velocity',
         'volume',
         ])
@@ -2713,6 +2730,7 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
             }                 
     
     def _get_energies_file(self):
+        verbose("getting _energies_file")
         fn = os.path.join(self.basedir, 'ENERGIES')
         if os.path.exists(fn):
             arr = np.loadtxt(fn)
@@ -2731,6 +2749,7 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
             return None
     
     def _get_coords_vel_forces(self):
+        verbose("getting _coords_vel_forces")
         """Parse (F)TRAJECTORY file. Ignore lines which say
         "<<<<<<  NEW DATA  >>>>>>" from restarts.
         """
@@ -2774,7 +2793,30 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
         else:           
             return None
     
+    def _get_volume_traj(self):
+        verbose("getting _volume_traj")
+        self.check_get_attr('cell')
+        if self.is_set_attr('cell'):
+            if self.cell.ndim == 3:
+                return np.array([crys.volume_cell(self.cell[...,ii]) for ii \
+                    in range(self.cell.shape[-1])])
+        else:
+            return None
+    
+    def get_volume(self):
+        verbose("getting volume")
+        """Volume array (nstep,) for variable cell, scalar for fixed cell (SCF
+        cell)."""
+        req = ['_volume_traj', '_volume_start']
+        for attr_name in req:
+            self.check_get_attr(attr_name)
+            if self.is_set_attr(attr_name):
+                return getattr(self, attr_name)
+                break
+        return None 
+    
     def get_cell(self):
+        verbose("getting cell")
         """Parse CELL file. Cell in Bohr. If CELL is not there, return 2d cell
         from GEOMETRY.scale (self.cell from CpmdSCFOutputFile)."""
         # So far tested CELL files have 6 cols: 
@@ -2793,9 +2835,10 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
                                 axis=self.time_axis)
             return arr[:,:3,:]                                
         else:
-            return self.raw_return('cell') # 2d
+            return self.get_return_attr('_cell_2d') # 2d
 
     def get_coords(self):
+        verbose("getting coords")
         """Cartesian coords [Bohr]."""
         req = '_coords_vel_forces'
         self.check_get_attr(req)
@@ -2803,6 +2846,7 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
             else None
     
     def get_coords_frac(self):
+        verbose("getting coords_frac")
         req = ['coords', 'cell', 'natoms']
         self.check_get_attrs(req)
         if self.is_set_attrs(req):
@@ -2819,7 +2863,9 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
                                                axis=axis)
                 return coords_frac                                               
             else:
-                assert self.cell.shape == (3,3,nstep)
+                assert self.cell.shape == (3,3,nstep), ("shape mismatch: "
+                    "cell: %s, coords: %s, try hacking CELL and/or TRAJECTORY "
+                    "files" %(self.cell.shape, self.coords.shape))
                 arr = np.array([crys.coord_trans(self.coords[...,ii],
                                                  old=np.identity(3),
                                                  new=self.cell[...,ii],
@@ -2831,6 +2877,7 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
             return None
 
     def get_econst(self):
+        verbose("getting econst")
         req = ['_energies_file', 'etot']
         self.check_get_attrs(req)
         if self.is_set_attrs(req):
@@ -2842,6 +2889,8 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
             return None
 
     def get_ekinc(self):
+        verbose("getting ekinc")
+        """Fictitious electron kinetic energy [Ha]."""
         req = '_energies_file'
         self.check_get_attr(req)
         if self.is_set_attr(req) and self._energies_file.has_key('ekinc'):
@@ -2850,12 +2899,49 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
             return None
 
     def get_etot(self):
+        verbose("getting etot")
+        """Totat energy = EKS = Kohn Sham energy? [Ha]."""
         req = '_energies_file'
         self.check_get_attr(req)
         return self._energies_file['eks'] if self.is_set_attr(req) \
             else None
 
+    def get_ekinh(self):
+        verbose("getting ekinh")
+        """Fictitious cell kinetic energy [Ha].
+        From prcpmd.F: 
+            EKINH [J] = 9/2 * kb [J/K] * TEMPH [K]
+            EKINH [Ha] = 9/2 * kb [J/K] * TEMPH [K] / Ha
+        where TEMPH is the fictitious cell temperature.            
+        """
+        req = '_energies_file'
+        self.check_get_attr(req)
+        if self.is_set_attr(req) and self._energies_file.has_key('ekinh'):
+            return self._energies_file['ekinh']
+        else:
+            return None
+    
+    # alias
+    def get_ekin_cell(self):
+        verbose("getting ekin_cell")
+        return self.get_ekinh()
+
+    # alias
+    def get_ekin_electrons(self):
+        verbose("getting ekin_electrons")
+        return self.get_ekinc()
+    
+    def get_temperature_cell(self):
+        verbose("getting temperature_cell")
+        req = 'ekin_cell'
+        self.check_get_attr(req)
+        if self.is_set_attr(req):
+            return self.ekin_cell * 2.0 / 9.0 / constants.kb * constants.Ha
+        else:
+            return None
+    
     def get_forces(self):
+        verbose("getting forces")
         """Cartesian forces [Ha/Bohr]."""
         req = '_coords_vel_forces'
         self.check_get_attr(req)
@@ -2863,12 +2949,14 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
             else None
     
     def get_nstep(self):
+        verbose("getting nstep")
         req = '_energies_file'
         self.check_get_attr(req)
         return int(self._energies_file['nfi'][-1]) if self.is_set_attr(req) \
             else None
     
     def get_pressure(self):
+        verbose("getting pressure")
         # kbar
         self.check_get_attr('stresstensor')
         if self.is_set_attr('stresstensor'):
@@ -2879,6 +2967,7 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
             return None
      
     def get_stresstensor(self):
+        verbose("getting stresstensor")
         """Stress tensor from STRESS file if available."""
         # kbar
         fn = os.path.join(self.basedir, 'STRESS')
@@ -2893,18 +2982,38 @@ class CpmdMDOutputFile(CpmdSCFOutputFile):
             return None
     
     def get_temperature(self):
+        verbose("getting temperature")
         req = '_energies_file'
         self.check_get_attr(req)
         return self._energies_file['tempp'] if self.is_set_attr(req) \
             else None
     
     def get_velocity(self):
+        verbose("getting velocity")
         """Cartesian velocity [Bohr/th]."""
         req = '_coords_vel_forces'
         self.check_get_attr(req)
         return self._coords_vel_forces['velocity'] if self.is_set_attr(req) \
             else None
-   
+    
+    def get_cryst_const(self):
+        verbose("getting cryst_const")
+        # Loop may be slow but cannot be vectorized. Use Fortran extension or
+        # Cython if needed.
+        req = 'cell'
+        self.check_get_attr(req)
+        if self.is_set_attr(req):
+            if self.cell.ndim == 3:
+                assert self.time_axis == -1
+                return np.array([crys.cell2cc(self.cell[...,ii]) for ii in
+                    range(self.cell.shape[-1])])
+            elif self.cell.ndim == 2:
+                return crys.cell2cc(self.cell)
+            else:
+                raise StandardError("illegal cell.ndim: %s" %str(cell.ndim))
+        else:
+            return None
+    
     # "Disable" some inherited methods. Now, C++ style private methods would
     # come in handy.
     def get_nstep_scf(self):

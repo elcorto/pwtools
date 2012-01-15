@@ -24,9 +24,36 @@ def run(filename, none_attrs=[]):
     common.system('rm -r %s' %dr)
 
 def test():
+    # For BO-MD w/ ODIIS optimizer, ekin_electrons = [0,0,...,0] but not None.
     run(filename='files/cpmd/md_bo_odiis/cpmd.bo.out',
-        none_attrs=['pressure', 'stresstensor'])
+        none_attrs=['pressure', 
+                    'stresstensor', 
+                    'ekin_cell', 
+##                    'ekin_electrons',
+                    'temperature_cell',
+                    ])
     run(filename='files/cpmd/md_bo_odiis_npt/cpmd.out',
-        none_attrs=['forces'])        
+        none_attrs=['forces',
+                    'ekin_cell', 
+##                    'ekin_electrons',
+                    'temperature_cell',
+                    ])        
     run(filename='files/cpmd/md_bo_lanczos/cpmd.bo.out',
-        none_attrs=['ekinc', 'pressure', 'stresstensor'])               
+        none_attrs=['pressure', 
+                    'stresstensor',
+                    'ekin_cell', 
+                    'ekin_electrons',
+                    'temperature_cell',
+                    ]) 
+    run(filename='files/cpmd/md_cp_mttk/cpmd.out',
+        none_attrs=['forces'])
+    run(filename='files/cpmd/md_cp_pr/cpmd.out',
+        none_attrs=['forces'])        
+    run(filename='files/cpmd/md_cp_nvt_nose/cpmd.out',
+        none_attrs=['ekin_cell', 
+                    'temperature_cell',
+                    ])               
+    run(filename='files/cpmd/md_cp_nve/cpmd.out',
+        none_attrs=['ekin_cell', 
+                    'temperature_cell',
+                    ])                              ^     

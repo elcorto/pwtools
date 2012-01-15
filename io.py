@@ -149,9 +149,10 @@ def readtxt(fh, axis=None, shape=None, header_maxlines=HEADER_MAXLINES,
             header_comment=HEADER_COMMENT, maxdim=TXT_MAXDIM, **kwargs):
     """Read arrays from .txt file using np.loadtxt(). 
     
-    If the file stores a 3d array as consecutive 2d arrays, the file header
-    (see writetxt()) is used to determine the shape of the original 3d array
-    and the array is reshaped accordingly.
+    If the file stores a 3d array as consecutive 2d arrays (e.g. output from
+    molecular dynamics code) the file header (see writetxt()) is used to
+    determine the shape of the original 3d array and the array is reshaped
+    accordingly.
     
     If `axis` or `shape` is not None, then these are used instead and 
     the header, if existing, will be ignored. This has the potential to shoot
