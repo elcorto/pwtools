@@ -96,6 +96,7 @@ def toslice(val):
     ---------
     '3'     -> 3
     '3:'    -> slice(3, None, None)
+    '-2:'   -> slice(-2, None, None)
     '3:7'   -> slice(3, 7, None)
     '3:7:2' -> slice(3, 7, 2)
     '3::2'  -> slice(3, None, 2)
@@ -120,8 +121,10 @@ def toslice(val):
     # >>> np.s_[-2:]
     # slice(9223372036854775805, None, None)
     if val.strip().startswith('-'):
-        raise StandardError("Some minus slices (e.g -2:) not supported. "
-            "Use [<start>[:<step>]:<end>] as workaround.")
+        if np.s_[-2:] != slice(-2, None, None): 
+            raise StandardError("Some minus slices (e.g -2:) not supported "
+                "by your numpy (probably old version). Use "
+                "[<start>[:<step>]:<end>] as workaround.")
     # This eval() trick works but seems hackish. Better ideas, anyone?
     return eval('np.s_[%s]' %val)
 
