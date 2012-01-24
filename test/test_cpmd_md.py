@@ -56,4 +56,4 @@ def test():
     run(filename='files/cpmd/md_cp_nve/cpmd.out',
         none_attrs=['ekin_cell', 
                     'temperature_cell',
-                    ])                              ^     
+                    ])
