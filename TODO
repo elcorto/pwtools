@@ -1,3 +1,8 @@
+RPDF
+----
+* Compare VMD-generated results in examples/rpdf against own implementation. I
+  remember that with recent VMD versions, things have been different.
+
 pydos.py
 --------
 * unify vacf_pdos(), direct_pdos(), they have almost the same signature and

@@ -215,7 +215,15 @@ class SQLiteDB(object):
     
     def add_columns(self, header):
         """Convenience function to add multiple columns from `header`. See
-        get_header()."""
+        get_header().
+        
+        example:
+        --------
+        >>> db.add_columns([('a', 'text'), ('b', 'real')])
+        # is the same as
+        >>> db.add_column('a', 'text')
+        >>> db.add_column('b', 'real')
+        """
         for entry in fix_sql_header(header):
             self.add_column(*entry)
 
@@ -264,13 +272,30 @@ class SQLiteDB(object):
         numpy 2d array. The result depends on the data types of the columns."""
         return np.array(self.execute(*args, **kwargs).fetchall())
     
-    def get_dict(self, cols=None):
-        dct = {}
-        cols = [x[0] for x in self.get_header()] if cols is None else cols
-        for entry in cols:
-            col = entry[0]
-            dct[str(col)] = self.get_list1d("select %s from %s" %(col, self.table))
-        return dct            
+    def get_dict(self, *args, **kwargs):
+        """For the provided select statement, return a dict where each key is
+        the column name and the column is a list. Column names are obtained
+        from the Cursor.description attribute.
+
+        "select foo,bar from calc" would return
+        {'foo': [1,2,3],
+         'bar': ['x', 'y', 'z']}
+        """
+        cur = self.execute(*args, **kwargs)
+        # ['col0', 'col1, ...]
+        cols = [entry[0] for entry in cur.description]
+        # [(val0_0, val0_1, ...), # row 0
+        #  (val1_0, val1_1, ...), # row 1
+        #  ...]
+        ret = cur.fetchall()
+        dct = dict((col, []) for col in cols)
+        # {'col0': [val0_0, val1_0, ...], 
+        #  'col1': [val0_1, val1_1, ...], 
+        #  ...}
+        for row in ret:
+            for idx, col in enumerate(cols):
+                dct[col].append(row[idx])
+        return dct                
 
     def commit(self):
         self.conn.commit()

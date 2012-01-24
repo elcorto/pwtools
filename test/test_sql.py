@@ -95,6 +95,16 @@ def test():
     db2 = SQLiteDB(dbfn2, table='foo')
     db2.create_table(header2)
     assert db2.get_header() == header2
+    
+    # get_dict()
+    dct = db.get_dict("select foo,bar from calc")
+    cols = [x[0] for x in db.get_header()]
+    for key in ['foo', 'bar']:
+        assert key in cols
+    foo = db.get_list1d("select foo from calc")
+    bar = db.get_list1d("select bar from calc")
+    assert foo == dct['foo']
+    assert bar == dct['bar']
 
     # --- SQLEntry ----------------------------------------------------
     x = SQLEntry(1, 'integer')
