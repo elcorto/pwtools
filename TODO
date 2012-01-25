@@ -1,7 +1,8 @@
 RPDF
 ----
-* Compare VMD-generated results in examples/rpdf against own implementation. I
-  remember that with recent VMD versions, things have been different.
+* Improve crys.vmd_measure_gofr() by slicing the arrays with first, last, step
+  before writing to AXSF. This makes writing that file a lot faster if step is
+  used.
 
 pydos.py
 --------

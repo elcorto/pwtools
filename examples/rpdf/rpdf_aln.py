@@ -97,7 +97,7 @@ if __name__ == '__main__':
     # 2x2x2 supercell which has alat=10 and therefore rmax_auto = 5.0 = half
     # the box length.
     #
-    # Nearest neigbor numbers are:
+    # Nearest neighbor numbers are:
     #   shell   r   number int.     num. neibors in shell
     #   -----   -   -----------     ---------------------
     #
@@ -170,12 +170,13 @@ if __name__ == '__main__':
         mm = iter(['v', '^', '+', 'x'])
         for rmax in [5, 20]:
             for pbc in [True, False]:
-                rad, hist, num_int, rmax_auto = crys.rpdf(struct.coords, 
-                                                          rmax=rmax, 
-                                                          cell=struct.cell,
-                                                          dr=0.05, 
-                                                          pbc=pbc,
-                                                          full_output=True)
+                rmax_auto = crys.rmax_smith(struct.cell)
+                rad, hist, num_int = \
+                    crys.rpdf(struct.coords, 
+                              rmax=rmax, 
+                              cell=struct.cell,
+                              dr=0.05, 
+                              pbc=pbc)
                 pl = Plot()
                 pl.name = struct.fnbase
                 pl.rad = rad
@@ -184,7 +185,7 @@ if __name__ == '__main__':
                 pl.color = cc.next()                                                     
                 pl.marker = mm.next()                                                     
                 pl.leg_label = "pbc=%s, rmax=%i, rmax_auto=%.1f" %(pbc, rmax,
-                                                               rmax_auto)
+                                                                   rmax_auto)
                 plots["%s-%i-%s" %(struct.fnbase, rmax, pbc)] = pl
     
     name='aln_ibrav0_sc'
@@ -219,12 +220,14 @@ if __name__ == '__main__':
     c1 = struct.coords[np.array(struct.symbols) == 'Al', ...]
     c2 = struct.coords[np.array(struct.symbols) == 'N', ...]
     
-    rad, hist, num_int, rmax_auto = crys.rpdf([c1,c2], 
-                                              rmax=rmax, 
-                                              cell=struct.cell,
-                                              dr=0.05, 
-                                              pbc=pbc,
-                                              full_output=True)
+    rmax_auto = crys.rmax_smith(struct.cell)
+    rad, hist, num_int = \
+        crys.rpdf([c1,c2], 
+                  rmax=rmax, 
+                  cell=struct.cell,
+                  dr=0.05, 
+                  pbc=pbc)
+
     cc = iter(['b', 'r', 'g', 'm'])
     mm = iter(['v', '^', '+', 'x'])
     pl = Plot()
@@ -235,7 +238,7 @@ if __name__ == '__main__':
     pl.color = cc.next()                                                     
     pl.marker = mm.next()                                                     
     pl.leg_label = "pbc=%s, rmax=%i, rmax_auto=%.1f, Al-N" %(pbc, rmax,
-                                                   rmax_auto)
+                                                             rmax_auto)
     plot_pl(pl)                                                   
     
     plt.show()

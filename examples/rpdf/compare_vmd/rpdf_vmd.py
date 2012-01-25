@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Use some real world MD data (only 10 steps :) and calculate some RPDFs with
 # crys.rpdf() and VMD.
 
@@ -72,12 +74,12 @@ if __name__ == '__main__':
 
     dr = 0.1
     for key, val in cdct.iteritems():
-        rad, hist, num_int, rmax_auto = \
+        rad, hist, num_int = \
             crys.rpdf(coords=val, 
                       cell=cell, 
                       dr=dr, 
-                      full_output=True,
-                      tslice=slice(None))
+                      tslice=slice(None),
+                      )
         s1,s2,first,last = key.split(':')
         first = int(first)
         last = int(last)
@@ -87,8 +89,8 @@ if __name__ == '__main__':
             s2 = "name %s" %s2
         # Could also time-slice `coords` here and always use first=0, last=-1,
         # like we use rpdf().
-        rad_vmd, hist_vmd, num_int_vmd, rmax_auto_vmd = \
-            crys.vmd_measure_gofr(coords=coords, 
+        rad_vmd, hist_vmd, num_int_vmd = \
+            crys.vmd_measure_gofr(coords_frac=coords, 
                                   cell=cell,
                                   symbols=symbols,
                                   dr=dr, 
@@ -99,9 +101,8 @@ if __name__ == '__main__':
                                   last=last,
                                   keepfiles=True,
                                   tmpdir=tmpdir,
-                                  full_output=True)
-        print("rmax_auto: %f" %rmax_auto)
-        print("rmax_auto_vmd: %f" %rmax_auto_vmd)
+                                  )
+        print("rmax_auto: %f" %crys.rmax_smith(cell))
         plt.figure()
         plt.plot(rad, hist, 'b')
         plt.plot(rad_vmd, hist_vmd, 'r')

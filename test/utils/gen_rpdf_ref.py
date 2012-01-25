@@ -46,13 +46,14 @@ if __name__ == '__main__':
             pp.parse()
             coords = pp.coords
             cell = pp.cell
-        rad, hist, num_int, rmax_auto = crys.rpdf(coords, 
-                                                  rmax=5.0, 
-                                                  cell=cell,
-                                                  dr=0.05, 
-                                                  pbc=True,
-                                                  full_output=True)
+        rad, hist, num_int = crys.rpdf(coords, 
+                                       rmax=5.0, 
+                                       cell=cell,
+                                       dr=0.05, 
+                                       pbc=True,
+                                       )
         np.savetxt(pj(dd, "result.rad."         + name + ".txt"), rad) 
         np.savetxt(pj(dd, "result.hist."        + name + ".txt"), hist) 
         np.savetxt(pj(dd, "result.num_int."     + name + ".txt"), num_int) 
-        np.savetxt(pj(dd, "result.rmax_auto."   + name + ".txt"), [rmax_auto]) 
+        np.savetxt(pj(dd, "result.rmax_auto."   + name + ".txt"),
+                   [crys.rmax_smith(cell)]) 

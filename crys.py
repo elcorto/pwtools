@@ -973,10 +973,11 @@ def rmax_smith(cell):
 
 @crys_add_doc
 def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None), 
-         pbc=True, full_output=False):
+         pbc=True):
     """Radial pair distribution (pair correlation) function. This is for one
     atomic structure (2d arrays) or a MD trajectory (3d arrays). Can also handle
-    non-orthorhombic unit cells (simulation boxes).
+    non-orthorhombic unit cells (simulation boxes). Only fixed-cell MD (i.e.
+    cell.shape == (3,3)).
     
     args:
     -----
@@ -995,25 +996,31 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None),
             raduis for any cell shape
         float: set value yourself
     tslice : slice object, optional
-        Slice for the time axis if coords had 3d arrays.
+        Slice for the time axis if coords had 3d arrays. Use this or sline the
+        input arrays.
     pbc : bool, optional
         apply minimum image convention
-    full_output : bool, optional
 
     returns:
     --------
-    (rad, hist, (number_integral, rmax_auto))
+    (rad, hist, num_int)
     rad : 1d array, radius (x-axis) with spacing `dr`, each value r[i] is the
         middle of a histogram bin 
     hist : 1d array, (len(rad),)
         the function values g(r)
-    if full_output:
-        number_integral : 1d array, (len(rad),)
-            number_density*hist*4*pi*r**2.0*dr
-        rmax_auto : float
-            auto-calculated rmax, even if not used (i.e. rmax is set from
-            input)
+    num_int : 1d array, (len(rad),), the (averaged) number integral
+        number_density*hist*4*pi*r**2.0*dr
     
+    notes:
+    ------
+    Curently, the atom distances are calculated by using numpy fancy indexing.
+    That creates (big) arrays in memory. For data from long MDs, you may run
+    into trouble here. For a 20000 step MD, start by using every 200th step or
+    so and look at the histogram, as you take more and more points into account
+    (every 100th, 50th step, ...). Especially for Car Parrinello, where time
+    steps are small and the structure doesn't change much, there is no need to
+    use every step.
+
     examples:
     ---------
     # 2 selections (O and H atoms, average time step 3000 to end)
@@ -1035,7 +1042,7 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None),
     >>> msk1 = sy=='O'; msk2 = sy=='H'
     # do time slice here or with `tslice` kwd
     >>> clst = [coords[msk1,:,3000:], coords[msk2,:,3000:]]
-    >>> rad, hist, num_int, rmax_auto = rpdf(clst, cell, dr, full_output=True)
+    >>> rad, hist, num_int = rpdf(clst, cell, dr)
     >>> plot(rad, hist)
     >>> plot(rad, num_int)
      
@@ -1051,7 +1058,7 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None),
             1989
     """
     # Theory
-    # ------
+    # ======
     # 
     # 1) N equal particles (atoms) in a volume V.
     #
@@ -1059,13 +1066,13 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None),
     # (N atoms in the unit cell)  / (unit cell volume V).
     #
     # g(r) is (a) the average number of atoms in a shell [r,r+dr] around an
-    # atom or (b) the average density of atoms in that shell -- relative to an
-    # "ideal gas" (random distribution) of density N/V. Also sometimes: The
-    # number of atom pairs with distance r relative to the number of pairs in
-    # a random distribution.
+    # atom at r=0 or (b) the average density of atoms in that shell -- relative
+    # to an "ideal gas" (random distribution) of density N/V. Also sometimes:
+    # The number of atom pairs with distance r relative to the number of pairs
+    # in a random distribution.
     #
     # For each atom i=1,N, count the number dn(r) of atoms j around it in the
-    # shell [r,r+dr] with r_ij = r_i - r_j.
+    # shell [r,r+dr] with r_ij = r_i - r_j, r < r_ij <= r+dr
     #   
     #   dn(r) = sum(i=1,N) sum(j=1,N, j!=i) delta(r - r_ij)
     # 
@@ -1079,10 +1086,13 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None),
     #        = dn(r) / [N**2/V * V(r)]
     #   V(r) = 4*pi*r**2*dr = 4/3*pi*[(r+dr)**3 - r**3]
     # 
-    # where V(r) the volume of the shell. Formulation (a) from above: N/V*V(r)
-    # is the number of atoms in the shell for an ideal gas (density*volume) or
-    # (b):  dn(r) / V(r) is the density of atoms in the shell and dn(r) / [V(r)
-    # * (N/V)] is that density relative to the ideal gas density N/V. Clear? :)
+    # where V(r) the volume of the shell. Normalization to V(r) is necessary
+    # b/c the shell [r, r+dr] has on average more atoms for increasing "r".
+    #
+    # Formulation (a) from above: (N/V) * V(r) is the number of atoms in the
+    # shell for an ideal gas (density*volume) or (b):  dn(r) / V(r) is the
+    # density of atoms in the shell and dn(r) / [V(r) * (N/V)] is that density
+    # relative to the ideal gas density N/V. Clear? :)
     # 
     # g(r) -> 1 for r -> inf in liquids, i.e. long distances are not
     # correlated. Their distribution is random. In a crystal, we get an
@@ -1105,18 +1115,20 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None),
     # w/o PBC, the nearest neigbor numbers I(r1,r2) will be wrong! Always use
     # PBC (minimum image convention). Have a look at the following table.
     # rmax_auto is the rmax value for the given unit cell by the method of
-    # [Smith].
+    # [Smith], which is L/2 for a cubic box of side length L. "+" = OK, "-" =
+    # wrong.
     #
     #                                    nearest neighb.     I(0,rmax) = N-1  
     # 1.) pbc=Tue,   rmax <  rmax_auto   +                   -
-    # 2.) pbc=Tue,   rmax >> rmax_auto   +                   +
+    # 2.) pbc=Tue,   rmax >> rmax_auto   + (< rmax_auto)     +
     # 3.) pbc=False, rmax <  rmax_auto   -                   -
-    # 4.) pbc=Nalse, rmax >> rmax_auto   -                   +
+    # 4.) pbc=False, rmax >> rmax_auto   -                   +
     # 
-    # Note that case (1) is the use case in [Smith]. Always use this. Also note
-    # that case (2) appears to be also useful. However, it can be shown that
-    # nearest neigbors are correct only up to rmax_auto! See
-    # examples/rpdf/rpdf_aln.py .
+    # (1) is the use case in [Smith]. Always use this. 
+    #
+    # (2) appears to be also useful. However, it can be shown that nearest
+    # neigbors are correct only up to rmax_auto! See 
+    # examples/rpdf/rpdf_aln.py.
     #
     # For a crystal, integrating over a peak [r-dr/2, r+dr/2] gives *exactly*
     # the number of nearest neighbor atoms for that distance r b/c the
@@ -1153,10 +1165,15 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None),
     # 
     #   I_AB(r1,r2) = int(r=r1,r2) (B/V)*g(r)*4*pi*r**2*dr
     #   I_BA(r1,r2) = int(r=r1,r2) (A/V)*g(r)*4*pi*r**2*dr
+    # 
+    # Note that the integrals converge to the total number of sourrounding
+    # atoms of the other type:
     #
+    #   I_AB(0,inf) = B  (not B-1 !)
+    #   I_BA(0,inf) = A  (not A-1 !)
     #
     # Verification
-    # ------------
+    # ============
     # 
     # This function was tested against VMD's "measure gofr" command. VMD can
     # only handle orthorhombic boxes. To test non-orthorhombic boxes, see 
@@ -1164,22 +1181,77 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None),
     #
     # Make sure to convert all length to Angstrom of you compare with VMD.
     #
+    #
+    # Implementation details
+    # ======================
+    #
     # Number integral mehod
     # ---------------------
     #
-    # To match with VMD results, we use the most basic method, namely the
-    # "rectangle rule", i.e. just y_i*dx. This is even cheaper than the
-    # trapezoidal rule! To use the latter, we would do:
-    #   number_integral_avg = np.zeros(len(bins)-2, dtype=float)
-    #   for ...
-    #       number_integral = \
-    #           cumtrapz(1.0*natoms_lst[1]/volume*hist*4*pi*rad**2.0, rad)
+    # To match with VMD results, we use the "rectangle rule", i.e. just y_i*dx.
+    # This is even cheaper than the trapezoidal rule, but by far accurate
+    # enough for small ``dr``. Try yourself by using a more sophisticated
+    # method like 
+    # >>> num_int2 = scipy.integrate.cumtrapz(hist, rad)
+    # >>> plot(rad[:-1]+0.5*dr, num_int2)
     #   
-    # Shape of result arrays:
-    #   rect. rule :  len(hist)     = len(bins) - 1
-    #   trapz. rule:  len(hist) - 1 = len(bins) - 2
+    # distance calculation
+    # --------------------
     #
-  
+    # sij : distance "matrix" in crystal coords
+    # rij : in cartesian coords, same unit as `cell`, e.g. Angstrom
+    # 
+    # sij: for coords_lst[0] == coords_lst[1] == coords with shape (natoms,3), 
+    #   i.e. only one structure:
+    #   sij.shape = (N,N,3) where N = natoms, sij is a "(N,N)-matrix" of
+    #   length=3 distance vectors,
+    #   equivalent 2d:  
+    #   >>> a=arange(5)
+    #   >>> sij = a[:,None]-a[None,:]
+    #   
+    #   For 3d arrays with (N,3,nstep), we get (N,N,3,nstep).
+    #
+    #   For coords_lst[0] != coords_lst[1], i.e. 2 selections, we get
+    #   (N,M,3) or (N,M,3,nstep), respectively.
+    # 
+    # If we have arbitrary selections, we cannot use np.tri() to select only
+    # the upper (or lower) triangle of this "matrix" to skip duplicates (zero
+    # distance on the main diagonal) and avoid double counting. We must
+    # calculate and bin *all* distances.
+    #
+    # duplicates
+    # ----------
+    #
+    # Count the number of duplicate atoms in both coord sets from 1st time
+    # step. They result in a peak at r=0 (zero distance), which is bogus. Note
+    # that VMD uses natoms_lst_prod - num_duplicates, but frankly, I don't
+    # understand why. We always use num_duplicates = 0. AFAIK, num_duplicates
+    # is used to correct the first bin somehow. But we zero that anyway, so I
+    # guess we are good.
+    # 
+    # This loop is slow.
+    #
+    ##zero_xyz = np.ones((3,)) * np.finfo(float).eps * 2.0
+    ##num_duplicates = 0
+    ##c0 = coords_lst[0][...,0]
+    ##c1 = coords_lst[1][...,0]
+    ##for i in range(c0.shape[0]):
+    ##    for j in range(c1.shape[0]):
+    ##        if (np.abs(c0[i,:] - c1[j,:]) < zero_xyz).all():
+    ##            num_duplicates += 1
+    #
+    # main loop
+    # ---------
+    #
+    # Set all dists > rmax to 0.0 and thereby keep shape of `dists_all`. This
+    # is b/c we may calculate all nstep hists in a vectorized fashion later
+    # (avoid Python loop). The other way would be to do in each loop: dists =
+    # dists_all[...,idx][dists_all[...,idx] < rmax]
+    #
+    # We need to correct first bin (hist[0]) b/c  all dists > rmax are set to
+    # 0.0 before the histogram is calculated. They are sorted into one big peak
+    # at r=0, which is of course bogus.
+    #
     assert cell.shape == (3,3), "`cell` must be (3,3) array"
     # nd array or list of 2 arrays
     if not type(coords) == type([]):
@@ -1212,26 +1284,14 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None),
         rmax = rmax_auto
     natoms_lst = [c.shape[0] for c in coords_lst]
     
-    # sij : distance "matrix" in crystal coords
-    # rij : in cartesian coords, same unit as `cell`, e.g. Angstrom
-    # 
-    # sij: for coords_lst[0] == coords_lst[1] == coords with shape (natoms,3), 
-    #   i.e. only one structure:
-    #   sij.shape = (N,N,3) where N = natoms, sij is a "(N,N)-matrix" of
-    #   length=3 distance vectors,
-    #   equivalent 2d:  
-    #   >>> a=arange(5)
-    #   >>> sij = a[:,None]-a[None,:]
-    #   
-    #   For 3d arrays with (N,3,nstep), we get (N,N,3,nstep).
-    #
-    #   For coords_lst[0] != coords_lst[1], i.e. 2 selections, we get
-    #   (N,M,3) or (N,M,3,nstep), respectively.
-    # 
-    # If we have arbitrary selections, we cannot use np.tri() to select only
-    # the upper (or lower) triangle of this "matrix" to skip duplicates (zero
-    # distance on the main diagonal) and avoid double counting. We must
-    # calculate and bin *all* distances.
+    natoms_lst_prod = float(np.prod(natoms_lst))
+    volume = np.linalg.det(cell)
+    bins = np.arange(0, rmax+dr, dr)
+    rad = bins[:-1]+0.5*dr
+    volume_shells = 4.0/3.0*pi*(bins[1:]**3.0 - bins[:-1]**3.0)
+    norm_fac = volume / volume_shells / natoms_lst_prod
+
+    # distances
     #
     # (natoms0, natoms1, 3, nstep)
     sij = coords_lst[0][:,None,...] - coords_lst[1][None,...]
@@ -1244,74 +1304,44 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None),
     # (natoms0 * natoms1, nstep)
     dists_all = np.sqrt((rij**2.0).sum(axis=1))
     
-    # Duplicate atoms in both coord sets from 1st time step, this is slow. Note
-    # that VMD uses natoms_lst_prod - num_duplicates, but frankly, I don't
-    # understand why.
-    #
-    ##zero_xyz = np.ones((3,)) * np.finfo(float).eps * 2.0
-    ##num_duplicates = 0
-    ##c0 = coords_lst[0][...,0]
-    ##c1 = coords_lst[1][...,0]
-    ##for i in range(c0.shape[0]):
-    ##    for j in range(c1.shape[0]):
-    ##        if (np.abs(c0[i,:] - c1[j,:]) < zero_xyz).all():
-    ##            num_duplicates += 1
-    
-    natoms_lst_prod = float(np.prod(natoms_lst))
-    volume = np.linalg.det(cell)
-    bins = np.arange(0, rmax+dr, dr)
-    rad = bins[:-1]+0.5*dr
-    volume_shells = 4.0/3.0*pi*(bins[1:]**3.0 - bins[:-1]**3.0)
-    norm_fac = volume / volume_shells / natoms_lst_prod
-    
-    # Set all dists > rmax to 0.0 and thereby keep shape of `dists_all`. This
-    # is b/c we may calculate all nstep hists in a vectorized fashion later
-    # (avoid Python loop). The first bin counting the zero distances will be
-    # corrected below later anyway. The other way would be to do in each loop:
-    #   dists = dists_all[...,idx][dists_all[...,idx] < rmax]
-    #
-    # Calculate hists for each time step and average them.
-    #
-    # XXX This Python loop is the bottleneck if we have many timesteps.
     dists_all[dists_all >= rmax] = 0.0
     hist_avg = np.zeros(len(bins)-1, dtype=float)
     number_integral_avg = np.zeros(len(bins)-1, dtype=float)
+    # Calculate hists for each time step and average them.
+    # XXX This Python loop is the bottleneck if we have many timesteps.
     for idx in range(dists_all.shape[-1]):
         dists = dists_all[...,idx]
         # rad_hist == bins
         hist, rad_hist = np.histogram(dists, bins=bins)
-        # correct first bin
         if bins[0] == 0.0:
             hist[0] = 0.0
             # works only if we do NOT set dists > rmax to 0.0
             ##hist[0] -= num_duplicates 
         hist = hist * norm_fac            
         hist_avg += hist
-        # Note that we use "natoms_lst[1] / volume" to get the correct density.
+        # Note that we use "natoms_lst[1] / volume" to get the correct density,
+        # i.e. we use the density of the *sourrounding* atoms.
         number_integral = np.cumsum(1.0*natoms_lst[1]/volume*hist*4*pi*rad**2.0 * dr)
         number_integral_avg += number_integral
     hist_avg = hist_avg / (1.0*dists_all.shape[-1])
-    number_integral = number_integral_avg / (1.0*dists_all.shape[-1])
-    out = (rad, hist_avg)
-    if full_output:
-        out += (number_integral, rmax_auto) 
+    out = (rad, hist_avg, number_integral_avg / (1.0*dists_all.shape[-1]))
     return out
 
 @crys_add_doc
-def vmd_measure_gofr(coords, cell, symbols, dr, rmax='auto', selstr1='all', selstr2='all', 
+def vmd_measure_gofr(coords_frac, cell, symbols, dr, rmax='auto', selstr1='all', selstr2='all', 
                      fntype='xsf', first=0,
                      last=-1, step=1, usepbc=1, datafn=None,
                      scriptfn=None, logfn=None, xsffn=None, tmpdir='/tmp', 
-                     keepfiles=False, full_output=False):
+                     keepfiles=False, verbose=False):
     """Call VMD's "measure gofr" command. This is a simple interface which does
     in fact the same thing as the gofr GUI. This is intended as a complementary
     function to rpdf() and should, of course, produce the "same" results.
 
-    Only cubic boxes are alowed.
+    Only cubic boxes are allowed (like in VMD).
     
     args:
     -----
-    coords : 3d array (natoms, 3, nstep)
+    coords_frac : 3d array (natoms, 3, nstep)
         Crystal coords.
     %(cell_doc)s
         Unit: Angstrom
@@ -1333,7 +1363,7 @@ def vmd_measure_gofr(coords, cell, symbols, dr, rmax='auto', selstr1='all', sels
         Select which MD steps are averaged. Like Python, VMD starts counting at
         0. Last is -1, like in Python. 
     usepbc: int {1,0}, optional
-        Whether to use min image convention.
+        Whether to use the minimum image convention.
     datafn : str, optional (auto generated)
         temp file where VMD results are written to and loaded
     scriptfn : str, optional (auto generated)
@@ -1341,31 +1371,29 @@ def vmd_measure_gofr(coords, cell, symbols, dr, rmax='auto', selstr1='all', sels
     logfn : str, optional (auto generated)
         file where VMD output is logged 
     xsffn : str, optional (auto generated)
-        temp file where .axsf file generated from `coords` is written to and
+        temp file where .axsf file generated from `coords_frac` is written to and
         loaded by VMD
     tmpdir : str, optional (auto generated)
         dir where auto-generated tmp files are written
     keepfiles : bool, optional
         Whether to delete `datafn` and `scriptfn`.
+    verbose : bool, optional
+        display VMD output
 
     returns:
     --------
-    (rad, hist, (number_integral, rmax_auto))
+    (rad, hist, num_int)
     rad : 1d array, radius (x-axis) with spacing `dr`, each value r[i] is the
         middle of a histogram bin 
     hist : 1d array, (len(rad),)
         the function values g(r)
-    if full_output:
-        number_integral : 1d array, (len(rad),)
-            number_density*hist*4*pi*r**2.0*dr
-        rmax_auto : float
-            auto-calculated rmax, even if not used (i.e. rmax is set from
-            input)
+    num_int : 1d array, (len(rad),), the (averaged) number integral
+        number_density*hist*4*pi*r**2.0*dr
     """
 
     vmd_tcl = textwrap.dedent("""                    
     # VMD interface script. Call "measure gofr" and write RPDF to file.
-    # Tested with VMD 1.8.7.
+    # Tested with VMD 1.8.7, 1.9
     #
     # Automatically generated by pwtools, XXXTIME
     #
@@ -1377,7 +1405,7 @@ def vmd_measure_gofr(coords, cell, symbols, dr, rmax='auto', selstr1='all', sels
     # Load molecule file with MD trajectory. Typically, foo.axsf with type=xsf
     mol new XXXFN type XXXFNTYPE waitfor all
     
-    # "top" is current top molecule (the one labeled with "T" in the GUI). 
+    # "top" is the current top molecule (the one labeled with "T" in the GUI). 
     set molid top
     set selstr1 "XXXSELSTR1"
     set selstr2 "XXXSELSTR2"
@@ -1425,7 +1453,7 @@ def vmd_measure_gofr(coords, cell, symbols, dr, rmax='auto', selstr1='all', sels
     rmax_auto = rmax_smith(cell)
     if rmax == 'auto':
         rmax = rmax_auto
-    write_axsf(xsffn, coords, cell, symbols)
+    write_axsf(xsffn, coords_frac=coords_frac, cell=cell, symbols=symbols)
     dct = {}
     dct['fn'] = xsffn
     dct['fntype'] = fntype
@@ -1442,8 +1470,12 @@ def vmd_measure_gofr(coords, cell, symbols, dr, rmax='auto', selstr1='all', sels
     for key,val in dct.iteritems():
         vmd_tcl = vmd_tcl.replace('XXX'+key.upper(), str(val))
     common.file_write(scriptfn, vmd_tcl)
-    common.system("vmd -dispdev none -eofexit -e %s 2>&1 | "
-                  " tee %s" %(scriptfn, logfn))
+    cmd = "vmd -dispdev none -eofexit -e %s " %scriptfn
+    if verbose:
+        cmd += "2>&1 | tee %s" %logfn
+    else:        
+        cmd += " > %s 2>&1" %logfn
+    common.system(cmd)
     data = np.loadtxt(datafn)
     if not keepfiles:
         os.remove(datafn)
@@ -1453,7 +1485,4 @@ def vmd_measure_gofr(coords, cell, symbols, dr, rmax='auto', selstr1='all', sels
     rad = data[:,0]
     hist_avg = data[:,1]
     number_integral = data[:,2]
-    out = (rad, hist_avg)
-    if full_output:
-        out += (number_integral, rmax_auto) 
-    return out
+    return rad, hist_avg, number_integral
