@@ -84,7 +84,7 @@ class ExternEOS(FlexibleGetters):
         volume : 1d array [Bohr^3]
         dir : str
             dir where in- and outfiles are written, default is the basename of
-            "app" (e.g. "eos.x" for app='/path/to/eos.x')
+            "app" (e.g. "/path/to" for app='/path/to/eos.x')
         method : str, {'pv', 'ev'}
             Based on which quantity should B(V) and minimum properties be
             calculated.
