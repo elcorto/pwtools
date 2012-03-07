@@ -1,5 +1,7 @@
 import numpy as np
 from pwtools import crys
+from pwtools.test.tools import aaae, aae
+rand = np.random.rand
 
 def test():
     # test known values: simple cubic
@@ -9,8 +11,8 @@ def test():
     cryst_const = np.array([cell_a]*3 + [90.0]*3)
     np.testing.assert_array_almost_equal(crys.cell2cc(cell), cryst_const)
     np.testing.assert_array_almost_equal(crys.cc2cell(cryst_const), cell)
-    np.testing.assert_equal(volume, crys.volume_cc(cryst_const))
-    np.testing.assert_equal(volume, crys.volume_cell(cell))
+    np.testing.assert_almost_equal(volume, crys.volume_cc(cryst_const))
+    np.testing.assert_almost_equal(volume, crys.volume_cell(cell))
     np.testing.assert_array_almost_equal(crys.cc2cell(crys.cell2cc(cell)), cell)
     np.testing.assert_array_almost_equal(crys.cell2cc(crys.cc2cell(cryst_const)),
                                          cryst_const)
@@ -38,3 +40,16 @@ def test():
     np.testing.assert_array_almost_equal(crys.cell2cc(crys.cc2cell(cryst_const)),
                                          cryst_const)
 
+    # 3d
+    cell = rand(100,3,3)
+    cc = crys.cell2cc3d(cell, axis=0)
+    vol_cell = np.abs(crys.volume_cell3d(cell, axis=0))
+    vol_cc = crys.volume_cc3d(cc, axis=0)
+
+    assert crys.cell2cc3d(cell, axis=0).shape == (100,6)
+    assert crys.cc2cell3d(cc, axis=0).shape == (100,3,3)
+    
+    assert vol_cc.shape == (100,)
+    assert vol_cell.shape == (100,)
+    aaae(vol_cell, vol_cc)
+    aaae(crys.cell2cc3d(crys.cc2cell3d(cc)), cc)

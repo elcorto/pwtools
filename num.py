@@ -429,6 +429,9 @@ def slicetake(a, sl, axis=None, copy=False):
     True
     >>> (b3 == b1).all()
     True
+    # simple extraction too, sl = integer
+    >>> (a[...,5] == slicetake(a, 5, axis=-1))
+    True
     """
     # The long story
     # --------------
@@ -552,3 +555,59 @@ def sliceput(a, b, sl, axis=None):
     return a
 
 
+def extend_array(arr, nstep, axis=0):
+    """Repeat an array along ``axis`` by inserting a new axis (dimension)
+    before ``axis``. Use this to "broadcast" e.g. a 2d array (3,3) ->
+    (3,3,nstep).
+    
+    args:
+    -----
+    arr : ndarray
+    nstep : int, number of times to repeat
+    axis : axis to add
+    
+    example:
+    --------
+    >>> a=arange(4)
+    >>> extend_array(a, 3, 0)
+    array([[0, 1, 2, 3],
+           [0, 1, 2, 3],
+           [0, 1, 2, 3]])
+    >>> extend_array(a, 3, 0).shape
+    (3, 4)
+    >>> extend_array(a, 3, 1)
+    array([[0, 0, 0],
+           [1, 1, 1],
+           [2, 2, 2],
+           [3, 3, 3]])
+    >>> extend_array(a, 3, 1).shape
+    (4, 3)
+    >>> a=arange(4).reshape(2,2)
+    >>> extend_array(a, 3, 0).shape
+    (3, 2, 2)
+    >>> extend_array(a, 3, 1).shape
+    (2, 3, 2)
+    >>> extend_array(a, 3, 2).shape
+    (2, 2, 3)
+    >>> extend_array(a, 3, 2)[...,0]
+    array([[0, 1],
+           [2, 3]])
+    >>> extend_array(a, 3, 2)[...,1]
+    array([[0, 1],
+           [2, 3]])
+    >>> extend_array(a, 3, 2)[...,2]
+    array([[0, 1],
+           [2, 3]])
+    
+    see also:
+    ---------
+    np.repeat()
+    """
+    # (3,3) -> max_axis = 2
+    max_axis = arr.ndim
+    assert -1 <= axis <= max_axis, "axis out of bound"
+    sl = [slice(None)]*(max_axis + 1)
+    # e.g: [:,:,np.newaxis,...]
+    sl[axis] = None
+    return np.repeat(arr[sl], nstep, axis=axis)
+        

@@ -1,8 +1,9 @@
 from math import sqrt
 import numpy as np
-from pwtools.crys import coord_trans
+from pwtools.crys import coord_trans, coord_trans3d
+from pwtools import num
+from pwtools.test.tools import aaae
 rand = np.random.rand
-asrt_almost_equal = np.testing.assert_array_almost_equal
 
 def test():
     #-----------------------------------------------------------
@@ -16,7 +17,7 @@ def test():
     # transform and back-transform
     c_Y = coord_trans(c_X, old=X, new=Y)
     c_X2 = coord_trans(c_Y, old=Y, new=X)
-    asrt_almost_equal(c_X, c_X2)
+    aaae(c_X, c_X2)
 
     # X and must have the right shape: (4,4) here
     try:
@@ -35,9 +36,9 @@ def test():
     # 2 forms w/ dot(), assume: basis vecs = rows of X and Y
     c_X3 = np.dot(c_Y, Y)
     c_X4 = np.dot(Y.T, c_Y.T).T
-    asrt_almost_equal(c_X, c_X2)
-    asrt_almost_equal(c_X, c_X3)
-    asrt_almost_equal(c_X, c_X4)
+    aaae(c_X, c_X2)
+    aaae(c_X, c_X3)
+    aaae(c_X, c_X4)
 
     # some textbook example
     #
@@ -48,17 +49,17 @@ def test():
     Y = np.array([[1,1],[0,1]]).T
 
     # "identity" transform
-    asrt_almost_equal(coord_trans(v_I,I,I), v_I)
+    aaae(coord_trans(v_I,I,I), v_I)
 
     # v in basis X and Y
     v_X = coord_trans(v_I,I,X)
     v_Y = coord_trans(v_I,I,Y)
-    asrt_almost_equal(v_X, np.array([1.76776695, 0.35355339]))
-    asrt_almost_equal(v_Y, np.array([-0.5,  1.5]))
+    aaae(v_X, np.array([1.76776695, 0.35355339]))
+    aaae(v_Y, np.array([-0.5,  1.5]))
 
     # back-transform
-    asrt_almost_equal(coord_trans(v_X,X,I), v_I)
-    asrt_almost_equal(coord_trans(v_Y,Y,I), v_I)
+    aaae(coord_trans(v_X,X,I), v_I)
+    aaae(coord_trans(v_Y,Y,I), v_I)
     
     # higher "x,y,z"-dims: 4-vectors
     c_X = rand(20,4)
@@ -66,7 +67,7 @@ def test():
     Y = rand(4,4)*3
     c_Y = coord_trans(c_X, old=X, new=Y)
     c_X2 = coord_trans(c_Y, old=Y, new=X)
-    asrt_almost_equal(c_X, c_X2)
+    aaae(c_X, c_X2)
      
     
     #-----------------------------------------------------------
@@ -79,17 +80,17 @@ def test():
     Y = rand(3,3)*3
     c_Y = coord_trans(c_X, old=X, new=Y, axis=1)
     c_X2 = coord_trans(c_Y, old=Y, new=X, axis=1)
-    asrt_almost_equal(c_X, c_X2)
+    aaae(c_X, c_X2)
     
     c_X = rand(20,10,3)
     c_Y = coord_trans(c_X, old=X, new=Y, axis=-1)
     c_X2 = coord_trans(c_Y, old=Y, new=X, axis=-1)
-    asrt_almost_equal(c_X, c_X2)
+    aaae(c_X, c_X2)
 
     c_X = rand(3,20,10)
     c_Y = coord_trans(c_X, old=X, new=Y, axis=0)
     c_X2 = coord_trans(c_Y, old=Y, new=X, axis=0)
-    asrt_almost_equal(c_X, c_X2)
+    aaae(c_X, c_X2)
     
     # 3d, higher "x,y,z"-dims, i.e. 4-vectors: trajectory of 5 atoms, 10 steps,
     # "4d-coordinates"
@@ -98,7 +99,7 @@ def test():
     Y = rand(4,4)*3
     c_Y = coord_trans(c_X, old=X, new=Y, axis=1)
     c_X2 = coord_trans(c_Y, old=Y, new=X, axis=1)
-    asrt_almost_equal(c_X, c_X2)
+    aaae(c_X, c_X2)
     
     #-----------------------------------------------------------
     # ND
@@ -110,5 +111,31 @@ def test():
     Y = rand(4,4)*3
     c_Y = coord_trans(c_X, old=X, new=Y, axis=1)
     c_X2 = coord_trans(c_Y, old=Y, new=X, axis=1)
-    asrt_almost_equal(c_X, c_X2)
+    aaae(c_X, c_X2)
+    
+    #-----------------------------------------------------------
+    # special case 3d
+    #-----------------------------------------------------------
+    # Note that axis=1 is always the xyz-axis (length 3) if the timeaxis
+    # (length 10) would be removed from all arrays (2d case then).
+    c_X = rand(20,3,10)
+    X = rand(3,3,10)*5
+    Y = rand(3,3,10)*3
+    c_Y = coord_trans3d(c_X, old=X, new=Y, axis=1, timeaxis=2)
+    c_X2 = coord_trans3d(c_Y, old=Y, new=X, axis=1, timeaxis=2)
+    aaae(c_X, c_X2)
+
+    c_X = rand(20,10,3)
+    X = rand(3,10,3)*5
+    Y = rand(3,10,3)*3
+    c_Y = coord_trans3d(c_X, old=X, new=Y, axis=1, timeaxis=1)
+    c_X2 = coord_trans3d(c_Y, old=Y, new=X, axis=1, timeaxis=1)
+    aaae(c_X, c_X2)
+
+    c_X = rand(10,20,3)
+    X = rand(10,3,3)*5
+    Y = rand(10,3,3)*3
+    c_Y = coord_trans3d(c_X, old=X, new=Y, axis=1, timeaxis=0)
+    c_X2 = coord_trans3d(c_Y, old=Y, new=X, axis=1, timeaxis=0)
+    aaae(c_X, c_X2)
 

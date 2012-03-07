@@ -17,15 +17,10 @@ from pwtools.common import assert_cond
 import pwtools.common as common
 from pwtools.decorators import crys_add_doc
 
-# backward compat
-##from pwtools.io import write_axsf, write_xyz, write_cif, wien_sgroup_input
-
 #-----------------------------------------------------------------------------
 # misc math
 #-----------------------------------------------------------------------------
 
-# np.linalg.norm handles also complex arguments, but we don't need that here. 
-##norm = np.linalg.norm
 def norm(a):
     """2-norm for real vectors."""
     assert_cond(len(a.shape) == 1, "input must be 1d array")
@@ -68,9 +63,9 @@ def deg2rad(x):
 
 @crys_add_doc
 def volume_cell(cell):
-    """Volume of the unit cell from CELL_PARAMETERS. Calculates the triple
+    """Volume of the unit cell from cell vectors. Calculates the triple
     product 
-        np.dot(np.cross(a,b), c) 
+        np.dot(np.cross(a,b), c) == det(cell)
     of the basis vectors a,b,c contained in `cell`. Note that (mathematically)
     the vectors can be either the rows or the cols of `cell`.
 
@@ -105,8 +100,24 @@ def volume_cell(cell):
     %(notes_cell_crys_const)s
     """    
     assert_cond(cell.shape == (3,3), "input must be (3,3) array")
-    return np.dot(np.cross(cell[0,:], cell[1,:]), cell[2,:])        
+##    return np.dot(np.cross(cell[0,:], cell[1,:]), cell[2,:])
+    return abs(np.linalg.det(cell))
 
+def volume_cell3d(cell, axis=0):
+    """Same as volume_cell() for 3d arrays.
+    
+    args:
+    -----
+    cell : 3d array
+    axis : time axis (e.g. cell.shape = (100,3,3) -> axis=0)
+    """
+    assert cell.ndim == 3
+    sl = [slice(None)]*cell.ndim
+    ret = []
+    for ii in range(cell.shape[axis]):
+        sl[axis] = ii
+        ret.append(volume_cell(cell[sl]))
+    return np.array(ret)        
 
 @crys_add_doc
 def volume_cc(cryst_const):
@@ -128,6 +139,7 @@ def volume_cc(cryst_const):
     -----
     [1] http://en.wikipedia.org/wiki/Parallelepiped
     """
+    assert cryst_const.shape == (6,), "shape must be (6,)"
     a = cryst_const[0]
     b = cryst_const[1]
     c = cryst_const[2]
@@ -138,9 +150,26 @@ def volume_cc(cryst_const):
           cos(alpha)**2 - cos(beta)**2 - cos(gamma)**2 )
 
 
+def volume_cc3d(cryst_const, axis=0):
+    """Same as volume_cc() for 2d arrays (the name "*3d" is just to indicate
+    that we work w/ trajectories).
+    
+    args:
+    -----
+    cryst_const : 2d array
+    axis : time axis (e.g. cryst_const.shape = (100,6) -> axis=0)
+    """
+    assert cryst_const.ndim == 2
+    sl = [slice(None)]*cryst_const.ndim
+    ret = []
+    for ii in range(cryst_const.shape[axis]):
+        sl[axis] = ii
+        ret.append(volume_cc(cryst_const[sl]))
+    return np.array(ret)        
+
 @crys_add_doc
 def cell2cc(cell):
-    """From CELL_PARAMETERS to crystallographic constants a, b, c, alpha, beta,
+    """From ``cell`` to crystallographic constants a, b, c, alpha, beta,
     gamma. 
     This mapping is unique in the sense that multiple `cell`s will have
     the same `cryst_const`, i.e. the representation of the cell in
@@ -176,6 +205,21 @@ def cell2cc(cell):
     cryst_const[5] = angle(va,vb)
     return cryst_const
 
+def cell2cc3d(cell, axis=0):
+    """Same as cell2cc() for 3d arrays.
+    
+    args:
+    -----
+    cell : 3d array
+    axis : time axis (e.g. cell.shape = (100,3,3) -> axis=0)
+    """
+    assert cell.ndim == 3
+    sl = [slice(None)]*cell.ndim
+    ret = []
+    for ii in range(cell.shape[axis]):
+        sl[axis] = ii
+        ret.append(cell2cc(cell[sl]))
+    return np.array(ret)        
 
 @crys_add_doc
 def cc2cell(cryst_const):
@@ -235,6 +279,22 @@ def cc2cell(cryst_const):
     vc = np.array([cx, cy, cz])
     return np.array([va, vb, vc])
 
+def cc2cell3d(cryst_const, axis=0):
+    """Same as cc2cell() for 2d arrays (the name "*3d" is just to indicate
+    that we work w/ trajectories).
+    
+    args:
+    -----
+    cryst_const : 2d array
+    axis : time axis (e.g. cryst_const.shape = (100,6) -> axis=0)
+    """
+    assert cryst_const.ndim == 2
+    sl = [slice(None)]*cryst_const.ndim
+    ret = []
+    for ii in range(cryst_const.shape[axis]):
+        sl[axis] = ii
+        ret.append(cc2cell(cryst_const[sl]))
+    return np.array(ret)        
 
 @crys_add_doc
 def recip_cell(cell):
@@ -675,14 +735,14 @@ def coord_trans(coords, old=None, new=None, copy=True, axis=-1):
     have arbitrary dimension, i.e. it can contain many vectors to be
     transformed at once. But `old` and `new` must have ndim=2, i.e. only one
     old and new coord sys for all vectors in `coords`. 
-
-    If you want to transform an MD trajectory from a variable cell run, you
-    have smth like this:
+    
+    The most general case is that you want to transform an MD trajectory from a
+    variable cell run, you have smth like this:
         coords.shape = (natoms, 3, nstep)
         old.shape/new.shape = (3,3,nstep)
     You have a set of old and new coordinate systems at each step. 
     Then, use a loop over all time steps and call this function nstep times.
-    
+
     args:
     -----
     coords : array (d0, d1, ..., M) 
@@ -919,6 +979,56 @@ def _trans(coords, old, new):
     # The equation works for ``old.T`` and ``new.T`` = columns.
     return np.dot(coords, np.dot(inv(new.T), old.T).T)
 
+
+def coord_trans3d(coords, old=None, new=None, copy=True, axis=-1, timeaxis=0):
+    """Special case version for debugging mostly. It does the loop for the
+    general case where coords+old+new are 3d arrays (e.g. variable cell MD
+    trajectory).
+    
+    This may be be slow for large ``nstep``. All other cases (``coords`` has
+    arbitrary many dimensions, i.e. ndarray + old/new are fixed) are covered
+    by coord_trans(). Also some special cases may be possible to solve with
+    np.dot() alone if the transformation simplifes. Check your math. 
+
+    args:
+    -----
+    coords : 3d array, one axis (``axis``) must have length-M vectors, another
+        (``timeaxis``) must be length ``nstep``
+    old,new : 2d arrays, two axes must be of equal length
+    copy : see coord_trans()
+    axis : axis where length-M vecs are placed if the timeaxis is removed
+    timeaxis : time axis along which 2d arrays are aligned
+
+    example:
+    --------
+    M = 3
+    coords :  (nstep,natoms,3)
+    old,new : (nstep,3,3)
+    timeaxis = 0
+    axis = 1 == -1 (remove timeaxis -> 2d slices (natoms,3) and (3,3) -> axis=1)
+    """
+    a,b,c = coords.ndim, old.ndim, new.ndim
+    assert a == b == c, "ndim: coords: %i, old: %i, new: %i" %(a,b,c)
+    a,b,c = coords.shape[timeaxis], old.shape[timeaxis], new.shape[timeaxis]
+    assert a == b == c, "shape[timeaxis]: coords: %i, old: %i, new: %i" %(a,b,c)
+    
+    ndim = coords.ndim
+    nstep = coords.shape[timeaxis]
+    ret = []
+    sl = [slice(None)]*ndim
+    ret = []
+    for ii in range(nstep):
+        sl[timeaxis] = ii
+        ret.append(coord_trans(coords[sl],
+                               old=old[sl],
+                               new=new[sl],
+                               axis=axis,
+                               copy=copy))
+    ret = np.array(ret)
+    if timeaxis != 0:
+        return np.rollaxis(ret, 0, start=timeaxis+1)
+    else:
+        return ret
 
 def min_image_convention(sij, copy=False):
     """Helper function for rpdf(). Apply minimum image convention to
