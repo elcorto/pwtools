@@ -4,6 +4,7 @@ import os
 import numpy as np
 from scipy.optimize import brentq, newton
 from scipy.interpolate import splev, splrep
+import types
 
 def normalize(a):
     """Normalize array by it's max value. Works also for complex arrays.
@@ -610,4 +611,80 @@ def extend_array(arr, nstep, axis=0):
     # e.g: [:,:,np.newaxis,...]
     sl[axis] = None
     return np.repeat(arr[sl], nstep, axis=axis)
-        
+
+
+def sum(arr, axis=None, keepdims=False, **kwds):
+    """This numpy.sum() with some features implemented which can be found in
+    numpy 2.0 (we have 1.5.1), probably a lot faster there, namely axis=tuple
+    possible, keepdims keyword. Docstrings shamelessly stolen from numpy and
+    adapted here and there.
+    
+    args:
+    -----
+    arr : nd array
+    axis : None or int or tuple of ints, optional
+        Axis or axes along which a sum is performed. The default (`axis` =
+        `None`) is to perform a sum over all the dimensions of the input array.
+        `axis` may be negative, in which case it counts from the last to the
+        first axis.
+        If this is a tuple of ints, a sum is performed on multiple
+        axes, instead of a single axis or all the axes as before.
+    keepdims : bool, optional
+        If this is set to True, the axes from ``axis`` are left in the result
+        as dimensions with size one, and the reduction (sum) is performed for
+        all remaining axes.
+    **kwds : passed to np.sum().        
+
+    examples:
+    ---------
+    >>> a=rand(2,3,4)
+    >>> num.sum(a)
+    12.073636268676152
+    >>> a.sum()
+    12.073636268676152
+    >>> num.sum(a, axis=1).shape
+    (2, 4)
+    >>> num.sum(a, axis=(1,)).shape
+    (2, 4)
+    >>> num.sum(a, axis=(0,2), keepdims=True).shape
+    (2, 4)
+    >>> num.sum(a, axis=(1,)) - num.sum(a, axis=1)
+    array([[ 0.,  0.,  0.,  0.],
+           [ 0.,  0.,  0.,  0.]])
+    >>> num.sum(a, axis=(0,2)).shape
+    (3,)
+    >>> num.sum(a, axis=(0,2)) - a.sum(axis=0).sum(axis=1)
+    array([ 0.,  0.,  0.])
+    """
+    # Recursion rocks!
+    def _sum(arr, tosum):
+        if len(tosum) > 0:
+            # Choose axis to sum over, remove from list w/ remaining axes.
+            axis = tosum.pop(0)
+            _arr = arr.sum(axis=axis)
+            # arr has one dim less now. Rename remaining axes accordingly.
+            _tosum = [xx-1 if xx > axis else xx for xx in tosum]
+            return _sum(_arr, _tosum)
+        else:
+            return arr
+    
+    axis_is_int = isinstance(axis, types.IntType)
+    if (axis is None):
+        if keepdims:
+            raise StandardError("axis=None + keepdims=True makes no sense")
+        else:
+            return np.sum(arr, axis=axis, **kwds)
+    elif axis_is_int and not keepdims:
+        return np.sum(arr, axis=axis, **kwds)
+    else:
+        if axis_is_int:
+            tosum = [axis]
+        elif isinstance(axis, types.TupleType) or \
+            isinstance(axis, types.ListType):
+            tosum = list(axis)
+        else:
+            raise StandardError("illegal type for axis: %s" %str(type(axis)))
+        if keepdims:
+            alldims = range(arr.ndim)
+            tosum = [xx for xx in alldims if xx not in tosum]
+        return _sum(arr, tosum)
