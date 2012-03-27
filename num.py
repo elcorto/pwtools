@@ -604,6 +604,13 @@ def extend_array(arr, nstep, axis=0):
     ---------
     np.repeat()
     """
+    # XXX Make more effective by using stride_tricks, see
+    # http://thread.gmane.org/gmane.comp.python.numeric.general/48096 .
+    # Test if this survives pickle / unpickle. Probably not.
+    #
+    # Also, maybe add attr 'extended' to tha array. setattr() doesn't work,
+    # however.
+    #
     # (3,3) -> max_axis = 2
     max_axis = arr.ndim
     assert -1 <= axis <= max_axis, "axis out of bound"

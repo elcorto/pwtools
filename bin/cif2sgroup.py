@@ -24,4 +24,4 @@ from pwtools import parse, io
 fn = sys.argv[1]
 pp = parse.CifFile(fn)
 pp.parse()
-print io.wien_sgroup_input('P', pp.symbols, pp.coords, pp.cryst_const)
+print io.wien_sgroup_input(pp, lat_symbol='P')

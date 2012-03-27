@@ -186,12 +186,11 @@ Method (1) still exists for historical reasons and as reference.
 Units of parsed quantities
 ==========================
 
-We have a lot of machinery to parse PWscf,Abinit,CPMD output files. Unless
-otherwise stated, NO unit conversion is done. The user must know which unit the
-parsed data has (Bohr vs. Angstrom, fractional vs. cartesian coords etc).
-Exceptions are for instance the ``coords_frac`` attribute of some classes in
-``parse.py``, where programs explicitely write fractional coords (Abinit,
-CPMD).
+We have a lot of machinery to parse PWscf,Abinit,CPMD output files. We try to
+return the "natural" units of each code (PWscf: Ry, Bohr, kbar; CPMD: Ha, Bohr,
+kbar). For PWscf, we also detect things like "ATOMIC_POSITIONS crystal | alat |
+bohr" and transform acordingly. Nevertheless, *always* verify that the units
+you get are the ones you expect!
 
 Format-specific notes
 =====================
@@ -280,24 +279,6 @@ crys.rms3d() for MD runs where the RMS of each (f_ij) is::
     sqrt( (sum_ij f_ij^2) / N )
 
 with N = 3*natoms or N=natoms.   
-
-
-Parsed results
-==============
-
-Concerns: parse.Pw*File, parse.Abinit*File
-
-Abinit: 
-    Here, all relevant quantities are printed in the output files alone
-    with enough precision to do further calculations inside these classes (not
-    used yet).
-PWscf: 
-    Sadly, things like cell information (CELL_PARAMETERS) and kpoint grid
-    (K_POINTS) are only printed with low precision or not at all in the output
-    file. ATM, we parse input and output separately (in recent versions). So,
-    calculations based on higher-precision quantities in the input file are not
-    automatically done in Pw*File. 
-
 
 .. [qe] http://www.quantum-espresso.org
 .. [ase] https://wiki.fysik.dtu.dk/ase

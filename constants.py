@@ -110,6 +110,7 @@ dyn = 1e-5                  # N
 R = 8.314472                # J / (mol*K)
 amu = 1.660538782e-27       # kg
 Ang = 1e-10                 # m
+fs = 1e-15                  # s
 
 # derived
 Eryd = 0.5*Eh
@@ -144,4 +145,6 @@ Hartree = Ha
 Rydberg = Ry
 Angstrom = Ang
 eV = e0 # J
+hplanck = h
+thart = th
 

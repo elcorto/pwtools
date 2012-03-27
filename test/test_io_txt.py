@@ -3,7 +3,7 @@
 from StringIO import StringIO
 
 def test():
-    from pwtools import io
+    from pwtools import arrayio
     import os
     import numpy as np
     from testenv import testdir
@@ -11,15 +11,15 @@ def test():
 
     def write_read_check(fn, arr, type='txt', axis=-1):
         print fn + ' ...'
-        io.writearr(fn, arr, type=type, axis=axis)
-        a = io.readarr(fn, type=type)
+        arrayio.writearr(fn, arr, type=type, axis=axis)
+        a = arrayio.readarr(fn, type=type)
         assert (a == arr).all()
 
     def write_read_check_raw(fn, arr, axis=None, shape=None):
         print fn + ' ...'
-        io.writetxt(fn, arr, axis=axis)
+        arrayio.writetxt(fn, arr, axis=axis)
         # ignore file header
-        a = io.readtxt(fn, axis=axis, shape=shape)
+        a = arrayio.readtxt(fn, axis=axis, shape=shape)
         assert (a == arr).all()
 
     # 1d
@@ -68,11 +68,11 @@ def test():
     fh.write('@@ some comment\n')
     np.savetxt(fh, arr)
     fh.close()
-    a = io.readtxt(fn, shape=shape, axis=-1, comments='@@')
+    a = arrayio.readtxt(fn, shape=shape, axis=-1, comments='@@')
     assert (a == arr).all()
 
     txt = "1.0 2.0 3\n4   5   6\n"
-    arr = io.readtxt(StringIO(txt), shape=(2,3), axis=-1, dtype=float)
+    arr = arrayio.readtxt(StringIO(txt), shape=(2,3), axis=-1, dtype=float)
     assert arr.dtype == np.array([1.0]).dtype
-    arr = io.readtxt(StringIO(txt), shape=(2,3), axis=-1, dtype=int)
+    arr = arrayio.readtxt(StringIO(txt), shape=(2,3), axis=-1, dtype=int)
     assert arr.dtype == np.array([1]).dtype

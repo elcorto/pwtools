@@ -1,5 +1,8 @@
 import numpy as np
-from pwtools import parse, common, crys
+from pwtools import parse, common, crys, num
+from pwtools.crys import Trajectory
+
+timeaxis = 0
 
 def assrt_aae(*args, **kwargs): 
     np.testing.assert_array_almost_equal(*args, **kwargs)
@@ -18,7 +21,7 @@ def check(pp, none_attrs=[], extra_attrs=[]):
     for attr_name in sorted(pp.attr_lst):
         if not attr_name in none_attrs:
             print("    attr not None %s" %attr_name)
-            assert getattr(pp, attr_name) is not None
+            assert getattr(pp, attr_name) is not None, "FAIL: %s None" %attr_name
         else:
             print("    attr None:    %s" %attr_name)
     print "<<< attr_lst" 
@@ -26,7 +29,7 @@ def check(pp, none_attrs=[], extra_attrs=[]):
     for attr_name in sorted(extra_attrs):
         if not attr_name in none_attrs:
             print("    attr not None %s" %attr_name)
-            assert eval("pp.get_%s()" %attr_name) is not None
+            assert eval("pp.get_%s()" %attr_name) is not None, "FAIL: %s None" %attr_name
         else:
             print("    attr None:    %s" %attr_name)
     print "<<< extra_attrs" 
@@ -34,51 +37,37 @@ def check(pp, none_attrs=[], extra_attrs=[]):
 
 def check_cons(pp):
     """Check consistency of redundant attrs. This is mainly for debugging.
+    
+    args:
+    -----
+    pp : parser class instance, parse() called
 
     Check consistency between cell and cryst_const. Assume:
-    pp.time_axis = -1
-    cell.shape = (3,3,nstep)
+    pp.timeaxis = 0
+    cell.shape = (nstep,3,3)
     c1.shape = (nstep, 6)
-
-    Check forces_rms. Assume:
-    pp.time_axis = -1
-    pp.forces_rms.shape = (nstep,)
-    pp.forces.shape = (natoms, 3, nstep)
     """
-    print ">>> cryst_const" 
-    cc1 = pp.get_cryst_const()
-    cc2 = pp.get_cryst_const_angles_lengths()
-    if None not in [cc1, cc2]:
-        assert cc1.shape[0] == cc2.shape[0]
-        assrt_aae(cc1, cc2)
-    print "<<< cryst_const" 
     print ">>> cryst_const cell" 
-    cell = pp.get_cell()
-    cc = pp.get_cryst_const()
+    cell = pp.cell
+    cc = pp.cryst_const
     if cell is not None:
-        nstep_cell = cell.shape[-1]
+        nstep_cell = cell.shape[timeaxis]
         if cc is not None:
-            assert nstep_cell == cc.shape[0], ("cell and cryst_const have "
-                "different nstep")
+            n1 = nstep_cell
+            n2 = cc.shape[timeaxis]
+            assert n1 == n2, ("cell and cryst_const have "
+                "different nstep: cell %i, cryst_const: %i" %(n1, n2))
             for ii in range(nstep_cell):
-                assrt_aae(crys.cell2cc(cell[...,ii]), cc[ii,:])
+                assrt_aae(crys.cell2cc(cell[ii,...]), cc[ii,:])
     print "<<< cryst_const cell" 
-    print ">>> forces_rms"
-    arr1 = pp.get_forces_rms()
-    if arr1 is not None:
-        forces = pp.get_forces()
-        if forces is not None:
-            arr2 = crys.rms3d(forces, axis=-1, nitems='all')
-            assrt_aae(arr1, arr2)
-    print "<<< forces_rms"
     print ">>> volume"
-    arr1 = pp.get_volume()
+    arr1 = pp.volume
     if arr1 is not None:
-        cell = pp.get_cell()
+        cell = pp.cell
         if cell is not None:
-            arr2 = np.array([crys.volume_cell(pp.cell[...,ii]) for ii in \
-                           range(pp.cell.shape[-1])])
-            n1, n2 = arr1.shape[0], arr2.shape[0]
+            arr2 = np.array([crys.volume_cell(pp.cell[ii,...]) for ii in \
+                             range(pp.cell.shape[timeaxis])])
+            n1, n2 = arr1.shape[timeaxis], arr2.shape[timeaxis]
             nn = min(n1, n2)
             assrt_aae(arr1[-nn:], arr2[-nn:], decimal=4)
     print "<<< volume"
@@ -113,7 +102,7 @@ def run(cls, filename_base, none_attrs=[], extra_attrs=[]):
     common.system('gzip %s' %filename)
 
 
-def test():
+def test_abinit_md():
     extra_attrs = [\
         ]
     

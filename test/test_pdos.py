@@ -3,33 +3,14 @@ from pwtools import parse, common, constants
 from pwtools import common
 from pwtools import pydos as pd
 from pwtools.crys import coord_trans
+from pwtools.test.tools import aae
 
 def test():
     filename = 'files/pw.md.out'
-    infile = 'files/pw.md.in'
     common.system('gunzip %s.gz' %filename)
-    pwout = parse.PwMDOutputFile(filename)
-    pwin = parse.PwInputFile(infile)
-    pwin.parse()
-    pwout.parse()
+    pp = parse.PwMDOutputFile(filename=filename)
+    traj = pp.get_traj()
 
-    # Transform coords if needed. See .../pwtools/README .
-    ibrav = int(pwin.namelists['system']['ibrav'])
-    c_sys = pwin.atpos['unit'].lower().strip()
-    if c_sys == 'crystal':
-        if ibrav == 0:
-            if pwin.cell is None:
-                raise StandardError("error: no cell parameters in infile, "
-                                    "set manually here")
-            else:        
-                coords = coord_trans(pwout.coords, old=pwin.cell,
-                                     new=np.identity(3)) 
-        else:
-            raise StandardError("error: ibrav != 0, cannot get cell "
-                "parameters from infile set manually here")
-    else:
-        coords = pwout.coords
-    
     # timestep dt
     # -----------
     # Only needed in pd.*_pdos(), not in pd.velocity(). Here is why:
@@ -42,18 +23,23 @@ def test():
     #   V=velocity(coords, dt=dt) 
     # only
     #   V=velocity(coords).
-    V = pd.velocity(coords)
-    mass = pwin.mass
-    dt = float(pwin.namelists['control']['dt'])*constants.tryd
-    fd, dd = pd.direct_pdos(V, m=mass, dt=dt)
-    fv, dv = pd.vacf_pdos(V, m=mass, dt=dt, mirr=True)
+       
+    V = traj.velocity # Ang / fs
+    mass = traj.mass # amu
+    dt = traj.timestep # fs
+    timeaxis = traj.timeaxis
+    aae(150.0, dt * constants.fs / constants.tryd) # dt=150 Rydberg time units
+    fd, dd = pd.direct_pdos(V, m=mass, dt=dt, axis=timeaxis)
+    fv, dv = pd.vacf_pdos(V, m=mass, dt=dt, mirr=True, axis=timeaxis)
 
     np.testing.assert_array_almost_equal(fd, fv, err_msg="freq not equal")
     np.testing.assert_array_almost_equal(dd, dv, err_msg="dos not equal")
 
     df = fd[1] - fd[0]
-    print "Nyquist freq [Hz]: %e" %(0.5/dt)
-    print "df [Hz] %e:" %df
+    print "Nyquist freq: %e" %(0.5/dt)
+    print "df: %e:" %df
+    print "timestep: %f fs = %f tryd" %(dt, dt * constants.fs / constants.tryd)
+    print "timestep pw.out: %f tryd" %(pp.timestep)
     
     # API
     fd, dd, ffd, fdd, si = pd.direct_pdos(V, m=mass, dt=dt, full_out=True)
@@ -66,7 +52,7 @@ def test():
     assert len(fd) == len(dd)
     assert len(ffd) == len(fdd)
     # If `pad_tonext` is used, full fft array lengths must be a power of two.
-    assert len(ffd) >= 2*V.shape[-1] - 1
+    assert len(ffd) >= 2*V.shape[timeaxis] - 1
     assert np.log2(len(ffd)) % 1.0 == 0.0
 
     common.system('gzip %s' %filename)

@@ -2,7 +2,7 @@ def test():
     from pwtools.parse import CMLFile
     from pwtools import common
 
-    c = CMLFile('files/cml_struct.cml')
-    c.parse()
+    pp = CMLFile('files/cml_struct.cml', units={'length': 1.0})
+    pp.parse()
 
-    common.print_dct(c.__dict__)
+    common.print_dct(pp.__dict__)

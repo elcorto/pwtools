@@ -11,19 +11,13 @@
 import sys
 import numpy as np
 
-from pwtools import parse, crys, periodic_table, pwscf, structure
+from pwtools import parse, crys, periodic_table, pwscf
 from pwtools.common import str_arr, seq2str
 from pwtools.constants import Bohr, Angstrom
-ang_to_bohr = Angstrom / Bohr
 
-fn = sys.argv[1]
-pp = parse.CifFile(fn)
-pp.parse()
 # All lengths in Bohr
-struct = structure.Structure(coords_frac=pp.coords, 
-                             cryst_const=pp.cryst_const,
-                             symbols=pp.symbols,
-                             to_bohr=ang_to_bohr)
+pp = parse.CifFile(sys.argv[1], units={'length': Angstrom/Bohr})
+struct = pp.get_struct()
 cellr = crys.recip_cell(struct.cell)
 norms = np.sqrt((cellr**2.0).sum(axis=1))
 bar = '-'*78

@@ -1,10 +1,9 @@
 # crys.py
 #
-# Crystal and unit-cell related tools. Some MD analysis tools, too.
+# Crystal and unit-cell related tools, MD analysis, container classes.
 #
 
 from math import acos, pi, sin, cos, sqrt
-from itertools import izip
 import textwrap
 import time
 import os
@@ -13,9 +12,14 @@ import numpy as np
 from scipy.linalg import inv
 from scipy.integrate import cumtrapz
 
-from pwtools.common import assert_cond
-import pwtools.common as common
-from pwtools.decorators import crys_add_doc
+from common import assert_cond
+import common
+from decorators import crys_add_doc
+import num, periodic_table
+from base import FlexibleGetters
+from verbose import verbose
+from constants import Bohr, Angstrom
+import constants
 
 #-----------------------------------------------------------------------------
 # misc math
@@ -437,38 +441,23 @@ def scell_mask(dim1, dim2, dim3):
     return np.array(b, dtype=float)
 
 
-@crys_add_doc
-def scell(coords, cell, dims, symbols=None, method=1):
+def scell(struct, dims, method=1):
     """Build supercell based on `dims`. It scales the unit cell to the dims of
     the super cell and returns crystal atomic positions w.r.t. this cell.
     
     args:
     -----
-    coords : 2d array, (natoms, 3) with atomic positions in *crystal* coordinates
-        (i.e. in units of the basis vecs in `cell`), these represent the initial
-        single unit cell
-    %(cell_doc)s
+    struct : Structure
     dims : tuple (nx, ny, nz) for a N = nx * ny * nz supercell
-    symbols : {sequence (natoms,), None}, optional
-        List of strings with atom symbols, (natoms,), must match with the
-        rows of `coords`. If None then the returned `symbols` for the supercell
-        are also None.
     method : int, optional
         Switch between numpy-ish (1) or loop (2) implementation. (2) should
         always produce correct results but is sublty slower.
 
     returns:
     --------
-    dict {symbols, coords, cell}
-    symbols : list of strings with atom symbols for the supercell, (N*natoms,)
-        or None
-    coords : array (N*natoms, 3)
-        Atomic crystal coords in the super cell w.r.t `cell`, i.e.
-        the numbers are in [0,1].
-    cell : array (3,3) 
-        basis vecs of the super cell
+    Structure
     """
-    assert_cond(cell.shape == (3,3), "cell must be (3,3) array")
+    assert_cond(struct.cell.shape == (3,3), "cell must be (3,3) array")
     mask = scell_mask(*tuple(dims))
     # Place each atom N = dim1*dim2*dim3 times in the
     # supercell, i.e. copy unit cell N times. Actually, N-1, since
@@ -490,84 +479,69 @@ def scell(coords, cell, dims, symbols=None, method=1):
     # [0,(max(dims))], not [0,1], is scaled below
     #
     nmask = mask.shape[0]
-    natoms = coords.shape[0]
     if method == 1:   
-        sc_symbols = np.array(symbols).repeat(nmask).tolist() if (symbols \
+        sc_symbols = np.array(struct.symbols).repeat(nmask).tolist() if (struct.symbols \
                      is not None) else None
         # (natoms, 1, 3) + (1, nmask, 3) -> (natoms, nmask, 3)
-        sc_coords = (coords[:,None] + mask[None,:]).reshape(natoms*nmask,3)
+        sc_coords_frac = (struct.coords_frac[:,None] \
+                          + mask[None,:]).reshape(struct.natoms*nmask,3)
     elif method == 2:        
         sc_symbols = []
-        sc_coords = np.empty((nmask*natoms, 3), dtype=float)
+        sc_coords_frac = np.empty((nmask*struct.natoms, 3), dtype=float)
         k = 0
-        for iatom in range(coords.shape[0]):
+        for iatom in range(struct.natoms):
             for j in range(nmask):
-                if symbols is not None:
-                    sc_symbols.append(symbols[iatom])  
-                sc_coords[k,:] = coords[iatom,:] + mask[j,:]
+                if struct.symbols is not None:
+                    sc_symbols.append(struct.symbols[iatom])  
+                sc_coords_frac[k,:] = struct.coords_frac[iatom,:] + mask[j,:]
                 k += 1
     else:
         raise StandardError("unknown method: %s" %repr(method))
     # scale cell acording to super cell dims
-    sc_cell = cell * np.asarray(dims)[:,None]
-    # Rescale crystal coords to new bigger cell (coord_trans
+    sc_cell = struct.cell * np.asarray(dims)[:,None]
+    # Rescale crystal coords_frac to new bigger cell (coord_trans
     # actually) -> all values in [0,1] again
-    sc_coords[:,0] /= dims[0]
-    sc_coords[:,1] /= dims[1]
-    sc_coords[:,2] /= dims[2]
-    return {'symbols': sc_symbols, 'coords': sc_coords, 
-            'cell': sc_cell}
+    sc_coords_frac[:,0] /= dims[0]
+    sc_coords_frac[:,1] /= dims[1]
+    sc_coords_frac[:,2] /= dims[2]
+    return Structure(coords_frac=sc_coords_frac,
+                     cell=sc_cell,
+                     symbols=sc_symbols)
 
 @crys_add_doc
-def scell3d(coords, cell, dims, symbols=None):
+def scell3d(traj, dims):
     """Build supercell of a trajectory (i.e. not just a single structure) based
     on `dims`. It scales the unit cell to the dims of the super cell and
     returns crystal atomic positions w.r.t. this cell.
 
     This is a special-case version of scell() for trajectories, where at least
-    `coords` must be a 3d array.
+    ``traj.coords_frac`` must be a 3d array.
     
     args:
     -----
-    coords : 3d array, (natoms, 3, nstep) with atomic positions in *crystal*
-        coordinates (i.e. in units of the basis vecs in `cell`)
-    cell : 2d (3,3) or 3d (3,3,nstep) array with unit cell(s)
+    traj : Trajectory
     dims : tuple (nx, ny, nz) for a N = nx * ny * nz supercell
-    symbols : {sequence (natoms,), None}, optional
-        List of strings with atom symbols, (natoms,), must match with the
-        rows of `coords`. If None then the returned `symbols` for the supercell
-        are also None.
 
     returns:
     --------
-    dict {symbols, coords, cell}
-    symbols : list of strings with atom symbols for the supercell, (N*natoms,)
-        or None
-    coords : array (N*natoms, 3, nstep)
-        Atomic crystal coords in the super cell w.r.t `cell`, i.e.
-        the numbers are in [0,1].
-    cell : array (3,3) or (3,3,nstep) 
-        basis vecs of the super cell
+    Trajectory
     """
     mask = scell_mask(*tuple(dims))
     nmask = mask.shape[0]
-    natoms = coords.shape[0]
-    nstep = coords.shape[-1]
-    sc_symbols = np.array(symbols).repeat(nmask).tolist() if (symbols \
+    sc_symbols = np.array(traj.symbols).repeat(nmask).tolist() if (traj.symbols \
                  is not None) else None
-    # cool, eh?                 
-    sc_coords = (coords[:,None,...] + mask[...,None][None,...]).reshape(natoms*nmask,3,nstep)
-    if cell.ndim == 2:
-        sc_cell = cell * np.asarray(dims)[:,None]
-    elif cell.ndim == 3:
-        sc_cell = cell * np.asarray(dims)[:,None,None]
-    else:
-        raise StandardError("only cell.ndim == 2 or 3 allowed")
-    sc_coords[:,0,:] /= dims[0]
-    sc_coords[:,1,:] /= dims[1]
-    sc_coords[:,2,:] /= dims[2]
-    return {'symbols': sc_symbols, 'coords': sc_coords, 
-            'cell': sc_cell}
+    # cool, eh?
+    # (nstep, natoms, 1, 3) + (1, 1, nmask, 3) -> (nstep, natoms, nmask, 3)
+    sc_coords_frac = (traj.coords_frac[...,None,:] \
+                      + mask[None,None,...]).reshape(traj.nstep,traj.natoms*nmask,3)
+    # (nstep,3,3) * (1,3,1) -> (nstep, 3,3)                      
+    sc_cell = traj.cell * np.asarray(dims)[None,:,None]
+    sc_coords_frac[:,:,0] /= dims[0]
+    sc_coords_frac[:,:,1] /= dims[1]
+    sc_coords_frac[:,:,2] /= dims[2]
+    return Trajectory(coords_frac=sc_coords_frac,
+                      cell=sc_cell,
+                      symbols=sc_symbols)
 
 #-----------------------------------------------------------------------------
 # atomic coords processing / evaluation, MD analysis
@@ -597,7 +571,7 @@ def rms(arr, nitems='all'):
     return rms        
 
 
-def rms3d(arr, axis=-1, nitems='all'):
+def rms3d(arr, axis=0, nitems='all'):
     """RMS of 3d array along `axis`. Sum all elements of all axes != axis.
     
     args:
@@ -614,6 +588,8 @@ def rms3d(arr, axis=-1, nitems='all'):
     --------
     rms : 1d array, (arr.shape[axis],)
     """
+    # We could use num.sum() and would be able to generalize to nd arrays. But
+    # not needed now.
     assert -1 <= axis <= 2, "allowed axis values: -1,0,1,2"
     assert arr.ndim == 3, "arr must be 3d array"
     if axis == -1:
@@ -633,23 +609,23 @@ def rms3d(arr, axis=-1, nitems='all'):
     return rms        
     
 
-def rmsd(coords_cart, ref_idx=0, axis=-1):
+def rmsd(coords, ref_idx=0, axis=0):
     """Root mean square distance over an MD trajectory. The normalization
-    constant is the number of atoms (coords_cart.shape[0]).
+    constant is the number of atoms (coords.shape[0]).
     
     args:
     -----
-    coords_cart : 3d array 
+    coords : 3d array 
         Cartesian coords, time axis `axis`, natoms axis must be 0, i.e. shape =
         (natoms, ....)
     ref_idx : time index of the reference structure (i.e. 0 to compare with the
         start structure, -1 for the last along `axis`).
     axis : int
-        time axis in `coords_cart`
+        time axis in `coords`
     
     returns:
     --------
-    rmsd : 1d array (coords_cart.shape[axis],)
+    rmsd : 1d array (coords.shape[axis],)
 
     examples:
     ---------
@@ -663,9 +639,9 @@ def rmsd(coords_cart, ref_idx=0, axis=-1):
     # sl_ref : pull out 2d array of coords of the reference structure
     # sl_newaxis : slice to broadcast (newaxis) this 2d array to 3d for easy
     #     substraction
-    assert coords_cart.ndim == 3
+    assert coords.ndim == 3
     ndim = 3
-    R = coords_cart.copy()
+    R = coords.copy()
     sl_ref = [slice(None)]*ndim
     sl_ref[axis] = ref_idx
     sl_newaxis = [slice(None)]*ndim
@@ -676,40 +652,28 @@ def rmsd(coords_cart, ref_idx=0, axis=-1):
     return rms3d(R, axis=axis, nitems=N)
 
 
-#FIXME implement axis kwarg, get rid of loops
-##def max_displacement(coords_cart):
-##    R = coords_cart
-##    md = np.empty((R.shape[0], R.shape[2]), dtype=float)
-##    # iatom
-##    for i in range(R.shape[0]):
-##        # x,y,z
-##        for j in range(R.shape[2]):
-##            md[i,j] = R[i,:,j].max() - R[i,:,j].min()
-##    return md            
-
-
-def pbc_wrap(coords, copy=True, mask=[True]*3, xyz_axis=-1):
+def pbc_wrap(coords_frac, copy=True, mask=[True]*3, xyz_axis=-1):
     """Apply periodic boundary conditions. Wrap atoms with fractional coords >
     1 or < 0 into the cell.
     
     args:
     -----
-    coords : array 2d or 3d
+    coords_frac : array 2d or 3d
         fractional coords, if 3d then one axis is assumed to be a time axis and
         the array is a MD trajectory or such
     copy : bool
-        Copy coords before applying pbc.     
+        Copy coords_frac before applying pbc.     
     mask : sequence of bools, len = 3 for x,y,z
         Apply pbc only x, y or z. E.g. [True, True, False] would not wrap the z
         coordinate.
-    xyz_axis : the axis of `coords` where the indices 0,1,2 pull out the x,y,z
+    xyz_axis : the axis of `coords_frac` where the indices 0,1,2 pull out the x,y,z
         coords. For a usual 2d array of coords with shape (natoms,3), 
         xyz_axis=1 (= last axis = -1). For a 3d array (natoms, nstep, 3),
         xyz_axis=2 (also -1).
     
     returns:
     --------
-    coords with all values in [0,1] except for those where mask[i] = False.
+    coords_frac with all values in [0,1] except for those where mask[i] = False.
 
     notes:
     ------
@@ -718,10 +682,10 @@ def pbc_wrap(coords, copy=True, mask=[True]*3, xyz_axis=-1):
     >>> a = pbc_wrap(a, copy=False)
     >>> pbc_wrap(a, copy=False)
     """
-    assert coords.shape[xyz_axis] == 3, "dim of xyz_axis of `coords` must be == 3"
-    ndim = coords.ndim
-    assert ndim in [2,3], "coords must be 2d or 3d array"
-    tmp = coords.copy() if copy else coords
+    assert coords_frac.shape[xyz_axis] == 3, "dim of xyz_axis of `coords_frac` must be == 3"
+    ndim = coords_frac.ndim
+    assert ndim in [2,3], "coords_frac must be 2d or 3d array"
+    tmp = coords_frac.copy() if copy else coords_frac
     for i in range(3):
         if mask[i]:
             sl = [slice(None)]*ndim
@@ -1043,10 +1007,16 @@ def min_image_convention(sij, copy=False):
     --------
     sij in-place modified or copy
     """
-    _sij = sij.copy() if copy else sij
-    _sij[_sij > 0.5] -= 1.0
-    _sij[_sij < -0.5] += 1.0
-    return _sij
+    sij = sij.copy() if copy else sij
+    mask = sij >= 0.5
+    while mask.any():
+        sij[mask] -= 1.0
+        mask = sij >= 0.5
+    mask = sij < -0.5
+    while mask.any():
+        sij[mask] += 1.0
+        mask = sij < -0.5
+    return sij
 
 
 @crys_add_doc
@@ -1080,23 +1050,31 @@ def rmax_smith(cell):
     rmax = 0.5*min(wa,wb,wc)
     return rmax
 
-
-@crys_add_doc
-def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None), 
-         pbc=True):
+def rpdf(trajs, dr=None, rmax='auto', amask=None, tmask=None, 
+         pbc=True, norm_vmd=False):
     """Radial pair distribution (pair correlation) function. This is for one
-    atomic structure (2d arrays) or a MD trajectory (3d arrays). Can also handle
-    non-orthorhombic unit cells (simulation boxes). Only fixed-cell MD (i.e.
-    cell.shape == (3,3)).
+    Structure or a Trajectory. Can also handle non-orthorhombic unit cells
+    (simulation boxes). Only fixed-cell MD. 
+
+    For subtle differences to VMD, see comments below.
+
+    Note: The maximal `rmax` for which results (g(r) and number integral) are
+    correctly normalized is the result of rmax_smith(cell), i.e. the radius if the
+    biggest sphere which fits entirely into the cell. We do explicitely allow
+    rmax > rmax_smith() for testing, but be aware that results are *wrong* for
+    rmax > rmax_smith()!! See examples/rpdf/ for educational evidence.
     
     args:
     -----
-    coords : one array [2d (natoms, 3) or 3d (natoms, 3,  nstep)] or a
-        sequence of 2 such arrays 
-        Crystal coords. If it is a sequence, then the RPDF of the 2nd coord set
-        (coords[1]) w.r.t. to the first (coords[0]) is calculated, i.e. the
-        order matters! This is like selection 1 and 2 in VMD.
-    %(cell_doc)s
+    trajs : Structure or Trajectory, list of one or two Structure or
+        Trajectory objects. 
+        The case len(trajs)==1 is the same as providing the object directly
+        (most common case). Internally we expand the input to [trajs, trajs],
+        i.e. the RPDF of the 2nd coord set w.r.t. to the first is calculated --
+        the order matters! This is like selection 1 and 2 in VMD, but nornmally
+        you would use `amask` instead. The option to provide a list of two
+        Trajectory objects exists for cases where you don't want to use
+        `amask`, but create two different Trajectory objects outside.
     dr : float
         Radius spacing. Must have the same unit as `cell`, e.g. Angstrom.
     rmax : {'auto', float}, optional
@@ -1105,15 +1083,31 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None),
         'auto': the method of [Smith] is used to calculate the max. sphere
             raduis for any cell shape
         float: set value yourself
-    tslice : slice object, optional
-        Slice for the time axis if coords had 3d arrays. Use this or sline the
-        input arrays.
+    amask : None, list of one or two bool 1d arrays, list of one or two
+        strings, optional
+        The "atom mask". This is the complementary functionality to `sel` in
+        vmd_measure_gofr(). If len(amask)==1, then we expand to [amask, amask]
+        internally, which would calculate the RPDF between the same atom
+        selection. If two masks are given, then the first is applied to
+        trajs[0] and the second to trajs[1]. Use this to select only certain
+        atoms in each Trajectory. The default is to provide bool arrays. If you
+        provide strings, they are assumed to be atom names and we create a
+        bool array np.array(symbols) == amask[i].
+    tmask : None or slice object, optional
+        Slice for the time axis, e.g. to use only every 100th step, starting
+        from step 2000 to the end, use tmask=slice(2000,None,100), which is the
+        same as np.s_[2000::100].
     pbc : bool, optional
-        apply minimum image convention
+        apply minimum image convention to distances
+    norm_vmd : bool, optional
+        Normalize g(r) like in VMD by counting duplicate atoms and normalize to
+        (natoms0 * natoms - duplicates) instead of (natoms0*natoms1). Affects
+        all-all correlations only. num_int is not affected. Use this only for
+        testing.
 
     returns:
     --------
-    (rad, hist, num_int)
+    array (len(rad), 3), colums 0,1,2:
     rad : 1d array, radius (x-axis) with spacing `dr`, each value r[i] is the
         middle of a histogram bin 
     hist : 1d array, (len(rad),)
@@ -1123,38 +1117,35 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None),
     
     notes:
     ------
+    The selection mechanism with `amask` is in principle as capable as VMD's,
+    but relies completely on the user's ability to create bool arrays to filter
+    the atoms. In practice, anything more complicated than array(symbols)=='O'
+    ("name O" in VMD) is much more difficult than VMD's powerful selection
+    syntax.
+
     Curently, the atom distances are calculated by using numpy fancy indexing.
     That creates (big) arrays in memory. For data from long MDs, you may run
     into trouble here. For a 20000 step MD, start by using every 200th step or
-    so and look at the histogram, as you take more and more points into account
-    (every 100th, 50th step, ...). Especially for Car Parrinello, where time
-    steps are small and the structure doesn't change much, there is no need to
-    use every step.
-
+    so (use ``tmask=slice(None,None,200)``) and look at the histogram, as you
+    take more and more points into account (every 100th, 50th step, ...).
+    Especially for Car Parrinello, where time steps are small and the structure
+    doesn't change much, there is no need to use every step.
+    
     examples:
     ---------
-    # 2 selections (O and H atoms, average time step 3000 to end)
-    >>> pwout = parse.PwOutputFile(...)
-    >>> pwin = parse.PwInputFile(...)
-    >>> pwout.parse()
-    # lattice constant, assume cubic box
-    >>> alat = 5
-    >>> cell = np.identity(3)*alat
-    # transform to crystal coords (simple for cubic box, can also use 
-    # coord_trans()), result is 3d array (natoms, 3, nstep)
-    #   coords = crys.coord_trans(pwout.coords, 
-    #                             old=np.identity(3), 
-    #                             new=np.identity(3)*alat,
-    #                             axis=1)
-    >>> coords = pwout.coords / alat
-    # make selections, numpy rocks!
-    >>> sy = np.array(pwin.get_symbols())
-    >>> msk1 = sy=='O'; msk2 = sy=='H'
-    # do time slice here or with `tslice` kwd
-    >>> clst = [coords[msk1,:,3000:], coords[msk2,:,3000:]]
-    >>> rad, hist, num_int = rpdf(clst, cell, dr)
-    >>> plot(rad, hist)
-    >>> plot(rad, num_int)
+    # simple all-all RPDF
+    >>> d = rpdf(traj, dr=0.1)
+
+    # 2 selections: RPDF of all H's around all O's, average time step 3000 to
+    # end, take every 50th step
+    >>> traj = parse.PwOutputFile(...).get_traj()
+    >>> sy = np.array(traj.symbols)
+    >>> d = rpdf(traj, dr=0.1, amask=[sy=='O', sy=='H'],tmask=np.s_[3000::50])
+    >>> plot(d[:,0], d[:,1], label='g(r)')
+    >>> plot(d[:,0], d[:,2], label='number integral')
+    # the same as rpdf(traj,...)
+    >>> d = rpdf([traj], dr=0.1, amask=[sy=='O', sy=='H'],tmask=np.s_[3000::50])
+    >>> d = rpdf([traj, traj], dr=0.1, amask=[sy=='O', sy=='H'],tmask=np.s_[3000::50])
      
     refs:
     -----
@@ -1172,8 +1163,8 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None),
     # 
     # 1) N equal particles (atoms) in a volume V.
     #
-    # Below, "density" always means number density, i.e. 
-    # (N atoms in the unit cell)  / (unit cell volume V).
+    # Below, "density" always means number density, i.e. (N atoms in the unit
+    # cell)  / (unit cell volume V).
     #
     # g(r) is (a) the average number of atoms in a shell [r,r+dr] around an
     # atom at r=0 or (b) the average density of atoms in that shell -- relative
@@ -1187,7 +1178,7 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None),
     #   dn(r) = sum(i=1,N) sum(j=1,N, j!=i) delta(r - r_ij)
     # 
     # In practice, this is done by calculating all distances r_ij and bin them
-    # in a histogram dn(k) with k = r_ij / dr the histogram index.
+    # into a histogram dn(k) with k = r_ij / dr the histogram index.
     # 
     # We sum over N atoms, so we have to divide by N -- that's why g(r) is an
     # average. Also, we normalize to ideal gas values
@@ -1212,9 +1203,12 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None),
     # The number integral is
     #
     #   I(r1,r2) = int(r=r1,r2) N/V*g(r)*4*pi*r**2*dr
+    #            = int(r=r1,r2) N/V*g(r)*V(r)
+    #            = int(r=r1,r2) 1/N*dn(r)
     # 
     # which can be used to calculate coordination numbers, i.e. it counts the
-    # average number of atoms around an atom in a shell [r1,r2]. 
+    # average (that's why 1/N) number of atoms around an atom in a shell
+    # [r1,r2]. 
     #   
     # Integrating to infinity
     #
@@ -1225,8 +1219,9 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None),
     # w/o PBC, the nearest neigbor numbers I(r1,r2) will be wrong! Always use
     # PBC (minimum image convention). Have a look at the following table.
     # rmax_auto is the rmax value for the given unit cell by the method of
-    # [Smith], which is L/2 for a cubic box of side length L. "+" = OK, "-" =
-    # wrong.
+    # [Smith], which is L/2 for a cubic box of side length L. It is the radius
+    # of the biggest sphere which still fits entirely into the cell. In the
+    # table: "+" = OK, "-" = wrong.
     #
     #                                    nearest neighb.     I(0,rmax) = N-1  
     # 1.) pbc=Tue,   rmax <  rmax_auto   +                   -
@@ -1237,8 +1232,10 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None),
     # (1) is the use case in [Smith]. Always use this. 
     #
     # (2) appears to be also useful. However, it can be shown that nearest
-    # neigbors are correct only up to rmax_auto! See 
-    # examples/rpdf/rpdf_aln.py.
+    # neigbors are correct only up to rmax_auto! See examples/rpdf/rpdf_aln.py.
+    # This is because if rmax > rmax_auto (say > L/2), then the shell is empty
+    # for all r outside of the box, which means that the counted number of
+    # surrounding atoms will be to small.
     #
     # For a crystal, integrating over a peak [r-dr/2, r+dr/2] gives *exactly*
     # the number of nearest neighbor atoms for that distance r b/c the
@@ -1261,22 +1258,27 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None),
     #          dn_BA(r) / [B * (A/V) * V(r)]
     # 
     # Note that the density used is always the density of the *sourrounding*
-    # atom type. Finally:
+    # atom type. g_AB(r) or g_BA(r) is the result that you want. Finally, we
+    # can also write g(r) for the all-all case, i.e. 1 atom type.
     #
     #  g(r) = [dn_AB(r) +  dn_BA(r)] / [A*B/V * V(r)]
     # 
     # Note the similarity to the case of one atom type:
     #
-    #   g(r) = dn(r) / [N**2/V * V(r)]
+    #  g(r) = dn(r) / [N**2/V * V(r)]
     # 
-    # This g(r) is independent of the selection order in `coords` b/c it's a
-    # sum. But the number integal is not! It must depend on which atom type
-    # surounds the other.
+    # The integrals are:
     # 
-    #   I_AB(r1,r2) = int(r=r1,r2) (B/V)*g(r)*4*pi*r**2*dr
-    #   I_BA(r1,r2) = int(r=r1,r2) (A/V)*g(r)*4*pi*r**2*dr
+    #  I_AB(r1,r2) = int(r=r1,r2) (B/V)*g_AB(r)*4*pi*r**2*dr
+    #                int(r=r1,r2) 1/A*dn_AB(r)
+    #  I_BA(r1,r2) = int(r=r1,r2) (A/V)*g_BA(r)*4*pi*r**2*dr
+    #                int(r=r1,r2) 1/B*dn_BA(r)
     # 
-    # Note that the integrals converge to the total number of sourrounding
+    # Note the similarity to the one-atom case:
+    #   
+    #  I(r1,r2)    = int(r=r1,r2) 1/N*dn(r)
+    #
+    # These integrals converge to the total number of *sourrounding*
     # atoms of the other type:
     #
     #   I_AB(0,inf) = B  (not B-1 !)
@@ -1290,7 +1292,6 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None),
     # examples/rpdf/.
     #
     # Make sure to convert all length to Angstrom of you compare with VMD.
-    #
     #
     # Implementation details
     # ======================
@@ -1307,156 +1308,208 @@ def rpdf(coords, cell, dr, rmax='auto', tslice=slice(None),
     #   
     # distance calculation
     # --------------------
-    #
-    # sij : distance "matrix" in crystal coords
+    # sij : "matrix" of distance vectors in crystal coords
     # rij : in cartesian coords, same unit as `cell`, e.g. Angstrom
     # 
-    # sij: for coords_lst[0] == coords_lst[1] == coords with shape (natoms,3), 
-    #   i.e. only one structure:
-    #   sij.shape = (N,N,3) where N = natoms, sij is a "(N,N)-matrix" of
-    #   length=3 distance vectors,
-    #   equivalent 2d:  
-    #   >>> a=arange(5)
-    #   >>> sij = a[:,None]-a[None,:]
+    # sij:        (natoms0, natoms1, 3) # coords 2d
+    # sij: (nstep, natoms0, natoms1, 3) # coords 3d
+    # 
+    # broadcasting 2d:
     #   
-    #   For 3d arrays with (N,3,nstep), we get (N,N,3,nstep).
+    #   coords0:        (natoms0, 1,       3) 
+    #   coords1:        (1,       natoms1, 3)
+    #   sij:            (natoms0, natoms1, 3)
+    #   >>> coords0[:,None,:] - coords1[None,:,:] 
     #
-    #   For coords_lst[0] != coords_lst[1], i.e. 2 selections, we get
-    #   (N,M,3) or (N,M,3,nstep), respectively.
+    # broadcasting 3d:
+    #
+    #   coords0: (nstep, natoms0, 1,       3) 
+    #   coords1: (nstep, 1,       natoms1, 3)
+    #   sij:     (nstep, natoms0, natoms1, 3)
+    #   >>> coords0[:,:,None,:] - coords1[:,None,:,:] 
     # 
     # If we have arbitrary selections, we cannot use np.tri() to select only
     # the upper (or lower) triangle of this "matrix" to skip duplicates (zero
-    # distance on the main diagonal) and avoid double counting. We must
-    # calculate and bin *all* distances.
+    # distance on the main diagonal). Note that if we used tri(), we'd have to
+    # multiply the histogram by two, b/c now, we always double-count ij and ji
+    # distances, which seems to be correct (compare w/ VMD).
+    #
+    # We can easily create a MemoryError b/c of the temp arrays that numpy
+    # creates. But even w/ numexpr, which avoids big temp arrays, we store the
+    # result sij, which is a 4d array. For natoms=20, nstep=10000, we already
+    # have a 12 GB array in RAM! The only solution is to code the section
+    # Fortran/Cython/whatever in loops:
+    #   * distances
+    #   * apply min_image_convention() (optional)
+    #   * sij -> rij transform
+    #   * redcution to distances
+    # 
+    # Differences to VMD's measure gofr
+    # =================================
     #
     # duplicates
     # ----------
+    # In vmd/src/Measure.C, they count the number of identical atoms in both
+    # selections (variable ``duplicates``). These atoms lead to an r=0 peak in
+    # the histogram, which is bogus and must be corrected. VMD subtracts these
+    # number from the first histogram bin, while we simply set it to zero and
+    # don't count ``duplicates`` at all.
     #
-    # Count the number of duplicate atoms in both coord sets from 1st time
-    # step. They result in a peak at r=0 (zero distance), which is bogus. Note
-    # that VMD uses natoms_lst_prod - num_duplicates, but frankly, I don't
-    # understand why. We always use num_duplicates = 0. AFAIK, num_duplicates
-    # is used to correct the first bin somehow. But we zero that anyway, so I
-    # guess we are good.
+    # normalization
+    # -------------
+    # We use the textbook formulas, which lead to 
+    #     norm_fac = volume / volume_shells / (natoms0 * natoms1)
+    # while VMD uses smth similar to
+    #     norm_fac = volume / volume_shells / (natoms0 * natoms1 - duplicates)
     # 
-    # This loop is slow.
+    # VMD calculates g(r) using this norm_fac, but the num_int is always
+    # calculated using the textbook result
+    #   
+    #   I_AB(r1,r2) = int(r=r1,r2) 1/A*dn_AB(r)
+    # 
+    # which is what we do, i.e. just integrate the histogram. That means VMD's
+    # results are inconsistent if duplicates != 0. In that case g(r) is wrong,
+    # but num_int is still correct. This is only the case for simple all-all
+    # correlation (i.e. all atoms are considered the same), duplicates =
+    # natoms0 = natoms1 = the number of zeros on the distance matrix' main
+    # diagonal. Then we have a small difference in g(r), where VMD's is always
+    # a little higher b/c norm_fac is smaller then it should.
     #
-    ##zero_xyz = np.ones((3,)) * np.finfo(float).eps * 2.0
-    ##num_duplicates = 0
-    ##c0 = coords_lst[0][...,0]
-    ##c1 = coords_lst[1][...,0]
-    ##for i in range(c0.shape[0]):
-    ##    for j in range(c1.shape[0]):
-    ##        if (np.abs(c0[i,:] - c1[j,:]) < zero_xyz).all():
-    ##            num_duplicates += 1
+    # As a result, VMD's g(r) -> 1.0 for random points (= ideal gas) and
+    # num_int -> N (would VMD's g(r) be integrated directly), while our g(r) ->
+    # < 1.0 (e.g. 0.97) and num_int -> N-1.  
     #
-    # main loop
-    # ---------
+    # rmax
+    # ----
+    # VMD has a unique feature that lets you use a higher rmax. VMD extends the
+    # range of rmax over rmax_auto, up to 2*sqrt(0.5)*rmax_auto (~ 14.14 for
+    # rmax_auto=10) which is just the length of the vector [rmax_auto,
+    # rmax_auto], i.e. the radius of a sphere which touches one vertice of the
+    # box. Then, we have a spherical cap, which partly covers the smallest box
+    # side (remember that VMD can do orthorhombic boxes only). VMD corrects the
+    # volume of the shells for normalization in that case for rmax_auto < r <
+    # 2*sqrt(0.5)*rmax_auto.
     #
-    # Set all dists > rmax to 0.0 and thereby keep shape of `dists_all`. This
-    # is b/c we may calculate all nstep hists in a vectorized fashion later
-    # (avoid Python loop). The other way would be to do in each loop: dists =
-    # dists_all[...,idx][dists_all[...,idx] < rmax]
-    #
-    # We need to correct first bin (hist[0]) b/c  all dists > rmax are set to
-    # 0.0 before the histogram is calculated. They are sorted into one big peak
-    # at r=0, which is of course bogus.
-    #
-    assert cell.shape == (3,3), "`cell` must be (3,3) array"
-    # nd array or list of 2 arrays
-    if not type(coords) == type([]):
-        coords_lst = [coords, coords]
-    else:
-        coords_lst = coords
-    assert len(coords_lst) == 2, "len(coords_lst) != 2"
-    assert coords_lst[0].ndim == coords_lst[1].ndim, ("coords do not have "
-           "same number of dimensions") 
-    # 2 or 3
-    coords_ndim = coords_lst[0].ndim
-    # (natoms,3) or (natoms,3,nstep)
-    assert [3,3] == [c.shape[1] for c in coords_lst], ("axis 1 of one or "
-           "both coord arrays does not have length 3")
-    # assert shape 3d
-    if coords_ndim == 2:
-        for i in range(len(coords_lst)):
-            coords_lst[i] = coords_lst[i][...,None]
-        nstep = 1
-    elif coords_ndim == 3:
-        for i in range(len(coords_lst)):
-            coords_lst[i] = coords_lst[i][...,tslice]
-        nstep = coords_lst[0].shape[-1]
-    else:
-        raise StandardError("arrays in coords_lst have wrong shape, expect 2d "
-                            "or 3d, got [%s, %s]" \
-                            %tuple(map(str, [c.shape for c in coords_lst])))
+    # For distinct selections, our results and VMD's are exactly the same up to
+    # rmax_auto. After that, VMD's are correct up to 2*sqrt(0.5)*rmax_auto. At
+    # that value, they set g(r) to 0.0 (and so the number integral too). 
+    
+    if amask is None:
+        amask = [slice(None)]
+    if tmask is None:
+        tmask = slice(None)
+    if type(trajs) != type([]):
+        trajs = [trajs]
+    if len(trajs) == 1:
+        trajs *= 2
+    if len(amask) == 1:
+        amask *= 2
+    trajs = map(struct2traj, trajs)
+    assert len(trajs) == 2, "len(trajs) != 2"
+    assert len(amask) == 2, "len(amask) != 2"
+    assert trajs[0].symbols == trajs[1].symbols, ("symbols differ")
+    assert trajs[0].coords_frac.ndim == trajs[1].coords_frac.ndim == 3, \
+        ("coords do not both have ndim=3")
+    assert trajs[0].nstep == trajs[1].nstep, ("nstep differs")        
+    # this maybe slow, we need a better and faster test to ensure fixed
+    # cell        
+    assert (trajs[0].cell == trajs[1].cell).all(), ("cells are not the same")
+    assert np.abs(trajs[0].cell - trajs[0].cell[0,...]).sum() == 0.0
+    # special case: amask is string: 'Ca' -> sy=='Ca' bool array
+    sy = np.array(trajs[0].symbols)
+    for ii in range(len(amask)):
+        if type(amask[ii]) == type('x'):
+            amask[ii] = sy==amask[ii]
+    clst = [trajs[0].coords_frac[tmask,amask[0],:],
+            trajs[1].coords_frac[tmask,amask[1],:]]
+    # Add time axis back if removed after time slice, e.g. if tmask=np.s_[-1]
+    # (only one step). One could also slice ararys and put them thru the
+    # Trajectory() machinery again to assert 3d arrays.
+    for ii in range(len(clst)):
+        if len(clst[ii].shape) == 2:
+            clst[ii] = clst[ii][None,...]
+            assert len(clst[ii].shape) == 3
+            assert clst[ii].shape[2] == 3
+    natoms0 = clst[0].shape[1]
+    natoms1 = clst[1].shape[1]
+    # assume fixed cell, 2d 
+    cell = trajs[0].cell[0,...]
+    volume = trajs[0].volume[0] 
+    nstep = float(clst[0].shape[0])
     rmax_auto = rmax_smith(cell)
     if rmax == 'auto':
         rmax = rmax_auto
-    natoms_lst = [c.shape[0] for c in coords_lst]
-    
-    natoms_lst_prod = float(np.prod(natoms_lst))
-    volume = np.linalg.det(cell)
     bins = np.arange(0, rmax+dr, dr)
     rad = bins[:-1]+0.5*dr
     volume_shells = 4.0/3.0*pi*(bins[1:]**3.0 - bins[:-1]**3.0)
-    norm_fac = volume / volume_shells / natoms_lst_prod
+    norm_fac_pre = volume / volume_shells
 
     # distances
-    #
-    # (natoms0, natoms1, 3, nstep)
-    sij = coords_lst[0][:,None,...] - coords_lst[1][None,...]
+    # sij: (nstep, natoms0, natoms1, 3)
+    sij = clst[0][:,:,None,:] - clst[1][:,None,:,:]
+    assert sij.shape == (nstep, natoms0, natoms1, 3)
     if pbc:
         sij = min_image_convention(sij)
-    # (natoms0 * natoms1, 3, nstep)
-    sij = sij.reshape(natoms_lst[0]*natoms_lst[1], 3, nstep)
-    # (natoms0 * natoms1, 3, nstep)
-    rij = np.dot(sij.swapaxes(-1,-2), cell).swapaxes(-1,-2)
-    # (natoms0 * natoms1, nstep)
-    dists_all = np.sqrt((rij**2.0).sum(axis=1))
+    # sij: (nstep, atoms0 * natoms1, 3)
+    sij = sij.reshape(nstep, natoms0*natoms1, 3)
+    # rij: (nstep, natoms0 * natoms1, 3)
+    rij = np.dot(sij, cell)
+    # dists_all: (nstep, natoms0 * natoms1)
+    dists_all = np.sqrt((rij**2.0).sum(axis=2))
     
+    if norm_vmd:
+        msk = dists_all < 1e-15
+        dups = [len(np.nonzero(entry)[0]) for entry in msk]
+    else:
+        dups = np.zeros((nstep,))
+    # Not needed b/c bins[-1] == rmax, but doesn't hurt. Plus, test_rpdf.py
+    # would fail b/c old reference data calculated w/ that setting (difference
+    # 1%, only the last point differs).
     dists_all[dists_all >= rmax] = 0.0
-    hist_avg = np.zeros(len(bins)-1, dtype=float)
-    number_integral_avg = np.zeros(len(bins)-1, dtype=float)
-    # Calculate hists for each time step and average them.
-    # XXX This Python loop is the bottleneck if we have many timesteps.
-    for idx in range(dists_all.shape[-1]):
-        dists = dists_all[...,idx]
+
+    hist_sum = np.zeros(len(bins)-1, dtype=float)
+    number_integral_sum = np.zeros(len(bins)-1, dtype=float)
+    # Calculate hists for each time step and average them. This Python loop is
+    # the bottleneck if we have many timesteps.
+    for idx in range(int(nstep)):
+        dists = dists_all[idx,...]
+        norm_fac = norm_fac_pre / (natoms0 * natoms1 - dups[idx])
         # rad_hist == bins
         hist, rad_hist = np.histogram(dists, bins=bins)
+        # works only if we don't set dists_all[dists_all >= rmax] = 0.0
+        ##hist[0] -= dups[idx]
         if bins[0] == 0.0:
             hist[0] = 0.0
-            # works only if we do NOT set dists > rmax to 0.0
-            ##hist[0] -= num_duplicates 
-        hist = hist * norm_fac            
-        hist_avg += hist
-        # Note that we use "natoms_lst[1] / volume" to get the correct density,
-        # i.e. we use the density of the *sourrounding* atoms.
-        number_integral = np.cumsum(1.0*natoms_lst[1]/volume*hist*4*pi*rad**2.0 * dr)
-        number_integral_avg += number_integral
-    hist_avg = hist_avg / (1.0*dists_all.shape[-1])
-    out = (rad, hist_avg, number_integral_avg / (1.0*dists_all.shape[-1]))
+        hist_sum += hist * norm_fac
+        # The result is always the same b/c if norm_vmd=False, then
+        # dups[idx]=0.0 and the equation reduces to the exact same.
+        ##if norm_vmd:
+        ##    number_integral = np.cumsum(hist)*1.0 / natoms0
+        ##else:            
+        ##    number_integral = np.cumsum(1.0*natoms1/volume*hist*norm_fac*4*pi*rad**2.0 * dr)
+        number_integral = np.cumsum(hist)*1.0 / natoms0
+        number_integral_sum += number_integral
+    out = np.empty((len(rad), 3))
+    out[:,0] = rad
+    out[:,1] = hist_sum / nstep
+    out[:,2] = number_integral_sum / nstep
     return out
 
-@crys_add_doc
-def vmd_measure_gofr(coords_frac, cell, symbols, dr, rmax='auto', selstr1='all', selstr2='all', 
+def vmd_measure_gofr(traj, dr, rmax='auto', sel=['all','all'], 
                      fntype='xsf', first=0,
-                     last=-1, step=1, usepbc=1, datafn=None,
+                     last=-1, step=1, usepbc=1, slicefirst=True, datafn=None,
                      scriptfn=None, logfn=None, xsffn=None, tmpdir='/tmp', 
                      keepfiles=False, verbose=False):
     """Call VMD's "measure gofr" command. This is a simple interface which does
-    in fact the same thing as the gofr GUI. This is intended as a complementary
-    function to rpdf() and should, of course, produce the "same" results.
+    in fact the same thing as the gofr GUI, only scriptable. This is intended
+    as a complementary function to rpdf() and should, of course, produce the
+    "same" results.
 
-    Only cubic boxes are allowed (like in VMD).
+    Only orthogonal boxes are allowed (like in VMD).
     
     args:
     -----
-    coords_frac : 3d array (natoms, 3, nstep)
-        Crystal coords.
-    %(cell_doc)s
-        Unit: Angstrom
-    symbols : (natoms,) list of strings
-        Atom symbols.
+    traj : Structure or Trajectory
     dr : float
         dr in Angstrom
     rmax : {'auto', float}, optional
@@ -1465,15 +1518,20 @@ def vmd_measure_gofr(coords_frac, cell, symbols, dr, rmax='auto', selstr1='all',
         'auto': the method of [Smith] is used to calculate the max. sphere
             raduis for any cell shape
         float: set value yourself
-    selstr1, selstr2 : str, optional
-        string to select atoms, "all", "name O", ...
+    sel : list of two strings, optional
+        string to select atoms, ["name Ca", "name O"], ["all", "all"], ...,
+        where sel[0] is selection 1, sel[1] is selection 2 in VMD
     fntype : str, optional
         file type of `fn` for the VMD "mol" command
     first, last, step: int, optional
         Select which MD steps are averaged. Like Python, VMD starts counting at
         0. Last is -1, like in Python. 
-    usepbc: int {1,0}, optional
+    usepbc : int {1,0}, optional
         Whether to use the minimum image convention.
+    slicefirst : bool, optional
+        Whether to slice coords here in the wrapper based on first,last,step.
+        This will write a smaller XSF file, which can save time. In the VMD
+        script, we always use first=0,last=-1,step=1 in that case.
     datafn : str, optional (auto generated)
         temp file where VMD results are written to and loaded
     scriptfn : str, optional (auto generated)
@@ -1492,7 +1550,7 @@ def vmd_measure_gofr(coords_frac, cell, symbols, dr, rmax='auto', selstr1='all',
 
     returns:
     --------
-    (rad, hist, num_int)
+    array (len(rad), 3), colums 0,1,2:
     rad : 1d array, radius (x-axis) with spacing `dr`, each value r[i] is the
         middle of a histogram bin 
     hist : 1d array, (len(rad),)
@@ -1509,7 +1567,7 @@ def vmd_measure_gofr(coords_frac, cell, symbols, dr, rmax='auto', selstr1='all',
     #
     # Format of the output file (columns):
     #
-    # radius    g(r)    int(0,r) g(rr)*drr
+    # radius    avg(g(r))    avg(number integral)
     # [Ang]
     
     # Load molecule file with MD trajectory. Typically, foo.axsf with type=xsf
@@ -1519,12 +1577,13 @@ def vmd_measure_gofr(coords_frac, cell, symbols, dr, rmax='auto', selstr1='all',
     set molid top
     set selstr1 "XXXSELSTR1"
     set selstr2 "XXXSELSTR2"
-    set first XXXFIRST
+    set first XXXFIRST 
     set last XXXLAST
-    set step XXXSTEP
+    set step XXXSTEP 
     set delta XXXDR
     set rmax XXXRMAX
     set usepbc XXXUSEPBC
+    # info: slicefirst: XXXSLICEFIRST
     
     set sel1 [atomselect $molid "$selstr1"]
     set sel2 [atomselect $molid "$selstr2"]
@@ -1543,11 +1602,13 @@ def vmd_measure_gofr(coords_frac, cell, symbols, dr, rmax='auto', selstr1='all',
     quit
     """)
     from pwtools.io import write_axsf
+    traj = struct2traj(traj)
     # Speed: The VMD command "measure gofr" is multithreaded and written in C.
     # That's why it is faster then the pure Python rpdf() above when we have to
     # average many timesteps. But the writing of the .axsf file here is
     # actually the bottleneck and makes this function slower.
     assert None not in [dr, rmax], "`dr` or `rmax` is None"
+    assert len(sel) == 2
     if datafn is None:
         datafn = os.path.join(tmpdir, "vmd_data")
     if scriptfn is None:
@@ -1556,22 +1617,36 @@ def vmd_measure_gofr(coords_frac, cell, symbols, dr, rmax='auto', selstr1='all',
         logfn = os.path.join(tmpdir, "vmd_log")
     if xsffn is None:
         xsffn = os.path.join(tmpdir, "vmd_xsf")
-    cc = cell2cc(cell)
+    cell = traj.cell[0,...]
+    cc = traj.cryst_const[0,...]
     if np.abs(cc[3:] - 90.0).max() > 0.1:
         print cell
-        raise StandardError("`cell` is not a cubic cell, check angles")
+        raise StandardError("`cell` is not orthogonal, check angles")
     rmax_auto = rmax_smith(cell)
     if rmax == 'auto':
         rmax = rmax_auto
-    write_axsf(xsffn, coords_frac=coords_frac, cell=cell, symbols=symbols)
+    # Slice here and write less to xsf file (speed!). Always use first=0,
+    # last=-1, step=1 in vmd script.
+    if slicefirst:
+        sl = slice(first, None if last == -1 else last+1, step)
+        traj2 = Trajectory(coords_frac=traj.coords_frac[sl,...],        
+                           cell=cell,
+                           symbols=traj.symbols)
+        first = 0
+        last = -1
+        step = 1
+    else:
+        traj2 = traj
+    write_axsf(xsffn, traj2)
     dct = {}
     dct['fn'] = xsffn
     dct['fntype'] = fntype
-    dct['selstr1'] = selstr1
-    dct['selstr2'] = selstr2
+    dct['selstr1'] = sel[0]
+    dct['selstr2'] = sel[1]
     dct['first'] = first
     dct['last'] = last
     dct['step'] = step
+    dct['slicefirst'] = slicefirst
     dct['dr'] = dr
     dct['rmax'] = rmax
     dct['usepbc'] = usepbc
@@ -1591,8 +1666,679 @@ def vmd_measure_gofr(coords_frac, cell, symbols, dr, rmax='auto', selstr1='all',
         os.remove(datafn)
         os.remove(scriptfn)
         os.remove(xsffn)
-        ##os.remove(logfn)
-    rad = data[:,0]
-    hist_avg = data[:,1]
-    number_integral = data[:,2]
-    return rad, hist_avg, number_integral
+        os.remove(logfn)
+    return data
+
+#-----------------------------------------------------------------------------
+# Container classes for crystal structures and trajectories.
+#-----------------------------------------------------------------------------
+
+class UnitsHandler(FlexibleGetters):
+    def __init__(self, units=None):
+        # XXX cryst_const is not in 'length' and needs to be treated specially,
+        # see _apply_units_raw()
+        self.units_map = \
+            {'length':      ['cell', 'coords', 'abc'],
+             'energy':      ['etot', 'ekin'],
+             'stress':      ['stress'],
+             'forces':      ['forces'],
+             'temperature': ['temperature'],
+             'velocity':    ['velocity'],
+             'time':        ['timestep'],
+             }
+        self._default_units = dict([(key, 1.0) for key in self.units_map.keys()])
+        self.units_applied = False
+        self.init_units()
+        self.update_units(units)
+
+    def _apply_units_raw(self):
+        """Only used by derived classes. Apply unit factors to all attrs in
+        self.units_map."""
+        assert not self.units_applied, ("_apply_units_raw() already called")
+        # XXX special-case cryst_const for trajectory case here (ndim = 2), it
+        # would be better to split cryst_const into self.abc and self.angles or
+        # so, but that would break too much code, BUT we could just add
+        # backward compat get_cryst_const, which concatenates these ...
+        if self.is_set_attr('cryst_const'):
+            cc = self.cryst_const.copy()
+            if cc.ndim == 1:
+                cc[:3] *= self.units['length']
+            elif cc.ndim == 2:
+                cc[:,:3] *= self.units['length']
+            else:
+                raise StandardError("self.cryst_const has ndim != [1,2]")
+            self.cryst_const = cc
+        for unit, lst in self.units_map.iteritems():
+            if self.units[unit] != 1.0:
+                for attr_name in lst:
+                    if self.is_set_attr(attr_name):
+                        attr = getattr(self, attr_name)
+                        setattr(self, attr_name,  attr * self.units[unit])
+        self.units_applied = True
+    
+    def apply_units(self):
+        """Like _apply_units_raw(), make sure that units are only applied once."""
+        if not self.units_applied:
+            self._apply_units_raw()
+
+    def init_units(self):
+        """Init all unit factors in self.units to 1.0."""
+        self.units = self._default_units.copy()
+    
+    def update_units(self, units):
+        """Update self.units dict from `units`. All units not contained in
+        `units` remain at the default (1.0), see self._default_units.
+        
+        args:
+        -----
+        units : dict, {'length': 5, 'energy': 30, ...}
+        """
+        if units is not None:
+            all_units = self.units_map.keys()
+            for key in units.keys():
+                if key not in all_units:
+                    raise StandardError("unknown unit: %s" %str(key))
+            self.units.update(units)
+
+class Structure(UnitsHandler):
+    """Base class for containers which hold a single crystal structure (unit
+    cell + atoms).
+    
+    This is a defined minimal interface for how to store a crystal structure in
+    pwtools.
+
+    Derived classes may add attributes and getters but the idea is that this
+    class is the minimal API for how to pass an atomic structure around.
+    
+    Units are supposed to be similar to ASE:
+        length:     Angstrom        (1e-10 m)
+        energy:     eV              (1.602176487e-19 J)
+        forces:     eV / Angstrom
+        stress:     GPa             (not eV/Angstrom**3)
+        time:       fs              (1e-15 s)
+        velocity:   Angstrom / fs
+        mass:       amu             (1.6605387820000001e-27 kg)
+
+    Note that we cannot verify the unit of input args to the constructor, but
+    all functions in this package, which use Structure / Trajectory as
+    container classes, assume these units.
+
+    This class is very much like ase.Atoms, but without the "calculators".
+    You can use get_ase_atoms() to get an Atoms object.
+    
+    Derived classes should use set_all_auto=False if they call
+    Structure.__init__() explicitely in their __init__(). set_all_auto=True is
+    default for container use.
+
+    class Derived(Structure):
+        def __init__(self, ...):
+            Structure.__init__(set_all_auto=False, ...)
+
+    example:
+    --------
+    >>> symbols=['N', 'Al', 'Al', 'Al', 'N', 'N', 'Al']
+    >>> coords_frac=rand(len(symbols),3)
+    >>> cryst_const=np.array([5,5,5,90,90,90.0])
+    >>> st=structure.Structure(coords_frac=coords_frac, 
+    ...                        cryst_const=cryst_const, 
+    ...                        symbols=symbols)
+    >>> st.symbols
+    ['N', 'Al', 'Al', 'Al', 'N', 'N', 'Al']
+    >>> st.symbols_unique
+    ['Al', 'N']
+    >>> st.order
+    2}
+    >>> st.typat
+    [2, 1, 1, 1, 2, 2, 1]
+    >>> st.znucl
+    [13, 7]
+    >>> st.ntypat
+    2
+    >>> st.nspecies
+    3}
+    >>> st.coords
+    array([[ 1.1016541 ,  4.52833103,  0.57668453],
+           [ 0.18088339,  3.41219704,  4.93127985],
+           [ 2.98639824,  2.87207221,  2.36208784],
+           [ 2.89717342,  4.21088541,  3.13154023],
+           [ 2.28147351,  2.39398397,  1.49245281],
+           [ 3.16196033,  3.72534409,  3.24555934],
+           [ 4.90318748,  2.02974457,  2.49846847]])
+    >>> st.coords_frac
+    array([[ 0.22033082,  0.90566621,  0.11533691],
+           [ 0.03617668,  0.68243941,  0.98625597],
+           [ 0.59727965,  0.57441444,  0.47241757],
+           [ 0.57943468,  0.84217708,  0.62630805],
+           [ 0.4562947 ,  0.47879679,  0.29849056],
+           [ 0.63239207,  0.74506882,  0.64911187],
+           [ 0.9806375 ,  0.40594891,  0.49969369]])
+    >>> st.cryst_const
+    array([  5.,   5.,   5.,  90.,  90.,  90.])
+    >>> st.cell
+    array([[  5.00000000e+00,   0.00000000e+00,   0.00000000e+00],
+           [  3.06161700e-16,   5.00000000e+00,   0.00000000e+00],
+           [  3.06161700e-16,   3.06161700e-16,   5.00000000e+00]])
+    >>> st.get_ase_atoms()
+    Atoms(symbols='NAl3N2Al', positions=..., cell=[[2.64588604295, 0.0, 0.0],
+    [1.6201379367036871e-16, 2.64588604295, 0.0], [1.6201379367036871e-16,
+    1.6201379367036871e-16, 2.64588604295]], pbc=[True, True, True])
+    """
+    # from input **kwds, get_<attr>() by default
+    input_attr_lst = [\
+        'coords',
+        'coords_frac',
+        'symbols',
+        'cell',
+        'cryst_const',
+        'forces',
+        'stress',
+        'etot',
+        ]
+    # derived, get_<attr>() by default
+    derived_attr_lst = [\
+        'natoms',
+        'symbols_unique',
+        'order',
+        'typat',
+        'znucl',
+        'ntypat',
+        'nspecies',
+        'mass',
+        'volume',
+        'pressure',
+        ]
+    # extra convenience attrs, derived, have a getter, but don't
+    # get_<attr>() them by default
+    extra_attr_lst = [\
+        'ase_atoms',
+        ]
+    
+    @crys_add_doc
+    def __init__(self, 
+                 set_all_auto=True,
+                 units=None,
+                 **kwds):
+        """
+        args:
+        -----
+        coords : 2d array (natoms, 3) [Ang]
+            Cartesian coords.
+            Optional if `coords_frac` given.
+        coords_frac : 2d array (natoms, 3)
+            Fractional coords w.r.t. `cell`.
+            Optional if `coords` given.
+        symbols : sequence of strings (natoms,)
+            atom symbols
+        %(cell_doc)s 
+            Vectors are rows. [Ang]
+            Optional if `cryst_const` given.
+        %(cryst_const_doc)s
+            cryst_const[:3] = [a,b,c]. [Ang]
+            Optional if `cell` given.
+        forces : optional, 2d array (natoms, 3) with forces [eV/Ang]
+        stress : optional, 2d array (3,3), stress tensor [GPa]
+        etot : optional, scalar, total energy [eV]
+        units : optional, dict, see UnitsHandler
+        set_all_auto : optional, bool
+            Call self.set_all() in __init__(). Set to False in derived
+            classes.
+
+        notes:
+        ------
+        cell, cryst_const : Provide either `cell` or `cryst_const`, or both
+            (which is redundant). If only one is given, the other is calculated
+            from it. See {cell2cc,cc2cell}.
+        coords, coords_frac : Provide either `coords` or `coords_frac`, or both
+            (which is redundant). If only one is given, the other is calculated
+            from it. See coord_trans().
+        """
+        UnitsHandler.__init__(self, units=units)
+        self._init(kwds, set_all_auto)
+        
+    def _init(self, kwds, set_all_auto):
+        """Join attr lists, assign input args from **kwds, call set_all() to calculate
+        properties if set_all_auto==True. Shall be called in __init__, also in
+        derived classes."""
+        self.set_all_auto = set_all_auto
+        
+        # for get_traj()
+        self.timeaxis = 0
+        
+        # init all in self.attr_lst to None
+        self.attr_lst = self.input_attr_lst + self.derived_attr_lst
+        self.init_attr_lst()
+        self.init_attr_lst(self.extra_attr_lst)
+        
+        # input args may overwrite default None
+        #   self.foo = foo
+        #   self.bar = bar
+        #   ...
+        for attr in kwds.keys():
+            if attr not in self.input_attr_lst:
+                raise StandardError("illegal input arg: '%s', allowed: %s" \
+                    %(attr, str(self.input_attr_lst)))
+            else:                    
+                setattr(self, attr, kwds[attr])
+        
+        if self.set_all_auto:
+            self.set_all()
+    
+    def set_all(self):
+        """Populate object. Apply units, call all getters."""
+        self.apply_units()
+        # Call UnitsHandler.set_all(), which is FlexibleGetters.set_all().
+        super(Structure, self).set_all()
+    
+    def _extend_if_possible(self, arr, nstep):
+        if arr is not None:
+            return num.extend_array(arr, nstep, axis=self.timeaxis)
+        else:
+            return None
+
+    def get_traj(self, nstep):
+        """Return a Trajectory object, where this Structure is copied `nstep`
+        times. Only structure-related attrs are passed."""
+        return Trajectory(coords=self._extend_if_possible(self.coords, nstep),
+                          coords_frac=self._extend_if_possible(self.coords_frac,
+                            nstep),
+                          cell=self._extend_if_possible(self.cell, nstep),
+                          cryst_const=self._extend_if_possible(self.cryst_const,
+                            nstep),
+                          symbols=self.symbols,
+                          forces=self._extend_if_possible(self.forces, nstep),
+                          stress=self._extend_if_possible(self.stress, nstep))
+
+    def get_coords(self):
+        if not self.is_set_attr('coords'):
+            if self.is_set_attr('coords_frac') and \
+               self.check_set_attr('cell'):
+                # short-cut to bypass coord_trans() 
+                return np.dot(self.coords_frac, self.cell)
+            else:
+                return None
+        else:
+            return self.coords
+    
+    def get_coords_frac(self):
+        if not self.is_set_attr('coords_frac'):
+            if self.is_set_attr('coords') and self.check_set_attr('cell'):
+                return coord_trans(coords=self.coords,
+                                   old=np.identity(3),
+                                   new=self.cell)
+            else:
+                return None
+        else:
+            return self.coords_frac
+    
+    def get_symbols(self):
+        return self.symbols
+    
+    def get_forces(self):
+        return self.forces
+
+    def get_stress(self):
+        return self.stress
+
+    def get_etot(self):
+        return self.etot
+
+    def get_cell(self):
+        if not self.is_set_attr('cell'):
+            if self.is_set_attr('cryst_const'):
+                return cc2cell(self.cryst_const)
+            else:
+                return None
+        else:
+            return self.cell
+    
+    def get_cryst_const(self):
+        if not self.is_set_attr('cryst_const'):
+            if self.is_set_attr('cell'):
+                return cell2cc(self.cell)
+            else:
+                return None
+        else:
+            return self.cryst_const
+    
+    def get_natoms(self):
+        if self.is_set_attr('symbols'):
+            return len(self.symbols)
+        elif self.is_set_attr('coords'):
+            return self.coords.shape[0]
+        elif self.is_set_attr('coords_frac'):
+            return self.coords_frac.shape[0]
+        else:
+            return None
+    
+    def get_ase_atoms(self):
+        """Return ASE Atoms object. Obviously, you must have ASE installed. We
+        use scaled_positions=self.coords_frac, so only self.cell must be in
+        [Ang].
+        """
+        req = ['coords_frac', 'cell', 'symbols']
+        if self.check_set_attr_lst(req):
+            # We don't wanna make ase a dependency. Import only when needed.
+            from ase import Atoms
+            return Atoms(symbols=self.symbols,
+                         scaled_positions=self.coords_frac,
+                         cell=self.cell,
+                         pbc=[1,1,1])
+        else:
+            return None
+
+    def get_symbols_unique(self):
+        return np.unique(self.symbols).tolist() if \
+            self.check_set_attr('symbols') else None
+
+    def get_order(self):
+        if self.check_set_attr('symbols_unique'):
+            return dict([(sym, num+1) for num, sym in
+                         enumerate(self.symbols_unique)])
+        else:
+            return None
+
+    def get_typat(self):
+        if self.check_set_attr_lst(['symbols', 'order']):
+            return [self.order[ss] for ss in self.symbols]
+        else:
+            return None
+    
+    def get_znucl(self):
+        if self.check_set_attr('symbols_unique'):
+            return [periodic_table.pt[sym]['number'] for sym in self.symbols_unique]
+        else:
+            return None
+
+    def get_ntypat(self):
+        if self.check_set_attr('order'):
+            return len(self.order.keys())
+        else:
+            return None
+    
+    def get_nspecies(self):
+        if self.check_set_attr_lst(['order', 'typat']):
+            return dict([(sym, self.typat.count(idx)) for sym, idx in 
+                         self.order.iteritems()])
+        else:
+            return None
+    
+    def get_mass(self):
+        """1D array of atomic masses in amu (atomic mass unit 1.660538782e-27
+        kg as in periodic table). The order is the one from self.symbols."""
+        if self.check_set_attr('symbols'):
+            return np.array([periodic_table.pt[sym]['mass'] for sym in
+                             self.symbols])
+        else:
+            return None
+    
+    def get_volume(self):
+        if self.check_set_attr('cell'):
+            return volume_cell(self.cell)
+        else:
+            return None
+    
+    def get_pressure(self):
+        """As in PWscf, pressure = 1/3*trace(stress), ignoring
+        off-diagonal elements."""
+        if self.check_set_attr('stress'):
+            return np.trace(self.stress)/3.0
+        else:
+            return None
+
+class Trajectory(Structure):
+    """Here all arrays (input and attrs) have a time axis, i.e. all arrays
+    have one dim more along the time axis (self.timeaxis) compared to
+    Structure, e.g. 
+        coords      (natoms,3)  -> (nstep, natoms, 3)
+        cryst_const (6,)        -> (nstep, 6)
+        ...
+    
+    An exception for fixed-cell MD-data are the inputs ``cell`` (
+    ``cryst_const``), which can be 2d (1d)  and will be "broadcast"
+    automatically along the time axis (see num.extend_array()).
+    
+    args:
+    -----
+    See Structure, plus:
+
+    ekin : optional, 1d array [eV]
+        Kinetic energy of the ions. Calculated from `velocity` if not given.
+    temperature : optional, 1d array [K]        
+        Ionic temperature. Calculated from `ekin` if not given.
+    velocity: optional, 3d array (nstep, natoms, 3) [Ang / fs]
+        Ionic velocity. Calculated from `coords` if not given.
+    timestep : scalar [fs]
+        Ionic (and cell) time step.
+    
+    notes:
+    ------
+    We calculate coords -> velocity -> ekin -> temperature for the ions if
+    these quantities are not provided as input args. One could do the same
+    thing for cell, if one treats `cell` as coords of 3 atoms. This is not done
+    currently. We would also need a new input arg mass_cell. The CPMD parsers
+    have something like ekin_cell, temperature_cell etc, parsed from CPMD's
+    output, though.
+    """
+    # additional input args, some are derived if not given in the input
+    input_attr_lst = Structure.input_attr_lst + [\
+        'ekin',
+        'temperature',
+        'velocity',
+        'timestep',
+        ]
+    derived_attr_lst = Structure.derived_attr_lst + [\
+        'nstep',
+        ]
+    extra_attr_lst = Structure.extra_attr_lst + [\
+        ]
+    timeaxis = 0        
+    
+    def set_all(self):
+        """Populate object. Apply units, extend arrays, call all getters."""
+        # If these are given as input args, then they must be 3d.        
+        self.attrs_3d = ['coords', 
+                         'coords_frac', 
+                         'stress', 
+                         'forces',
+                         'velocity']
+        for attr in self.attrs_3d:
+            if self.is_set_attr(attr):
+                assert getattr(self, attr).ndim == 3, ("not 3d array: %s" %attr)
+        self.apply_units()                
+        self._extend() 
+        # Don't call super(Trajectory, self).set_all(), as this will call
+        # Structure.set_all(), which in turn may do something we don't want,
+        # like applying units 2 times. ATM, it would work b/c
+        # UnitsHandler.apply_units() won't do that.
+        super(Structure, self).set_all()
+
+    def _extend(self):
+        if self.is_set_attr('cell') and self.check_set_attr('nstep'):
+            self.cell = self._extend_cell(self.cell)
+        if self.is_set_attr('cryst_const') and self.check_set_attr('nstep'):
+            self.cryst_const = self._extend_cc(self.cryst_const)
+
+    def _extend_array(self, arr, nstep=None):
+        if nstep is None:
+            self.assert_set_attr('nstep')
+            nstep = self.nstep
+        return num.extend_array(arr, nstep, axis=self.timeaxis)
+    
+    def _extend_cell(self, cell):
+        if cell is None:
+            return cell
+        if cell.shape == (3,3):
+            return self._extend_array(cell)
+        elif cell.shape == (1,3,3):            
+            return self._extend_array(cell[0,...])
+        else:
+            return cell
+
+    def _extend_cc(self, cc):
+        if cc is None:
+            return cc
+        if cc.shape == (6,):
+            return self._extend_array(cc)
+        elif cc.shape == (1,6):            
+            return self._extend_array(cc[0,...])
+        else:
+            return cc
+    
+    def get_velocity(self):
+        # Simple finite differences are used. This is OK if self.timestep is
+        # small, e.g. the trajectory is smooth. But forces calculated from that
+        # (force = mass * dv / dt) are probably not very accurate,
+        # which is OK b/c we don't do that :)
+        # One *could* create 3*natoms Spline objects thru coords (splines along
+        # time axis) and calc 1st and 2nd deriv from that. Just an idea ...
+        if not self.is_set_attr('velocity'):
+            if self.check_set_attr_lst(['coords', 'timestep']):
+                return np.diff(self.coords, n=1, axis=self.timeaxis) / self.timestep
+            else:
+                return None
+        else:
+            return self.velocity
+    
+    def get_ekin(self):
+        if not self.is_set_attr('ekin'):
+            if self.check_set_attr_lst(['mass', 'velocity']):
+                # velocity [Ang/fs], mass [amu]
+                vv = self.velocity
+                mm = self.mass
+                amu = constants.amu # kg
+                fs = constants.fs
+                eV = constants.eV
+                assert self.timeaxis == 0
+                return ((vv**2.0).sum(axis=2)*mm[None,:]/2.0).sum(axis=1) * (Angstrom/fs)**2 * amu / eV
+            else:
+                return None
+        else:
+            return self.ekin
+    
+    def get_temperature(self):
+        if not self.is_set_attr('temperature'):
+            if self.check_set_attr_lst(['ekin', 'natoms']):
+                return self.ekin * constants.eV / self.natoms / constants.kb * (2.0/3.0)
+            else:
+                return None
+        else:
+            return self.temperature
+
+    def get_ase_atoms(self):
+        raise NotImplementedError("makes no sense for trajectories")
+
+    def get_natoms(self):
+        if self.is_set_attr('symbols'):
+            return len(self.symbols)
+        elif self.is_set_attr('coords'):
+            return self.coords.shape[1]
+        elif self.is_set_attr('coords_frac'):
+            return self.coords_frac.shape[1]
+        else:
+            return None
+    
+    def get_coords(self):
+        if not self.is_set_attr('coords'):
+            if self.is_set_attr('coords_frac') and \
+               self.check_set_attr_lst(['cell', 'natoms']):
+                nstep = self.coords_frac.shape[self.timeaxis]
+                req_shape_coords_frac = (nstep,self.natoms,3)
+                assert self.coords_frac.shape == req_shape_coords_frac, ("shape "
+                    "mismatch: coords_frac: %s, need: %s" %(str(self.coords_frac.shape),
+                    str(req_shape_coords_frac)))
+                assert self.cell.shape == (nstep,3,3), ("shape mismatch: "
+                    "cell: %s, coords_frac: %s" %(self.cell.shape, self.coords_frac.shape))
+                # Can use dot() directly if we special-case fixed-cell and use
+                # cell = 2d array                    
+                arr = coord_trans3d(self.coords_frac,
+                                    old=self.cell,
+                                    new=self._extend_array(np.identity(3), 
+                                                           nstep=nstep),
+                                    axis=1,
+                                    timeaxis=self.timeaxis)
+                return arr
+            else:
+                return None
+        else:
+            return self.coords
+
+    def get_coords_frac(self):
+        if not self.is_set_attr('coords_frac'):
+            if self.is_set_attr('coords') and \
+               self.check_set_attr_lst(['cell', 'natoms']):
+                nstep = self.coords.shape[self.timeaxis]
+                req_shape_coords = (nstep,self.natoms,3)
+                assert self.coords.shape == req_shape_coords, ("shape "
+                    "mismatch: coords: %s, need: %s" %(str(self.coords.shape),
+                    str(req_shape_coords)))
+                assert self.cell.shape == (nstep,3,3), ("shape mismatch: "
+                    "cell: %s, coords: %s" %(self.cell.shape, self.coords.shape))
+                arr = coord_trans3d(self.coords,
+                                    old=self._extend_array(np.identity(3),
+                                                           nstep=nstep),
+                                    new=self.cell,
+                                    axis=1,
+                                    timeaxis=self.timeaxis)
+                return arr
+            else:
+                return None
+        else:
+            return self.coords_frac
+    
+    def get_volume(self):
+        if self.check_set_attr('cell'):
+            return volume_cell3d(self.cell, axis=self.timeaxis)
+        else:
+            return None
+    
+    def get_cell(self):
+        if not self.is_set_attr('cell'):
+            if self.is_set_attr('cryst_const'):
+                cc = self._extend_cc(self.cryst_const)
+                return cc2cell3d(cc, axis=self.timeaxis)
+            else:
+                return None
+        else:
+            return self._extend_cell(self.cell)
+    
+    def get_cryst_const(self):
+        if not self.is_set_attr('cryst_const'):
+            if self.is_set_attr('cell'):
+                cell = self._extend_cell(self.cell)
+                return cell2cc3d(cell, axis=self.timeaxis)
+            else:
+                return None
+        else:
+            return self._extend_cc(self.cryst_const)
+    
+    def get_nstep(self):
+        if self.is_set_attr('coords'):
+            return self.coords.shape[self.timeaxis]
+        elif self.is_set_attr('coords_frac'):
+            return self.coords_frac.shape[self.timeaxis]
+        else:
+            return None
+    
+    def get_pressure(self):
+        if self.check_set_attr('stress'):
+            assert self.timeaxis == 0
+            return np.trace(self.stress,axis1=1, axis2=2)/3.0
+        else:
+            return None
+    
+    def get_timestep(self):
+        return self.timestep
+
+    def get_traj(self):
+        return None
+
+
+def struct2traj(obj):
+    """Transform Structure to Trajectory with nstep=1."""
+    # XXX not very safe test, need to play w/ isinstance(). May be a problem
+    # b/c Structure -> Trajectory inherit.
+    if hasattr(obj, 'get_nstep'):
+        return obj
+    else:
+        return obj.get_traj(nstep=1)
+    

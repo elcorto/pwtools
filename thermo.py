@@ -4,7 +4,7 @@
 
 import numpy as np
 from scipy.integrate import simps
-from pwtools.constants import kb, h, R, pi, c0, Ry_to_J
+from pwtools.constants import kb, hplanck, R, pi, c0, Ry_to_J, eV
 from pwtools.verbose import verbose
 from pwtools import crys
 
@@ -14,17 +14,17 @@ def coth(x):
 
 
 class HarmonicThermo(object):
-    """Calculate vibrational internal energy (Evib), free energy (Fvib),
-    entropy (Svib) and isochoric heat capacity (Cv) in the harmonic
-    approximation from a phonon density of states. 
+    """Calculate vibrational internal energy (Evib [eV]), free energy (Fvib
+    [eV]), entropy (Svib [R,kb]) and isochoric heat capacity (Cv [R,kb]) in the
+    harmonic approximation from a phonon density of states. 
     """    
-    def __init__(self, freq, dos, temp=None, hplanck=h, kb=kb, fixzero=True,
+    def __init__(self, freq, dos, temp=None, hplanck=hplanck, kb=kb, fixzero=True,
                  checknan=True, fixnan=False, fixneg=False, warn=True):
         """                 
         args:
         -----
         freq : 1d array
-            frequency f (NOT 2*pi*f) in cm^-1
+            frequency f (NOT 2*pi*f) [cm^-1]
         dos : 1d array
             phonon dos such that int(freq) dos = 3*natom
         temp : 1d array, optional
@@ -75,6 +75,8 @@ class HarmonicThermo(object):
         # since kb = R/Navo, with 
         #   R = gas constant = 8.314 J/(mol*K)
         #   Navo = Avogadro's number = 6e23
+        # 
+        # So, Cv [R] == Cv [kb]. The same holds for the entropy Svib.
         #
         # We save the division by "kb" by dropping the "kb" prefactor:
         #   Cv(T) = Z**2 * Int(w) [w**2 * D(w) / sinh(z))**2]
@@ -87,6 +89,7 @@ class HarmonicThermo(object):
         #
         # All formulas (cv, fvib etc) are written for angular frequency
         # w=2*pi*freq. Either we use hbar*w or h*freq. We do the latter.
+        # We also convert s -> cm and keep freq in [cm^-1].
         #
         # cm^-1 -> 1/s       : * c0*100
         # 1/s   -> cm^-1     : / (c0*100)
@@ -163,6 +166,7 @@ class HarmonicThermo(object):
         return self.T if temp is None else temp       
 
     def vibrational_internal_energy(self, T=None):
+        """Evib [eV]"""
         h, f, kb, dos = self.h, self.f, self.kb, self.dos
         T = self._get_temp(T)
         arg = h * f / (kb*T[:,None])
@@ -173,33 +177,36 @@ class HarmonicThermo(object):
         arg = self._fix(arg, 'zero', copy=False)
         y = dos * f * (0.5 + 1.0 / (np.exp(arg) - 1.0))
         eint = self._integrate(y, f) 
-        return eint * (h/Ry_to_J) # [Ry]
+        return eint * (h/eV)
         
     def isochoric_heat_capacity(self, T=None):
+        """Cv [R, kb]"""
         h, f, kb, dos = self.h, self.f, self.kb, self.dos
         T = self._get_temp(T)
         arg = h * f / (kb*T[:,None])
         y = dos * f**2 / np.sinh(arg / 2.0)**2.0
         fac = (h / (kb*2*T))**2
         cv = self._integrate(y, f) * fac
-        return cv # [R]
+        return cv
     
     def vibrational_free_energy(self, T=None):
+        """Fvib [eV]"""
         h, f, kb, dos = self.h, self.f, self.kb, self.dos
         T = self._get_temp(T)
         arg = h * f / (kb*T[:,None])
         y = dos * np.log(2.0*np.sinh(arg/2.0))
         ret = self._integrate(y,f) * T
-        return ret * (kb / Ry_to_J) # [Ry]
+        return ret * (kb / eV)
     
     def vibrational_entropy(self, T=None):
+        """Svib [R, kb]"""
         h, f, kb, dos = self.h, self.f, self.kb, self.dos
         T = self._get_temp(T)
         arg = h * f / (kb*T[:,None])
         y = dos * (0.5/T[:,None] * (h / kb) * f * coth(arg/2.0) - 
                    np.log(2.0*np.sinh(arg/2.0)))
         ret = self._integrate(y,f)
-        return ret # [kb]
+        return ret
     
     def evib(self, *args, **kwargs):
         return self.vibrational_internal_energy(*args, **kwargs)

@@ -5,8 +5,8 @@
 
 import re
 import numpy as np
-from pwtools.common import fix_eps, str_arr, file_readlines
-from pwtools import crys
+from common import fix_eps, str_arr, file_readlines
+import crys
 from math import sin, acos, sqrt
 
 def atpos_str(symbols, coords, fmt="%.16e", zero_eps=True):
@@ -301,8 +301,7 @@ def parse_dis(fn_freq, fn_kpath_def=None):
 
 def ibrav2cell(ibrav, celldm):
     """Convert PWscf's ibrav + celldm to cell. All formulas are taken straight
-    from the PWscf homepage. Don't blame me for errors. Use after testing. Ask
-    you doctor.
+    from the PWscf homepage. Don't blame me for errors. Use after testing.
 
     This function generates *primitive* cells. Note that in crys.py (and
     anywhere else in the package, for that matter) we do not have a distinction

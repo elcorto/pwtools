@@ -8,15 +8,24 @@
 import sys
 import optparse
 from textwrap import dedent as dd
-from pwtools import parse, constants, io, verbose, crys, common
+from pwtools import parse, io, verbose, crys, common
+from pwtools.constants import Bohr, Angstrom
+from pwtools.crys import Trajectory
 verbose.VERBOSE = False
 
 def parse_repeat(rep):
     return [int(x) for x in rep.split(',')]
 
+outfile_default = 'pwtools.axsf'
 parser = optparse.OptionParser(description=dd("""\
     Convert CPMD MD output to animated XSF."""),
-    usage="%prog [options] cpmd.out cpmd.axsf")
+    usage="""%prog [options] cpmd.out [cpmd.axsf]
+    
+args:
+-----
+cpmd.out : CPMD output file (cpmd.x ... > cpmd.out)
+cpmd.axsf : name of output file [default: pwtools.axsf]
+""")
 parser.add_option("-r", "--repeat", default="1,1,1",
     help=dd("""\
     build nx,ny,nz supercell of the trajectory
@@ -32,53 +41,41 @@ parser.add_option("-t", "--timeslice", default=':',
     [%default]"""))
 opts, args = parser.parse_args()
 
-timeslice = common.toslice(opts.timeslice)
-parse_class = parse.CpmdMDOutputFile
-filename = args[0]
-outfile = args[1]
-ppout = parse_class(filename)
-
+# units
+# -----
 #               CPMD        XSF         
 # cell          Bohr        Ang
 # cart. forces  Ha/Bohr     Ha/Ang
 
-# Use ppout.get_*() to parse only what we need.
+timeslice = common.toslice(opts.timeslice)
+filename = args[0]
+outfile = args[1] if len(args) == 2 else outfile_default
+pp = parse.CpmdMDOutputFile(filename,
+                            units={'length': Bohr/Angstrom,
+                                   'forces': Angstrom/Bohr \
+                                             * opts.force_scaling})
+
+
 print "parsing ..."
-coords_frac = ppout.get_coords_frac()
-symbols = ppout.get_symbols()
-forces = ppout.get_forces()
-cell = ppout.get_cell() * constants.a0_to_A
-if forces is not None:
-    forces /= constants.a0_to_A
-    assert coords_frac.shape == forces.shape
-if cell.ndim == 3:
-    assert cell.shape[-1] == coords_frac.shape[-1]
-nstep = coords_frac.shape[-1]    
+traj = pp.get_traj()
 print "... ready"
 
 repeat = parse_repeat(opts.repeat)
 if repeat != [1,1,1]:
-    sc = crys.scell3d(coords_frac, cell, repeat, symbols)
-    coords_frac = sc['coords']
-    cell = sc['cell']
-    symbols = sc['symbols']
-    if forces is not None:
-        sc = crys.scell3d(forces, cell, repeat)
-        forces = sc['coords']
+    sc = crys.scell3d(traj, tuple(repeat))
+else:
+    sc = traj
 
-if forces is not None:
-    _forces = forces[...,timeslice] * opts.force_scaling
+if sc.forces is not None:
+    _forces = sc.forces[timeslice,...]
 else:
     _forces = None
-if cell.ndim == 3:
-    _cell = cell[...,timeslice]
-else:
-    _cell = cell
+_cell = sc.cell[timeslice,...]
+_coords_frac = sc.coords_frac[timeslice,...]
 
 print "writing ..."
-io.write_axsf(filename=outfile, 
-              coords_frac=coords_frac[...,timeslice],
-              cell=_cell,
-              forces=_forces,
-              symbols=symbols)
+io.write_axsf(outfile, Trajectory(coords_frac=_coords_frac,
+                                  cell=_cell,
+                                  symbols=sc.symbols,
+                                  forces=_forces))
 print "... ready"

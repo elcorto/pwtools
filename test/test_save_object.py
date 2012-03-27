@@ -8,6 +8,7 @@ from pwtools.parse import PwMDOutputFile
 from pwtools import common
 from testenv import testdir
 
+from pwtools.test.tools import ade
 
 def test():
     filename = 'files/pw.md.out'
@@ -31,6 +32,7 @@ def test():
     print ">>> checking equalness of attrs in loaded object ..."
     known_fails = {'fd': 'closed/uninitialized file'}
     arr_t = type(np.array([1]))
+    dict_t = type({})
     for attr in c.__dict__.iterkeys():
         c_val = getattr(c, attr)
         c2_val = getattr(c2, attr)
@@ -39,11 +41,18 @@ def test():
             if name == attr:
                 print "%s: KNOWNFAIL: %s: %s" %(name, string, attr)
                 dotest = False
-        if dotest:                
-            if type(c_val) == arr_t:
+        if dotest:
+            print "testing:", attr, type(c_val), type(c2_val)
+            type_c = type(c_val)
+            type_c2 = type(c2_val)
+            assert type_c is type_c2, "attr: %s: types differ: %s, %s" \
+                %(attr, str(type_c), str(type_c2))
+            if type(c_val) is arr_t:
                 assert (c_val == c2_val).all(), "fail: %s: %s, %s" \
-                                                %(name, c_val, c2_val)
+                                                %(attr, c_val, c2_val)
+            elif type(c_val) is dict_t:
+                ade(c_val, c2_val)
             else:
                 assert c_val == c2_val, "fail: %s: %s, %s" \
-                                        %(name, c_val, c2_val)
+                                        %(attr, c_val, c2_val)
     common.system('gzip %s' %filename)

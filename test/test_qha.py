@@ -5,7 +5,7 @@
 import numpy as np
 from pwtools.thermo import HarmonicThermo
 from pwtools import common
-from pwtools.constants import Ry_to_J
+from pwtools.constants import Ry_to_J, eV, Ry, kb
 
 def assrt_aae(*args, **kwargs):
     np.testing.assert_array_almost_equal(*args, **kwargs)
@@ -48,29 +48,23 @@ def test():
     # with decimal=3 .
     ha = HarmonicThermo(pdos[:,0], pdos[:,1], temp, fixzero=True, fixnan=True,
                         checknan=True)
-
-    dct = {'evib': Store(arr1=ha.evib(), arr2=fqha[:,1]),
-           'fvib': Store(arr1=ha.fvib(), arr2=fqha[:,2]),
+    
+    # Ref Evib + Fvib [Ry], need to convert. Cv and Svib [kb].
+    dct = {'evib': Store(arr1=ha.evib(), arr2=fqha[:,1]*Ry/eV),
+           'fvib': Store(arr1=ha.fvib(), arr2=fqha[:,2]*Ry/eV),
            'cv':   Store(arr1=ha.cv(),   arr2=fqha[:,3]),
            'svib': Store(arr1=ha.svib(), arr2=fqha[:,4]),
            }
     for key, store in dct.iteritems():
         assrt_aae(store.arr1, store.arr2, decimal=2)
-    ##from matplotlib import pyplot as plt        
-    ##    plt.figure()
-    ##    plt.plot(temp, store.arr1, label='%s: ha'%key)
-    ##    plt.plot(temp, store.arr2, label='%s: fqha'%key)
-    ##    plt.plot(temp, store.arr1 - store.arr2, label='%s: diff'%key)
-    ##    plt.legend()
-    ##plt.show()
     
     #--------------------------------------------------------------------
     # Consistency
     #--------------------------------------------------------------------
     
     # Fvib = Evib -T*Svib
-    assrt_aae(dct['fvib'].arr1*Ry_to_J, 
-              (dct['evib'].arr1 - temp*dct['svib'].arr1)*Ry_to_J)
+    assrt_aae(dct['fvib'].arr1, 
+              (dct['evib'].arr1 - temp*dct['svib'].arr1*kb/eV))
     
     #--------------------------------------------------------------------
     # API tests

@@ -1,66 +1,82 @@
 import numpy as np
 
-from pwtools.structure import Structure
+from pwtools.crys import Structure
 from pwtools import crys, constants
 from pwtools.test.tools import aaae
+rand = np.random.rand
+
+# We assume all lengths in Angstrom. Only importans for ASE comparison.
 
 def test():
     natoms = 10
     cell = np.array([[3,0,0],
                      [1.1,5,-0.04],
                      [-0.33,1.5,7]])
-    crys_const = crys.cell2cc(cell)                 
-    coords_frac = np.random.rand(natoms,3)
+    cryst_const = crys.cell2cc(cell)                 
+    coords_frac = rand(natoms,3)
     coords = crys.coord_trans(coords=coords_frac,
                               old=cell,
                               new=np.identity(3))
     symbols = ['H']*natoms
+    stress = rand(3,3)
+    forces = rand(natoms,3)
 
-    st = Structure(coords=coords,
+    # Use ``cell`` instead of ``cryst_const` as input such that
+    # atoms.get_cell() test passes (see below for why -- cell orientation)
+    st = Structure(coords_frac=coords_frac,
                    symbols=symbols,
-                   cell=cell)
-    aaae(coords_frac, st.get_coords_frac())
+                   cell=cell,
+                   stress=stress,
+                   forces=forces,
+                   etot=42)
+    
+    # Test if all getters work.
+    for name in st.attr_lst:
+        if name not in ['ase_atoms']:
+            print name
+            st.try_set_attr(name)
+            assert getattr(st, name) is not None, "attr None: %s" %name
+            assert eval('st.get_%s()'%name) is not None, "getter returns None: %s" %name
+    try:
+        import ase
+        atoms = st.get_ase_atoms()
+        aaae(atoms.get_cell(), cell)
+    except ImportError:
+        print("cannot import ase, skip test get_ase_atoms()")
+    aaae(coords_frac, st.coords_frac)
+    aaae(cryst_const, st.cryst_const)
+    assert st.natoms == natoms
 
     st = Structure(coords_frac=coords_frac,
                    symbols=symbols,
                    cell=cell)
     aaae(coords, st.get_coords())
 
+    # Cell calculated from cryst_const has defined orientation in space which may be
+    # different from the original `cell`, but the volume and underlying cryst_const
+    # must be the same.
     st = Structure(coords_frac=coords_frac,
                    symbols=symbols,
-                   cell=cell)
-    aaae(crys_const, st.get_cryst_const())
-
-    # Cell calculated from crys_const has defined orientation in space which may be
-    # different from the original `cell`, but the volume and underlying crys_const
-    # must be the same.
+                   cryst_const=cryst_const)
+    assert st.get_cell() is not None
     try:
-        st = Structure(coords_frac=coords_frac,
-                       symbols=symbols,
-                       cryst_const=crys_const)
         aaae(cell, st.get_cell())
     except AssertionError:
         print "KNOWNFAIL: differrnt cell orientation"
     np.testing.assert_almost_equal(crys.volume_cell(cell),
                                    crys.volume_cell(st.get_cell()))
-    aaae(crys_const, crys.cell2cc(st.get_cell()))
+    aaae(cryst_const, crys.cell2cc(st.get_cell()))
 
-
+    # units
     st = Structure(coords_frac=coords_frac,
-                   symbols=symbols,
-                   cell=cell)
-    assert st.get_natoms() == natoms
+                    cell=cell,
+                    symbols=symbols,
+                    stress=stress,
+                    forces=forces,
+                    units={'length': 2, 'forces': 3, 'stress': 4})
+    aaae(2*coords, st.coords)                    
+    aaae(3*forces, st.forces)                    
+    aaae(4*stress, st.stress)                    
+                        
     
-    # Test if all getters work.
-    for name in st.attr_lst:
-        if name != 'ase_atoms':
-            print name
-            st.check_get_attr(name)
-            assert getattr(st, name) is not None
-    try:
-        import ase
-        atoms = st.get_ase_atoms()
-        aaae(atoms.get_cell(), cell * constants.Bohr / constants.Angstrom)
-
-    except ImportError:
-        print("cannot import ase, skip test get_ase_atoms()")
+    traj = crys.struct2traj(st)

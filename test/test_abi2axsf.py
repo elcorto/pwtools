@@ -2,7 +2,7 @@ import shutil, os
 from testenv import testdir
 from pwtools.common import backtick
 
-def test():
+def test_abinit_to_axsf():
     here = os.path.abspath(os.curdir)
     workdir = os.path.join(testdir, 'test_abi2axsf')
     shutil.copytree('files/abinit_md', workdir)

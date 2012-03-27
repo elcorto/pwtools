@@ -41,6 +41,8 @@ def test():
     nat=10 
     nstep=500 
     v=rand(nat, 3, nstep)
+    vnew = np.rollaxis(v, -1, 0)
+    assert vnew.shape == (nstep, nat, 3)
     m=rand(nat) 
     c=np.zeros((nstep,))
 
@@ -98,7 +100,7 @@ def test():
     nthr = 2
     print """testing pydos.fvacf(v, m=m, nthreads=%i) --
     override any OMP_NUM_THREADS setting in the environment AND os.environ""" %nthreads
-    c = fvacf(v, m=m, nthreads=nthreads)
+    c = fvacf(vnew, m=m, nthreads=nthreads)
     print bar + '\n'
 
     #-----------------------------------------------------------------------------
@@ -107,7 +109,7 @@ def test():
     print """testing pydos.fvacf(v, m=m, nthreads=None): no nthreads from Python -- It
     reads os.environ (workaround for f2py bug)."""
     omp_num_threads('check')
-    c = fvacf(v, m=m, nthreads=None)
+    c = fvacf(vnew, m=m, nthreads=None)
     print bar + '\n'
 
     omp_num_threads('restore')

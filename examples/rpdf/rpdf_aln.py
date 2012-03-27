@@ -13,20 +13,17 @@
 
 import os
 import numpy as np
-from pwtools import crys
-from pwtools import mpl
+from pwtools import crys, io, mpl
 plt = mpl.plt
 
-class Structure(object):
-    def __init__(self, coords, cell, symbols, fnbase=None, tgtdir=None):
-        self.coords = coords
-        self.cell = cell
-        self.symbols = symbols
+class Struct(crys.Structure):
+    def __init__(self, fnbase=None, tgtdir=None, **kwds):
         self.fnbase = fnbase
         self.tgtdir = tgtdir
         if (self.tgtdir is not None) and not os.path.exists(self.tgtdir):
             os.makedirs(self.tgtdir)
-    
+        crys.Structure.__init__(self, set_all_auto=True, **kwds)
+
     def _assert_fnbase(self):        
         assert (self.fnbase is not None), "self.fnbase is not set"
     
@@ -38,22 +35,17 @@ class Structure(object):
             fn = os.path.join(self.tgtdir, self.fnbase + suffix)
         return fn                
 
-    def write_axsf(self, cellfac=1.0, **kwds):
-        fn = self._get_fn('.axsf')
-        print("writing: %s" %fn)
-        crys.write_axsf(fn, self.coords, self.cell*cellfac, self.symbols, **kwds)
-    
-    def write_cif(self, cellfac=1.0, **kwds):
+    def write_cif(self):
         fn = self._get_fn('.cif')
         print("writing: %s" %fn)
-        crys.write_cif(fn, self.coords, self.symbols, crys.cell2cc(self.cell*cellfac), **kwds)
+        crys.write_cif(fn, self)
     
     def savetxt(self):
         self._assert_fnbase()
         fn_coords = self._get_fn('.coords.txt')
         fn_cell = self._get_fn('.cell.txt')
         print("writing: %s, %s" %(fn_coords, fn_cell))
-        np.savetxt(fn_coords, self.coords)
+        np.savetxt(fn_coords, self.coords_frac)
         np.savetxt(fn_cell, self.cell)
                     
 
@@ -107,26 +99,31 @@ if __name__ == '__main__':
     #
     # This cell can also be tested in VMD.
     #
-    coords = np.array([[0.0, 0.0, 0.0], 
-                       [0.5, 0.0, 0.0],
-                       [0.0, 0.5, 0.0],
-                       [0.5, 0.5, 0.0],
-                       [0.0, 0.0, 0.5],
-                       [0.5, 0.0, 0.5],
-                       [0.0, 0.5, 0.5],
-                       [0.5, 0.5, 0.5],
-                       ])
-    symbols_in = ['Al', 'N', 'N', 'Al', 'N', 'Al', 'Al', 'N']
+    coords_frac = \
+        np.array([[0.0, 0.0, 0.0], 
+                  [0.5, 0.0, 0.0],
+                  [0.0, 0.5, 0.0],
+                  [0.5, 0.5, 0.0],
+                  [0.0, 0.0, 0.5],
+                  [0.5, 0.0, 0.5],
+                  [0.0, 0.5, 0.5],
+                  [0.5, 0.5, 0.5],
+                  ])
+    symbols = ['Al', 'N', 'N', 'Al', 'N', 'Al', 'Al', 'N']
     alat = 5.0
-    cell_in = np.identity(3) * alat
-    sc = crys.scell(coords, cell_in, (2,2,2), symbols_in)
+    cell = np.identity(3) * alat
+    struct = crys.Structure(coords_frac=coords_frac,
+                            symbols=symbols,
+                            cell=cell)
+    sc = crys.scell(struct, (2,2,2))
     name = 'aln_ibrav0_sc'
-    structs[name] = Structure(sc['coords'], 
-                              sc['cell'],
-                              sc['symbols'], 
-                              fnbase=name,
-                              tgtdir=tgtdir)
-##    structs[name].write_cif(conv=False)
+    structs[name] = Struct(coords_frac=sc.coords_frac, 
+                           cell=sc.cell,
+                           symbols=sc.symbols,
+                           fnbase=name,
+                           tgtdir=tgtdir)
+    print structs[name].cryst_const                            
+##    structs[name].write_cif()
 ##    structs[name].write_axsf()
 ##    structs[name].savetxt()
 
@@ -139,23 +136,27 @@ if __name__ == '__main__':
     # 5.8. For rmax up to 5, the RPDF and the number integral must match
     # exactly with that of the ibrav=0 case b/c the structure is the same.
     #
-    coords_in = np.array([[0.0, 0.0, 0.0], 
-                          [0.5, 0.5, 0.5],
-                          ])
-    symbols_in = ['Al', 'N']
+    coords_frac = \
+        np.array([[0.0, 0.0, 0.0], 
+                  [0.5, 0.5, 0.5],
+                  ])
+    symbols = ['Al', 'N']
     alat = 5.0
-    cell_in = alat/2.0 * np.array([[-1,0,1.], [0,1,1], [-1,1,0]]) # pwscf
-    sc = crys.scell(coords_in, cell_in, (4,4,4), symbols_in)
+    cell = alat/2.0 * np.array([[-1,0,1.], [0,1,1], [-1,1,0]]) # pwscf
+    struct = crys.Structure(coords_frac=coords_frac,
+                            symbols=symbols,
+                            cell=cell)
+    sc = crys.scell(struct, (4,4,4))
     name = 'aln_ibrav2_sc'
-    structs[name] = Structure(sc['coords'], 
-                              sc['cell'],
-                              sc['symbols'], 
-                              fnbase=name,
-                              tgtdir=tgtdir)
-##    structs[name].write_cif(conv=False)
+    structs[name] = Struct(coords_frac=sc.coords_frac, 
+                           cell=sc.cell,
+                           symbols=sc.symbols,
+                           fnbase=name,
+                           tgtdir=tgtdir)
+    print structs[name].cryst_const                            
+##    structs[name].write_cif()
 ##    structs[name].write_axsf()
 ##    structs[name].savetxt()
-    # ---- AlN ibrav=2 -----------------------------------------------------------
 
     
     #------------------------------------------------------------------------
@@ -171,17 +172,16 @@ if __name__ == '__main__':
         for rmax in [5, 20]:
             for pbc in [True, False]:
                 rmax_auto = crys.rmax_smith(struct.cell)
-                rad, hist, num_int = \
-                    crys.rpdf(struct.coords, 
+                out = \
+                    crys.rpdf(struct, 
                               rmax=rmax, 
-                              cell=struct.cell,
                               dr=0.05, 
                               pbc=pbc)
                 pl = Plot()
                 pl.name = struct.fnbase
-                pl.rad = rad
-                pl.hist = hist
-                pl.num_int = num_int
+                pl.rad = out[:,0]
+                pl.hist = out[:,1]
+                pl.num_int = out[:,2]
                 pl.color = cc.next()                                                     
                 pl.marker = mm.next()                                                     
                 pl.leg_label = "pbc=%s, rmax=%i, rmax_auto=%.1f" %(pbc, rmax,
@@ -217,14 +217,16 @@ if __name__ == '__main__':
     rmax = 5
     pbc = True
     struct = structs[name]
-    c1 = struct.coords[np.array(struct.symbols) == 'Al', ...]
-    c2 = struct.coords[np.array(struct.symbols) == 'N', ...]
-    
+    ##c1 = struct.coords[:,np.array(struct.symbols) == 'Al',:]
+    ##c2 = struct.coords[:,np.array(struct.symbols) == 'N',:]
+    sy = np.array(struct.symbols)
+    amask = [sy=='Al', sy=='N']
+
     rmax_auto = crys.rmax_smith(struct.cell)
-    rad, hist, num_int = \
-        crys.rpdf([c1,c2], 
-                  rmax=rmax, 
-                  cell=struct.cell,
+    out = \
+        crys.rpdf(struct, 
+                  rmax=rmax,
+                  amask=amask,
                   dr=0.05, 
                   pbc=pbc)
 
@@ -232,9 +234,9 @@ if __name__ == '__main__':
     mm = iter(['v', '^', '+', 'x'])
     pl = Plot()
     pl.name = struct.fnbase
-    pl.rad = rad
-    pl.hist = hist
-    pl.num_int = num_int
+    pl.rad = out[:,0]
+    pl.hist = out[:,1]
+    pl.num_int = out[:,2]
     pl.color = cc.next()                                                     
     pl.marker = mm.next()                                                     
     pl.leg_label = "pbc=%s, rmax=%i, rmax_auto=%.1f, Al-N" %(pbc, rmax,

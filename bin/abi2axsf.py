@@ -33,6 +33,7 @@ elif opts.mdtype == 'md':
 else:
     raise StandardError("illegal mdtype: %s" %repr(opts.mdtype))
 ppout = parse_class(filename)
+ppout.parse()
 
 #               Abinit      XSF         
 # cell          Bohr        Ang
@@ -40,9 +41,9 @@ ppout = parse_class(filename)
 
 # Use ppout.get_*() to parse only what we need.
 print "parsing ..."
-coords_frac = ppout.get_coords_frac()
-symbols = ppout.get_symbols()
-forces = ppout.get_forces()
+coords_frac = ppout.coords_frac
+symbols = ppout.symbols
+forces = ppout.forces
 if forces is not None:
     forces /= constants.a0_to_A
 
@@ -51,13 +52,13 @@ if forces is not None:
 # (3,3,1), i.e. only the start cell is parsed. It may also happen that cell is
 # None. In that case, try using AbinitSCFOutputFile. Then `cell` is 2d, i.e.
 # fixed cell over the trajectory, which io.write_axsf() can handle.
-cell = ppout.get_cell()
+cell = ppout.cell
 if cell is not None:
     if cell.shape == (3,3,1):
         cell = cell[...,0]
 else:
     ppin = parse.AbinitSCFOutputFile(outfile)
-    cell = ppin.get_cell()
+    cell = ppin.cell
     if cell is None:
         raise StandardError("cannot determine `cell` from '%s'" %outfile)
     assert cell.shape == (3,3), ("cell obtained from AbinitSCFOutputFile "

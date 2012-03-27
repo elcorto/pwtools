@@ -11,27 +11,28 @@ def test():
     from pwtools import pydos as pd
     from pwtools.crys import coord_trans
     ##from matplotlib import pyplot as plt
+    timeaxis=0
 
     def pdos(coords_arr_3d):
-        f, d = pd.direct_pdos(pd.velocity(coords_arr_3d, axis=-1))
+        f, d = pd.direct_pdos(pd.velocity(coords_arr_3d, axis=timeaxis))
         return d
 
     rand = np.random.random
     coords = {}
 
     # cartesian, new convention: last axis is the time axis
-    coords['cart'] = rand((10, 3, 200))
+    coords['cart'] = rand((100, 10, 3))
 
     # cartesian scaled, e.g. Angstrom instead of Bohr
     coords['cart2'] = coords['cart']*5
 
     # some other coord sys
     cell1 = rand((3,3))
-    # coord_trans: axis=1 specifies the "x,y,z"-axis of dimension 3
+    # coord_trans: axis=-1 specifies the "x,y,z"-axis of dimension 3
     coords['cell1'] = coord_trans(coords['cart'],
                                   old=np.identity(3), 
                                   new=cell1,
-                                  axis=1)
+                                  axis=-1)
 
     dos = {}
     for key, val in coords.iteritems():

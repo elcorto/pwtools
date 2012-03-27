@@ -108,7 +108,8 @@ class Plot(object):
     
     examples:
     ---------
-    >>> pp = mpl.Plot(*mpl.fig_ax())
+    # same as Plot(*mpl.fig_ax()), i.e. default is 2d plot
+    >>> pp = mpl.Plot() 
     >>> pp.ax.plot([1,2,3], label='ax')
     >>> pp.ax2 = pp.ax.twinx()
     >>> pp.ax2.plot([2,2,1], 'r', label='ax2')
@@ -117,9 +118,14 @@ class Plot(object):
     >>> pp.legend(['ax', 'ax2'])
     >>> pp.fig.savefig('lala.png')
     """
-    def __init__(self, fig, ax):
-        self.fig = fig
-        self.ax = ax
+    def __init__(self, fig=None, ax=None):
+        if [fig, ax] == [None]*2:
+            self.fig, self.ax = fig_ax()
+        elif [fig, ax].count(None) == 1:
+            raise StandardError("one of fig,ax is None")
+        else:            
+            self.fig = fig
+            self.ax = ax
     
     def collect_legends(self, axnames=['ax']):
         """If self has more then one axis object attached, then collect legends

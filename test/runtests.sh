@@ -31,6 +31,9 @@ prnt(){
     echo "$@" | tee -a $logfile
 }    
 
+nose_opts="$@ --exclude='.*abinit.*'"
+prnt "NOTE: All Abinit tests disabled!"
+
 testdir=/tmp/pwtools-test.$$
 mkdir -pv $testdir
 logfile=$testdir/runtests.log
@@ -60,7 +63,7 @@ prnt "... ready"
 prnt "running tests ..."
 PYTHONPATH=$testdir:$PYTHONPATH \
 OMP_NUM_THREADS=3 \
-nosetests $@ 2>&1 | tee -a $logfile
+eval "nosetests $nose_opts" 2>&1 | tee -a $logfile
 prnt "... ready"
 
 cat << eof

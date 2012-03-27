@@ -9,7 +9,7 @@ def test():
         np.testing.assert_array_almost_equal(a,b)
 
     # random velocity array: 10 atoms, 50 steps, 50 x  (10,3) arrays
-    a = np.random.rand(10,3,50) + 1.0
+    a = np.random.rand(50,10,3) + 1.0
     # random mass vector
     m = np.random.rand(10) * 10.0 + 1.0
 

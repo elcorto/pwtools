@@ -9,7 +9,7 @@ import os
 import subprocess
 import numpy as np
 from pwtools import common, constants, num
-from pwtools.parse import FlexibleGetters
+from pwtools.base import FlexibleGetters
 
 class ExternEOS(FlexibleGetters):
     """Base class for calling extern (Fortran) EOS-fitting apps. The class
@@ -208,11 +208,11 @@ class ExternEOS(FlexibleGetters):
     def calc_bv(self):
         # B = V*d^2E/dV^2 = -V*dP/dV
         if self.method == 'pv':
-            self.check_get_attr('spl_pv')
+            self.try_set_attr('spl_pv')
             vv = self.pv[:,0]
             return np.array([vv, -vv * self.spl_pv(vv, der=1)]).T
         elif self.method == 'ev':
-            self.check_get_attr('spl_ev')
+            self.try_set_attr('spl_ev')
             # Ry / Bohr^3 -> GPa
             fac = constants.Ry_to_J / constants.a0**3.0 / 1e9
             vv = self.ev[:,0]
@@ -229,9 +229,9 @@ class ExternEOS(FlexibleGetters):
             energy min
         or an array of length 4 if behave=='old'.            
         """
-        self.check_get_attr('spl_pv')
-        self.check_get_attr('spl_ev')
-        self.check_get_attr('spl_bv')
+        self.try_set_attr('spl_pv')
+        self.try_set_attr('spl_ev')
+        self.try_set_attr('spl_bv')
         if self.method == 'pv':
             v0 = self.spl_pv.get_root()
         elif self.method == 'ev':

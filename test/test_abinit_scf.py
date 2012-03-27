@@ -11,7 +11,7 @@ def check(pp, none_attrs=[]):
             assert getattr(pp, attr_name) is not None
     assert pp.scf_converged is True            
 
-def test():
+def test_abinit_scf():
     filename = 'files/abi_scf.out'
     print("testing: %s" %filename)
     common.system('gunzip %s.gz' %filename)
@@ -19,7 +19,6 @@ def test():
     pp.parse()
     check(pp)
     # check consistency
-    assrt_aae(crys.rms(pp.forces), pp.forces_rms)
     assrt_aae(crys.cell2cc(pp.cell), pp.cryst_const)
     assrt_aae(crys.volume_cc(pp.cryst_const), pp.volume)
     common.system('gzip %s' %filename)

@@ -1,19 +1,24 @@
 from pwtools.parse import PwMDOutputFile
 from pwtools import common
+from pwtools.test.tools import assert_attrs_not_none 
 
-def test():
+def test_pw_vc_relax_out():
     filename = 'files/pw.vc-relax.out'
     common.system('gunzip %s.gz' %filename)
     pp = PwMDOutputFile(filename=filename)
     pp.parse()
-    common.print_dct(pp.__dict__)
-    none_attrs = ['ekin',
-                  'temperature',
-                  'scf_converged',
-                 ]             
-    for attr_name in pp.attr_lst:
-        attr = getattr(pp, attr_name)
-        if attr_name not in none_attrs:
-            assert attr is not None, "FAILED: %s" %attr_name
     common.system('gzip %s' %filename)
-
+    none_attrs = ['coords', 
+                  'ekin', 
+                  'temperature',
+                  'timestep',
+                  ]
+    assert_attrs_not_none(pp, none_attrs=none_attrs)
+    traj = pp.get_traj()
+    none_attrs = [\
+        'ekin', 
+        'temperature',
+        'timestep',
+        'velocity',
+        ]
+    assert_attrs_not_none(traj, none_attrs=none_attrs)   
