@@ -988,7 +988,7 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
     
     def get_timestep(self):
         """Time step [tryd]."""
-        cmd = r"grep -i 'time.*step' %s | sed -re \
+        cmd = r"grep -m1 -i 'time.*step' %s | sed -re \
               's/.*step\s+=\s+(.*)a.u..*/\1/'" %self.filename
         return float_from_txt(com.backtick(cmd))
     
