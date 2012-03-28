@@ -69,8 +69,8 @@ information, e.g.
 especially in MD parsers, not so much in StructureFileParser drived
 classes. If parse() is used, all this information retrieved and stored.
 
-* All parsers try to return the default units of the program output (e.g. Ry,
-  Bohr, tryd) for PWscf; Ha, Bohr, thart for Abinit and CPMD.
+* All parsers try to return the default units of the program output, e.g. Ry,
+  Bohr, tryd for PWscf; Ha, Bohr, thart for Abinit and CPMD.
 
 * Use get_struct() / get_traj() to get a Structure / Trajectory object with
   pwtools standard units (eV, Ang, fs).
@@ -764,7 +764,14 @@ class PwSCFOutputFile(StructureFileParser):
             return None
     
     def get_alat(self, use_alat=None):
-        """Lattice parameter "alat" [Bohr]."""
+        """Lattice parameter "alat" [Bohr]. If use_alat or self.use_alat is
+        False, return 1.0, i.e. disbale alat.
+        
+        args:
+        -----
+        use_alat : bool
+            Set use_alat and override self.use_alat.
+        """
         use_alat = self.use_alat if use_alat is None else use_alat
         if use_alat:
             cmd = r"grep -m1 'lattice parameter' %s | \
@@ -810,13 +817,13 @@ class PwSCFOutputFile(StructureFileParser):
 
     def get_natoms(self):
         verbose("getting natoms")
-        cmd = r"grep 'number.*atoms/cell' %s | head -n1 | \
+        cmd = r"grep -m 1 'number.*atoms/cell' %s | \
               sed -re 's/.*=\s+([0-9]+).*/\1/'" %self.filename
         return int_from_txt(com.backtick(cmd))
     
     def get_nkpoints(self):
         verbose("getting nkpoints")
-        cmd = r"grep 'number of k points=' %s | head -n1 | \
+        cmd = r"grep -m 1 'number of k points=' %s | \
             sed -re 's/.*points=\s*([0-9]+)\s*.*/\1/'" %self.filename
         return int_from_txt(com.backtick(cmd))
 
@@ -1330,7 +1337,7 @@ class AbinitSCFOutputFile(StructureFileParser):
         clever awk line to do this even faster. Ideas, anyone?
         """
         # For only one line:
-        # cmd = "grep '^[ ]*typat' %s | head -n1 | sed -re 's/typat//'" %self.filename
+        # cmd = "grep -m 1 '^[ ]*typat' %s | sed -re 's/typat//'" %self.filename
         # return arr1d_from_txt(com.backtick(cmd))
         verbose("getting typat")
         req = ['natoms']
@@ -1352,7 +1359,7 @@ class AbinitSCFOutputFile(StructureFileParser):
         # Does not work for multiline, but that's very unlikely to occur. We
         # would have to use a *very* large number of different species.
         verbose("getting znucl")
-        cmd = "grep '^[ ]*znucl' %s | head -n1 | sed -re 's/znucl//'" %self.filename
+        cmd = "grep -m 1 '^[ ]*znucl' %s | sed -re 's/znucl//'" %self.filename
         return arr1d_from_txt(com.backtick(cmd))
     
     def get_symbols(self):
@@ -1376,7 +1383,7 @@ class AbinitSCFOutputFile(StructureFileParser):
 
     def get_nkpt(self):
         verbose("getting nkpt")
-        cmd = "grep '^[ ]*nkpt' %s | head -n1 | sed -re 's/nkpt//'" %self.filename
+        cmd = "grep -m 1 '^[ ]*nkpt' %s | sed -re 's/nkpt//'" %self.filename
         return int_from_txt(com.backtick(cmd))
     
     def get_scf_converged(self):
