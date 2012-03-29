@@ -121,9 +121,23 @@ class Plot(object):
     >>> # or
     >>> pp.savefig('lala', ext=['png', 'pdf'])
     """
-    def __init__(self, fig=None, ax=None):
+    def __init__(self, fig=None, ax=None, projection='2d'):
+        """
+        args:
+        -----
+        fig, ax : Figure + Axis instance (e.g. from fig_ax())
+        projection : str, optional
+            If fig+ax not given, use this to call fig_ax() or fig_ax3d(), else
+            ignored.
+        """
         if [fig, ax] == [None]*2:
-            self.fig, self.ax = fig_ax()
+            if projection == '2d':
+                func = fig_ax
+            elif projection == '3d':        
+                func = fig_ax3d
+            else:   
+                raise StandardError("unknown projection: %s" %projection)
+            self.fig, self.ax = func()
         elif [fig, ax].count(None) == 1:
             raise StandardError("one of fig,ax is None")
         else:            
