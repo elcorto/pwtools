@@ -221,17 +221,18 @@ class Data3D(object):
     used by scipy.interpolate.bispl{rep,ev} and mpl_toolkits.mplot3d fuctions.
     """
     def __init__(self, x=None, y=None, xx=None, yy=None, zz=None, X=None,
-                 Y=None, Z=None):
+                 Y=None, Z=None, XY=None):
         """
         args:
         -----
         x,y : 1d arrays, shape (nx,) (ny,)
             These are the raw x and y "axes".
-        X,Y,Z: meshgrid-like 2d arrays (nx, ny)
+        X,Y,Z: meshgrid-like 2d arrays (nx, ny), see meshgridt()
         xx,yy,zz : 1d arrays (nx*ny)
             "Double-loop" versions of x,y,Z, input for ax3d.scatter() or
             bisplrep(). 
-        
+        XY : np.array([xx,yy]).T
+
         example:
         --------
         x = linspace(...,5)
@@ -298,6 +299,7 @@ class Data3D(object):
         self.X = X
         self.Y = Y
         self.Z = Z
+        self.XY = XY
         self.update()
 
     def update(self):
@@ -314,7 +316,30 @@ class Data3D(object):
                 self.yy = self.Y.flatten()
         if self.Z is not None:
             self.zz = self.Z.flatten()
-
+        # reverse meshgrid, may be unsafe, assumes that xx and yy
+        # are in the order:
+        #    for ii in range(nx):
+        #        for jj in range(ny):
+        #            idx = ii*ny+jj
+        #            xx[idx] = x[ii]
+        #            yy[idx] = y[jj]
+        #            zz[idx] = ...
+        # also fails for meaningless xx/yy data like when all xx[i] are the
+        # same 
+        if self.x is None:
+            self.x = np.unique(self.xx)
+        if self.y is None:
+            self.y = np.unique(self.yy)
+        self.X,self.Y = meshgridt(self.x, self.y)
+        if self.Z is None:
+            if self.zz is not None:
+                self.Z = self.zz.reshape(len(self.x), len(self.y))
+        if self.XY is None:
+            self.XY = np.array([self.xx,self.yy]).T
+        if self.x is not None:
+            self.nx = len(self.x)
+        if self.y is not None:
+            self.ny = len(self.y)
 
 def get_3d_testdata():
     x = np.linspace(-5,5,20)
