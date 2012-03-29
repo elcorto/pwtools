@@ -117,6 +117,9 @@ class Plot(object):
     >>> # `ax2`
     >>> pp.legend(['ax', 'ax2'])
     >>> pp.fig.savefig('lala.png')
+    >>> pp.fig.savefig('lala.pdf')
+    >>> # or
+    >>> pp.savefig('lala', ext=['png', 'pdf'])
     """
     def __init__(self, fig=None, ax=None):
         if [fig, ax] == [None]*2:
@@ -165,6 +168,9 @@ class Plot(object):
         else:
             ax.legend(*self.collect_legends(axnames), **kwargs)
 
+    def savefig(self, base, ext=['png']):
+        for ex in ext:
+            self.fig.savefig(base + '.' + ex)
 
 def prepare_plots(names, projection='2d'):
     """Return a dict of Plot instances.
@@ -419,6 +425,23 @@ def set_plot_layout_talk(rctarget=None):
     rctarget.rc('legend', labelspacing=0)
     rctarget.rc('savefig', dpi=100)
     rctarget.rc('font', size=13)
+    rctarget.rc('lines', linewidth=2)
+    rctarget.rc('lines', markersize=6)
+    # Equal whitespace left and right in case of twinx(). And even if not, we
+    # want all subplots to have the same aspect ratio.
+    rctarget.rc('figure.subplot', left=0.125)
+    rctarget.rc('figure.subplot', right=0.875)
+    rctarget.rc('figure.subplot', bottom=0.125)
+    rctarget.rc('mathtext', default='regular')
+
+
+def set_plot_layout_paper(rctarget=None):
+    rctarget = get_rctarget(rctarget)
+    rctarget.rc('legend', borderpad=0.2)
+    # minimal possible spacing, labels do not overlap
+    rctarget.rc('legend', labelspacing=0)
+    rctarget.rc('savefig', dpi=100)
+    rctarget.rc('font', size=16)
     rctarget.rc('lines', linewidth=2)
     rctarget.rc('lines', markersize=6)
     # Equal whitespace left and right in case of twinx(). And even if not, we
