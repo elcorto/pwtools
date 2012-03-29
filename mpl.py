@@ -115,7 +115,7 @@ class Plot(object):
     >>> pp.ax2.plot([2,2,1], 'r', label='ax2')
     >>> # legend on `ax` (default legaxname='ax') with all lines from `ax` and
     >>> # `ax2`
-    >>> pp.legend(['ax', 'ax2'])
+    >>> pp.legend(['ax', 'ax2'], loc='lower left')
     >>> pp.fig.savefig('lala.png')
     >>> pp.fig.savefig('lala.pdf')
     >>> # or
@@ -165,22 +165,41 @@ class Plot(object):
         ret = [common.flatten(x) for x in zip(*tuple(axhls))]
         return ret[0], ret[1]
     
-    # XXX This is not completly transparent. This 
-    #   >>> plot = Plot(...)
-    #   >>> plot.ax.plot(...)
-    #   >>> plot.legend(...)
-    # does only behave as ax.legend() if only kwargs are used. For anything
-    # else, use 
-    #   >>> plot.ax.legend() directly.
     def legend(self, axnames=None, legaxname='ax', **kwargs):
-        """Collect legend entries from all axes in axnames and place legend on
-        the axis named with legaxname.
+        """Collect legend entries from all axes in `axnames` and place legend on
+        the axis named with `legaxname`.
+
+        args:
+        -----
+        axnames : None or list of axes names, optional
+            e.g. ['ax'] or ['ax', 'ax2']. If None (default) then ax.legend() is
+            called directly (if legaxname='ax').
+        legaxname : string, optional
+            The name of the axis where the legend is placed on. If you use
+            things like twinx(), then you may want to choose top most the axis,
+            i.e. the one in the foreground. For example:
+            >>> pp.ax.plot(...)
+            >>> pp.ax2 = pp.ax.twinx()
+            >>> pp.ax2.plot(...)
+            >>> pp.legend(axnames=['ax', 'ax2'], legaxname='ax2')
+        
+        notes:
+        ------
+        This is not completly transparent. This:
+            >>> plot = Plot(...)
+            >>> plot.ax.plot(...)
+            >>> plot.legend(...)
+        does only behave as ax.legend() if only kwargs are used. For anything
+        else, use 
+            >>> plot.ax.legend() 
+        directly.
         """
         ax = getattr(self, legaxname)
         if axnames is None:
-            ax.legend(**kwargs)
+            leg = ax.legend(**kwargs)
         else:
-            ax.legend(*self.collect_legends(axnames), **kwargs)
+            leg = ax.legend(*self.collect_legends(axnames), **kwargs)
+        return leg
 
     def savefig(self, base, ext=['png']):
         for ex in ext:
