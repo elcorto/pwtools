@@ -28,6 +28,13 @@ def test():
     for lst in vals:
         db.execute("INSERT INTO calc (idx, foo, bar) VALUES (?,?,?)", tuple(lst))
     db.commit()
+    
+    # has_table
+    assert db.has_table('calc')
+    assert not db.has_table('foo')
+    
+    # get_single
+    assert float(db.get_single("select foo from calc where idx==0")) == 1.1
 
     assert header == db.get_header()
     # call sqlite3, the cmd line interface
@@ -105,7 +112,42 @@ def test():
     bar = db.get_list1d("select bar from calc")
     assert foo == dct['foo']
     assert bar == dct['bar']
-
+    
+    # sql_matrix
+    lists = [['a', 1.0], ['b', '2.0']]
+    colnames = ['foo', 'bar']
+    types = ['TEXT', 'REAL']
+    sql_lists = sql.sql_matrix(lists=lists, colnames=colnames)
+    assert sql_lists[0][0].sqltype == 'TEXT'
+    assert sql_lists[1][0].sqltype == 'TEXT'
+    assert sql_lists[0][1].sqltype == 'REAL'
+    assert sql_lists[1][1].sqltype == 'REAL'
+    for ii, row in enumerate(sql_lists):
+        for jj, entry in enumerate(row):
+            assert entry.sqlval == lists[ii][jj]
+    sql_lists = sql.sql_matrix(lists=lists, colnames=colnames,
+        fileval_funcs={'foo': lambda x: str(x)+'-lala'} )
+    for ii, row in enumerate(sql_lists):
+        for jj, entry in enumerate(row):
+            if entry.key == 'foo':
+                assert entry.fileval == str(lists[ii][jj]) + '-lala'
+            else:
+                assert entry.fileval == lists[ii][jj]
+            assert entry.sqlval == lists[ii][jj]
+    
+    # makedb
+    dbfn = pj(testdir, 'test3.db')
+    sql.makedb(filename=dbfn, lists=lists, colnames=colnames, mode='w')
+    db = sql.SQLiteDB(dbfn, table='test3')
+    dct =  db.get_dict("select * from test3")
+    assert dct['foo'] == [u'a', u'b']
+    assert dct['bar'] == [1.0, 2.0]
+    sql.makedb(filename=dbfn, lists=lists, colnames=colnames, mode='a')
+    db = sql.SQLiteDB(dbfn, table='test3')
+    dct =  db.get_dict("select * from test3")
+    assert dct['foo'] == [u'a', u'b']*2
+    assert dct['bar'] == [1.0, 2.0]*2
+    
     # --- SQLEntry ----------------------------------------------------
     x = SQLEntry(1, 'integer')
     assert x.sqlval == 1

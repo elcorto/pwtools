@@ -2,6 +2,7 @@ import sqlite3, types
 import numpy as np
 from pwtools import common
 from itertools import izip
+import os
 
 def get_test_db():
     db = SQLiteDB(':memory:', table='calc')
@@ -50,20 +51,22 @@ class SQLEntry(object):
         args:
         -----
         sqlval : Any Python type (str, unicode, float, integer, ...)
-            the value of the entry
-        sqltype : {str, None}
+            The value of the entry which is entered into the database. The
+            sqlite3 module 
+        sqltype : {str, None}, optional
             A string (not case sentitive) which determines the sqlite type of the
             entry: 'integer', 'real', 'null', ... If None then automatic type
             detection will be attempted. Only default types are supported, see
-            notes below.
-        fileval : {None, <anything>}
+            notes below. This is needed to create a sqlite table like in 
+                create table calc (foo integer, bar real)
+        fileval : {None, <anything>}, optional
             If not None, then this is the value of the entry that it has in
             another context (actually used in the input file). If None, then
             fileval = val. 
             Example: K_POINTS in pw.x input file:
                 sqlval: '2 2 2 0 0 0'
                 fileval: 'K_POINTS automatic\n2 2 2 0 0 0'
-        key : optional, {None, str}
+        key : optional, {None, str}, optional
             An optional key. This key should refer to the column name in the 
             database table, as in:
                 % create table calc (key1 sqltype1, key2 sqltype2, ...)
@@ -88,13 +91,16 @@ class SQLEntry(object):
         self.sqlval = sqlval
         self.fileval = sqlval if fileval is None else fileval
         self.key = key
-    
+
 
 class SQLiteDB(object):
     """Small convenience inerface class for sqlite3. It abstacts away the
     connecting to the database etc. It simplifies the usage of connection and
     cursor objects (bit like the "shortcuts" already defined in sqlite3).   
     
+    Currently, we assume that the db has one table only, therefore we
+    enforce `table` in the constructor.
+
     exported methods:
     -----------------
     self.cur.execute() -> execute()
@@ -157,15 +163,15 @@ class SQLiteDB(object):
         -----
         db_fn : str
             database filename
-        table : str
-            name of the database table 
+        table : str, optional
+            name of the database table
         """            
         self.db_fn = db_fn
         self.conn = sqlite3.connect(db_fn)
         self.cur = self.conn.cursor()
         self.table = table
         if self.table is None:
-            raise StandardError("missing table name for database")
+            raise StandardError("table missing")
     
     def set_table(self, table):
         """Set the table name (aka switch to another table).
@@ -183,6 +189,11 @@ class SQLiteDB(object):
     def execute(self, *args, **kwargs):
         """This calls self.cur.execute()"""
         return self.cur.execute(*args, **kwargs)
+    
+    def has_table(self, table):
+        """Check if a table named `table` already extists."""
+        assert table is not None, ("table is None")
+        return self.execute("pragma table_info(%s)" %table).fetchall() != []
 
     def has_column(self, col):
         """Check if table self.table already has the column `col`.
@@ -207,7 +218,7 @@ class SQLiteDB(object):
         col : str
             column name
         sqltype : str
-            sqite data type (see SQLEntry)
+            sqlite data type (see SQLEntry)
         """
         if not self.has_column(col):
             self.execute("ALTER TABLE %s ADD COLUMN %s %s" \
@@ -228,7 +239,7 @@ class SQLiteDB(object):
             self.add_column(*entry)
 
     def get_header(self):
-        """Return the "header" of the db:
+        """Return the "header" of the table `table':
 
         example:
         --------
@@ -236,7 +247,7 @@ class SQLiteDB(object):
         >>> db.execute("create table foo (a text, b real)"
         >>> db.get_header() 
         [('a', 'text'), ('b', 'real')]
-        """            
+        """
         return [(x[1], x[2]) for x in \
                 self.execute("PRAGMA table_info(%s)" %self.table)]
     
@@ -260,6 +271,13 @@ class SQLiteDB(object):
         We call fetchall() and return the flattened list. 
         """
         return common.flatten(self.execute(*args, **kwargs).fetchall())
+    
+    def get_single(self, *args, **kwargs):
+        """Return single entry from the table."""
+        ret = self.get_list1d(*args, **kwargs)
+        assert len(ret) > 0, ("nothing returned")
+        assert len(ret) == 1, ("no unique result")
+        return ret[0]
 
     def get_array1d(self, *args, **kwargs):
         """Same as get_list1d, but return numpy array."""
@@ -380,25 +398,29 @@ def sql_column(key, lst, sqltype=None, sqlval_func=lambda x: x, fileval_func=lam
                         izip(sqlval_lst, fileval_lst)]
 
 
-def sql_matrix(lists, header, sqlval_funcs=None, fileval_funcs=None):
+def sql_matrix(lists, header=None, colnames=None, sqlval_funcs=None, fileval_funcs=None):
     """Convert each entry in a list of lists ("matrix" = sql table) to an
     SQLEntry based on `header`. This can be used to quickly convert the result
     of comb.nested_loops() (nested lists) to input `params_lst` for
     ParameterStudy.
     
     The entries in the lists can have arbitrary values, but each "column"
-    should have the same type. Each sublist (= row) can be viewed as a row in
+    should have the same type. Each sublist (= row) can be viewed as a record in
     an sql database, each column as input for sql_column().
     
-    Automatic sql type detection is not implemented. You must specify the
-    column type in `header`.
+    If you provide `header`, then tyes for each column are taken from that. If
+    `colnames` are used, then types are fetched (by find_sqltype()) from the
+    first row. May not work for "incomplete" datasets, where some entries in
+    the first row are None (NULL in sqlite).
 
     args:
     -----
     lists : list of lists 
-    header : sequence 
+    header : sequence, optional 
         [('foo', 'integer'), ('bar', 'float'), ...], see
         sql.SQLiteDB
+    colnames : sequence os strings, optional
+        Use either `colnames` or `header`.
     sqlval_funcs, fileval_funcs: {None, dict}
         For certain (or all) columns, you can specify a sqlval_func /
         fileval_func. They have the same meaning as in sql_column().
@@ -442,6 +464,10 @@ def sql_matrix(lists, header, sqlval_funcs=None, fileval_funcs=None):
     [('col0', 300.0), ('col1', 'a'), ('col2', 888)]
     [('col0', 300.0), ('col1', 'b'), ('col2', 999)]
     """
+    if header is None:
+        assert colnames is not None, ("colnames is None")
+        sqltypes = [find_sqltype(xx) for xx in lists[0]]
+        header = zip(colnames, sqltypes)
     ncols = len(header)
     ncols2 = len(lists[0])
     keys = [entry[0] for entry in header]
@@ -464,4 +490,57 @@ def sql_matrix(lists, header, sqlval_funcs=None, fileval_funcs=None):
                                    sqlval=_sqlval_funcs[key](entry),
                                    fileval=_fileval_funcs[key](entry)))
         newlists.append(newrow)                                   
-    return newlists    
+    return newlists   
+
+def makedb(filename, lists=None, colnames=None, table=None, mode='a', **kwds):
+    """ Create sqlite db `filename` (mode='w') or append to existing db
+    (mode='a'), Db is build up from `lists` and `colnames`, see sql_matrix().
+    
+    args:
+    -----
+    lists : list of lists, see sql_matrix()
+    colnames : list of column names, see sql_matrix()
+    table : str, optional
+        String with table name. If None then we try to set a default name based
+        in `filename`.
+    mode : str
+        'w': write new db, 'a': append
+    **kwds : passed to sql_matrix()
+    """
+    sufs = ['.db', '.sqlite', '.sqlite3']
+    for suffix in sufs:
+        if filename.endswith(suffix):
+            table = os.path.basename(filename.replace(suffix, ''))
+            break
+    assert table is not None, ("table name missing or could not determine "
+                               "from filename")
+    assert len(colnames) == len(lists[0]), ("len(colnames) != length of "
+                                            "first list")        
+    if mode == 'w':        
+        if os.path.exists(filename):
+            os.remove(filename)
+    sqltypes = [find_sqltype(xx) for xx in lists[0]]
+    header = zip(colnames, sqltypes)
+    db = SQLiteDB(filename, table=table)
+    if not db.has_table(table):
+        db.create_table(header)
+    else:
+        db_header = db.get_header()
+        db_colnames = [x[0] for x in db_header]
+        db_types = [x[1] for x in db_header]
+        for entry in header:
+            col = entry[0]
+            typ = entry[1]
+            assert col in db_colnames, ("col '%s' not in db header" %col)
+            db_typ = db_types[db_colnames.index(col)]
+            assert typ == db_typ, ("col: '%s': "
+                "types differ, db: '%s', here: '%s'" %(col, db_typ, typ))
+    sql_lists = sql_matrix(lists, header=header, **kwds)
+    for row in sql_lists:
+        ncols = len(row)
+        names = ','.join(colnames)
+        values = ','.join(['?']*ncols)
+        cmd = 'insert into %s (%s) values (%s)' %(table, names, values)
+        db.execute(cmd, [entry.sqlval for entry in row])
+    db.finish() 
+    return db
