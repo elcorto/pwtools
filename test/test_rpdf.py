@@ -12,7 +12,7 @@
 
 import os
 import numpy as np
-from pwtools import crys, parse, arrayio
+from pwtools import crys, parse, arrayio, io
 from testenv import testdir
 from pwtools.test.tools import aaae, aae
 pj = os.path.join
@@ -54,9 +54,10 @@ def test():
             struct = parse.CifFile(pj(dd, name + '.cif')).get_struct()
             trajs = [struct]
             cell = struct.cell
-
-        # rpdf() 
+        
         ret = crys.rpdf(trajs, rmax=5.0, dr=0.05, pbc=True)
+
+        # rpdf() -- compere w/ ref
         results = {'rad':       ret[:,0],
                    'hist':      ret[:,1], 
                    'num_int':   ret[:,2],
@@ -86,6 +87,34 @@ def test():
             ret2 = crys.rpdf(trajs, dr=0.1, amask=['Al', 'N'])
             aae(ret1, ret2)
 
+    # API:
+    #   [traj, traj]
+    #   [traj]
+    #   traj
+    traj = crys.Trajectory(coords_frac=rand(100,20,3),
+                           cell=np.identity(3)*20,
+                           symbols=['O']*5+['H']*15)
+    ret1 = crys.rpdf([traj, traj], rmax=5.0, dr=0.05, pbc=True)
+    ret2 = crys.rpdf([traj], rmax=5.0, dr=0.05, pbc=True)
+    aae(ret1, ret2)
+    ret3 = crys.rpdf(traj, rmax=5.0, dr=0.05, pbc=True)
+    aae(ret1, ret3)
+    
+    # dmask
+    ret = crys.rpdf(traj, rmax=5.0, dr=0.05, dmask='>=2.0')
+    msk = ret[:,0] >= 2.0
+    imsk = np.invert(msk)
+    assert (ret[msk, 1] >  0.0).any()
+    assert (ret[imsk,1] == 0.0).all()
+    ret = crys.rpdf(traj, rmax=5.0, dr=0.05, dmask='{d}>=2.0')
+    assert (ret[msk, 1] >  0.0).any()
+    assert (ret[imsk,1] == 0.0).all()
+    ret = crys.rpdf(traj, rmax=5.0, dr=0.05, dmask='({d} >= 1.0) & ({d} <= 3.0)')
+    msk = (ret[:,0] >= 1.0) & (ret[:,0] <= 3.0)
+    imsk = np.invert(msk)
+    assert (ret[msk, 1] >  0.0).any()
+    assert (ret[imsk,1] == 0.0).all()
+
     if have_vmd:                        
         # slicefirst and API
         print "vmd_measure_gofr: slicefirst ..."
@@ -100,24 +129,30 @@ def test():
                     last, step, sf)
                 tmp = crys.vmd_measure_gofr(traj, 
                                             dr=0.1,
+                                            rmax='auto',
                                             sel=['all', 'all'],
                                             slicefirst=sf,
                                             first=first,
                                             last=last,
                                             step=step,
-                                            fntype='xsf',
-                                            usepbc=1, datafn=None,
-                                            scriptfn=None, logfn=None, xsffn=None,
+                                            usepbc=1,
                                             tmpdir=testdir,
-                                            keepfiles=True,
                                             verbose=False,
                                             )
                 ret.append(tmp)
         
-        aaae(ret[0][:,0], ret[1][:,0])
-        aaae(ret[0][:,1], ret[1][:,1])
-        aaae(ret[0][:,2], ret[1][:,2])
+            aaae(ret[0][:,0], ret[1][:,0])
+            aaae(ret[0][:,1], ret[1][:,1])
+            aaae(ret[0][:,2], ret[1][:,2])
         
+        # API call_vmd_measure_gofr()
+        trajfn = pj(testdir, 'vmd_xsf_call_vmd_measure_gofr')
+        data = io.write_axsf(trajfn, traj)
+        ret = crys.call_vmd_measure_gofr(trajfn,  dr=0.1, rmax=10, sel=['all','all'],
+                                 fntype='xsf', first=0, last=-1, step=1, usepbc=1,
+                                 datafn=None, scriptfn=None, logfn=None, tmpdir=testdir,
+                                 verbose=False)
+
         # compare results, up to L/2 = rmax_auto = 10 = rmax_smith(cell)
         
         # all-all, hist will differ

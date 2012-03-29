@@ -7,6 +7,7 @@ from math import acos, pi, sin, cos, sqrt
 import textwrap
 import time
 import os
+import tempfile
 
 import numpy as np
 from scipy.linalg import inv
@@ -1051,19 +1052,27 @@ def rmax_smith(cell):
     return rmax
 
 def rpdf(trajs, dr=None, rmax='auto', amask=None, tmask=None, 
-         pbc=True, norm_vmd=False):
+         dmask=None, pbc=True, norm_vmd=False):
     """Radial pair distribution (pair correlation) function. This is for one
     Structure or a Trajectory. Can also handle non-orthorhombic unit cells
     (simulation boxes). Only fixed-cell MD. 
 
-    For subtle differences to VMD, see comments below.
-
-    Note: The maximal `rmax` for which results (g(r) and number integral) are
-    correctly normalized is the result of rmax_smith(cell), i.e. the radius if the
-    biggest sphere which fits entirely into the cell. We do explicitely allow
-    rmax > rmax_smith() for testing, but be aware that results are *wrong* for
-    rmax > rmax_smith()!! See examples/rpdf/ for educational evidence.
+    rmax
+    ----
+    The maximal `rmax` for which g(r) is correctly normalized is the
+    result of rmax_smith(cell), i.e. the radius if the biggest sphere which
+    fits entirely into the cell. This is simply L/2 for cubic boxes, for
+    instance. We do explicitely allow rmax > rmax_smith() for testing, but be
+    aware that g(r) and the number integral are *wrong* for rmax >
+    rmax_smith(). 
     
+    Even though the number integral will always converge to the number of all
+    neighbors for r -> infinity, the integral value (the number of neigbors) is
+    correct only up to rmax_smith().
+
+    See examples/rpdf/ for educational evidence. For notes on how VMD does
+    this, see comments in the code below.
+
     args:
     -----
     trajs : Structure or Trajectory, list of one or two Structure or
@@ -1085,7 +1094,7 @@ def rpdf(trajs, dr=None, rmax='auto', amask=None, tmask=None,
         float: set value yourself
     amask : None, list of one or two bool 1d arrays, list of one or two
         strings, optional
-        The "atom mask". This is the complementary functionality to `sel` in
+        Atom mask. This is the complementary functionality to `sel` in
         vmd_measure_gofr(). If len(amask)==1, then we expand to [amask, amask]
         internally, which would calculate the RPDF between the same atom
         selection. If two masks are given, then the first is applied to
@@ -1094,9 +1103,18 @@ def rpdf(trajs, dr=None, rmax='auto', amask=None, tmask=None,
         provide strings, they are assumed to be atom names and we create a
         bool array np.array(symbols) == amask[i].
     tmask : None or slice object, optional
-        Slice for the time axis, e.g. to use only every 100th step, starting
-        from step 2000 to the end, use tmask=slice(2000,None,100), which is the
-        same as np.s_[2000::100].
+        Time mask. Slice for the time axis, e.g. to use only every 100th step,
+        starting from step 2000 to the end, use tmask=slice(2000,None,100),
+        which is the same as np.s_[2000::100].
+    dmask : None or string, optional
+        Distance mask. Restrict to certain distances using numpy syntax for
+        creating bool arrays:
+            '>=1.0'
+            '{d} >=1.0' # the same
+            '({d} > 1.0) & ({d} < 3.0)'
+        where '{d}' is a placeholder for the distance array (you really have to
+        use '{d}'). The placeholder is optional in some pattern. This is similar
+        to VMD's "within" or "pbwithin" syntax. 
     pbc : bool, optional
         apply minimum image convention to distances
     norm_vmd : bool, optional
@@ -1206,7 +1224,7 @@ def rpdf(trajs, dr=None, rmax='auto', amask=None, tmask=None,
     #            = int(r=r1,r2) N/V*g(r)*V(r)
     #            = int(r=r1,r2) 1/N*dn(r)
     # 
-    # which can be used to calculate coordination numbers, i.e. it counts the
+    # This can be used to calculate coordination numbers, i.e. it counts the
     # average (that's why 1/N) number of atoms around an atom in a shell
     # [r1,r2]. 
     #   
@@ -1357,9 +1375,14 @@ def rpdf(trajs, dr=None, rmax='auto', amask=None, tmask=None,
     #
     # normalization
     # -------------
-    # We use the textbook formulas, which lead to 
+    # For normalizing g(r) to account for growing shell volumes around the
+    # central atom for increasing r, we use the textbook formulas, which lead
+    # to
+    #     
     #     norm_fac = volume / volume_shells / (natoms0 * natoms1)
+    # 
     # while VMD uses smth similar to
+    #     
     #     norm_fac = volume / volume_shells / (natoms0 * natoms1 - duplicates)
     # 
     # VMD calculates g(r) using this norm_fac, but the num_int is always
@@ -1368,12 +1391,12 @@ def rpdf(trajs, dr=None, rmax='auto', amask=None, tmask=None,
     #   I_AB(r1,r2) = int(r=r1,r2) 1/A*dn_AB(r)
     # 
     # which is what we do, i.e. just integrate the histogram. That means VMD's
-    # results are inconsistent if duplicates != 0. In that case g(r) is wrong,
-    # but num_int is still correct. This is only the case for simple all-all
-    # correlation (i.e. all atoms are considered the same), duplicates =
-    # natoms0 = natoms1 = the number of zeros on the distance matrix' main
-    # diagonal. Then we have a small difference in g(r), where VMD's is always
-    # a little higher b/c norm_fac is smaller then it should.
+    # results are inconsistent if duplicates != 0. In that case g(r) is
+    # slightly wrong, but num_int is still correct. This is only the case for
+    # simple all-all correlation (i.e. all atoms are considered the same),
+    # duplicates = natoms0 = natoms1 = the number of zeros on the distance
+    # matrix' main diagonal. Then we have a small difference in g(r), where
+    # VMD's is always a little higher b/c norm_fac is smaller then it should.
     #
     # As a result, VMD's g(r) -> 1.0 for random points (= ideal gas) and
     # num_int -> N (would VMD's g(r) be integrated directly), while our g(r) ->
@@ -1382,17 +1405,26 @@ def rpdf(trajs, dr=None, rmax='auto', amask=None, tmask=None,
     # rmax
     # ----
     # VMD has a unique feature that lets you use a higher rmax. VMD extends the
-    # range of rmax over rmax_auto, up to 2*sqrt(0.5)*rmax_auto (~ 14.14 for
-    # rmax_auto=10) which is just the length of the vector [rmax_auto,
-    # rmax_auto], i.e. the radius of a sphere which touches one vertice of the
-    # box. Then, we have a spherical cap, which partly covers the smallest box
-    # side (remember that VMD can do orthorhombic boxes only). VMD corrects the
-    # volume of the shells for normalization in that case for rmax_auto < r <
-    # 2*sqrt(0.5)*rmax_auto.
+    # range of rmax over rmax_auto, up to rmax_vmd=2*sqrt(0.5)*rmax_auto (~
+    # 14.14 for rmax_auto=10) which is just the length of the vector
+    # [rmax_auto, rmax_auto], i.e. the radius of a sphere which touches one
+    # vertice of the box. Then, we have a spherical cap, which partly covers
+    # the smallest box side (remember that VMD can do orthorhombic boxes only).
+    # VMD corrects the volume of the shells for normalization in that case for
+    # rmax_auto < r < rmax_vmd.
     #
-    # For distinct selections, our results and VMD's are exactly the same up to
-    # rmax_auto. After that, VMD's are correct up to 2*sqrt(0.5)*rmax_auto. At
-    # that value, they set g(r) to 0.0 (and so the number integral too). 
+    # For distinct selections, our g(r) and VMD's are exactly the same up to
+    # rmax_auto. After that, VMD's are correct up to rmax_vmd. At that value,
+    # VMD sets g(r) and num_int to 0.0.
+    #
+    # The problem is: Even if g(r) is normalized correctly for rmax_auto < r <
+    # rmax_vmd, the num_int in that region will be wrong b/c the integral
+    # formula must be changed for that region to account for the changed
+    # normalization factor, which VMD doesn't do, as far as I read the code. If
+    # I'm wrong, send me an email. All in all, VMD's num_int sould be trusted
+    # up to rmax_auto, just as in our case. The only advantage is a correctly
+    # normalized g(r) for rmax_auto < r < rmax_vmd, which is however of little
+    # use, if the num_int doesn't match.
     
     if amask is None:
         amask = [slice(None)]
@@ -1466,6 +1498,14 @@ def rpdf(trajs, dr=None, rmax='auto', amask=None, tmask=None,
     # would fail b/c old reference data calculated w/ that setting (difference
     # 1%, only the last point differs).
     dists_all[dists_all >= rmax] = 0.0
+    
+    if dmask is not None:
+        placeholder = '{d}'
+        if placeholder in dmask:
+            _dmask = dmask.replace(placeholder, 'dists_all')
+        else:
+            _dmask = 'dists_all ' + dmask
+        dists_all[np.invert(eval(_dmask))] = 0.0
 
     hist_sum = np.zeros(len(bins)-1, dtype=float)
     number_integral_sum = np.zeros(len(bins)-1, dtype=float)
@@ -1495,29 +1535,25 @@ def rpdf(trajs, dr=None, rmax='auto', amask=None, tmask=None,
     out[:,2] = number_integral_sum / nstep
     return out
 
-def vmd_measure_gofr(traj, dr, rmax='auto', sel=['all','all'], 
-                     fntype='xsf', first=0,
-                     last=-1, step=1, usepbc=1, slicefirst=True, datafn=None,
-                     scriptfn=None, logfn=None, xsffn=None, tmpdir='/tmp', 
-                     keepfiles=False, verbose=False):
+
+def call_vmd_measure_gofr(trajfn, dr=None, rmax=None, sel=['all','all'],
+                          fntype='xsf', first=0, last=-1, step=1, usepbc=1,
+                          datafn=None, scriptfn=None, logfn=None, tmpdir=None,
+                          verbose=False):
     """Call VMD's "measure gofr" command. This is a simple interface which does
-    in fact the same thing as the gofr GUI, only scriptable. This is intended
-    as a complementary function to rpdf() and should, of course, produce the
-    "same" results.
+    in fact the same thing as the gofr GUI, only scriptable. Accepts a file
+    with trajectory data.
 
     Only orthogonal boxes are allowed (like in VMD).
     
     args:
     -----
-    traj : Structure or Trajectory
+    trajfn : filename of trajectory which is fed to VMD (e.g. foo.axsf)
     dr : float
         dr in Angstrom
-    rmax : {'auto', float}, optional
+    rmax : float
         Max. radius up to which minimum image nearest neighbors are counted.
         For cubic boxes of side length L, this is L/2 [AT,MD].
-        'auto': the method of [Smith] is used to calculate the max. sphere
-            raduis for any cell shape
-        float: set value yourself
     sel : list of two strings, optional
         string to select atoms, ["name Ca", "name O"], ["all", "all"], ...,
         where sel[0] is selection 1, sel[1] is selection 2 in VMD
@@ -1528,23 +1564,14 @@ def vmd_measure_gofr(traj, dr, rmax='auto', sel=['all','all'],
         0. Last is -1, like in Python. 
     usepbc : int {1,0}, optional
         Whether to use the minimum image convention.
-    slicefirst : bool, optional
-        Whether to slice coords here in the wrapper based on first,last,step.
-        This will write a smaller XSF file, which can save time. In the VMD
-        script, we always use first=0,last=-1,step=1 in that case.
-    datafn : str, optional (auto generated)
+    datafn : str, optional
         temp file where VMD results are written to and loaded
-    scriptfn : str, optional (auto generated)
+    scriptfn : str, optional
         temp file where VMD tcl input script is written to
-    logfn : str, optional (auto generated)
+    logfn : str, optional
         file where VMD output is logged 
-    xsffn : str, optional (auto generated)
-        temp file where .axsf file generated from `coords_frac` is written to and
-        loaded by VMD
-    tmpdir : str, optional (auto generated)
+    tmpdir : str, optional
         dir where auto-generated tmp files are written
-    keepfiles : bool, optional
-        Whether to delete `datafn` and `scriptfn`.
     verbose : bool, optional
         display VMD output
 
@@ -1558,7 +1585,6 @@ def vmd_measure_gofr(traj, dr, rmax='auto', sel=['all','all'],
     num_int : 1d array, (len(rad),), the (averaged) number integral
         number_density*hist*4*pi*r**2.0*dr
     """
-
     vmd_tcl = textwrap.dedent("""                    
     # VMD interface script. Call "measure gofr" and write RPDF to file.
     # Tested with VMD 1.8.7, 1.9
@@ -1571,7 +1597,7 @@ def vmd_measure_gofr(traj, dr, rmax='auto', sel=['all','all'],
     # [Ang]
     
     # Load molecule file with MD trajectory. Typically, foo.axsf with type=xsf
-    mol new XXXFN type XXXFNTYPE waitfor all
+    mol new XXXTRAJFN type XXXFNTYPE  waitfor all
     
     # "top" is the current top molecule (the one labeled with "T" in the GUI). 
     set molid top
@@ -1583,7 +1609,6 @@ def vmd_measure_gofr(traj, dr, rmax='auto', sel=['all','all'],
     set delta XXXDR
     set rmax XXXRMAX
     set usepbc XXXUSEPBC
-    # info: slicefirst: XXXSLICEFIRST
     
     set sel1 [atomselect $molid "$selstr1"]
     set sel2 [atomselect $molid "$selstr2"]
@@ -1601,22 +1626,100 @@ def vmd_measure_gofr(traj, dr, rmax='auto', sel=['all','all'],
     }    
     quit
     """)
+    # Skip test if cell is orthogonal, VMD will complain anyway if it isn't
+    assert None not in [dr, rmax], "`dr` or `rmax` is None"
+    assert len(sel) == 2
+    assert fntype == 'xsf', ("only XSF files supported")
+    if tmpdir is None:
+        tmpdir = '/tmp'
+    if datafn is None:
+        datafn = tempfile.mkstemp(dir=tmpdir, prefix='vmd_data_', text=True)[1]
+    if scriptfn is None:
+        scriptfn = tempfile.mkstemp(dir=tmpdir, prefix='vmd_script_', text=True)[1]
+    if logfn is None:
+        logfn = tempfile.mkstemp(dir=tmpdir, prefix='vmd_log_', text=True)[1]
+    dct = {}
+    dct['trajfn'] = trajfn
+    dct['fntype'] = fntype
+    dct['selstr1'] = sel[0]
+    dct['selstr2'] = sel[1]
+    dct['first'] = first
+    dct['last'] = last
+    dct['step'] = step
+    dct['dr'] = dr
+    dct['rmax'] = rmax
+    dct['usepbc'] = usepbc
+    dct['datafn'] = datafn
+    dct['time'] = time.asctime()
+    for key,val in dct.iteritems():
+        vmd_tcl = vmd_tcl.replace('XXX'+key.upper(), str(val))
+    common.file_write(scriptfn, vmd_tcl)
+    cmd = "vmd -dispdev none -eofexit -e %s " %scriptfn
+    if verbose:
+        cmd += "2>&1 | tee %s" %logfn
+    else:        
+        cmd += " > %s 2>&1" %logfn
+    out = common.backtick(cmd).strip()
+    if out != '': print(out)
+    data = np.loadtxt(datafn)
+    return data
+
+def vmd_measure_gofr(traj, dr, rmax='auto', sel=['all','all'], first=0,
+                     last=-1, step=1, usepbc=1, 
+                     slicefirst=True, verbose=False, tmpdir=None):
+    """Call call_vmd_measure_gofr(), accept Structure / Trajectory as input.
+    This is intended as a complementary function to rpdf() and should, of
+    course, produce the "same" results.
+
+    Only orthogonal boxes are allowed (like in VMD).
+    
+    args:
+    -----
+    traj : Structure or Trajectory
+    dr : float
+        dr in Angstrom
+    rmax : {'auto', float}, optional
+        Max. radius up to which minimum image nearest neighbors are counted.
+        For cubic boxes of side length L, this is L/2 [AT,MD].
+        'auto': the method of [Smith] is used to calculate the max. sphere
+            raduis for any cell shape
+        float: set value yourself
+    sel : list of two strings, optional
+        string to select atoms, ["name Ca", "name O"], ["all", "all"], ...,
+        where sel[0] is selection 1, sel[1] is selection 2 in VMD
+    first, last, step: int, optional
+        Select which MD steps are averaged. Like Python, VMD starts counting at
+        0. Last is -1, like in Python. 
+    usepbc : int {1,0}, optional
+        Whether to use the minimum image convention.
+    slicefirst : bool, optional
+        Whether to slice coords here in the wrapper based on first,last,step.
+        This will write a smaller XSF file, which can save time. In the VMD
+        script, we always use first=0,last=-1,step=1 in that case.
+    verbose : bool, optional
+        display VMD output
+    tmpdir : str, optional
+        dir where auto-generated tmp files are written
+
+    returns:
+    --------
+    array (len(rad), 3), colums 0,1,2:
+    rad : 1d array, radius (x-axis) with spacing `dr`, each value r[i] is the
+        middle of a histogram bin 
+    hist : 1d array, (len(rad),)
+        the function values g(r)
+    num_int : 1d array, (len(rad),), the (averaged) number integral
+        number_density*hist*4*pi*r**2.0*dr
+    """
     from pwtools.io import write_axsf
     traj = struct2traj(traj)
     # Speed: The VMD command "measure gofr" is multithreaded and written in C.
     # That's why it is faster then the pure Python rpdf() above when we have to
     # average many timesteps. But the writing of the .axsf file here is
     # actually the bottleneck and makes this function slower.
-    assert None not in [dr, rmax], "`dr` or `rmax` is None"
-    assert len(sel) == 2
-    if datafn is None:
-        datafn = os.path.join(tmpdir, "vmd_data")
-    if scriptfn is None:
-        scriptfn = os.path.join(tmpdir, "vmd_script")
-    if logfn is None:
-        logfn = os.path.join(tmpdir, "vmd_log")
-    if xsffn is None:
-        xsffn = os.path.join(tmpdir, "vmd_xsf")
+    if tmpdir is None:
+        tmpdir = '/tmp'
+    trajfn = tempfile.mkstemp(dir=tmpdir, prefix='vmd_xsf_', text=True)[1]
     cell = traj.cell[0,...]
     cc = traj.cryst_const[0,...]
     if np.abs(cc[3:] - 90.0).max() > 0.1:
@@ -1637,37 +1740,12 @@ def vmd_measure_gofr(traj, dr, rmax='auto', sel=['all','all'],
         step = 1
     else:
         traj2 = traj
-    write_axsf(xsffn, traj2)
-    dct = {}
-    dct['fn'] = xsffn
-    dct['fntype'] = fntype
-    dct['selstr1'] = sel[0]
-    dct['selstr2'] = sel[1]
-    dct['first'] = first
-    dct['last'] = last
-    dct['step'] = step
-    dct['slicefirst'] = slicefirst
-    dct['dr'] = dr
-    dct['rmax'] = rmax
-    dct['usepbc'] = usepbc
-    dct['datafn'] = datafn
-    dct['time'] = time.asctime()
-    for key,val in dct.iteritems():
-        vmd_tcl = vmd_tcl.replace('XXX'+key.upper(), str(val))
-    common.file_write(scriptfn, vmd_tcl)
-    cmd = "vmd -dispdev none -eofexit -e %s " %scriptfn
-    if verbose:
-        cmd += "2>&1 | tee %s" %logfn
-    else:        
-        cmd += " > %s 2>&1" %logfn
-    common.system(cmd)
-    data = np.loadtxt(datafn)
-    if not keepfiles:
-        os.remove(datafn)
-        os.remove(scriptfn)
-        os.remove(xsffn)
-        os.remove(logfn)
-    return data
+    write_axsf(trajfn, traj2)
+    ret = call_vmd_measure_gofr(trajfn, dr=dr, rmax=rmax, sel=sel, 
+                                fntype='xsf', first=first,
+                                last=last, step=step, usepbc=usepbc,
+                                verbose=verbose,tmpdir=tmpdir)
+    return ret
 
 #-----------------------------------------------------------------------------
 # Container classes for crystal structures and trajectories.
