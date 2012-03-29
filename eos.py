@@ -9,6 +9,7 @@ import os
 import subprocess
 import numpy as np
 from pwtools import common, constants, num
+from pwtools.constants import Ry, Ha, Bohr, Ang, eV
 from pwtools.base import FlexibleGetters
 
 class ExternEOS(FlexibleGetters):
@@ -20,7 +21,7 @@ class ExternEOS(FlexibleGetters):
     handled by derived classes.
 
     We have three "representations" of the data:
-    (a) input data E(V) : self.volume, self.energy
+    (a) input data E(V) : self.volume [Ang^3], self.energy [eV]
     (b) fitted or calculated points : self.{ev,pv,bv} -- 2d arrays (N,2)
         where N is the number of returned fitted points from the fitting app. N
         depends in the fitting app. For instance, in ElkEOSFit, you can use
@@ -41,9 +42,9 @@ class ExternEOS(FlexibleGetters):
     -----------
     After calling fit(), these attrs are available. All are 2d arrays (N,2),
     see notes below regarding N.
-        self.ev : [volume [Bohr^3], energy E(V) [Ry]]
-        self.pv : [volume [Bohr^3], pressure P(V) [GPa]]
-        self.bv : [volume [Bohr^3], bulk modulus B(V) [GPa]]
+        self.ev : [volume [Ang^3], energy E(V) [eV]]
+        self.pv : [volume [Ang^3], pressure P(V) [GPa]]
+        self.bv : [volume [Ang^3], bulk modulus B(V) [GPa]]
     Splines self.spl_* should be obtained by the self.get_spl_* methods, rather
     then attr access self.spl_*. This is because they are calculated only when
     requested, not by default in fit().
@@ -63,15 +64,14 @@ class ExternEOS(FlexibleGetters):
     (pv[:,0]) b/c, depending on how P=-dE/dV is calculated, these may have
     different length. For instance, if the pressure is calculated by finite
     differences, then ev.shape[0] == N, pv.shape[0] == N-1 .
+    
+    For derived classes:
+    --------------------
+    Implement _fit(), which sets self.{ev,pv}.
+    
+    ev : 2d array, shape (number_of_fit_points, 2): [volume [Ang^3], energy [eV]] 
+    pv : 2d array, shape (number_of_fit_points, 2): [volume [Ang^3], pressure [GPa]]
     """
-    # Derived classes:
-    # ----------------
-    # Implement _fit(), which sets self.{ev,pv}.
-    #
-    # ev : 2d array, shape (number_of_fit_points, 2): [volume [Bohr^3], energy [Ry]]
-    # pv : 2d array, shape (number_of_fit_points, 2): [volume [Bohr^3], pressure [GPa]]
-    # 
-    # Derived classed must conform to this in their _fit() method.
     def __init__(self, app=None, energy=None, volume=None, dir=None,
                  method='ev', verbose=True):
         """
@@ -80,8 +80,8 @@ class ExternEOS(FlexibleGetters):
         app : str 
             name of the executable ([/path/to/]eos.x), make sure that it is on
             your PATH or use an absolute path
-        energy : 1d array [Ry]
-        volume : 1d array [Bohr^3]
+        energy : 1d array [eV]
+        volume : 1d array [Ang^3]
         dir : str
             dir where in- and outfiles are written, default is the basename of
             "app" (e.g. "/path/to" for app='/path/to/eos.x')
@@ -133,9 +133,6 @@ class ExternEOS(FlexibleGetters):
         self._fit(*args, **kwargs)
         self.bv = self.calc_bv()
 
-    # Make internal spline representations accessible to the user.
-    # XXX how about using @property for another way to automatically invoke the
-    # getter?
     def get_spl_ev(self):
         if self.is_set_attr('spl_ev'):
             return self.spl_ev
@@ -168,9 +165,9 @@ class ExternEOS(FlexibleGetters):
         """
         returns:
         --------
-        v,e
-        v : volume [Bohr^3] 
-        e : energy [Ry]
+        tuple (v,e)
+        v : volume [Ang^3] 
+        e : energy [eV]
         """
         return (self.ev[:,0], self.ev[:,1])
     
@@ -178,8 +175,8 @@ class ExternEOS(FlexibleGetters):
         """
         returns:
         --------
-        v,p
-        v : volume [Bohr^3] 
+        tuple (v,p)
+        v : volume [Ang^3] 
         p : pressure [GPa]
         """
         return (self.pv[:,0], self.pv[:,1])
@@ -188,13 +185,13 @@ class ExternEOS(FlexibleGetters):
         """
         returns:
         --------
-        v,b
-        v : volume [Bohr^3] 
+        tuple (v,b)
+        v : volume [Ang^3] 
         b : bulk modulus [GPa]
         """
         return (self.bv[:,0], self.bv[:,1])
     
-    # XXX backward compat
+    # backward compat: get_{e,v,p}v
     def get_ev(self):
         return self.get_ev_tup()
     
@@ -203,31 +200,31 @@ class ExternEOS(FlexibleGetters):
     
     def get_bv(self):
         return self.get_bv_tup()
-    # XXX backward compat
 
     def calc_bv(self):
-        # B = V*d^2E/dV^2 = -V*dP/dV
+        # B = -V*dP/dV
         if self.method == 'pv':
             self.try_set_attr('spl_pv')
             vv = self.pv[:,0]
             return np.array([vv, -vv * self.spl_pv(vv, der=1)]).T
+        # B = V*d^2E/dV^2 
         elif self.method == 'ev':
             self.try_set_attr('spl_ev')
-            # Ry / Bohr^3 -> GPa
-            fac = constants.Ry_to_J / constants.a0**3.0 / 1e9
+            # eV / Ang^3 -> GPa
+            fac = eV * 1e21 # 160.2176487
             vv = self.ev[:,0]
             return np.array([vv, vv * self.spl_ev(vv, der=2) * fac]).T
         else:
             raise StandardError("unknown method: '%s'" %method)
     
-    # XXX behave : backward compat
     def get_min(self, behave='new'):
         """
-        returns:
-        --------
-        a dict {v0, e0, p0, b0} : volume, energy, pressure, bulk modulus at
-            energy min
-        or an array of length 4 if behave=='old'.            
+        args:
+        -----
+        behave : str, optional
+            'new' : return a dict {v0, e0, p0, b0} : volume, energy, pressure,
+                bulk modulus at energy min
+            'old' : array of length 4 [v0, e0, b0, p0]
         """
         self.try_set_attr('spl_pv')
         self.try_set_attr('spl_ev')
@@ -283,6 +280,7 @@ class BossEOSFit(ExternEOS):
       eos.x, see npoints in ElkEOSFit.      
     """
     def __init__(self, app='eosfit.x', **kwargs):
+        raise NotImplementedError("fix units")
         ExternEOS.__init__(self, app=app, **kwargs)
 
     def _fit(self):
@@ -308,6 +306,9 @@ class BossEOSFit(ExternEOS):
         # P = -dE/dV
         # Ry / Bohr^3 -> Pa -> GPa
         fac = constants.Ry_to_J / constants.a0**3 / 1e9
+        # XXX Using a spline deriv here would solve the "different length for V
+        # axis" problem and we could get rid of a lot of useless cruft in
+        # ExternEOS. Who thought using finite diffs is a good idea ? :)
         vol, dEdV = num.deriv_spl(self.ev[:,1], 
                                   self.ev[:,0], 
                                   n=1)
@@ -322,7 +323,7 @@ class ElkEOSFit(ExternEOS):
     [2] http://exciting-code.org/
 
     Note that the data produced by eos.x is divided by natoms and that energy
-    is in Hartree. We remove the normalization and convert Ha -> Ry.
+    is in Hartree. We remove the normalization and convert Ha -> eV.
     
     self.{ev,bv,pv} all have the same shape[0] b/c we do not use finite
     differences for derivatives.
@@ -389,8 +390,10 @@ class ElkEOSFit(ExternEOS):
         # Enthalpy-pressure(GPa) per atom over interval written to HPPAI.OUT
 
     def _fit(self):
-        # volume[Bohr^3] etot[Ha] (Ry -> Ha : / 2)
-        data = np.array([self.volume, self.energy/2.0]).T
+        # volume[Bohr^3] etot[Ha] for eos.x
+        volume = self.volume*(Ang**3.0 / Bohr**3.0)
+        energy = self.energy*(eV / Ha)
+        data = np.array([volume, energy]).T
         infn_txt =\
         """
 %s
@@ -402,8 +405,8 @@ class ElkEOSFit(ExternEOS):
         """%(self.name, 
              self.natoms, 
              self.etype, 
-             self.volume[0], self.volume[-1], self.npoints,
-             len(self.volume), 
+             volume[0], volume[-1], self.npoints,
+             len(volume), 
              common.str_arr(data))
         common.file_write(self.infn, infn_txt)
         out = common.backtick('cd %s && %s' %(self.dir, self.app_basename))
@@ -414,11 +417,12 @@ class ElkEOSFit(ExternEOS):
         # fitev: [volume [Bohr^3] / natoms, energy [Ha] / natoms]
         # fitpv: [volume [Bohr^3] / natoms, pressure [GPa]]
         fitev = np.loadtxt(os.path.join(self.dir,'EVPAI.OUT')) * self.natoms
-        # convert energy back to Ry
-        fitev[:,1] *= 2.0
+        # convert energy back to [Ang^3, eV]
+        fitev[:,0] *= (Bohr**3 / Ang**3)
+        fitev[:,1] *= (Ha / eV)
         self.ev = fitev
         fitpv = np.loadtxt(os.path.join(self.dir,'PVPAI.OUT'))
-        fitpv[:,0] *= self.natoms
+        fitpv[:,0] *= (self.natoms * Bohr**3 / Ang**3)
         self.pv = fitpv
 
 # backward compat

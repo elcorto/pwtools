@@ -9,11 +9,16 @@
 #                     etype=1,
 #                     npoints=300)
 # natoms=1 -> no normalitation in ref. data *.OUT 
+#
+# Note: Ref data generated w/ old units Ry, Bohr, we convert to eV, Ang here
 
 import numpy as np
 from pwtools.eos import ElkEOSFit
 from pwtools import common
+from pwtools.constants import Ry, Ha, Bohr, Ang, eV
 from testenv import testdir
+
+Bohr3_to_Ang3 = (Bohr**3 / Ang**3)
 
 def test():
     # This must be on your $PATH.
@@ -22,15 +27,19 @@ def test():
     if app == '':
         print("warning: cannot find '%s' on PATH, skipping test" %exe)
     else:
-        # EV input data
+        # EV input data [Bohr^3, Ry] -> [Ang^3, eV]
         data = np.loadtxt("files/ev/evdata.txt")
-        volume = data[:,0]
-        energy = data[:,1]
-        # reference fitted data points
+        volume = data[:,0] * Bohr3_to_Ang3
+        energy = data[:,1] * (Ry / eV)
+        # reference fitted data points [Bohr^3, Ha] -> [Ang^3, eV]
         ref_ev = np.loadtxt("files/ev/EVPAI.OUT.gz")
-        ref_ev[:,1] *= 2.0 # Ha -> Ry
+        ref_ev[:,0] *= Bohr3_to_Ang3
+        ref_ev[:,1] *= (Ha / eV)
         ref_pv = np.loadtxt("files/ev/PVPAI.OUT.gz")
+        ref_pv[:,0] *= Bohr3_to_Ang3
         ref_min = np.loadtxt("files/ev/min.txt")
+        ref_min[0] *= Bohr3_to_Ang3 # v0
+        ref_min[1] *= (Ry / eV)     # e0
         assert ref_ev.shape[0] == ref_pv.shape[0], ("reference data lengths "
             "inconsistent")
         ref = {}        
@@ -58,7 +67,7 @@ def test():
             
             # compare to reference
             for key, val in ref.iteritems():
-                print key
+                print "testing:", key
                 if type(val) == type_arr:
                     np.testing.assert_array_almost_equal(now[key], ref[key])
                 else:
