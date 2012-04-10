@@ -256,7 +256,7 @@ class Data3D(object):
         --------
         x = linspace(...,5)
         y = linspace(...,5)
-        X,Y = np.meshgridt(x,y)
+        X,Y = mpl.meshgridt(x,y)
         Z = X**2+Y**2
         data = Data3D(x=x,y=y,Z=Z)
         xi = linspace(...,50)
