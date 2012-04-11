@@ -4,6 +4,10 @@ crys.py
   versions or re-implement in Fortran (flib.f90) / Cython / ...
 * Structure / Trajectory: Instead of cryst_const, store abc+angles, apply
   length unit to abc and derive cell + cryst_const from abc+angles  
+* Use scipy.spatial.distance.pdist (or cdist) in rpdf() which is *much* faster.
+  pdist() also returns a "condensed" 1d array w/ all distances. We can feed
+  that directly to histogram()! This would solve major problems with that
+  fuction.
 
 pydos.py
 --------
@@ -33,11 +37,6 @@ cmd line tools in bin/
   >>> traj = parse.SomeMDParser(...).get_traj()
   >>> sc = crys.scell3d(traj, (3,3,3))
   >>> io.write_axsf('foo_3x3x3.axsf', sc)
-
-parse.py
---------
-* Check where we can use ``grep -m ...`` instead of ``grep ... | head -n1`` and
-  such. This may speed things up a little.
 
 tests
 -----
