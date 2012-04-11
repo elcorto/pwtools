@@ -3,7 +3,9 @@
 import os
 import numpy as np
 from scipy.optimize import brentq, newton
-from scipy.interpolate import splev, splrep
+from scipy.interpolate import CloughTocher2DInterpolator, bisplrep, \
+    bisplev, splev, splrep
+
 import types
 
 def normalize(a):
@@ -695,3 +697,109 @@ def sum(arr, axis=None, keepdims=False, **kwds):
             alldims = range(arr.ndim)
             tosum = [xx for xx in alldims if xx not in tosum]
         return _sum(arr, tosum)
+
+
+class Interpol2D(object):
+    """Common 2D interpolator API. 
+    
+    This is for easy testing of multiple interpolators on a surface z = f(x,y),
+    which is given as an unordered set of points."""
+    def __init__(self, dd=None, x=None, y=None, xx=None, yy=None, zz=None, 
+        Z=None, XY=None, what='rbf_multi', **initkwds):
+        """
+        args:
+        -----
+        dd : pwtools.mpl.Data3D instance
+        x,y,xx,yy,zz,Z,XY : see Data3D, 
+            Only XY,zz (and additionally x,y for bispline) are used internally.
+            Use this if creating a Data3D object fails for some reason.
+        what : str, optional
+            which interpolator to use
+            'rbf_multi' : RBFN w/ multiquadric rbf
+            'rbf_gauss' : RBFN w/ gaussian rbf
+            'ct'        : scipy.interpolate.CloughTocher2DInterpolator
+            'bispl'     : scipy.interpolate.bispl{rep,ev}    
+        **initkwds : keywords passed on to the interpolator's constructor             
+
+        possible keywords (examples):
+        -----------------------------
+        rbf :
+            param='est'
+            param=0.05
+        ct :
+            tol = 1e-6
+        bispl :
+            s = 1e-4 
+            kx=3,ky=3 (default actually)
+            nxest, nyest
+        
+        example:
+        --------
+        >>> x=linspace(-5,5,20) 
+        >>> y=x 
+        >>> X,Y=np.meshgrid(x,y); X=X.T; Y=Y.T 
+        >>> Z=(X+3)**2+(Y+4)**2 + 5 
+        >>> dd=mpl.Data3D(X=X,Y=Y,Z=Z)
+        
+        >>> inter=num.Interpol2D(dd, what='rbf_multi'); inter([[-3,-4],[0,0]])
+        array([  5.0000001 ,  29.99999975])
+        >>> inter=num.Interpol2D(dd, what='rbf_gauss'); inter([[-3,-4],[0,0]])
+        array([  5.00000549,  29.99999717])
+        >>> inter=num.Interpol2D(dd, what='ct'); inter([[-3,-4],[0,0]])
+        array([  4.99762256,  30.010856  ])
+        >>> inter=num.Interpol2D(dd, what='bispl'); inter([[-3,-4],[0,0]])
+        array([  5.,  30.])
+        """
+        if dd is not None:
+            self.x,self.y,self.xx,self.yy,self.zz,self.Z,self.XY = \
+            dd.x,dd.y,dd.xx,dd.yy,dd.zz,dd.Z,dd.XY
+            self.nx = dd.nx
+            self.ny = dd.ny
+        else:
+            self.x,self.y,self.xx,self.yy,self.zz,self.Z,self.XY = \
+            x,y,xx,yy,zz,Z,XY
+            self.nx = len(self.x)
+            self.ny = len(self.y)
+        from pwtools import rbf
+        if what == 'rbf_multi':
+            self.inter = rbf.RBFInt(self.XY, self.zz, rbf=rbf.RBFMultiquadric())
+            self.inter.train('linalg', **initkwds)
+            self.call = self.inter
+        elif what == 'rbf_gauss':
+            self.inter = rbf.RBFInt(self.XY, self.zz, rbf=rbf.RBFGauss())
+            self.inter.train('linalg', **initkwds)
+            self.call = self.inter
+        elif what == 'ct':
+            self.inter = CloughTocher2DInterpolator(self.XY, self.zz, **initkwds)
+            self.call = self.inter
+        elif what == 'bispl':
+            _initkwds = {'kx': 3, 'ky': 3, 'nxest': 10*self.nx, 'nyest': 10*self.ny}
+            _initkwds.update(initkwds)
+            bispl = bisplrep(self.xx, self.yy, self.zz, **_initkwds)
+            self.inter = bispl
+            def _call(XY, bispl=bispl, **callkwds):
+                # For unordered points, we need to loop.
+                ret = [bisplev(XY[ii,0], XY[ii,1], bispl, **callkwds) for
+                    ii in range(XY.shape[0])]
+                return np.array(ret)
+            self.call = _call                
+    
+    def __call__(self, XY, **callkwds):
+        """
+        args:
+        -----
+        XY: 2d (M,2) or 1d (N,)
+            M points in 2-dim space where to evalutae the interpolator
+            (only one in 1d case)
+        **callkwds : keywords passed to the interpolator's __call__ method            
+        
+        returns:
+        --------
+        Y : 1d array (M,)
+            interpolated values
+        """            
+        XY = np.asarray(XY)
+        if len(XY.shape) == 1:
+            XY = XY[None,:]
+        return self.call(XY, **callkwds)
+
