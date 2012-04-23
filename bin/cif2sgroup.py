@@ -2,26 +2,24 @@
 # 
 # cif2sgroup.py
 #
-# Extract information from a .cif file and print a input file for WIEN2k's
-# "sgroup" symmetry analysis tool.
+# Extract information from a .cif file and print an input file for WIEN2k's
+# "sgroup" symmetry analysis tool. Note that the Cif reader assumes P1
+# symmetry, i.e. symmetry information in the cif file is ignored. Use
+# ase.io.read(), which seems to parse symmetry information.
 #
-# usage:
-#   cif2sgroup.py foo.cif > foo.sqroup.in
-#
+# usage::
+#   $ cif2sgroup.py foo.cif > foo.sqroup.in
+#   # Find primitive cell
+#   $ sgroup -prim [-set-TOL=1e-4] foo.sqroup.in
+# 
+# See ``sgroup -help`` for more options.
 #
 # notes:
 # ------
-#
-# If we ever use this for data parsed from other structure files:
-# - Make sure that pp.coords are the *crystal" coords. This is true for cif
-#   files. 
-# - The unit of length of a,b,c is not important (Angstrom for Cif) if coords
-#   are crystal.
-
+# The unit of length of a,b,c is not important (Angstrom, Bohr,...).
 
 import sys
-from pwtools import parse, io
+from pwtools import io
 fn = sys.argv[1]
-pp = parse.CifFile(fn)
-pp.parse()
-print io.wien_sgroup_input(pp, lat_symbol='P')
+struct = io.read_cif(fn)
+print io.wien_sgroup_input(struct, lat_symbol='P')
