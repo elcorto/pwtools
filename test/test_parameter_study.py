@@ -30,7 +30,7 @@ def file_get(fn, key):
         if ll.strip().startswith(key):
             return ll.split('=')[1].strip()
 
-local = batch.Machine(name='local',
+local = batch.Machine(hostname='local',
                       subcmd='bash',
                       scratch='/tmp',
                       jobfn='job.local')
@@ -194,7 +194,7 @@ def test():
     # explicit loops and direct SQLEntry construction. This makes sense if you
     # have many placeolders where only certain combinations make sense and you
     # don't want to invent default values for the others to "fill the gaps": In
-    # the example below, we have 10 columns: subcmd, name, conv_thr, scratch,
+    # the example below, we have 10 columns: subcmd, hostname, conv_thr, scratch,
     # kpoints, idx, jobfn, prefix, home, ecutwfc (some come from
     # batch.<machine>). Normally, one would have to fill each entry in each row
     # i.e. construct a full table. This is done by each params_lst sublist
@@ -209,7 +209,7 @@ def test():
     # The syntax "... ecutfwc==NULL" is wrong.  
     #
     # database:
-    # subcmd      name        conv_thr    scratch     kpoints     idx         jobfn       prefix            home             ecutwfc   
+    # subcmd      hostname        conv_thr    scratch     kpoints     idx         jobfn       prefix            home             ecutwfc   
     # ----------  ----------  ----------  ----------  ----------  ----------  ----------  ----------------  ---------------  ----------
     # bash        local                   /tmp                    0           job.local   convergence_run0  /home/schmerler  25.0      
     # bash        local                   /tmp                    1           job.local   convergence_run1  /home/schmerler  50.0      
@@ -255,7 +255,7 @@ def test():
     assert db.get_list1d('select scratch from calc') == ['/tmp']*5
     # some columns actually depend on batch.Machine
     hdr = [('subcmd', 'TEXT'),  # machine
-           ('name', 'TEXT'),    # machine
+           ('hostname', 'TEXT'),    # machine
            ('conv_thr', 'REAL'), 
            ('scratch', 'TEXT'), 
            ('kpoints', 'TEXT'), 
@@ -281,7 +281,7 @@ def test():
                                 templates=templates, 
                                 params_lst=params_lst, 
                                 prefix='foo')
-    assert calc.calc_dir == pj(os.curdir, 'calc_%s' % machine.name)
+    assert calc.calc_dir == pj(os.curdir, 'calc_%s' % machine.hostname)
 
     #--------------------------------------------------------------------------
     # check mode

@@ -1,5 +1,6 @@
 import os
 import shutil
+import warnings
 import numpy as np
 from pwtools import common
 from pwtools.sql import SQLEntry, SQLiteDB
@@ -26,12 +27,12 @@ class Machine(object):
     get_sql_record() : Return a dict of SQLEntry instances. Each key is a
         attr name from self.attr_lst.        
     """
-    def __init__(self, name=None, subcmd=None, scratch=None, 
-                 jobfn=None, home=None):
+    def __init__(self, hostname=None, subcmd=None, scratch=None, 
+                 jobfn=None, home=None, name=None):
         """
         args:
         -----
-        name : st
+        hostname : st
             machine name ('mars', 'local', ...)
         subcmd : str
             shell command to submit jobfiles (e.g. 'bsub <', 'qsub')
@@ -42,8 +43,16 @@ class Machine(object):
         home : str
             $HOME
         """
+        if name is not None:
+            warnings.simplefilter('always')
+            warnings.warn("`name` is deprecated, use `hostname` instead , "
+                "self.hostname = name will used, self.name will be set but "
+                "not appear in the output of self.get_sql_record()", 
+                DeprecationWarning)
+            hostname = name
+            self.name = hostname
         # attr_lst
-        self.name = name
+        self.hostname = hostname
         self.subcmd = subcmd
         self.scratch = scratch
         self.home = home
@@ -53,7 +62,7 @@ class Machine(object):
                   "this should be a basename." %jobfn)
         self.jobfn = jobfn
                 
-        self.attr_lst = ['name',
+        self.attr_lst = ['hostname',
                          'subcmd', 
                          'scratch',
                          'jobfn',
@@ -362,7 +371,7 @@ class ParameterStudy(object):
     sets is done and input files are written. 
     
     Calculation dirs are numbered automatically. The default is
-        calc_dir = <calc_root>/<calc_dir_prefix>_<machine.name>, e.g.
+        calc_dir = <calc_root>/<calc_dir_prefix>_<machine.hostname>, e.g.
         ./calc_foo
     and each calculation for each parameter set
         ./calc_foo/0
@@ -504,7 +513,7 @@ class ParameterStudy(object):
         calc_dir : str, optional
             Top calculation dir (e.g. 'calc_foo' and each calc in
             'calc_foo/0, ...').
-            If None then default is <calc_root>/<calc_dir_prefix>_<machine.name>/
+            If None then default is <calc_root>/<calc_dir_prefix>_<machine.hostname>/
         calc_root : str, optional
             Root of all dirs.
         calc_dir_prefix : str, optional
@@ -520,7 +529,7 @@ class ParameterStudy(object):
         self.calc_dir_prefix = calc_dir_prefix
         if calc_dir is None:
             self.calc_dir = pj(self.calc_root, self.calc_dir_prefix + \
-                               '_%s' %self.machine.name)
+                               '_%s' %self.machine.hostname)
         else:
             self.calc_dir = calc_dir
         self.dbfn = pj(self.calc_dir, self.db_name)
