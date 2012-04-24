@@ -263,8 +263,11 @@ class Calculation(object):
     'calc.templ').
     
     Default keys in sql_record:
-        'idx' : self.idx
-        'prefix' : self.prefix
+        idx : self.idx
+        prefix : self.prefix
+        calc_dir : self.calc_dir
+            Usually the relative path of the calculation dir.
+        calc_dir_abs : absolute path
     """
     # XXX ATM, the `params` argument is a list of SQLEntry instances which is
     # converted to a dict self.sql_record. This is fine in the context of
@@ -321,6 +324,10 @@ class Calculation(object):
         self.sql_record = {}
         self.sql_record['idx'] = SQLEntry(sqltype='integer', sqlval=self.idx)
         self.sql_record['prefix'] = SQLEntry(sqltype='text',sqlval=self.prefix)
+        self.sql_record['calc_dir'] = SQLEntry(sqltype='text',
+                                               sqlval=self.calc_dir)
+        self.sql_record['calc_dir_abs'] = SQLEntry(sqltype='text',
+                                                   sqlval=common.fullpath(self.calc_dir))
         self.sql_record.update(self.machine.get_sql_record())
         for entry in self.params:
             self.sql_record[entry.key] = entry
