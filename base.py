@@ -1,7 +1,7 @@
 from pwtools import common, num
 import cPickle
 
-# XXX Can this be done using @property ? 
+# XXX Can all this be done using @property? If so, send me a patch!
 class FlexibleGetters(object):
     """The most basic base class -- the mothership! 
     
@@ -43,17 +43,17 @@ class FlexibleGetters(object):
             return self.calc_baz()
         
         def get_bar(self):
-            self.try_set_attr('_baz')
-            return None if (not self.is_set_attr('_baz')) else \
-                self.calc_stuff(self._baz)**2.0
+            if self.check_set_attr('_baz'):
+                return self.calc_stuff(self._baz)**2.0
+            else:
+                return None
 
         def get_foo(self):
             required = ['bar', '_baz']
-            self.try_set_attr_lst(required)
-            if self.is_set_attr_lst(required):
+            if self.check_set_attr_lst(required):
                 return do_stuff(self._baz, self.bar)
             else:
-                    return None
+                return None
     
     Setting self.attr_lst is optional. It is supposed to be used only in
     set_all(). The try_set_attr() - method works without it, too. 
@@ -100,8 +100,10 @@ class FlexibleGetters(object):
     #    to 
     #       
     #       def get_foo(self):
-    #           self.try_set_attr('bar')                <<<<<<<<<<<<
-    #           return do_stuff(self.bar)
+    #           if self.check_set_attr('bar'):
+    #               return do_stuff(self.bar)
+    #           else:               
+    #               return None
     #
     #    If one does
     #        self.foo = self.get_foo()
@@ -129,6 +131,7 @@ class FlexibleGetters(object):
                 print "%s: ok" %attr
 
     def set_all(self, attr_lst=None):
+        """Call getter for each attr name in `attr_lst`."""
         attr_lst = self.attr_lst if attr_lst is None else attr_lst
         for attr in attr_lst:
             self.try_set_attr(attr)
@@ -139,6 +142,7 @@ class FlexibleGetters(object):
         self.init_attr_lst()
 
     def init_attr_lst(self, attr_lst=None):
+        """Set each self.<attr> in `attr_lst` to None."""
         lst = self.attr_lst if attr_lst is None else attr_lst
         for attr in lst:
             setattr(self, attr, None)
@@ -158,13 +162,13 @@ class FlexibleGetters(object):
         >>> x = FileParser('foo.txt')
         >>> x.parse()
         >>> x.dump('foo.pk')
-        # load: method 1
+        # load: method 1 - recommended
+        >>> xx = common.cpickle_load('foo.pk')
+        # or 
+        >>> xx = cPickle.load(open('foo.pk'))
+        # load: method 2, not used / tested much
         >>> xx = FileParser()
         >>> xx.load('foo.pk')
-        # load: method 2, probably easier :)
-        >>> xx = cPickle.load(open('foo.pk'))
-        # or 
-        >>> xx = common.cpickle_load('foo.pk')
         """
         # this does not work:
         #   self = cPickle.load(...)
@@ -223,11 +227,20 @@ class FlexibleGetters(object):
         
         example:
         --------
-        def get_foo(self):
-            if self.check_set_attr('bar'):
-                return self.bar * 2
-            else:
-                return None
+            def get_foo(self):
+                if self.check_set_attr('bar'):
+                    return self.bar * 2
+                else:
+                    return None
+        
+        which is the same as
+
+            def get_foo(self):
+                self.try_set_attr('bar):
+                if self.is_set_attr('bar'):
+                    return self.bar * 2
+                else:
+                    return None
         """
         self.try_set_attr(attr)
         return self.is_set_attr(attr) 

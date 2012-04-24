@@ -1156,14 +1156,19 @@ def rpdf(trajs, dr=None, rmax='auto', amask=None, tmask=None,
 
     # 2 selections: RPDF of all H's around all O's, average time step 3000 to
     # end, take every 50th step
-    >>> traj = parse.PwOutputFile(...).get_traj()
-    >>> sy = np.array(traj.symbols)
-    >>> d = rpdf(traj, dr=0.1, amask=[sy=='O', sy=='H'],tmask=np.s_[3000::50])
+    >>> traj = parse.PwMDOutputFile(...).get_traj()
+    >>> d = rpdf(traj, dr=0.1, amask=['O', 'H'],tmask=np.s_[3000::50])
     >>> plot(d[:,0], d[:,1], label='g(r)')
     >>> plot(d[:,0], d[:,2], label='number integral')
     # the same as rpdf(traj,...)
-    >>> d = rpdf([traj], dr=0.1, amask=[sy=='O', sy=='H'],tmask=np.s_[3000::50])
-    >>> d = rpdf([traj, traj], dr=0.1, amask=[sy=='O', sy=='H'],tmask=np.s_[3000::50])
+    >>> d = rpdf([traj], dr=0.1, amask=['O', 'H'],tmask=np.s_[3000::50])
+    >>> d = rpdf([traj, traj], dr=0.1, amask=['O', 'H'],tmask=np.s_[3000::50])
+    # use bool arrays for `amask`, may need this for more complicated pattern
+    >>> sy = np.array(traj.symbols)
+    >>> d = rpdf(traj, dr=0.1, amask=[sy=='O', sy=='H'],tmask=np.s_[3000::50])
+    # skip distances >1 Ang
+    >>> d = rpdf(traj, dr=0.1, amask=['O', 'H'],tmask=np.s_[3000::50]
+    ...          dmask='{d}>1.0')
      
     refs:
     -----

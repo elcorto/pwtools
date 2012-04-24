@@ -184,8 +184,11 @@ def arr2d_from_txt(txt, dtype=np.float, fac=None):
         return ret
 
 def axis_lens(seq, axis=0):
-    """
-    Return length of `axis` of all arrays in `seq`.
+    """Return length of `axis` of all arrays in `seq`. 
+    
+    If an entry in `seq` is None instead of an array, return 0. All arrays must
+    have at least axis+1 dimensions, of course (i.e. axis=1 -> all arrays at
+    least 2d).
 
     example:
     --------
@@ -195,6 +198,7 @@ def axis_lens(seq, axis=0):
     ret = []
     for xx in seq:
         try:
+            # handle None
             ret.append(xx.shape[axis])
         except AttributeError:
             ret.append(0)
@@ -610,8 +614,8 @@ class PwSCFOutputFile(StructureFileParser):
 
          lattice parameter (a_0)   =       5.8789  a.u.
     
-    You can parse that value with get_alat(use_alat=True). By default
-    (use_alat=True), do that, b/c this is what most people will expect if they
+    You can parse that value with get_alat(use_alat=True). We do that by
+    default (use_alat=True) b/c this is what most people will expect if they
     just call the parser on some file. Then, we multiply all relevent
     quantities with dimension length with the alat value from pw.out
     automatically.
@@ -622,10 +626,10 @@ class PwSCFOutputFile(StructureFileParser):
     things to Structure / Trajectory using self.units. 
 
     If you need/want to use another alat (i.e. a value with more precision), 
-    then explicitely provide that value and use use_alat=False:
+    then you need to explicitely provide that value and use use_alat=False:
 
     >>> alat = 1.23456789 # Bohr
-    >>> pp = Pw*File(..., use_alat=False, units={'length': alat*Bohr/Ang})
+    >>> pp = PwSCFOutputFile(..., use_alat=False, units={'length': alat*Bohr/Ang})
     >>> st = pp.get_struct()
 
     That will overwrite default_units['length'] = Bohr/Ang, which is used to

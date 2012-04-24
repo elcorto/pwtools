@@ -13,12 +13,12 @@ from (ab initio) MD calculations. Over time, the package evolved into a
 general-purpose pre- and postprocessing tool. Current featues include:
 
 * classes to set up calculations (parameter studies) based on template
-  input files
+  input files for any kind of computational backend
 * simple sqlite3 interface with convenience data extraction methods 
 * velocity autocorrelation function from MD trajectories
 * phonon DOS from MD trajectories
-* parsing of PWscf [qe]_ input and output files, Abinit [abinit]_ and CPMD 
-  [cpmd]_ output into Python objects for easy access
+* parsing of PWscf [qe]_ and CPMD [cpmd]_ output into Python objects for easy
+  access (Abinit currently disabled)
 * IO: read cif, cml, pdb, write xsf, cif, xyz  
 * interface to external EOS fitting tools 
 * thermodynamic properties in the quasi-harmonic approximation from phonon
@@ -34,18 +34,21 @@ Related projects
 
 The very nice ASE [ase]_ project is in some way related. It also stores MD
 trajectory data in Python objects for further manipulation. It's IO
-capabilities are much more developed. One can convert structure data to an ASE
-Atoms object and use ASE's file writers (see structure.py and
-examples/ase_atoms.py). ASE provides interfaces to a large pile of ab initio
-codes ("calculators"). MD and structure optimization in ASE is coded in Python,
-using only the calculator's SCF engine in every step to get energy and forces.
-Unfortunately, it does not jet provide things like variable cell MD with the
-MTTK [mttk]_ method, wave function extrapolation for Born-Oppenheimer MD (I
-think) and phonon calculations based on density functional perturbation theory
-like PWscf/PH or Abinit (only supercell frozen phonons can be done with the
-related phonopy package [phonopy]_). The focus of the pwtools package is to be
-a handy pre- and postprocessor providing pythonic access to all input and
-output quantities of the used ab initio codes (PWscf, Abinit, CPMD). 
+capabilities are much more developed. One can convert structure data (see
+crys.Structure, crys.Trajectory) to an ASE Atoms object and use ASE's file
+writers. ASE provides interfaces to a large pile of ab initio codes
+("calculators"). MD and structure optimization in ASE is coded in Python, using
+only the calculator's SCF engine in every step to get energy and forces.
+Unfortunately, it does not  provide wave function extrapolation for
+Born-Oppenheimer MD and phonon calculations based on density functional
+perturbation theory like PWscf/PH or Abinit (only supercell frozen phonons can
+be done with the related phonopy package [phonopy]_). The focus of the pwtools
+package is to be a handy pre- and postprocessor providing pythonic access to
+all input and output quantities of the used ab initio codes (PWscf, Abinit,
+CPMD). 
+
+In fact, appart from parse.py, which implements parsers for ab initio code
+output, all other parts of the package are completely independent.
 
 Installation
 ============
@@ -67,8 +70,8 @@ pwtools install
 There is no installation script (i.e. setup.py). Just copy the whole package
 somewhere and run ``make`` to compile extensions::
 
-    $ tar -xzf pwtools-0.7.3.tgz
-    $ mv pwtools-0.7.3 $HOME/python/pwtools
+    $ tar -xzf pwtools-x.y.z.tgz
+    $ mv pwtools-x.y.z $HOME/python/pwtools
     $ cd $HOME/python/pwtools
     $ make
 
@@ -88,9 +91,12 @@ package's root dir.
 Fortran extension
 -----------------
 
+Some time-critical operations are coded using a Fortran extension module
+(flib.f90, _flib.so, Makefile).
+
 To calculate the velocity autocorrelation function (and to pass all tests), you
-want to use a Fortran extension module. See ``Makefile``. Note that this is not
-necessary for the "Direct Method" (see below).
+want to use that. Note that this is not necessary for the "Direct Method" (see
+below).
 
 Running tests
 -------------
@@ -189,8 +195,11 @@ Units of parsed quantities
 We have a lot of machinery to parse PWscf,Abinit,CPMD output files. We try to
 return the "natural" units of each code (PWscf: Ry, Bohr, kbar; CPMD: Ha, Bohr,
 kbar). For PWscf, we also detect things like "ATOMIC_POSITIONS crystal | alat |
-bohr" and transform acordingly. Nevertheless, *always* verify that the units
+bohr" and transform accordingly. Nevertheless, *always* verify that the units
 you get are the ones you expect!
+
+You can also use the short-cut methods io.read*(), which will return
+crys.Structure or crys.Trajectory with units eV, Angstrom, ...
 
 Format-specific notes
 =====================
