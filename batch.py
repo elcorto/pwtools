@@ -658,9 +658,11 @@ def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s"):
     yy = np.asarray(yy, dtype=np.float)
     lenxx = len(xx)
     dyy = yy[:,None].repeat(2,1)
+    # dyy: column 0: diff-next
+    # dyy: column 1: diff-last
     dyy[-1,0] = 0.0
     dyy[:-1,0] = np.diff(yy)
-    dyy[:,1] -= yy[-1]
+    dyy[:,1] = yy[-1] - dyy[:,1]
     st = (sfmt*4 + "\n") %("x", "y", "diff-next", "diff-last")
     fmtstr = ("%s"*4 + "\n") %((sfmt,) + (ffmt,)*3)
     for idx in range(lenxx):
