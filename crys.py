@@ -579,7 +579,8 @@ def rms3d(arr, axis=0, nitems='all'):
     -----
     arr : 3d array
     axis : int
-        The axis along which the RMS of all sub-arrays is to be computed.
+        The axis along which the RMS of all sub-arrays is to be computed
+        (usually time axis in MD).
     nitems : {'all', float)
         normalization constant, the sum of squares is divided by this number,
         set to unity for no normalization, if 'all' then use nitems = number of
@@ -610,47 +611,44 @@ def rms3d(arr, axis=0, nitems='all'):
     return rms        
     
 
-def rmsd(coords, ref_idx=0, axis=0):
+def rmsd(traj, ref_idx=0):
     """Root mean square distance over an MD trajectory. The normalization
-    constant is the number of atoms (coords.shape[0]).
+    constant is the number of atoms.
     
     args:
     -----
-    coords : 3d array 
-        Cartesian coords, time axis `axis`, natoms axis must be 0, i.e. shape =
-        (natoms, ....)
+    traj : Trajectory object
     ref_idx : time index of the reference structure (i.e. 0 to compare with the
         start structure, -1 for the last along `axis`).
-    axis : int
-        time axis in `coords`
     
     returns:
     --------
-    rmsd : 1d array (coords.shape[axis],)
+    rmsd : 1d array (traj.nstep,)
 
     examples:
     ---------
-    # The RMSD w.r.t. the start structure.
-    >>> corrds=rand(10,3,500)
-    >>> rmsd(coords, ref_idx=0, axis=-1)
+    # We only need traj.{coords,nstep,timeaxis}, no symbols, cell, ...
+    >>> traj = crys.Trajectory(coords=rand(500,10,3))
+    # The RMSD w.r.t. the start structure. See when the structure starts to
+    # "converge" to a stable mean configuration during an MD.
+    >>> rmsd(traj, ref_idx=0)
     # For a relaxation run, the RMSD w.r.t. the final converged structure. The
     # RMSD should converge to zero here.
-    >>> rmsd(coords, ref_idx=-1, axis=-1)
+    >>> rmsd(traj, ref_idx=-1)
     """
     # sl_ref : pull out 2d array of coords of the reference structure
     # sl_newaxis : slice to broadcast (newaxis) this 2d array to 3d for easy
     #     substraction
-    assert coords.ndim == 3
+    assert traj.coords.ndim == 3
     ndim = 3
-    R = coords.copy()
+    coords = traj.coords.copy()
     sl_ref = [slice(None)]*ndim
-    sl_ref[axis] = ref_idx
+    sl_ref[traj.timeaxis] = ref_idx
     sl_newaxis = [slice(None)]*ndim
-    sl_newaxis[axis] = None
-    ref = R[sl_ref].copy()
-    R -= ref[sl_newaxis]
-    N = float(R.shape[0])
-    return rms3d(R, axis=axis, nitems=N)
+    sl_newaxis[traj.timeaxis] = None
+    ref = coords[sl_ref].copy()
+    coords -= ref[sl_newaxis]
+    return rms3d(coords, axis=traj.timeaxis, nitems=float(traj.natoms))
 
 
 def pbc_wrap(coords_frac, copy=True, mask=[True]*3, xyz_axis=-1):
@@ -997,11 +995,15 @@ def coord_trans3d(coords, old=None, new=None, copy=True, axis=-1, timeaxis=0):
 
 def min_image_convention(sij, copy=False):
     """Helper function for rpdf(). Apply minimum image convention to
-    differences of fractional coords.
+    differences of fractional coords. 
+
+    Handles also cases where coordinates are separated by an arbitrary number
+    of periodic images.
     
     args:
     -----
     sij : ndarray
+        Fractional coordinates.
     copy : bool, optional
 
     returns:
@@ -1053,9 +1055,9 @@ def rmax_smith(cell):
 
 def rpdf(trajs, dr=None, rmax='auto', amask=None, tmask=None, 
          dmask=None, pbc=True, norm_vmd=False):
-    """Radial pair distribution (pair correlation) function. This is for one
-    Structure or a Trajectory. Can also handle non-orthorhombic unit cells
-    (simulation boxes). Only fixed-cell MD. 
+    """Radial pair distribution (pair correlation) function.
+    Can also handle non-orthorhombic unit cells (simulation boxes). 
+    Only fixed-cell MD.
 
     rmax
     ----

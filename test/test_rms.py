@@ -46,14 +46,18 @@ def test():
     # HOWEVER, THIS DOES NOT:
     #     for k in range(R.shape[-1]):
     #         R[...,k] = R[...,k] - R[...,0][...,None]
-    r3_rmsd = crys.rmsd(arr3, ref_idx=0, axis=-1)
-    r3_rmsd_loop = np.empty((nstep,), dtype=float)
-    r3_rms3d = crys.rms3d(arr3 - arr3[...,0][...,None], axis=-1, nitems=natoms)
-    R = arr3.copy()
-    ref = R[...,0].copy()
+    traj = crys.Trajectory(coords=np.random.rand(nstep, natoms, 3))
+    assert traj.timeaxis == 0
+    assert traj.nstep == nstep
+    from_rmsd = crys.rmsd(traj, ref_idx=0)
+    from_loop = np.empty((nstep,), dtype=float)
+    from_rms3d = crys.rms3d(traj.coords - traj.coords[0,...][None,...],
+                            nitems=natoms, axis=0)
+    R = traj.coords.copy()
+    ref = R[0,...].copy()
     for k in range(nstep):
-        R[...,k] -= ref
-        r3_rmsd_loop[k] = np.sqrt((R[...,k]**2.0).sum() / natoms)
+        R[k,...] -= ref
+        from_loop[k] = np.sqrt((R[k,...]**2.0).sum() / natoms)
 
-    np.testing.assert_array_almost_equal(r3_rmsd, r3_rmsd_loop)
-    np.testing.assert_array_almost_equal(r3_rmsd, r3_rms3d)
+    np.testing.assert_array_almost_equal(from_rmsd, from_loop)
+    np.testing.assert_array_almost_equal(from_rmsd, from_rms3d)
