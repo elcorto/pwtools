@@ -1864,9 +1864,9 @@ class Structure(UnitsHandler):
     >>> symbols=['N', 'Al', 'Al', 'Al', 'N', 'N', 'Al']
     >>> coords_frac=rand(len(symbols),3)
     >>> cryst_const=np.array([5,5,5,90,90,90.0])
-    >>> st=structure.Structure(coords_frac=coords_frac, 
-    ...                        cryst_const=cryst_const, 
-    ...                        symbols=symbols)
+    >>> st=Structure(coords_frac=coords_frac, 
+    ...              cryst_const=cryst_const, 
+    ...              symbols=symbols)
     >>> st.symbols
     ['N', 'Al', 'Al', 'Al', 'N', 'N', 'Al']
     >>> st.symbols_unique
