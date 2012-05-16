@@ -5,7 +5,7 @@
 
 import re
 import numpy as np
-from common import fix_eps, str_arr, file_readlines
+from pwtools.common import fix_eps, str_arr, file_readlines
 import crys
 from math import sin, acos, sqrt
 
@@ -133,9 +133,10 @@ def kpointstr_pwin2(lst, shift=[0,0,0]):
 
 
 def read_matdyn_freq(filename):
-    """Parse frequency file produced by matdyn.x when calculating a phonon
-    dispersion on a grid (ldisp=.true., used for phonon dos) or a pre-defined
-    k-path in the BZ.
+    """Parse frequency file produced by QE's matdyn.x ("flfrq" in matdyn.x
+    input, usually "matdyn.freq" or so) when calculating a phonon dispersion on
+    a grid (ldisp=.true., used for phonon dos)  or a pre-defined k-path in the
+    BZ.
     
     args:
     -----
@@ -199,8 +200,8 @@ def read_matdyn_freq(filename):
 # XXX do we really need this function? 
 # XXX the only PWscf-specific thing is that we use read_matdyn_freq() inside.
 def parse_dis(fn_freq, fn_kpath_def=None):
-    """Parse frequency file produced by matdyn.x and, optionally a k-path
-    definition file.
+    """Parse frequency file produced by matdyn.x (flfrq, see
+    read_matdyn_freq()) and, optionally a k-path definition file.
     
     This is a helper for bin/plot_dispersion.py. It lives here b/c it is
     PWscf-specific.
@@ -222,7 +223,6 @@ def parse_dis(fn_freq, fn_kpath_def=None):
 
     notes:
     ------
-
     matdyn.x must have been instructed to calculate a phonon dispersion along a
     predefined path in the BZ. e.g. natom=2, nbnd=6, 101 k-points on path
         
@@ -279,7 +279,7 @@ def parse_dis(fn_freq, fn_kpath_def=None):
     For correct plotting, the k-points defined in `fn_kpath_def` MUST of course
     be on the exact same k-path as the k-points listed in `fn_freq`.
     """
-    from pwtools.kpath import SpecialPointsPath, SpecialPoint
+    from pwtools.kpath import SpecialPointsPath, SpecialPoint, get_path_norm
     ks, freqs = read_matdyn_freq(fn_freq)
     # parse k-path definition file
     if fn_kpath_def is not None:
@@ -291,11 +291,11 @@ def parse_dis(fn_freq, fn_kpath_def=None):
                 kpath.SpecialPoint(np.array(spl[:3], dtype=float), 
                     r'%s' %spl[-1].replace('#', '')))
         fhk.close()
-        special_points_path = kpath.SpecialPointsPath(sp_lst=special_points)
+        special_points_path = SpecialPointsPath(sp_lst=special_points)
     else:
         special_points_path = None
     # calculate path norms (= x-axis for plotting)
-    path_norm = kpath.get_path_norm(ks)
+    path_norm = get_path_norm(ks)
     return path_norm, freqs, special_points_path
 
 
