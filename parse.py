@@ -141,25 +141,25 @@ com = common
 # General helpers
 #-----------------------------------------------------------------------------
 
-def int_from_txt(txt, fac=None):
+def int_from_txt(txt):
     if txt.strip() == '':
         return None
     else:
         return int(txt)
 
-def float_from_txt(txt, fac=None):
+def float_from_txt(txt):
     if txt.strip() == '':
         return None
     else:
         return float(txt)
 
-def nstep_from_txt(txt, fac=None):
+def nstep_from_txt(txt):
     if txt.strip() == '':
         return 0
     else:
         return int(txt)
 
-def traj_from_txt(txt, shape, axis=-1, dtype=np.float, fac=None):
+def traj_from_txt(txt, shape, axis=-1, dtype=np.float):
     """Used for 3d trajectories where the exact shape must be known (N,3,nstep)
     where N=3 (cell, stress) or N=natoms (coords, forces, ...). 
     """
@@ -169,14 +169,14 @@ def traj_from_txt(txt, shape, axis=-1, dtype=np.float, fac=None):
         ret = arrayio.readtxt(StringIO(txt), axis=axis, shape=shape, dtype=dtype)
         return ret
 
-def arr1d_from_txt(txt, dtype=np.float, fac=None):
+def arr1d_from_txt(txt, dtype=np.float:
     if txt.strip() == '':
         return None
     else:
         ret = np.atleast_1d(np.loadtxt(StringIO(txt), dtype=dtype))
         return ret
 
-def arr2d_from_txt(txt, dtype=np.float, fac=None):
+def arr2d_from_txt(txt, dtype=np.float):
     if txt.strip() == '':
         return None
     else:
