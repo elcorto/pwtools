@@ -6,7 +6,7 @@
 import re
 import numpy as np
 from pwtools.common import fix_eps, str_arr, file_readlines
-import crys
+from pwtools import parse, crys, common
 from math import sin, acos, sqrt
 
 def atpos_str(symbols, coords, fmt="%.16e", zero_eps=True):
@@ -131,6 +131,92 @@ def kpointstr_pwin2(lst, shift=[0,0,0]):
     else:
         return "K_POINTS automatic\n%s"  %kpointstr_pwin(lst, shift=shift)
 
+def read_matdyn_modes(filename, natoms=None):
+    """Parse modes file produced by QE's matdyn.x.
+    
+    args:
+    -----
+    filename : str
+        File to parse (usually "matdyn.modes")
+    natoms : int
+        Number of atoms.
+    
+    returns:
+    --------
+    qpoints, freqs, vecs
+    qpoints : 2d array (nqpoints, 3)
+        All qpoints on the grid.
+    freqs : 2d array, (nqpoints, nmodes) where nmodes = 3*natoms
+        Each row: 3*natoms phonon frequencies in [cm^-1] at each q-point.
+    vecs : 4d complex array (nqpoints, nmodes, natoms, 3)
+        Complex eigenvectors of the dynamical matrix for each q-point.
+    
+    example:
+    --------
+    >>> qpoints,freqs,vecs=read_matdyn_modes('matdyn.modes',natoms=27)
+    # how many q-points? -> 8
+    >>> qpoints.shape
+    (8,3)
+    # 1st q-point in file, mode #3 (out of 3*27) -> vectors on all 27 atoms
+    >>> vecs[0,2,...].shape
+    (27,3)
+    # 1st q-point in file, mode #3, vector on atom #15
+    >>> vecs[0,2,14,:].real
+    array([-0.010832,  0.026063, -0.089511])
+    >>> vecs[0,2,14,:].imag
+    array([ 0.,  0.,  0.])
+
+    notes:
+    ------
+    The file to be parsed looks like this::
+
+           diagonalizing the dynamical matrix ...
+      
+       q =       0.0000      0.0000      0.0000
+       **************************************************************************
+           omega( 1) =     -26.663631 [THz] =    -889.402992 [cm-1]
+       ( -0.218314   0.000000    -0.025643   0.000000    -0.116601   0.000000   )
+       ( -0.086633   0.000000     0.108966   0.000000    -0.066513   0.000000   )
+      [... natoms lines: x_real x_imag y_real y_imag z_real z_imag ... until
+       next omega ...]
+           omega( 2) =     -16.330246 [THz] =    -544.718372 [cm-1]
+       (  0.172149   0.000000     0.008336   0.000000    -0.121991   0.000000   )
+       ( -0.061497   0.000000     0.003782   0.000000    -0.018304   0.000000   )
+      [... until omega(3*natoms) ...]
+       **************************************************************************
+           diagonalizing the dynamical matrix ...
+      
+      [... until next q-point ...]
+       q =       0.0000      0.0000     -0.5000
+       **************************************************************************
+           omega( 1) =     -24.881828 [THz] =    -829.968443 [cm-1]
+       ( -0.225020   0.000464    -0.031584   0.000061    -0.130217   0.000202   )
+       ( -0.085499   0.000180     0.107383  -0.000238    -0.086854   0.000096   )
+      [...]
+       **************************************************************************
+    """
+    assert natoms is not None
+    cmd = r"grep 'q.*=' %s | sed -re 's/.*q\s*=(.*)/\1/'" %filename
+    qpoints = parse.arr2d_from_txt(common.backtick(cmd))
+    nqpoints = qpoints.shape[0]
+    nmodes = 3*natoms
+    cmd = r"grep '^[ ]*(' %s | sed -re 's/^\s*\((.*)\)/\1/g'" %filename
+    # (nqpoints * 3*natoms*natoms, 6)
+    vecs_file_flat = parse.arr2d_from_txt(common.backtick(cmd))
+    vecs_flat = np.empty((vecs_file_flat.shape[0], 3), dtype=complex)
+    vecs_flat[:,0] = vecs_file_flat[:,0] + 1j*vecs_file_flat[:,1]
+    vecs_flat[:,1] = vecs_file_flat[:,2] + 1j*vecs_file_flat[:,3]
+    vecs_flat[:,2] = vecs_file_flat[:,4] + 1j*vecs_file_flat[:,5]
+    vecs = np.empty((nqpoints, nmodes, natoms, 3), dtype=complex)
+    for iq in range(nqpoints):
+        for imode in range(nmodes):
+            for iatom in range(natoms):
+                idx = iq*nmodes*natoms + imode*natoms + iatom
+                vecs[iq, imode, iatom,:] = vecs_flat[idx, :]
+    cmd = r"grep omega %s | sed -re \
+            's/.*omega.*=.*\[.*=(.*)\s*\[.*/\1/g'" %filename
+    freqs = parse.arr1d_from_txt(common.backtick(cmd)).reshape((nqpoints, nmodes))
+    return qpoints, freqs, vecs
 
 def read_matdyn_freq(filename):
     """Parse frequency file produced by QE's matdyn.x ("flfrq" in matdyn.x
@@ -147,8 +233,8 @@ def read_matdyn_freq(filename):
     kpoints : array (nks, 3)
         Array with `nks` k-points.
     freqs : array (nks, nbnd)
-        Array with `nbnd` energies/frequncies at each of the `nks` k-points.
-        For phonon DOS, nks == 3*natoms.
+        Array with `nbnd` energies/frequencies at each of the `nks` k-points.
+        For phonon DOS, nbnd == 3*natoms.
 
     notes:
     ------
@@ -179,7 +265,8 @@ def read_matdyn_freq(filename):
     lines = file_readlines(filename)
     # Read number of bands (nbnd) and k-points (nks). OK, Fortran's namelists
     # win here :)
-    # nbnd: number of bands = number of frequencies per k-point = 3*natoms
+    # nbnd: number of bands = number of frequencies per k-point = 3*natoms for
+    #   phonons
     # nks: number of k-points
     pat = r'.*\s+nbnd\s*=\s*([0-9]+)\s*,\s*nks\s*=\s*([0-9]+)\s*/'
     match = re.match(pat, lines[0])

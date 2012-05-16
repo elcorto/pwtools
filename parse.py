@@ -130,7 +130,6 @@ except ImportError:
 
 import common, constants, regex, crys, periodic_table, num, arrayio
 from verbose import verbose
-from pwscf import atpos_str
 from base import FlexibleGetters
 from constants import Ry, Ha, eV, Bohr, Angstrom, thart, Ang, fs
 from crys import UnitsHandler
