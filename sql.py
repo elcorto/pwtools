@@ -9,7 +9,7 @@ def get_test_db():
     db.create_table([('a', 'TEXT'), ('b', 'FLOAT')])
     db.execute("insert into calc (a,b) values ('lala', 1.0)")
     db.execute("insert into calc (a,b) values ('huhu', 2.0)")
-    db.finish()
+    db.commit()
     return db
 
 def find_sqltype(val):
@@ -203,12 +203,10 @@ class SQLiteDB(object):
         col : str
             column name in the database
         """            
-        has_col = False
         for entry in self.get_header():
             if entry[0] == col:
-                has_col = True
-                break
-        return has_col                            
+                return True
+        return False                
     
     def add_column(self, col, sqltype):
         """Add column `col` with type `sqltype`. 
@@ -237,6 +235,67 @@ class SQLiteDB(object):
         """
         for entry in fix_sql_header(header):
             self.add_column(*entry)
+    
+    def get_max_rowid(self):
+        """Return max(rowid), which is equal to the number of rows in
+        self.table ."""
+        return self.get_single("select max(rowid) from %s" %self.table)
+
+    def fill_column(self, col, values, start=1, extend=True, overwrite=False):
+        """Fill existing column `col` with values from `values`, starting from
+        rowid `start`. "rowid" is a special sqlite column which is always
+        present and which numbers all rows. 
+        
+        args:
+        -----
+        col : str
+        values : sequence
+        start : int
+            sqlite rowid value to start at (first row: start=1)
+        extend : If `extend=True` and `len(values)` extends the last row, then
+            continue to add values. All other column entries will be NULL. If
+            False, then we silently stop inserting at the last row.
+        overwrite : bool
+            Whether to overwrite entries which are not NULL (None in Python).
+        """
+        # The operation "update <table> ..." works only as long as there is at
+        # least one column with a non-NULL entry. After that, rowid is not
+        # defined and nothing gets inserted. Then, we need to use "insert into
+        # ..." to appand rows to the bottom.
+        maxrowid = self.get_max_rowid()
+        assert self.has_column(col), "column missing: %s" %col
+        if not extend:
+            assert start <= maxrowid, "start > maxrowid"
+        rowid = start
+        for val in values:
+            if rowid <= maxrowid:
+                if not overwrite:
+                    _val = self.get_single("select %s from %s where rowid==?" \
+                            %(col, self.table), (rowid,))
+                    assert _val is None, ("value for column '%s' at rowid "
+                        "%i is not NULL (%s)" %(col, rowid, repr(_val)))
+                self.execute("update %s set %s=? where rowid==?" \
+                             %(self.table, col), (val, rowid))
+            else:
+                if extend:
+                    self.execute("insert into %s (%s) values (?)" %(self.table,
+                        col,), (val,))
+            rowid += 1                
+    
+    def attach_column(self, col, sqltype, values, **kwds):
+        """Attach (add) a new column named `col` of `sqltype` with `values` to
+        the table. 
+        
+        This is a short-cut method which essentially does:
+            add_column(...)
+            fill_column(...)
+        """
+        default_kwds = {'start':1, 'extend': True, 'overwrite': False}
+        default_kwds.update(kwds)
+        # Protect existing columns.
+        assert not self.has_column(col), "column already present: %s" %col
+        self.add_column(col, sqltype)
+        self.fill_column(col, values, **default_kwds)
 
     def get_header(self):
         """Return the "header" of the table `table':
@@ -494,8 +553,16 @@ def sql_matrix(lists, header=None, colnames=None, sqlval_funcs=None, fileval_fun
 
 def makedb(filename, lists=None, colnames=None, table=None, mode='a', **kwds):
     """ Create sqlite db `filename` (mode='w') or append to existing db
-    (mode='a'), Db is build up from `lists` and `colnames`, see sql_matrix().
-    
+    (mode='a'). The database is build up from `lists` and `colnames`, see 
+    sql_matrix().
+
+    In append mode, rows are simply added to the bottom of the table and only
+    column names (`colnames`) which are already in the table are allowed.
+    `colnames` can contain a subset of the original header, in which case the
+    other entries are NULL by default.
+
+    If the datsbase file doesn't exist, then mode='a' is the same as mode='w'.
+
     args:
     -----
     lists : list of lists, see sql_matrix()
@@ -528,9 +595,7 @@ def makedb(filename, lists=None, colnames=None, table=None, mode='a', **kwds):
         db_header = db.get_header()
         db_colnames = [x[0] for x in db_header]
         db_types = [x[1] for x in db_header]
-        for entry in header:
-            col = entry[0]
-            typ = entry[1]
+        for col,typ in header:
             assert col in db_colnames, ("col '%s' not in db header" %col)
             db_typ = db_types[db_colnames.index(col)]
             assert typ == db_typ, ("col: '%s': "

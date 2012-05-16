@@ -10,7 +10,7 @@ from pwtools import common
 from testenv import testdir
 pj = os.path.join
 
-def test():
+def test_sql():
 
     # --- SQLiteDB ----------------------------------------------------
     dbfn = pj(testdir, 'test.db')
@@ -29,10 +29,17 @@ def test():
         db.execute("INSERT INTO calc (idx, foo, bar) VALUES (?,?,?)", tuple(lst))
     db.commit()
     
+    # get_max_rowid
+    assert db.get_max_rowid() == 3
+
     # has_table
     assert db.has_table('calc')
     assert not db.has_table('foo')
     
+    # has_column
+    assert db.has_column('idx')
+    assert not db.has_column('grrr')
+
     # get_single
     assert float(db.get_single("select foo from calc where idx==0")) == 1.1
 
@@ -148,6 +155,26 @@ def test():
     assert dct['foo'] == [u'a', u'b']*2
     assert dct['bar'] == [1.0, 2.0]*2
     
+    # attach_column, fill_column
+    db.attach_column('baz', 'integer', values=[1,2,3,4,5,6], 
+                     extend=False, start=1)
+    assert db.get_max_rowid() == 4                     
+    assert db.get_list1d('select baz from test3') == [1,2,3,4]
+    # need `extend` b/c up to now, table has 4 rows
+    db.fill_column('baz', values=[5,6], 
+                    extend=True, start=5)
+    assert db.get_max_rowid() == 6                     
+    assert db.get_list1d('select baz from test3') == [1,2,3,4,5,6]
+    assert db.get_list1d("select foo from test3") == [u'a', u'b']*2 + [None]*2
+    assert db.get_list1d("select bar from test3") ==  [1.0, 2.0]*2 + [None]*2
+    # `extend` kwd not needed b/c table already has 6 rows
+    db.attach_column('baz2', 'integer', values=[1,2,3,4,5,6], 
+                     start=1)
+    assert db.get_list1d('select baz2 from test3') == [1,2,3,4,5,6]
+    db.fill_column('baz2', values=[1,4,9,16], 
+                    overwrite=True, start=1)
+    assert db.get_list1d('select baz2 from test3') == [1,4,9,16,5,6]
+
     # --- SQLEntry ----------------------------------------------------
     x = SQLEntry(1, 'integer')
     assert x.sqlval == 1
