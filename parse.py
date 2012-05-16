@@ -169,7 +169,7 @@ def traj_from_txt(txt, shape, axis=-1, dtype=np.float):
         ret = arrayio.readtxt(StringIO(txt), axis=axis, shape=shape, dtype=dtype)
         return ret
 
-def arr1d_from_txt(txt, dtype=np.float:
+def arr1d_from_txt(txt, dtype=np.float):
     if txt.strip() == '':
         return None
     else:
