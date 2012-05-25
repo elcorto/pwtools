@@ -738,11 +738,11 @@ class PwSCFOutputFile(StructureFileParser):
         self.try_set_attr('natoms')
         natoms = self.natoms
         # coords
-        cmd = r"grep -A%i 'positions.*a_0.*units' %s | tail -n%i | \
+        cmd = r"egrep -A%i 'site.*atom.*positions.*units.*\)' %s | tail -n%i | \
               sed -re 's/.*\((.*)\)/\1/g'" \
               %(natoms, self.filename, natoms)
         coords = arr2d_from_txt(com.backtick(cmd))
-        cmd = r"grep -A%i 'positions.*a_0.*units' %s | tail -n%i | \
+        cmd = r"egrep -A%i 'site.*atom.*positions.*units.*\)' %s | tail -n%i | \
               awk '{print $2}'" \
               %(natoms, self.filename, natoms)
         symbols = com.backtick(cmd).strip().split()
@@ -759,7 +759,7 @@ class PwSCFOutputFile(StructureFileParser):
         value."""
         verbose("getting start cell parameters")
         if self.check_set_attr('alat'):
-            cmd = "grep -A3 'crystal.*axes.*units.*a_0' %s | tail -n3 | \
+            cmd = "egrep -A3 'crystal.*axes.*units.*(a_0|alat)' %s | tail -n3 | \
                    awk '{print $4\" \"$5\" \"$6}'" %(self.filename)
             ret = arr2d_from_txt(com.backtick(cmd))
             return ret * self.alat if ret is not None else ret
