@@ -7,7 +7,7 @@ rand = np.random.rand
 def test_cdist():
     X = rand(100,5)
     Y = rand(80,5)
-    d1 = flib_wrap.cdistsq(X,Y)
+    d1 = flib_wrap.distsq(X,Y)
     d2 = ((X[:,None,...] - Y[None,...])**2.0).sum(axis=-1)
     d3 = cdist(X,Y, metric='euclidean')**2.0
     aaae(d1,d2)

@@ -209,19 +209,19 @@ subroutine acorr(v, c, nstep, method, norm)
     return
 end subroutine acorr
 
-subroutine cdistsq(arrx, arry, dist, nx, ny, ndim)
+subroutine distsq(arrx, arry, dsq, nx, ny, ndim)
     implicit none
     integer :: ii, jj, nx, ny, ndim
     double precision :: arrx(nx, ndim), arry(ny, ndim)
-    double precision :: dist(nx,ny)
-    !f2py intent(in, out) dist
+    double precision :: dsq(nx,ny)
+    !f2py intent(in, out) dsq
     ! note row-major loop order -> speed!
     !$omp parallel
     !$omp do
     do jj=1,ny
         do ii=1,nx
-            dist(ii,jj) = sum((arrx(ii,:) - arry(jj,:))**2.0)
+            dsq(ii,jj) = sum((arrx(ii,:) - arry(jj,:))**2.0)
         end do
     end do        
     !$omp end parallel
-end subroutine cdistsq
+end subroutine distsq

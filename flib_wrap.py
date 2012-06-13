@@ -1,7 +1,7 @@
 import numpy as np
 from pwtools import _flib
 
-def cdistsq(arrx, arry):
+def distsq(arrx, arry):
     """Squared distances between all points in `arrx` and `arry`:
         
         r_ij**2 = sum_k (arrx[i,k] - arry[j,k])**2.0
@@ -12,7 +12,7 @@ def cdistsq(arrx, arry):
     This is like 
         scipy.spatial.distance.cdist(arrx, arry)**2.0
     
-    This is a wrapper for _flib.cdistsq().
+    This is a wrapper for _flib.distsq().
 
     args:
     -----
@@ -31,4 +31,4 @@ def cdistsq(arrx, arry):
     # is order='C' (numpy default), then the f2py wrapper makes a copy of the
     # array before starting to crunch numbers.
     dist = np.empty((nx, ny), dtype=arrx.dtype, order='F')
-    return _flib.cdistsq(arrx, arry, dist, nx, ny, ndim)
+    return _flib.distsq(arrx, arry, dist, nx, ny, ndim)
