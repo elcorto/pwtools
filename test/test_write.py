@@ -56,7 +56,6 @@ def test():
     arr = np.loadtxt(StringIO(
             common.backtick("sed -nre 's/^H(.*)/\\1/gp' %s" %axsf_fn)))
     arr2 = np.vstack((coords3d_cart[0,...],coords3d_cart[1,...]))
-    arr2 = np.concatenate((arr2, np.zeros_like(arr2)), axis=1)
     np.testing.assert_array_almost_equal(arr, arr2)
     
     # fixed cell, forces3d, coords_frac

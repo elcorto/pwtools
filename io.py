@@ -155,7 +155,7 @@ def write_xyz(filename, obj, name='pwtools_dummy_mol_name'):
 
 
 def write_axsf(filename, obj):
-    """Write XSF file for Structure, animated XSF for Trajectory.
+    """Write animated XSF file for Structure (only 1 step) or Trajectory.
 
     Note that forces are converted eV / Ang -> Ha / Ang.
     
@@ -187,7 +187,7 @@ def write_axsf(filename, obj):
     if traj.is_set_attr('forces'):
         ccf = np.concatenate((traj.coords, traj.forces*eV/Ha), axis=-1)
     else:
-        ccf = np.concatenate((traj.coords, np.zeros_like(traj.coords)), axis=-1)
+        ccf = traj.coords
     axsf_str = "ANIMSTEPS %i\nCRYSTAL" %traj.nstep
     for istep in range(traj.nstep):
         # for now PRIMVEC == CONVVEC
