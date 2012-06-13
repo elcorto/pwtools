@@ -35,15 +35,24 @@ nose_opts="$@ --exclude='.*abinit.*'"
 prnt "NOTE: All Abinit tests disabled!"
 
 testdir=/tmp/pwtools-test.$$
-mkdir -pv $testdir
+tgtdir=$testdir/pwtools
+mkdir -pv $tgtdir
 logfile=$testdir/runtests.log
 prnt "copy package ..."
-tgt=$(cd .. && pwd)
-cp -rvL $tgt $testdir/pwtools &>> $logfile
-cd $testdir/pwtools/
+rsync_excl=_rsync.excl
+cat > $rsync_excl << EOF
+.hg/
+*.pyc
+*.pyo
+*.so
+*.pyf
+EOF
+rsync -av ../ $tgtdir --exclude-from=$rsync_excl &>> $logfile
+rm $rsync_excl
+cd $tgtdir
 prnt "... ready"
 prnt "build extension modules ..."
-[ -f Makefile ] && make &>> $logfile
+[ -f Makefile ] && make -B &>> $logfile
 prnt "... ready"
 cd test/
 
@@ -53,12 +62,6 @@ cd test/
 # >>> filename = os.path.join(testdir, 'foo_tmp.txt')
 # >>> ...
 echo "testdir='$testdir'" > testenv.py
-
-# Purge any compiled files.
-prnt 'deleting *.pyc files ...'
-rm -vf $(find ../ -name "*.pyc")  $(find . -name "*.pyc") \
-    &>> $logfile
-prnt "... ready"
 
 prnt "running tests ..."
 PYTHONPATH=$testdir:$PYTHONPATH \
