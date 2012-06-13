@@ -1938,6 +1938,9 @@ class Structure(UnitsHandler):
         'ase_atoms',
         ]
     
+    is_struct = True
+    is_traj = False
+
     @crys_add_doc
     def __init__(self, 
                  set_all_auto=True,
@@ -2218,6 +2221,9 @@ class Trajectory(Structure):
         ]
     timeaxis = 0        
     
+    is_struct = False
+    is_traj = True
+    
     def set_all(self):
         """Populate object. Apply units, extend arrays, call all getters."""
         # If these are given as input args, then they must be 3d.        
@@ -2420,9 +2426,7 @@ class Trajectory(Structure):
 
 def struct2traj(obj):
     """Transform Structure to Trajectory with nstep=1."""
-    # XXX not very safe test, need to play w/ isinstance(). May be a problem
-    # b/c Structure -> Trajectory inherit.
-    if hasattr(obj, 'get_nstep'):
+    if obj.is_traj:
         return obj
     else:
         return obj.get_traj(nstep=1)
