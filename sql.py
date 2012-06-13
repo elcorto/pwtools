@@ -249,7 +249,9 @@ class SQLiteDB(object):
         args:
         -----
         col : str
+            Column name.
         values : sequence
+            Values to be inserted.
         start : int
             sqlite rowid value to start at (first row: start=1)
         extend : If `extend=True` and `len(values)` extends the last row, then
@@ -282,18 +284,31 @@ class SQLiteDB(object):
                         col,), (val,))
             rowid += 1                
     
-    def attach_column(self, col, sqltype, values, **kwds):
+    def attach_column(self, col, values, sqltype=None, **kwds):
         """Attach (add) a new column named `col` of `sqltype` with `values` to
         the table. 
         
         This is a short-cut method which essentially does:
             add_column(...)
             fill_column(...)
+        
+        args:
+        -----
+        col : str
+            Column name.
+        values : sequence
+            Values to be inserted.
+        sqltype : str, optional
+            sqlite type of values in `values`, obtained from values[0] if None
+        **kwds : additional keywords passed to fill_column(),
+            default: start=1, extend=True, overwrite=False
         """
         default_kwds = {'start':1, 'extend': True, 'overwrite': False}
         default_kwds.update(kwds)
         # Protect existing columns.
         assert not self.has_column(col), "column already present: %s" %col
+        if sqltype is None:
+            sqltype = find_sqltype(values[0])
         self.add_column(col, sqltype)
         self.fill_column(col, values, **default_kwds)
 
