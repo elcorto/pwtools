@@ -1,41 +1,41 @@
 from time import time
 
-class Debug(object):
+class TagTimer(object):
     """
-    Helper Class for timimg and debugging. It's meant to be used for manually
-    inspecting code. For permanent verbose/debug stuff, use the logging and
-    warnings modules.
+    Helper class for timimg. It's meant to be used for manually inspecting
+    code.
 
-    Usage:
-        DBG = Debug()
-        
-        # print some message 
-        DBG.p('start profiling part 1')
-        # set start time for tag 'outer-loop'
-        DBG.t('outer-loop')
-        for i ...
+    example:
+    --------
+    TT = TagTimer()
+    
+    # print some message 
+    TT.p('start profiling part 1')
+    # set start time for tag 'outer-loop'
+    TT.t('outer-loop')
+    for i ...
+        <code>
+        # set start time for tag 'inner-loop'
+        TT.t('inner-loop')
+        for j ...
             <code>
-            # set start time for tag 'inner-loop'
-            DBG.t('inner-loop')
-            for j ...
-                <code>
-            # use case 1: get stop time and print timing (stop - start) for tag 
-            # 'inner-loop' immediately           
-            DBG.pt('inner-loop')
-        # use case 2: get stop time and store it
-        DBG.t('outer-loop')
-        <some_more_code>
-        # print timing (stop - start) for tag 'outer-loop' later (maybe in some
-        # summary statistic or so)
-        DBG.pt('outer-loop')
-        
-        # it's possible to re-use tags
-        DBG.p('start profiling part 2')
-        DBG.t('outer-loop')
-        for i ...
-            <code>
-            DBG.t('inner-loop')
-        ....
+        # use case 1: get stop time and print timing (stop - start) for tag 
+        # 'inner-loop' immediately           
+        TT.pt('inner-loop')
+    # use case 2: get stop time and store it
+    TT.t('outer-loop')
+    <some_more_code>
+    # print timing (stop - start) for tag 'outer-loop' later (maybe in some
+    # summary statistic or so)
+    TT.pt('outer-loop')
+    
+    # it's possible to re-use tags
+    TT.p('start profiling part 2')
+    TT.t('outer-loop')
+    for i ...
+        <code>
+        TT.t('inner-loop')
+    ....
     """
     def __init__(self, silence=False):
         self.none_ar = [None, None]
@@ -112,5 +112,5 @@ class Debug(object):
     def p(self, msg):
         """ Simply print `msg`. """
         if not self.silence:
-            print("--DEBUG--: %s" %msg)
+            print("--TagTimer--: %s" %msg)
 

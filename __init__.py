@@ -23,7 +23,7 @@ __all__ = [\
     'signal',
     'sql',
     'thermo',
-    'debug',
+    'timer',
     'verbose',
     'version',
     'visualize',

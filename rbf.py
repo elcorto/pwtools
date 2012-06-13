@@ -76,11 +76,8 @@ import scipy.optimize as opt
 import scipy.linalg as linalg
 from scipy.spatial import distance
 from pwtools import flib_wrap
-from pwtools import mpl, debug
+from pwtools import mpl
 rand = np.random.rand
-
-# Used for timing.
-##dbg = debug.Debug()
 
 class RBFFunction(object):
     """Represent a single radial basis function."""
