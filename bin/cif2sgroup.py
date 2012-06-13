@@ -8,9 +8,9 @@
 # ase.io.read(), which seems to parse symmetry information.
 #
 # usage::
-#   $ cif2sgroup.py foo.cif > foo.sqroup.in
+#   $ cif2sgroup.py foo.cif > foo.sgroup.in
 #   # Find primitive cell
-#   $ sgroup -prim [-set-TOL=1e-4] foo.sqroup.in
+#   $ sgroup -prim [-set-TOL=1e-4] foo.sgroup.in
 # 
 # See ``sgroup -help`` for more options.
 #

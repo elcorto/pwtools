@@ -1,5 +1,5 @@
 import numpy as np
-from pwtools import crys, common, periodic_table, num
+from pwtools import crys, common, atomic_data, num
 from pwtools.crys import Structure, Trajectory
 from pwtools.test.tools import adae
 rand = np.random.rand
@@ -126,7 +126,7 @@ def test():
     # scell3d
     natoms = 4
     nstep = 100
-    syms = iter(periodic_table.pt.keys())
+    syms = iter(atomic_data.pt.keys())
     symbols = [syms.next() for ii in range(natoms)]
     # cell 2d
     coords_frac = rand(nstep,natoms,3)

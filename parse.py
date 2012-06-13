@@ -128,7 +128,7 @@ except ImportError:
     print("%s: Warning: Cannot import BeautifulSoup. " 
     "Parsing XML/HTML/CML files will not work." %__file__)
 
-import common, constants, regex, crys, periodic_table, num, arrayio
+import common, constants, regex, crys, atomic_data, num, arrayio
 from verbose import verbose
 from base import FlexibleGetters
 from constants import Ry, Ha, eV, Bohr, Angstrom, thart, Ang, fs
@@ -1374,7 +1374,7 @@ class AbinitSCFOutputFile(StructureFileParser):
             znucl = np.asarray(self.znucl).astype(int)
             # loop over entire periodic table dict :)
             syms = [sym for zz in znucl for sym,dct in \
-                    periodic_table.pt.iteritems() if dct['number']==zz]
+                    atomic_data.pt.iteritems() if dct['number']==zz]
             return [syms[i] for i in idxs]
         else:
             return None

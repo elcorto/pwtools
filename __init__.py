@@ -11,7 +11,7 @@ __all__ = [\
     'regex',
     'corr',
     'parse',
-    'periodic_table',
+    'atomic_data',
     'io',
     'sql',
     'kpath',

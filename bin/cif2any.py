@@ -1,17 +1,15 @@
 #!/usr/bin/env python
 # 
-# cif2pwin.py
-#
 # Extract information from a .cif file and print them in a format suitable for
 # inclusion in a pwscf,abinit,cpmd input file.
 #
 # usage:
-#   cif2pwin.py foo.cif
+#   cif2any.py foo.cif
 
 import sys
 import numpy as np
 
-from pwtools import parse, crys, periodic_table, pwscf
+from pwtools import parse, crys, atomic_data, pwscf
 from pwtools.common import str_arr, seq2str
 from pwtools.constants import Bohr, Angstrom
 
@@ -21,7 +19,7 @@ struct = pp.get_struct()
 cellr = crys.recip_cell(struct.cell)
 norms = np.sqrt((cellr**2.0).sum(axis=1))
 bar = '-'*78
-mass_unique = [periodic_table.pt[sym]['mass'] for sym in struct.symbols_unique]                 
+mass_unique = [atomic_data.pt[sym]['mass'] for sym in struct.symbols_unique]                 
 atspec = pwscf.atspec_str(struct.symbols_unique, 
                           mass_unique, 
                           [sym + '.UPF' for sym in struct.symbols_unique])

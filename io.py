@@ -77,7 +77,7 @@ def wien_sgroup_input(struct, lat_symbol='P'):
 
 
 def write_cif(filename, struct):
-    """Q'n'D Cif writer. Use PyCifRW.
+    """Q'n'D Cif writer. Uses PyCifRW.
     
     length: Angstrom
 

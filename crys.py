@@ -16,7 +16,7 @@ from scipy.integrate import cumtrapz
 from common import assert_cond
 import common
 from decorators import crys_add_doc
-import num, periodic_table
+import num, atomic_data
 from base import FlexibleGetters
 from verbose import verbose
 from constants import Bohr, Angstrom
@@ -2133,7 +2133,7 @@ class Structure(UnitsHandler):
     
     def get_znucl(self):
         if self.check_set_attr('symbols_unique'):
-            return [periodic_table.pt[sym]['number'] for sym in self.symbols_unique]
+            return [atomic_data.pt[sym]['number'] for sym in self.symbols_unique]
         else:
             return None
 
@@ -2154,7 +2154,7 @@ class Structure(UnitsHandler):
         """1D array of atomic masses in amu (atomic mass unit 1.660538782e-27
         kg as in periodic table). The order is the one from self.symbols."""
         if self.check_set_attr('symbols'):
-            return np.array([periodic_table.pt[sym]['mass'] for sym in
+            return np.array([atomic_data.pt[sym]['mass'] for sym in
                              self.symbols])
         else:
             return None
