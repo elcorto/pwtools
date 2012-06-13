@@ -80,3 +80,4 @@ def test():
                         
     
     traj = crys.struct2traj(st)
+    assert traj.is_traj
