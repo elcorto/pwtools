@@ -225,3 +225,71 @@ subroutine distsq(arrx, arry, dsq, nx, ny, ndim)
     end do        
     !$omp end parallel
 end subroutine distsq
+
+subroutine distsq_frac(coords_frac, cell, mic, distsq, distvecs, distvecs_frac, natoms)
+    ! Special purpose routine to calculate distance vectors, squared distances
+    ! and apply minimum image convention (mic) for fractional atom coords.
+    ! 
+    ! args:
+    ! -----
+    ! coords_frac : (natoms,3)
+    ! cell : (3,3)
+    ! mic : int
+    !   {0,1}
+    ! distsq : dummy input
+    ! distvecs : dummy input  
+    ! distvecs_frac : dummy input  
+    ! natoms : dummy input  
+    !
+    ! returns:
+    ! --------
+    ! distsq : (natoms,natoms)
+    !   squared cartesien distances
+    ! distvecs : (natoms,natoms,3)
+    !   cartesian distance vectors  
+    ! distvecs_frac : (natoms,natoms,3)
+    !   fractional distance vectors, MIC applied if mic=1
+    implicit none
+    integer :: natoms, mic, ii,jj,kk
+    double precision :: coords_frac(natoms,3), cell(3,3)
+    double precision :: distsq(natoms,natoms), distvecs_frac(natoms, natoms, 3), &
+                        distvecs(natoms, natoms, 3)
+    !f2py intent(out) distsq
+    !f2py intent(out) distvecs
+    !f2py intent(out) distvecs_frac
+    do jj=1,natoms
+        do ii=1,natoms
+            distvecs_frac(ii,jj,:) = coords_frac(ii,:) - coords_frac(jj,:)
+        end do
+    end do
+
+    if (mic == 1) then
+        do kk=1,3
+            do jj=1,natoms
+                do ii=1,natoms
+                    do while (distvecs_frac(ii,jj,kk) >= 0.5)
+                        distvecs_frac(ii,jj,kk) = distvecs_frac(ii,jj,kk) - 1.0d0
+                    end do    
+                    do while (distvecs_frac(ii,jj,kk) < -0.5)
+                        distvecs_frac(ii,jj,kk) = distvecs_frac(ii,jj,kk) + 1.0d0
+                    end do    
+                end do
+            end do
+        end do
+    end if
+    
+    do kk=1,3
+        do jj=1,natoms
+            do ii=1,natoms
+                distvecs(ii,jj,kk) = dot_product(distvecs_frac(ii,jj,:), cell(:,kk))
+            end do
+        end do
+    end do
+
+    do jj=1,natoms
+        do ii=1,natoms
+            distsq(ii,jj) = sum(distvecs(ii,jj,:)**2.0)
+        end do
+    end do
+end subroutine distsq_frac
+
