@@ -2422,6 +2422,11 @@ class Trajectory(Structure):
     def get_traj(self):
         return None
 
+def atoms2struct(at):
+    """Transform ASE Atoms object to Structure."""
+    return Structure(symbols=at.get_chemical_symbols(),
+                     cell=at.get_cell(),
+                     coords_frac=at.get_scaled_positions())
 
 def struct2traj(obj):
     """Transform Structure to Trajectory with nstep=1."""
