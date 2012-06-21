@@ -13,14 +13,13 @@ import numpy as np
 from scipy.linalg import inv
 from scipy.integrate import cumtrapz
 
-from common import assert_cond
-import common
-from decorators import crys_add_doc
-import num, atomic_data
-from base import FlexibleGetters
-from verbose import verbose
-from constants import Bohr, Angstrom
-import constants
+from pwtools.common import assert_cond
+from pwtools import common
+from pwtools.decorators import crys_add_doc
+from pwtools import num, atomic_data
+from pwtools.base import FlexibleGetters
+from pwtools.constants import Bohr, Angstrom
+from pwtools import constants
 
 #-----------------------------------------------------------------------------
 # misc math

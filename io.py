@@ -4,8 +4,8 @@
 
 import numpy as np
 import common, crys, pwscf, parse
-from common import frepr
-from constants import Ha, eV
+from pwtools.common import frepr
+from pwtools.constants import Ha, eV
 
 # Cif parser
 try:

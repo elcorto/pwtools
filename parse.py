@@ -128,11 +128,11 @@ except ImportError:
     print("%s: Warning: Cannot import BeautifulSoup. " 
     "Parsing XML/HTML/CML files will not work." %__file__)
 
-import common, constants, regex, crys, atomic_data, num, arrayio
-from verbose import verbose
-from base import FlexibleGetters
-from constants import Ry, Ha, eV, Bohr, Angstrom, thart, Ang, fs
-from crys import UnitsHandler
+from pwtools import common, constants, regex, crys, atomic_data, num, arrayio
+from pwtools.verbose import verbose
+from pwtools.base import FlexibleGetters
+from pwtools.constants import Ry, Ha, eV, Bohr, Angstrom, thart, Ang, fs
+from pwtools.crys import UnitsHandler
 com = common
 
 
