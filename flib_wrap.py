@@ -25,7 +25,12 @@ def distsq(arrx, arry):
     """        
     nx, ny = arrx.shape[0], arry.shape[0]
     ndim = arrx.shape[1]
-    assert arrx.shape[1] == arry.shape[1]
+    ndimx, ndimy = arrx.shape[1], arry.shape[1]
+    assert ndimx == ndimy, ("ndimx (%s, shape: %s) != ndimy (%s, shape: %s)" \
+                           %(str(ndimx), 
+                             str(arrx.shape), 
+                             str(ndimy),
+                             str(arry.shape)))
     # Allocating in F-order is essential for speed! For many points, this step
     # is actually the bottleneck, NOT the Fortran code! This is b/c if `dist`
     # is order='C' (numpy default), then the f2py wrapper makes a copy of the
