@@ -10,6 +10,7 @@ import os
 import tempfile
 
 import numpy as np
+from numpy.random import uniform
 from scipy.linalg import inv
 from scipy.integrate import cumtrapz
 
@@ -19,7 +20,7 @@ from pwtools.decorators import crys_add_doc
 from pwtools import num, atomic_data
 from pwtools.base import FlexibleGetters
 from pwtools.constants import Bohr, Angstrom
-from pwtools import constants
+from pwtools import constants, atomic_data, _flib
 
 #-----------------------------------------------------------------------------
 # misc math
@@ -993,8 +994,7 @@ def coord_trans3d(coords, old=None, new=None, copy=True, axis=-1, timeaxis=0):
         return ret
 
 def min_image_convention(sij, copy=False):
-    """Helper function for rpdf(). Apply minimum image convention to
-    differences of fractional coords. 
+    """Apply minimum image convention to differences of fractional coords. 
 
     Handles also cases where coordinates are separated by an arbitrary number
     of periodic images.
@@ -1002,7 +1002,10 @@ def min_image_convention(sij, copy=False):
     args:
     -----
     sij : ndarray
-        Fractional coordinates.
+        Differences of fractional coordinates, usually (natoms, natoms, 3),
+        i.e. a "matrix" of distance vectors, obtained by smth like
+        sij = coords_frac[:,None,:] - coords_frac[None,:,:] where
+        coords_frac.shape = (natoms,3).
     copy : bool, optional
 
     returns:
@@ -1023,7 +1026,9 @@ def min_image_convention(sij, copy=False):
 
 @crys_add_doc
 def rmax_smith(cell):
-    """Helper function for rpdf(). Calculate rmax as in [Smith].
+    """Calculate rmax as in [Smith], where rmax = the maximal distance up to
+    which minimum image nearest neighbor distances are correct.
+    
     The cell vecs must be the rows of `cell`.
 
     args:
@@ -2434,4 +2439,164 @@ def struct2traj(obj):
         return obj
     else:
         return obj.get_traj(nstep=1)
+
+
+# TODO:
+# * Add PerturbedStructure, maybe as subclass of RandomStructure (reuse
+#   atoms_too_close), which takes a struct and adds a random perturbation on it
+#   -> create MD-like data (structure changes but mean structure is constant) w/o 
+#   running an MD!
+
+class RandomStructure(object):
+    """Create a random structure, based on atom number and composition alone
+    (`symbols`).
+
+    The mean target cell volume and cell side lengths are determined from covalent
+    radii of all atoms.
+
+    example:
+    --------
+    >>> rs = crys.RandomStructure(['Si']*10, vol_scale=1.5, close_scale=0.7)
+    >>> st = rs.get_random_struct()
+
+    For many atoms (~ 200), the creation takes a while b/c as more and more
+    atoms are already present, we need many more tries to get another random
+    atom into the struct. Then, atoms_too_close() is called a lot, which is the
+    bottleneck. Hint: ``plot(rs.counters['coords'])``.
+    """
+    # notes:
+    # ------
+    # * Maybe add outer loop, create new cryst_const and try again if creating
+    #   struct failed once. 
+    # * maxcnt currently hardcoded, maybe expose as parameter
+    # * Maybe don't raise exceptions if struct creation fails, only print
+    #   warning / let user decide -- add arg error={True,False}.
+    # * The bottleneck is get_random_struct() -- the loop over
+    #   atoms_too_close().   
+    def __init__(self, 
+                 symbols, 
+                 vol_scale=4, 
+                 angle_range = [60.0, 120.0],
+                 vol_range_scale=[0.7,1.3],
+                 length_range_scale=[0.7,1.3],
+                 close_scale=1):
+        """
+        args:
+        -----
+        symbols : list of strings
+            Atom symbols. Defines number of atoms and composition.
+        vol_scale : float
+            Scale volume estimated from sum of covalent spheres (=maximal
+            tightly packed structure). Only values > 1 make sense. This is used
+            to get the mean target volume (increase "the holes" between spheres).
+            Large values will create large cells with much space between atoms.
+        angle_range : sequence of 2 floats [min, max]
+            Range of allowed random cell angles.
+        vol_range_scale : sequence of 2 floats [min, max]
+            Scale estimated mean volume by `min` and `max` to get allowed
+            volume range.
+        length_range_scale : sequence of 2 floats [min, max]
+            Scale estimated mean cell side length (3rd root of mean volume) 
+            by `min` and `max` to get allowed cell side range.
+        close_scale : float
+            Scale allowed distance between atoms (from sum of covalent radii).
+            Use < 1.0 to make tightly packed structures.
+        """
+        self.symbols = symbols
+        self.close_scale = close_scale
+        self.angle_range = angle_range
+        self.natoms = len(self.symbols)
+        self.cov_radii = np.array([atomic_data.pt[sym]['cov_rad'] for \
+                                   sym in symbols])
+        self.dij_min = (self.cov_radii + self.cov_radii[:,None]) * self.close_scale
+        self.vol_mean = 4.0/3.0 * pi * (self.cov_radii**3.0).sum() * vol_scale
+        self.length_mean = self.vol_mean ** (1.0/3.0)
+        self.vol_range = [self.vol_mean*vol_range_scale[0], 
+                          self.vol_mean*vol_range_scale[1]]
+        self.length_range = [self.length_mean * length_range_scale[0],
+                             self.length_mean * length_range_scale[1]]
+        self.counters = {'cryst_const': None, 'coords': None} 
+
+    def get_random_cryst_const(self):
+        def _get():
+            return np.concatenate((uniform(self.length_range[0], 
+                                           self.length_range[1], 3),
+                                   uniform(self.angle_range[0], 
+                                           self.angle_range[1], 3)))
+        cnt = 1
+        maxcnt = 100
+        while cnt <= maxcnt:
+            cc = _get()
+            vol = volume_cc(cc)
+            if not self.vol_range[0] <= vol <= self.vol_range[1]:
+                cc = _get()
+                cnt += 1                                 
+            else:
+                self.counters['cryst_const'] = cnt
+                return cc
+        raise StandardError("failed creating random cryst_const")            
     
+    def atoms_too_close(self, iatom):
+        """Check if any two atoms are too close, i.e. closer then the sum of
+        their covalent radii, scaled by self.close_scale.
+        
+        Minimum image distances are used.
+
+        args:
+        -----
+        iatom : int
+            Index into self.coords_frac, defining the number of atoms currently
+            in there (iatom +1).
+        """
+        # dist: min image dist correct only up to rmax_smith(), but we check if
+        #   atoms are too close; too big dists are no problem; choose only upper
+        #   triangle from array `dist`
+        natoms_filled = iatom + 1
+        coords_frac = self.coords_frac[:natoms_filled,:]
+        # This part is 10x slower than the fortran version  --------
+        # distvecs_frac: (natoms_filled, natoms_filled, 3)
+        # distvecs:      (natoms_filled, natoms_filled, 3)
+        # dist:          (natoms_filled, natoms_filled)
+        ##distvecs_frac = coords_frac[:,None,:] - coords_frac[None,:,:]
+        ##distvecs_frac = min_image_convention(sij)
+        ##distvecs = np.dot(sij, self.cell)
+        ##dist = np.sqrt((rij**2.0).sum(axis=2))
+        #-----------------------------------------------------------
+        distsq, dummy1, dummy2 = _flib.distsq_frac(coords_frac,
+                                                   self.cell,
+                                                   mic=1)
+        dist = np.sqrt(distsq)                                                            
+        # This part is fast
+        dij_min_filled = self.dij_min[:natoms_filled,:natoms_filled]
+        return np.triu(dist < dij_min_filled, k=1).any()
+    
+    def _add_random_atom(self, iatom):
+        self.coords_frac[iatom,:] = np.random.rand(3)
+
+    def get_random_struct(self):
+        self.cell = cc2cell(self.get_random_cryst_const())
+        self.coords_frac = np.empty((self.natoms, 3))
+        self.counters['coords'] = []
+        maxcnt = 1000
+        for iatom in range(self.natoms):
+            if iatom == 0:
+                cnt = 1
+                self._add_random_atom(iatom)
+            else:                
+                cnt = 1
+                while cnt <= maxcnt:
+                    self._add_random_atom(iatom)
+                    if self.atoms_too_close(iatom):
+                        self._add_random_atom(iatom)
+                        cnt += 1
+                    else:
+                        break
+            self.counters['coords'].append(cnt)
+            if cnt > maxcnt:
+                raise StandardError("failed to create random coords for "
+                                    "iatom=%i" %iatom)
+        st = Structure(symbols=self.symbols,
+                       coords_frac=self.coords_frac,
+                       cell=self.cell)        
+        return st
+
