@@ -1,13 +1,34 @@
+base.py
+-------
+* Re-think the whole implementation of FlexibleGetters. I think all of this can
+  be done using lazy evaluation, i.e. decorate getters in derived classed with
+  something like "@lazyproperty". Then the actual calculation is done only
+  once, if a attr is accessed (i.e. struct.cell). Currently we do that with
+  calls to check_set_attr() in each getter. Some ideas: 
+  http://stackoverflow.com/questions/3012421/python-lazy-property-decorator
+  Then, FlexibleGetters can be removed completely!
+
 crys.py
 -------
 * All *3d() funcs use simple loops currently. This is slow. Find vectorized
   versions or re-implement in Fortran (flib.f90) / Cython / ...
 * Structure / Trajectory: Instead of cryst_const, store abc+angles, apply
-  length unit to abc and derive cell + cryst_const from abc+angles  
-* Use scipy.spatial.distance.pdist (or cdist) in rpdf() which is *much* faster.
+  length unit to abc and derive cell + cryst_const from abc+angles. 
+* rpdf(): Use scipy.spatial.distance.pdist() or cdist() or a variant of
+   _flib.distsq_frac() for 3d array which is *much* faster.
   pdist() also returns a "condensed" 1d array w/ all distances. We can feed
   that directly to histogram()! This would solve major problems with that
   fuction.
+* rpdf(): If we re-code the distance part in Fortran, add support for variable
+  cell trajectories. 
+* Maybe make crys.Structure / Trajectory do lazy evaluation by default 
+  by setting set_all_auto to False (maybe rename it to "lazy"). No we have:
+    st = Structure(...)
+    st.cell         # access pre-calculated attr
+    st.get_cell()   # calculate and return or return pre-calculated attr
+  We want:  
+    st.cell # call self.get_cell() if not calculated etc.
+  This can be done only if we turn all attrs into lazy evaluated properties.
 
 pydos.py
 --------

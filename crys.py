@@ -1057,11 +1057,11 @@ def rmax_smith(cell):
     rmax = 0.5*min(wa,wb,wc)
     return rmax
 
-def rpdf(trajs, dr=None, rmax='auto', amask=None, tmask=None, 
-         dmask=None, pbc=True, norm_vmd=False):
+def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None, 
+         dmask=None, pbc=True, norm_vmd=False, maxmem=2.0):
     """Radial pair distribution (pair correlation) function.
     Can also handle non-orthorhombic unit cells (simulation boxes). 
-    Only fixed-cell MD.
+    Only fixed-cell MD at the moment.
 
     rmax
     ----
@@ -1090,7 +1090,7 @@ def rpdf(trajs, dr=None, rmax='auto', amask=None, tmask=None,
         you would use `amask` instead. The option to provide a list of two
         Trajectory objects exists for cases where you don't want to use
         `amask`, but create two different Trajectory objects outside.
-    dr : float
+    dr : float, optional
         Radius spacing. Must have the same unit as `cell`, e.g. Angstrom.
     rmax : {'auto', float}, optional
         Max. radius up to which minimum image nearest neighbors are counted.
@@ -1120,7 +1120,7 @@ def rpdf(trajs, dr=None, rmax='auto', amask=None, tmask=None,
             '({d} > 1.0) & ({d} < 3.0)'
         where '{d}' is a placeholder for the distance array (you really have to
         use '{d}'). The placeholder is optional in some pattern. This is similar
-        to VMD's "within" or "pbwithin" syntax. 
+        to VMD's "within" (pbc=False) or "pbwithin" (pbc=True) syntax. 
     pbc : bool, optional
         apply minimum image convention to distances
     norm_vmd : bool, optional
@@ -1128,6 +1128,8 @@ def rpdf(trajs, dr=None, rmax='auto', amask=None, tmask=None,
         (natoms0 * natoms - duplicates) instead of (natoms0*natoms1). Affects
         all-all correlations only. num_int is not affected. Use this only for
         testing.
+    maxmem : float, optional
+        Maximal allowed memory to use, in GB.
 
     returns:
     --------
@@ -1153,8 +1155,8 @@ def rpdf(trajs, dr=None, rmax='auto', amask=None, tmask=None,
     so (use ``tmask=slice(None,None,200)``) and look at the histogram, as you
     take more and more points into account (every 100th, 50th step, ...).
     Especially for Car Parrinello, where time steps are small and the structure
-    doesn't change much, there is no need to use every step.
-    
+    doesn't change much, there is no need to use every step. See also `maxmem`.
+
     examples:
     ---------
     # simple all-all RPDF
@@ -1365,14 +1367,22 @@ def rpdf(trajs, dr=None, rmax='auto', amask=None, tmask=None,
     #
     # We can easily create a MemoryError b/c of the temp arrays that numpy
     # creates. But even w/ numexpr, which avoids big temp arrays, we store the
-    # result sij, which is a 4d array. For natoms=20, nstep=10000, we already
-    # have a 12 GB array in RAM! The only solution is to code the section
-    # Fortran/Cython/whatever in loops:
+    # result sij, which is a 4d array. For natoms=100, nstep=1e5, we already
+    # have a 24 GB array in RAM! The only solution is to code this section
+    # using Fortran/Cython/whatever in loops:
     #   * distances
     #   * apply min_image_convention() (optional)
     #   * sij -> rij transform
     #   * redcution to distances
     # 
+    # Variable cell
+    # -------------
+    # Currently, we allow only fixed cell data b/c then we can use numpy
+    # broadcasting to convert fractional to cartesian coords. But if we
+    # implement the distance calculation in Fortran, we can easily allow
+    # variable cell b/c then, we explicitely loop over time steps and can
+    # perform the conversion at every step.
+    #
     # Differences to VMD's measure gofr
     # =================================
     #
@@ -1486,6 +1496,10 @@ def rpdf(trajs, dr=None, rmax='auto', amask=None, tmask=None,
     rad = bins[:-1]+0.5*dr
     volume_shells = 4.0/3.0*pi*(bins[1:]**3.0 - bins[:-1]**3.0)
     norm_fac_pre = volume / volume_shells
+    
+    if nstep * natoms0 * natoms1 * 24.0 / 1e9 > maxmem:
+        raise StandardError("would use more than maxmem=%f GB of memory, "
+                            "try `tmask` to reduce time steps" %maxmem)
 
     # distances
     # sij: (nstep, natoms0, natoms1, 3)

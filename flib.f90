@@ -292,4 +292,3 @@ subroutine distsq_frac(coords_frac, cell, mic, distsq, distvecs, distvecs_frac, 
         end do
     end do
 end subroutine distsq_frac
-
