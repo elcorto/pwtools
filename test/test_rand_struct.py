@@ -8,7 +8,9 @@ def test_rand_struct():
                               angle_range=[60.0, 120.0],
                               vol_range_scale=[0.7, 1.3],
                               length_range_scale=[0.7, 1.3],
-                              close_scale=0.7)
+                              close_scale=0.7,
+                              cell_maxtry=100,
+                              atom_maxtry=1000)
     st = rs.get_random_struct()
     assert st.is_struct
     assert not None in [st.coords, 

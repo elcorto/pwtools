@@ -2461,6 +2461,12 @@ def struct2traj(obj):
 #   -> create MD-like data (structure changes but mean structure is constant) w/o 
 #   running an MD!
 
+class RandomStructureFail(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+    def __str__(self):
+        return self.msg
+
 class RandomStructure(object):
     """Create a random structure, based on atom number and composition alone
     (`symbols`).
@@ -2482,7 +2488,6 @@ class RandomStructure(object):
     # ------
     # * Maybe add outer loop, create new cryst_const and try again if creating
     #   struct failed once. 
-    # * maxcnt currently hardcoded, maybe expose as parameter
     # * Maybe don't raise exceptions if struct creation fails, only print
     #   warning / let user decide -- add arg error={True,False}.
     # * The bottleneck is get_random_struct() -- the loop over
@@ -2493,7 +2498,9 @@ class RandomStructure(object):
                  angle_range = [60.0, 120.0],
                  vol_range_scale=[0.7,1.3],
                  length_range_scale=[0.7,1.3],
-                 close_scale=1):
+                 close_scale=1,
+                 cell_maxtry=100,
+                 atom_maxtry=1000):
         """
         args:
         -----
@@ -2515,11 +2522,16 @@ class RandomStructure(object):
         close_scale : float
             Scale allowed distance between atoms (from sum of covalent radii).
             Use < 1.0 to make tightly packed structures.
+        cell_maxtry / atom_maxtry : integer, optional
+            Maximal attempts to create a random cell / insert random atom into
+            cell before RandomStructureFail is raised.
         """
         self.symbols = symbols
         self.close_scale = close_scale
         self.angle_range = angle_range
         self.natoms = len(self.symbols)
+        self.cell_maxtry = cell_maxtry
+        self.atom_maxtry = atom_maxtry
         self.cov_radii = np.array([atomic_data.pt[sym]['cov_rad'] for \
                                    sym in symbols])
         self.dij_min = (self.cov_radii + self.cov_radii[:,None]) * self.close_scale
@@ -2538,8 +2550,7 @@ class RandomStructure(object):
                                    uniform(self.angle_range[0], 
                                            self.angle_range[1], 3)))
         cnt = 1
-        maxcnt = 100
-        while cnt <= maxcnt:
+        while cnt <= self.cell_maxtry:
             cc = _get()
             vol = volume_cc(cc)
             if not self.vol_range[0] <= vol <= self.vol_range[1]:
@@ -2548,7 +2559,7 @@ class RandomStructure(object):
             else:
                 self.counters['cryst_const'] = cnt
                 return cc
-        raise StandardError("failed creating random cryst_const")            
+        raise RandomStructureFail("failed creating random cryst_const")            
     
     def atoms_too_close(self, iatom):
         """Check if any two atoms are too close, i.e. closer then the sum of
@@ -2591,14 +2602,13 @@ class RandomStructure(object):
         self.cell = cc2cell(self.get_random_cryst_const())
         self.coords_frac = np.empty((self.natoms, 3))
         self.counters['coords'] = []
-        maxcnt = 1000
         for iatom in range(self.natoms):
             if iatom == 0:
                 cnt = 1
                 self._add_random_atom(iatom)
             else:                
                 cnt = 1
-                while cnt <= maxcnt:
+                while cnt <= self.atom_maxtry:
                     self._add_random_atom(iatom)
                     if self.atoms_too_close(iatom):
                         self._add_random_atom(iatom)
@@ -2606,9 +2616,10 @@ class RandomStructure(object):
                     else:
                         break
             self.counters['coords'].append(cnt)
-            if cnt > maxcnt:
-                raise StandardError("failed to create random coords for "
-                                    "iatom=%i" %iatom)
+            if cnt > self.atom_maxtry:
+                raise RandomStructureFail("failed to create random coords for "
+                                          "iatom=%i of %i" %(iatom,
+                                                             self.natoms-1))
         st = Structure(symbols=self.symbols,
                        coords_frac=self.coords_frac,
                        cell=self.cell)        
