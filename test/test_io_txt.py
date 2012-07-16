@@ -74,5 +74,11 @@ def test():
     txt = "1.0 2.0 3\n4   5   6\n"
     arr = arrayio.readtxt(StringIO(txt), shape=(2,3), axis=-1, dtype=float)
     assert arr.dtype == np.array([1.0]).dtype
-    arr = arrayio.readtxt(StringIO(txt), shape=(2,3), axis=-1, dtype=int)
+    # Apparently in Python 2.7: 
+    #   float('1.0') -> 1.0
+    #   int('1.0')  -> ValueError: invalid literal for int() with base 10: '1.0'
+    #   int(float('1.0')) -> 1
+    # We need to (ab)use converters. Ugh.  
+    arr = arrayio.readtxt(StringIO(txt), shape=(2,3), axis=-1, dtype=int,
+                          converters=dict((x,lambda a: int(float(a))) for x in [0,1,2]))
     assert arr.dtype == np.array([1]).dtype

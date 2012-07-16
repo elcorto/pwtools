@@ -81,7 +81,7 @@ def test_sql():
     np.testing.assert_array_equal(db.get_array("select idx from calc"), 
                                   np.array([0,1,2])[:,None])
     np.testing.assert_array_equal(db.get_array("select idx,foo from calc"), 
-                                  np.array(vals)[:,:2].astype(float))
+                                  np.array(vals, dtype='S3')[:,:2].astype(float))
 
     # add_column(), fill with values
     db.add_column('baz', 'TEXT')
