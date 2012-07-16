@@ -245,6 +245,9 @@ class SQLiteDB(object):
         """Fill existing column `col` with values from `values`, starting from
         rowid `start`. "rowid" is a special sqlite column which is always
         present and which numbers all rows. 
+
+        The column must already exist. To add a new column and fill it, see
+        attach_column().
         
         args:
         -----
@@ -285,13 +288,14 @@ class SQLiteDB(object):
             rowid += 1                
     
     def attach_column(self, col, values, sqltype=None, **kwds):
-        """Attach (add) a new column named `col` of `sqltype` with `values` to
-        the table. 
+        """Attach (add) a new column named `col` of `sqltype` and fill it with
+        `values`. With overwrite=True, allow writing into existing columns,
+        i.e. behave like fill_column().
         
         This is a short-cut method which essentially does:
             add_column(...)
             fill_column(...)
-        
+
         args:
         -----
         col : str
@@ -303,14 +307,15 @@ class SQLiteDB(object):
         **kwds : additional keywords passed to fill_column(),
             default: start=1, extend=True, overwrite=False
         """
-        default_kwds = {'start':1, 'extend': True, 'overwrite': False}
-        default_kwds.update(kwds)
-        # Protect existing columns.
-        assert not self.has_column(col), "column already present: %s" %col
+        current_kwds = {'start':1, 'extend': True, 'overwrite': False}
+        current_kwds.update(kwds)
+        if not current_kwds['overwrite']:
+            assert not self.has_column(col), ("column already present: %s, use " 
+                                              "overwrite=True" %col)
         if sqltype is None:
             sqltype = find_sqltype(values[0])
         self.add_column(col, sqltype)
-        self.fill_column(col, values, **default_kwds)
+        self.fill_column(col, values, **current_kwds)
 
     def get_header(self):
         """Return the "header" of the table `table':

@@ -177,6 +177,10 @@ def test_sql():
     db.fill_column('baz2', values=[1,4,9,16], 
                     overwrite=True, start=1)
     assert db.get_list1d('select baz2 from test3') == [1,4,9,16,5,6]
+    # attach_column(..., overwrite=True) = fill_column()
+    db.attach_column('baz2', values=[2,4,6,8,10,12], 
+                     overwrite=True, start=1)
+    assert db.get_list1d('select baz2 from test3') == [2,4,6,8,10,12]
 
     # --- SQLEntry ----------------------------------------------------
     x = SQLEntry(1, 'integer')
