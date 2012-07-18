@@ -14,16 +14,13 @@ import os
 import numpy as np
 from pwtools import crys, parse, arrayio, io
 from testenv import testdir
-from pwtools.test.tools import aaae, aae
+from pwtools.test.tools import aae
 pj = os.path.join
 rand = np.random.rand
 
 doplot = False
-
 if doplot:
     from matplotlib import pyplot as plt
-
-have_vmd = os.system('which vmd > /dev/null 2>&1') == 0
 
 def load_old(fn):
     # Load old ref data and reshape:
@@ -34,7 +31,8 @@ def load_old(fn):
         assert (arr[...,istep] == arr2[istep,...]).all()
     return arr2        
 
-def test():
+def test_rpdf():
+    have_vmd = os.system('which vmd > /dev/null 2>&1') == 0
     for name in ['rand_3d', 'aln_ibrav0_sc', 'aln_ibrav2_sc']:
         print("name: %s" %name)
         dd = 'files/rpdf'
@@ -141,9 +139,9 @@ def test():
                                             )
                 ret.append(tmp)
         
-            aaae(ret[0][:,0], ret[1][:,0])
-            aaae(ret[0][:,1], ret[1][:,1])
-            aaae(ret[0][:,2], ret[1][:,2])
+            np.allclose(ret[0][:,0], ret[1][:,0])
+            np.allclose(ret[0][:,1], ret[1][:,1])
+            np.allclose(ret[0][:,2], ret[1][:,2])
         
         # API call_vmd_measure_gofr()
         trajfn = pj(testdir, 'vmd_xsf_call_vmd_measure_gofr')
@@ -159,17 +157,17 @@ def test():
         rmax = 10
         vmd = crys.vmd_measure_gofr(traj, dr=0.1, sel=['all', 'all'], rmax=10)
         pwt = crys.rpdf(traj, dr=0.1, amask=None, rmax=10)
-        aaae(vmd[:-1,0], pwt[:,0])  # rad
-        ##aaae(vmd[:-1,1], pwt[:,1]) # hist
-        aaae(vmd[:-1,2], pwt[:,2])  # num_int
+        np.allclose(vmd[:-1,0], pwt[:,0])  # rad
+        ##np.allclose(vmd[:-1,1], pwt[:,1]) # hist
+        np.allclose(vmd[:-1,2], pwt[:,2])  # num_int
         
         # 2 selections, all ok
         sy = np.array(traj.symbols)
         vmd = crys.vmd_measure_gofr(traj, dr=0.1, sel=['name O', 'name H'], rmax=10)
         pwt = crys.rpdf(traj, dr=0.1, amask=[sy=='O', sy=='H'], rmax=10)
-        aaae(vmd[:-1,0], pwt[:,0])  # rad
-        aaae(vmd[:-1,1], pwt[:,1])  # hist
-        aaae(vmd[:-1,2], pwt[:,2])  # num_int
+        np.allclose(vmd[:-1,0], pwt[:,0])  # rad
+        np.allclose(vmd[:-1,1], pwt[:,1])  # hist
+        np.allclose(vmd[:-1,2], pwt[:,2])  # num_int
         
         if doplot:
             plt.show()
