@@ -19,13 +19,13 @@ def wien_sgroup_input(struct, lat_symbol='P'):
     
     length: can be any
 
-    args:
-    -----
+    Parameters
+    ----------
     struct : Structure instance
     lat_symbol : str, e.g. 'P'
 
-    notes:
-    ------
+    Notes
+    -----
     From sgroup's README:
 
     / ------------------------------------------------------------
@@ -81,8 +81,8 @@ def write_cif(filename, struct):
     
     length: Angstrom
 
-    args:
-    -----
+    Parameters
+    ----------
     filename : str
         name of output .cif file
     struct : Structure, length units Angstrom assumed        
@@ -132,15 +132,15 @@ def write_xyz(filename, obj, name='pwtools_dummy_mol_name'):
     
     length: Angstrom
     
-    args:
-    -----
+    Parameters
+    ----------
     filename : target file name
     obj : Trajectory or Structure
     name : str, optional
         Molecule name.
 
-    refs:
-    -----
+    References
+    ----------
     [VMD] http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/xyzplugin.html
     """
     traj = crys.struct2traj(obj)
@@ -162,17 +162,17 @@ def write_axsf(filename, obj):
     length: Angstrom
     forces: Ha / Angstrom
 
-    args:
-    -----
+    Parameters
+    ----------
     filename : target file name
     obj : Structure or Trajectory
 
-    refs:
-    -----
+    References
+    ----------
     [XSF] http://www.xcrysden.org/doc/XSF.html
     """
-    # notes:
-    # ------
+    # Notes
+    # -----
     # XSF: The XSF spec [XSF] is a little fuzzy about what PRIMCOORD actually
     #     is (fractional or cartesian Angstrom). Only the latter case results
     #     in a correctly displayed structure in xcrsyden. So we use that.

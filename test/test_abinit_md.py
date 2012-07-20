@@ -9,8 +9,8 @@ def assrt_aae(*args, **kwargs):
 
 def check(pp, none_attrs=[], extra_attrs=[]):
     """
-    args:
-    -----
+    Parameters
+    ----------
     pp : instance of parsing class
     none_attrs : attrs which are in self.attr_lst but are None after calling
         self.parse().
@@ -38,8 +38,8 @@ def check(pp, none_attrs=[], extra_attrs=[]):
 def check_cons(pp):
     """Check consistency of redundant attrs. This is mainly for debugging.
     
-    args:
-    -----
+    Parameters
+    ----------
     pp : parser class instance, parse() called
 
     Check consistency between cell and cryst_const. Assume:

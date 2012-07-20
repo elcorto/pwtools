@@ -22,17 +22,17 @@ def _read_header_config(fh, header_maxlines=HEADER_MAXLINES,
     """Read a ini-style file from the header of a text file. Return a
     PydosConfigParser object.
 
-    args:
-    -----
+    Parameters
+    ----------
     fh : file handle, readable
     header_maxlines : max lines to read down from top of the file
     header_comment : comment sign w/ which the header must be prefixed
     
-    returns:
-    --------
+    Returns
+    -------
     PydosConfigParser object
 
-    example:
+    Examples
     --------
     >>> !cat foo.txt
     # [array]
@@ -97,8 +97,8 @@ def writetxt(fn, arr, axis=-1, maxdim=TXT_MAXDIM):
     commented out ini-style header in the file with infos needed by readtxt()
     to restore the right shape.
     
-    args:
-    -----
+    Parameters
+    ----------
     fn : filename
     arr : array (max 3d)
     axis : axis along which 2d chunks are written
@@ -145,16 +145,16 @@ def readtxt(fh, axis=None, shape=None, header_maxlines=HEADER_MAXLINES,
     normal text files which have no special header. Use np.loadtxt() in this
     case.
 
-    args:
-    -----
+    Parameters
+    ----------
     fh : file_like
     axis : int
     shape : tuple
     **kwargs : keyword args passed to numpy.loadtxt(), e.g. comments='@@' to
         ignore weird lines etc.
 
-    returns:
-    --------
+    Returns
+    -------
     nd array
     """
     fn = common.get_filename(fh)
@@ -235,8 +235,8 @@ def writearr(fn, arr, comment=None, info=None,
     write a file `fn`.info with some misc information from `comment` and
     `info`. 
     
-    args:
-    -----
+    Parameters
+    ----------
     arr : numpy ndarrray
     fn : str, filename
     comment : string

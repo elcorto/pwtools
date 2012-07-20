@@ -83,8 +83,8 @@ class RBFFunction(object):
     """Represent a single radial basis function."""
     def __init__(self, param=None):
         """
-        args:
-        -----
+        Parameters
+        ----------
         param : scalar or None
             The RBF's free parameter.
         """
@@ -97,8 +97,8 @@ class RBFFunction(object):
 
     def __call__(self, rsq, param=None):
         """
-        args:
-        -----
+        Parameters
+        ----------
         rsq : scalar or nd array
             Squared distances. Squared b/c this avoids using sqrt() in the
             distance matrix (R) calculation just to square them here again.
@@ -123,11 +123,12 @@ class RBFInverseMultiquadric(RBFFunction):
         return (rsq + self._get_param(param)**2.0)**(-0.5)
 
 class RBFInt(object):
+    """Radial basis function neural network interpolator."""
     def __init__(self, X, Y=None, C=None, rbf=RBFMultiquadric(),
                  verbose=False, distmethod='fortran'):
         """
-        args:
-        -----
+        Parameters
+        ----------
         X : 2d array, (M,N)
             data points : M points in N-dim space, training set points
         Y: 1d array, (M,)
@@ -144,11 +145,11 @@ class RBFInt(object):
                 spatial : scipy.spatial.distance.cdist
                 numpy : pure numpy (memory hungry, slowest)
 
-        example:
+        Examples
         --------
-        1D example w/ derivatives. For 1d, we need to use X[:,None] b/c the
-        input array containing training (X) and interpolation (XI) points must
-        be 2d.
+        >>> # 1D example w/ derivatives. For 1d, we need to use X[:,None] b/c the
+        >>> # input array containing training (X) and interpolation (XI) points must
+        >>> # be 2d.
         >>> X=linspace(0,10,20)     # shape (M,), M=20 points
         >>> Y=sin(X)                # shape (M,)
         >>> rbfi=rbf.RBFInt(X[:,None],Y)    
@@ -160,7 +161,7 @@ class RBFInt(object):
         >>> plot(XI, cos(XI), label='cos(x)')
         >>> plot(XI, rbfi(XI[:,None],der=1)[:,0], label='d(rbf)/dx')
         >>> legend()
-        2D example
+        >>> # 2D example
         >>> from pwtools import mpl, rbf
         >>> x1=linspace(-3,3,10); x2=x1
         >>> X1,X2=np.meshgrid(x1,x2); X1,X2 = X1.T,X2.T
@@ -214,7 +215,7 @@ class RBFInt(object):
         times, using the same X grid w/o re-calculating Rsq over and over
         again.
         
-        example:
+        Examples
         --------
         >>> rbfi = rbf.RBFInt(X=X, Y=None)
         >>> rbfi.calc_dist_mat()
@@ -230,20 +231,21 @@ class RBFInt(object):
         self.Y = Y
 
     def get_dist_mat(self, X=None, C=None):
-        """Matrix of distance values r_ij = ||x_i - c_j||.
-        x_i : X[i,:]
-        c_i : C[i,:]
+        """Matrix of distance values r_ij = ||x_i - c_j|| with::
 
-        args:
-        -----
+            x_i : X[i,:]
+            c_i : C[i,:]
+
+        Parameters
+        ----------
         X : None or array (M,N) with N-dim points
             Training data or interpolation points. If None then self.Rsq is
             returned.
         C : 2d array (K,N), optional
             If None then self.C is used.
 
-        returns:
-        --------
+        Returns
+        -------
         Rsq : (M,K), where K = M usually for training
         """
         # pure numpy:
@@ -292,8 +294,8 @@ class RBFInt(object):
     def get_param(self, param):
         """Return `param` for RBF (to set self.rbf.param).
 
-        args:
-        -----
+        Parameters
+        ----------
         param : string 'est' or float
             If 'est', then return the mean distance of all points. 
         """
@@ -322,8 +324,8 @@ class RBFInt(object):
         -----------
         weights
 
-        returns:
-        --------
+        Returns
+        -------
         {'weights': w, 'param': p}
             w : (K,), linear output weights for K center vectors
             p : None
@@ -354,16 +356,16 @@ class RBFInt(object):
         """Actually do interpolation. Return interpolated Y values at each
         point in X.
         
-        args:
-        -----
+        Parameters
+        ----------
         X : see interpolate()
 
-        returns:
-        --------
+        Returns
+        -------
         YI : 1d array (L,)
 
-        notes:
-        ------
+        Notes
+        -----
         Calculates 
             Rsq = (X - C)**2      # squared distance matrix
             G = rbf(Rsq)          # RBF values
@@ -389,19 +391,19 @@ class RBFInt(object):
             RBFMultiquadric
             RBFGauss
 
-        args:
-        -----
+        Parameters
+        ----------
         X : see interpolate()
 
-        returns:
-        --------
+        Returns
+        -------
         2d array (L,N)
             Each row holds the partial derivatives of one input point ``X[i,:] =
             [x_0, ..., x_N]``. For all points X: (L,N), we get the matrix::
 
-            [[dy/dx0_0, dy/dx0_1, ..., dy/dx0_N],
-             [...],
-             [dy/dxL_0, dy/dxL_1, ..., dy/dxL_N]]
+                [[dy/dx0_0, dy/dx0_1, ..., dy/dx0_N],
+                 [...],
+                 [dy/dxL_0, dy/dxL_1, ..., dy/dxL_N]]
         """
         # For the implemented RBF types, the derivatives w.r.t. to the point
         # coords simplify to nice dot products, which can be evaluated
@@ -453,8 +455,8 @@ class RBFInt(object):
         """
         Call self.interpolate() or self.deriv().
 
-        args:
-        -----
+        Parameters
+        ----------
         X : 2d array (L,N) or 1d array (N,) or None 
             L data points in N-dim space. If None, then X = self.X, i.e. just
             evaluate the training set. If 1d, then this is just 1 point, which
@@ -463,8 +465,8 @@ class RBFInt(object):
             If == 1 return matrix of partial derivatives (see self.deriv()), else
             interpolated Y values (default).
 
-        returns:
-        --------
+        Returns
+        -------
         YI : 1d array (L,)
             Interpolated values.
         or             
@@ -488,8 +490,8 @@ def train_param(X, Y, param0='est', pattern='rand', regstep=2,
     of the training set, evaluating the full training set and measuring the
     interpolation error at the missing points.
 
-    args:
-    -----
+    Parameters
+    ----------
     X, Y: See RBFInt.
     param0 : float or str 'est'
         Start RBF parameter. 'est' for using the mean point distance in the
@@ -510,8 +512,8 @@ def train_param(X, Y, param0='est', pattern='rand', regstep=2,
     rbf : RBFFunction instance
     **fmin_kwds : passed to fmin()
 
-    returns:
-    --------
+    Returns
+    -------
     RBFInt instance
     """
     npoints = X.shape[0]

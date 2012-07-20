@@ -17,29 +17,25 @@ def fftsample(a, b, mode='f', mirr=False):
     The maximal frequency is also called the Nyquist frequency and is
     1/2*samplerate.
     
-    args:
-    -----
-    a, b: scalars, see below
+    Parameters
+    ----------
+    a, b: float
+        | mode='f': a=fmax  b=df
+        | mode='t': a=dt    b=N
     mode : string, {'f', 't'}
-        f : frequency mode
-        t : time mode
-    mirr: bool, consider mirroring of the signal at t=0 before Fourier
-        transform
+        | f : frequency mode
+        | t : time mode
+    mirr: bool 
+        consider mirroring of the signal at t=0 before Fourier transform
     
-    a,b are: 
-        f-mode: fmax, df
-        t-mode: dt, N
-
-    returns:
-    --------
-    f-mode:
-        array([dt, N])
-    t-mode:
-        array([fmax, df])
+    Returns
+    -------
+    mode='f': array([dt,   N])
+    mode='t': array([fmax, df])
     
-    example:
+    Examples
     --------
-    # fmax = 100 Hz, df = 1 Hz -> you need 200 steps with dt=0.005 sec
+    >>> # fmax = 100 Hz, df = 1 Hz -> you need 200 steps with dt=0.005 sec
     >>> fftsample(100, 1, mode='f') 
     array([  5.00000000e-03,   2.00000000e+03])
     >>> fftsample(5e-3, 2e3, mode='t')
@@ -48,12 +44,16 @@ def fftsample(a, b, mode='f', mirr=False):
     >>> fftsample(100, 1, mode='f', mirr=True)
     array([  5.00000000e-03,   1.00000000e+02])
 
-    notes:
-    ------
-    These relations hold ("v" - down, "^" - up):
-        size                resolution
-        N [t] ^     <->     df [f] v
-        fmax [f] ^  <->     dt [t] v
+    Notes
+    -----
+    These relations hold:
+    
+    ===========         ===========
+    size                resolution
+    ===========         ===========
+    N [t] up            df [f] down
+    fmax [f] up         dt [t] down
+    ===========         ===========
     
     If you know that the signal in the time domain will be mirrored before FFT
     (N -> 2*N), you will get 1/2*df (double fine resolution), so 1/2*N is
@@ -83,17 +83,17 @@ def fftsample(a, b, mode='f', mirr=False):
 def dft(a, method='loop'):
     """Simple straightforward complex DFT algo. 
     
-    args:
-    -----
+    Parameters
+    ----------
     a : numpy 1d array
     method : string, {'matmul', 'loop'}
     
-    returns: 
-    --------
+    Returns
+    -------
     (len(a),) array
 
-    examples:
-    ---------
+    Examples
+    --------
     >>> from scipy.fftpack import fft
     >>> a=np.random.rand(100)
     >>> sfft=fft(a)
@@ -102,31 +102,33 @@ def dft(a, method='loop'):
     >>> np.testing.assert_array_almost_equal(sfft, dfft1)
     >>> np.testing.assert_array_almost_equal(sfft, dfft2)
 
-    notes:
-    ------
+    Notes
+    -----
     This is only a reference implementation and has it's limitations.
-        'loop': runs looong
-        'matmul': memory limit
-        => use only with medium size arrays
+        | 'loop': runs looong
+        | 'matmul': memory limit
+        | => use only with medium size arrays
 
     N = len(a)
     sqrt(-1) == np.sqrt(1.0 + 0.0*j) = 1.0j
 
-    Forward DFT, see [2,3], scipy.fftpack.fft():
+    Forward DFT, see [2]_ and [3]_ , scipy.fftpack.fft():
         y[k] = sum(n=0...N-1) a[n] * exp(-2*pi*n*k*sqrt(-1)/N)
         k = 0 ... N-1
     
-    Backward DFT, see [1] eq. 12.1.6, 12.2.2:
+    Backward DFT, see [1]_ eq. 12.1.6, 12.2.2:
         y[k] = sum(n=0...N-1) a[n] * exp(2*pi*n*k*sqrt(-1)/N)
         k = 0 ... N-1
 
-    The algo for method=='matmul' is the matrix mult from [1], but as Forward
+    The algo for method=='matmul' is the matrix mult from [1]_, but as Forward
     DFT for comparison with scipy. The difference between FW and BW DFT is that
     the imaginary parts are mirrored at y=0. 
-
-    [1] Numerical Recipes in Fortran, Second Edition, 1992
-    [2] http://www.fftw.org/doc/The-1d-Real_002ddata-DFT.html
-    [3] http://mathworld.wolfram.com/FourierTransform.html
+    
+    References
+    ----------
+    .. [1] Numerical Recipes in Fortran, Second Edition, 1992
+    .. [2] http://www.fftw.org/doc/The-1d-Real_002ddata-DFT.html
+    .. [3] http://mathworld.wolfram.com/FourierTransform.html
     """
     pi = np.pi
     N = a.shape[0]
@@ -157,8 +159,8 @@ def pad_zeros(arr, axis=0, where='end', nadd=None, upto=None, tonext=None,
     """Pad an nd-array with zeros. Default is to append an array of zeros of 
     the same shape as `arr` to arr's end along `axis`.
     
-    args:
-    -----
+    Parameters
+    ----------
     arr :  nd array
     axis : the axis along which to pad
     where : string {'end', 'start'}, pad at the end ("append to array") or 
@@ -174,13 +176,13 @@ def pad_zeros(arr, axis=0, where='end', nadd=None, upto=None, tonext=None,
 
     Use only one of nadd, upto, tonext.
     
-    returns:
-    --------
+    Returns
+    -------
     padded array
 
-    examples:
-    ---------
-    # 1d 
+    Examples
+    --------
+    >>> # 1d 
     >>> pad_zeros(a)
     array([1, 2, 3, 0, 0, 0])
     >>> pad_zeros(a, nadd=3)
@@ -191,7 +193,7 @@ def pad_zeros(arr, axis=0, where='end', nadd=None, upto=None, tonext=None,
     array([1, 2, 3, 0])
     >>> pad_zeros(a, nadd=1, where='start')
     array([0, 1, 2, 3])
-    # 2d
+    >>> # 2d
     >>> a=arange(9).reshape(3,3)
     >>> pad_zeros(a, nadd=1, axis=0)
     array([[0, 1, 2],
@@ -202,7 +204,7 @@ def pad_zeros(arr, axis=0, where='end', nadd=None, upto=None, tonext=None,
     array([[0, 1, 2, 0],
            [3, 4, 5, 0],
            [6, 7, 8, 0]])
-    # up to next power of two           
+    >>> # up to next power of two           
     >>> 2**arange(10)
     array([  1,   2,   4,   8,  16,  32,  64, 128, 256, 512])
     >>> pydos.pad_zeros(arange(9), tonext=True).shape
@@ -278,28 +280,28 @@ def acorr(v, method=7, norm=True):
     for reference and are slow, except for fft-based, which is by far the
     fastet. 
 
-    args:
-    -----
+    Parameters
+    ----------
     v : 1d array
     method : int
-        1: Python loops
-        2: Python loops, zero-padded
-        3: method 1, numpy vectorized
-        4: uses numpy.correlate()
-        5: Fortran version of 1
-        6: Fortran version of 3
-        7: fft, Wiener-Khinchin Theorem
+        | 1: Python loops
+        | 2: Python loops, zero-padded
+        | 3: method 1, numpy vectorized
+        | 4: uses numpy.correlate()
+        | 5: Fortran version of 1
+        | 6: Fortran version of 3
+        | 7: fft, Wiener-Khinchin Theorem
     norm : bool
         normalize or not
 
-    returns:
-    --------
+    Returns
+    -------
     c : numpy 1d array
-        c[0]  <=> lag = 0
-        c[-1] <=> lag = len(v)
+        | c[0]  <=> lag = 0
+        | c[-1] <=> lag = len(v)
     
-    notes:
-    ------
+    Notes
+    -----
     speed:
         methods 1 ...  are loosely ordered slow ... fast
     methods:
@@ -308,7 +310,8 @@ def acorr(v, method=7, norm=True):
        The FFT method introduces small numerical noise, norm(acorr(v,1) -
        acorr(v,4)) = O(1e-16) or so.
 
-    signature of the Fortran extension _flib.acorr
+    signature of the Fortran extension _flib.acorr::
+
         acorr - Function signature:
           c = acorr(v,c,method,[nstep])
         Required arguments:
@@ -320,13 +323,13 @@ def acorr(v, method=7, norm=True):
         Return objects:
           c : rank-1 array('d') with bounds (nstep)
     
-    refs:
-    -----
-    [1] Numerical Recipes in Fortran, 2nd ed., ch. 13.2
-    [2] http://mathworld.wolfram.com/FourierTransform.html
-    [3] http://mathworld.wolfram.com/Cross-CorrelationTheorem.html
-    [4] http://mathworld.wolfram.com/Wiener-KhinchinTheorem.html
-    [5] http://mathworld.wolfram.com/Autocorrelation.html
+    References
+    ----------
+    .. [1] Numerical Recipes in Fortran, 2nd ed., ch. 13.2
+    .. [2] http://mathworld.wolfram.com/FourierTransform.html
+    .. [3] http://mathworld.wolfram.com/Cross-CorrelationTheorem.html
+    .. [4] http://mathworld.wolfram.com/Wiener-KhinchinTheorem.html
+    .. [5] http://mathworld.wolfram.com/Autocorrelation.html
     """
     nstep = v.shape[0]
     c = np.zeros((nstep,), dtype=float)

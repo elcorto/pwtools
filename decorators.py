@@ -84,20 +84,20 @@ def crys_add_doc(func):
     related functionallity."""
     dct = {}
     dct['cell_doc'] = \
-    """cell: array, shape (3,3)
+    """cell : array, shape (3,3)
         Matrix with basis vectors as rows."""
     dct['cryst_const_doc'] = \
-    """cryst_const: array_like, shape (6,)
-        [a, b, c, alpha, beta, gamma]"""
+    """cryst_const : array_like, shape (6,)
+        [a, b, c, alpha, beta, gamma], where alpha=angle(b,c), beta=angle(a,c),
+        gamma=angle(a,b)"""
     dct['celldm'] = \
-    """celldm: array_like, shape (6,)
+    """celldm : array_like, shape (6,)
         [a, b/a, c/a, cos(alpha), cos(beta), cos(gamma)]
         `a` is supposed to be in Bohr"""
     dct['notes_cell_crys_const'] = \
-    """We use PWscf notation.
-    CELL_PARAMETERS == (matrix of) primitime basis vectors elsewhere
-    crystallographic constants a,b,c,alpha,beta,gamma == cell parameters 
-        elsewhere"""
+    """We use PWscf notation. CELL_PARAMETERS == (matrix of) primitime basis
+    vectors elsewhere crystallographic constants a,b,c,alpha,beta,gamma == cell
+    parameters elsewhere"""
     # Use dictionary string replacement:
     # >>> '%(lala)i %(xxx)s' %{'lala': 3, 'xxx': 'grrr'}
     # '3 grrr'

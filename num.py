@@ -11,7 +11,7 @@ import types
 def normalize(a):
     """Normalize array by it's max value. Works also for complex arrays.
 
-    example:
+    Examples
     --------
     >>> a=np.array([3+4j, 5+4j])
     >>> a
@@ -27,13 +27,13 @@ def vlinspace(a, b, num, endpoint=True):
     """Like numpy.linspace, but for 1d arrays. Generate uniformly spaced points
     (vectors) along the distance vector connecting a and b.
     
-    args:
-    -----
+    Parameters
+    ----------
     a, b : 1d arrays
     num : int
 
-    returns:
-    --------
+    Returns
+    -------
     array (num, len(a)), each row is a "point" between `a` and `b`
     """
     assert a.ndim == b.ndim == 1, "expect 1d arrays"
@@ -54,17 +54,17 @@ def vlinspace(a, b, num, endpoint=True):
 def norm_int(y, x, area=1.0):
     """Normalize integral area of y(x) to `area`.
     
-    args:
-    -----
+    Parameters
+    ----------
     x,y : numpy 1d arrays
     area : float
 
-    returns:
-    --------
+    Returns
+    -------
     scaled y
 
-    notes:
-    ------
+    Notes
+    -----
     The argument order y,x might be confusing. x,y would be more natural but we
     stick to the order used in the scipy.integrate routines.
     """
@@ -89,23 +89,23 @@ def deriv_fd(y, x=None, n=1):
     Returns matching x-axis for plotting. Simple finite differences are used:
     f'(x) = [f(x+h) - f(x)] / h
     
-    args:
-    -----
+    Parameters
+    ----------
     x,y : 1d arrays of same length
         if x=None, then x=arange(len(y)) is used
     n : int
         order of the derivative
     
-    returns:
-    --------
+    Returns
+    -------
     xd, yd
     xd : 1d array, (len(x)-n,)
         matching x-axis
     yd : 1d array, (len(x)-n,)
         n-th derivative of y at points xd
 
-    notes:
-    ------
+    Notes
+    -----
     n > 1 (e.g. n=2 -> 2nd derivative) is done by
     recursive application. 
     
@@ -119,7 +119,7 @@ def deriv_fd(y, x=None, n=1):
     Each application returns len(x)-1 points. So for n=3, the returned x and y
     have len(x)-3.
 
-    example:
+    Examples
     --------
     >>> x=sort(rand(100)*10); y=sin(x); plot(x,y, 'o-'); plot(x,cos(x), 'o-')
     >>> x1,y1=deriv_fd(y,x,1) # cos(x)
@@ -129,8 +129,8 @@ def deriv_fd(y, x=None, n=1):
     >>> x=linspace(0,10,100); y=sin(x); plot(x,y, 'o-'); plot(x,cos(x), 'o-')
     >>> ...
     
-    see also:
-    ---------
+    See Also
+    --------
     numpy.diff()
     numpy.gradient()
     """
@@ -149,8 +149,8 @@ def deriv_spl(y, x=None, xnew=None, n=1, fullout=True, **splrep_kwargs):
     """n-th derivative for 1d arrays of possibly nonuniformly sampled data.
     Returns matching x-axis for plotting. Splines are used.
     
-    args:
-    -----
+    Parameters
+    ----------
     x,y : 1d arrays of same length
         if x=None, then x=arange(len(y)) is used
     xnew : {None, 1d array)
@@ -161,8 +161,8 @@ def deriv_spl(y, x=None, xnew=None, n=1, fullout=True, **splrep_kwargs):
         return xd, yd or just yd
     splrep_kwargs : keyword args to scipy.interpolate.splrep, default: k=3, s=0
 
-    returns:
-    --------
+    Returns
+    -------
     if fullout:
         xd, yd
     else:
@@ -171,8 +171,8 @@ def deriv_spl(y, x=None, xnew=None, n=1, fullout=True, **splrep_kwargs):
     yd : 1d array, (len(x) or len(xnew),)
         n-th derivative of y at points xd
     
-    notes:
-    ------
+    Notes
+    -----
     xd is actually == x or xnew (if x is not None). xd can be returned to match
     the function signature of deriv_fd.
     """
@@ -206,12 +206,12 @@ def findmin(x, y):
     This is intended for quick interactive work. For working with
     pre-calculated splines, see Spline.
 
-    args:
-    -----
+    Parameters
+    ----------
     x,y : 1d arrays
 
-    returns:
-    --------
+    Returns
+    -------
     array([x0, y(x0)])
     """
     return _splroot(x, y, der=1)
@@ -225,12 +225,12 @@ def findroot(x, y):
     This is intended for quick interactive work. For working with
     pre-calculated splines, see Spline.
     
-    args:
-    -----
+    Parameters
+    ----------
     x,y : 1d arrays
 
-    returns:
-    --------
+    Returns
+    -------
     array([x0, y(x0)])
     """
     return _splroot(x, y, der=0)
@@ -244,7 +244,7 @@ class Spline(object):
     together in one place. You can work with the methods here, but you can also
     use the normal tck (self.tck) in scipy.interpolate.splev() etc.
 
-    example:
+    Examples
     --------
     >>> from scipy.interpolate import splev
     >>> x = linspace(0,10,100)
@@ -264,8 +264,8 @@ class Spline(object):
     """
     def __init__(self, x, y, eps=1e-10, checkeps=True, **splrep_kwargs):
         """
-        args:
-        -----
+        Parameters
+        ----------
         x, y : numpy 1d arrays
         eps : float
             Accuracy threshold. Spline must interpolate points with an error
@@ -295,16 +295,16 @@ class Spline(object):
         """Find root of `func` by Newton's method if `x0` is given or Brent's
         method if `xab` is given.
 
-        args:
-        -----
+        Parameters
+        ----------
         func : callable, must accept a scalar and retun a scalar
         x0 : float
             start guess for Newton's secant method
         xab : sequence of length 2
             start bracket for Brent's method, root must lie in between
         
-        returns:
-        --------
+        Returns
+        -------
         xx : scalar
             the root of func(x)
         """
@@ -342,15 +342,15 @@ class Spline(object):
         Works only for scalar input (one point lookup). For many points, try to
         construct an inverse spline: Spline(y,x).
         
-        args:
-        -----
+        Parameters
+        ----------
         x0 : float
             start guess for Newton's secant method
         xab : sequence of length 2
             start bracket for Brent's method, root must lie in between
         
-        returns:
-        --------
+        Returns
+        -------
         xx : scalar
         """
         # The other possibility to implement this is to construct an inverse
@@ -368,12 +368,12 @@ class Spline(object):
         """Return x where y(x) = min(y) by calculating the root of the
         spline's 1st derivative.
         
-        args:
-        -----
+        Parameters
+        ----------
         x0 or xab: see self.invsplev()
         
-        returns:
-        --------
+        Returns
+        -------
         xx : scalar
             min(y) = y(xx)
         """
@@ -386,12 +386,12 @@ class Spline(object):
         self.invsplev(0.0, ...), i.e. lookup x where y=0, which is exactly the
         root. But we keep it for reference and convenience.
         
-        args:
-        -----
+        Parameters
+        ----------
         x0 or xab: see self.invsplev()
         
-        returns:
-        --------
+        Returns
+        -------
         xx : scalar
             y(xx) = 0
         """
@@ -403,8 +403,8 @@ def slicetake(a, sl, axis=None, copy=False):
     objects instead of an index array. Also by default, it returns a *view* and
     no copy.
     
-    args:
-    -----
+    Parameters
+    ----------
     a : numpy ndarray
     sl : slice object, list or tuple of slice objects
         axis=<int>
@@ -415,12 +415,12 @@ def slicetake(a, sl, axis=None, copy=False):
     axis : {None, int}
     copy : bool, return a copy instead of a view
     
-    returns:
-    --------
+    Returns
+    -------
     A view into `a` or copy of a slice of `a`.
 
-    examples:
-    ---------
+    Examples
+    --------
     >>> from numpy import s_
     >>> a = np.random.rand(20,20,20)
     >>> b1 = a[:,:,10:]
@@ -432,7 +432,7 @@ def slicetake(a, sl, axis=None, copy=False):
     True
     >>> (b3 == b1).all()
     True
-    # simple extraction too, sl = integer
+    >>> # simple extraction too, sl = integer
     >>> (a[...,5] == slicetake(a, 5, axis=-1))
     True
     """
@@ -517,8 +517,8 @@ def sliceput(a, b, sl, axis=None):
     """The equivalent of a[<slice or index>]=b, but accepts slices objects
     instead of array indices or fancy indexing (e.g. a[:,1:]).
     
-    args:
-    -----
+    Parameters
+    ----------
     a : numpy ndarray
     sl : slice object, list or tuple of slice objects
         axis=<int>
@@ -528,12 +528,12 @@ def sliceput(a, b, sl, axis=None):
             It must index the whole array, i.e. len(sl) == len(a.shape).
     axis : {None, int}
     
-    returns:
-    --------
+    Returns
+    -------
     The modified `a`.
     
-    examples:
-    ---------
+    Examples
+    --------
     >>> from numpy import s_
     >>> a=np.arange(12).reshape((2,6))
     >>> a[:,1:3] = 100
@@ -563,13 +563,13 @@ def extend_array(arr, nstep, axis=0):
     before ``axis``. Use this to "broadcast" e.g. a 2d array (3,3) ->
     (3,3,nstep).
     
-    args:
-    -----
+    Parameters
+    ----------
     arr : ndarray
     nstep : int, number of times to repeat
     axis : axis to add
     
-    example:
+    Examples
     --------
     >>> a=arange(4)
     >>> extend_array(a, 3, 0)
@@ -602,8 +602,8 @@ def extend_array(arr, nstep, axis=0):
     array([[0, 1],
            [2, 3]])
     
-    see also:
-    ---------
+    See Also
+    --------
     np.repeat()
     """
     # XXX Make more effective by using stride_tricks, see
@@ -628,8 +628,8 @@ def sum(arr, axis=None, keepdims=False, **kwds):
     possible, keepdims keyword. Docstrings shamelessly stolen from numpy and
     adapted here and there.
     
-    args:
-    -----
+    Parameters
+    ----------
     arr : nd array
     axis : None or int or tuple of ints, optional
         Axis or axes along which a sum is performed. The default (`axis` =
@@ -644,8 +644,8 @@ def sum(arr, axis=None, keepdims=False, **kwds):
         all remaining axes.
     **kwds : passed to np.sum().        
 
-    examples:
-    ---------
+    Examples
+    --------
     >>> a=rand(2,3,4)
     >>> num.sum(a)
     12.073636268676152
@@ -707,8 +707,8 @@ class Interpol2D(object):
     def __init__(self, dd=None, x=None, y=None, xx=None, yy=None, zz=None, 
         Z=None, XY=None, what='rbf_multi', **initkwds):
         """
-        args:
-        -----
+        Parameters
+        ----------
         dd : pwtools.mpl.Data3D instance
         x,y,xx,yy,zz,Z,XY : see Data3D, 
             Only XY,zz (and additionally x,y for bispline) are used internally.
@@ -733,14 +733,13 @@ class Interpol2D(object):
             kx=3,ky=3 (default actually)
             nxest, nyest
         
-        example:
+        Examples
         --------
         >>> x=linspace(-5,5,20) 
         >>> y=x 
         >>> X,Y=np.meshgrid(x,y); X=X.T; Y=Y.T 
         >>> Z=(X+3)**2+(Y+4)**2 + 5 
         >>> dd=mpl.Data3D(X=X,Y=Y,Z=Z)
-        
         >>> inter=num.Interpol2D(dd, what='rbf_multi'); inter([[-3,-4],[0,0]])
         array([  5.0000001 ,  29.99999975])
         >>> inter=num.Interpol2D(dd, what='rbf_gauss'); inter([[-3,-4],[0,0]])
@@ -786,15 +785,15 @@ class Interpol2D(object):
     
     def __call__(self, XY, **callkwds):
         """
-        args:
-        -----
+        Parameters
+        ----------
         XY: 2d (M,2) or 1d (N,)
             M points in 2-dim space where to evalutae the interpolator
             (only one in 1d case)
         **callkwds : keywords passed to the interpolator's __call__ method            
         
-        returns:
-        --------
+        Returns
+        -------
         Y : 1d array (M,)
             interpolated values
         """            

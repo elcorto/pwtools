@@ -16,8 +16,8 @@ def velocity(coords, dt=None, axis=0):
     """Compute velocity from 3d array with MD trajectory by simple finite
     differences.
         
-    args:
-    -----
+    Parameters
+    ----------
     coords : 3d array
         Cartesian atomic coords of an MD trajectory. The time axis is defined
         by "axis". Along this axis, 2d arrays (natoms,3) are expected.
@@ -26,8 +26,8 @@ def velocity(coords, dt=None, axis=0):
     axis : optional, int
         Time axis of "coords".
 
-    returns:            
-    --------
+    Returns
+    -------
     vel : 3D array
         Usally, this is (nstep-1,natoms, 3)
     """
@@ -42,8 +42,8 @@ def pyvacf(vel, m=None, method=3):
     array `vel`. This is slow. Use for debugging only. For production, use
     fvacf().
     
-    args:
-    -----
+    Parameters
+    ----------
     vel : 3d array, (nstep, natoms, 3)
         Atomic velocities.
     m : 1d array (natoms,)
@@ -51,8 +51,8 @@ def pyvacf(vel, m=None, method=3):
     method : int
         Which method to use.
     
-    returns:
-    --------
+    Returns
+    -------
     c : 1d array (nstep,)
         VACF
     """
@@ -96,8 +96,8 @@ def fvacf(vel, m=None, method=2, nthreads=None):
     """Interface to Fortran function _flib.vacf(). Otherwise same
     functionallity as pyvacf(). Use this for production calculations.
     
-    args:
-    -----
+    Parameters
+    ----------
     vel : 3d array, (nstep, natoms, 3)
         Atomic velocities.
     m : 1d array (natoms,)
@@ -109,13 +109,13 @@ def fvacf(vel, m=None, method=2, nthreads=None):
         Only useful if the extension was compiled with OpenMP support, of
         course.
 
-    returns:
-    --------
+    Returns
+    -------
     c : 1d array (nstep,)
         VACF
 
-    notes:
-    ------
+    Notes
+    -----
     Fortran extension:
         $ python -c "import _flib; print _flib.vacf.__doc__"
         vacf - Function signature:
@@ -137,8 +137,8 @@ def fvacf(vel, m=None, method=2, nthreads=None):
         (nstep,natoms,3). B/c we don't want to adapt flib.f90, we change
         vel's shape before passing it to the extension.
 
-    see also:          
-    ---------
+    See Also
+    --------
     _flib
     vacf_pdos()
     """
@@ -195,8 +195,8 @@ def direct_pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
     """Phonon DOS without the VACF by direct FFT of the atomic velocities.
     We call this Direct Method. Integral area is normalized to "area".
     
-    args:
-    -----
+    Parameters
+    ----------
     vel : 3d array (nstep, natoms, 3)
         atomic velocities
     dt : time step
@@ -215,8 +215,8 @@ def direct_pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
     axis : int
         Time axis of "vel".
 
-    returns:
-    --------
+    Returns
+    -------
     full_out = False
         (faxis, pdos)
         faxis : 1d array [1/unit(dt)]
@@ -224,8 +224,8 @@ def direct_pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
     full_out = True
         (faxis, pdos, (full_faxis, full_pdos, split_idx))
     
-    notes:
-    ------
+    Notes
+    -----
     padding: By default we pad the velocities `vel` with nstep-1 zeros along
         axis (the time axis) before FFT b/c the signal is not periodic. This
         gives us the exact same frequency resolution as with vacf_pdos(...,
@@ -242,12 +242,12 @@ def direct_pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
         have to change much code, b/c most operations take place along the time
         axis (`axis`) already and are coded that way.
 
-    refs:
-    -----
+    References
+    ----------
     [1] Phys Rev B 47(9) 4863, 1993
 
-    see also:
-    ---------
+    See Also
+    --------
     vacf_pdos
     pwtools.signal.fftsample
     """
@@ -300,8 +300,8 @@ def vacf_pdos(vel, dt=1.0, m=None, mirr=False, full_out=False, area=1.0,
     """Phonon DOS by FFT of the VACF. Integral area is normalized to
     "area".
     
-    args:
-    -----
+    Parameters
+    ----------
     vel : 3d array (nstep, natoms, 3)
         atomic velocities
     dt : time step
@@ -318,15 +318,15 @@ def vacf_pdos(vel, dt=1.0, m=None, mirr=False, full_out=False, area=1.0,
     axis : int
         Time axis of "vel". 
     
-    notes:
-    ------
+    Notes
+    -----
     axis : That this is not completely transparent as we don't use smth like
         atomaxis=1. But if we change the assumed shape of `vel`, then we don't
         have to change much code, b/c most operations take place along the time
         axis (`axis`) already and are coded that way.
 
-    returns:
-    --------
+    Returns
+    -------
     full_out = False
         (faxis, pdos)
         faxis : 1d array [1/unit(dt)]

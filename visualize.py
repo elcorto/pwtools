@@ -12,8 +12,8 @@ def view_xcrysden(obj, logfile=None, structfile=None, disp=False,
     """
     View Structure or Trajectory as AXSF file interactively with xcrysden.
 
-    args:
-    -----
+    Parameters
+    ----------
     obj : Structure or Trajectory
     logfile : str, optional
         Filename of a logfile for xcrysden's text output.
@@ -49,8 +49,8 @@ def view_jmol(obj, logfile=None, structfile=None, disp=False,
     """
     View Structure interactively with jmol.
 
-    args:
-    -----
+    Parameters
+    ----------
     obj : Structure
     logfile : str, optional
         Filename of a logfile for xcrysden's text output.
@@ -86,8 +86,8 @@ def view_avogadro(obj, logfile=None, structfile=None, disp=False,
     """
     View Structure interactively with avogadro.
 
-    args:
-    -----
+    Parameters
+    ----------
     obj : Structure
     logfile : str, optional
         Filename of a logfile for xcrysden's text output.

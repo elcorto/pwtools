@@ -29,8 +29,8 @@
 # But still, the last "real" tag (0.22.0 in the example) is the last one in
 # .hgtags .
 # 
-# examples:
-# ---------
+# Examples
+# --------
 # >>> from pwtools import version as ver
 # >>> assert ver.version > ver.tov('0.5.2'), "must use > 0.5.2"
 # >>> assert ver.tov('0.5.2') < ver.version < ver.tov('0.6.0b1'), \

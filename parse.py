@@ -1,28 +1,29 @@
 """
-parse.py
-
 Parser classes for different file formats. Input- and output files.
+===================================================================
  
 We need the following basic Unix tools installed:
-  grep/egrep
-  sed
-  awk
-  tail
-  wc 
-  ...
 
-Notes:
-* The tested egrep versions don't know the "\s" character class for
-  whitespace as sed, Perl, Python or any other sane regex implementation
-  does. Use "[ ]" instead.
+| grep/egrep
+| sed
+| awk
+| tail
+| wc 
+| ...
+
+The tested egrep versions don't know the ``\s`` character class for
+whitespace as sed, Perl, Python or any other sane regex implementation
+does. Use ``[ ]`` instead.
 
 Using Parsing classes
-=====================
+---------------------
 
-All parsing classes 
+All parsing classes::
+
     Pw*OutputFile
     Abinit*OutputFile
     Cpmd*OutputFile
+
 are derived from FlexibleGetters -> FileParser {Structure,Trajectory}FileParser
 
 As a general rule: If a getter (self.get_<attr>() or self._get_<attr>_raw()
@@ -30,8 +31,8 @@ cannot find anything in the file, it returns None. All getters which depend
 on it will also return None.
 
 * After initialization
-      pp = SomeParsingClass(<filename>), all attrs whoose name is in 
-  pp.attr_lst will be set to None.
+      pp = SomeParsingClass(<filename>) 
+  all attrs whoose name is in pp.attr_lst will be set to None.
 
 * parse() will invoke self.try_set_attr(<attr>), which does 
       self.<attr> = self.get_<attr>() 
@@ -45,7 +46,7 @@ on it will also return None.
 * For interactive use (you need <attr> only once), prefer get_<attr>() over
   parse().
 
-* Use dump(foo.pk) only for temporary storage and fast re-reading. Use
+* Use dump('foo.pk') only for temporary storage and fast re-reading. Use
   pwtool.common.cpickle_load(foo.pk). See also the FileParser.load() docstring.
 
 * Keep the original parsed output file around (self.filename), avoid
@@ -77,12 +78,15 @@ classes. If parse() is used, all this information retrieved and stored.
 
 Using parse():    
 
-Pro: 
+Pro:
+
 * Simplicity. *All* getters are called when parse() is
   invoked. You get it all.
 * In theory, you can delete the file pointed to by self.filename, assuming
   all getters have extracted all information that you need.
+
 Con:      
+
 * The object is full of (potentially big) arrays holding redundant
   information. Thus, the dump()'ed file may be large. 
 * Parsing may be slow if each getter (of possibly many) is called.
@@ -90,8 +94,11 @@ Con:
 Using get_<attr>():
 
 Pro: 
+
 * You only parse what you really need.
+
 Con:
+
 * self.<attr> will NOT be set, since get_<attr>() only returns <attr> but
   doesn't set self.<attr> = self.get_<attr>(), so dump() would save an
   "empty" file.
@@ -103,7 +110,6 @@ slow down parsing for big files and (2) the saved binary file (by using
 dump()) will have at least the size of the text file. While the original file
 could then be deleted in theory, the dump()'ed file becomes unwieldly to work
 with.
-
 """
 
 import re, sys, os
@@ -189,7 +195,7 @@ def axis_lens(seq, axis=0):
     have at least axis+1 dimensions, of course (i.e. axis=1 -> all arrays at
     least 2d).
 
-    example:
+    Examples
     --------
     >>> axis_lens([arange(100), np.array([1,2,3]), None, rand(5,3)])
     [100, 3, 0, 5]
@@ -215,8 +221,8 @@ class FileParser(FlexibleGetters):
     """
     def __init__(self, filename=None):
         """
-        args: 
-        -----
+        Parameters
+        ----------
         filename : str, name of the file to parse
         """
         FlexibleGetters.__init__(self)
@@ -330,24 +336,24 @@ class TrajectoryFileParser(StructureFileParser):
 class CifFile(StructureFileParser):
     """Parse Cif file.
 
-    notes:
-    ------
+    Notes
+    -----
     cif parsing:
-        We expect PyCifRW [1] to be installed, which provides the CifFile
+        We expect PyCifRW [1]_ to be installed, which provides the CifFile
         module.
     atom positions:
         Cif files contain "fractional" coords, which is just 
         "ATOMIC_POSITIONS crystal" in PWscf, "xred" in Abinit.
     
-    refs:
-    -----
-    [1] http://pycifrw.berlios.de/
-    [2] http://www.quantum-espresso.org/input-syntax/INPUT_PW.html#id53713
+    References
+    ----------
+    .. [1] http://pycifrw.berlios.de/
+    .. [2] http://www.quantum-espresso.org/input-syntax/INPUT_PW.html#id53713
     """        
     def __init__(self, filename=None, block=None, *args, **kwds):
         """        
-        args:
-        -----
+        Parameters
+        ----------
         filename : name of the input file
         block : data block name (i.e. 'data_foo' in the Cif file -> 'foo'
             here). If None then the first data block in the file is used.
@@ -372,8 +378,8 @@ class CifFile(StructureFileParser):
     def cif_clear_atom_symbol(self, st, rex=re.compile(r'([a-zA-Z]+)([0-9+-]*)')):
         """Remove digits and "+,-" from atom names. 
         
-        example:
-        -------
+        Examples
+        --------
         >>> cif_clear_atom_symbol('Al1')
         'Al'
         """
@@ -430,8 +436,8 @@ class PDBFile(StructureFileParser):
     Extract only ATOM/HETATM and CRYST1 (if present) records. If you want smth
     serious, check biopython.
     
-    notes:
-    ------
+    Notes
+    -----
     self.cryst_const :
         If no CRYST1 record is found, this is None.
     
@@ -595,53 +601,53 @@ class PwSCFOutputFile(StructureFileParser):
     
     SCF output files don't have an ATOMIC_POSITIONS block. We need to parse the
     block below, which can be found at the top the file (cartesian, divided by
-    alat). From that, we also get symbols.
+    alat). From that, we also get symbols::
 
-       ,----------
-       | Cartesian axes
-       |
-       |   site n.     atom                  positions (a_0 units)
-       |       1           Al  tau(  1) = (  -0.0000050   0.5773532   0.0000000  )
-       |       2           Al  tau(  2) = (   0.5000050   0.2886722   0.8000643  )
-       |       3           N   tau(  3) = (  -0.0000050   0.5773532   0.6208499  )
-       |       4           N   tau(  4) = (   0.5000050   0.2886722   1.4209142  )
-       `----------
+        Cartesian axes
+        
+          site n.     atom                  positions (a_0 units)
+              1           Al  tau(  1) = (  -0.0000050   0.5773532   0.0000000  )
+              2           Al  tau(  2) = (   0.5000050   0.2886722   0.8000643  )
+              3           N   tau(  3) = (  -0.0000050   0.5773532   0.6208499  )
+              4           N   tau(  4) = (   0.5000050   0.2886722   1.4209142  )
     
     Many quantities in PWscf's output files are always in units of the lattice
     vector "a" (= a_0 = celldm1 = "alat" [Bohr]), i.e. divided by that value,
-    which is usually printed in the output in low precision:
+    which is usually printed in the output in low precision::
 
          lattice parameter (a_0)   =       5.8789  a.u.
     
-    You can parse that value with get_alat(use_alat=True). We do that by
-    default (use_alat=True) b/c this is what most people will expect if they
-    just call the parser on some file. Then, we multiply all relevent
+    You can parse that value with ``get_alat(use_alat=True)``. We do that by
+    default (``use_alat=True``) b/c this is what most people will expect if
+    they just call the parser on some file. Then, we multiply all relevent
     quantities with dimension length with the alat value from pw.out
     automatically.
 
-    If use_alat=False, we use alat=1.0, i.e. all length quantities which are "in
-    alat units" are returned exactly as found in the file, which is the same
-    behavior as in all other parsers. Unit conversion happens only when we pass
-    things to Structure / Trajectory using self.units. 
+    If ``use_alat=False``, we use ``alat=1.0``, i.e. all length quantities
+    which are "in alat units" are returned exactly as found in the file, which
+    is the same behavior as in all other parsers. Unit conversion happens only
+    when we pass things to Structure / Trajectory using self.units. 
 
     If you need/want to use another alat (i.e. a value with more precision), 
-    then you need to explicitely provide that value and use use_alat=False:
+    then you need to explicitely provide that value and use ``use_alat=False``::
 
     >>> alat = 1.23456789 # Bohr
     >>> pp = PwSCFOutputFile(..., use_alat=False, units={'length': alat*Bohr/Ang})
     >>> st = pp.get_struct()
 
-    That will overwrite default_units['length'] = Bohr/Ang, which is used to
+    That will overwrite ``default_units['length'] = Bohr/Ang``, which is used to
     convert all PWscf length [Bohr] to [Ang] when passing things to Trajectory. 
 
     In either case, all quantities with a length unit or derived from such a
     quantitiy, e.g.
-        cell
-        cryst_const
-        coords
-        coords_frac
-        volume
-        ...
+
+        | cell
+        | cryst_const
+        | coords
+        | coords_frac
+        | volume
+        | ...
+    
     will be correct (up to alat's precision).
     
     All getters return PWscf standard units (Ry, Bohr, ...).
@@ -652,8 +658,8 @@ class PwSCFOutputFile(StructureFileParser):
     pretty useless, unless you use `units` explicitely. To get an object with
     pwtools standard units (eV, Angstrom, ...), use get_struct().
 
-    notes:
-    ------
+    Notes
+    -----
     total_force : Pwscf writes a "Total Force" after the "Forces acting on
         atoms" section . This value a UNnormalized RMS of the force matrix
         (f_ij, i=1,natoms j=1,2,3) printed. According to .../PW/forces.f90,
@@ -770,8 +776,8 @@ class PwSCFOutputFile(StructureFileParser):
         """Lattice parameter "alat" [Bohr]. If use_alat or self.use_alat is
         False, return 1.0, i.e. disbale alat.
         
-        args:
-        -----
+        Parameters
+        ----------
         use_alat : bool
             Set use_alat and override self.use_alat.
         """
@@ -885,8 +891,8 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
             ATOMIC_POSITIONS (unit)   -> unit
             ATOMIC_POSITIONS {unit}   -> unit
         
-        args:
-        -----
+        Parameters
+        ----------
         key : str (e.g. 'ATOMIC_POSITIONS')
         """
         assert key not in ['', None], "got illegal string"
@@ -1086,8 +1092,8 @@ class AbinitSCFOutputFile(StructureFileParser):
     in the SCF case, we simply use the first value along the time axis (SCF is
     "scalar").
     """
-    # notes:
-    # ------
+    # Notes
+    # -----
     # rprim : `rprim` lists the basis vecs as rows (like pwscf's
     #     CELL_PARAMETERS) and contrary to the fuzzy description in the Abinit
     #     docs (maybe they think in Fortran). rprim is `cell`, but each row
@@ -1330,8 +1336,8 @@ class AbinitSCFOutputFile(StructureFileParser):
         like "xred", "fcart" etc. are easier b/c we know the number of lines,
         which is natoms.
 
-        notes:
-        ------
+        Notes
+        -----
         With re.search(), we read numbers until the next keyword (xred, ...) is
         found. We make use of the fact that we don't need to operate line-wise
         like grep or sed. The text to be searched is the line "typat ..." +
@@ -1539,8 +1545,8 @@ class AbinitVCMDOutputFile(AbinitMDOutputFile):
     actually), some cell related quantities are None. See
     test/test_abinit_md.py
 
-    notes:
-    ------
+    Notes
+    -----
     Due to simple grepping, some arrays may have a timeaxis shape of >
     nstep b/c some quantities are repeated in the summary at the file end
     (for instance self.stress). We do NOT truncate these arrays b/c 
@@ -1636,15 +1642,16 @@ class CpmdSCFOutputFile(StructureFileParser):
     
     Some extra files are assumed to be in the same directory as self.filename.
     
-    extra files:
+    extra files::
+
         GEOMETRY.scale
     
-    notes:
-    ------
+    Notes
+    -----
     * The SYSTEM section must have SCALE such that a file GEOMETRY.scale is
       written.
     * To have forces in the output, use PRINT ON FORCES COORDINATES in the CPMD
-      section.
+      section::
 
         &CPMD
             OPTIMIZE WAVEFUNCTION
@@ -1815,42 +1822,47 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
     or have different shapes (2d va 3d arrays) depending on what type of MD is
     parsed and what info/files are available.
     
-    Notes for the comments below: 
+    Notes for the comments below::
+
         {A,B,C} = A or B or C
         (A) = A is optional
         (A (B)) = A is optional, but only if present, B is optional
 
-    Extra files which will be parsed and MUST be present:
+    Extra files which will be parsed and MUST be present::
+
         GEOMETRY.scale
         GEOMETRY
         TRAJECTORY
         ENERGIES
     
     Extra files which will be parsed and MAY be present depending on the type
-    of MD:
+    of MD::
+
         (FTRAJECTORY)
         (CELL) 
         (STRESS)
     
-    notes:
-    ------
-    The input should look like that.
-    &CPMD
-        MOLECULAR DYNAMICS {BO,CP}
-        (PARRINELLO-RAHMAN (NPT))
-        PRINT ON FORCES COORDINATES
-        TRAJECTORY XYZ FORCES
-        STRESS TENSOR
-            <step>
-        ...
-    &END
+    Notes
+    -----
+    The input should look like that::
 
-    &SYSTEM
-        SCALE
-        ...
-    &END
+        &CPMD
+            MOLECULAR DYNAMICS {BO,CP}
+            (PARRINELLO-RAHMAN (NPT))
+            PRINT ON FORCES COORDINATES
+            TRAJECTORY XYZ FORCES
+            STRESS TENSOR
+                <step>
+            ...
+        &END
+
+        &SYSTEM
+            SCALE
+            ...
+        &END
     
-    Tested with CPMD 3.15.1, the following extra files are always written.
+    Tested with CPMD 3.15.1, the following extra files are always written::
+
         GEOMETRY.scale
         GEOMETRY
         TRAJECTORY
@@ -1870,57 +1882,57 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
     This is what we tested so far (cpmd 3.15.1). For BO-MD + ODIIS, some
     columns are always 0.0, but all are there (e.g. EKINC is there but 0.0 b/c
     not defined for BO, only CP). For BO-MD, we list the wf optimizer (xxx for
-    CP b/c there is none).
+    CP b/c there is none)::
 
-    MOLECULAR DYNAMICS BO
-        +FTRAJECTORY
-        -CELL
-        -STRESS         # why!?
-      ODISS        
-        NFI EKINC TEMPP EKS ECLASSIC EHAM DIS TCPU 
-      LANCZOS DIAGONALIZATION
-        NFI TEMPP EKS ECLASSIC DIS TCPU
+        MOLECULAR DYNAMICS BO
+            +FTRAJECTORY
+            -CELL
+            -STRESS         # why!?
+          ODISS        
+            NFI EKINC TEMPP EKS ECLASSIC EHAM DIS TCPU 
+          LANCZOS DIAGONALIZATION
+            NFI TEMPP EKS ECLASSIC DIS TCPU
 
-    MOLECULAR DYNAMICS CP
-        +FTRAJECTORY
-        -CELL
-        +STRESS
-      xxx        
-        NFI EKINC TEMPP EKS ECLASSIC EHAM DIS TCPU 
-    
-    MOLECULAR DYNAMICS BO
-    PARRINELLO-RAHMAN
-        not implemented !
+        MOLECULAR DYNAMICS CP
+            +FTRAJECTORY
+            -CELL
+            +STRESS
+          xxx        
+            NFI EKINC TEMPP EKS ECLASSIC EHAM DIS TCPU 
         
-    MOLECULAR DYNAMICS CP
-    PARRINELLO-RAHMAN
-        -FTRAJECTORY    # why!?
-        +CELL
-        +STRESS
-      xxx        
-        NFI EKINC EKINH TEMPP EKS ECLASSIC EHAM DIS TCPU
+        MOLECULAR DYNAMICS BO
+        PARRINELLO-RAHMAN
+            not implemented !
+            
+        MOLECULAR DYNAMICS CP
+        PARRINELLO-RAHMAN
+            -FTRAJECTORY    # why!?
+            +CELL
+            +STRESS
+          xxx        
+            NFI EKINC EKINH TEMPP EKS ECLASSIC EHAM DIS TCPU
 
-    MOLECULAR DYNAMICS BO
-    PARRINELLO-RAHMAN NPT
-        -FTRAJECTORY    # why!?
-        +CELL
-        +STRESS
-      ODIIS
-        NFI EKINC EKINH TEMPP EKS ECLASSIC EHAM DIS TCPU
-    
-    MOLECULAR DYNAMICS CP
-    PARRINELLO-RAHMAN NPT
-        -FTRAJECTORY    # why!?
-        +CELL
-        +STRESS
-      xxx
-        NFI EKINC EKINH TEMPP EKS ECLASSIC EHAM DIS TCPU
+        MOLECULAR DYNAMICS BO
+        PARRINELLO-RAHMAN NPT
+            -FTRAJECTORY    # why!?
+            +CELL
+            +STRESS
+          ODIIS
+            NFI EKINC EKINH TEMPP EKS ECLASSIC EHAM DIS TCPU
+        
+        MOLECULAR DYNAMICS CP
+        PARRINELLO-RAHMAN NPT
+            -FTRAJECTORY    # why!?
+            +CELL
+            +STRESS
+          xxx
+            NFI EKINC EKINH TEMPP EKS ECLASSIC EHAM DIS TCPU
     """        
 
     def __init__(self, *args, **kwds):
         """
-        args:
-        -----
+        Parameters
+        ----------
         filename : file to parse
         """
         self.default_units.update(\
@@ -2209,8 +2221,8 @@ class Grep(object):
     output and returns something (string, list, whatever) for further
     processing.
     
-    examples:
-    ---------
+    Examples
+    --------
     
     scalar values - single file
     ---------------------------
@@ -2296,8 +2308,8 @@ class Grep(object):
                  func = re.search,
                  sqltype=None):
         """
-        args:
-        -----
+        Parameters
+        ----------
         regex : str or compiled regex
             If string, it will be compiled.
         basename : {None, str}, optional

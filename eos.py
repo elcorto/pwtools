@@ -29,8 +29,8 @@ class ExternEOS(FlexibleGetters):
     (c) Splines thru fitted or calculated (N,2) data ev,pv,bv :
         self.spl_{ev,pv,bv}.        
 
-    methods:
-    --------
+    Methods
+    -------
     fit() : call this to fit data and calculate pressure etc
     get_min() : return properties at min(energy), hint: If the
         pressure is not very close to zero (say ~ 1e-10), then your E-V data is
@@ -58,8 +58,8 @@ class ExternEOS(FlexibleGetters):
     >>> plot(eos.pv[:,0], eos.get_spl_pv()(eos.pv[:,0]), label='spline P(V)')
     >>> print "min:", eos.get_min()
 
-    notes:
-    ------
+    Notes
+    -----
     We distinguish between the volume axis for energy (ev[:,0]) and pressure
     (pv[:,0]) b/c, depending on how P=-dE/dV is calculated, these may have
     different length. For instance, if the pressure is calculated by finite
@@ -75,8 +75,8 @@ class ExternEOS(FlexibleGetters):
     def __init__(self, app=None, energy=None, volume=None, dir=None,
                  method='ev', verbose=True):
         """
-        args:
-        -----
+        Parameters
+        ----------
         app : str 
             name of the executable ([/path/to/]eos.x), make sure that it is on
             your PATH or use an absolute path
@@ -154,8 +154,8 @@ class ExternEOS(FlexibleGetters):
     def set_method(self, method):
         """Set self.method, a.k.a. switch to another method.
         
-        args:
-        -----
+        Parameters
+        ----------
         method : str
             'ev', 'pv'
         """
@@ -163,8 +163,8 @@ class ExternEOS(FlexibleGetters):
 
     def get_ev_tup(self):
         """
-        returns:
-        --------
+        Returns
+        -------
         tuple (v,e)
         v : volume [Ang^3] 
         e : energy [eV]
@@ -173,8 +173,8 @@ class ExternEOS(FlexibleGetters):
     
     def get_pv_tup(self):
         """
-        returns:
-        --------
+        Returns
+        -------
         tuple (v,p)
         v : volume [Ang^3] 
         p : pressure [GPa]
@@ -183,8 +183,8 @@ class ExternEOS(FlexibleGetters):
     
     def get_bv_tup(self):
         """
-        returns:
-        --------
+        Returns
+        -------
         tuple (v,b)
         v : volume [Ang^3] 
         b : bulk modulus [GPa]
@@ -219,8 +219,8 @@ class ExternEOS(FlexibleGetters):
     
     def get_min(self, behave='new'):
         """
-        args:
-        -----
+        Parameters
+        ----------
         behave : str, optional
             'new' : return a dict {v0, e0, p0, b0} : volume, energy, pressure,
                 bulk modulus at energy min
@@ -272,8 +272,8 @@ class BossEOSFit(ExternEOS):
     self.{ev,bv,pv} all have the same shape[0] b/c we do not use finite
     differences for derivatives.
 
-    notes:
-    ------
+    Notes
+    -----
     - The output file name with fitted data is hardcoded in eosfit.f to be
       'eos.fit'.
     - Also, the number of fit points is hardcoded. This is not the case for
@@ -331,8 +331,8 @@ class ElkEOSFit(ExternEOS):
     def __init__(self, app='eos.x', natoms=1, name='foo', etype=1, 
                  npoints=300, **kwargs):
         """
-        args:
-        -----
+        Parameters
+        ----------
         see ExternEOS.__init__()
 
         natoms : number of atoms in the unit cell, this is (I think) only used
@@ -345,8 +345,8 @@ class ElkEOSFit(ExternEOS):
             number of E-V and P-V points of the fitted curves (`nvplt` in
             eos.x)
 
-        notes:
-        ------
+        Notes
+        -----
         From the README:
         The equations of state currently implemented are:
          1. Universal EOS (Vinet P et al., J. Phys.: Condens. Matter 1, p1941 (1989))

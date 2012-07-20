@@ -21,8 +21,8 @@ parser = optparse.OptionParser(description=dd("""\
     Convert CPMD MD output to animated XSF."""),
     usage="""%prog [options] cpmd.out [cpmd.axsf]
     
-args:
------
+Parameters
+----------
 cpmd.out : CPMD output file (cpmd.x ... > cpmd.out)
 cpmd.axsf : name of output file [default: pwtools.axsf]
 """)

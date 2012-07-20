@@ -5,37 +5,39 @@ class TagTimer(object):
     Helper class for timimg. It's meant to be used for manually inspecting
     code.
 
-    example:
+    Examples
     --------
-    TT = TagTimer()
-    
-    # print some message 
-    TT.p('start profiling part 1')
-    # set start time for tag 'outer-loop'
-    TT.t('outer-loop')
-    for i ...
-        <code>
-        # set start time for tag 'inner-loop'
-        TT.t('inner-loop')
-        for j ...
+    .. code-block:: python
+        
+        tt = TagTimer()
+        
+        # print some message 
+        tt.p('start profiling part 1')
+        # set start time for tag 'outer-loop'
+        tt.t('outer-loop')
+        for i ...
             <code>
-        # use case 1: get stop time and print timing (stop - start) for tag 
-        # 'inner-loop' immediately           
-        TT.pt('inner-loop')
-    # use case 2: get stop time and store it
-    TT.t('outer-loop')
-    <some_more_code>
-    # print timing (stop - start) for tag 'outer-loop' later (maybe in some
-    # summary statistic or so)
-    TT.pt('outer-loop')
-    
-    # it's possible to re-use tags
-    TT.p('start profiling part 2')
-    TT.t('outer-loop')
-    for i ...
-        <code>
-        TT.t('inner-loop')
-    ....
+            # set start time for tag 'inner-loop'
+            tt.t('inner-loop')
+            for j ...
+                <code>
+            # use case 1: get stop time and print timing (stop - start) for tag 
+            # 'inner-loop' immediately           
+            tt.pt('inner-loop')
+        # use case 2: get stop time and store it
+        tt.t('outer-loop')
+        <some_more_code>
+        # print timing (stop - start) for tag 'outer-loop' later (maybe in some
+        # summary statistic or so)
+        tt.pt('outer-loop')
+        
+        # it's possible to re-use tags
+        tt.p('start profiling part 2')
+        tt.t('outer-loop')
+        for i ...
+            <code>
+            tt.t('inner-loop')
+        ....
     """
     def __init__(self, silence=False):
         self.none_ar = [None, None]
@@ -50,17 +52,20 @@ class TagTimer(object):
         Assign and save a numeric value (a time value) in a storage array
         associated with `tag`.
         
-        input:
-            tag -- a tag (string) associated with a storage array
+        Parameters
+        ----------
+        tag : anything hashable
+            a tag (most likely a string) associated with a storage array
                                        
-        Notes:
-            After initialization, self.time_ar_dict[tag] == [None, None].
-            
-            The 1st call assings self.time_ar_dict[tag][0] = <time>. 
-            The 2nd call assings self.time_ar_dict[tag][1] = <time>. 
-            The 3rd call resets self.time_ar_dict[tag][1] = [None, None]
-            and recursively calls t(), which then does the the same as the 1st.
-            ...
+        Notes
+        -----
+        After initialization, self.time_ar_dict[tag] == [None, None].
+        
+        | The 1st call assings self.time_ar_dict[tag][0] = <time>. 
+        | The 2nd call assings self.time_ar_dict[tag][1] = <time>. 
+        | The 3rd call resets self.time_ar_dict[tag] = [None, None]
+        | and recursively calls t(), which then does the the same as the 1st.
+        | ...
         """
         # Init a new array for a new tag.
         if tag not in self.time_ar_dict.keys():
@@ -87,7 +92,15 @@ class TagTimer(object):
  
     def pt(self, tag, msg=''):
         """
-        Print self.time_ar_dict[tag][1] - self.time_ar_dict[tag][0].
+        Print time difference since last ``t(tag)`` call for `tag`, which is 
+        ``self.time_ar_dict[tag][1] - self.time_ar_dict[tag][0]``.
+        
+        Parameters
+        ----------
+        tag : anything hashable
+            a tag (most likely a string) associated with a storage array
+        msg : string
+            Extra string to be printed along with the time difference.
         """
         if tag not in self.time_ar_dict.keys():
             raise ValueError("array for tag '%s' not jet initialized; " %tag\

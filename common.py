@@ -28,14 +28,14 @@ def assert_cond(cond, string=None):
     input in functions b/c with `python ... -O0` or __debug__ not beeing
     defined, the statement is not tested.
     
-    args:
-    -----
+    Parameters
+    ----------
     cond : bool
         True : None is returned
         False : exception is raised
     string : str
     
-    example:
+    Examples
     --------
     assert_cond(1==1, 'lala') -> ok
     assert_cond(1==2, 'lala') -> exception is raised
@@ -63,13 +63,13 @@ class PydosConfigParser(ConfigParser.SafeConfigParser):
 def add_to_config(config, info):
     """Add sections and key-val paris in `info` to `config`.
     
-    args:
-    -----
+    Parameters
+    ----------
     config : ConfigParser object
     info : dict of dicts, see io.writearr()
 
-    returns:
-    --------
+    Returns
+    -------
     modified config
     """
     for sec, dct in info.iteritems():
@@ -88,12 +88,12 @@ def toslice(val):
     Convert strings representing Python/numpy slice to slice
     objects.
     
-    args:
-    -----
+    Parameters
+    ----------
     val : string
 
-    examples:
-    ---------
+    Examples
+    --------
     '3'     -> 3
     '3:'    -> slice(3, None, None)
     '-2:'   -> slice(-2, None, None)
@@ -132,18 +132,18 @@ def toslice(val):
 def tobool(val):
     """Convert `val` to boolean value True or False.
         
-    args:
-    -----
+    Parameters
+    ----------
     val : bool, string, integer
         '.true.', '1', 'true',  'on',  'yes', integers != 0 -> True
         '.false.','0', 'false', 'off', 'no',  integers == 0 -> False
     
-    returns:
-    --------
+    Returns
+    -------
     True or False
 
-    notes:
-    ------
+    Notes
+    -----
     All string vals are case-insensitive.
     """
     if isinstance(val, types.BooleanType):
@@ -180,12 +180,12 @@ def ffloat(st):
     (= single) are converted to doubles. Kind parameters (like '_10' in
     '3.0d5_10') are NOT supported, they are ignored.
 
-    args:
-    -----
+    Parameters
+    ----------
     st : string
 
-    returns:
-    --------
+    Returns
+    -------
     float
     """
     assert_cond(isinstance(st, types.StringType), "`st` must be string")
@@ -217,13 +217,13 @@ def frepr(var, ffmt="%.16e"):
     * If `var` is a string, e.g. 'lala', it returns 'lala' not "'lala'" as
       Python's repr() does.
     
-    args:
-    -----
+    Parameters
+    ----------
     var : almost anything (str, None, int, float)
     ffmt : format specifier for float values
     
-    examples:
-    ---------
+    Examples
+    --------
     1     -> '1'
     1.0   -> '1.000000000000000e+00' 
     None  -> 'None'
@@ -257,15 +257,15 @@ def str2tup(*args, **kwargs):
 def fix_eps(arr, eps=1.5*np.finfo(float).eps, copy=True):
     """Set values of arr to zero where abs(arr) <= eps.
 
-    args:
-    ----
+    Parameters
+    ----------
     arr : numpy nd array
     eps : float eps
     copy : bool
         return copy of arr
 
-    returns:
-    --------
+    Returns
+    -------
     numpy nd array
     """
     _arr = arr.copy() if copy else arr
@@ -276,20 +276,20 @@ def fix_eps(arr, eps=1.5*np.finfo(float).eps, copy=True):
 def str_arr(arr, fmt='%.16e', delim=' '*4, zero_eps=True):
     """Convert array `arr` to nice string representation for printing.
     
-    args:
-    -----
+    Parameters
+    ----------
     arr : array_like, 1d or 2d array
     fmt : string, format specifier, all entries of arr are formatted with that
     delim : string, delimiter
     zero_eps : bool
         Print values as 0.0 where |value| < eps
 
-    returns:
-    --------
+    Returns
+    -------
     string
 
-    examples:
-    ---------
+    Examples
+    --------
     >>> a=rand(3)
     >>> str_arr(a, fmt='%.2f')
     '0.26 0.35 0.97'
@@ -301,8 +301,8 @@ def str_arr(arr, fmt='%.16e', delim=' '*4, zero_eps=True):
     0.13 0.75 0.39
     0.54 0.22 0.66
     
-    notes:
-    ------
+    Notes
+    -----
     Essentially, we replicate the core part of np.savetxt.
     """
     arr = np.asarray(arr)
@@ -376,8 +376,8 @@ def igrep(pat_or_rex, iterable, func='search'):
     Grep thru strings provided by iterable.next() calls. On each match, yield a
     Match object.
 
-    args:
-    -----
+    Parameters
+    ----------
     pat_or_rex : regex string or compiled re Pattern object, if string then it
         will be compiled
     iterable : sequence of lines (strings to search) or open file object or in 
@@ -386,12 +386,12 @@ def igrep(pat_or_rex, iterable, func='search'):
     func : string, the used re function for matching, e.g. 'match' for re.match
         functionallity, 'search' for re.search
 
-    returns:
-    --------
+    Returns
+    -------
     generator object which yields Match objects
 
-    notes:
-    ------
+    Notes
+    -----
     This function is similar to re.findall()
     
     Difference to grep(1):
@@ -452,7 +452,7 @@ def igrep(pat_or_rex, iterable, func='search'):
           file_readlines('file.txt') instead of open('file.txt') can speed things
           up if files are small, there is no benefit for big files
 
-    example:
+    Examples
     --------
     # If a line contains at least three numbers, grep the first three.
     >>> !cat file.txt
@@ -521,8 +521,8 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
     text string. This function adds some bells and whistles such as warnings
     in case of not-found placeholders and whatnot. 
     
-    args:
-    -----
+    Parameters
+    ----------
     txt : string with placeholders
     dct : dictionary with placeholders (keys) and values to replace them
     conv : bool, convert values dct.values() to strings with frepr()
@@ -543,11 +543,11 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
             automatically convert them to strings, but note that this is
             limited since only frepr(<val>) is used.
     
-    returns:
-    --------
+    Returns
+    -------
     new string
     
-    example:
+    Examples
     --------
     >>> txt = file_read('file.txt') 
     >>> dct = {'XXXONE': '1', 'XXXPI': '%.16e' %math.pi}
@@ -621,8 +621,8 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
 def file_template_replace(fn, dct, bak='', **kwargs):
     """Replace placeholders in file `fn`.
 
-    args:
-    -----
+    Parameters
+    ----------
     fn : str
         Filename
     dct : dict
@@ -632,7 +632,7 @@ def file_template_replace(fn, dct, bak='', **kwargs):
         '<str>' : `fn` is backed up to "fn<str>"
     kwargs : kwargs to template_replace()
 
-    example:
+    Examples
     --------
     dct = {'xxx': 'foo', 'yyy': 'bar'}
     fn = 'bla.txt'
@@ -655,8 +655,8 @@ def backup(src, prefix='.'):
     dirs. In both cases, the content of the file/dir pointed to by the link is
     copied.
 
-    args:
-    -----
+    Parameters
+    ----------
     src : str
         name of file/dir to be copied
     prefix : str, optional
@@ -697,7 +697,7 @@ def dict2class(dct, name='Dummy'):
     """
     Convert a dict to a class.
 
-    example:
+    Examples
     --------
     >>> dct={'a':1, 'b':2}
     >>> dct2class(dct, 'Foo')
@@ -729,8 +729,8 @@ def is_seq(seq):
     UnicodeType is for lists of unicode strings [u'aaa', u'bbb']. In fact, we
     wish to catch list, tuple, numpy array.
     
-    args:
-    -----
+    Parameters
+    ----------
     seq : (nested) sequence of arbitrary objects
     """ 
     if isinstance(seq, types.StringTypes) or \
@@ -766,8 +766,8 @@ def flatten(seq):
 def system(call, wait=True):
     """Fire up shell commamd line `call`. 
     
-    args:
-    -----
+    Parameters
+    ----------
     call: str (example: 'ls -l')
     wait : bool
         False: Don't wait for `call` to terminate.
@@ -782,8 +782,8 @@ def system(call, wait=True):
 def permit_sigpipe():
     """Helper for subprocess.Popen(). Handle SIGPIPE. To be used as preexec_fn.
 
-    notes:
-    ------
+    Notes
+    -----
     Some cases like:
         >>> cmd = r"grep pattern /path/to/very_big_file | head -n1"
         >>> pp = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, 
@@ -797,8 +797,8 @@ def permit_sigpipe():
     This can be seen by runing the call in strace "$ strace grep ...". Popen
     chokes on that. The solution is to ignore SIGPIPE.
 
-    refs:
-    -----
+    References
+    ----------
     [1] http://mail.python.org/pipermail/tutor/2007-October/058042.html
     [2] http://article.gmane.org/gmane.comp.python.devel/88798/
     """
@@ -808,7 +808,7 @@ def permit_sigpipe():
 def backtick(call):
     """Convenient shell backtick replacement with gentle error handling.
 
-    example:
+    Examples
     --------
     >>> print backtick('ls -l')
     """

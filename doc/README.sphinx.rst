@@ -1,0 +1,46 @@
+How to build and read docu
+--------------------------
+
+You need sphinx_. Debian: ``aptitude install python-sphinx``.
+
+Build and read::
+
+    $ make -C doc html
+    $ firefox -new-window doc/build/html/index.html
+
+Build docu (devs)
+-----------------
+::
+    $ cd doc
+    $ ./make-doc-files.py
+    $ make html
+
+How to set up a sphinx doc directory and add numpydoc
+-----------------------------------------------------
+
+(Already done, this is just a reference).
+
+::
+    $ mkdir doc
+    $ sphinx-quickstart
+
+Choose root dir to be ``doc/``. Choose a separate source and build dir. Accept
+most other defaults. Especially, say yes to the "autodoc" extension.
+
+Grab a copy of numpydoc. Note that users could install that as a separate
+package, but it is easier if we provide it with the code::
+    
+    ($ aptitude install python-setuptools)
+    $ mkdir doc/source/sphinxext
+    $ cd /tmp
+    $ easy_install --prefix doc numpydoc
+    $ cp -r doc/lib/python2.7/site-packages/numpydoc-0.4-py2.7.egg/numpydoc \
+      /path/to/pwtools/doc/source/sphinxext/
+
+Modify ``doc/source/conf.py`` to include numpydoc::
+
+    sys.path.insert(0, os.path.abspath('sphinxext'))
+    extensions = ['sphinx.ext.autodoc', 'sphinx.ext.coverage',
+                  'sphinx.ext.viewcode', 'numpydoc']
+    
+.. _sphinx: http://sphinx.pocoo.org/

@@ -1,15 +1,37 @@
-# The periodic table. 
-#
-# Got that from [1]. Finding such a list on the net is not as easy as you might
-# think. Search for "list of chemical elements".
-#
-# Replaced masses like
-#   9.012182(3) -> 9.012182
-#   [227]       -> 227
-#
-# Covalent radii shamelessly stolen from ASE.
-#
-# [1] http://chemistry.about.com/od/elementfacts/a/atomicweights.htm
+"""
+The periodic table
+------------------
+
+symbols : list of chemical symbols
+    The list index is also the atomic number in the periodic table. index=0 is
+    set but not used. ``symbols[1] == 'H'``, ...
+masses : 1d array (len(symbols,))
+    Atomic masses in amu.
+covalent_radii : 1d array (len(symbols,))
+    Covalent radii in Angsttom.
+numbers : dict 
+    Mapping of symbols to numbers: ``numbers['H'] = 1``.
+pt : dict
+    The periodic table. Maping of symbol to a dict of other quantities::
+
+        >>> atomic_data.pt['H']
+        {'cov_rad': 0.31, 'mass': 1.0079400000000001, 'number': 1}
+
+Notes
+-----
+Got that from here_. Finding such a list on the net is not as easy as you might
+think. Search for "list of chemical elements".
+
+Replaced masses like
+
+| 9.012182(3) -> 9.012182
+| [227]       -> 227
+
+Covalent radii shamelessly stolen from ase_.
+
+.. _here: http://chemistry.about.com/od/elementfacts/a/atomicweights.htm
+.. _ase: https://wiki.fysik.dtu.dk/ase/ase/data.html#module-data
+"""
 
 import numpy as np
 

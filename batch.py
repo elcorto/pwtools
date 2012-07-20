@@ -21,17 +21,12 @@ class Machine(object):
     Note that the template file for the jobfile is not handled by this class.
     This must be done outside by FileTemplate. We only provide a method to
     store the jobfile name (`jobfn`).
-
-    methods:
-    --------
-    get_sql_record() : Return a dict of SQLEntry instances. Each key is a
-        attr name from self.attr_lst.        
     """
     def __init__(self, hostname=None, subcmd=None, scratch=None, 
                  jobfn=None, home=None, name=None):
         """
-        args:
-        -----
+        Parameters
+        ----------
         hostname : st
             machine name ('mars', 'local', ...)
         subcmd : str
@@ -70,6 +65,7 @@ class Machine(object):
                          ]
 
     def get_sql_record(self):
+        """Return a dict of SQLEntry instances. Each key is a attr name from self.attr_lst."""        
         dct = {}
         for key in self.attr_lst:
             val = getattr(self, key)
@@ -81,8 +77,8 @@ class Machine(object):
         """Return string with batch queue name based on requested number of
         cores `ncores`.
 
-        args:
-        -----
+        Parameters
+        ----------
         ncores : int
         """
         return None
@@ -91,8 +87,6 @@ class Machine(object):
 class FileTemplate(object):
     """Class to represent a template file in parameter studies.
     
-    placeholders
-    ------------
     Each template file is supposed to contain a number of placeholder strings
     (e.g. XXXFOO or @foo@ or whatever other form). The `dct` passed to
     self.write() is a dict which contains key-value pairs for replacement (e.g.
@@ -102,77 +96,78 @@ class FileTemplate(object):
     We use common.template_replace(..., mode='txt'). dict-style placeholders
     like "%(foo)s %(bar)i" will not work.
 
-    example
-    -------
+    Examples
+    --------
     This will take a template file calc.templ/pw.in, replace the placeholders
     "@prefix@" and "@ecutwfc@" with some values and write the file to
     calc/0/pw.in .
     
-    # Fist, set up a dictionary which maps placeholder to values. Remember,
-    # that the placeholders in the files will be obtained by processing the
-    # dictionary keys with `func`. In the example, this will be
-    #   'prefix' -> '@prefix@'
-    #   'ecutwfc' -> '@ecutwfc@'
-    >>> dct = {}
-    >>> dct['prefix'] = 'foo_run_1'
-    >>> dct['ecutwfc'] = 23.0
-    >>>
-    # Not specifying the `keys` agrument to FileTemplate will instruct the
-    # write() method to replace all placeholders in the template file which
-    # match the placeholders defined by dct.keys(). This is the most simple
-    # case.
-    #
-    >>> templ = FileTemplate(basename='pw.in',
-    ...                      templ_dir='calc.templ', 
-    ...                      func=lambda x: "@%s@" %x)
-    >>> templ.write(dct, 'calc/0')
-    >>> 
-    # Now with `keys` explicitely.
-    #
-    >>> templ = FileTemplate(basename='pw.in',
-    ...                      keys=['prefix', 'ecutwfc'],
-    ...                      templ_dir='calc.templ',
-    ...                      func=lambda x: "@%s@" %x)
-    >>> templ.write(dct, 'calc/0')
-    >>>
-    #
-    # or with SQL foo in a parameter study
-    #
-    >>> from sql import SQLEntry
-    >>> dct = {}                     
-    >>> dct['prefix']  = SQLEntry(sqlval='foo_run_1')
-    >>> sct['ecutwfc'] = SQLEntry(sqlval=23.0)
-    >>> templ.writesql(dct, 'calc/0')
+    Fist, set up a dictionary which maps placeholder to values. Remember,
+    that the placeholders in the files will be obtained by processing the
+    dictionary keys with `func`. In the example, this will be::
+    
+        'prefix' -> '@prefix@'
+        'ecutwfc' -> '@ecutwfc@'
+    
+    ::
+
+        >>> dct = {}
+        >>> dct['prefix'] = 'foo_run_1'
+        >>> dct['ecutwfc'] = 23.0
+        >>>
+        >>> # Not specifying the `keys` agrument to FileTemplate will instruct the
+        >>> # write() method to replace all placeholders in the template file which
+        >>> # match the placeholders defined by dct.keys(). This is the most simple
+        >>> # case.
+        >>> #
+        >>> templ = FileTemplate(basename='pw.in',
+        ...                      templ_dir='calc.templ', 
+        ...                      func=lambda x: "@%s@" %x)
+        >>> templ.write(dct, 'calc/0')
+        >>> 
+        >>> # Now with `keys` explicitely.
+        >>> templ = FileTemplate(basename='pw.in',
+        ...                      keys=['prefix', 'ecutwfc'],
+        ...                      templ_dir='calc.templ',
+        ...                      func=lambda x: "@%s@" %x)
+        >>> templ.write(dct, 'calc/0')
+        >>>
+        >>> # or with SQL foo in a parameter study
+        >>> from sql import SQLEntry
+        >>> dct = {}                     
+        >>> dct['prefix']  = SQLEntry(sqlval='foo_run_1')
+        >>> sct['ecutwfc'] = SQLEntry(sqlval=23.0)
+        >>> templ.writesql(dct, 'calc/0')
     """
     def __init__(self, basename='pw.in', keys=None, templ_dir='calc.templ',
                  func=lambda x:'XXX'+x.upper()):
         """
-        args
-        ----
+        Parameters
+        ----------
         basename : string
-            The name of the template file and target file.
-            example: basename = pw.in
-                template = calc.templ/pw.in
-                target   = calc/0/pw.in
+            | The name of the template file and target file.
+            | example: basename = pw.in
+            |     template = calc.templ/pw.in
+            |     target   = calc/0/pw.in
         keys : {None, list of strings, []}
-            keys=None: All keys dct.keys() in self.write() are used. This is
-                useful if you have a dict holding many keys, whose placeholders
-                are spread across files. Then this will just replace every
-                match in each file. This is what most people want.
-            keys=[<key1>, <key2>, ...] : Each string is a key. Each key is
-                connected to a placeholder in the template. See func. This is
-                for binding keys to template files, i.e. replace only these
-                keys.
-            keys=[]: The template file is simply copied to `calc_dir` (see
-                self.write()).
+            | keys=None: All keys dct.keys() in self.write() are used. This is
+            |     useful if you have a dict holding many keys, whose placeholders
+            |     are spread across files. Then this will just replace every
+            |     match in each file. This is what most people want.
+            | keys=[<key1>, <key2>, ...] : Each string is a key. Each key is
+            |     connected to a placeholder in the template. See func. This is
+            |     for binding keys to template files, i.e. replace only these
+            |     keys.
+            | keys=[]: The template file is simply copied to `calc_dir` (see
+            |     self.write()).
         templ_dir : dir where the template lives (e.g. calc.templ)
         func : callable
-            A function which takes a string (key) and returns a string, which
-            is the placeholder corresponding to that key.
-            example: (this is actually default)
-                key = "lala"
-                placeholder = "XXXLALA"
-                func = lambda x: "XXX" + x.upper()
+            | A function which takes a string (key) and returns a string, which
+            | is the placeholder corresponding to that key.
+            | example: (this is actually default)
+            |     key = "lala"
+            |     placeholder = "XXXLALA"
+            |     func = lambda x: "XXX" + x.upper()
         """
         self.keys = keys
         self.templ_dir = templ_dir
@@ -198,17 +193,17 @@ class FileTemplate(object):
         """Write file self.filename (e.g. calc/0/pw.in) by replacing 
         placeholders in the template (e.g. calc.templ/pw.in).
         
-        args:
-        -----
+        Parameters
+        ----------
         dct : dict 
             key-value pairs, dct.keys() are converted to placeholders with
             self.func()
         calc_dir : str
             the dir where to write the target file to
         mode : str, {'dct', 'sql'}
-            mode='dct': replacement values are dct[<key>]
-            mode='sql': replacement values are dct[<key>].fileval and every
-                dct[<key>] is an SQLEntry instance
+            | mode='dct': replacement values are dct[<key>]
+            | mode='sql': replacement values are dct[<key>].fileval and every
+            |     dct[<key>] is an SQLEntry instance
         """
         assert mode in ['dct', 'sql'], ("Wrong 'mode' kwarg, use 'dct' "
                                         "or 'sql'")
@@ -259,24 +254,16 @@ class FileTemplate(object):
 class Calculation(object):
     """A single calculation, e.g. in dir calc_foo/0/ .
     
-    methods:
-    --------
-    get_sql_record : Return a dict of SQLEntry instances. Each key is a
-        candidate placeholder for the FileTemplates.
-    write_input : For each template in `templates`, write an input file to
-        `calc_dir`.
-
-    notes:
-    ------
     The dir where file templates live is defined in the FileTemplates (usually
     'calc.templ').
     
     Default keys in sql_record:
-        idx : self.idx
-        prefix : self.prefix
-        calc_dir : self.calc_dir
-            Usually the relative path of the calculation dir.
-        calc_dir_abs : absolute path
+
+    | idx : self.idx
+    | prefix : self.prefix
+    | calc_dir : self.calc_dir
+    |     Usually the relative path of the calculation dir.
+    | calc_dir_abs : absolute path
     """
     # XXX ATM, the `params` argument is a list of SQLEntry instances which is
     # converted to a dict self.sql_record. This is fine in the context of
@@ -297,8 +284,8 @@ class Calculation(object):
     def __init__(self, machine, templates, params, prefix='calc',
                  idx=0, calc_dir='calc_dir'):
         """
-        args:
-        -----
+        Parameters
+        ----------
         machine : instance of batch.Machine
             The get_sql_record() method is used to add machine-specific
             parameters to the FileTemplates.
@@ -342,9 +329,15 @@ class Calculation(object):
             self.sql_record[entry.key] = entry
     
     def get_sql_record(self):
+        """Return a dict of SQLEntry instances. Each key is a candidate
+        placeholder for the FileTemplates.
+        """
         return self.sql_record
 
     def write_input(self):
+        """For each template in ``self.templates``, write an input file to
+        ``self.calc_dir``.
+        """
         if not os.path.exists(self.calc_dir):
             os.makedirs(self.calc_dir)
         for templ in self.templates.itervalues():
@@ -355,25 +348,28 @@ class ParameterStudy(object):
     """Class to represent a parameter study, i.e. a number of Calculations,
     based on template files.
     
-    methods:
-    --------
+    Methods
+    -------
     write_input : Create calculation dir(s) for each parameter set and write
         input files based on ``templates``. Write sqlite database storing all
         relevant parameters. Write (bash) shell script to start all
         calculations (run locally or submitt batch job file, depending on
         machine.subcmd).
     
-    notes:
-    ------
+    Notes
+    -----
     The basic idea is to assemble all to-be-varied parameters in a script
     outside (`params_lst`) and pass these to this class along with a list
     of input and job file `templates`. Then, a simple loop over the parameter
     sets is done and input files are written. 
     
     Calculation dirs are numbered automatically. The default is
+
         calc_dir = <calc_root>/<calc_dir_prefix>_<machine.hostname>, e.g.
         ./calc_foo
+    
     and each calculation for each parameter set
+
         ./calc_foo/0
         ./calc_foo/1
         ./calc_foo/2
@@ -393,33 +389,40 @@ class ParameterStudy(object):
     calculations later to an already performed study, we just extend the sqlite
     database.
     
-    example:
+    Examples
     --------
     The `params_lst` list of lists is a "matrix" which in fact represents the
     sqlite database table. 
     
-    The most simple case is when we vary only one parameter (e.g. the
-    cutoff):
+    The most simple case is when we vary only one parameter::
+
         [[SQLEntry(key='foo', sqlval=1.0)], 
          [SQLEntry(key='foo', sqlval=2.0)]]
-    The sqlite database would have one column and look like this:
+    
+    The sqlite database would have one column and look like this::
+
         foo   
         ---   
         1.0   # calc_foo/0
         2.0   # calc_foo/1
+    
     Note that you have one entry per row [[...], [...]], like in a
     column vector, b/c "foo" is a *column* in the database and b/c each
     calculation is represented by one row (record).
     
-    Another example is a 2x2 setup (vary 2 parameters 'foo' and 'bar').
+    Another example is a 2x2 setup (vary 2 parameters 'foo' and 'bar')::
+
       [[SQLEntry(key='foo', sqlval=1.0), SQLEntry(key='bar', sqlval='lala')],
        [SQLEntry(key='foo', sqlval=2.0), SQLEntry(key='bar', sqlval='huhu')]]
+    
     Here we have 2 parameters "foo" and "bar" and the sqlite db would
-    thus have two columns.              
+    thus have two columns::
+
         foo   bar
         ---   ---
         1.0   lala  # calc_foo/0
         2.0   huhu  # calc_foo/1
+    
     Each row (or record in sqlite) will be one Calculation, getting
     it's own dir.
 
@@ -427,51 +430,49 @@ class ParameterStudy(object):
 
     Vary two (three, ...) params on a 2d (3d, ...) grid: In fact, the
     way you are constructing params_lst is only a matter of zip() and
-    comb.nested_loops().
+    comb.nested_loops()::
     
-    >>> par1 = sql.sql_column('par1', [1,2,3])
-    >>> par2 = sql.sql_column('par2', ['a','b'])
-    >>> par3 = ...
-    
-    # 2d grid
-    >>> params_lst = comb.nested_loops([par1, par2])
-    # or
-    >>> params_lst = []
-    >>> for par1 in [1,2,3]:
-    ...     for par2 in ['a','b']:
-    ...         params_lst.append([sql.SQLEntry(key='par1', sqlval=par1),
-    ...                            sql.SQLEntry(key='par2', sqlval=par2),
-    ...                            ])
-    
-    # 3d grid   
-    >>> params_lst = comb.nested_loops([par1, par2, par3])
-    # or
-    >>> params_lst = []
-    >>> for par1 in [1,2,3]:
-    ...     for par2 in ['a','b']:
-    ...         for par3 in [...]:
-    ...             params_lst.append([sql.SQLEntry(key='par1', sqlval=par1),
-    ...                                sql.SQLEntry(key='par2', sqlval=par2),
-    ...                                sql.SQLEntry(key='par3', sqlval=par3),
-    ...                                ])
-    
-    # vary par1 and par2 together, and par3 -> 2d grid w/ par1+par2 on one
-    axis and par3 on the other
-    >>> params_lst = comb.nested_loops([zip(par1, par2), par3], flatten=True)
-    
-    That's all.
-    
-    An alternative way of doing the 2d grid is using sql_matrix:
-    >>> pars = comb.nested_loops([[1,2,3], ['a', 'b']])
-    >>> params_lst = sql.sql_matrix(pars, [('par1', 'integer'), 
-    >>>                                    ('par2', 'text')])
+        >>> par1 = sql.sql_column('par1', [1,2,3])
+        >>> par2 = sql.sql_column('par2', ['a','b'])
+        >>> par3 = ...
+        >>> # 2d grid
+        >>> params_lst = comb.nested_loops([par1, par2])
+        >>> # or
+        >>> params_lst = []
+        >>> for par1 in [1,2,3]:
+        ...     for par2 in ['a','b']:
+        ...         params_lst.append([sql.SQLEntry(key='par1', sqlval=par1),
+        ...                            sql.SQLEntry(key='par2', sqlval=par2),
+        ...                            ])
+        
+        >>> # 3d grid   
+        >>> params_lst = comb.nested_loops([par1, par2, par3])
+        >>> # or
+        >>> params_lst = []
+        >>> for par1 in [1,2,3]:
+        ...     for par2 in ['a','b']:
+        ...         for par3 in [...]:
+        ...             params_lst.append([sql.SQLEntry(key='par1', sqlval=par1),
+        ...                                sql.SQLEntry(key='par2', sqlval=par2),
+        ...                                sql.SQLEntry(key='par3', sqlval=par3),
+        ...                                ])
+        >>>
+        >>> # vary par1 and par2 together, and par3 -> 2d grid w/ par1+par2 on one
+        >>> axis and par3 on the other
+        >>> params_lst = comb.nested_loops([zip(par1, par2), par3], flatten=True)
+        >>>  
+        >>> # That's all.
+        >>> # An alternative way of doing the 2d grid is using sql_matrix:
+        >>> pars = comb.nested_loops([[1,2,3], ['a', 'b']])
+        >>> params_lst = sql.sql_matrix(pars, [('par1', 'integer'), 
+        >>>                                    ('par2', 'text')])
 
     Even more complex:
     See test/test_parameter_study.py, esp. the test "Incomplete parameter
     sets".
 
-    see also:
-    ---------
+    See Also
+    --------
     comb.nested_loops
     sql.sql_column
     sql.sql_matrix
@@ -480,16 +481,18 @@ class ParameterStudy(object):
                  db_name='calc.db', db_table='calc', calc_dir=None, calc_root=os.curdir,
                  calc_dir_prefix='calc'):
         """                 
-        args:
-        -----
+        Parameters
+        ----------
         machine, templates : see Calculation
         params_lst : list of lists
             The "parameter sets". Each sublist is a set of calculation
-            parameters as SQLEntry instances: 
+            parameters as SQLEntry instances::
+
                 [[SQLEntry(...), SQLEntry(...), ...], # calc_foo/0
                  [SQLEntry(...), SQLEntry(...), ...], # calc_foo/1
                  ...
                 ] 
+            
             For each sublist, a separate calculation dir is created and
             populated with files based on `templates`. The `key` attribute of
             each SQLEntry will be converted to a placeholder in each
@@ -536,25 +539,26 @@ class ParameterStudy(object):
 
     def write_input(self, mode='a', backup=True, sleep=0):
         """
-        args:
-        -----
+        Parameters
+        ----------
         mode : str, optional
             Fine tune how to write input files (based on ``templates``) to calc
             dirs calc_foo/0/, calc_foo/1/, ... . Note that this doesn't change
             the base dir calc_foo at all, only the subdirs for each calc.
             {'a', 'w'}
-            'a': Append mode (default). If a previous database is found, then
-                subsequent calculations are numbered based on the last 'idx'.
-                calc_foo/0 # old
-                calc_foo/1 # old
-                calc_foo/2 # new
-                calc_foo/3 # new
-            'w': Write mode. The target dirs are purged and overwritten. Also,
-                the database (self.dbfn) is overwritten. Use this to
-                iteratively tune your inputs, NOT for working on already
-                present results!
-                calc_foo/0 # new
-                calc_foo/1 # new
+            
+            | 'a': Append mode (default). If a previous database is found, then
+            |     subsequent calculations are numbered based on the last 'idx'.
+            |     calc_foo/0 # old
+            |     calc_foo/1 # old
+            |     calc_foo/2 # new
+            |     calc_foo/3 # new
+            | 'w': Write mode. The target dirs are purged and overwritten. Also,
+            |     the database (self.dbfn) is overwritten. Use this to
+            |     iteratively tune your inputs, NOT for working on already
+            |     present results!
+            |     calc_foo/0 # new
+            |     calc_foo/1 # new
         backup : bool, optional
             Before writing anything, do a backup of self.calc_dir if it already
             exists.
@@ -638,14 +642,14 @@ def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s"):
     assume that the sequence yy[0], yy[1], ... yy[-1] converges to some
     constant value.
 
-    args:
-    -----
+    Parameters
+    ----------
     xx : 1d sequence (need not be numpy array)
     yy : 1d sequence, len(xx), must be convertable to numpy float array
     ffmt, sfmt : str
         Format strings for strings and floats
     
-    example:
+    Examples
     --------
     >>> kpoints = ['2 2 2', '4 4 4', '8 8 8']
     >>> etot = [-300.0, -310.0, -312.0]

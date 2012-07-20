@@ -92,11 +92,8 @@ Fortran extension
 -----------------
 
 Some time-critical operations are coded using a Fortran extension module
-(flib.f90, _flib.so, Makefile).
-
-To calculate the velocity autocorrelation function (and to pass all tests), you
-want to use that. Note that this is not necessary for the "Direct Method" (see
-below).
+(flib.f90, _flib.so, Makefile). You need to build that in order for all tests
+to pass.
 
 Running tests
 -------------
@@ -289,6 +286,9 @@ crys.rms3d() for MD runs where the RMS of each (f_ij) is::
 
 with N = 3*natoms or N=natoms.   
 
+References
+----------
+
 .. [qe] http://www.quantum-espresso.org
 .. [ase] https://wiki.fysik.dtu.dk/ase
 .. [abinit] http://www.abinit.org
@@ -303,4 +303,4 @@ with N = 3*natoms or N=natoms.
 .. [cpmd] http://www.cpmd.org
 .. [vmd] http://www.ks.uiuc.edu/Research/vmd/
 
- vim:comments=fb\:*:syn=rst
+.. vim:comments=fb\:*:syn=rst

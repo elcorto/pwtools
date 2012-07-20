@@ -26,12 +26,12 @@ def binom(n, k):
 def _swap(arr, i, j):
     """Swap arr[i] <-> arr[j]. Return i-j-swapped copy of `arr`.
     
-    args:
-    -----
+    Parameters
+    ----------
     arr : 1d list
     
-    notes:
-    ------
+    Notes
+    -----
     Must return a copy of arr b/c the swap is an in-place operation and lists
     are mutable.
     """        
@@ -49,11 +49,11 @@ def ipermute(seq):
     object). This function was written before itertools.permutations()
     existed, which is actually much faster.
 
-    args:
-    -----
+    Parameters
+    ----------
     seq : 1d list to permute, len(seq) = N
     
-    example:
+    Examples
     --------
     >>> import itertools
     >>> [x for x in ipermute([1,2,3])]
@@ -64,12 +64,13 @@ def ipermute(seq):
     >>> set([x for x in itertools.permutations([1,0,0])])
     set([(0, 0, 1), (0, 1, 0), (1, 0, 0)])
 
-    notes:
-    ------
-    algo : We use the Counting QuickPerm Algorithm [1]. Works like Heap's
-        Algorithm [2,3], but not recursive. Uses N!-1 swaps.
+    Notes
+    -----
+    algo : We use the Counting QuickPerm Algorithm [1]_. Works like Heap's
+        Algorithm [2]_,[3]_, but not recursive. Uses N!-1 swaps.
 
-    refs:
+    References
+    ----------
     [1] http://permute.tchs.info/quickperm.php
     [2] www.cs.princeton.edu/~rs/talks/perms.pdf, page 12
     [3] http://www.cut-the-knot.org/do_you_know/AllPerm.shtml
@@ -106,25 +107,25 @@ def permute(*args, **kwargs):
 def unique2d(arr, what='row'):
     """Reduce 2d array `arr` to a 2d array with unique rows (or cols).
 
-    args:
-    -----
+    Parameters
+    ----------
     arr : 2d-like
     what : str
         {'row', 'col'}
     
-    returns:
-    --------
+    Returns
+    -------
     numpy 2d array
 
-    example:
+    Examples
     --------
     >>> a=array([[1,2,3], [1,2,3], [1,2,4]])
     >>> unique2d(a, 'row')
     array([[1, 2, 3],
            [1, 2, 4]])
     
-    notes:
-    ------
+    Notes
+    -----
     # These do the same:
     >>> unique2d(permute(a)) # uses more memory, slower
     >>> permute(a, skip_equal=True))
@@ -154,8 +155,8 @@ def nested_loops(lists, ret_all=False, flatten=False):
     """Nonrecursive version of nested loops of arbitrary depth. Pure Python
     version (no numpy).
     
-    args:
-    -----
+    Parameters
+    ----------
     lists : list of lists 
         The objects to permute. len(lists) == the depth (nesting levels) of the
         equivalent nested loops. Individual lists may contain a mix of
@@ -167,12 +168,23 @@ def nested_loops(lists, ret_all=False, flatten=False):
     flatten : bool
         Flatten each entry in returned list. 
 
-    returns:
-    --------
+    Returns
+    -------
     perms : list of lists with permuted objects
-    perm_idxs : list of lists with indices of the permutation
+    perm_idxs : list of lists with indices of the permutation if ret_all=True
 
-    example:
+    Notes
+    -----
+    In Python >= 2.6, this is almost the same as itertools.product() but was
+    written before that was in itertools.
+    
+    >>> [x for x in itertools.product([1,2],[33,44,55],[sin,cos])]
+    >>> nested_loops([[1,2],[33,44,55],[sin,cos]])
+    
+    Note that nested_loops() takes a list of lists, while itertools.product()
+    only the lists itself.
+
+    Examples
     --------
     >>> a=[1,2]; b=[3,4]; c=[5,6];
     >>> perms=[]

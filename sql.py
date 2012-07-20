@@ -5,6 +5,7 @@ from itertools import izip
 import os
 
 def get_test_db():
+    """Return in-memory database for playing around."""
     db = SQLiteDB(':memory:', table='calc')
     db.create_table([('a', 'TEXT'), ('b', 'FLOAT')])
     db.execute("insert into calc (a,b) values ('lala', 1.0)")
@@ -13,6 +14,16 @@ def get_test_db():
     return db
 
 def find_sqltype(val):
+    """
+    Parameters
+    ----------
+    val : any python type
+    
+    Returns
+    -------
+    sqltype : str
+        String with sql type which can be used to set up a sqlile table
+    """        
     mapping = {\
         types.NoneType:    'NULL',
         types.IntType:     'INTEGER',
@@ -27,55 +38,73 @@ def find_sqltype(val):
         "to sqlite3 type" %str(type(val)))
 
 def fix_sqltype(sqltype):
+    """
+    Parameters
+    ----------
+    sqltype : str
+    
+    Returns
+    -------
+    st : string
+        Force uppercase string, change 'FLOAT' -> 'REAL'.
+    """
     st = sqltype.upper()
     if st == 'FLOAT':
         st = 'REAL'
     return st        
 
 def fix_sql_header(header):
+    """fix_sqltype() applied to any sqltype in `header`"""
     return [(x[0], fix_sqltype(x[1])) for x in header]
 
 
 class SQLEntry(object):
+    """
+    Represent an entry in a SQLite database. An entry is one single
+    value of one column and record (record = row). 
+    
+    This class is ment to be used in parameter studies where a lot of
+    parameters are vaired (e.g. in pw.x input files) and entered in a
+    SQLite database. 
+    
+    There is the possibility that the entry has a slightly different value
+    in the db and in the actual input file. See fileval.
+    """
     def __init__(self, sqlval=None, sqltype=None, fileval=None, key=None):
-        """Represent an entry in a SQLite database. An entry is one single
-        value of one column and record (record = row). 
-        
-        This class is ment to be used in parameter studies where a lot of
-        parameters are vaired (e.g. in pw.x input files) and entered in a
-        SQLite database. 
-        
-        There is the possibility that the entry has a slightly different value
-        in the db and in the actual input file. See fileval.
-        
-        args:
-        -----
+        """
+        Parameters
+        ----------
         sqlval : Any Python type (str, unicode, float, integer, ...)
-            The value of the entry which is entered into the database. The
-            sqlite3 module 
+            The value of the entry which is entered into the database.
         sqltype : {str, None}, optional
             A string (not case sentitive) which determines the sqlite type of the
             entry: 'integer', 'real', 'null', ... If None then automatic type
             detection will be attempted. Only default types are supported, see
-            notes below. This is needed to create a sqlite table like in 
+            notes below. This is needed to create a sqlite table like in::
+
                 create table calc (foo integer, bar real)
         fileval : {None, <anything>}, optional
             If not None, then this is the value of the entry that it has in
             another context (actually used in the input file). If None, then
             fileval = val. 
-            Example: K_POINTS in pw.x input file:
+            Example: K_POINTS in pw.x input file::
+
                 sqlval: '2 2 2 0 0 0'
-                fileval: 'K_POINTS automatic\n2 2 2 0 0 0'
+                fileval: 'K_POINTS automatic\\n2 2 2 0 0 0'
+
         key : optional, {None, str}, optional
             An optional key. This key should refer to the column name in the 
-            database table, as in:
+            database table, as in::
+
                 % create table calc (key1 sqltype1, key2 sqltype2, ...)
-            For example:
+            For example::
+
                 % create table calc (idx integer, ecutwfc float, ...)
 
-        notes:
-        ------
-        SQLite types from the Python docs of sqlite3:
+        Notes
+        -----
+        SQLite types from the Python docs of sqlite3::
+
             Python type     SQLite type
             -----------     -----------
             None            NULL
@@ -108,18 +137,18 @@ class SQLiteDB(object):
     where self.cur  -> sqlite3.Cursor
           self.conn -> sqlite3.Connection
     
-    example:
+    Examples
     --------
     >>> db = SQLiteDB('test.db', table='calc')
     >>> db.create_table([('a', 'float'), ('b', 'text')])
     >>> db.execute("insert into %s ('a', 'b') values (1.0, 'lala')" %db.table)
     >>> db.execute("insert into %s ('a', 'b') values (?,?)" %db.table, (2.0, 'huhu'))
-    # iterator
+    >>> # iterator
     >>> for record in db.execute("select * from calc"):
     ...     print record
     (1.0, u'lala')
     (2.0, u'huhu')
-    # list
+    >>> # list
     >>> print db.execute("select * from calc").fetchall()
     [(1.0, u'lala'), (2.0, u'huhu')]
     >>> db.get_list1d("select a from calc")
@@ -134,8 +163,8 @@ class SQLiteDB(object):
     array([[ 1.,  5.],
            [ 2.,  5.]])
     
-    notes:
-    ------
+    Notes
+    -----
     There are actually 2 methods to put entries into the db. Fwiw, this is a
     general sqlite3 (module) note.
 
@@ -147,7 +176,8 @@ class SQLiteDB(object):
        >>> db.execute("insert into calc ('a', 'b') values (?,?)", (1.0, 'lala'))
     
     2) Write values directly into sql command. Here all values are actually
-       strings.        
+       strings.
+
        >>> db.execute("insert into calc ('a', 'b') values (1.0, 'lala')")
        >>> db.execute("insert into calc ('a', 'b') values (%e, '%s')" %(1.0, 'lala')")
        
@@ -159,8 +189,8 @@ class SQLiteDB(object):
     """
     def __init__(self, db_fn, table=None):
         """
-        args:
-        -----
+        Parameters
+        ----------
         db_fn : str
             database filename
         table : str, optional
@@ -176,8 +206,8 @@ class SQLiteDB(object):
     def set_table(self, table):
         """Set the table name (aka switch to another table).
 
-        args:
-        -----
+        Parameters
+        ----------
         table : str
             table name
         """            
@@ -198,8 +228,8 @@ class SQLiteDB(object):
     def has_column(self, col):
         """Check if table self.table already has the column `col`.
         
-        args:
-        -----
+        Parameters
+        ----------
         col : str
             column name in the database
         """            
@@ -211,8 +241,8 @@ class SQLiteDB(object):
     def add_column(self, col, sqltype):
         """Add column `col` with type `sqltype`. 
         
-        args:
-        -----
+        Parameters
+        ----------
         col : str
             column name
         sqltype : str
@@ -226,7 +256,7 @@ class SQLiteDB(object):
         """Convenience function to add multiple columns from `header`. See
         get_header().
         
-        example:
+        Examples
         --------
         >>> db.add_columns([('a', 'text'), ('b', 'real')])
         # is the same as
@@ -249,8 +279,8 @@ class SQLiteDB(object):
         The column must already exist. To add a new column and fill it, see
         attach_column().
         
-        args:
-        -----
+        Parameters
+        ----------
         col : str
             Column name.
         values : sequence
@@ -296,8 +326,8 @@ class SQLiteDB(object):
             add_column(...)
             fill_column(...)
 
-        args:
-        -----
+        Parameters
+        ----------
         col : str
             Column name.
         values : sequence
@@ -320,7 +350,7 @@ class SQLiteDB(object):
     def get_header(self):
         """Return the "header" of the table `table':
 
-        example:
+        Examples
         --------
         >>> db = SQLiteDB('test.db', table='foo')
         >>> db.execute("create table foo (a text, b real)"
@@ -334,8 +364,8 @@ class SQLiteDB(object):
         """Create a table named self.table from `header`. `header` is in the
         same format which get_header() returns.
         
-        args:
-        -----
+        Parameters
+        ----------
         header : list of lists/tuples
             [(colname1, sqltype1), (colname2, sqltype2), ...]
         """
@@ -410,7 +440,7 @@ class SQLiteDB(object):
 # sql_column(key=..., sqltype=..., lst=...).
 def sql_column_old(key, sqltype, lst, sqlval_func=lambda x: x, fileval_func=lambda x: x):
     """
-    example:
+    Examples
     --------
     >>> _vals = [25,50,75]
     >>> vals = sql_column('ecutfwc', 'float', _vals, 
@@ -434,8 +464,8 @@ def sql_column(key, lst, sqltype=None, sqlval_func=lambda x: x, fileval_func=lam
 
     See ParameterStudy for applications.
      
-    args:
-    -----
+    Parameters
+    ----------
     key : str
         sql column name
     lst : sequence of arbitrary values, these will be SQLEntry.sqlval
@@ -453,7 +483,7 @@ def sql_column(key, lst, sqltype=None, sqlval_func=lambda x: x, fileval_func=lam
             fileval = 'value = 23'
             fileval_func = lambda x: "value = %s" %str(x)
     
-    example:
+    Examples
     --------
     >>> vals = sql_column('ecutfwc', [25.0, 50.0, 75.0], 
     ...                   fileval_func=lambda x: 'ecutfwc=%s'%x)
@@ -492,8 +522,8 @@ def sql_matrix(lists, header=None, colnames=None, sqlval_funcs=None, fileval_fun
     first row. May not work for "incomplete" datasets, where some entries in
     the first row are None (NULL in sqlite).
 
-    args:
-    -----
+    Parameters
+    ----------
     lists : list of lists 
     header : sequence, optional 
         [('foo', 'integer'), ('bar', 'float'), ...], see
@@ -506,42 +536,34 @@ def sql_matrix(lists, header=None, colnames=None, sqlval_funcs=None, fileval_fun
         E.g. sql_matrix(..., fileval_funcs={'foo': lambda x: str(x)+'-value'})
         would set fileval_func for the whole column 'foo'.
     
-    returns:
-    --------
+    Returns
+    -------
     list of lists
 
-    example:
+    Examples
     --------
-    >>> lists=comb.nested_loops([[1.0,2.0,3.0], zip(['a', 'b'], [888, 999])],
-    ...                         flatten=True)
+    >>> lists=comb.nested_loops([[1.0,2.0], zip(['a']*2, [777,888])],flatten=True)
     >>> lists
-    [[1.0, 'a', 888],
-     [1.0, 'b', 999],
-     [2.0, 'a', 888],
-     [2.0, 'b', 999],
-     [3.0, 'a', 888],
-     [3.0, 'b', 999]]
+    [[1.0, 'a', 777], 
+     [1.0, 'a', 888], 
+     [2.0, 'a', 777], 
+     [2.0, 'a', 888]]
+    >>> # use explicit header 
     >>> header=[('col0', 'float'), ('col1', 'text'), ('col2', 'integer')]
-    >>> m=batch.sql_matrix(lists, header)
-    >>> for row in m:
-    ...     print [(xx.key, xx.fileval) for xx in row]
-    ...
-    [('col0', 1.0), ('col1', 'a'), ('col2', 888)]
-    [('col0', 1.0), ('col1', 'b'), ('col2', 999)]
-    [('col0', 2.0), ('col1', 'a'), ('col2', 888)]
-    [('col0', 2.0), ('col1', 'b'), ('col2', 999)]
-    [('col0', 3.0), ('col1', 'a'), ('col2', 888)]
-    [('col0', 3.0), ('col1', 'b'), ('col2', 999)]
-    >>> m=batch.sql_matrix(lists, header, fileval_funcs={'col0': lambda x: x*100})
-    >>> for row in m:
-    ...     print [(xx.key, xx.fileval) for xx in row]
-    ...
-    [('col0', 100.0), ('col1', 'a'), ('col2', 888)]
-    [('col0', 100.0), ('col1', 'b'), ('col2', 999)]
-    [('col0', 200.0), ('col1', 'a'), ('col2', 888)]
-    [('col0', 200.0), ('col1', 'b'), ('col2', 999)]
-    [('col0', 300.0), ('col1', 'a'), ('col2', 888)]
-    [('col0', 300.0), ('col1', 'b'), ('col2', 999)]
+    >>> m=sql.sql_matrix(lists, header=header)
+    >>> for row in m: print [(xx.key, xx.fileval, xx.sqltype) for xx in row]
+    [('col0', 1.0, 'REAL'), ('col1', 'a', 'TEXT'), ('col2', 777, 'INTEGER')]
+    [('col0', 1.0, 'REAL'), ('col1', 'a', 'TEXT'), ('col2', 888, 'INTEGER')]
+    [('col0', 2.0, 'REAL'), ('col1', 'a', 'TEXT'), ('col2', 777, 'INTEGER')]
+    [('col0', 2.0, 'REAL'), ('col1', 'a', 'TEXT'), ('col2', 888, 'INTEGER')]
+    >>> # use colnames -> automatic sqltype detected, also use fileval_funcs
+    >>> m=sql.sql_matrix(lists, colnames=['col0','col1','col2'], fileval_funcs={'col0': lambda x: x*100})
+    >>> for row in m: print [(xx.key, xx.fileval, xx.sqltype) for xx in row]
+    [('col0', 100.0, 'REAL'), ('col1', 'a', 'TEXT'), ('col2', 777, 'INTEGER')]
+    [('col0', 100.0, 'REAL'), ('col1', 'a', 'TEXT'), ('col2', 888, 'INTEGER')]
+    [('col0', 200.0, 'REAL'), ('col1', 'a', 'TEXT'), ('col2', 777, 'INTEGER')]
+    [('col0', 200.0, 'REAL'), ('col1', 'a', 'TEXT'), ('col2', 888, 'INTEGER')]
+ 
     """
     if header is None:
         assert colnames is not None, ("colnames is None")
@@ -583,8 +605,8 @@ def makedb(filename, lists=None, colnames=None, table=None, mode='a', **kwds):
 
     If the datsbase file doesn't exist, then mode='a' is the same as mode='w'.
 
-    args:
-    -----
+    Parameters
+    ----------
     lists : list of lists, see sql_matrix()
     colnames : list of column names, see sql_matrix()
     table : str, optional

@@ -14,13 +14,13 @@ def distsq(arrx, arry):
     
     This is a wrapper for _flib.distsq().
 
-    args:
-    -----
+    Parameters
+    ----------
     arrx, arry : ndarray (Mx,N), (My,N)
         Mx (My) points in N-dim space
     
-    returns:
-    --------
+    Returns
+    -------
     2d array (Mx,My)
     """        
     nx, ny = arrx.shape[0], arry.shape[0]

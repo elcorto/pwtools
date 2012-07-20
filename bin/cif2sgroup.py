@@ -14,8 +14,8 @@
 # 
 # See ``sgroup -help`` for more options.
 #
-# notes:
-# ------
+# Notes
+# -----
 # The unit of length of a,b,c is not important (Angstrom, Bohr,...).
 
 import sys

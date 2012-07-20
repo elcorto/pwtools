@@ -34,8 +34,8 @@ def meshgridt(x, y):
     This is useful for dealing with 2D splines in 
     scipy.interpolate.bisplev(), which also returns a (nx,ny) array.
     
-    args:
-    -----
+    Parameters
+    ----------
     x,y : 1d arrays
     """
     X,Y = np.meshgrid(x,y)
@@ -45,8 +45,8 @@ def meshgridt(x, y):
 def plotlines3d(ax3d, x,y,z, *args, **kwargs):
     """Plot x-z curves stacked along y.
     
-    args:
-    -----
+    Parameters
+    ----------
     ax3d : Axes3D instance
     x : nd array
         1d (x-axis) or 2d (x-axes are the columns)
@@ -58,11 +58,11 @@ def plotlines3d(ax3d, x,y,z, *args, **kwargs):
              (2d)
     *args, **kwargs : additional args and keywords args passed to ax3d.plot()
 
-    returns:
-    --------
+    Returns
+    -------
     ax3d
 
-    example:
+    Examples
     --------
     >>> x = linspace(0,5,100)
     >>> y = arange(1.0,5) # len(y) = 4
@@ -106,8 +106,8 @@ class Plot(object):
 
     You can add more axes with twinx() etc and operate on them.
     
-    examples:
-    ---------
+    Examples
+    --------
     # same as Plot(*mpl.fig_ax()), i.e. default is 2d plot
     >>> pp = mpl.Plot() 
     >>> pp.ax.plot([1,2,3], label='ax')
@@ -123,8 +123,8 @@ class Plot(object):
     """
     def __init__(self, fig=None, ax=None, projection='2d'):
         """
-        args:
-        -----
+        Parameters
+        ----------
         fig, ax : Figure + Axis instance (e.g. from fig_ax())
         projection : str, optional
             If fig+ax not given, use this to call fig_ax() or fig_ax3d(), else
@@ -149,12 +149,12 @@ class Plot(object):
         from all axes specified in axnames. Useful for handling legend entries
         of lines on differend axes (in case of twinx, for instance).
 
-        args:
-        -----
+        Parameters
+        ----------
         axnames : sequence of strings
 
-        returns:
-        --------
+        Returns
+        -------
         tuple of lines and labels
             ([line1, line2, ...], ['foo', 'bar', ...])
         where lines and labels are taken from all axes. Use this as input for
@@ -169,8 +169,8 @@ class Plot(object):
         """Collect legend entries from all axes in `axnames` and place legend on
         the axis named with `legaxname`.
 
-        args:
-        -----
+        Parameters
+        ----------
         axnames : None or list of axes names, optional
             e.g. ['ax'] or ['ax', 'ax2']. If None (default) then ax.legend() is
             called directly (if legaxname='ax').
@@ -183,8 +183,8 @@ class Plot(object):
             >>> pp.ax2.plot(...)
             >>> pp.legend(axnames=['ax', 'ax2'], legaxname='ax2')
         
-        notes:
-        ------
+        Notes
+        -----
         This is not completly transparent. This:
             >>> plot = Plot(...)
             >>> plot.ax.plot(...)
@@ -208,13 +208,14 @@ class Plot(object):
 def prepare_plots(names, projection='2d'):
     """Return a dict of Plot instances.
     
-    args:
-    -----
-    names : sequence of strings (keys for the dict)
+    Parameters
+    ----------
+    names : sequence
+        keys for the dict, e.g. [1,2] or ['plot1', 'plot2']
     projection : str
         type of plot; {'2d','3d'}
 
-    example:
+    Examples
     --------
     >>> plots = prepare_plots(['etot', 'ekin'])
     >>> plots['etot'].ax.plot(etot)
@@ -242,8 +243,8 @@ class Data3D(object):
     def __init__(self, x=None, y=None, xx=None, yy=None, zz=None, X=None,
                  Y=None, Z=None, XY=None):
         """
-        args:
-        -----
+        Parameters
+        ----------
         x,y : 1d arrays, shape (nx,) (ny,)
             These are the raw x and y "axes".
         X,Y,Z: meshgrid-like 2d arrays (nx, ny), see meshgridt()
@@ -252,7 +253,7 @@ class Data3D(object):
             bisplrep(). 
         XY : np.array([xx,yy]).T
 
-        example:
+        Examples
         --------
         x = linspace(...,5)
         y = linspace(...,5)
@@ -267,8 +268,8 @@ class Data3D(object):
         ax3d.plot_wireframe(data.X, data.Y, data.Z)
         ax3d.plot_surface(spline.X, spline.Y, spline.Z, cstride=1, rstride=1)
 
-        notes:
-        ------
+        Notes
+        -----
         Shape of X,Y,Z:
 
         In 
@@ -391,7 +392,7 @@ ccm = cycle_colors_markers
 
 def smooth_color(idx, niter):
     """
-    example:
+    Examples
     --------
     # change color smoothly blue -> red
     for ii in range(10):
@@ -421,12 +422,12 @@ def get_rctarget(rctarget, default=plt):
 def set_plot_layout(rctarget=None, layout='latex_hs'):
     """Set mpl rc parameters.
     
-    args:
-    -----
+    Parameters
+    ----------
     rctarget : something with an rc() method
     
-    example:
-    ------
+    Examples
+    --------
     >>> from matplotlib import pyplot as plt
     >>> set_plot_layout(plt)
     >>> plt.plot(...)
@@ -524,8 +525,8 @@ def new_axis(fig, hostax, off=50, loc='bottom', ticks=None, wsadd=0.1,
     attached to `hostax`. You can do twinx()/twiny() type axis (off=0) or
     completely free-standing axis lines (off > 0).
 
-    args:
-    -----
+    Parameters
+    ----------
     fig : mpl Figure
     hostax : Instance of matplotlib.axes.HostAxesSubplot. This is the subplot
         of the figure `fig` w.r.t which all new axis lines are placed. See
@@ -540,15 +541,15 @@ def new_axis(fig, hostax, off=50, loc='bottom', ticks=None, wsadd=0.1,
     label : str, xlabel (ylabel) for 'top','bottom' ('left', 'right')
     sharex, sharey : bool, share xaxis (yaxis) with `hostax`
     
-    returns:
-    --------
+    Returns
+    -------
     (fig, hostax, parax)
     fig : the Figure
     hostax : the hostax
     parax : the new ParasiteAxes instance
 
-    notes:
-    ------
+    Notes
+    -----
     * The sharex/sharey thing may not work correctly.
     """
 
@@ -618,8 +619,8 @@ def make_axes_grid_fig(num=None):
     """Create an mpl Figure and add to it an axes_grid.SubplotHost subplot
     (`hostax`).
     
-    returns:
-    --------
+    Returns
+    -------
     fig, hostax
     """
     if num is not None:

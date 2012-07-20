@@ -49,15 +49,15 @@ def particle_nhc_masses(freq, temp, nf=None, nnos=4):
     
     Abinit: qmass for ionmov 13.
 
-    args:
-    -----
+    Parameters
+    ----------
     %(freq)s
     %(temp)s
     %(nf)s
     %(nnos)s
 
-    returns:
-    --------
+    Returns
+    -------
     [q1, qi ...] : list of length `nnos`
     q1 : mass for the 1st thermostat in the chain
     qi : masses for the 2nd, 3rd, ... thermostat
@@ -75,15 +75,15 @@ def barostat_nhc_masses(freq, temp, ndim=3, nnos=4):
     There is NO equivalent in Abinit. I think they use the particle NHC also
     for the barostat.
 
-    args:
-    -----
+    Parameters
+    ----------
     %(freq)s
     %(temp)s
     %(ndim)s
     %(nnos)s
 
-    returns:
-    --------
+    Returns
+    -------
     [qb1, qbi ...] : list of length `nnos`
     qb1 : mass for the 1st thermostat in the chain
     qbi : masses for the 2nd, 3rd, ... thermostat
@@ -101,15 +101,15 @@ def barostat_mass_w(freq, temp, nf=None, ndim=3):
     
     Abinit: bmass for ionmov 13 + optcell 1.
 
-    args:
-    -----
+    Parameters
+    ----------
     %(freq)s
     %(temp)s
     %(nf)s
     %(ndim)s
 
-    returns:
-    --------
+    Returns
+    -------
     W : barostat mass
     """
     return float(nf+ndim)*kb*temp / freq**2.0  / m0 / a0**2.0
@@ -121,15 +121,15 @@ def barostat_mass_wg(freq, temp, nf=None, ndim=3):
     
     Abinit: bmass for ionmov 13 + optcell 2.
 
-    args:
-    -----
+    Parameters
+    ----------
     %(freq)s
     %(temp)s
     %(nf)s
     %(ndim)s
 
-    returns:
-    --------
+    Returns
+    -------
     W_g : barostat mass
     """
     return float(nf+ndim)*kb*temp / float(ndim) / freq**2.0  / m0 / a0**2.0

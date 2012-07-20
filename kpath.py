@@ -8,18 +8,18 @@ def kpath(vecs, N=10):
     construct the fine path by connecting the vertices by their distance
     vectors and placing N points on each connection edge.
 
-    args:
-    -----
+    Parameters
+    ----------
     vecs: array (K,M) with K vectors of the Brillouin zone (so M = 3 usually :)
     N : int
 
-    returns:
-    --------
+    Returns
+    -------
     new_vecs : array (N*(K-1)+1,M) with a fine grid of vectors along the path 
         defined by `vecs`
     
-    notes:
-    ------
+    Notes
+    -----
     This is the simplest method one can think of. Points on the "fine path" are
     not equally distributed. The distance between 2 vertices (k-points) doesn't
     matter, you will always get N points between them. For a smooth dispersion
@@ -41,8 +41,8 @@ def get_path_norm(ks):
     cumulative norms of the difference vectors which connect each two adjacent
     k-points.
 
-    args:
-    -----
+    Parameters
+    ----------
     ks : array (nks, 3), array with `nks` k-points on the path
     """
     dnorms = np.empty(ks.shape[0], dtype=float)
@@ -92,8 +92,8 @@ def plot_dis(path_norm, freqs, special_points_path=None, **kwargs):
     See pwscf.read_matdyn_freq() for how to get `freqs` in the case of phonon
     dispersions.
 
-    args:
-    -----
+    Parameters
+    ----------
     path_norm : array (nks,)
         x-axis with cumulative norms of points along the k-path
     freqs : array (nks, nbnd)

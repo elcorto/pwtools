@@ -11,8 +11,8 @@
 #   $ cp /tmp/rpdf_test/* pwtools/test/files/rpdf/
 #   $ python pwtools/test/utils/gen_rpdf_ref.py 
 #
-# notes:
-# ------
+# Notes
+# -----
 # Make sure that you use the same seed (np.random.seed()) for all random
 # structs! Otherwise, you will end up with a new structure and you will have
 # to "hg commit" that.

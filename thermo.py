@@ -21,8 +21,8 @@ class HarmonicThermo(object):
     def __init__(self, freq, dos, temp=None, hplanck=hplanck, kb=kb, fixzero=True,
                  checknan=True, fixnan=False, fixneg=False, warn=True):
         """                 
-        args:
-        -----
+        Parameters
+        ----------
         freq : 1d array
             frequency f (NOT 2*pi*f) [cm^-1]
         dos : 1d array
@@ -52,8 +52,8 @@ class HarmonicThermo(object):
         warn : bool
             Turn warnings on and off. Use only if you know you can ignore them.
         """
-        # notes:
-        # ------
+        # Notes
+        # -----
         # - This is actually a re-implementation of F_QHA.f90 found in Quantum
         #   Espresso as of v4.2.
         # - All relations can be found in M.T. Dove, Introduction to Lattice
@@ -142,13 +142,13 @@ class HarmonicThermo(object):
         """
         Integrate `y` along axis=1, i.e. over freq axis for all T.
 
-        args:
-        -----
+        Parameters
+        ----------
         y : 2d array (nT, ndos) where nT = len(self.T), ndos = len(self.dos)
         f : self.f, (len(self.dos),)
 
-        returns:
-        --------
+        Returns
+        -------
         array (nT,)
         """
         if self.checknan:

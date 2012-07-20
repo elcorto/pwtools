@@ -25,7 +25,7 @@ class FlexibleGetters(object):
     (i.e. get_bar -> get_foo -> get_bar -> ..., max. recursion limit error).
     Always test! This corner case danger is outweight by usefullness.
    
-    example:
+    Examples
     --------
     class MySuperParsingClass(FlexibleGetters):
         def __init__(self):
@@ -156,7 +156,7 @@ class FlexibleGetters(object):
     def load(self, dump_filename):
         """Load pickled object.
         
-        example:
+        Examples
         --------
         # save
         >>> x = FileParser('foo.txt')
@@ -177,13 +177,13 @@ class FlexibleGetters(object):
     def is_set_attr(self, attr):
         """Check if self has the attribute self.<attr> and if it is _not_ None.
 
-        args:
-        -----
+        Parameters
+        ----------
         attr : str
             Attrubiute name, e.g. 'foo' for self.foo
         
-        returns:
-        --------
+        Returns
+        -------
         True : `attr` is defined and not None
         False : not defined or None
         """
@@ -206,8 +206,8 @@ class FlexibleGetters(object):
         self.foo = self.get_foo()
         self._foo = self._get_foo()
 
-        args:
-        -----
+        Parameters
+        ----------
         attr : string
         """
         if not self.is_set_attr(attr):
@@ -225,7 +225,7 @@ class FlexibleGetters(object):
         """Run try_set_attr() and return the result of is_set_attr(), i.e. True
         or False. Most important shortcut method.
         
-        example:
+        Examples
         --------
             def get_foo(self):
                 if self.check_set_attr('bar'):
