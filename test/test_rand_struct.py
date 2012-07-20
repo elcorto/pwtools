@@ -19,3 +19,17 @@ def test_rand_struct():
                         st.symbols,
                         st.cryst_const]
     assert st.natoms == len(st.symbols) == 10
+
+    # catch exception
+    rs = crys.RandomStructure(symbols=['Si']*100, 
+                              vol_scale=3, 
+                              angle_range=[60.0, 120.0],
+                              vol_range_scale=[0.7, 1.3],
+                              length_range_scale=[0.7, 1.3],
+                              close_scale=100,
+                              cell_maxtry=1,
+                              atom_maxtry=1)
+    try:                              
+        st = rs.get_random_struct()
+    except crys.RandomStructureFail as ex:
+        print "KNOWNFAIL: catched exception: %s" %ex.msg

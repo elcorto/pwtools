@@ -2464,14 +2464,15 @@ def struct2traj(obj):
     else:
         return obj.get_traj(nstep=1)
 
-
-# TODO:
-# * Add PerturbedStructure, maybe as subclass of RandomStructure (reuse
-#   atoms_too_close), which takes a struct and adds a random perturbation on it
+class RandomStructureFail(Exception):
+    def __init__(self, msg):
         self.msg = msg
     def __str__(self):
         return self.msg
 
+# TODO:
+# * Add PerturbedStructure, maybe as subclass of RandomStructure (reuse
+#   atoms_too_close), which takes a struct and adds a random perturbation on it
 class RandomStructure(object):
     """Create a random structure, based on atom number and composition alone
     (`symbols`).
@@ -2526,7 +2527,9 @@ class RandomStructure(object):
             by `min` and `max` to get allowed cell side range.
         close_scale : float
             Scale allowed distance between atoms (from sum of covalent radii).
-            Use < 1.0 to make tightly packed structures.
+            Use < 1.0 to make tightly packed structures, i.e. mall values will
+            allow close atoms, large values make big spaces but will also
+            make the structure generation more liekly to fail.
         cell_maxtry / atom_maxtry : integer, optional
             Maximal attempts to create a random cell / insert random atom into
             cell before RandomStructureFail is raised.
