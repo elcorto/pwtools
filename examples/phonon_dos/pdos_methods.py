@@ -312,7 +312,7 @@ for i in range(natoms):
         coords[i,k,:] = np.sin(2*pi*freqs[i,k,:][:,None]*taxis).sum(axis=0)
 
 ##arr = coords
-arr = pydos.velocity(coords, copy=True)
+arr = pydos.velocity(coords)
 massvec = rand(natoms)
 
 # no mass weighting

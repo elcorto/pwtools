@@ -70,4 +70,8 @@ plotting dispersions
 * Finish functions for parsing and plotting dispersions (pwscf.py, kpath.py).
   Remove unused and redundant stuff.
 
+examples
+--------
+Clean up examples/phonon_dos/pdos_methods.py .
+
 # vim:comments=fb\:*
