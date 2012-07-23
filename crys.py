@@ -2472,13 +2472,13 @@ class RandomStructureFail(Exception):
 
 # TODO:
 # * Add PerturbedStructure, maybe as subclass of RandomStructure (reuse
-#   atoms_too_close), which takes a struct and adds a random perturbation on it
+#   _atoms_too_close), which takes a struct and adds a random perturbation on it
 class RandomStructure(object):
     """Create a random structure, based on atom number and composition alone
     (`symbols`).
 
     The mean target cell volume and cell side lengths are determined from covalent
-    radii of all atoms.
+    radii of all atoms (see pwtools.atomic_data.covalent_radii).
 
     Examples
     --------
@@ -2487,7 +2487,7 @@ class RandomStructure(object):
 
     For many atoms (~ 200), the creation takes a while b/c as more and more
     atoms are already present, we need many more tries to get another random
-    atom into the struct. Then, atoms_too_close() is called a lot, which is the
+    atom into the struct. Then, _atoms_too_close() is called a lot, which is the
     bottleneck. Hint: ``plot(rs.counters['coords'])``.
     """
     # Notes
@@ -2497,7 +2497,7 @@ class RandomStructure(object):
     # * Maybe don't raise exceptions if struct creation fails, only print
     #   warning / let user decide -- add arg error={True,False}.
     # * The bottleneck is get_random_struct() -- the loop over
-    #   atoms_too_close().   
+    #   _atoms_too_close().   
     def __init__(self, 
                  symbols, 
                  vol_scale=4, 
@@ -2506,15 +2506,16 @@ class RandomStructure(object):
                  length_range_scale=[0.7,1.3],
                  close_scale=1,
                  cell_maxtry=100,
-                 atom_maxtry=1000):
+                 atom_maxtry=1000,
+                 verbose=False):
         """
         Parameters
         ----------
         symbols : list of strings
             Atom symbols. Defines number of atoms and composition.
         vol_scale : float
-            Scale volume estimated from sum of covalent spheres (=maximal
-            tightly packed structure). Only values > 1 make sense. This is used
+            Scale volume estimated from sum of covalent spheres (lower bound
+            for volume). Only values > 1 make sense. This is used
             to get the mean target volume (increase "the holes" between spheres).
             Large values will create large cells with much space between atoms.
         angle_range : sequence of 2 floats [min, max]
@@ -2527,12 +2528,14 @@ class RandomStructure(object):
             by `min` and `max` to get allowed cell side range.
         close_scale : float
             Scale allowed distance between atoms (from sum of covalent radii).
-            Use < 1.0 to make tightly packed structures, i.e. mall values will
+            Use < 1.0 to make tightly packed structures, i.e. small values will
             allow close atoms, large values make big spaces but will also
-            make the structure generation more liekly to fail.
+            make the structure generation more likely to fail.
         cell_maxtry / atom_maxtry : integer, optional
             Maximal attempts to create a random cell / insert random atom into
             cell before RandomStructureFail is raised.
+        verbose : bool, optional
+            Print stuff while trying to generate structs.
         """
         self.symbols = symbols
         self.close_scale = close_scale
@@ -2540,6 +2543,7 @@ class RandomStructure(object):
         self.natoms = len(self.symbols)
         self.cell_maxtry = cell_maxtry
         self.atom_maxtry = atom_maxtry
+        self.verbose = verbose
         self.cov_radii = np.array([atomic_data.pt[sym]['cov_rad'] for \
                                    sym in symbols])
         self.dij_min = (self.cov_radii + self.cov_radii[:,None]) * self.close_scale
@@ -2552,6 +2556,16 @@ class RandomStructure(object):
         self.counters = {'cryst_const': None, 'coords': None} 
 
     def get_random_cryst_const(self):
+        """Create random cryst_const.
+
+        Returns
+        -------
+        cryst_const : 1d array (6,)
+
+        Raises
+        ------
+        RandomStructureFail
+        """
         def _get():
             return np.concatenate((uniform(self.length_range[0], 
                                            self.length_range[1], 3),
@@ -2569,7 +2583,7 @@ class RandomStructure(object):
                 return cc
         raise RandomStructureFail("failed creating random cryst_const")            
     
-    def atoms_too_close(self, iatom):
+    def _atoms_too_close(self, iatom):
         """Check if any two atoms are too close, i.e. closer then the sum of
         their covalent radii, scaled by self.close_scale.
         
@@ -2606,7 +2620,28 @@ class RandomStructure(object):
     def _add_random_atom(self, iatom):
         self.coords_frac[iatom,:] = np.random.rand(3)
 
-    def get_random_struct(self):
+    def _try_random_struct(self):
+        """Try to create a random struct by calling _get_random_struct(). If
+        RandomStructureFail is raised, catch it and return None instead."""
+        try:
+            st = self.get_random_struct()
+            return st
+        except RandomStructureFail as err:
+            if self.verbose:
+                print err.msg
+            return None
+    
+    def _get_random_struct(self):
+        """Generate random cryst_const and atom coords.
+
+        Returns
+        -------
+        Structure
+
+        Raises
+        ------
+        RandomStructureFail
+        """
         self.cell = cc2cell(self.get_random_cryst_const())
         self.coords_frac = np.empty((self.natoms, 3))
         self.counters['coords'] = []
@@ -2618,7 +2653,7 @@ class RandomStructure(object):
                 cnt = 1
                 while cnt <= self.atom_maxtry:
                     self._add_random_atom(iatom)
-                    if self.atoms_too_close(iatom):
+                    if self._atoms_too_close(iatom):
                         self._add_random_atom(iatom)
                         cnt += 1
                     else:
@@ -2632,4 +2667,50 @@ class RandomStructure(object):
                        coords_frac=self.coords_frac,
                        cell=self.cell)        
         return st
+    
+    def _get_random_struct_nofail(self):
+        """Same as _get_random_struct(), but if RandomStructureFail is raised,
+        start over.
+        
+        Returns
+        -------
+        Structure
+        """
+        st = self._try_random_struct()
+        cnt = 0
+        while st is None:
+            if self.verbose:
+                print "  try: %i" %cnt
+            st = self._try_random_struct()
+            cnt += 1          
+        return st             
+    
+    def get_random_struct(self, fail=True):
+        """Generate random cryst_const and atom coords.
+        
+        If `fail=True`, then RandomStructureFail may be raised if structure
+        generation fails (`cell_maxtry` or  `atom_maxtry` exceeded).
 
+        If `fail=False`, then the process is repeated over and over (may run
+        forever). Use this if you know that your settings (all `*_scale`
+        inputs) are sensible + struct generation fails "sometimes" and you
+        absolutely want to create a struct.
+
+        Parameters
+        ----------
+        fail : bool, optional
+
+        Returns
+        -------
+        Structure
+
+        Raises
+        ------
+        RandomStructureFail (if `fail=True`).
+        """
+        if fail:
+            return self._get_random_struct()
+        else:            
+            return self._get_random_struct_nofail()
+
+    

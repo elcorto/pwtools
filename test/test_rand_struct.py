@@ -11,7 +11,8 @@ def test_rand_struct():
                               close_scale=0.7,
                               cell_maxtry=100,
                               atom_maxtry=1000)
-    st = rs.get_random_struct()
+    st = rs.get_random_struct(fail=True)
+    st = rs.get_random_struct(fail=False)
     assert st.is_struct
     assert not None in [st.coords, 
                         st.coords_frac, 
@@ -30,6 +31,6 @@ def test_rand_struct():
                               cell_maxtry=1,
                               atom_maxtry=1)
     try:                              
-        st = rs.get_random_struct()
+        st = rs.get_random_struct(fail=True)
     except crys.RandomStructureFail as ex:
         print "KNOWNFAIL: catched exception: %s" %ex.msg
