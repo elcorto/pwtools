@@ -1,10 +1,7 @@
 """ Crystal and unit-cell related tools, MD analysis, container classes."""
 
 from math import acos, pi, sin, cos, sqrt
-import textwrap
-import time
-import os
-import tempfile
+import textwrap, itertools, time, os, tempfile
 
 import numpy as np
 from numpy.random import uniform
@@ -1777,6 +1774,78 @@ def vmd_measure_gofr(traj, dr, rmax='auto', sel=['all','all'], first=0,
                                 verbose=verbose,tmpdir=tmpdir)
     return ret
 
+def distances(struct, pbc=False, squared=False):
+    """
+    Wrapper for _flib.distsq_frac(). Calculate distances of all atoms in
+    `struct`.
+
+    Parameters
+    ----------
+    struct : Structure instance
+    pbc : bool, optional
+        Apply PBC wrapping to distances (minimum image distances)
+    squared : bool, optional
+        Return squared distances
+    
+    Returns
+    -------
+    dists, distvecs, distvecs_frac
+    dists : 2d array (natoms, natoms)
+        (Squared) distances. Note that ``dists[i,j] == dists[j,i]``.
+    distvecs_frac : (natoms,natoms,3)
+        Fractional distance vectors.
+    distvecs : (natoms,natoms,3)
+        Cartesian distance vectors.
+    """
+    distsq, distvecs, distvecs_frac = \
+        _flib.distsq_frac(struct.coords_frac, struct.cell, pbc=int(pbc))
+    dists = distsq if squared else np.sqrt(distsq)        
+    return dists, distvecs, distvecs_frac
+
+def angles(struct, pbc=False):
+    """
+    Wrapper for _flib.angles_from_loop(). Calculate all angles between atom
+    triples in `struct`.
+
+    Parameters
+    ----------
+    struct : Structure instance
+    pbc : bool, optional
+        Apply PBC wrapping to distances (minimum image distances)
+    
+    Returns
+    -------
+    angles : 1d array (nang,)
+        All angles in degrees.
+    angleidx : 2d array (nang,3)
+        angleidx[i,:] = [ii,jj,kk] <-> angle between atoms ii,jj,kk where ii is
+        the central atom and the distance vectors are ii->jj and ii->kk.
+
+    Notes
+    -----
+    `angleidx` holds all ii,jj,kk triples which we would get from::
+        angleidx = []
+        for ii in range(natoms):
+            for jj in range(natoms):
+                for kk in range(natoms):
+                    if (ii != jj) and (ii != kk) and (jj != kk):
+                        angleidx.append([ii,jj,kk])
+    which is the same as::
+        [x for x in itertools.permutations(range(natoms),3)]
+    The number of permutations = number angles ) `nang`::
+        natoms! / (natoms-3)! = natoms * (natoms - 1) * (natoms - 2)
+    """
+    dists, distvecs, distvecs_frac = distances(struct, pbc=pbc, squared=False) 
+    del distvecs_frac
+    anglesijk, angles, angleidx = \
+        _flib.angles_from_loop(distvecs,
+                               dists,
+                               mask_val=0.0,
+                               deg=1)
+    del anglesijk
+    return angles, angleidx - 1
+
+
 #-----------------------------------------------------------------------------
 # Container classes for crystal structures and trajectories.
 #-----------------------------------------------------------------------------
@@ -2057,7 +2126,7 @@ class Structure(UnitsHandler):
                           symbols=self.symbols,
                           forces=self._extend_if_possible(self.forces, nstep),
                           stress=self._extend_if_possible(self.stress, nstep))
-
+    
     def get_coords(self):
         """Cartesian coords."""
         if not self.is_set_attr('coords'):
@@ -2611,7 +2680,7 @@ class RandomStructure(object):
         #-----------------------------------------------------------
         distsq, dummy1, dummy2 = _flib.distsq_frac(coords_frac,
                                                    self.cell,
-                                                   mic=1)
+                                                   pbc=1)
         dist = np.sqrt(distsq)                                                            
         # This part is fast
         dij_min_filled = self.dij_min[:natoms_filled,:natoms_filled]
