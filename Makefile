@@ -101,8 +101,10 @@ F2PY_OMP_F90_FLAGS=-lgomp
 # --opt= flag.
 F2PY_FLAGS=--opt='-O2' \
 			--f90exec=$(F90) \
+			--f77exec=$(F90) \
 			--arch="$(ARCH)" \
 			--f90flags="$(F90FLAGS) $(OMP_F90_FLAGS)" \
+			--f77flags="$(F90FLAGS) $(OMP_F90_FLAGS)" \
 			$(F2PY_OMP_F90_FLAGS) \
 ##			-DF2PY_REPORT_ON_ARRAY_COPY=1 \
 
