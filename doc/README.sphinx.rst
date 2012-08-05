@@ -11,6 +11,7 @@ Build and read::
 Build docu (devs)
 -----------------
 ::
+
     $ cd doc
     $ ./make-doc-files.py
     $ make html
@@ -21,6 +22,7 @@ How to set up a sphinx doc directory and add numpydoc
 (Already done, this is just a reference).
 
 ::
+
     $ mkdir doc
     $ sphinx-quickstart
 
