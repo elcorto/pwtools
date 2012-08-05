@@ -46,3 +46,5 @@ Modify ``doc/source/conf.py`` to include numpydoc::
                   'sphinx.ext.viewcode', 'numpydoc']
     
 .. _sphinx: http://sphinx.pocoo.org/
+
+.. vim:syn=rst
