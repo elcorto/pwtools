@@ -10,20 +10,27 @@ from pwtools.constants import Ry_to_J, eV, Ry, kb
 def assrt_aae(*args, **kwargs):
     np.testing.assert_array_almost_equal(*args, **kwargs)
 
-def test():
-    def pack(fns):
-        for fn in fns:
-            common.system('gzip %s' %fn)
+def msg(txt):
+    bar = '-'*79
+    print bar
+    print txt
+    print bar
 
-    def unpack(fns):
-        for fn in fns:
-            common.system('gunzip %s' %fn)
+def pack(fns):
+    for fn in fns:
+        common.system('gzip %s' %fn)
 
-    class Store(object):
-        def __init__(self, arr1, arr2):
-            self.arr1 = arr1
-            self.arr2 = arr2
+def unpack(fns):
+    for fn in fns:
+        common.system('gunzip %s' %fn)
 
+class Store(object):
+    def __init__(self, arr1, arr2):
+        self.arr1 = arr1
+        self.arr2 = arr2
+
+
+def test_qha():
     fqha_fn = 'files/fqha.out'
     pdos_fn = 'files/si.phdos'
     files = [fqha_fn, pdos_fn]
@@ -33,21 +40,9 @@ def test():
     pdos = np.loadtxt(pdos_fn)
     temp = fqha[:,0] 
 
-    #--------------------------------------------------------------------
-    # Verify against ref data
-    #--------------------------------------------------------------------
+    msg('Verify against ref data')
     
-    # No nan warnings, b/c we do not take all data into account. However
-    # assert_array_almost_equal() will fail with decimal=3.
-    # 
-    ##ha = HarmonicThermo(pdos[3:,0], pdos[3:,1], temp, fixzero=True, fixnan=True,
-    ##                    checknan=True)
-
-    
-    # all data, mmaybe get some nans, but assert_array_almost_equal() will pass
-    # with decimal=3 .
-    ha = HarmonicThermo(pdos[:,0], pdos[:,1], temp, fixzero=True, fixnan=True,
-                        checknan=True)
+    ha = HarmonicThermo(pdos[:,0], pdos[:,1], temp, skipfreq=True)
     
     # Ref Evib + Fvib [Ry], need to convert. Cv and Svib [kb].
     dct = {'evib': Store(arr1=ha.evib(), arr2=fqha[:,1]*Ry/eV),
@@ -58,61 +53,42 @@ def test():
     for key, store in dct.iteritems():
         assrt_aae(store.arr1, store.arr2, decimal=2)
     
-    #--------------------------------------------------------------------
-    # Consistency
-    #--------------------------------------------------------------------
+    msg('Consistency')
     
     # Fvib = Evib -T*Svib
     assrt_aae(dct['fvib'].arr1, 
               (dct['evib'].arr1 - temp*dct['svib'].arr1*kb/eV))
     
-    #--------------------------------------------------------------------
-    # API tests
-    #--------------------------------------------------------------------
+    msg('API tests')
 
     # use temp arg in methods
-    ha = HarmonicThermo(pdos[:,0], pdos[:,1], fixzero=True, fixnan=True,
-                        checknan=True)
+    ha = HarmonicThermo(pdos[:,0], pdos[:,1], skipfreq=True)
     x=ha.evib(temp)                        
     x=ha.fvib(temp)
     x=ha.cv(temp)
     x=ha.svib(temp)
     pack(files)
     
-    # test fix* 
+    msg('skip and fix')
     freq = np.linspace(1, 10, 100)
     dos = freq**2.0
     temp = np.linspace(10, 100, 100)
-    # fixzero
     freq[0] = 0.0
     ha = HarmonicThermo(freq=freq, 
-                        dos=dos, 
-                        fixzero=False, 
-                        checknan=True, 
-                        fixnan=False, 
-                        fixneg=False)
+                        dos=dos,
+                        skipfreq=False)
     assert ha.f[0] == 0.0 
     ha = HarmonicThermo(freq=freq, 
                         dos=dos, 
-                        fixzero=True, 
-                        checknan=True, 
-                        fixnan=False, 
-                        fixneg=False)
+                        skipfreq=True)
     assert ha.f[0] > 0.0                        
-    # fixneg 
     freq[0] = -100.0
     ha = HarmonicThermo(freq=freq, 
                         dos=dos, 
-                        fixzero=False, 
-                        checknan=True, 
-                        fixnan=False, 
-                        fixneg=False)
+                        skipfreq=False)
     assert ha.f[0] == -100                
     ha = HarmonicThermo(freq=freq, 
                         dos=dos, 
-                        fixzero=False, 
-                        checknan=True, 
-                        fixnan=False, 
-                        fixneg=True)
+                        skipfreq=True)
     assert ha.f[0] > 0.0                
                 

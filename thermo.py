@@ -18,8 +18,9 @@ class HarmonicThermo(object):
     [eV]), entropy (Svib [R,kb]) and isochoric heat capacity (Cv [R,kb]) in the
     harmonic approximation from a phonon density of states. 
     """    
-    def __init__(self, freq, dos, temp=None, hplanck=hplanck, kb=kb, fixzero=True,
-                 checknan=True, fixnan=False, fixneg=False, warn=True):
+    def __init__(self, freq, dos, temp=None, skipfreq=False, 
+                 eps=1.5*np.finfo(float).eps, fixnan=False, nanfill=0.0, 
+                 verbose=True):
         """                 
         Parameters
         ----------
@@ -30,27 +31,37 @@ class HarmonicThermo(object):
         temp : 1d array, optional
             temperature range [K], if not given in the constructor then use
             `temp` in the calculation methods
-        hplanck, kb : Planck [J*s] / Boltzmann [J/K] constants
-        fixzero : bool
-            Handle zero frequencies and other values by setting them to smth
-            like 1.5*eps. This prevents NaNs in subsequent calculations. This
-            is a safe operation and should not perturb the results.
-        checknan : bool
-            Warn about found NaNs. To actually fix them, set fixnan=True.
-        fixnan : bool
-            Use if YKWYAD, test before using! Currently, set all NaNs to 0.0 if
-            checknan=True. This is a HACK b/c we must assume that these numbers
-            should be 0.0.
-        fixneg : bool
-            Use if YKWYAD, test before using! Same as fixnan, but for negative
-            numbers. Sometimes, a few frequencies (ususally the 1st entry only)
-            are close to zero and negative. Set them to a very small positive
-            value. The rms of the fixed values is printed. The default is False
-            b/c it may hide large negative frequencies (i.e. unstable
-            structure), which is a perfectly valid result (but you shouldn't do
-            thermodynamics with that :)
-        warn : bool
-            Turn warnings on and off. Use only if you know you can ignore them.
+        skipfreq : bool, optional
+            Ignore frequencies and DOS values where the frequencies are
+            negative or close to zero, i.e. all DOS curve values where `freq` <
+            `eps`. The number and rms of the skipped values is printed if
+            `verbose=True`.
+        eps : float, optional
+            Threshold for `skipfreq`. Default is ~1.5*2.2e-16 . 
+        fixnan : bool, optional
+            Use if YKWYAD, test before using! Currently, set all NaNs occuring
+            during integration to `nanfill`. This is a HACK b/c we must assume
+            that these numbers should be `nanfill`.
+        nanfill : float, optional
+            During integration over temperature, set NaNs to this value.
+        verbose : bool, optional
+            Print warnings. Recommended for testing.
+
+        Notes
+        -----
+        `skipfreq` and `fixnan`: Sometimes, a few frequencies (ususally the 1st
+        few values only) are close to zero and negative, and the DOS is very
+        small there. `skipfreq` can be used to ignore this region. The default
+        is False b/c it may hide large negative frequencies (i.e. unstable
+        structure), which is a perfectly valid result (but you shouldn't do
+        thermodynamics with that :) Even if there are no negative frequencies,
+        you can have frequencies (usually the first) beeing exactly zero or
+        close to that (order 1e-17). That can cause numerical problems (NaNs)
+        in some calculations so we may skip them and their DOS values, which
+        must be assumed to be small. If you still encounter NaNs during
+        integration, you may use `fixnan` to set them to `nanfill`. But that is a
+        hack. If you cannot get rid of NaNs by `skipfreq`, then your freq-dos
+        data is probably fishy!
         """
         # Notes
         # -----
@@ -101,42 +112,34 @@ class HarmonicThermo(object):
         self.h = hplanck * c0 * 100
         self.kb = kb
         self.fixnan = fixnan
-        self.fixneg = fixneg
-        self.fixzero = fixzero
-        self.checknan = checknan
-        self.warn = warn
-        self.tiny = 1.5 * np.finfo(float).eps
+        self.skipfreq = skipfreq
+        self.verbose = verbose
+        self.eps = eps
+        self.nanfill = nanfill
         
-        # order is important!
-        if self.fixneg:
-            self.f = self._fix(self.f, 'neg', copy=True)
-        if self.fixzero:
-            self.f = self._fix(self.f, 'zero', copy=True)
-    
-    def _printwarn(self, msg):
-        if self.warn:
-            print(msg)
+        assert len(self.f) == len(self.dos), ("freq and dos don't have "
+                                             "equal length")
+        if self.verbose:
+            print "number of points: %i" %len(self.f)
+        
+        if self.skipfreq:
+            mask = self.f > self.eps
+            if self.verbose:
+                imask = np.invert(mask)
+                nskip = len(imask.nonzero()[0])
+                if len(imask) > 0:
+                    frms = crys.rms(self.f[imask])
+                    drms = crys.rms(self.dos[imask])
+                    self._printwarn("HarmonicThermo: skipping %i frequencies: "
+                        "rms=%e" %(nskip, frms))
+                    self._printwarn("HarmonicThermo: skipping %i dos values: "
+                        "rms=%e" %(nskip,drms))
+            self.f = self.f[mask]
+            self.dos = self.dos[mask]
 
-    def _fix(self, arr, what='zero', copy=True):
-        arr2 = arr.copy() if copy else arr
-        if what == 'zero':
-            idxs = np.abs(arr2) <= self.tiny
-            if idxs.any():
-                rms = crys.rms(arr2[idxs])
-                self._printwarn("HarmonicThermo._fix: warning: "
-                    "fixing zeros!, rms=%e" %rms)
-            arr2[idxs] = self.tiny
-        elif what == 'neg':
-            idxs = arr2 < 0.0
-            if idxs.any():
-                rms = crys.rms(arr2[idxs])
-                self._printwarn("HarmonicThermo._fix: warning: "
-                    "fixing negatives!, rms=%e" %rms) 
-            arr2[idxs] = 2*self.tiny
-        else:
-            raise StandardError("unknown method: '%s'" %what)
-        return arr2
-    
+    def _printwarn(self, msg):
+        if self.verbose:
+            print(msg)
 
     def _integrate(self, y, f):
         """
@@ -151,13 +154,14 @@ class HarmonicThermo(object):
         -------
         array (nT,)
         """
-        if self.checknan:
-            mask = np.isnan(y)
-            if mask.any():
-                self._printwarn("HarmonicThermo._integrate: warning: NaNs found!")
-                if self.fixnan:
-                    self._printwarn("HarmonicThermo._integrate: warning: fixing NaNs!")
-                    y[mask] = 0.0
+        mask = np.isnan(y)
+        if mask.any():
+            self._printwarn("HarmonicThermo._integrate: warning: "
+                            " %i NaNs found in y!" %len(mask))
+            if self.fixnan:
+                self._printwarn("HarmonicThermo._integrate: warning: "
+                                "fixing %i NaNs in y!" %len(mask))
+                y[mask] = self.nanfill
         return np.array([simps(y[i,:], f) for i in range(y.shape[0])])
     
     def _get_temp(self, temp):
@@ -165,58 +169,58 @@ class HarmonicThermo(object):
             raise ValueError("temp input and self.T are None")
         return self.T if temp is None else temp       
 
-    def vibrational_internal_energy(self, T=None):
+    def vibrational_internal_energy(self, temp=None):
         """Evib [eV]"""
         h, f, kb, dos = self.h, self.f, self.kb, self.dos
-        T = self._get_temp(T)
+        T = self._get_temp(temp)
         arg = h * f / (kb*T[:,None])
-        # 1/[ exp(x) -1] = NaN for x=0, that's why we use _fix('zero'): For
-        # instance
-        #   1/(exp(1e-17) - 1) = NaN
-        #   1/(exp(3e-16) - 1) = 4503599627370496.0
-        arg = self._fix(arg, 'zero', copy=False)
         y = dos * f * (0.5 + 1.0 / (np.exp(arg) - 1.0))
         eint = self._integrate(y, f) 
         return eint * (h/eV)
         
-    def isochoric_heat_capacity(self, T=None):
+    def isochoric_heat_capacity(self, temp=None):
         """Cv [R, kb]"""
         h, f, kb, dos = self.h, self.f, self.kb, self.dos
-        T = self._get_temp(T)
+        T = self._get_temp(temp)
         arg = h * f / (kb*T[:,None])
         y = dos * f**2 / np.sinh(arg / 2.0)**2.0
         fac = (h / (kb*2*T))**2
         cv = self._integrate(y, f) * fac
         return cv
     
-    def vibrational_free_energy(self, T=None):
+    def vibrational_free_energy(self, temp=None):
         """Fvib [eV]"""
         h, f, kb, dos = self.h, self.f, self.kb, self.dos
-        T = self._get_temp(T)
+        T = self._get_temp(temp)
         arg = h * f / (kb*T[:,None])
         y = dos * np.log(2.0*np.sinh(arg/2.0))
         ret = self._integrate(y,f) * T
         return ret * (kb / eV)
     
-    def vibrational_entropy(self, T=None):
+    def vibrational_entropy(self, temp=None):
         """Svib [R, kb]"""
         h, f, kb, dos = self.h, self.f, self.kb, self.dos
-        T = self._get_temp(T)
+        T = self._get_temp(temp)
         arg = h * f / (kb*T[:,None])
         y = dos * (0.5/T[:,None] * (h / kb) * f * coth(arg/2.0) - 
                    np.log(2.0*np.sinh(arg/2.0)))
         ret = self._integrate(y,f)
         return ret
     
+    # aliases 
     def evib(self, *args, **kwargs):
+        """Same as vibrational_internal_energy()."""
         return self.vibrational_internal_energy(*args, **kwargs)
 
     def cv(self, *args, **kwargs):
+        """Same as isochoric_heat_capacity()."""
         return self.isochoric_heat_capacity(*args, **kwargs)
     
     def fvib(self, *args, **kwargs):
+        """Same as vibrational_free_energy()."""
         return self.vibrational_free_energy(*args, **kwargs)
     
     def svib(self, *args, **kwargs):
+        """Same as vibrational_entropy()."""
         return self.vibrational_entropy(*args, **kwargs)
 
