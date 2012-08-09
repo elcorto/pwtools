@@ -9,6 +9,7 @@ __all__ = [\
     'crys',
     'decorators',
     'eos',
+    'ffnet',
     'flib_wrap',
     'io',
     'kpath',
