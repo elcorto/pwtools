@@ -1792,10 +1792,10 @@ def distances(struct, pbc=False, squared=False):
     dists, distvecs, distvecs_frac
     dists : 2d array (natoms, natoms)
         (Squared) distances. Note that ``dists[i,j] == dists[j,i]``.
-    distvecs_frac : (natoms,natoms,3)
-        Fractional distance vectors.
     distvecs : (natoms,natoms,3)
         Cartesian distance vectors.
+    distvecs_frac : (natoms,natoms,3)
+        Fractional distance vectors.
     """
     distsq, distvecs, distvecs_frac = \
         _flib.distsq_frac(struct.coords_frac, struct.cell, pbc=int(pbc))
@@ -1824,15 +1824,20 @@ def angles(struct, pbc=False):
     Notes
     -----
     `angleidx` holds all ii,jj,kk triples which we would get from::
+
         angleidx = []
         for ii in range(natoms):
             for jj in range(natoms):
                 for kk in range(natoms):
                     if (ii != jj) and (ii != kk) and (jj != kk):
                         angleidx.append([ii,jj,kk])
+    
     which is the same as::
+
         [x for x in itertools.permutations(range(natoms),3)]
-    The number of permutations = number angles ) `nang`::
+    
+    The number of permutations = number of angles `nang` is::
+
         natoms! / (natoms-3)! = natoms * (natoms - 1) * (natoms - 2)
     """
     dists, distvecs, distvecs_frac = distances(struct, pbc=pbc, squared=False) 

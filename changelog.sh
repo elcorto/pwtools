@@ -9,8 +9,8 @@
 #
 # examples
 # --------
-# ./changelog.py
-# ./changelog.py -r 0.30.1:tip
+# ./changelog.sh
+# ./changelog.sh -r 0.30.1:tip
 #
 # notes:
 # ------
