@@ -2690,10 +2690,8 @@ class RandomStructure(object):
         self.coords_frac[iatom,:] = np.random.rand(3)
 
     def _try_random_struct(self):
-        """Try to create a random struct by calling _get_random_struct(). If
-        RandomStructureFail is raised, catch it and return None instead."""
         try:
-            st = self.get_random_struct()
+            st = self._get_random_struct()
             return st
         except RandomStructureFail as err:
             if self.verbose:
