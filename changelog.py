@@ -10,7 +10,7 @@ def usage():
 
     usage:
     ------
-    ./changelog.py [-r <start>:<end>]
+    ./changelog.py [<hg options>]
 
     examples
     --------
@@ -49,8 +49,7 @@ else:
     args = ' '.join(sys.argv[1:])
 
 prefix_lst = ['ENH', 'BUG', 'API', 'INT']
-rex = '^(' + '|'.join(prefix_lst) + ').*'
-rex = re.compile(rex)
+rex = re.compile('^(' + '|'.join(prefix_lst) + ').*')
 cmd = r'hg log -v %s --template "{desc}\n"' %args
 lines = common.backtick(cmd).splitlines()
 for prefix in prefix_lst:
