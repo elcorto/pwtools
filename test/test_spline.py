@@ -9,17 +9,17 @@ def test():
     assert (y - spl(x) < spl.eps).all()
     assert (y - spl.splev(x) < spl.eps).all()
     assert (y - splev(x, spl.tck) < spl.eps).all()
-    assert spl.is_mono() == False
+    assert not spl.is_mono()
     np.testing.assert_array_almost_equal(spl(x,der=1), np.cos(x), decimal=4)
 
     x = np.linspace(0,10,100)
     y = x**2.0 - 5
     spl = Spline(x,y)
-    assert spl.is_mono() == True
+    assert spl.is_mono()
     
     y = -(x**2.0 - 5)
     spl = Spline(x,y)
-    assert spl.is_mono() == True
+    assert spl.is_mono()
     
     y0s = [5,0,-40]
     xabs = [[0,2], [1,3], [6,8]]
