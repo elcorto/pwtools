@@ -1,6 +1,8 @@
 import numpy as np
 
-class Factory(object):
+class DictWithArraysFactory(object):
+    """Factory for creating functions with compare dicts with numpy arrays as
+    values."""
     def __init__(self, array_comp_func=None):
         self.array_comp_func = array_comp_func
     
@@ -28,8 +30,8 @@ def assert_attrs_not_none(pp, attr_lst=None, none_attrs=[]):
 aaae = np.testing.assert_array_almost_equal
 aae = np.testing.assert_almost_equal
 
-assert_dict_with_arrays_almost_equal = Factory(aaae)
-assert_dict_with_arrays_equal = Factory(lambda x,y: (x==y).all())
+assert_dict_with_arrays_almost_equal = DictWithArraysFactory(aaae)
+assert_dict_with_arrays_equal = DictWithArraysFactory(lambda x,y: (x==y).all())
 
 adae = assert_dict_with_arrays_almost_equal
 ade = assert_dict_with_arrays_equal

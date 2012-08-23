@@ -47,12 +47,12 @@ cat > $rsync_excl << EOF
 *.so
 *.pyf
 EOF
-rsync -av ../ $tgtdir --exclude-from=$rsync_excl &>> $logfile
+rsync -av ../ $tgtdir --exclude-from=$rsync_excl > $logfile 2>&1
 rm $rsync_excl
 cd $tgtdir
 prnt "... ready"
 prnt "build extension modules ..."
-[ -f Makefile ] && make -B &>> $logfile
+[ -f Makefile ] && make -B >> $logfile 2>&1
 prnt "... ready"
 cd test/
 

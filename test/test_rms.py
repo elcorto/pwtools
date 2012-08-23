@@ -1,7 +1,7 @@
-def test():
-    import numpy as np
-    from pwtools import crys
+import numpy as np
+from pwtools import crys
 
+def test_rms():
     natoms = 5
     nstep = 10
     arr1 = np.random.rand(nstep, 3, natoms)
