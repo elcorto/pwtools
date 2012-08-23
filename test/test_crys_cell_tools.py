@@ -1,3 +1,4 @@
+from math import pi
 import numpy as np
 from pwtools import crys
 from pwtools.test.tools import aaae, aae
@@ -53,3 +54,13 @@ def test():
     assert vol_cell.shape == (100,)
     aaae(vol_cell, vol_cc)
     aaae(crys.cell2cc3d(crys.cc2cell3d(cc)), cc)
+
+    # reciprocal cell
+    cell = rand(3,3)
+    rcell = crys.recip_cell(cell)
+    vol = crys.volume_cell(cell)
+    try:
+        assert np.allclose(crys.recip_cell(rcell), cell)
+    except AssertionError:        
+        assert np.allclose(crys.recip_cell(rcell), -1.0 * cell)
+    assert np.allclose(crys.volume_cell(rcell), (2*pi)**3.0 / vol)

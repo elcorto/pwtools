@@ -284,10 +284,9 @@ def cc2cell3d(cryst_const, axis=0):
 
 @crys_add_doc
 def recip_cell(cell):
-    """Reciprocal lattice vectors.
-        {a,b,c}* = 2*pi / V * {b,c,a} x {c, a, b}
+    """Reciprocal lattice vectors ``{a,b,c}* = 2*pi / V * {b,c,a} x {c,a,b}``.
     
-    The volume is calculated using `cell`, so make sure that all units match.
+    The reciprocal volume is ``(2*pi)**3/V``.
 
     Parameters
     ----------
@@ -295,24 +294,104 @@ def recip_cell(cell):
 
     Returns
     -------
-    Shape (3,3) numpy array with reciprocal vectors as rows.
-
-    Notes
-    -----
-    The unit of the recip. vecs is 1/[cell] and the unit of the volume is
-    [cell]**3.
+    rcell : array (3,3) 
+        Reciprocal vectors as rows.
     """
-    cell = np.asarray(cell)
+    cell = np.asarray(cell, dtype=float)
     assert_cond(cell.shape == (3,3), "cell must be (3,3) array")
-    cell_recip = np.empty_like(cell)
+    rcell = np.empty_like(cell)
     vol = volume_cell(cell)
     a = cell[0,:]
     b = cell[1,:]
     c = cell[2,:]
-    cell_recip[0,:] = 2*pi/vol * np.cross(b,c)
-    cell_recip[1,:] = 2*pi/vol * np.cross(c,a)
-    cell_recip[2,:] = 2*pi/vol * np.cross(a,b)
-    return cell_recip
+    rcell[0,:] = 2*pi/vol * np.cross(b,c)
+    rcell[1,:] = 2*pi/vol * np.cross(c,a)
+    rcell[2,:] = 2*pi/vol * np.cross(a,b)
+    return rcell
+
+
+@crys_add_doc
+def kgrid(cell, dk=0.5, minpoints=1, even=False, fullout=False):
+    """
+    Generate k-point grid size ``nx x ny x nz`` for a given grid spacing.
+
+    Parameters
+    ----------
+    %(cell_doc)s
+    dk : float
+        1d target reciprocal grid spacing (along a reciprocal axis). The unit
+        is 2*pi / real space length unit defined by `cell`, e.g. 2*pi/Angstrom.
+    minpoints : int
+        Minimal number of grid points in each direction. May result in smaller
+        effective `dk`. `minpoints=1` (default) asserts that at least the
+        Gamma point [1,1,1] is returned.  Otherwise, big cells or big `dk`
+        values will create zero grid points.
+    even : bool
+        Force even grid point numbers. Here, we add 1 to odd points, thus
+        creating a grid more dense than requested by `dk`.
+    fullout : bool
+        See below.
+
+    Returns
+    -------
+    size : if `fullout=False` 
+    size, spacing : if `fullout=True`
+    size : array (3,) [nx, ny, nz]
+        Integer numbers of grid points along each reciprocal axis.
+    spacing : 1d array (3,) 
+        Result spacing along each reciprocal axis if `size` would be used.
+   
+    Notes
+    -----
+    * B/c an integer array is created by rounding, the effective grid spacing
+      will mostly be slightly bigger/smaller then `dk` (see `fullout`).
+    * The reciprocal cell is calculated using ``recip_cell()``, so the
+      normalization used there applies here as well.
+    * ``dk=0.5`` seems to produce a sufficiently dense grid for insulators.
+      Metals need a finer k-grid for electrons.
+    
+    Examples
+    --------
+    >>> cell=diag([5,5,8])
+    
+    >>> kgrid(cell, dk=0.5)
+    array([3, 3, 2])
+
+    >>> # see effective grid spacing
+    >>> kgrid(cell, dk=0.5, fullout=True)
+    (array([3, 3, 2]), array([ 0.41887902,  0.41887902,  0.39269908]))
+    
+    >>> # even grid
+    >>> kgrid(cell, dk=0.5, even=True)
+    array([4, 4, 2])
+    
+    >>> # big cell, at least Gamma with minpoints=1
+    >>> kgrid(cell*10, dk=0.5)
+    array([1, 1, 1])
+    
+    >>> # Create MP mesh
+    >>> ase.dft.monkhorst_pack(kgrid(cell, dk=0.5))
+    """
+    assert minpoints >= 0
+    cell = np.asarray(cell, dtype=float)
+    rcell = recip_cell(cell)
+    rnorm = np.sqrt((rcell**2.0).sum(axis=1))
+    size = np.round(rnorm / dk)
+    if even:
+        size += (size % 2.0)
+    size = size.astype(int)
+    mask = size < minpoints
+    if mask.any():
+        size[mask] = minpoints
+    # only possible if minpoints=0        
+    if (size == 0).any():
+        raise StandardError("at least one point count is zero, decrease `dk`, "
+                             "size=%s" %str(size))
+    if fullout:
+        return size, rnorm * 1.0 / size
+    else:
+        return size.astype(int)
+
 
 @crys_add_doc
 def cc2celldm(cryst_const, fac=1.0):
