@@ -1,25 +1,21 @@
 # vim:ts=4:sw=4:noet
 	    
-# Compile Fortran extension (_flib.so).
+# Compile Fortran extensions. Generates *.so and *.pyf (f2py interface) files.
 # 
 # usage:  
 #   make [-B]
 # 
-# Further Notes:
-#
-# For the velocity autocorrelation function (VACF), we use an extension module
-# _flib.so written in Fortran (flib.f90). You need
-#     - numpy
-#     - a Fortran compiler
-#     - Python headers (for Linux: usually a package python-dev or python-devel,
-#       see the package manager of your distro)
+# You need:
+# * numpy
+# * a Fortran compiler
+# * Python headers (for Linux: usually a package python-dev or python-devel,
+#   see the package manager of your distro)
 # 
 # The module is compiled with f2py (currently part of numpy, tested with numpy
-# 1.1.0 .. 1.4.x). 
+# 1.1.0 .. 1.6.x). 
 # 
 # Just try 
 #     $ make
-# It should result in a file "_flib.so".
 #
 # Compiler
 # --------
@@ -54,14 +50,6 @@
 # supplied, then it will override OMP_NUM_THREADS. Currently, this is the
 # safest way to set the number of threads.
 
-#--- variables ---------------------------------------------------------------
-
-# files
-FILE=flib
-FORT=$(FILE).f90
-PYF=$(FILE).pyf
-EXT_MODULE=_$(FILE)
-SO=$(EXT_MODULE).so
 
 # f2py executable. On some systems (Debian), you may have
 #	/usr/bin/f2py -> f2py2.6
@@ -74,7 +62,7 @@ F2PY=f2py
 # ARCH below is for Intel Core i7 / Xeon. If you don't know what your CPU is
 # capable of (hint: see /proc/cpuinfo) then use "ARCH=".
 #
-# Wanny try OpenMP? Then uncomment *_OMP_F90_FLAGS.
+# Wanny try OpenMP? Then uncomment OMP_F90_FLAGS and F2PY_OMP_F90_FLAGS.
 
 # gfortran
 F90=gfortran
@@ -108,24 +96,11 @@ F2PY_FLAGS=--opt='-O2' \
 			$(F2PY_OMP_F90_FLAGS) \
 ##			-DF2PY_REPORT_ON_ARRAY_COPY=1 \
 
-#--- targets ----------------------------------------------------------------
-
-all: $(SO)
-
-pyf: $(PYF)
+all:
+	$(F2PY) -h flib.pyf flib.f90 -m _flib --overwrite-signature
+	$(F2PY) -c flib.pyf flib.f90 $(F2PY_FLAGS)
+	$(F2PY) -h fsymfunc.pyf fsymfunc.f90 -m _fsymfunc --overwrite-signature
+	$(F2PY) -c fsymfunc.pyf fsymfunc.f90 $(F2PY_FLAGS)
 
 clean:
-	rm -f $(SO) $(PYF)
-
-#--- internal targets -------------------------------------------------------
-
-# Make .pyf file and overwrite old one. We could also do
-#   f2py -c $(FORT) -m $(FILE)
-# in one run to create the extension module. But this woudn't keep the .pyf
-# file around.  
-$(PYF): $(FORT)
-	$(F2PY) -h $(PYF) $(FORT) -m $(EXT_MODULE) --overwrite-signature
-
-# make shared lib 
-$(SO): $(PYF) $(FORT)
-	$(F2PY) -c $(PYF) $(FORT) $(F2PY_FLAGS)
+	rm -vf *.so *.pyf

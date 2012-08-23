@@ -23,6 +23,7 @@ __all__ = [\
     'regex',
     'signal',
     'sql',
+    'symfunc',
     'thermo',
     'timer',
     'verbose',

@@ -30,6 +30,7 @@ Individual modules
    modules/crys
    modules/decorators
    modules/eos
+   modules/ffnet
    modules/flib_wrap
    modules/io
    modules/kpath
@@ -43,6 +44,7 @@ Individual modules
    modules/regex
    modules/signal
    modules/sql
+   modules/symfunc
    modules/thermo
    modules/timer
    modules/verbose
