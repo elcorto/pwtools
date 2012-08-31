@@ -31,8 +31,8 @@ prnt(){
     echo "$@" | tee -a $logfile
 }    
 
-nose_opts="$@ --exclude='.*abinit.*'"
-prnt "NOTE: All Abinit tests disabled!"
+##nose_opts="$@ --exclude='.*abinit.*'"
+nose_opts="$@"
 
 testdir=/tmp/pwtools-test.$$
 tgtdir=$testdir/pwtools

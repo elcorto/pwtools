@@ -18,7 +18,7 @@ general-purpose pre- and postprocessing tool. Current featues include:
 * velocity autocorrelation function from MD trajectories
 * phonon DOS from MD trajectories
 * parsing of PWscf [qe]_ and CPMD [cpmd]_ output into Python objects for easy
-  access (Abinit currently disabled)
+  access
 * IO: read cif, cml, pdb, write xsf, cif, xyz  
 * interface to external EOS fitting tools 
 * thermodynamic properties in the quasi-harmonic approximation from phonon
@@ -44,7 +44,7 @@ Born-Oppenheimer MD and phonon calculations based on density functional
 perturbation theory like PWscf/PH or Abinit (only supercell frozen phonons can
 be done with the related phonopy package [phonopy]_). The focus of the pwtools
 package is to be a handy pre- and postprocessor providing pythonic access to
-all input and output quantities of the used ab initio codes (PWscf, Abinit,
+all input and output quantities of the used ab initio codes (PWscf,
 CPMD). 
 
 In fact, appart from parse.py, which implements parsers for ab initio code
@@ -189,7 +189,7 @@ Method (1) still exists for historical reasons and as reference.
 Units of parsed quantities
 ==========================
 
-We have a lot of machinery to parse PWscf,Abinit,CPMD output files. We try to
+We have a lot of machinery to parse PWscf and CPMD output files. We try to
 return the "natural" units of each code (PWscf: Ry, Bohr, kbar; CPMD: Ha, Bohr,
 kbar). For PWscf, we also detect things like "ATOMIC_POSITIONS crystal | alat |
 bohr" and transform accordingly. Nevertheless, *always* verify that the units
@@ -291,7 +291,6 @@ References
 
 .. [qe] http://www.quantum-espresso.org
 .. [ase] https://wiki.fysik.dtu.dk/ase
-.. [abinit] http://www.abinit.org
 .. [mttk] Glenn J. Martyna and Mark E. Tuckerman and Douglas J. Tobias and Michael
     L. Klein, "Explicit reversible integrators for extended systems
     dynamics", Mol. Phys. 87(5), pp. 1117, 1996
