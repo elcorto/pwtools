@@ -65,18 +65,18 @@ F2PY=f2py
 # Wanny try OpenMP? Then uncomment OMP_F90_FLAGS and F2PY_OMP_F90_FLAGS.
 
 # gfortran
-F90=gfortran
-F90FLAGS=-x f95-cpp-input 
-ARCH=-mmmx -msse4.2 
-OMP_F90_FLAGS=-fopenmp -D__OPENMP
-F2PY_OMP_F90_FLAGS=-lgomp
+##F90=gfortran
+##F90FLAGS=-x f95-cpp-input 
+##ARCH=-mmmx -msse4.2 
+##OMP_F90_FLAGS=-fopenmp -D__OPENMP
+##F2PY_OMP_F90_FLAGS=-lgomp
 
-# ifort 11.1
-##F90=ifort
-##F90FLAGS=-fpp
-##ARCH=-xHost
-##OMP_F90_FLAGS=-openmp -D__OPENMP 
-##F2PY_OMP_F90_FLAGS=-liomp5
+# ifort 11.x
+F90=ifort
+F90FLAGS=-fpp -no-prec-div -fast-transcendentals
+ARCH=-xHost
+OMP_F90_FLAGS=-openmp -D__OPENMP 
+F2PY_OMP_F90_FLAGS=-liomp5
 
 # no OpenMP
 ##OMP_F90_FLAGS=
@@ -87,7 +87,7 @@ F2PY_OMP_F90_FLAGS=-lgomp
 # numpy.distutils has default -03 for fcompiler. --f90flags="-02" does NOT
 # override this. We get "-O3 -O2" and a compiler warning. We have to use f2py's
 # --opt= flag.
-F2PY_FLAGS=--opt='-O2' \
+F2PY_FLAGS=--opt='-O3' \
 			--f90exec=$(F90) \
 			--f77exec=$(F90) \
 			--arch="$(ARCH)" \
@@ -96,11 +96,16 @@ F2PY_FLAGS=--opt='-O2' \
 			$(F2PY_OMP_F90_FLAGS) \
 ##			-DF2PY_REPORT_ON_ARRAY_COPY=1 \
 
-all:
+all: _flib.so _fsymfunc.so
+
+_flib.so: flib.f90
 	$(F2PY) -h flib.pyf flib.f90 -m _flib --overwrite-signature
 	$(F2PY) -c flib.pyf flib.f90 $(F2PY_FLAGS)
+
+_fsymfunc.so: fsymfunc.f90
 	$(F2PY) -h fsymfunc.pyf fsymfunc.f90 -m _fsymfunc --overwrite-signature
 	$(F2PY) -c fsymfunc.pyf fsymfunc.f90 $(F2PY_FLAGS)
+
 
 clean:
 	rm -vf *.so *.pyf
