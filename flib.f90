@@ -53,7 +53,9 @@
 ! (1) the python wrapper doesn't pre-allocate and pass result arrays. In this
 ! case, the signature would look like this:: 
 !      c,d = foo(a,b,[n]) 
-! This is the most easy and pythonic way.
+! This is the most easy and pythonic way. In that case, the output arrays `c`
+! and `d` are allocated in Fortran in F order, and copied to C order when the
+! fuction returns.
 !
 ! (2) Explicitely allocate result arrays on python side and pass in. Change
 ! the f2py statement to "!f2py intent(in,out)". Then::  
@@ -65,19 +67,21 @@
 !     _flib(a,b,c,d)        # variant 1  
 !     c,d = _flib(a,b,c,d)  # varaint 2
 !
-! By default, the f2py wrapper will make a copy of each numpy array which
+! By default, the f2py wrapper will make a copy of each numpy input array which
 !   * has rank >= 2
 !   * order='C'
+! and each output array (F to C order) which was not explicitely passed in.
 ! This can be a real bottleneck for big arrays, sometimes performing much slower
 ! than the actual calculations! Use f2py -DF2PY_REPORT_ON_ARRAY_COPY=1 ... if
 ! you really want to know when.
 !
 ! According to [2], the best way to avoid array copies between Python and
-! Fortran is to use method (2) and allocate an array in Python in F-order (e.g.
-! np.empty(<shape>, order='F')). Pass that as argument and use e.g. "intent
-! (in,out)" or "intent (in,out,overwrite)" for arrays where results are written
-! to. The latter case will add an arg ``overwrite_foo`` which defaults to 1
-! (True).
+! Fortran is to use method (2) and allocate all input and output arrays in
+! Python in F-order (e.g. np.empty(<shape>, order='F')). For input arrays, use
+! "intent(in)", for outputs use "intent (in,out)" or "intent
+! (in,out,overwrite)". The latter case will add an arg ``overwrite_foo`` which
+! defaults to 1 (True). If input arrays are small, passing them as C order might
+! be OK.
 
 #define stdout 6
 #define stderr 0
@@ -291,61 +295,10 @@ subroutine distsq(arrx, arry, dsq, nx, ny, ndim)
     !$omp end parallel
 end subroutine distsq
 
-subroutine angles_from_idx(distvecs, dists, angleidx, deg, angles, natoms, nang)
-    ! Angles requested in `angleidx`.
-    !
-    ! Parameters
-    ! ----------
-    ! distvecs : 3d array w/ cartesian distance vectors
-    ! dists : 2d array with distances: dists(i,j) = norm(distvecs(i,j,:))
-    ! angleidx : 2d array (nang,3)
-    !   index array into `angles`, each angleidx(i,:) = (/ii,jj,kk/) are the
-    !   indices of atoms forming an angle angles(i), where `ii` is the central
-    !   atom, note that you need to use `angles + 1` if you pass a numpy array
-    ! deg : {0,1}
-    !   whether to return angles in degrees (1) or cosine (0)
-    ! angles : dummy, result array
-    ! natoms : dummy, number of atoms
-    ! nang : dummy, number of angles = angles.shape[0]
-    !
-    ! Returns
-    ! -------
-    ! angles : 1d array (nang,)
-    implicit none
-    integer :: ii, jj, kk, idx, nang, natoms, deg
-    integer :: angleidx(nang, 3)
-    double precision :: distvecs(natoms, natoms, 3)
-    double precision :: dists(natoms, natoms)
-    double precision, intent(out) :: angles(nang)
-    double precision, parameter :: pi=acos(-1.0d0)
-    double precision, parameter :: eps=2.2d-16, ceps=1.0d0 - eps
-    !f2py intent(out) angles
-    do idx=1,nang
-        ii = angleidx(idx,1)
-        jj = angleidx(idx,2)
-        kk = angleidx(idx,3)
-        angles(idx) = dot_product(distvecs(ii,jj,:), distvecs(ii,kk,:)) &
-                   / dists(ii,jj) / dists(ii,kk)
-    end do
-    if (deg==1) then
-        ! handle numerical corner cases where acos() can return NaN,
-        ! note that eps is hardcoded currently
-        where (angles > ceps) angles = 1.0d0
-        where (angles < -ceps) angles = -1.0d0
-        angles = acos(angles) * 180.0d0 / pi
-    end if
-end subroutine angles_from_idx
-
-subroutine angles_from_loop(distvecs, dists, mask_val, deg, anglesijk, angles, angleidx, natoms)
-    ! All angles.
-    !
-    ! Appart from 1d array `angles` with *all* angles, we also return a 3d array
-    ! with angles for easy indexing anglesijk[ii,jj,kk]. Angles in deg are
-    ! acos(anglesijk[ii,jj,kk])*180/pi . Not all array entries are used. Entries
-    ! where ii==jj or ii==kk or jj==kk are set to fill value `mask_val`.
-    !
-    ! The Python-returned `anglesijk` array is in C-order. Not sure if the f2py
-    ! wrapper allocates `anglesijk` in F-order and then returns a C-order copy.
+subroutine angles(distvecs, dists, mask_val, deg, anglesijk, natoms)
+    ! Return a 3d array with angles for easy indexing anglesijk[ii,jj,kk]. Not
+    ! all array entries are used. Entries where ii==jj or ii==kk or jj==kk are
+    ! set to fill value `mask_val`.
     !
     ! Parameters
     ! ----------
@@ -353,53 +306,33 @@ subroutine angles_from_loop(distvecs, dists, mask_val, deg, anglesijk, angles, a
     ! dists : 2d array with distances: dists(i,j) = norm(distvecs(i,j,:))
     ! mask_val : float
     !   Fill value for anglesijk(ii,jj,kk) where ii==jj or ii==kk or
-    !   jj==kk, i.e. no angle defined. Note that if you want to calculate
-    !   acos(anglesijk) later (i.e. `anglesijk` holds cosine values), then
-    !   `mask_val` must be in [0,1].
+    !   jj==kk, i.e. no angle defined. Can be used to create bool mask arrays in
+    !   numpy. 
     ! deg : int, {0,1}
     !   whether to return angles in degrees (1) or cosine values (0)
     ! anglesijk : dummy result array
-    ! angles : dummy result array
-    ! angleidx : dummy result array
     ! natoms : int, dummy, number of atoms
     !
     ! Returns
     ! -------
     ! anglesijk : 3d array (natoms,)*3
-    ! angles : 1d array (nang,), nang = natoms*(natoms-1)*(natoms-2)
-    ! angleidx : 2d array (nang,3)
-    !   index array into `anglesijk` and `angles`, each angleidx(i,:) = (/ii,jj,kk/) are the
-    !   indices of atoms forming an angle, where `ii` is the central one
-    !
     implicit none
     integer :: ii, jj, kk, idx, natoms, deg
     double precision :: distvecs(natoms, natoms, 3)
     double precision :: dists(natoms, natoms)
     double precision :: mask_val, cang
-    integer, intent(out) :: angleidx(natoms*(natoms-1)*(natoms-2), 3)
     double precision, intent(out) :: anglesijk(natoms,natoms,natoms)
-    double precision, intent(out) :: angles(natoms*(natoms-1)*(natoms-2))
     double precision, parameter :: pi=acos(-1.0d0)
     double precision, parameter :: eps=2.2d-16, ceps=1.0d0 - eps
-    !f2py intent(out) anglesijk
-    !f2py intent(out) angles
-    !f2py intent(out) angleidx
+    !f2py intent(in,out,overwrite) anglesijk
     idx = 1
-    do ii=1,natoms
+    do kk=1,natoms
         do jj=1,natoms
-            do kk=1,natoms
+            do ii=1,natoms
                 if (ii /= jj .and. ii /= kk .and. jj /= kk) then
                     cang = dot_product(distvecs(ii,jj,:), distvecs(ii,kk,:)) &
                         / dists(ii,jj) / dists(ii,kk)
-                    !!if (cang > ceps) then
-                    !!    cang = 1.0d0
-                    !!else if (cang < -ceps) then
-                    !!    cang = -1.0d0
-                    !!end if    
                     anglesijk(ii,jj,kk) = cang
-                    angles(idx) = cang
-                    angleidx(idx,:) = (/ ii,jj,kk /)
-                    idx = idx + 1
                 else
                     anglesijk(ii,jj,kk) = mask_val
                 end if                        
@@ -411,12 +344,9 @@ subroutine angles_from_loop(distvecs, dists, mask_val, deg, anglesijk, angles, a
         ! note that eps is hardcoded currently
         where (anglesijk /= mask_val .and. anglesijk > ceps) anglesijk = 1.0d0
         where (anglesijk /= mask_val .and. anglesijk < -ceps) anglesijk = -1.0d0
-        where (angles > ceps) angles = 1.0d0
-        where (angles < -ceps) angles = -1.0d0
-        anglesijk = acos(anglesijk) * 180.0d0 / pi
-        angles = acos(angles) * 180.0d0 / pi
+        where (anglesijk /= mask_val) anglesijk = acos(anglesijk) * 180.0d0 / pi
     end if
-end subroutine angles_from_loop
+end subroutine angles
 
 subroutine distsq_frac(coords_frac, cell, pbc, distsq, distvecs, distvecs_frac, natoms)
     ! Special purpose routine to calculate distance vectors, squared distances
@@ -425,30 +355,31 @@ subroutine distsq_frac(coords_frac, cell, pbc, distsq, distvecs, distvecs_frac, 
     ! Parameters
     ! ----------
     ! coords_frac : (natoms,3)
+    !     Fractional arom coords.
     ! cell : (3,3)
     ! pbc : int
-    !   {0,1}
+    !     {0,1}
     ! distsq : dummy input
-    ! distvecs : dummy input  
+    ! distvecs : dummy input
     ! distvecs_frac : dummy input  
     ! natoms : dummy input  
     !
     ! Returns
     ! -------
     ! distsq : (natoms,natoms)
-    !   squared cartesien distances
+    !     squared cartesien distances
     ! distvecs : (natoms,natoms,3)
-    !   cartesian distance vectors  
+    !     cartesian distance vectors  
     ! distvecs_frac : (natoms,natoms,3)
-    !   fractional distance vectors, PBC applied if pbc=1
+    !     fractional distance vectors, PBC applied if pbc=1
     implicit none
     integer :: natoms, pbc, ii,jj,kk
     double precision :: coords_frac(natoms,3), cell(3,3)
     double precision :: distsq(natoms,natoms), distvecs_frac(natoms, natoms, 3), &
                         distvecs(natoms, natoms, 3)
-    !f2py intent(out) distsq
-    !f2py intent(out) distvecs
-    !f2py intent(out) distvecs_frac
+    !f2py intent(in,out,overwrite) distsq
+    !f2py intent(in,out,overwrite) distvecs
+    !f2py intent(in,out,overwrite) distvecs_frac
     do jj=1,natoms
         do ii=1,natoms
             distvecs_frac(ii,jj,:) = coords_frac(ii,:) - coords_frac(jj,:)

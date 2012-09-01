@@ -15,6 +15,7 @@ from pwtools import num, atomic_data
 from pwtools.base import FlexibleGetters
 from pwtools.constants import Bohr, Angstrom
 from pwtools import constants, atomic_data, _flib
+from pwtools.num import fempty
 
 #-----------------------------------------------------------------------------
 # misc math
@@ -1853,7 +1854,7 @@ def vmd_measure_gofr(traj, dr, rmax='auto', sel=['all','all'], first=0,
                                 verbose=verbose,tmpdir=tmpdir)
     return ret
 
-def distances(struct, pbc=False, squared=False):
+def distances(struct, pbc=False, squared=False, fullout=False):
     """
     Wrapper for _flib.distsq_frac(). Calculate distances of all atoms in
     `struct`.
@@ -1865,69 +1866,101 @@ def distances(struct, pbc=False, squared=False):
         Apply PBC wrapping to distances (minimum image distances)
     squared : bool, optional
         Return squared distances
-    
+    fullout : bool
+        See below
+
     Returns
     -------
-    dists, distvecs, distvecs_frac
+    dists : if fullout=False
+    dists, distvecs, distvecs_frac : if fullout=True
     dists : 2d array (natoms, natoms)
-        (Squared) distances. Note that ``dists[i,j] == dists[j,i]``.
+        (Squared, see `squared` arg) distances. Note that ``dists[i,j] ==
+        dists[j,i]``.
     distvecs : (natoms,natoms,3)
         Cartesian distance vectors.
     distvecs_frac : (natoms,natoms,3)
         Fractional distance vectors.
     """
-    distsq, distvecs, distvecs_frac = \
-        _flib.distsq_frac(struct.coords_frac, struct.cell, pbc=int(pbc))
-    dists = distsq if squared else np.sqrt(distsq)        
-    return dists, distvecs, distvecs_frac
+    nn = struct.natoms
+    distsq = fempty((nn,nn))
+    distvecs = fempty((nn,nn,3))
+    distvecs_frac = fempty((nn,nn,3))
+    _flib.distsq_frac(coords_frac=struct.coords_frac, 
+                      cell=struct.cell, 
+                      pbc=int(pbc),
+                      distsq=distsq,
+                      distvecs=distvecs,
+                      distvecs_frac=distvecs_frac)
+    dists = distsq if squared else np.sqrt(distsq)
+    if fullout:
+        return dists, distvecs, distvecs_frac
+    else:        
+        del distvecs
+        del distvecs_frac
+        return dists
 
-def angles(struct, pbc=False):
+def angles(struct, pbc=False, mask_val=999.0, deg=True):
     """
-    Wrapper for _flib.angles_from_loop(). Calculate all angles between atom
-    triples in `struct`.
+    Wrapper for _flib.angles(), which accepts a Structure. 
+    Calculate all angles between atom triples in `struct`.
 
     Parameters
     ----------
     struct : Structure instance
     pbc : bool, optional
         Apply PBC wrapping to distances (minimum image distances)
-    
+    mask_val : float     
+        Fill value for ``anglesijk[ii,jj,kk]`` where ``ii==jj`` or ``ii==kk``
+        or ``jj==kk``, i.e. no angle defined. Can be used to create bool mask
+        arrays in numpy. Should be outside of [-1,1] (``deg=False``) or [0,180]
+        (``deg=True``).
+    deg : bool
+        Return angles in degree (True) or cosine values (False).
+
     Returns
     -------
-    angles : 1d array (nang,)
-        All angles in degrees.
-    angleidx : 2d array (nang,3)
-        angleidx[i,:] = [ii,jj,kk] <-> angle between atoms ii,jj,kk where ii is
-        the central atom and the distance vectors are ii->jj and ii->kk.
+    anglesijk : 3d array (natoms,natoms,natoms)
+        All angles. See also `mask_val`.
 
-    Notes
-    -----
-    `angleidx` holds all ii,jj,kk triples which we would get from::
-
-        angleidx = []
-        for ii in range(natoms):
-            for jj in range(natoms):
-                for kk in range(natoms):
-                    if (ii != jj) and (ii != kk) and (jj != kk):
-                        angleidx.append([ii,jj,kk])
-    
-    which is the same as::
-
-        [x for x in itertools.permutations(range(natoms),3)]
-    
-    The number of permutations = number of angles `nang` is::
-
-        natoms! / (natoms-3)! = natoms * (natoms - 1) * (natoms - 2)
+    Examples
+    --------
+    >>> natoms = struct.natoms
+    >>> mask_val = 999
+    >>> anglesijk = crys.angles(struct, mask_val=mask_val)
+    >>> # angleidx holds all ii,jj,kk triples which we would get from:
+    >>> angleidx = []
+    ... for ii in range(natoms):
+    ...     for jj in range(natoms):
+    ...         for kk in range(natoms):
+    ...             if (ii != jj) and (ii != kk) and (jj != kk):
+    ...                 angleidx.append([ii,jj,kk])
+    >>> # which is the same as
+    >>> angleidx2 = [x for x in itertools.permutations(range(natoms),3)]
+    >>> # or 
+    >>> angleidx3 = np.array(zip(*(anglesijk != mask_val).nonzero()))
+    >>> # the number of valid angles
+    >>> len(angleidx) == natoms * (natoms - 1) * (natoms - 2)
+    >>> len(angleidx) == factorial(natoms) / factorial(natoms - 3)
+    >>> # angles in 1d array for histogram or whatever
+    >>> angles1d = anglesijk[anglesijk != mask_val]
+    >>> y,x = np.histogram(angles1d, bins=100)
+    >>> plot(x[:-1]+0.5*(x[1]-x[0]), y)
     """
-    dists, distvecs, distvecs_frac = distances(struct, pbc=pbc, squared=False) 
+    if deg:
+        assert not (0 <= mask_val <= 180), "mask_val must be outside [0,180]"
+    else:        
+        assert not (-1 <= mask_val <= 1), "mask_val must be outside [-1,1]"
+    nn = struct.natoms
+    dists, distvecs, distvecs_frac = distances(struct, pbc=pbc, squared=False,
+                                               fullout=True) 
     del distvecs_frac
-    anglesijk, angles, angleidx = \
-        _flib.angles_from_loop(distvecs,
-                               dists,
-                               mask_val=0.0,
-                               deg=1)
-    del anglesijk
-    return angles, angleidx - 1
+    anglesijk = fempty((nn,nn,nn))
+    _flib.angles(distvecs=distvecs,
+                 dists=dists,
+                 mask_val=mask_val,
+                 deg=int(deg),
+                 anglesijk=anglesijk)
+    return anglesijk
 
 
 #-----------------------------------------------------------------------------
@@ -2762,9 +2795,15 @@ class RandomStructure(object):
         ##distvecs = np.dot(sij, self.cell)
         ##dist = np.sqrt((rij**2.0).sum(axis=2))
         #-----------------------------------------------------------
+        nn = natoms_filled
+        distsq,dummy1,dummy2 = fempty((nn,nn)), fempty((nn,nn,3)), \
+                               fempty((nn,nn,3))
         distsq, dummy1, dummy2 = _flib.distsq_frac(coords_frac,
                                                    self.cell,
-                                                   pbc=1)
+                                                   1,
+                                                   distsq,
+                                                   dummy1,
+                                                   dummy2)
         dist = np.sqrt(distsq)                                                            
         # This part is fast
         dij_min_filled = self.dij_min[:natoms_filled,:natoms_filled]

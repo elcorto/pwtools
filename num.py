@@ -802,3 +802,5 @@ class Interpol2D(object):
             XY = XY[None,:]
         return self.call(XY, **callkwds)
 
+def fempty(shape, dtype=np.float):
+    return np.empty(shape, dtype=dtype, order='F')
