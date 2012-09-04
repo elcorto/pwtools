@@ -152,17 +152,12 @@ class SymFunc(object):
         self.struct = struct
         self.rcut_max = crys.rmax_smith(struct.cell)
         self.distsq, self.distvecs, self.distvecs_frac = \
-            _flib.distsq_frac(self.struct.coords_frac,  
-                              self.struct.cell,
-                              pbc=1)
+            crys.distances(self.struct,
+                           pbc=True,
+                           squared=True,
+                           fullout=True)
+        del self.distvecs_frac                              
         self.dists = np.sqrt(self.distsq)
-        # deg=0: cos_anglesijk are cosine values, used in g4,g5
-        self.cos_anglesijk, angles1d, angleidx = _flib.angles_from_loop(self.distvecs,
-                                                            self.dists,
-                                                            mask_val=0.0,
-                                                            deg=0)
-        self.angleidx = angleidx - 1
-        del angles1d                                                            
         self.min_dist = self.dists[self.dists > 0].min()
     
     def dump(self, fn, protocol=2):
@@ -181,7 +176,7 @@ class SymFunc(object):
             keys = [1,2,3,4,5], values are 2d arrays of shape (npsets,X) where
             npsets = the number of generated parameter sets, X=the number of
             parameters each function takes (1..4, see the function's doc
-            strings)
+            strings). Note that `npsets` can be different for each fucntion.
         """
         rmx = self.rcut_max
         ls = np.linspace
@@ -216,6 +211,26 @@ class SymFunc(object):
         """
         self.params_all[what] = params
         self.npsets_all[what] = params.shape[0]
+    
+    def set_params_all(self, params_all):
+        """Define `params_all` dict.
+
+        Parameters
+        ----------
+        params_all : dict
+        """
+        for what,params in params_all.iteritems():
+            self.params_all[what] = params
+            self.npsets_all[what] = params.shape[0]
+
+    # XXX maybe remove later ...
+    def cos_angle(self, ii, jj, kk):
+        dvij = self.distvecs[ii,jj,:]
+        dvik = self.distvecs[ii,kk,:]
+        cos_angle = np.dot(dvij, dvik) \
+                    / self.dists[ii,jj] \
+                    / self.dists[ii,kk]
+        return cos_angle                    
 
     def cutfunc(self, rcut):
         """
@@ -304,22 +319,23 @@ class SymFunc(object):
         -------
         2d array (natoms, npsets)
         """
-        distsq, cos_anglesijk, angleidx = \
-            self.distsq, self.cos_anglesijk, self.angleidx
         params = self.params_all[4] if params is None else params
         assert params.shape[1] == 4
-        ret = np.zeros((distsq.shape[0], params.shape[0]), dtype=float)
+        ret = np.zeros((self.distsq.shape[0], params.shape[0]), dtype=float)
         idx = 0
         for p0,p1,p2,p3 in params:
             cf = self.cutfunc(p0)
-            for ii,jj,kk in angleidx:
-                val = 2.0**(1.0-p1) * \
-                      (1.0+p2*cos_anglesijk[ii,jj,kk])**p1 * \
-                      exp(-p3*(distsq[ii,jj] + \
-                               distsq[ii,kk] + \
-                               distsq[jj,kk])) * \
-                      cf[ii,jj]*cf[ii,kk]*cf[jj,kk]
-                ret[ii,idx] += val
+            for ii in range(self.struct.natoms): 
+                for jj in range(self.struct.natoms): 
+                    for kk in range(self.struct.natoms): 
+                        if (ii != jj and ii != kk and jj != kk):
+                            val = 2.0**(1.0-p1) * \
+                                  (1.0+p2*self.cos_angle(ii,jj,kk))**p1 * \
+                                  exp(-p3*(self.distsq[ii,jj] + \
+                                           self.distsq[ii,kk] + \
+                                           self.distsq[jj,kk])) * \
+                                  cf[ii,jj]*cf[ii,kk]*cf[jj,kk]
+                            ret[ii,idx] += val
             idx += 1
         return self._precond(ret)
     
@@ -335,21 +351,22 @@ class SymFunc(object):
         -------
         2d array (natoms, npsets)
         """
-        distsq, cos_anglesijk, angleidx = \
-            self.distsq, self.cos_anglesijk, self.angleidx
         params = self.params_all[5] if params is None else params
         assert params.shape[1] == 4
-        ret = np.zeros((distsq.shape[0], params.shape[0]), dtype=float)
+        ret = np.zeros((self.distsq.shape[0], params.shape[0]), dtype=float)
         idx = 0
         for p0,p1,p2,p3 in params:
             cf = self.cutfunc(p0)
-            for ii,jj,kk in angleidx:
-                val = 2.0**(1.0-p1) * \
-                      (1.0+p2*cos_anglesijk[ii,jj,kk])**p1 * \
-                      exp(-p3*(distsq[ii,jj] + \
-                               distsq[ii,kk])) * \
-                      cf[ii,jj]*cf[ii,kk]
-                ret[ii,idx] += val
+            for ii in range(self.struct.natoms): 
+                for jj in range(self.struct.natoms): 
+                    for kk in range(self.struct.natoms): 
+                        if (ii != jj and ii != kk and jj != kk):
+                            val = 2.0**(1.0-p1) * \
+                                  (1.0+p2*self.cos_angle(ii,jj,kk))**p1 * \
+                                  exp(-p3*(self.distsq[ii,jj] + \
+                                           self.distsq[ii,kk])) * \
+                                  cf[ii,jj]*cf[ii,kk]
+                            ret[ii,idx] += val
             idx += 1
         return self._precond(ret)
     
@@ -371,8 +388,9 @@ class SymFunc(object):
         assert params.shape[1] == 4
         ret = np.empty((self.distsq.shape[0], params.shape[0]), dtype=float,
                         order='F')
-        # symfunc_45(distsq,cos_anglesijk,ret,params,what,[natoms,npsets,nparams,overwrite_ret])                
-        _fsymfunc.symfunc_45(self.distsq, self.cos_anglesijk, ret, params, what)
+        # symfunc_45(distsq,cos_anglesijk,ret,params,what,[natoms,npsets,nparams,overwrite_ret])
+        # symfunc_45_fast(distvecs,dists,ret,params,what,[natoms,npsets,nparams,overwrite_ret])
+        _fsymfunc.symfunc_45_fast(self.distvecs, self.dists, ret, params, what)
         return self._precond(ret)
     
     def g4(self, params=None):

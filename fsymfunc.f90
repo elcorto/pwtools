@@ -3,6 +3,7 @@
 
 subroutine cutfunc(dists, rcut, ret, nn)
     ! Cut off fucntion for distances from Behler paper.
+    ! Use stand-alone or in symfunc_45().
     !
     ! Parameters
     ! ----------
@@ -46,16 +47,12 @@ subroutine symfunc_45(distsq, cos_anglesijk, ret, params, what, natoms, npsets, 
     ! what : integer
     !   4 or 5
     ! 
-    ! Reptrns
+    ! Returns
     ! -------
     ! ret : see args, note that this gets overwritten, so you can do
     ! >>> ret = np.empty(...)
     ! >>> _flib.symfunc(..., ret, ...)
     ! 
-#ifdef __OPENMP    
-    use omp_lib
-    !f2py threadsafe
-#endif    
     implicit none
     integer :: natoms, ii, jj, kk, &
                ipset, npsets, nparams, what
@@ -127,3 +124,157 @@ subroutine symfunc_45(distsq, cos_anglesijk, ret, params, what, natoms, npsets, 
         return
     end if
 end subroutine symfunc_45
+
+subroutine symfunc_45_fast(distvecs, dists, ret, params, what, natoms, npsets, nparams)
+    ! Calculate sym funcs g4 or g5, based on `what`. 
+    !
+    ! In contrast to symfunc_45(), we calculate angles and cutfunc in the loop,
+    ! thus we don't calculate a potentially big `cos_anglesijk` array (big: 1G
+    ! for 500 atoms) before and pass that in. Serial execution is slower than
+    ! symfunc_45(), but with OpenMP and >= 4 cores, we are faster.
+    !
+    ! Parameters
+    ! ----------
+    ! distvecs : 3d array w/ cartesian distance vectors, maybe already PBC
+    !   applied
+    ! dists : (natoms,natoms)
+    !   Cartesian distances, np.sqrt((distvecs**2.0).sum(axis=2))
+    ! ret : 2d array (natoms, npsets)
+    !   result array to overwrite
+    ! params : 2d array (npsets, nparams)
+    !   array with `npsets` parameter sets (vectors) of length `nparams`, i.e.
+    !   (9,4) for 9 parameter sets for 4 parameters (called p0,p1,p2,p3 below)
+    ! what : integer
+    !   4 or 5
+    ! 
+    ! Returns
+    ! -------
+    ! ret : see args, note that this gets overwritten, so you can do
+    ! >>> ret = np.empty(...)
+    ! >>> _flib.symfunc(..., ret, ...)
+    !
+    ! Notes
+    ! -----
+    ! p0 = rcut
+    ! p1 = zeta
+    ! p2 = lambda
+    ! p3 = eta
+    !
+    ! Speed
+    ! -----
+    ! All tests: 200 random atoms, npsets=25
+    ! * In serial execution, symfunc_45() is faster (5.7s vs. 10.5s), but we
+    !   need to calculate cos_anglesijk before, which is fast but the array may
+    !   be big for many atoms (1G for 500 atoms). The main advantage of this
+    !   implementation is that we don't need to calculate that array ever.
+    ! * The "if" clauses in the inner loop look like a horroible idea, but
+    !   actually they don't hit performance.
+    ! * Passing in `distvecs` and `dists` is faster than calculating them in the
+    !   loop -> array lookup faster than calculation
+    ! * The unrolled dot_product() for cos_angles is faster
+    ! * At the moment with OpenMP, we get almost linear speedup (tested up to 4
+    !   cores). We parallelize over the "ii"-loop. Using the outermost loop
+    !   "ipset" instead makes no difference. Also, we would need at least as
+    !   many npsets as we have cores.
+    ! * Also important is that we calculate `val` and cutfunc only when needed
+    !   (second "if" clause).
+    ! * With OpenMP, it is very very importand to declate *all* private
+    !   variables as private! Otherwise, performance suffers dramatically.
+    ! * On cartman (4 cores, Intel Core i7 with hyperthreading), we get even a
+    !   speedup using 8 cores instead of 4!
+#ifdef __OPENMP    
+    use omp_lib
+    !f2py threadsafe
+#endif    
+    implicit none
+    integer :: natoms, ii, jj, kk, &
+               ipset, npsets, nparams, what
+    double precision, parameter :: pi=acos(-1.0d0)
+    double precision :: p0, p1, p2, p3, val, sm, & 
+                        distvecs(natoms,natoms,3), dists(natoms,natoms), dij, dik, djk, &
+                        dvij(3), dvik(3), dvjk(3), cos_angle, &
+                        dijc, dikc, djkc
+    double precision :: ret(natoms, npsets)
+    double precision :: params(npsets, nparams)
+    !f2py intent(in, out, overwrite) ret
+
+    if (what == 4) then
+        do ipset=1,npsets
+            p0 = params(ipset,1)
+            p1 = params(ipset,2)
+            p2 = params(ipset,3)
+            p3 = params(ipset,4)
+            !$omp parallel do private(dvij,dvik,dvjk,dij,dik,djk,cos_angle, &
+            !$omp dijc,dikc,djkc,val,sm,ii,jj,kk)
+            do ii=1,natoms
+                sm = 0.0d0
+                do kk=1,natoms
+                    do jj=1,natoms
+                        if (ii /= jj .and. ii /= kk .and. jj /= kk) then
+                            dvij = distvecs(ii,jj,:)
+                            dvik = distvecs(ii,kk,:)
+                            dvjk = distvecs(jj,kk,:)
+                            dij = dists(ii,jj)
+                            dik = dists(ii,kk)
+                            djk = dists(jj,kk)
+                            if (dij <= p0 .and. dik <= p0 .and. djk <= p0) then
+                                cos_angle = (dvij(1)*dvik(1) + dvij(2)*dvik(2) &
+                                             + dvij(3)*dvik(3)) / dij / dik
+                                ! cutfunc hard coded                                             
+                                dijc = 0.5d0 * (cos(pi*dij/p0) + 1.0d0)
+                                dikc = 0.5d0 * (cos(pi*dik/p0) + 1.0d0)
+                                djkc = 0.5d0 * (cos(pi*djk/p0) + 1.0d0)
+                                val = 2.0d0**(1.0d0-p1) * &
+                                      (1.0d0 + p2*cos_angle)**p1 &
+                                      * exp(-p3*(dij**2.0d0 + dik**2.0d0 + djk**2.0d0)) &
+                                      * dijc * dikc * djkc
+                                sm = sm + val
+                            end if
+                        end if
+                    end do
+                end do
+                ret(ii,ipset) = sm
+            end do
+            !$omp end parallel do
+        end do
+    else if (what == 5) then
+        do ipset=1,npsets
+            p0 = params(ipset,1)
+            p1 = params(ipset,2)
+            p2 = params(ipset,3)
+            p3 = params(ipset,4)
+            !$omp parallel do private(dvij,dvik,dij,dik,cos_angle, &
+            !$omp dijc,dikc,val,sm,ii,jj,kk)
+            do ii=1,natoms
+                sm = 0.0d0
+                do kk=1,natoms
+                    do jj=1,natoms
+                        if (ii /= jj .and. ii /= kk .and. jj /= kk) then
+                            dvij = distvecs(ii,jj,:)
+                            dvik = distvecs(ii,kk,:)
+                            dij = dists(ii,jj)
+                            dik = dists(ii,kk)
+                            if (dij <= p0 .and. dik <= p0) then
+                                cos_angle = (dvij(1)*dvik(1) + dvij(2)*dvik(2) &
+                                             + dvij(3)*dvik(3)) / dij / dik
+                                ! cutfunc hard coded                                             
+                                dijc = 0.5d0 * (cos(pi*dij/p0) + 1.0d0)
+                                dikc = 0.5d0 * (cos(pi*dik/p0) + 1.0d0)
+                                val = 2.0d0**(1.0d0-p1) * &
+                                      (1.0d0 + p2*cos_angle)**p1 &
+                                      * exp(-p3*(dij**2.0d0 + dik**2.0d0)) &
+                                      * dijc * dikc
+                                sm = sm + val
+                            end if
+                        end if
+                    end do                        
+                end do
+                ret(ii,ipset) = sm
+            end do
+            !$omp end parallel do
+        end do
+    else
+        write(stderr,*) "error: illegal value for 'what'"
+        return
+    end if
+end subroutine symfunc_45_fast
