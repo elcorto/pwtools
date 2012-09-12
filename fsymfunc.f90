@@ -163,25 +163,33 @@ subroutine symfunc_45_fast(distvecs, dists, ret, params, what, natoms, npsets, n
     ! Speed
     ! -----
     ! All tests: 200 random atoms, npsets=25
-    ! * In serial execution, symfunc_45() is faster (5.7s vs. 10.5s), but we
-    !   need to calculate cos_anglesijk before, which is fast but the array may
-    !   be big for many atoms (1G for 500 atoms). The main advantage of this
+    ! * We need to set rcut = rmax_smith, which is < dists.maax() (L/2 for cubic
+    !   box). Only then, we skip enough dists to make the *_fast() routines
+    !   faster. If we use rcut=dists.max(), then the *_fast() versions are
+    !   slower, even with OpenMP.
+    ! * OpenMP scales, don't expect too much speedup on many cores. Tested up to 4.
+    !   In fact, I'm surprised that it scales at all :)
+    ! * In serial execution, symfunc_45() is faster (5.7s vs. 10.5s), but we need to
+    !   calculate cos_anglesijk before, which is fast but the array may be big for
+    !   many atoms (1G for 500 atoms). The main advantage of symfunc_45_fast()
     !   implementation is that we don't need to calculate that array ever.
     ! * The "if" clauses in the inner loop look like a horroible idea, but
     !   actually they don't hit performance.
     ! * Passing in `distvecs` and `dists` is faster than calculating them in the
     !   loop -> array lookup faster than calculation
     ! * The unrolled dot_product() for cos_angles is faster
+    ! * We parallelize over the "ii"-loop (__SF45_INNER). Using the outermost
+    !   loop "ipset" instead (__SF45_OUTER) makes no difference, which I don't
+    !   really understand. Must be some load balancing issue. Maybe if we use
+    !   modulo(npsets, ncores) == 0 ? Also, we would need at least as many npsets
+    !   as we have cores.
     ! * At the moment with OpenMP, we get almost linear speedup (tested up to 4
-    !   cores). We parallelize over the "ii"-loop. Using the outermost loop
-    !   "ipset" instead makes no difference. Also, we would need at least as
-    !   many npsets as we have cores.
+    !   cores). On cartman (4 cores, Intel Core i7 with hyperthreading), we get
+    !   even a speedup using 8 cores instead of 4!
     ! * Also important is that we calculate `val` and cutfunc only when needed
     !   (second "if" clause).
     ! * With OpenMP, it is very very importand to declate *all* private
     !   variables as private! Otherwise, performance suffers dramatically.
-    ! * On cartman (4 cores, Intel Core i7 with hyperthreading), we get even a
-    !   speedup using 8 cores instead of 4!
 #ifdef __OPENMP    
     use omp_lib
     !f2py threadsafe
@@ -199,13 +207,19 @@ subroutine symfunc_45_fast(distvecs, dists, ret, params, what, natoms, npsets, n
     !f2py intent(in, out, overwrite) ret
 
     if (what == 4) then
+#ifdef __SF45_OUTER
+        !$omp parallel do private(dvij,dvik,dvjk,dij,dik,djk,cos_angle, &
+        !$omp dijc,dikc,djkc,val,sm,ii,jj,kk,ipset,p0,p1,p2,p3)
+#endif    
         do ipset=1,npsets
             p0 = params(ipset,1)
             p1 = params(ipset,2)
             p2 = params(ipset,3)
             p3 = params(ipset,4)
+#ifdef __SF45_INNER
             !$omp parallel do private(dvij,dvik,dvjk,dij,dik,djk,cos_angle, &
             !$omp dijc,dikc,djkc,val,sm,ii,jj,kk)
+#endif    
             do ii=1,natoms
                 sm = 0.0d0
                 do kk=1,natoms
@@ -235,9 +249,18 @@ subroutine symfunc_45_fast(distvecs, dists, ret, params, what, natoms, npsets, n
                 end do
                 ret(ii,ipset) = sm
             end do
+#ifdef __SF45_INNER
             !$omp end parallel do
+#endif    
         end do
+#ifdef __SF45_OUTER
+        !$omp end parallel do
+#endif    
     else if (what == 5) then
+#ifdef __SF45_OUTER
+        !$omp parallel do private(dvij,dvik,dij,dik,cos_angle, &
+        !$omp dijc,dikc,val,sm,ii,jj,kk,ipset,p0,p1,p2,p3)
+#endif    
         do ipset=1,npsets
             p0 = params(ipset,1)
             p1 = params(ipset,2)
@@ -271,8 +294,13 @@ subroutine symfunc_45_fast(distvecs, dists, ret, params, what, natoms, npsets, n
                 end do
                 ret(ii,ipset) = sm
             end do
+#ifdef __SF45_INNER
             !$omp end parallel do
+#endif            
         end do
+#ifdef __SF45_OUTER
+        !$omp end parallel do
+#endif          
     else
         write(stderr,*) "error: illegal value for 'what'"
         return

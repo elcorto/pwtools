@@ -75,7 +75,8 @@ F2PY=f2py
 F90=ifort
 F90FLAGS=-fpp -no-prec-div -fast-transcendentals
 ARCH=-xHost
-OMP_F90_FLAGS=-openmp -D__OPENMP 
+OMP_F90_FLAGS=-openmp -D__OPENMP -D__SF45_INNER
+##OMP_F90_FLAGS=-openmp -D__OPENMP -D__SF45_OUTER
 F2PY_OMP_F90_FLAGS=-liomp5
 
 # no OpenMP
