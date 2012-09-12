@@ -3,8 +3,17 @@
 import os
 import numpy as np
 from scipy.optimize import brentq, newton
-from scipy.interpolate import CloughTocher2DInterpolator, bisplrep, \
+from scipy.interpolate import bisplrep, \
     bisplev, splev, splrep
+
+# Hack for older scipy versions.
+try: 
+    from scipy.interpolate import CloughTocher2DInterpolator
+except ImportError:
+    import warnings
+    warnings.warn("couldn't import "
+        "scipy.interpolate.CloughTocher2DInterpolator")
+    CloughTocher2DInterpolator = None
 
 import types
 
@@ -769,8 +778,13 @@ class Interpol2D(object):
             self.inter.train('linalg', **initkwds)
             self.call = self.inter
         elif what == 'ct':
-            self.inter = CloughTocher2DInterpolator(self.XY, self.zz, **initkwds)
-            self.call = self.inter
+            # Fail only when 'ct' is used. Don't do imports here, may be slow.
+            if CloughTocher2DInterpolator is None:
+                raise ImportError("could not import "
+                    "scipy.interpolate.CloughTocher2DInterpolator")
+            else:                    
+                self.inter = CloughTocher2DInterpolator(self.XY, self.zz, **initkwds)
+                self.call = self.inter
         elif what == 'bispl':
             _initkwds = {'kx': 3, 'ky': 3, 'nxest': 10*self.nx, 'nyest': 10*self.ny}
             _initkwds.update(initkwds)
