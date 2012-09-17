@@ -86,13 +86,13 @@ def plotlines3d(ax3d, x,y,z, *args, **kwargs):
         ax3d.plot(xx[:,j], np.ones(xx.shape[0])*y[j], z[:,j], *args, **kwargs)
     return ax3d        
 
-def fig_ax():
-    fig = plt.figure()
+def fig_ax(**kwds):
+    fig = plt.figure(**kwds)
     ax = fig.add_subplot(111)
     return fig, ax
 
-def fig_ax3d():
-    fig = plt.figure()
+def fig_ax3d(**kwds):
+    fig = plt.figure(**kwds)
     try: 
         ax = fig.add_subplot(111, projection='3d')
     except:
@@ -121,7 +121,7 @@ class Plot(object):
     >>> # or
     >>> pp.savefig('lala', ext=['png', 'pdf'])
     """
-    def __init__(self, fig=None, ax=None, projection='2d'):
+    def __init__(self, fig=None, ax=None, projection='2d', **kwds):
         """
         Parameters
         ----------
@@ -129,6 +129,8 @@ class Plot(object):
         projection : str, optional
             If fig+ax not given, use this to call fig_ax() or fig_ax3d(), else
             ignored.
+        kwds : keywords passed to fig_ax() or fig_ax3d() if `fig=None` and
+            `ax=None`
         """
         if [fig, ax] == [None]*2:
             if projection == '2d':
@@ -137,7 +139,7 @@ class Plot(object):
                 func = fig_ax3d
             else:   
                 raise StandardError("unknown projection: %s" %projection)
-            self.fig, self.ax = func()
+            self.fig, self.ax = func(**kwds)
         elif [fig, ax].count(None) == 1:
             raise StandardError("one of fig,ax is None")
         else:            
@@ -178,6 +180,7 @@ class Plot(object):
             The name of the axis where the legend is placed on. If you use
             things like twinx(), then you may want to choose top most the axis,
             i.e. the one in the foreground. For example:
+            >>> pp = Plot(...)
             >>> pp.ax.plot(...)
             >>> pp.ax2 = pp.ax.twinx()
             >>> pp.ax2.plot(...)
@@ -205,7 +208,7 @@ class Plot(object):
         for ex in ext:
             self.fig.savefig(base + '.' + ex)
 
-def prepare_plots(names, projection='2d'):
+def prepare_plots(names, projection='2d', **kwds):
     """Return a dict of Plot instances.
     
     Parameters
@@ -214,6 +217,7 @@ def prepare_plots(names, projection='2d'):
         keys for the dict, e.g. [1,2] or ['plot1', 'plot2']
     projection : str
         type of plot; {'2d','3d'}
+    kwds : keywords passed to fig_ax() or fig_ax3d() which are internally used
 
     Examples
     --------
@@ -232,7 +236,7 @@ def prepare_plots(names, projection='2d'):
         func = fig_ax3d
     plots = {}
     for nn in names:
-        plots[nn] = Plot(*func())
+        plots[nn] = Plot(*func(**kwds))
     return plots        
 
 
