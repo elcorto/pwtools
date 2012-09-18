@@ -10,9 +10,10 @@ from scipy.interpolate import bisplrep, \
 try: 
     from scipy.interpolate import CloughTocher2DInterpolator
 except ImportError:
-    import warnings
-    warnings.warn("couldn't import "
-        "scipy.interpolate.CloughTocher2DInterpolator")
+    # Don't throw a warning here b/c (1) this module is imported often and that
+    # would annoy anyone to no end and (2) this interpolator isn't used much,
+    # only for experimentation. It's enough to fail inside Interpol2D() if
+    # needed.
     CloughTocher2DInterpolator = None
 
 import types

@@ -116,6 +116,7 @@ from math import acos, pi, sin, cos, sqrt
 from itertools import izip
 from cStringIO import StringIO
 import types
+import warnings
 
 import numpy as np
 
@@ -123,15 +124,15 @@ import numpy as np
 try:
     import CifFile as pycifrw_CifFile
 except ImportError:
-    print("%s: Warning: Cannot import CifFile from the PyCifRW package. " 
-    "Parsing Cif files will not work." %__file__)
+    warnings.warn("Cannot import CifFile from the PyCifRW package. " 
+    "Parsing Cif files will not work.")
 
 # XML parser
 try:
     from BeautifulSoup import BeautifulStoneSoup
 except ImportError:
-    print("%s: Warning: Cannot import BeautifulSoup. " 
-    "Parsing XML/HTML/CML files will not work." %__file__)
+    warnings.warn("Cannot import BeautifulSoup. " 
+    "Parsing XML/HTML/CML files will not work.")
 
 from pwtools import common, constants, regex, crys, atomic_data, num, arrayio
 from pwtools.verbose import verbose

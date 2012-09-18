@@ -6,7 +6,7 @@ import itertools
 import sys
 import os
 from pwtools import common
-
+import warnings
 import matplotlib
 from matplotlib import pyplot as plt
 import numpy as np
@@ -14,12 +14,12 @@ try:
     from mpl_toolkits.axes_grid.parasite_axes import SubplotHost, \
         ParasiteAxes
 except ImportError:
-    print("mpl.py: cannot import from mpl_toolkits.axes_grid")
+    warnings.warn("cannot import from mpl_toolkits.axes_grid")
 # This is with mpl < 1.0
 try:
     from mpl_toolkits.mplot3d import Axes3D
 except ImportError:
-    print("mpl.py: cannot import from mpl_toolkits.mplot3d")
+    warnings.warn("cannot import from mpl_toolkits.mplot3d")
 
 #----------------------------------------------------------------------------
 # mpl helpers, boilerplate stuff

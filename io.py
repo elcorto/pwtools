@@ -11,8 +11,9 @@ from pwtools.constants import Ha, eV
 try:
     import CifFile as pycifrw_CifFile
 except ImportError:
-    print("%s: Warning: Cannot import CifFile from the PyCifRW package. " 
-    "Parsing Cif files will not work." %__file__)
+    import warnings
+    warnings.warn("Cannot import CifFile from the PyCifRW package. " 
+    "Parsing Cif files will not work.")
 
 def wien_sgroup_input(struct, lat_symbol='P'):
     """Generate input for WIEN2K's sgroup tool.
