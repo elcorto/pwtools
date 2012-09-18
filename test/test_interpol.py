@@ -13,7 +13,7 @@ def test_interpol2d():
     inter = num.Interpol2D(dd, what='rbf_multi') 
     aaae(inter([[-3,-4],[0,0]]), tgt)
     inter = num.Interpol2D(dd, what='rbf_gauss')
-    aaae(inter([[-3,-4],[0,0]]), tgt, decimal=5)
+    aaae(inter([[-3,-4],[0,0]]), tgt, decimal=3)
     inter = num.Interpol2D(dd, what='bispl')
     aaae(inter([[-3,-4],[0,0]]), tgt)
     
