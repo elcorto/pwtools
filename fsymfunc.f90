@@ -19,7 +19,7 @@ subroutine cutfunc(dists, rcut, ret, nn)
     double precision, parameter :: pi=acos(-1.0d0)
     double precision :: dists(nn,nn), ret(nn,nn), rcut
     intent(out) :: ret
-    !f2py intent(out) ret
+    !f2py intent(in,out,overwrite) ret
     ret = 0.5d0 * (cos(pi*dists/rcut) + 1.0d0)
     do jj=1,nn
         do ii=1,nn

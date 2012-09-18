@@ -45,8 +45,12 @@ def test_symfunc():
         ret = sf._precond(ret)
         assert np.allclose(gpy, ret)
 
-    # cutfunc
+    print "cutfunc ..."
     dists = rand(10,10)*5
     rcut = 2.5
-    assert np.allclose(_fsymfunc.cutfunc(dists, rcut),
-                       symfunc.cutfunc(dists,rcut))
+    ret = np.empty_like(dists, order='F')
+    _fsymfunc.cutfunc(dists, rcut, ret)
+    cf1 = ret
+    cf2 = symfunc.cutfunc(dists,rcut)
+    assert (cf1 > 0.0).any()
+    assert np.allclose(cf1, cf2)

@@ -232,9 +232,10 @@ class SymFunc(object):
                     / self.dists[ii,kk]
         return cos_angle                    
 
-    def cutfunc(self, rcut):
+    def cutfunc_py(self, rcut):
         """
-        Cutoff function applied to each distance in self.dists
+        Cutoff function applied to each distance in self.dists. Numpy-only
+        implementation.
 
         Parameters
         ----------
@@ -247,6 +248,28 @@ class SymFunc(object):
         ret = 0.5*(np.cos(pi*self.dists/rcut) + 1.0)
         ret[self.dists > rcut] = 0.0
         return ret
+
+    def cutfunc_f(self, rcut):
+        """
+        Wrapper for _fsymfunc.cutfunc().
+        """
+        ret = np.empty_like(self.dists, order='F')
+        _fsymfunc.cutfunc(self.dists, rcut, ret)
+        return ret
+
+    def cutfunc(self, rcut):
+        """
+        Cutoff function applied to each distance in self.dists.
+
+        Parameters
+        ----------
+        rcut : float
+
+        Returns
+        -------
+        2d array (natoms,natoms), same shape as self.dists
+        """
+        return self.cutfunc_f(rcut)
 
     def g1(self, params=None):
         """
