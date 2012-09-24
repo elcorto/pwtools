@@ -68,7 +68,7 @@ F2PY=f2py
 ##F90=gfortran
 ##F90FLAGS=-x f95-cpp-input 
 ##ARCH=-mmmx -msse4.2 
-##OMP_F90_FLAGS=-fopenmp -D__OPENMP
+##OMP_F90_FLAGS=-fopenmp -D__OPENMP -D__SF45_INNER
 ##F2PY_OMP_F90_FLAGS=-lgomp
 
 # ifort 11.x

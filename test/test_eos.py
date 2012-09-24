@@ -49,8 +49,8 @@ def test():
         
         eos_store = {}
         type_arr = type(np.array([1.0,2.0]))
-        for method in ['ev', 'pv']:
-            print "method: %s" %method
+        for bv_method in ['ev', 'pv']:
+            print "bv_method: %s" %bv_method
             # natoms = 1, no normalization
             eos = ElkEOSFit(energy=energy,
                             volume=volume,
@@ -58,7 +58,7 @@ def test():
                             etype=1,
                             npoints=300,
                             dir=testdir,
-                            method=method)
+                            bv_method=bv_method)
             eos.fit()
             now = {}
             now['ev'] = eos.ev
@@ -73,10 +73,13 @@ def test():
                 else:
                     np.testing.assert_almost_equal(now[key], ref[key],
                                                    decimal=3)
-            eos_store[method] = eos
+            eos_store[bv_method] = eos
             
             # internal check: are the splines correct?
             for name in ['ev', 'pv', 'bv']:
+                # API
+                getter = getattr(eos, 'get_spl_' + name)
+                assert getattr(eos, 'spl_' + name) == getter()
                 # (N,2) arrays self.{ev,pv,bv}
                 data = getattr(eos, name)
                 vv = data[:,0]
@@ -85,9 +88,8 @@ def test():
                 spl = getattr(eos, 'spl_' + name)
                 np.testing.assert_array_almost_equal(yy, spl(vv))
 
-
         # Other attrs for which we do not have external ref data. Test only
-        # among the two methods 'ev' and 'pv'.
+        # among the two bv_methods 'ev' and 'pv'.
         print "bv"
         np.testing.assert_array_almost_equal(eos_store['ev'].bv, 
                                              eos_store['pv'].bv,
