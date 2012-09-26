@@ -11,7 +11,7 @@
 #
 # For our RBF network, we use the traditional approach and simply solve a
 # linear system for the weights. Calculating the distance matrix w/
-# scipy.spatial.distance.cdist() or flib_wrap.distsq() is handled efficiently,
+# scipy.spatial.distance.cdist() or num.distsq() is handled efficiently,
 # even for many points. But we get into trouble for many points (order 1e4) b/c
 # solving a big dense linear system (1e4 x 1e4) with plain numpy.linalg on a
 # single core is possible but painful (takes some minutes) -- the traditional
@@ -74,7 +74,7 @@ import numpy as np
 import scipy.optimize as opt
 import scipy.linalg as linalg
 from scipy.spatial import distance
-from pwtools import flib_wrap
+from pwtools import num
 from pwtools import timer
 
 ##TT = timer.TagTimer()
@@ -272,7 +272,7 @@ class RBFInt(object):
             if self.distmethod == 'spatial':
                 Rsq = distance.cdist(X, C)**2.0
             elif self.distmethod == 'fortran':                
-                Rsq = flib_wrap.distsq(X,C)
+                Rsq = num.distsq(X,C)
             elif self.distmethod == 'numpy':                
                 dist = X[:,None,...] - C[None,...]
                 Rsq = (dist**2.0).sum(axis=-1)
