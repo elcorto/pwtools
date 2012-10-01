@@ -7,7 +7,6 @@ def test_datand():
     x1 = np.sort(rand(2))
     x2 = np.sort(rand(5))
     x3 = np.sort(rand(7))
-    print x0
     axes = [x0,x1,x2,x3]
     shape = tuple([len(x) for x in axes])
     a2 = np.empty((np.prod(shape), len(shape)+1), dtype=x0.dtype)
