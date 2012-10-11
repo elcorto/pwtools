@@ -4,7 +4,7 @@ import os
 import types
 import itertools
 import numpy as np
-from scipy.optimize import brentq, newton
+from scipy.optimize import brentq, newton, fmin
 from scipy.interpolate import bisplrep, \
     bisplev, splev, splrep
 from pwtools import _flib   
@@ -305,7 +305,8 @@ class Spline(object):
 
     def _findroot(self, func, x0=None, xab=None):
         """Find root of `func` by Newton's method if `x0` is given or Brent's
-        method if `xab` is given.
+        method if `xab` is given. If neither is given, then
+        ``xab=[self.x[0],self.x[-1]]`` and Brent's method is used.
 
         Parameters
         ----------
@@ -792,14 +793,14 @@ class Interpol2D(object):
             _initkwds = {'kx': 3, 'ky': 3, 'nxest': 10*self.nx, 'nyest': 10*self.ny}
             _initkwds.update(initkwds)
             bispl = bisplrep(self.xx, self.yy, self.zz, **_initkwds)
-            self.inter = bispl
             def _call(XY, bispl=bispl, **callkwds):
                 # For unordered points, we need to loop.
                 ret = [bisplev(XY[ii,0], XY[ii,1], bispl, **callkwds) for
                     ii in range(XY.shape[0])]
                 return np.array(ret)
+            self.inter = _call
             self.call = _call                
-    
+   
     def __call__(self, XY, **callkwds):
         """
         Parameters
@@ -818,6 +819,27 @@ class Interpol2D(object):
         if len(XY.shape) == 1:
             XY = XY[None,:]
         return self.call(XY, **callkwds)
+    
+    def get_min(self, x0=None):
+        """Return [x,y] where z(x,y) = min(z) by minimizing z(x,y) w/
+        scipy.optimize.fmin().
+        
+        Parameters
+        ----------
+        x0 : sequence, length (2,), optional
+            Initial guess. If None then use the data grid point with the
+            smallest `z` value.
+        
+        Returns
+        -------
+        [xmin, ymin]: 1d array (2,)
+        """
+        if x0 is None:
+            idx0 = self.zz.argmin()
+            x0 = [self.xx[idx0], self.yy[idx0]]
+        xopt = fmin(self, x0, disp=1, xtol=1e-8, ftol=1e-8, 
+                    maxfun=1e4, maxiter=1e4)
+        return xopt                        
 
 def fempty(shape, dtype=np.float):
     return np.empty(shape, dtype=dtype, order='F')

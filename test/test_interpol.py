@@ -12,10 +12,15 @@ def test_interpol2d():
     tgt = np.array([  5.0 ,  30])
     inter = num.Interpol2D(dd, what='rbf_multi') 
     aaae(inter([[-3,-4],[0,0]]), tgt)
+    np.allclose(inter.get_min(), 5.0)
+    
     inter = num.Interpol2D(dd, what='rbf_gauss')
     aaae(inter([[-3,-4],[0,0]]), tgt, decimal=3)
+    np.allclose(inter.get_min(), 5.0)
+    
     inter = num.Interpol2D(dd, what='bispl')
     aaae(inter([[-3,-4],[0,0]]), tgt)
+    np.allclose(inter.get_min(), 5.0)
     
     try:
         from scipy.interpolate import CloughTocher2DInterpolator
