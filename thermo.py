@@ -7,7 +7,7 @@ from scipy.integrate import simps
 from pwtools.constants import kb, hplanck, R, pi, c0, Ry_to_J, eV
 from pwtools.verbose import verbose
 from pwtools import crys
-
+from pwtools import num
 
 def coth(x):
     return 1.0/np.tanh(x)
@@ -19,8 +19,8 @@ class HarmonicThermo(object):
     harmonic approximation from a phonon density of states. 
     """    
     def __init__(self, freq, dos, temp=None, skipfreq=False, 
-                 eps=1.5*np.finfo(float).eps, fixnan=False, nanfill=0.0, 
-                 verbose=True):
+                 eps=1.5*np.finfo(float).eps, fixnan=False, nanfill=0.0,
+                 dosarea=None, verbose=True):
         """                 
         Parameters
         ----------
@@ -44,6 +44,9 @@ class HarmonicThermo(object):
             that these numbers should be `nanfill`.
         nanfill : float, optional
             During integration over temperature, set NaNs to this value.
+        dosarea : float or None
+            If not None, then re-normalize the area int(freq) dos to `dosarea`,
+            after `skipfreq` was applied if used.
         verbose : bool, optional
             Print warnings. Recommended for testing.
 
@@ -116,11 +119,12 @@ class HarmonicThermo(object):
         self.verbose = verbose
         self.eps = eps
         self.nanfill = nanfill
+        self.dosarea = dosarea
         
         assert len(self.f) == len(self.dos), ("freq and dos don't have "
                                              "equal length")
         if self.verbose:
-            print "number of points: %i" %len(self.f)
+            print "HarmonicThermo: number of dos points: %i" %len(self.f)
         
         if self.skipfreq:
             mask = self.f > self.eps
@@ -130,12 +134,13 @@ class HarmonicThermo(object):
                 if len(imask) > 0:
                     frms = crys.rms(self.f[imask])
                     drms = crys.rms(self.dos[imask])
-                    self._printwarn("HarmonicThermo: skipping %i frequencies: "
-                        "rms=%e" %(nskip, frms))
-                    self._printwarn("HarmonicThermo: skipping %i dos values: "
-                        "rms=%e" %(nskip,drms))
+                    self._printwarn("HarmonicThermo: skipping %i dos points: "
+                        "rms(f)=%e, rms(dos)=%e" %(nskip, frms, drms))
             self.f = self.f[mask]
             self.dos = self.dos[mask]
+        
+        if self.dosarea is not None:
+            self.dos = num.norm_int(self.dos, self.f, area=float(dosarea))
 
     def _printwarn(self, msg):
         if self.verbose:

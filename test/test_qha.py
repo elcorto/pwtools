@@ -3,6 +3,7 @@
 # Test thermo.HarmonicThermo against results from F_QHA.f90 from QE 4.2 .
 
 import numpy as np
+from scipy.integrate import simps
 from pwtools.thermo import HarmonicThermo
 from pwtools import common
 from pwtools.constants import Ry_to_J, eV, Ry, kb
@@ -35,16 +36,16 @@ def test_qha():
     pdos_fn = 'files/si.phdos'
     files = [fqha_fn, pdos_fn]
     unpack([x + '.gz' for x in files])
-
     fqha = np.loadtxt(fqha_fn)
     pdos = np.loadtxt(pdos_fn)
+    pack(files)
     temp = fqha[:,0] 
 
     msg('Verify against ref data')
     
     ha = HarmonicThermo(pdos[:,0], pdos[:,1], temp, skipfreq=True)
     
-    # Ref Evib + Fvib [Ry], need to convert. Cv and Svib [kb].
+    # refenence Evib + Fvib [Ry], need to convert. Cv and Svib [kb].
     dct = {'evib': Store(arr1=ha.evib(), arr2=fqha[:,1]*Ry/eV),
            'fvib': Store(arr1=ha.fvib(), arr2=fqha[:,2]*Ry/eV),
            'cv':   Store(arr1=ha.cv(),   arr2=fqha[:,3]),
@@ -67,7 +68,6 @@ def test_qha():
     x=ha.fvib(temp)
     x=ha.cv(temp)
     x=ha.svib(temp)
-    pack(files)
     
     msg('skip and fix')
     freq = np.linspace(1, 10, 100)
@@ -91,4 +91,9 @@ def test_qha():
                         dos=dos, 
                         skipfreq=True)
     assert ha.f[0] > 0.0                
+    
+    msg('API: dosarea')
+    area = np.random.rand()*10
+    ha = HarmonicThermo(pdos[:,0], pdos[:,1], skipfreq=True, dosarea=area)
+    assert np.allclose(simps(ha.dos, ha.f), area)
                 
