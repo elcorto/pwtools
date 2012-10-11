@@ -480,6 +480,7 @@ def set_plot_layout_phdth(rctarget=None):
     # figure
     rctarget.rc('figure', figsize=(11,10))
     rctarget.rc('savefig', dpi=100)
+    rctarget.rc('legend', fancybox=True)
 
 def set_plot_layout_talk(rctarget=None):
     rctarget = get_rctarget(rctarget)
@@ -496,7 +497,7 @@ def set_plot_layout_talk(rctarget=None):
     rctarget.rc('figure.subplot', right=0.875)
     rctarget.rc('figure.subplot', bottom=0.125)
     rctarget.rc('mathtext', default='regular')
-
+    rctarget.rc('legend', fancybox=True)
 
 def set_plot_layout_paper(rctarget=None):
     rctarget = get_rctarget(rctarget)
@@ -513,6 +514,7 @@ def set_plot_layout_paper(rctarget=None):
     rctarget.rc('figure.subplot', right=0.875)
     rctarget.rc('figure.subplot', bottom=0.125)
     rctarget.rc('mathtext', default='regular')
+    rctarget.rc('legend', fancybox=True)
 
 #----------------------------------------------------------------------------
 # new axis line
