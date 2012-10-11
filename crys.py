@@ -133,7 +133,7 @@ def volume_cc(cryst_const):
     ----------
     .. [1] http://en.wikipedia.org/wiki/Parallelepiped
     """
-    assert cryst_const.shape == (6,), "shape must be (6,)"
+    assert len(cryst_const) == 6, "shape must be (6,)"
     a = cryst_const[0]
     b = cryst_const[1]
     c = cryst_const[2]
