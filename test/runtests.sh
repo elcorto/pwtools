@@ -1,59 +1,102 @@
 #!/bin/bash
 
-# Prepare package for testing and call nosetests.
-#
-# usage:
-#   ./runtests.sh [nosetests options]
-# 
-# example:
-#   ./runtests.sh -v
-#   Be a bit more verbose by calling nosetests -v .
-#   
-#   ./runtests.sh -vs
-#   Print all stdout (like warnings) of all tests (nosetests -vs).
-#   
-#   ./runtests.sh test_foo.py test_bar.py
-#   Run only some tests.
-#
-# For tests calling Fortran extensions: Stdout from Fortran ends up in the
-# wrong order in the logfile. To see the correct output, run these tests by
-# hand (./runtests.sh test_foo.py).
-# 
-# We make sure that the correct (this) package is picked up by the interpreter,
-# no matter how you named it (e.g. "from pwtools import *" will fail if the
-# package's root dir is named /path/to/pwtools-dev or such). Therefore, and b/c
-# of security, we copy the whole package to a tmp dir and run the tests there.
-#
-# For test_f2py_flib_openmp.py, we set OMP_NUM_THREADS=3. This will
-# oversubscribe any CPU with less than 3 cores, but should run fine.
+usage(){
+cat << EOF
+Prepare package for testing and call nosetests.
+
+Usage
+-----
+./runtests.sh [-h | --nobuild] [nosetests options]
+
+Options
+-------
+--nobuild : don't build extension modules, just copy already complied *.so
+    files if present (run "make" before if not)
+
+Examples
+--------
+./runtests.sh -v
+Be a bit more verbose by calling nosetests -v .
+
+./runtests.sh -vs
+Print all stdout (like warnings) of all tests (nosetests -vs).
+
+./runtests.sh test_foo.py test_bar.py
+Run only some tests.
+
+./runtests.sh --nobuild test_foo.py test_bar.py
+Run these w/o building extensions b/c you know that they haven't changed.
+
+Notes
+-----
+For tests calling Fortran extensions: Stdout from Fortran ends up in the
+wrong order in the logfile. To see the correct output, run these tests by
+hand (./runtests.sh test_foo.py).
+
+We make sure that the correct (this) package is picked up by the interpreter,
+no matter how you named it (e.g. "from pwtools import *" will fail if the
+package's root dir is named /path/to/pwtools-dev or such). Therefore, and b/c
+of security, we copy the whole package to a tmp dir and run the tests there.
+
+For test_f2py_flib_openmp.py, we set OMP_NUM_THREADS=3. This will
+oversubscribe any CPU with less than 3 cores, but should run fine.
+EOF
+}
 
 prnt(){
     echo "$@" | tee -a $logfile
 }    
 
-##nose_opts="$@ --exclude='.*abinit.*'"
+build=true
+cmdline=$(getopt -o h --long nobuild,help -- "$@")
+eval set -- "$cmdline"
+while [ $# -gt 0 ]; do
+    case "$1" in 
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        --nobuild)
+            build=false
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            echo "cmdline error"
+            exit 1
+            ;;
+    esac
+    shift
+done
 nose_opts="$@"
 
 testdir=/tmp/pwtools-test.$$
 tgtdir=$testdir/pwtools
 mkdir -pv $tgtdir
 logfile=$testdir/runtests.log
+
 prnt "copy package ..."
 rsync_excl=_rsync.excl
 cat > $rsync_excl << EOF
 .hg/
 *.pyc
 *.pyo
-*.so
 *.pyf
 EOF
+$build && echo '*.so' >> $rsync_excl
 rsync -av ../ $tgtdir --exclude-from=$rsync_excl > $logfile 2>&1
 rm $rsync_excl
 cd $tgtdir
 prnt "... ready"
-prnt "build extension modules ..."
-[ -f Makefile ] && make -B >> $logfile 2>&1
-prnt "... ready"
+
+if $build; then
+    prnt "build extension modules ..."
+    [ -f Makefile ] && make -B >> $logfile 2>&1
+    prnt "... ready"
+fi 
+
 cd test/
 
 # HACK: communicate variable to test_*.py modules. All tests which write temp
