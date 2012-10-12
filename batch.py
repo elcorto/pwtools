@@ -1,3 +1,28 @@
+"""
+scratch handling
+----------------
+The classes Machine, Calculation and ParameterStudy take a costructor argument
+`scratch`, which defaults to None::
+
+    m=Machine(scratch='/foo')                               -> '/foo'
+    Calculation(scratch=None, machine=m)                    -> '/foo'
+    ParameterStudy(scratch=None, prefix='bar', machine=m)   -> '/foo/bar/0'
+                                                               '/foo/bar/1'
+
+Machine.scratch is used and in ParameterStudy, `scratch` is the top scratch dir
+and `scratch` passed to Calculation is ``machine.scratch/prefix/idx``.
+
+To override default, set scratch to some value. Then::
+
+    m=Machine(scratch='/foo')                               -> '/foo'
+    Calculation(scratch='/bar', machine=m)                  -> '/bar'
+    ParameterStudy(scratch='/bar', prefix='bar', machine=m) -> '/bar/0'
+                                                               '/bar/1'
+
+Exactly as with the `calc_dir` keyword, only ParameterStudy does some magic and
+creates sub dirs for each calculation.
+"""
+
 import os
 import shutil
 import warnings
@@ -32,7 +57,7 @@ class Machine(object):
         subcmd : str
             shell command to submit jobfiles (e.g. 'bsub <', 'qsub')
         scratch : str
-            scratch dir
+            scratch dir (like '/scratch')
         jobfn : str
             basename of jobfile, can be used as FileTemplate(basename=jobfn)
         home : str
@@ -264,6 +289,7 @@ class Calculation(object):
     | calc_dir : self.calc_dir
     |     Usually the relative path of the calculation dir.
     | calc_dir_abs : absolute path
+    | scratch : scratch dir
     """
     # XXX ATM, the `params` argument is a list of SQLEntry instances which is
     # converted to a dict self.sql_record. This is fine in the context of
@@ -282,16 +308,15 @@ class Calculation(object):
     # SQLEntry instances. In the dict case, let get_sql_record() raise a
     # warning.
     def __init__(self, machine, templates, params, prefix='calc',
-                 idx=0, calc_dir='calc_dir'):
+                 idx=0, calc_dir='calc_dir', scratch=None):
         """
         Parameters
         ----------
         machine : instance of batch.Machine
             The get_sql_record() method is used to add machine-specific
-            parameters to the FileTemplates.
-        templates : dict or list
-            Dict or list of FileTemplate instances. Dict is here for backward
-            compat, but the keys are actually not used at all.
+            parameters to `self.sql_record`.
+        templates : sequence
+            Sequence of FileTemplate instances.
         params : sequence of SQLEntry instances
             A single "parameter set". The `key` attribute (=sql column name) of
             each SQLEntry will be converted to a placeholder in each
@@ -305,26 +330,25 @@ class Calculation(object):
             The number of this calculation. Useful in ParameterStudy.
         calc_dir : str, optional
             Calculation directory to which input files are written.
+        scratch : str, optional
+            Scratch dir. Default is ``machine.scratch``.
         """
         self.machine = machine
-        if type(templates) == type([]):
-            self.templates = dict([(ii, val) for ii,val in \
-                                   enumerate(templates)])
-        else:
-            self.templates = templates
+        self.templates = templates
         self.params = params
         self.prefix = prefix
         self.idx = idx
         self.calc_dir = calc_dir
-        
+        self.scratch = self.machine.scratch if scratch is \
+            None else scratch
         self.sql_record = {}
-        self.sql_record['idx'] = SQLEntry(sqltype='integer', sqlval=self.idx)
-        self.sql_record['prefix'] = SQLEntry(sqltype='text',sqlval=self.prefix)
-        self.sql_record['calc_dir'] = SQLEntry(sqltype='text',
-                                               sqlval=self.calc_dir)
-        self.sql_record['calc_dir_abs'] = SQLEntry(sqltype='text',
-                                                   sqlval=common.fullpath(self.calc_dir))
-        self.sql_record.update(self.machine.get_sql_record())
+        self.sql_record['idx'] = SQLEntry(sqlval=self.idx)
+        self.sql_record['prefix'] = SQLEntry(sqlval=self.prefix)
+        self.sql_record['calc_dir'] = SQLEntry(sqlval=self.calc_dir)
+        self.sql_record['calc_dir_abs'] = SQLEntry(sqlval=common.fullpath(self.calc_dir))
+        self.sql_record.update(self.machine.get_sql_record())                                           
+        if self.scratch is not None:
+            self.sql_record['scratch'] = SQLEntry(sqlval=self.scratch)
         for entry in self.params:
             self.sql_record[entry.key] = entry
     
@@ -340,7 +364,7 @@ class Calculation(object):
         """
         if not os.path.exists(self.calc_dir):
             os.makedirs(self.calc_dir)
-        for templ in self.templates.itervalues():
+        for templ in self.templates:
             templ.writesql(self.sql_record, self.calc_dir)
 
 
@@ -348,21 +372,11 @@ class ParameterStudy(object):
     """Class to represent a parameter study, i.e. a number of Calculations,
     based on template files.
     
-    Methods
-    -------
-    write_input : Create calculation dir(s) for each parameter set and write
-        input files based on ``templates``. Write sqlite database storing all
-        relevant parameters. Write (bash) shell script to start all
-        calculations (run locally or submitt batch job file, depending on
-        machine.subcmd).
-    
-    Notes
-    -----
     The basic idea is to assemble all to-be-varied parameters in a script
     outside (`params_lst`) and pass these to this class along with a list
     of input and job file `templates`. Then, a simple loop over the parameter
     sets is done and input files are written. 
-    
+
     Calculation dirs are numbered automatically. The default is
 
         calc_dir = <calc_root>/<calc_dir_prefix>_<machine.hostname>, e.g.
@@ -380,96 +394,52 @@ class ParameterStudy(object):
     to append new calculations. The numbering of calc dirs continues at the
     end. This can be changed with the ``mode`` kwarg of write_input().
     
-    Rationale:
-    B/c the pattern in which (any number of) parameters will be varied may be
-    arbitrary complex, it is up to the user to prepare the parameter sets. Each
-    calculation (each parameter set) gets its own dir. Calculations should be
-    simply numbered. No fancy naming conventions. Parameters (and results) can
-    then be extracted using SQL in any number of ways. Especially wenn adding
-    calculations later to an already performed study, we just extend the sqlite
-    database.
+    See examples/parameter_study/input.py for a simple self-contained example.
     
     Examples
     --------
-    The `params_lst` list of lists is a "matrix" which in fact represents the
-    sqlite database table. 
+    >>> # Here are some examples for constructing `params_lst`.
+    >>> #
+    >>> # Vary two (three, ...) params on a 2d (3d, ...) grid: In fact, the
+    >>> # way you are constructing params_lst is only a matter of zip() and
+    >>> # comb.nested_loops()
+    >>> par1 = sql.sql_column('par1', [1,2,3])
+    >>> par2 = sql.sql_column('par2', ['a','b'])
+    >>> par3 = ...
+    >>> # 2d grid
+    >>> params_lst = comb.nested_loops([par1, par2])
+    >>> # or
+    >>> params_lst = []
+    >>> for par1 in [1,2,3]:
+    ...     for par2 in ['a','b']:
+    ...         params_lst.append([sql.SQLEntry(key='par1', sqlval=par1),
+    ...                            sql.SQLEntry(key='par2', sqlval=par2),
+    ...                            ])
     
-    The most simple case is when we vary only one parameter::
-
-        [[SQLEntry(key='foo', sqlval=1.0)], 
-         [SQLEntry(key='foo', sqlval=2.0)]]
+    >>> # 3d grid   
+    >>> params_lst = comb.nested_loops([par1, par2, par3])
+    >>> # or
+    >>> params_lst = []
+    >>> for par1 in [1,2,3]:
+    ...     for par2 in ['a','b']:
+    ...         for par3 in [...]:
+    ...             params_lst.append([sql.SQLEntry(key='par1', sqlval=par1),
+    ...                                sql.SQLEntry(key='par2', sqlval=par2),
+    ...                                sql.SQLEntry(key='par3', sqlval=par3),
+    ...                                ])
+    >>>
+    >>> # vary par1 and par2 together, and par3 -> 2d grid w/ par1+par2 on one
+    >>> # axis and par3 on the other
+    >>> params_lst = comb.nested_loops([zip(par1, par2), par3], flatten=True)
+    >>>  
+    >>> # That's all.
+    >>> # An alternative way of doing the 2d grid is using sql_matrix:
+    >>> pars = comb.nested_loops([[1,2,3], ['a', 'b']])
+    >>> params_lst = sql.sql_matrix(pars, [('par1', 'integer'), 
+    >>>                                    ('par2', 'text')])
     
-    The sqlite database would have one column and look like this::
-
-        foo   
-        ---   
-        1.0   # calc_foo/0
-        2.0   # calc_foo/1
-    
-    Note that you have one entry per row [[...], [...]], like in a
-    column vector, b/c "foo" is a *column* in the database and b/c each
-    calculation is represented by one row (record).
-    
-    Another example is a 2x2 setup (vary 2 parameters 'foo' and 'bar')::
-
-      [[SQLEntry(key='foo', sqlval=1.0), SQLEntry(key='bar', sqlval='lala')],
-       [SQLEntry(key='foo', sqlval=2.0), SQLEntry(key='bar', sqlval='huhu')]]
-    
-    Here we have 2 parameters "foo" and "bar" and the sqlite db would
-    thus have two columns::
-
-        foo   bar
-        ---   ---
-        1.0   lala  # calc_foo/0
-        2.0   huhu  # calc_foo/1
-    
-    Each row (or record in sqlite) will be one Calculation, getting
-    it's own dir.
-
-    More complex examples:
-
-    Vary two (three, ...) params on a 2d (3d, ...) grid: In fact, the
-    way you are constructing params_lst is only a matter of zip() and
-    comb.nested_loops()::
-    
-        >>> par1 = sql.sql_column('par1', [1,2,3])
-        >>> par2 = sql.sql_column('par2', ['a','b'])
-        >>> par3 = ...
-        >>> # 2d grid
-        >>> params_lst = comb.nested_loops([par1, par2])
-        >>> # or
-        >>> params_lst = []
-        >>> for par1 in [1,2,3]:
-        ...     for par2 in ['a','b']:
-        ...         params_lst.append([sql.SQLEntry(key='par1', sqlval=par1),
-        ...                            sql.SQLEntry(key='par2', sqlval=par2),
-        ...                            ])
-        
-        >>> # 3d grid   
-        >>> params_lst = comb.nested_loops([par1, par2, par3])
-        >>> # or
-        >>> params_lst = []
-        >>> for par1 in [1,2,3]:
-        ...     for par2 in ['a','b']:
-        ...         for par3 in [...]:
-        ...             params_lst.append([sql.SQLEntry(key='par1', sqlval=par1),
-        ...                                sql.SQLEntry(key='par2', sqlval=par2),
-        ...                                sql.SQLEntry(key='par3', sqlval=par3),
-        ...                                ])
-        >>>
-        >>> # vary par1 and par2 together, and par3 -> 2d grid w/ par1+par2 on one
-        >>> axis and par3 on the other
-        >>> params_lst = comb.nested_loops([zip(par1, par2), par3], flatten=True)
-        >>>  
-        >>> # That's all.
-        >>> # An alternative way of doing the 2d grid is using sql_matrix:
-        >>> pars = comb.nested_loops([[1,2,3], ['a', 'b']])
-        >>> params_lst = sql.sql_matrix(pars, [('par1', 'integer'), 
-        >>>                                    ('par2', 'text')])
-
-    Even more complex:
-    See test/test_parameter_study.py, esp. the test "Incomplete parameter
-    sets".
+    See test/test_parameter_study.py, esp. the test "Incomplete parameter sets"
+    for more complicated cases.
 
     See Also
     --------
@@ -477,9 +447,45 @@ class ParameterStudy(object):
     sql.sql_column
     sql.sql_matrix
     """
+    # more notes
+    # ----------
+    # The `params_lst` list of lists is a "matrix" which in fact represents the
+    # sqlite database table. 
+    # 
+    # The most simple case is when we vary only one parameter::
+    #
+    #     [[SQLEntry(key='foo', sqlval=1.0)], 
+    #      [SQLEntry(key='foo', sqlval=2.0)]]
+    # 
+    # The sqlite database would have one column and look like this::
+    #     
+    #     foo   
+    #     ---   
+    #     1.0   # calc_foo/0
+    #     2.0   # calc_foo/1
+    # 
+    # Note that you have one entry per row [[...], [...]], like in a
+    # column vector, b/c "foo" is a *column* in the database and b/c each
+    # calculation is represented by one row (record).
+    # 
+    # Another example is a 2x2 setup (vary 2 parameters 'foo' and 'bar')::
+    #
+    #     [[SQLEntry(key='foo', sqlval=1.0), SQLEntry(key='bar', sqlval='lala')],
+    #      [SQLEntry(key='foo', sqlval=2.0), SQLEntry(key='bar', sqlval='huhu')]]
+    # 
+    # Here we have 2 parameters "foo" and "bar" and the sqlite db would
+    # thus have two columns::
+    #
+    #     foo   bar
+    #     ---   ---
+    #     1.0   lala  # calc_foo/0
+    #     2.0   huhu  # calc_foo/1
+    # 
+    # Each row (or record in sqlite) will be one Calculation, getting
+    # it's own dir.
     def __init__(self, machine, templates, params_lst, prefix='calc',
                  db_name='calc.db', db_table='calc', calc_dir=None, calc_root=os.curdir,
-                 calc_dir_prefix='calc'):
+                 calc_dir_prefix='calc', scratch=None):
         """                 
         Parameters
         ----------
@@ -515,12 +521,16 @@ class ParameterStudy(object):
             Name of the sqlite database table.
         calc_dir : str, optional
             Top calculation dir (e.g. 'calc_foo' and each calc in
-            'calc_foo/0, ...').
-            If None then default is <calc_root>/<calc_dir_prefix>_<machine.hostname>/
+            'calc_foo/0, calc_foo/1, ...').
+            Default: <calc_root>/<calc_dir_prefix>_<machine.hostname>/
         calc_root : str, optional
-            Root of all dirs.
+            Root of all calc dirs.
         calc_dir_prefix : str, optional
             Prefix for the top calculation dir (e.g. 'calc' for 'calc_foo').
+        scratch : str, optional
+            Top scratch dir (e.g. '/scratch/myjob/') and each calc in
+            '/scratch/myjob/0, /scratch/myjob/1 ...' Default is
+            ``machine.scratch/prefix``.
         """            
         self.machine = machine
         self.templates = templates
@@ -530,6 +540,8 @@ class ParameterStudy(object):
         self.db_table = db_table
         self.calc_root = calc_root
         self.calc_dir_prefix = calc_dir_prefix
+        self.scratch = pj(self.machine.scratch, self.prefix) if \
+            scratch is None else scratch
         if calc_dir is None:
             self.calc_dir = pj(self.calc_root, self.calc_dir_prefix + \
                                '_%s' %self.machine.hostname)
@@ -539,6 +551,11 @@ class ParameterStudy(object):
 
     def write_input(self, mode='a', backup=True, sleep=0):
         """
+        Create calculation dir(s) for each parameter set and write input files
+        based on ``templates``. Write sqlite database storing all relevant
+        parameters. Write (bash) shell script to start all calculations (run
+        locally or submitt batch job file, depending on ``machine.subcmd``).
+    
         Parameters
         ----------
         mode : str, optional
@@ -602,7 +619,8 @@ class ParameterStudy(object):
                                params=params,
                                prefix=self.prefix + "_run%i" %idx,
                                idx=idx,
-                               calc_dir=calc_subdir)
+                               calc_dir=calc_subdir,
+                               scratch=pj(self.scratch, str(idx)))
             if mode == 'w' and os.path.exists(calc_subdir):
                 shutil.rmtree(calc_subdir)
             calc.write_input()                               

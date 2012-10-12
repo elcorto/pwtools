@@ -9,8 +9,8 @@
 # There are actually 3 usage patterns:
 #
 # (1) Use 1 list per parameter + comb.nested_loops() to fill the param table:
-#   get nested lists. Use sql.sql_matrix() with a header - the seldomly used
-#   way.
+#   get nested lists. Use sql.sql_matrix() with a header or the `colnames` arg
+#   - the seldomly used way.
 # (2) Use 1 list per parameter, transform them with sql.sql_column(), then
 #   use comb.nested_loops() with these lists - the common way.
 # (3) Use direct loops + SQLEntry to fill the table "by hand" - the flexible
@@ -22,6 +22,7 @@ from pwtools import comb, batch, common
 from pwtools.pwscf import kpointstr_pwin
 from pwtools import sql
 from testenv import testdir
+pj = os.path.join
 
 def file_get(fn, key):
     # parse "key=value" lines, return "value" of first key found as string
@@ -97,13 +98,14 @@ def test():
     idx_lst = db.get_list1d("select idx from calc")
     assert idx_lst == [0,1,2]
     for idx in idx_lst:
+        scratch = pj(machine.scratch, prefix, str(idx))
         pwfn = pj(calc_dir, str(idx), 'pw.in')
         jobfn = pj(calc_dir, str(idx), machine.jobfn) 
         assert float(ecutwfc[idx].fileval) == float(file_get(pwfn, 'ecutwfc'))
         assert float(ecutwfc[idx].fileval) == float(_ecutwfc[idx])
         # same placeholders in different files
-        assert machine.scratch == file_get(jobfn, 'scratch')
-        assert machine.scratch == file_get(pwfn, 'outdir')
+        assert scratch == file_get(jobfn, 'scratch')
+        assert scratch == file_get(pwfn, 'outdir')
         prfx = prefix + '_run%i' %idx
         # same placeholders in different files
         assert prfx == file_get(pwfn, 'prefix')
@@ -113,8 +115,8 @@ def test():
                                   (idx,)).fetchone()[0]
         assert _ecutwfc[idx] == db.execute("select ecutwfc from calc where idx==?",
                                            (idx,)).fetchone()[0]
-        assert machine.scratch == db.execute("select scratch from calc where idx==?",
-                                             (idx,)).fetchone()[0]
+        assert scratch == db.execute("select scratch from calc where idx==?",
+                                     (idx,)).fetchone()[0]
     
     #--------------------------------------------------------------------------
     # Incomplete parameter sets I and zip().
@@ -161,32 +163,6 @@ def test():
         assert prefix + '_run%i' %idx == file_get(jobfn, 'prefix')
 
     #--------------------------------------------------------------------------
-    # Repeat first test, but whith templates = dict, w/o verification though
-    #--------------------------------------------------------------------------
-    #
-    # This tests backwd compat API where the `templates` arg to ParameterStudy
-    # can be a dict, too. Nowadays, we use lists instead.
-    machine = local
-    calc_dir = pj(testdir, 'calc_test_1d_1col_templdict')
-    prefix = 'convergence'
-    templates = \
-        {'pw': batch.FileTemplate(basename='pw.in', 
-                                  templ_dir=templ_dir), 
-        }
-    templates[machine.jobfn] = batch.FileTemplate(basename=machine.jobfn,
-                                                  templ_dir=templ_dir)
-
-    _ecutwfc = [25.0, 50.0, 75.0]
-    ecutwfc = sql.sql_column(key='ecutwfc', lst=_ecutwfc)
-    params_lst = comb.nested_loops([ecutwfc])
-    calc = batch.ParameterStudy(machine=machine, 
-                                templates=templates, 
-                                params_lst=params_lst, 
-                                prefix=prefix,
-                                calc_dir=calc_dir)
-    calc.write_input()
-
-    #--------------------------------------------------------------------------
     # Incomplete parameter sets II
     #--------------------------------------------------------------------------
 
@@ -200,7 +176,7 @@ def test():
     # i.e. construct a full table. This is done by each params_lst sublist
     # beeing a list of length 10 (i.e. for each parameter). This is not
     # necessary with "incomplete parameter sets". For each row (= Calculation),
-    # just set the paeameters which wou want to vary. The others are NULL by
+    # just set the parameters which wou want to vary. The others are NULL by
     # default.
     # 
     # Note that empty fields are NULL in sqlite and None in Python. Do queries
@@ -209,13 +185,13 @@ def test():
     # The syntax "... ecutfwc==NULL" is wrong.  
     #
     # database:
-    # subcmd      hostname        conv_thr    scratch     kpoints     idx         jobfn       prefix            home             ecutwfc   
-    # ----------  ----------  ----------  ----------  ----------  ----------  ----------  ----------------  ---------------  ----------
-    # bash        local                   /tmp                    0           job.local   convergence_run0  /home/schmerler  25.0      
-    # bash        local                   /tmp                    1           job.local   convergence_run1  /home/schmerler  50.0      
-    # bash        local                   /tmp        2 2 2 0 0   2           job.local   convergence_run2  /home/schmerler            
-    # bash        local                   /tmp        4 4 4 0 0   3           job.local   convergence_run3  /home/schmerler            
-    # bash        local       1.0e-08     /tmp        6 6 6 0 0   4           job.local   convergence_run4  /home/schmerler  75.0    
+    # subcmd      hostname    conv_thr    scratch                   kpoints     idx         jobfn       prefix            home             ecutwfc   
+    # ----------  ----------  ----------  ----------                ----------  ----------  ----------  ----------------  ---------------  ----------
+    # bash        local                   /tmp/convergence/0                    0           job.local   convergence_run0  /home/schmerler  25.0      
+    # bash        local                   /tmp/convergence/1                    1           job.local   convergence_run1  /home/schmerler  50.0      
+    # bash        local                   /tmp/convergence/2        2 2 2 0 0   2           job.local   convergence_run2  /home/schmerler            
+    # bash        local                   /tmp/convergence/3        4 4 4 0 0   3           job.local   convergence_run3  /home/schmerler            
+    # bash        local       1.0e-08     /tmp/convergence/4        6 6 6 0 0   4           job.local   convergence_run4  /home/schmerler  75.0    
 
     machine = local
     # make sure that scratch == '/tmp'
@@ -252,7 +228,8 @@ def test():
     db = sql.SQLiteDB(pj(calc_dir, 'calc.db'), table='calc')
     assert db.get_list1d('select conv_thr from calc') == [None]*4 +[1e-8]
     assert db.get_list1d('select ecutwfc from calc') == [25.0, 50.0, None, None, 75.0]
-    assert db.get_list1d('select scratch from calc') == ['/tmp']*5
+    assert db.get_list1d('select scratch from calc') == \
+        ['/tmp/%s/%i' %(prefix, idx) for idx in range(5)]
     # some columns actually depend on batch.Machine
     hdr = [('subcmd', 'TEXT'),  # machine
            ('hostname', 'TEXT'),    # machine
@@ -338,3 +315,36 @@ def test():
         assert not os.path.exists(pj(calc_dir, str(idx), 'foo'))
         assert os.path.exists(pj(calc_dir + '.0', str(idx), 'foo'))
 
+    #--------------------------------------------------------------------------
+    # set 'scratch'
+    #--------------------------------------------------------------------------
+    machine = local
+    calc_dir = pj(testdir, 'calc_test_scratch')
+    prefix = 'convergence'
+    templates = [batch.FileTemplate(basename=fn, templ_dir=templ_dir) \
+                 for fn in ['pw.in', machine.jobfn]]
+    _ecutwfc = [25.0, 50.0, 75.0]
+    ecutwfc = sql.sql_column(key='ecutwfc', lst=_ecutwfc)
+    params_lst = comb.nested_loops([ecutwfc])
+    scratch_root = pj(testdir, 'foo', 'bar')
+    calc = batch.ParameterStudy(machine=machine, 
+                                templates=templates, 
+                                params_lst=params_lst, 
+                                prefix=prefix,
+                                calc_dir=calc_dir,
+                                scratch=scratch_root)
+    calc.write_input()
+    # asserts .......
+    db = sql.SQLiteDB(pj(calc_dir, 'calc.db'), table='calc')
+    idx_lst = db.get_list1d("select idx from calc")
+    assert idx_lst == [0,1,2]
+    for idx in idx_lst:
+        pwfn = pj(calc_dir, str(idx), 'pw.in')
+        jobfn = pj(calc_dir, str(idx), machine.jobfn) 
+        scratch = pj(scratch_root, str(idx))
+        # same placeholders in different files
+        assert scratch == file_get(jobfn, 'scratch')
+        assert scratch == file_get(pwfn, 'outdir')
+        scratch_db = db.execute("select scratch from calc where idx==?",
+                                (idx,)).fetchone()[0]
+        assert scratch == scratch_db 
