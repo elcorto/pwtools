@@ -48,3 +48,12 @@ def test():
     rules = {'foo': 1, 'bar': 'lala'}
     templ.write(rules, calc_dir=tgt_dir)
     assert file_read(tgt_fn).strip() == "1 lala"
+
+    # pass txt directly
+    templ_txt = "XXXFOO XXXBAR XXXBAZ"
+    templ = FileTemplate(basename='foo.in', 
+                         txt=templ_txt)
+    rules = {'foo': 1, 'bar': 'lala', 'baz': 3}
+    templ.write(rules, calc_dir=tgt_dir)
+    assert file_read(tgt_fn).strip() == "1 lala 3"
+

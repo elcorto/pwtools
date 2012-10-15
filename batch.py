@@ -165,7 +165,7 @@ class FileTemplate(object):
         >>> sct['ecutwfc'] = SQLEntry(sqlval=23.0)
         >>> templ.writesql(dct, 'calc/0')
     """
-    def __init__(self, basename='pw.in', keys=None, templ_dir='calc.templ',
+    def __init__(self, basename='pw.in', txt=None, keys=None, templ_dir='calc.templ',
                  func=lambda x:'XXX'+x.upper()):
         """
         Parameters
@@ -175,6 +175,9 @@ class FileTemplate(object):
             | example: basename = pw.in
             |     template = calc.templ/pw.in
             |     target   = calc/0/pw.in
+        txt : string, optional
+            Text of the template file. If None, then we assume a file
+            ``templ_dir/basename`` and read that.
         keys : {None, list of strings, []}
             | keys=None: All keys dct.keys() in self.write() are used. This is
             |     useful if you have a dict holding many keys, whose placeholders
@@ -197,6 +200,7 @@ class FileTemplate(object):
         """
         self.keys = keys
         self.templ_dir = templ_dir
+        self.txt = txt
         
         # We hardcode the convention that template and target files live in
         # different dirs and have the same name ("basename") there.
@@ -247,13 +251,16 @@ class FileTemplate(object):
             else:
                 _keys = self.keys
                 warn_not_found = True
-            txt = common.file_read(self.filename)
+            if self.txt is None:
+                txt = common.file_read(self.filename)
+            else:
+                txt = self.txt
             copy_only = False
         
         tgt = pj(calc_dir, self.basename)
         verbose("write: %s" %tgt)
         if copy_only:    
-            verbose("write: ignoring input, just copying file: %s -> %s"
+            verbose("write: ignoring input, just copying file to %s"
                     %(self.filename, tgt))
             shutil.copy(self.filename, tgt)
         else:            
@@ -270,7 +277,9 @@ class FileTemplate(object):
                                               rules, 
                                               mode='txt',
                                               conv=True,
-                                              warn_not_found=warn_not_found)
+                                              warn_not_found=warn_not_found,
+                                              warn_mult_found=False,
+                                              disp=False)
             common.file_write(tgt, new_txt) 
                                   
     def writesql(self, sql_record, calc_dir='calc'):

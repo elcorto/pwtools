@@ -348,3 +348,55 @@ def test():
         scratch_db = db.execute("select scratch from calc where idx==?",
                                 (idx,)).fetchone()[0]
         assert scratch == scratch_db 
+
+
+    #--------------------------------------------------------------------------
+    # pass 'txt' to FileTemplate
+    #--------------------------------------------------------------------------
+    machine = local
+    calc_dir = pj(testdir, 'calc_test_pass_txt_to_template')
+    prefix = 'convergence'
+    
+    # Reading the template file and passing the text this way is of course not
+    # the way to do it, but for this test it's fine.
+    templates = [batch.FileTemplate(basename=fn, 
+                                    txt=common.file_read(pj(templ_dir, fn))) \
+                 for fn in ['pw.in', machine.jobfn]]
+    for t in templates:
+        print t.basename
+        print t.txt
+
+    _ecutwfc = [25.0, 50.0, 75.0]
+    ecutwfc = sql.sql_column(key='ecutwfc', lst=_ecutwfc)
+    params_lst = comb.nested_loops([ecutwfc])
+    calc = batch.ParameterStudy(machine=machine, 
+                                templates=templates, 
+                                params_lst=params_lst, 
+                                prefix=prefix,
+                                calc_dir=calc_dir)
+    calc.write_input()
+    db = sql.SQLiteDB(pj(calc_dir, 'calc.db'), table='calc')
+    header = [(x[0].lower(), x[1].lower()) for x in db.get_header()]
+    assert ('idx', 'integer') in header
+    assert ('ecutwfc', 'real') in header
+    assert ('scratch', 'text') in header
+    assert ('prefix', 'text') in header
+    idx_lst = db.get_list1d("select idx from calc")
+    assert idx_lst == [0,1,2]
+    for idx in idx_lst:
+        scratch = pj(machine.scratch, prefix, str(idx))
+        pwfn = pj(calc_dir, str(idx), 'pw.in')
+        jobfn = pj(calc_dir, str(idx), machine.jobfn) 
+        assert float(ecutwfc[idx].fileval) == float(file_get(pwfn, 'ecutwfc'))
+        assert float(ecutwfc[idx].fileval) == float(_ecutwfc[idx])
+        assert scratch == file_get(jobfn, 'scratch')
+        assert scratch == file_get(pwfn, 'outdir')
+        prfx = prefix + '_run%i' %idx
+        assert prfx == file_get(pwfn, 'prefix')
+        assert prfx == file_get(jobfn, 'prefix')
+        assert prfx == db.execute("select prefix from calc where idx==?",
+                                  (idx,)).fetchone()[0]
+        assert _ecutwfc[idx] == db.execute("select ecutwfc from calc where idx==?",
+                                           (idx,)).fetchone()[0]
+        assert scratch == db.execute("select scratch from calc where idx==?",
+                                     (idx,)).fetchone()[0]

@@ -17,12 +17,9 @@ local = batch.Machine(hostname='local',
                       jobfn='job.local',
                       home='/home/schmerler')
 
-# List of templates for all files in default template dir 'calc.teml/'.
-templates = [batch.FileTemplate(basename=x) for x in ['input.in', 'job.local']]    
-
-# Write some dummy template files to default template dir 'calc.templ'.
-# Normally, these will already be there. In FileTemplate, the default
-# placeholders are 'XXXFOO' for parameter 'foo'.
+# Create list of templates. Here we use FileTemplate's `txt` keyword to pass
+# the template text. In FileTemplate, the default placeholders are 'XXXFOO' for
+# parameter 'foo'.
 #
 # Note that each arg to Machine (scratch, home, ...) will be converted to a
 # placeholder 'XXXSCRATCH', 'XXXHOME', ... below in ParameterStudy (by using
@@ -39,10 +36,16 @@ scratch=XXXSCRATCH
 jobname=XXXPREFIX
 my_app.x < input.in > output.out
 """
-if not os.path.exists('calc.templ'):
-    os.makedirs('calc.templ')
-common.file_write('calc.templ/job.local', txt_job)
-common.file_write('calc.templ/input.in', txt_in)
+templates = [batch.FileTemplate(basename=fn,txt=txt) for fn,txt in \
+    zip(['input.in', 'job.local'],[txt_in, txt_job])]    
+
+# We could also write the template files to default template dir 'calc.templ'
+# and use FileTemplate(basename='input.in', templ_dir='calc.templ').
+#
+##if not os.path.exists('calc.templ'):
+##    os.makedirs('calc.templ')
+##common.file_write('calc.templ/job.local', txt_job)
+##common.file_write('calc.templ/input.in', txt_in)
 
 # Define parameters to vary. Will result in this table:
 #

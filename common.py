@@ -549,20 +549,21 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
     
     Examples
     --------
-    >>> txt = file_read('file.txt') 
-    >>> dct = {'XXXONE': '1', 'XXXPI': '%.16e' %math.pi}
-    >>> new_txt = template_replace(txt, dct, conv=True, mode='txt')
-    >>>
     >>> txt = 'XXXONE  XXXPI'                            
+    >>> dct = {'XXXONE': 1, 'XXXPI': math.pi}
+    >>> template_replace(txt, dct, conv=True, mode='txt')
+    '1  3.1415926535897931e+00'
+    >>>
     >>> dct = {'XXXONE': '1', 'XXXPI': '%.16e' %math.pi}
     >>> template_replace(txt, dct, mode='txt')
-    >>> '1  3.1415926535897931e+00'
+    '1  3.1415926535897931e+00'
     >>>
     >>> txt = '%(one)s  %(pi).16e'; dct = {'one': 1, 'pi': math.pi}
     >>> template_replace(txt, dct)
-    >>> '1  3.1415926535897931e+00'
+    '1  3.1415926535897931e+00'
+    >>> 
     >>> txt % dct
-    >>> '1  3.1415926535897931e+00'
+    '1  3.1415926535897931e+00'
     """
     if isinstance(txt, types.DictType):
         raise ValueError("1st arg is a dict. You probably use the old syntax. "
