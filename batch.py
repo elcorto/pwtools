@@ -9,8 +9,9 @@ The classes Machine, Calculation and ParameterStudy take a costructor argument
     ParameterStudy(scratch=None, prefix='bar', machine=m)   -> '/foo/bar/0'
                                                                '/foo/bar/1'
 
-Machine.scratch is used and in ParameterStudy, `scratch` is the top scratch dir
-and `scratch` passed to Calculation is ``machine.scratch/prefix/idx``.
+Machine.scratch is used and passed on down. In ParameterStudy, `scratch` is the
+top scratch dir and inside, we use
+``Calculation(scratch=machine.scratch/prefix/idx)``.
 
 To override default, set scratch to some value. Then::
 
@@ -394,7 +395,6 @@ class ParameterStudy(object):
     to append new calculations. The numbering of calc dirs continues at the
     end. This can be changed with the ``mode`` kwarg of write_input().
     
-    See examples/parameter_study/input.py for a simple self-contained example.
     
     Examples
     --------
@@ -437,6 +437,10 @@ class ParameterStudy(object):
     >>> pars = comb.nested_loops([[1,2,3], ['a', 'b']])
     >>> params_lst = sql.sql_matrix(pars, [('par1', 'integer'), 
     >>>                                    ('par2', 'text')])
+    
+    Here is a complete example:
+
+    .. literalinclude:: ../../../examples/parameter_study/input.py
     
     See test/test_parameter_study.py, esp. the test "Incomplete parameter sets"
     for more complicated cases.
@@ -651,10 +655,12 @@ class ParameterStudy(object):
 
 def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s"):
     """Convergence table. Assume that quantity `xx` was varied, resulting in
-    `yy` values. Return a string (table) listing 
+    `yy` values. Return a string (table) listing::
+
         x, y, diff-next, diff-last 
+    
     where each row of diff-next is np.diff(y), i.e. the difference to the *next*
-    row and diff-last the difference to the lase value yy[-1].
+    row and diff-last the difference to the last value yy[-1].
     
     Useful for quickly viewing the results of a convergence study, where we
     assume that the sequence yy[0], yy[1], ... yy[-1] converges to some
@@ -665,7 +671,7 @@ def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s"):
     xx : 1d sequence (need not be numpy array)
     yy : 1d sequence, len(xx), must be convertable to numpy float array
     ffmt, sfmt : str
-        Format strings for strings and floats
+        Format strings for floats (`ffmt`) and strings (`sfmt`)
     
     Examples
     --------
@@ -673,9 +679,10 @@ def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s"):
     >>> etot = [-300.0, -310.0, -312.0]
     >>> print conv_table(kpoints, etot)
               x              y      diff-next      diff-last
-          2 2 2      -300.0000       -10.0000        12.0000
-          4 4 4      -310.0000        -2.0000         2.0000
+          2 2 2      -300.0000       -10.0000       -12.0000
+          4 4 4      -310.0000        -2.0000        -2.0000
           8 8 8      -312.0000         0.0000         0.0000
+    
     """
     yy = np.asarray(yy, dtype=np.float)
     lenxx = len(xx)

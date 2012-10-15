@@ -6,7 +6,7 @@ from pwtools import common, batch, sql, comb
 pj = os.path.join
 
 # Define prefix = calculation name usually. Here, we use the basename of the
-# current dir, but you cany use any string like 'my_calculation'.
+# current dir, but you can use any string like 'my_calculation'.
 prefix = 'job_' + os.path.basename(common.fullpath('.'))
 
 # Create Machine instance. In this case, just the local machine, which will run
