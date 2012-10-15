@@ -40,6 +40,7 @@ of security, we copy the whole package to a tmp dir and run the tests there.
 
 For test_f2py_flib_openmp.py, we set OMP_NUM_THREADS=3. This will
 oversubscribe any CPU with less than 3 cores, but should run fine.
+
 EOF
 }
 
@@ -47,30 +48,22 @@ prnt(){
     echo "$@" | tee -a $logfile
 }    
 
-build=true
-cmdline=$(getopt -o h --long nobuild,help -- "$@")
-eval set -- "$cmdline"
-while [ $# -gt 0 ]; do
-    case "$1" in 
-        -h|--help)
-            usage
-            exit 0
-            ;;
-        --nobuild)
-            build=false
-            ;;
-        --)
-            shift
-            break
-            ;;
-        *)
-            echo "cmdline error"
-            exit 1
-            ;;
-    esac
-    shift
-done
-nose_opts="$@"
+# Simple cmd line parsing. Found no way to pass $@, which can contain
+# nosetests options + other (--nobuild), thru getopt(1) w/o it complaining
+# about invalid options.
+if echo "$@" | egrep -qe "-h|--help"; then
+    usage
+    exit 0
+fi    
+if echo "$@" | egrep -qe "--nobuild"; then 
+    build=false
+    params=$(echo "$@" | sed -re 's/--nobuild//g')
+else
+    build=true
+    params=$@
+fi    
+
+nose_opts="$params" 
 
 testdir=/tmp/pwtools-test.$$
 tgtdir=$testdir/pwtools
