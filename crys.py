@@ -1963,6 +1963,105 @@ def angles(struct, pbc=False, mask_val=999.0, deg=True):
     return anglesijk
 
 
+def nearest_neighbors(struct, idx=None, skip=None, cutoff=None, num=None, pbc=True,
+                      include=False, fullout=False):
+    """Indices of the nearest neighbor atoms to atom `idx`, skipping atoms
+    whose symbols are `skip`.
+
+    Parameters
+    ----------
+    struct : Structure
+    idx : str
+        Atom index of the central atom.
+    skip : str or sequence of strings
+        Symbol(s) of the atoms to skip.
+    num : int
+        number of requested nearest neighbors
+    cutoff : float
+        Cutoff radius in unit defined in `struct`, e.g. Angstrom. Return all
+        neighbors within that radius. Use either `num` of `cutoff`.
+    pbc : bool
+        Apply PBC to distances.
+    include : bool
+        Include central atom in returned index list. Returned index array will
+        be one item longer.
+    fullout : bool
+        See below.
+
+    Returns
+    -------
+    nn_idx : fullout=False
+    nn_idx,nn_dist : fullout=True
+    nn_idx : 1d array
+        Indices into struct.symbols / coords.
+    nn_dist : 1d array
+        Distances ordered as in `nn_idx`.
+
+    Notes
+    -----
+    `num`: Depending on `struct`, there may not be `num` nearest neighbors,
+    especially if you use `skip` to leave certain species out. Then the
+    number of returned indices may be less then `num`.
+
+    Ordering: For structs with high symmetry (i.e. bulk crystals) where many
+    nearest neighbors have the same distance from the central atom, the
+    ordering of the indices depends on the order of the atoms in
+    ``struct.symbols``. In fact, see ``numpy.argsort`` :)
+
+    Examples
+    --------
+    >>> ni=nearest_neighbors(struct, idx=struct.symbols.index('Ca'), num=6, skip='H')
+    >>> ni=nearest_neighbors(struct, idx=23, cutoff=5.3, skip=['H','Cl'])
+    >>> # simple rock salt example (used ASE to build dummy struct)
+    >>> from ase import lattice
+    >>> at=lattice.bulk('AlN', a=4, crystalstructure='rocksalt')
+    >>> st=crys.atoms2struct(at); st=crys.scell(st,(2,2,2))
+    >>> ni,nd=crys.nearest_neighbors(st, idx=0, num=8, fullout=True)  
+    >>> ni
+    array([ 9, 10, 11, 12, 13, 14,  1,  2])
+    >>> nd
+    [ 2. 2. 2. 2. 2. 2. 2.82842712 2.82842712]
+    >>> array(st.symbols)[ni]
+    ['N' 'N' 'N' 'N' 'N' 'N' 'Al' 'Al']
+    """
+    assert idx != None, "idx is None"
+    assert None in [num,cutoff], "use either num or cutoff"
+    # distance matrix (natoms, natoms)
+    dist = distances(struct, pbc=pbc)
+    # dist from atom `idx` to all atoms, same as dist[idx,:] b/c `dist` is
+    # symmetric
+    dist1d = dist[:,idx]
+    # order by distance, `idx` first with dist=0
+    sort_idx = np.argsort(dist1d)
+    symbols_sort = np.array(struct.symbols)[sort_idx]
+    # numpy bool arrays rock!
+    if skip is None:
+        skip_msk = np.zeros((len(symbols_sort),), dtype=bool)
+    else:    
+        if type(skip) == type([]):
+            skip_msk = symbols_sort == skip[0]
+            for item in skip[1:]:
+                skip_msk = skip_msk | (symbols_sort == item)
+        else:
+            skip_msk = symbols_sort == skip
+    if cutoff is None:
+        if include:
+            cut_msk = np.s_[:num+1]
+        else:
+            cut_msk = np.s_[1:num+1]
+        ret_idx = sort_idx[np.invert(skip_msk)][cut_msk]
+    else:
+        dist1d_sort = dist1d[sort_idx]
+        if include:
+            cut_msk = dist1d_sort < cutoff
+        else:            
+            cut_msk = (dist1d_sort > 0) & (dist1d_sort < cutoff)
+        ret_idx = sort_idx[cut_msk & np.invert(skip_msk)]
+    if fullout:
+        return ret_idx, dist1d[ret_idx]
+    else:
+        return ret_idx
+
 #-----------------------------------------------------------------------------
 # Container classes for crystal structures and trajectories.
 #-----------------------------------------------------------------------------
@@ -2188,7 +2287,7 @@ class Structure(UnitsHandler):
             (which is redundant). If only one is given, the other is calculated
             from it. See coord_trans().
         """
-        UnitsHandler.__init__(self, units=units)
+        super(Structure, self).__init__(units=units)
         self._init(kwds, set_all_auto)
         
     def _init(self, kwds, set_all_auto):
