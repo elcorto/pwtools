@@ -937,6 +937,26 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
                              shape=(nstep,3,3),
                              axis=self.timeaxis)
 
+    def _match_nstep(self, arr):
+        """Get nstep from _coords.shape[0] and return the last nstep steps from
+        the array `arr` along self.timeaxis.
+        
+        Used to match forces,stress,... etc to coords b/c for MDs, the former
+        ones are always one step longer b/c of stuff printed in the first SCF
+        loop before the MD starts."""
+        if arr is not None:
+            if self.check_set_attr('_coords'):
+                nstep = self._coords.shape[self.timeaxis]
+                if arr.shape[self.timeaxis] > nstep:
+                    return num.slicetake(arr, slice(-nstep,None,None), 
+                                         axis=self.timeaxis)
+                else:
+                    return arr
+            else:
+                return None
+        else: 
+            return None
+
     def get_coords_unit(self):
         verbose("getting coords_unit")
         return self._get_block_header_unit('ATOMIC_POSITIONS')
@@ -1009,28 +1029,16 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
         return float_from_txt(com.backtick(cmd))
     
     def get_stress(self):
-        """Stress tensor [kbar].
-
-        Skip first entry along timeaxis, which is from the initial SCF calc.
-        Need that to match nstep in self.coords.
-        """
-        return self.raw_slice_get('stress', sl=np.s_[1:], axis=self.timeaxis)
+        """Stress tensor [kbar]. """
+        return self._match_nstep(self.raw_return('stress'))
 
     def get_etot(self):
-        """[Ry]
-
-        Skip first entry along timeaxis, which is from the initial SCF calc.
-        Need that to match nstep in self.coords.
-        """
-        return self.raw_slice_get('etot', sl=np.s_[1:], axis=self.timeaxis)
+        """[Ry] """
+        return self._match_nstep(self.raw_return('etot'))
     
     def get_forces(self):
-        """[Ry / Bohr]
-
-        Skip first entry along timeaxis, which is from the initial SCF calc.
-        Need that to match nstep in self.coords.
-        """
-        return self.raw_slice_get('forces', sl=np.s_[1:], axis=self.timeaxis)
+        """[Ry / Bohr] """
+        return self._match_nstep(self.raw_return('forces'))
     
     def get_nstep_scf(self):
         return self.raw_return('nstep_scf')
