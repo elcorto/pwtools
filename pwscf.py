@@ -201,7 +201,8 @@ def read_matdyn_modes(filename, natoms=None):
     nqpoints = qpoints.shape[0]
     nmodes = 3*natoms
     cmd = r"grep '^[ ]*(' %s | sed -re 's/^\s*\((.*)\)/\1/g'" %filename
-    # (nqpoints * 3*natoms*natoms, 6)
+    # vecs_file_flat: (nqpoints * nmodes * natoms, 6)
+    # this line is the bottleneck
     vecs_file_flat = parse.arr2d_from_txt(common.backtick(cmd))
     vecs_flat = np.empty((vecs_file_flat.shape[0], 3), dtype=complex)
     vecs_flat[:,0] = vecs_file_flat[:,0] + 1j*vecs_file_flat[:,1]
