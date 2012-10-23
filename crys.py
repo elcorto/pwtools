@@ -2489,14 +2489,18 @@ class Trajectory(Structure):
     have one dim more along the time axis (self.timeaxis) compared to
     Structure, e.g.
 
-    | coords      (natoms,3)  -> (nstep, natoms, 3)
-    | cryst_const (6,)        -> (nstep, 6)
-    | ...
-    
+        | coords      (natoms,3)  -> (nstep, natoms, 3)
+        | cryst_const (6,)        -> (nstep, 6)
+        | ...
+        
     An exception for fixed-cell MD-data are the inputs ``cell``
     (``cryst_const``), which can be 2d (1d)  and will be "broadcast"
     automatically along the time axis (see num.extend_array()).
     
+    Iteration over a Trajectory instance yields Structure instances, see
+    Examples. This can be used to apply functions which only take Structures as
+    inputs.
+
     Parameters
     ----------
     See Structure, plus:
@@ -2510,6 +2514,14 @@ class Trajectory(Structure):
     timestep : scalar [fs]
         Ionic (and cell) time step.
     
+    Examples
+    --------
+    >>> traj = Trajectory(coords_frac=rand(10,5,3), cell=identity(3)*5,
+    ...                   symbols=['H']*5, timestep=100)
+    >>> print traj.nstep
+    >>> distance_arrays = [crys.distances(struct) for struct in traj]
+    >>> plot(tr.temperature)
+
     Notes
     -----
     We calculate coords -> velocity -> ekin -> temperature for the ions if
@@ -2518,6 +2530,7 @@ class Trajectory(Structure):
     currently. We would also need a new input arg mass_cell. The CPMD parsers
     have something like ekin_cell, temperature_cell etc, parsed from CPMD's
     output, though.
+
     """
     # additional input args, some are derived if not given in the input
     input_attr_lst = Structure.input_attr_lst + [\
@@ -2535,21 +2548,76 @@ class Trajectory(Structure):
     
     is_struct = False
     is_traj = True
+
+    # for iteration
+    _index = -1
     
+    def __getitem__(self, idx):
+        # For efficiency, bypass the whole Structure.__init__ and
+        # FlexibleGetters machinery completely by explicitely setting attributes.
+        # This works b/c we have the same attribute names here and there. The
+        # main assumption is that all attrs which would be set by set_all_auto
+        # in Structure (e.g. automatic calculation of stuff from minimal input)
+        # is not necassary b/c that has already happened here in Trajectory.
+        st = Structure(set_all_auto=False)
+        assert self.nstep is not None
+        for attr_name in self.attr_lst:
+            if attr_name not in self.attrs_only_traj:
+                attr = getattr(self, attr_name)
+                if attr is not None:    
+                    if attr_name in self.attrs_nstep:
+                        if attr_name in self.attrs_nstep_2d_3d \
+                            and attr.shape[self.timeaxis] == self.nstep:
+                            setattr(st, attr_name, attr[idx,...])
+                        elif attr_name in self.attrs_nstep_1d \
+                            and attr.shape[self.timeaxis] == self.nstep:
+                            setattr(st, attr_name, attr[idx])
+                    else:                        
+                        setattr(st, attr_name, attr)
+        return st
+
+    def __iter__(self):
+        return self
+    
+    def next(self):
+        self._index += 1
+        if self._index == self.nstep:
+            self._index = -1
+            raise StopIteration
+        else:
+            return self[self._index]
+
     def set_all(self):
         """Populate object. Apply units, extend arrays, call all getters.
         """
         # If these are given as input args, then they must be 3d.        
-        self.attrs_3d = ['coords', 
-                         'coords_frac', 
-                         'stress', 
-                         'forces',
-                         'velocity']
-        for attr in self.attrs_3d:
+        self.attrs_nstep_3d = \
+            ['coords', 
+             'coords_frac', 
+             'stress', 
+             'forces',
+             'velocity']
+        self.attrs_nstep_2d = \
+            ['cryst_const']
+        self.attrs_nstep_1d = \
+            ['pressure',
+             'volume',   
+             'etot',
+             'ekin',
+             'temperature']
+        self.attrs_only_traj = \
+            ['nstep',
+             'timeaxis']
+        for attr in self.attrs_nstep_3d:
             if self.is_set_attr(attr):
                 assert getattr(self, attr).ndim == 3, ("not 3d array: %s" %attr)
         self.apply_units()                
-        self._extend() 
+        self._extend()
+        # add that here b/c that will be _extend()-ed to 3d
+        self.attrs_nstep_3d += ['cell']                
+        self.attrs_nstep = self.attrs_nstep_3d + self.attrs_nstep_2d + \
+            self.attrs_nstep_1d     
+        self.attrs_nstep_2d_3d = self.attrs_nstep_3d + self.attrs_nstep_2d
         # Don't call super(Trajectory, self).set_all(), as this will call
         # Structure.set_all(), which in turn may do something we don't want,
         # like applying units 2 times. ATM, it would work b/c
@@ -2557,10 +2625,11 @@ class Trajectory(Structure):
         super(Structure, self).set_all()
 
     def _extend(self):
-        if self.is_set_attr('cell') and self.check_set_attr('nstep'):
-            self.cell = self._extend_cell(self.cell)
-        if self.is_set_attr('cryst_const') and self.check_set_attr('nstep'):
-            self.cryst_const = self._extend_cc(self.cryst_const)
+        if self.check_set_attr('nstep'):
+            if self.is_set_attr('cell'):
+                self.cell = self._extend_cell(self.cell)
+            if self.is_set_attr('cryst_const'):
+                self.cryst_const = self._extend_cc(self.cryst_const)
 
     def _extend_array(self, arr, nstep=None):
         if nstep is None:

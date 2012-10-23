@@ -1,7 +1,7 @@
 # We assume all lengths in Angstrom. Only important for ASE comparison.
 #
 import numpy as np
-from pwtools.crys import Trajectory
+from pwtools.crys import Trajectory, Structure
 from pwtools import crys, constants
 from pwtools.test.tools import aaae
 from pwtools import num
@@ -13,7 +13,7 @@ def test():
     cell = rand(nstep,3,3)
     stress = rand(nstep,3,3)
     forces = rand(nstep,natoms,3)
-    etot=rand(nstep),
+    etot=rand(nstep)
     cryst_const = crys.cell2cc3d(cell, axis=0)
     coords_frac = np.random.rand(nstep,natoms,3)
     coords = crys.coord_trans3d(coords=coords_frac,
@@ -133,3 +133,28 @@ def test():
     for name in not_none_attrs:
         assert getattr(st, name) is not None, "attr None: %s" %name
         assert eval('st.get_%s()'%name) is not None, "getter returns None: %s" %name
+    
+    # iterate, check if Structures are complete
+    tr = Trajectory(coords=coords, 
+                    symbols=symbols,
+                    cell=cell,
+                    forces=forces,
+                    stress=stress,
+                    etot=etot,
+                    timestep=1.0)
+    struct_attrs = Structure().attr_lst
+    for st in tr:
+        assert st.is_struct, "st is not Structure"
+        assert not st.is_traj, "st is Trajectory"
+    st = tr[0]        
+    for attr_name in struct_attrs:
+        assert getattr(st,attr_name) is not None    
+    
+    # repeat iter
+    for i in range(2):
+        cnt = 0
+        for st in tr:
+            cnt += 1
+        assert cnt == nstep, "%i, %i" %(cnt, nstep)    
+    
+
