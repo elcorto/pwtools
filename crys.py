@@ -2658,15 +2658,49 @@ class Trajectory(Structure):
             return cc
     
     def get_velocity(self):
-        # Simple finite differences are used. This is OK if self.timestep is
-        # small, e.g. the trajectory is smooth. But forces calculated from that
-        # (force = mass * dv / dt) are probably not very accurate,
-        # which is OK b/c we don't do that :)
-        # One *could* create 3*natoms Spline objects thru coords (splines along
-        # time axis) and calc 1st and 2nd deriv from that. Just an idea ...
+        """Calculate `velocity` from `coords` and `timestep` if
+        `velocity=None`. 
+        
+        Central differences are used (example x-coord of atom 0:
+        ``x=coords[:,0,0]``):: 
+            
+            v[i] = [ x[i+1] - x[i-1] ] / (2*dt)
+
+        which returns nstep-2 points belonging to the the middle of the
+        trajectory x[1:-1]. To get an array which is `nstep` long, the fist and
+        last velocity are set to the first and last calculated value, so::
+
+            v[0,...] == v[1,...]
+            v[-1,...] == v[-2,...]
+        """
+        # Central diffs are more accurate than simple finite diffs
+        #
+        #   v[i] = [ x[i+1] - x[i] ] / dt
+        # 
+        # These return nstep-1 points (one more then central diffs) but we
+        # have the problem of assigning the velocity array to the time axis:
+        # t[1:] or t[:-1] are both shifted w.r.t. to the real time axis
+        # position -- the correct way would be to assign it to t[:-1] + 0.5*dt.
+        # In contrast, central diffs belong to t[1:-1] by definition.
+        # 
+        # If self.timestep is small (i.e. the trajectory is smooth), all this is
+        # not really a problem, but central diffs are just better and more
+        # consistent. Even forces calculated from these velocities (force =
+        # mass * dv / dt) are reasonably accurate compared to the forces from
+        # the MD trajectory input. One could implement get_forces() like that
+        # if needed, but so far all MD codes provide us their forces, of
+        # course. Also, one *could* create 3*natoms Spline objects thru coords
+        # (splines along time axis) and calc 1st and 2nd deriv from that. But
+        # that's probably very slow.
         if not self.is_set_attr('velocity'):
             if self.check_set_attr_lst(['coords', 'timestep']):
-                return np.diff(self.coords, n=1, axis=self.timeaxis) / self.timestep
+                vv = np.empty_like(self.coords)
+                tmp = (self.coords[2:,...] - self.coords[:-2,...]) / 2.0 / \
+                      self.timestep
+                vv[1:-1,...] = tmp
+                vv[0,...] = tmp[0,...]
+                vv[-1,...] = tmp[-1,...]
+                return vv    
             else:
                 return None
         else:

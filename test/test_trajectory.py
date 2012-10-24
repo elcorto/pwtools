@@ -33,7 +33,7 @@ def test():
     #   velocity (from coords)
     #   temperature (from ekin)
     #   ekin (from velocity)
-    st = Trajectory(coords_frac=coords_frac,
+    traj = Trajectory(coords_frac=coords_frac,
                     cell=cell,
                     symbols=symbols,
                     forces=forces,
@@ -42,75 +42,75 @@ def test():
                     timestep=1,
                     )
     # Test if all getters work.
-    for name in st.attr_lst:
+    for name in traj.attr_lst:
         print name
         if name not in ['ase_atoms']:
-            st.try_set_attr(name)
-            assert getattr(st, name) is not None, "attr None: %s" %name
-            assert eval('st.get_%s()'%name) is not None, "getter returns None: %s" %name
-    aaae(coords_frac, st.coords_frac)
-    aaae(cryst_const, st.cryst_const)
-    aaae(np.trace(stress, axis1=1, axis2=2)/3.0, st.pressure)
-    assert st.coords.shape == (nstep,natoms,3)
-    assert st.cell.shape == (nstep,3,3)
-    assert st.velocity.shape == (nstep-1, natoms, 3)
-    assert st.temperature.shape == (nstep-1,)
-    assert st.ekin.shape == (nstep-1,)
-    assert st.nstep == nstep
-    assert st.natoms == natoms
+            traj.try_set_attr(name)
+            assert getattr(traj, name) is not None, "attr None: %s" %name
+            assert eval('traj.get_%s()'%name) is not None, "getter returns None: %s" %name
+    aaae(coords_frac, traj.coords_frac)
+    aaae(cryst_const, traj.cryst_const)
+    aaae(np.trace(stress, axis1=1, axis2=2)/3.0, traj.pressure)
+    assert traj.coords.shape == (nstep,natoms,3)
+    assert traj.cell.shape == (nstep,3,3)
+    assert traj.velocity.shape == (nstep, natoms, 3)
+    assert traj.temperature.shape == (nstep,)
+    assert traj.ekin.shape == (nstep,)
+    assert traj.nstep == nstep
+    assert traj.natoms == natoms
 
-    st = Trajectory(coords_frac=coords_frac,
+    traj = Trajectory(coords_frac=coords_frac,
                     symbols=symbols,
                     cell=cell)
-    aaae(coords, st.coords)
+    aaae(coords, traj.coords)
     
     # Cell calculated from cryst_const has defined orientation in space which may be
     # different from the original `cell`, but the volume and underlying cryst_const
     # must be the same.
-    st = Trajectory(coords_frac=coords_frac,
+    traj = Trajectory(coords_frac=coords_frac,
                     symbols=symbols,
                     cryst_const=cryst_const)
     try:
-        aaae(cell, st.cell)
+        aaae(cell, traj.cell)
     except AssertionError:
         print "KNOWNFAIL: differrnt cell orientation"
     np.testing.assert_almost_equal(crys.volume_cell3d(cell),
-                                   crys.volume_cell3d(st.cell))
-    aaae(cryst_const, crys.cell2cc3d(st.cell))
+                                   crys.volume_cell3d(traj.cell))
+    aaae(cryst_const, crys.cell2cc3d(traj.cell))
     
     # extend arrays
     cell2d = rand(3,3)
     cc2d = crys.cell2cc(cell2d)
-    st = Trajectory(coords_frac=coords_frac,
-                    cell=cell2d,
-                    symbols=symbols)
-    assert st.cell.shape == (nstep,3,3)
-    assert st.cryst_const.shape == (nstep,6)
-    for ii in range(st.nstep):
-        assert (st.cell[ii,...] == cell2d).all()
-        assert (st.cryst_const[ii,:] == cc2d).all()
+    traj = Trajectory(coords_frac=coords_frac,
+                      cell=cell2d,
+                      symbols=symbols)
+    assert traj.cell.shape == (nstep,3,3)
+    assert traj.cryst_const.shape == (nstep,6)
+    for ii in range(traj.nstep):
+        assert (traj.cell[ii,...] == cell2d).all()
+        assert (traj.cryst_const[ii,:] == cc2d).all()
     
-    st = Trajectory(coords_frac=coords_frac,
-                    cryst_const=cc2d,
-                    symbols=symbols)
-    assert st.cell.shape == (nstep,3,3)
-    assert st.cryst_const.shape == (nstep,6)
-    for ii in range(st.nstep):
-        assert (st.cryst_const[ii,:] == cc2d).all()
+    traj = Trajectory(coords_frac=coords_frac,
+                      cryst_const=cc2d,
+                      symbols=symbols)
+    assert traj.cell.shape == (nstep,3,3)
+    assert traj.cryst_const.shape == (nstep,6)
+    for ii in range(traj.nstep):
+        assert (traj.cryst_const[ii,:] == cc2d).all()
 
     # units
-    st = Trajectory(coords_frac=coords_frac,
+    traj = Trajectory(coords_frac=coords_frac,
                     cell=cell,
                     symbols=symbols,
                     stress=stress,
                     forces=forces,
                     units={'length': 2, 'forces': 3, 'stress': 4})
-    aaae(2*coords, st.coords)                    
-    aaae(3*forces, st.forces)                    
-    aaae(4*stress, st.stress)                    
+    aaae(2*coords, traj.coords)                    
+    aaae(3*forces, traj.forces)                    
+    aaae(4*stress, traj.stress)                    
     
     # minimal input
-    st = Trajectory(coords=coords, 
+    traj = Trajectory(coords=coords, 
                     symbols=symbols,
                     timestep=1)
     not_none_attrs = [\
@@ -131,29 +131,29 @@ def test():
         'znucl',
         ]
     for name in not_none_attrs:
-        assert getattr(st, name) is not None, "attr None: %s" %name
-        assert eval('st.get_%s()'%name) is not None, "getter returns None: %s" %name
+        assert getattr(traj, name) is not None, "attr None: %s" %name
+        assert eval('traj.get_%s()'%name) is not None, "getter returns None: %s" %name
     
     # iterate, check if Structures are complete
-    tr = Trajectory(coords=coords, 
-                    symbols=symbols,
-                    cell=cell,
-                    forces=forces,
-                    stress=stress,
-                    etot=etot,
-                    timestep=1.0)
+    traj = Trajectory(coords=coords, 
+                      symbols=symbols,
+                      cell=cell,
+                      forces=forces,
+                      stress=stress,
+                      etot=etot,
+                      timestep=1.0)
     struct_attrs = Structure().attr_lst
-    for st in tr:
-        assert st.is_struct, "st is not Structure"
-        assert not st.is_traj, "st is Trajectory"
-    st = tr[0]        
+    for struct in traj:
+        assert struct.is_struct, "st is not Structure"
+        assert not struct.is_traj, "st is Trajectory"
+    struct = traj[0]        
     for attr_name in struct_attrs:
-        assert getattr(st,attr_name) is not None    
+        assert getattr(struct,attr_name) is not None    
     
     # repeat iter
     for i in range(2):
         cnt = 0
-        for st in tr:
+        for st in traj:
             cnt += 1
         assert cnt == nstep, "%i, %i" %(cnt, nstep)    
     
