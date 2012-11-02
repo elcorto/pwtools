@@ -27,7 +27,12 @@ import sys, os
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 sys.path.insert(0, os.path.abspath('sphinxext'))
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.coverage',
-              'sphinx.ext.viewcode', 'sphinx.ext.pngmath', 'numpydoc']
+              'sphinx.ext.viewcode', 'sphinx.ext.pngmath',
+              'numpydoc']
+
+##extensions += ['sphinx.ext.inheritance_diagram']
+##inheritance_graph_attrs = dict(rankdir="UD", #size='"6.0, 8.0"',
+##                               ratio='compress')
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
