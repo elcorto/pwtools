@@ -244,6 +244,7 @@ class HarmonicThermo(object):
         """Same as vibrational_entropy()."""
         return self.vibrational_entropy(*args, **kwargs)
 
+
 class Gibbs(object):
     """
     Calculate thermodynamic properties on a T-P grid in the quasiharmonic
@@ -269,19 +270,21 @@ class Gibbs(object):
     `ax0` + `ax1` + `ax2` (3d), thus for 2d and 3d it doesn't matter which cell
     axes is which, you just have to remember :) 
 
-    Attributes
-    ----------
-    axes : {'ax0': <1d array>, 'ax1': <1d array>, ...}
-        The axes of the flattened (unrolled) grid `axes_flat` from np.unique().
-    nax0,nax1,nax2 : int
-        the length of each axis, i.e. ``len(axes['ax0']), ...``
-    fitfunc : {'1d': fit G(V), '2d': fit G(ax0,ax1)}
-        Dict with functions to fit G. Must return ``num.Spline``-like object with
-        ``get_min()`` method. For 1d, the ``__call__`` method must accept
-        the keyword ``der=2`` for the 2nd deriv (for bulk modulus).
-
     Notes
     -----
+    fitfunc : Dict with class instances for fitting various things. 
+        Must return ``num.Spline``-like object with ``get_min()`` method.  See
+        `self._default_fit_*` to get an idea, use ``set_fitfunc()`` to change.
+        This can (and should!) be used to tune fitting methods.
+
+        | '1d-G'  : fit G(V), __call__ must accept keyword `der=2` for
+        |           B(V) = V*d^2G/dV^2
+        | '2d-G'  : fit G(ax0,ax1)
+        | '1d-ax' : fit V(ax0)
+        | 'alpha' : fit x_opt(T), x=ax0,ax1,ax2,V and calc alpha_x = 1/x * dx/dT
+        | 'C': fit G_opt(T) and Cp = -T * d^G_opt/dT^2
+    
+        
     The methods `calc_F` and `calc_G` return dicts with nd-arrays holding
     calculated thermodynamic properites. Naming convention for dict keys
     returned by methods: The keys (strings) mimic HDF5 path names, e.g.
@@ -294,10 +297,20 @@ class Gibbs(object):
     ``/a/z``        1d  (na,)              "z along a-grid"
     ``/a/b/z``      2d  (na,nb)            "z on a-b grid"
     ``/a/b/c/x/z``  4d  (na,nb,nc,nx)
-    ``/a-b/z``      1d  (na*nb,)           "z on flattened (double-loop) a-b grid"
+    ``/a-b/z``      1d  (na*nb,)           "z on flattened a-b grid"
+    ``/a-b-c/z``    1d  (na*nb*nc,)        "z on flattened a-b-c grid"
     ``/#foo/a/z``   1d  (na,)              "z along a-grid"
     ==============  ==  ================   ================================
     
+    Input `axes_flat`:
+    
+    Usually, flat grids like "ax0-ax1" or "ax0-ax1-ax2" (see `axes_flat`) are
+    created by nested loops ``[(ax0_i,ax1_i) for ax0_i in ax0 for ax1_i in
+    ax1]`` and therefore have shape (nax0*nax1,2) or (nax0*nax1*nax2,3) . But
+    that is not required. They can be completely unctructured (e.g. if points
+    have beed added later to the grid manually) -- only `fitfunc` must be able
+    to handle that.
+
     Units
     
     =================== =====================
@@ -310,7 +323,7 @@ class Gibbs(object):
     =================== =====================
     """
     def __init__(self, T=None, P=None, etot=None, phdos=None, axes_flat=None,
-                 volfunc_ax=None, dosarea=None):
+                 volfunc_ax=None, dosarea=None, case=None, verbose=False):
         """
         Parameters
         ----------
@@ -322,16 +335,17 @@ class Gibbs(object):
             Total energy [eV] for each axes_flat[i,...]
         phdos : sequence (axes_flat.shape[0],)
             Phonon dos arrays for each axes grid point.
-            axes_flat[i,...] -> phdos[i] = <2d array (nfreq,2)>
+            axes_flat[i,...] -> phdos[i] = <2d array (nfreq,2)>, units see
+            HarmonicThermo.
         axes_flat : 1d or 2d array
-            Flattened cell axes variation grid (result of nested loop over axes
-            to vary). Will be cast to shape (N,1) if 1d with shape (N,) .
+            Flattened cell axes variation grid (for example result of nested
+            loop over axes to vary). Will be cast to shape (N,1) if 1d with
+            shape (N,) .
                 | 1d: (N,) or (N,1) -> vary one cell axis, i.e. cubic cell
-                |     ``itertools.product(axes['ax0']) ==  axes['ax0']``
                 | 2d: (N,2) -> vary 2 (e.g. a and c for hexagonal)
-                |     ``itertools.product(axes['ax0'], axes['ax1'])``
+                |     example: ``itertools.product(ax0, ax1)``
                 | 3d: (N,3) -> vary a,b,c (general triclinic)
-                |     ``itertools.product(axes['ax0'], axes['ax1'], axes['ax2'])``
+                |     example: ``itertools.product(ax0, ax1, ax2)``
         volfunc_ax : callable
             calculate cell volume based on cell axes, 
             V[i] = volfunc_ax(axes_flat[i,...]) where axes_flat[i,...]:
@@ -339,8 +353,14 @@ class Gibbs(object):
                 | 2d: [a0, a1]
                 | 3d: [a0, a1, a2]
             with a0,a1,a2 the length of the unit cell axes.
-        dosarea : see HarmonicThermo    
+        dosarea : see HarmonicThermo
+        case : str, optional
+            '1d', '2d', '3d' or None. If None then it will be determined from
+            axes_flat.shape[1]. Can be used to evaluate "fake" 1d data: set
+            case='1d' but let `axes_flat` be (N,2) or (N,3)
+        verbose : bool, optional    
         """
+        self.verbose = verbose
         self.T = T
         self.P = P
         self.etot = etot
@@ -350,36 +370,56 @@ class Gibbs(object):
         self.axes_flat = axes_flat if axes_flat.ndim == 2 else axes_flat[:,None]
         self.nT = len(self.T)
         self.nP = len(self.P)
-        self.axes = dict(('ax%i' %jj, np.unique(self.axes_flat[:,jj])) \
-            for jj in range(self.axes_flat.shape[1]))
-        for key,val in self.axes.iteritems():
-            setattr(self, 'n%s' %key, len(val))
+        self.npoints = self.axes_flat.shape[0]
+        self.nax = self.axes_flat.shape[1]
         self.V = np.array([self.volfunc_ax(self.axes_flat[ii,...]) for ii \
-                 in range(self.axes_flat.shape[0])])
-        self.case = None
-        if self.axes_flat.shape[1] == 1:
-            self.case = '1d'
+                 in range(self.npoints)])
+        self.case = case
+        if self.nax == 1:
+            if self.case is None:
+                self.case = '1d'
             self.axes_prefix = '/ax0'
-        elif self.axes_flat.shape[1] == 2:
-            self.case = '2d'
+        elif self.nax == 2:
+            if self.case is None:
+                self.case = '2d'
             self.axes_prefix = '/ax0-ax1'
         else:
             raise StandardError("case 3d not implemented")
         self.fitfunc = {\
-            '1d': self._default_fit_1d,
-            '2d': self._default_fit_2d}
-     
+            '1d-G': self._default_fit_1d_G,
+            '2d-G': self._default_fit_2d_G,
+            '1d-ax': self._default_fit_1d_ax,
+            'alpha': self._default_fit_alpha,
+            'C': self._default_fit_C,
+            }
+    
+    def set_fitfunc(self, what, func):
+        assert what in self.fitfunc.keys(), ("unknown key: '%s'" %what)
+        self.fitfunc[what] = func
+
     @staticmethod
-    def _default_fit_1d(x,y):
+    def _default_fit_1d_G(x,y):
         return num.Spline(x,y, s=None, k=5)
     
     @staticmethod
-    def _default_fit_2d(xx,yy,zz):    
-        dd = mpl.Data3D(xx=xx, yy=yy, zz=zz)
-        return num.Interpol2D(dd=dd, what='bispl', kx=5, ky=5, s=None)
+    def _default_fit_2d_G(points, values):    
+        return num.Interpol2D(points, 
+                              values, what='bispl', kx=5, ky=5, s=None)
+    
+    @staticmethod
+    def _default_fit_1d_ax(x, y):
+        return num.Spline(x, y, k=5, s=None)
+
+    @staticmethod
+    def _default_fit_alpha(x, y):
+        return num.Spline(x, y, k=5, s=None)
+
+    @staticmethod
+    def _default_fit_C(x, y):
+        return num.Spline(x, y, k=5, s=None)
 
 ##    @staticmethod
-##    def _default_fit_1d(x,y):
+##    def _default_fit_1d_G(x,y):
 ##        _eos = eos.ElkEOSFit(energy=y, volume=x, verbose=False)
 ##        _eos.fit()
 ##        return _eos.spl_ev
@@ -405,35 +445,38 @@ class Gibbs(object):
                 | '/ax0-ax1-ax2/T/F'
                 | '/ax0-ax1-ax2/T/Fvib'
                 | ...
-            Each array has shape (product(nax0, nax1, nax2), nT), i.e. one
-            (nT,) array per axes grid point.
         """
         ret = dict((self.axes_prefix + '/T/%s' %name, 
-                    np.empty((self.axes_flat.shape[0], self.nT), 
+                    np.empty((self.npoints, self.nT), 
                              dtype=float)) \
                     for name in ['F', 'Fvib'])
-        for idx in range(self.axes_flat.shape[0]):
+        for idx in range(self.npoints):
+            if self.verbose:
+                print "calc_F: idx = %i" %idx
             ha = HarmonicThermo(freq=self.phdos[idx][:,0], 
                                 dos=self.phdos[idx][:,1],
                                 temp=self.T, 
                                 fixnan=True,
                                 skipfreq=True,
-                                dosarea=self.dosarea)
+                                dosarea=self.dosarea,
+                                verbose=self.verbose)
             fvib = ha.fvib()
             ret[self.axes_prefix + '/T/F'][idx,:] = self.etot[idx] + fvib                            
             ret[self.axes_prefix + '/T/Fvib'][idx,:] = fvib 
-##            ret[self.axes_prefix + '/T/Cv'][idx,:] = ha.cv()
         return ret
 
-    def calc_G(self, ret=None):
+    def calc_G(self, ret=None, calc_all=True):
         """
         Gibbs free energy and related properties on T-P grid. Uses
         self.fitfunc.
 
         Parameters
         ----------
-        ret : dict
+        ret : dict, optional
             Result from calc_F(). If None then calc_F() is called here.
+        calc_all : bool
+            Calcluate thermal properties from G(ax0,ax1,ax2,T,P): Cp,
+            alpha_x, B. If False, the calculate and store only G.
 
         Returns
         -------
@@ -443,79 +486,81 @@ class Gibbs(object):
         """
         if ret is None:
             ret = self.calc_F()
-        names = ['ax0', 'ax1', 'ax2', 'V', 'G', 'B']
-        ret.update(dict(('/#opt/T/P/%s' %name, np.empty((self.nT,self.nP))) \
-                   for name in names))
-        if self.case == '1d':
-            ret['/T/P/ax0/G'] = np.empty((self.nT,self.nP,self.nax0), dtype=float)
-        elif self.case == '2d':
-            ret['/T/P/ax0/ax1/G'] = np.empty((self.nT,self.nP,self.nax0,self.nax1), dtype=float)
+        ret['/T/P' + self.axes_prefix + '/G'] = np.empty((self.nT,self.nP,self.npoints), dtype=float)
         for tidx in range(self.nT):
             for pidx in range(self.nP):
+                if self.verbose:
+                    print "calc_G: tidx = %i, pidx = %i" %(tidx,pidx)
                 gg = ret[self.axes_prefix + '/T/F'][:,tidx] + self.V * self.P[pidx]  / eV_by_Ang3_to_GPa
-                if self.case == '1d':
-                    ret['/T/P/ax0/G'][tidx,pidx,:] = gg
-                    if self.fitfunc['1d'] is not None:          
-                        inter = self.fitfunc['1d'](self.V, gg)
-                        vopt = inter.get_min()
+                ret['/T/P' + self.axes_prefix + '/G'][tidx,pidx,:] = gg
+        ret['/T/T'] = self.T
+        ret['/P/P'] = self.P
+        ret['%s%s' %((self.axes_prefix,)*2)] = self.axes_flat
+        ret['%s/V' %self.axes_prefix] = self.V
+
+        if calc_all:
+            names = ['ax0', 'ax1', 'ax2', 'V', 'G', 'B']
+            ret.update(dict(('/#opt/T/P/%s' %name, np.empty((self.nT,self.nP))) \
+                       for name in names))
+            if self.case == '1d':
+                self.fitax = []
+                for iax in range(self.nax):
+                    self.fitax.append(self.fitfunc['1d-ax'](self.V,
+                                                            self.axes_flat[:,iax]))
+            for tidx in range(self.nT):
+                for pidx in range(self.nP):
+                    if self.verbose:
+                        print "calc_G: tidx = %i, pidx = %i" %(tidx,pidx)
+                    gg = ret['/T/P' + self.axes_prefix + '/G'][tidx,pidx,:]
+                    if self.case == '1d':
+                        fit = self.fitfunc['1d-G'](self.V, gg)
+                        vopt = fit.get_min()
                         ret['/#opt/T/P/V'][tidx,pidx] = vopt
-                        ret['/#opt/T/P/G'][tidx,pidx] = inter(vopt)
-                        spl = num.Spline(self.V, self.axes['ax0'])    
-                        ret['/#opt/T/P/ax0'][tidx,pidx] = spl(vopt)
-                        ret['/#opt/T/P/B'][tidx,pidx] = vopt * inter(vopt, der=2) * eV_by_Ang3_to_GPa
-                    else:
-                        raise StandardError("no 1d fit method defined")
-                elif self.case == '2d':
-                    ret['/T/P/ax0/ax1/G'][tidx,pidx,:,:] = gg.reshape((self.nax0, self.nax1))
-                    if self.fitfunc['2d'] is not None:          
+                        ret['/#opt/T/P/G'][tidx,pidx] = fit(vopt)
+                        # Loop needed for fake-1d case when we set case='1d'
+                        # by hand but self.axes_flat.shape = (N,2) or (N,3). Also,
+                        # we fit G(V) and not G(ax0) for that reason.
+                        for iax in range(self.nax):
+                            ret['/#opt/T/P/ax%i' %iax][tidx,pidx] = self.fitax[iax](vopt)
+                        ret['/#opt/T/P/B'][tidx,pidx] = vopt * fit(vopt, der=2) * eV_by_Ang3_to_GPa
+                    elif self.case == '2d':
                         ggmin = gg.min()
                         ggmax = gg.max()
                         ggscale = (gg - ggmin) / (ggmax - ggmin)
-                        inter = self.fitfunc['2d'](xx=self.axes_flat[:,0],
-                                                   yy=self.axes_flat[:,1], 
-                                                   zz=ggscale)
-                        xopt = inter.get_min()
+                        fit = self.fitfunc['2d-G'](self.axes_flat, ggscale)
+                        xopt = fit.get_min()
                         ret['/#opt/T/P/ax0'][tidx,pidx] = xopt[0]
                         ret['/#opt/T/P/ax1'][tidx,pidx] = xopt[1]
-                        ret['/#opt/T/P/G'][tidx,pidx] = inter(xopt) * (ggmax - ggmin) + ggmin
+                        ret['/#opt/T/P/G'][tidx,pidx] = fit(xopt) * (ggmax - ggmin) + ggmin
                         if self.volfunc_ax is not None:
                             ret['/#opt/T/P/V'][tidx,pidx] = self.volfunc_ax(xopt)
                     else:
-                        raise StandardError("no 2d fit method defined")
-        if self.volfunc_ax is None:
-            ret['/#opt/T/P/V'] = None
-        if self.case == '1d':
-            ret['/#opt/T/P/ax1'] = None
-            ret['/#opt/T/P/ax2'] = None
-        elif self.case == '2d':            
-            ret['/#opt/T/P/ax2'] = None
-            ret['/#opt/T/P/B'] = None
-        alpha_names = ['ax0', 'ax1', 'ax2', 'V']
-        ret.update(dict(('/#opt/T/P/alpha_%s' %name, 
-                         np.empty((self.nT,self.nP))) for name in \
-                         alpha_names))
-        for name in alpha_names:
-            arr = ret['/#opt/T/P/%s' %name]
-            if arr is not None:
-                for pidx in range(self.nP):
-                    x = arr[:,pidx]
-                    ret['/#opt/T/P/alpha_%s' %name][:,pidx] = \
-                        num.deriv_spl(x, self.T, fullout=False, k=5 ,s=None)/x
-            else:
-                ret['/#opt/T/P/alpha_%s' %name] = None
-                        
-        ret['/#opt/T/P/Cp'] = np.empty((self.nT, self.nP), dtype=float)
-        for pidx in range(self.nP):
-            ret['/#opt/T/P/Cp'][:,pidx] = \
-                -self.T * num.deriv_spl(ret['/#opt/T/P/G'][:,pidx]*eV/kb, self.T, 
-                                        n=2, k=5, s=None, fullout=False)
-        ret['/T/T'] = self.T
-        ret['/P/P'] = self.P
-        for key in ['ax0', 'ax1', 'ax2']:
-            name = '/%s/%s' %(key,key)
-            if self.axes.has_key(key):
-                ret[name] = self.axes[key]
-            else:
-                ret[name] = None
+                        raise StandardError("unknown case: %s" %self.case)
+            if self.volfunc_ax is None:
+                ret['/#opt/T/P/V'] = None
+            if self.nax == 1:
+                ret['/#opt/T/P/ax1'] = None
+                ret['/#opt/T/P/ax2'] = None
+            elif self.nax == 2:            
+                ret['/#opt/T/P/ax2'] = None
+                ret['/#opt/T/P/B'] = None
+            alpha_names = ['ax0', 'ax1', 'ax2', 'V']
+            ret.update(dict(('/#opt/T/P/alpha_%s' %name, 
+                             np.empty((self.nT,self.nP))) for name in \
+                             alpha_names))
+            for name in alpha_names:
+                arr = ret['/#opt/T/P/%s' %name]
+                if arr is not None:
+                    for pidx in range(self.nP):
+                        x = arr[:,pidx]
+                        fit = self.fitfunc['alpha'](self.T, x)
+                        ret['/#opt/T/P/alpha_%s' %name][:,pidx] = fit(self.T, der=1) / x
+                else:
+                    ret['/#opt/T/P/alpha_%s' %name] = None
+                            
+            ret['/#opt/T/P/Cp'] = np.empty((self.nT, self.nP), dtype=float)
+            for pidx in range(self.nP):
+                fit = self.fitfunc['C'](self.T, ret['/#opt/T/P/G'][:,pidx]*eV/kb)
+                ret['/#opt/T/P/Cp'][:,pidx] = -self.T * fit(self.T, der=2)
         return ret                
 
