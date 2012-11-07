@@ -3,7 +3,7 @@
 # Test thermo.HarmonicThermo against results from F_QHA.f90 from QE 4.2 .
 
 import numpy as np
-from scipy.integrate import simps
+from scipy.integrate import simps, trapz
 from pwtools.thermo import HarmonicThermo
 from pwtools import common
 from pwtools.constants import Ry_to_J, eV, Ry, kb
@@ -92,8 +92,8 @@ def test_qha():
                         skipfreq=True)
     assert ha.f[0] > 0.0                
     
-    msg('API: dosarea')
+    msg('API: dosarea + integrator')
     area = np.random.rand()*10
-    ha = HarmonicThermo(pdos[:,0], pdos[:,1], skipfreq=True, dosarea=area)
+    ha = HarmonicThermo(pdos[:,0], pdos[:,1], skipfreq=True, dosarea=area,
+                        integrator=simps)
     assert np.allclose(simps(ha.dos, ha.f), area)
-                

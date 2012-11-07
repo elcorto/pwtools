@@ -3,7 +3,7 @@
 # (Quasi)harmonic approximation.
 
 import numpy as np
-from scipy.integrate import simps
+from scipy.integrate import simps, trapz
 from pwtools.constants import kb, hplanck, R, pi, c0, Ry_to_J, eV,\
     eV_by_Ang3_to_GPa
 from pwtools.verbose import verbose
@@ -20,7 +20,7 @@ class HarmonicThermo(object):
     """    
     def __init__(self, freq, dos, temp=None, skipfreq=False, 
                  eps=1.5*np.finfo(float).eps, fixnan=False, nanfill=0.0,
-                 dosarea=None, verbose=True):
+                 dosarea=None, integrator=trapz, verbose=True):
         """                 
         Parameters
         ----------
@@ -47,6 +47,11 @@ class HarmonicThermo(object):
         dosarea : float or None
             If not None, then re-normalize the area int(freq) dos to `dosarea`,
             after `skipfreq` was applied if used.
+        integrator : callable
+            Function which integrates x-y data. Called as ``integrator(y,x)``,
+            like ``scipy.integrate.{trapz,simps}``. Usually, `trapz` is
+            numerically more stable for weird DOS data and accurate enough if
+            the freqeuency axis resolution is big.
         verbose : bool, optional
             Print warnings. Recommended for testing.
 
@@ -120,6 +125,7 @@ class HarmonicThermo(object):
         self.eps = eps
         self.nanfill = nanfill
         self.dosarea = dosarea
+        self.integrator = integrator
         
         assert len(self.f) == len(self.dos), ("freq and dos don't have "
                                              "equal length")
@@ -140,7 +146,16 @@ class HarmonicThermo(object):
             self.dos = self.dos[mask]
         
         if self.dosarea is not None:
-            self.dos = num.norm_int(self.dos, self.f, area=float(dosarea))
+            self.dos = self._norm_int(self.dos, self.f, area=float(self.dosarea))
+    
+    def _norm_int(self, y, x, area):
+        fx = np.abs(x).max()
+        fy = np.abs(y).max()
+        sx = x / fx
+        sy = y / fy
+        _area = self.integrator(sy, sx) * fx * fy
+        return y*area/_area
+        
 
     def _printwarn(self, msg):
         if self.verbose:
@@ -167,7 +182,7 @@ class HarmonicThermo(object):
                 self._printwarn("HarmonicThermo._integrate: warning: "
                                 "fixing %i NaNs in y!" %len(mask))
                 y[mask] = self.nanfill
-        return np.array([simps(y[i,:], f) for i in range(y.shape[0])])
+        return np.array([self.integrator(y[i,:], f) for i in range(y.shape[0])])
     
     def _get_temp(self, temp):
         if (self.T is None) and (temp is None):
