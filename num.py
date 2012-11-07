@@ -4,6 +4,7 @@ import os
 import types
 import itertools
 import numpy as np
+from math import sqrt
 from scipy.optimize import brentq, newton, fmin
 from scipy.interpolate import bisplrep, \
     bisplev, splev, splrep
@@ -717,14 +718,14 @@ class Interpol2D(object):
     
     This is for easy testing of multiple interpolators on a surface z = f(x,y),
     which is given as an unordered set of points."""
-    def __init__(self, dd=None, x=None, y=None, xx=None, yy=None, zz=None, 
-        Z=None, XY=None, what='rbf_multi', **initkwds):
+    def __init__(self, dd=None, xx=None, yy=None, zz=None, XY=None, 
+                 what='rbf_multi', **initkwds):
         """
         Parameters
         ----------
         dd : pwtools.mpl.Data3D instance
-        x,y,xx,yy,zz,Z,XY : see Data3D, 
-            Only XY,zz (and additionally x,y for bispline) are used internally.
+        XY,xx,yy,zz : see Data3D
+            Use either `XY`,`zz` or `xx`,`yy`,`zz` or `dd`.
             Use this if creating a Data3D object fails for some reason.
         what : str, optional
             which interpolator to use
@@ -762,16 +763,21 @@ class Interpol2D(object):
         >>> inter=num.Interpol2D(dd, what='bispl'); inter([[-3,-4],[0,0]])
         array([  5.,  30.])
         """
-        if dd is not None:
-            self.x,self.y,self.xx,self.yy,self.zz,self.Z,self.XY = \
-            dd.x,dd.y,dd.xx,dd.yy,dd.zz,dd.Z,dd.XY
-            self.nx = dd.nx
-            self.ny = dd.ny
+        if dd is None:
+            if [xx, yy] == [None]*2:
+                self.xx = XY[:,0]
+                self.yy = XY[:,1]
+                self.XY = XY
+            elif XY is None:
+                self.xx = xx
+                self.yy = yy
+                self.XY = np.array([xx,yy]).T
+            else:
+                raise StandardError("use XY+zz or xx+yy+zz as input")
+            self.zz = zz
         else:
-            self.x,self.y,self.xx,self.yy,self.zz,self.Z,self.XY = \
-            x,y,xx,yy,zz,Z,XY
-            self.nx = len(self.x)
-            self.ny = len(self.y)
+            self.xx, self.yy, self.zz, self.XY = dd.xx, dd.yy, dd.zz, dd.XY
+
         from pwtools import rbf
         if what == 'rbf_multi':
             self.inter = rbf.RBFInt(self.XY, self.zz, rbf=rbf.RBFMultiquadric())
@@ -790,7 +796,9 @@ class Interpol2D(object):
                 self.inter = CloughTocher2DInterpolator(self.XY, self.zz, **initkwds)
                 self.call = self.inter
         elif what == 'bispl':
-            _initkwds = {'kx': 3, 'ky': 3, 'nxest': 10*self.nx, 'nyest': 10*self.ny}
+            nx = min(len(np.unique(self.xx)), int(sqrt(len(self.xx))))
+            ny = min(len(np.unique(self.yy)), int(sqrt(len(self.yy))))
+            _initkwds = {'kx': 3, 'ky': 3, 'nxest': 10*nx, 'nyest': 10*ny}
             _initkwds.update(initkwds)
             bispl = bisplrep(self.xx, self.yy, self.zz, **_initkwds)
             def _call(XY, bispl=bispl, **callkwds):

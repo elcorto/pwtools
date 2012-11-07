@@ -30,3 +30,13 @@ def test_interpol2d():
         import warnings
         warnings.warn("couldn't import "
             "scipy.interpolate.CloughTocher2DInterpolator")
+   
+    # API
+    inter = num.Interpol2D(xx=dd.xx, yy=dd.yy, zz=dd.zz, what='bispl')
+    aaae(inter([[-3,-4],[0,0]]), tgt)
+    np.allclose(inter.get_min(), 5.0)
+
+    inter = num.Interpol2D(XY=dd.XY, zz=dd.zz, what='bispl')
+    aaae(inter([[-3,-4],[0,0]]), tgt)
+    np.allclose(inter.get_min(), 5.0)
+
