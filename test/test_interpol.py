@@ -10,21 +10,21 @@ def test_interpol2d():
     dd = mpl.Data3D(X=X,Y=Y,Z=Z)
     
     tgt = np.array([  5.0 ,  30])
-    inter = num.Interpol2D(dd, what='rbf_multi') 
+    inter = num.Interpol2D(dd=dd, what='rbf_multi') 
     aaae(inter([[-3,-4],[0,0]]), tgt)
     np.allclose(inter.get_min(), 5.0)
     
-    inter = num.Interpol2D(dd, what='rbf_gauss')
+    inter = num.Interpol2D(dd=dd, what='rbf_gauss')
     aaae(inter([[-3,-4],[0,0]]), tgt, decimal=3)
     np.allclose(inter.get_min(), 5.0)
     
-    inter = num.Interpol2D(dd, what='bispl')
+    inter = num.Interpol2D(dd=dd, what='bispl')
     aaae(inter([[-3,-4],[0,0]]), tgt)
     np.allclose(inter.get_min(), 5.0)
     
     try:
         from scipy.interpolate import CloughTocher2DInterpolator
-        inter = num.Interpol2D(dd, what='ct')
+        inter = num.Interpol2D(dd=dd, what='ct')
         aaae(inter([[-3,-4],[0,0]]), tgt, decimal=2)
     except ImportError:
         import warnings
@@ -32,11 +32,15 @@ def test_interpol2d():
             "scipy.interpolate.CloughTocher2DInterpolator")
    
     # API
-    inter = num.Interpol2D(xx=dd.xx, yy=dd.yy, zz=dd.zz, what='bispl')
+    inter = num.Interpol2D(xx=dd.xx, yy=dd.yy, values=dd.zz, what='bispl')
     aaae(inter([[-3,-4],[0,0]]), tgt)
     np.allclose(inter.get_min(), 5.0)
 
-    inter = num.Interpol2D(XY=dd.XY, zz=dd.zz, what='bispl')
+    inter = num.Interpol2D(points=dd.XY, values=dd.zz, what='bispl')
+    aaae(inter([[-3,-4],[0,0]]), tgt)
+    np.allclose(inter.get_min(), 5.0)
+
+    inter = num.Interpol2D(dd.XY, dd.zz, what='bispl')
     aaae(inter([[-3,-4],[0,0]]), tgt)
     np.allclose(inter.get_min(), 5.0)
 
