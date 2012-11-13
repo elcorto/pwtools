@@ -720,15 +720,16 @@ class Interpol2D(object):
     
     This is for easy testing of multiple interpolators on a surface z = f(x,y),
     which is given as an unordered set of points."""
-    def __init__(self, dd=None, xx=None, yy=None, zz=None, XY=None, 
+    def __init__(self, points=None, values=None, xx=None, yy=None,  dd=None,
                  what='rbf_multi', **initkwds):
         """
         Parameters
         ----------
+        points : (npoints, 2)
+        values : (npoints, 1)
+        xx,yy : (npoints, 1)
+            Use either `points` + `values` or `xx` + `yy` + `values` or `dd`.
         dd : pwtools.mpl.Data3D instance
-        XY,xx,yy,zz : see Data3D
-            Use either `XY`,`zz` or `xx`,`yy`,`zz` or `dd`.
-            Use this if creating a Data3D object fails for some reason.
         what : str, optional
             which interpolator to use
             'rbf_multi' : RBFN w/ multiquadric rbf
@@ -756,37 +757,37 @@ class Interpol2D(object):
         >>> X,Y=np.meshgrid(x,y); X=X.T; Y=Y.T 
         >>> Z=(X+3)**2+(Y+4)**2 + 5 
         >>> dd=mpl.Data3D(X=X,Y=Y,Z=Z)
-        >>> inter=num.Interpol2D(dd, what='rbf_multi'); inter([[-3,-4],[0,0]])
+        >>> inter=num.Interpol2D(dd=dd, what='rbf_multi'); inter([[-3,-4],[0,0]])
         array([  5.0000001 ,  29.99999975])
-        >>> inter=num.Interpol2D(dd, what='rbf_gauss'); inter([[-3,-4],[0,0]])
+        >>> inter=num.Interpol2D(dd=dd, what='rbf_gauss'); inter([[-3,-4],[0,0]])
         array([  5.00000549,  29.99999717])
-        >>> inter=num.Interpol2D(dd, what='ct'); inter([[-3,-4],[0,0]])
+        >>> inter=num.Interpol2D(dd=dd, what='ct'); inter([[-3,-4],[0,0]])
         array([  4.99762256,  30.010856  ])
-        >>> inter=num.Interpol2D(dd, what='bispl'); inter([[-3,-4],[0,0]])
+        >>> inter=num.Interpol2D(dd=dd, what='bispl'); inter([[-3,-4],[0,0]])
         array([  5.,  30.])
         """
         if dd is None:
             if [xx, yy] == [None]*2:
-                self.xx = XY[:,0]
-                self.yy = XY[:,1]
-                self.XY = XY
-            elif XY is None:
+                self.xx = points[:,0]
+                self.yy = points[:,1]
+                self.points = points
+            elif points is None:
                 self.xx = xx
                 self.yy = yy
-                self.XY = np.array([xx,yy]).T
+                self.points = np.array([xx,yy]).T
             else:
-                raise StandardError("use XY+zz or xx+yy+zz as input")
-            self.zz = zz
+                raise StandardError("use points+values or xx+yy+values as input")
+            self.values = values
         else:
-            self.xx, self.yy, self.zz, self.XY = dd.xx, dd.yy, dd.zz, dd.XY
+            self.xx, self.yy, self.values, self.points = dd.xx, dd.yy, dd.zz, dd.XY
 
         from pwtools import rbf
         if what == 'rbf_multi':
-            self.inter = rbf.RBFInt(self.XY, self.zz, rbf=rbf.RBFMultiquadric())
+            self.inter = rbf.RBFInt(self.points, self.values, rbf=rbf.RBFMultiquadric())
             self.inter.train('linalg', **initkwds)
             self.call = self.inter
         elif what == 'rbf_gauss':
-            self.inter = rbf.RBFInt(self.XY, self.zz, rbf=rbf.RBFGauss())
+            self.inter = rbf.RBFInt(self.points, self.values, rbf=rbf.RBFGauss())
             self.inter.train('linalg', **initkwds)
             self.call = self.inter
         elif what == 'ct':
@@ -795,27 +796,27 @@ class Interpol2D(object):
                 raise ImportError("could not import "
                     "scipy.interpolate.CloughTocher2DInterpolator")
             else:                    
-                self.inter = CloughTocher2DInterpolator(self.XY, self.zz, **initkwds)
+                self.inter = CloughTocher2DInterpolator(self.points, self.values, **initkwds)
                 self.call = self.inter
         elif what == 'bispl':
             nx = min(len(np.unique(self.xx)), int(sqrt(len(self.xx))))
             ny = min(len(np.unique(self.yy)), int(sqrt(len(self.yy))))
             _initkwds = {'kx': 3, 'ky': 3, 'nxest': 10*nx, 'nyest': 10*ny}
             _initkwds.update(initkwds)
-            bispl = bisplrep(self.xx, self.yy, self.zz, **_initkwds)
-            def _call(XY, bispl=bispl, **callkwds):
+            bispl = bisplrep(self.xx, self.yy, self.values, **_initkwds)
+            def _call(points, bispl=bispl, **callkwds):
                 # For unordered points, we need to loop.
-                ret = [bisplev(XY[ii,0], XY[ii,1], bispl, **callkwds) for
-                    ii in range(XY.shape[0])]
+                ret = [bisplev(points[ii,0], points[ii,1], bispl, **callkwds) for
+                    ii in range(points.shape[0])]
                 return np.array(ret)
             self.inter = _call
             self.call = _call                
    
-    def __call__(self, XY, **callkwds):
+    def __call__(self, points, **callkwds):
         """
         Parameters
         ----------
-        XY: 2d (M,2) or 1d (N,)
+        points: 2d (M,2) or 1d (N,)
             M points in 2-dim space where to evalutae the interpolator
             (only one in 1d case)
         **callkwds : keywords passed to the interpolator's __call__ method            
@@ -825,10 +826,10 @@ class Interpol2D(object):
         Y : 1d array (M,)
             interpolated values
         """            
-        XY = np.asarray(XY)
-        if len(XY.shape) == 1:
-            XY = XY[None,:]
-        return self.call(XY, **callkwds)
+        points = np.asarray(points)
+        if len(points.shape) == 1:
+            points = points[None,:]
+        return self.call(points, **callkwds)
     
     def get_min(self, x0=None):
         """Return [x,y] where z(x,y) = min(z) by minimizing z(x,y) w/
@@ -845,7 +846,7 @@ class Interpol2D(object):
         [xmin, ymin]: 1d array (2,)
         """
         if x0 is None:
-            idx0 = self.zz.argmin()
+            idx0 = self.values.argmin()
             x0 = [self.xx[idx0], self.yy[idx0]]
         xopt = fmin(self, x0, disp=1, xtol=1e-8, ftol=1e-8, 
                     maxfun=1e4, maxiter=1e4)
