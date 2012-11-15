@@ -15,7 +15,7 @@ from pwtools import num, atomic_data
 from pwtools.base import FlexibleGetters
 from pwtools.constants import Bohr, Angstrom
 from pwtools import constants, atomic_data, _flib
-from pwtools.num import fempty
+from pwtools.num import fempty, rms, rms3d
 
 #-----------------------------------------------------------------------------
 # misc math
@@ -608,69 +608,6 @@ def scell3d(traj, dims):
 #-----------------------------------------------------------------------------
 # atomic coords processing / evaluation, MD analysis
 #-----------------------------------------------------------------------------
-
-
-def rms(arr, nitems='all'):
-    """RMS of all elements in a ndarray.
-    
-    Parameters
-    ----------
-    arr : ndarray
-    nitems : {'all', float)
-        normalization constant, the sum of squares is divided by this number,
-        set to unity for no normalization, if 'all' then use nitems = number of
-        elements in the array
-
-    Returns
-    -------
-    rms : scalar
-    """
-    if nitems == 'all':
-        nitems = float(arr.nbytes / arr.itemsize)
-    else:
-        nitems = float(nitems)
-    rms = np.sqrt((arr**2.0).sum() / nitems)
-    return rms        
-
-
-def rms3d(arr, axis=0, nitems='all'):
-    """RMS of 3d array along `axis`. Sum all elements of all axes != axis.
-    
-    Parameters
-    ----------
-    arr : 3d array
-    axis : int
-        The axis along which the RMS of all sub-arrays is to be computed
-        (usually time axis in MD).
-    nitems : {'all', float)
-        normalization constant, the sum of squares is divided by this number,
-        set to unity for no normalization, if 'all' then use nitems = number of
-        elements in each sub-array along `axis`
-    
-    Returns
-    -------
-    rms : 1d array, (arr.shape[axis],)
-    """
-    # We could use num.sum() and would be able to generalize to nd arrays. But
-    # not needed now.
-    assert -1 <= axis <= 2, "allowed axis values: -1,0,1,2"
-    assert arr.ndim == 3, "arr must be 3d array"
-    if axis == -1:
-        axis = arr.ndim - 1
-    if nitems == 'all':
-        sl = [slice(None)]*arr.ndim
-        sl[axis] = 0 # pick out 1st sub-array along axis
-        nitems = float(arr[sl].nbytes / arr.itemsize)
-    else:
-        nitems = float(nitems)
-    if axis == 0:
-        rms =  np.sqrt((arr**2.0).sum(1).sum(1) / nitems)
-    elif axis == 1:
-        rms =  np.sqrt((arr**2.0).sum(0).sum(1) / nitems)
-    elif axis == 2:
-        rms =  np.sqrt((arr**2.0).sum(0).sum(0) / nitems)
-    return rms        
-    
 
 def rmsd(traj, ref_idx=0):
     """Root mean square distance over an MD trajectory. The normalization

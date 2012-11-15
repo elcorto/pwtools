@@ -1,11 +1,11 @@
 # num.py : numpy/scipy like stuff.
 
-import os
+import os, copy
 import types
 import itertools
 import numpy as np
 from math import sqrt
-from scipy.optimize import brentq, newton, fmin
+import scipy.optimize as optimize
 from scipy.interpolate import bisplrep, \
     bisplev, splev, splrep
 from pwtools import _flib   
@@ -96,7 +96,7 @@ def norm_int(y, x, area=1.0):
     _area = simps(sy, sx) / (fx*fy)
     return y*area/_area
 
-
+# XXX don't use, implement central diffs
 def deriv_fd(y, x=None, n=1):
     """n-th derivative for 1d arrays of possibly nonuniformly sampled data.
     Returns matching x-axis for plotting. Simple finite differences are used:
@@ -207,7 +207,7 @@ def _splroot(x, y, der=0):
     # helper for find{min,root}
     tck = splrep(x, y, k=3, s=0)
     func = lambda xx: splev(xx, tck, der=der)
-    x0 = brentq(func, x[0], x[-1])
+    x0 = optimize.brentq(func, x[0], x[-1])
     return np.array([x0, splev(x0, tck)])
 
 
@@ -323,11 +323,11 @@ class Spline(object):
             the root of func(x)
         """
         if x0 is not None:
-            xx = newton(func, x0)
+            xx = optimize.newton(func, x0)
         else:
             if xab is None:
                 xab = [self.x[0], self.x[-1]]
-            xx = brentq(func, xab[0], xab[1])
+            xx = optimize.brentq(func, xab[0], xab[1])
         return xx    
     
     def is_mono(self):
@@ -846,7 +846,7 @@ class Interpol2D(object):
         if x0 is None:
             idx0 = self.values.argmin()
             x0 = [self.xx[idx0], self.yy[idx0]]
-        xopt = fmin(self, x0, disp=1, xtol=1e-8, ftol=1e-8, 
+        xopt = optimize.fmin(self, x0, disp=1, xtol=1e-8, ftol=1e-8, 
                     maxfun=1e4, maxiter=1e4)
         return xopt                        
 
@@ -969,3 +969,484 @@ class DataND(object):
             an[tuple(_idx)] = self.a2[ii,-1]
         return an, axes    
 
+
+def rms(arr, nitems='all'):
+    """RMS of all elements in a ndarray.
+    
+    Parameters
+    ----------
+    arr : ndarray
+    nitems : {'all', float)
+        normalization constant, the sum of squares is divided by this number,
+        set to unity for no normalization, if 'all' then use nitems = number of
+        elements in the array
+
+    Returns
+    -------
+    rms : scalar
+    """
+    if nitems == 'all':
+        nitems = float(arr.nbytes / arr.itemsize)
+    else:
+        nitems = float(nitems)
+    rms = np.sqrt((arr**2.0).sum() / nitems)
+    return rms        
+
+
+def rms3d(arr, axis=0, nitems='all'):
+    """RMS of 3d array along `axis`. Sum all elements of all axes != axis.
+    
+    Parameters
+    ----------
+    arr : 3d array
+    axis : int
+        The axis along which the RMS of all sub-arrays is to be computed
+        (usually time axis in MD).
+    nitems : {'all', float)
+        normalization constant, the sum of squares is divided by this number,
+        set to unity for no normalization, if 'all' then use nitems = number of
+        elements in each sub-array along `axis`
+    
+    Returns
+    -------
+    rms : 1d array, (arr.shape[axis],)
+    """
+    # We could use num.sum() and would be able to generalize to nd arrays. But
+    # not needed now.
+    assert -1 <= axis <= 2, "allowed axis values: -1,0,1,2"
+    assert arr.ndim == 3, "arr must be 3d array"
+    if axis == -1:
+        axis = arr.ndim - 1
+    if nitems == 'all':
+        sl = [slice(None)]*arr.ndim
+        sl[axis] = 0 # pick out 1st sub-array along axis
+        nitems = float(arr[sl].nbytes / arr.itemsize)
+    else:
+        nitems = float(nitems)
+    if axis == 0:
+        rms =  np.sqrt((arr**2.0).sum(1).sum(1) / nitems)
+    elif axis == 1:
+        rms =  np.sqrt((arr**2.0).sum(0).sum(1) / nitems)
+    elif axis == 2:
+        rms =  np.sqrt((arr**2.0).sum(0).sum(0) / nitems)
+    return rms        
+    
+
+def poly_str(ndim, deg):
+    """String representation of a `ndim`-poly of degree `deg`."""
+    st = ''
+    for ii,pwr in enumerate(poly_powers(ndim,deg)):
+        xx = '*'.join('x%i^%i'%(i,n) for i,n in enumerate(pwr))
+        term = 'a%i*' %ii + xx
+        if st == '':
+            st = term
+        else:    
+            st += ' + %s' %term
+    return st        
+
+
+def poly_powers(ndim, deg):
+    """Powers for building a n-dim polynomial and columns of the n-dim
+    Vandermonde matrix.
+
+    Parameters
+    ----------
+    ndim : number of dimensions of the poly (e.g. 2 for f(x1,x2))
+    deg : degree of the poly
+
+    Returns
+    -------
+    powers : 2d array ``((deg+1)**ndim, ndim)``
+
+    Examples
+    --------
+    For one dim, we have data points (x_i,y_i) and the to-be-fitted poly of order
+    k is::
+        
+        f(x) = a0*x^0 + a1*x^1 + a2*x^2 + ... + ak*x^k
+
+    The Vandermonde matrix A consists of all powers of x (cols) for all data
+    points (rows) and each row has the form of the poly::
+
+        [[x_0^0 x_0^1 ... x_0^k],
+         [x_1^0 x_1^1 ... x_1^k],   
+         ...
+         [x_n^0 x_n^1 ... x_n^k]]
+    
+    To fit, we solve A . a = y, where a = [a0,...,ak].
+
+    The retutned array `powers` has k rows, where each row holds the powers for
+    one term in the poly. For ndim=1 and poly order k, we have::
+        
+        [[0],
+         [1],
+         ...
+         [k]]
+    
+    and::
+
+        [0] -> x^0
+        [1] -> x^1
+        ...
+        [k] -> x^k
+    
+    Now, suppose we have 2 dims, thus data points (x0_i,x1_i,y_i) and a poly
+    of order 2::
+        
+        f(x0,x1) = a0*x0^0*x1^0 + a1*x0^0*x1^1 + a2*x0^0*x1^2 + a3*x0^1*x1^0 +
+                   a4*x0^1*x1^1 + a5*x0^1*x1^2 + a6*x0^2*x1^0 + a7*x0^2*x1^1 +
+                   a8*x0^2*x1^2
+    
+    with 9 coeffs a = [a0,...,a8]. Therefore, ``powers.shape = (9,2)``::
+
+        [[0, 0],
+         [0, 1],
+         [0, 2],
+         [1, 0],
+         [1, 1],
+         [1, 2],
+         [2, 0],
+         [2, 1],
+         [2, 2]]
+    
+    and:: 
+        
+        [0,0] -> x0^0*x1^0
+        [1,2] -> x0^1*x1^2
+        ...
+    """
+    return np.array([x for x in itertools.product(range(deg+1), 
+                                                  repeat=ndim)])
+
+
+def vander(points, deg):
+    """N-dim Vandermonde matrix for data `points` and a polynom of degree
+    `deg`.
+
+    Parameters
+    ----------
+    points : see polyfit()
+    deg : int
+        Degree of the poly (e.g. 3 for cubic).
+    
+    Returns
+    -------
+    vander : 2d array (npoints, (deg+1)**ndim)
+    """
+    powers = poly_powers(points.shape[1], deg)
+    # low memory version, slower
+    ##npoints = points.shape[0]
+    ##vand = np.empty((npoints, (deg+1)**ndim), dtype=float)
+    ##for ipoint in range(npoints):
+    ##    vand[ipoint,:] = (points[ipoint]**powers).prod(axis=1)
+    tmp = (points[...,None] ** np.swapaxes(powers, 0, 1)[None,...])
+    return tmp.prod(axis=1)
+
+
+def polyfit(points, values, deg):
+    """Fit nd polynomial of dregree `deg`. The dimension is ``points.shape[1]``.
+
+    Parameters
+    ----------
+    points : nd array (npoints,ndim)
+        `npoints` points in `ndim`-space, to be fitted by a `ndim` polynomial
+        f(x0,x1,...,x{ndim-1}).
+    values : 1d array        
+    deg : int
+        Degree of the poly (e.g. 3 for cubic).
+    
+    Returns
+    -------
+    fit : dict
+        {coeffs, deg} where coeffs = 1d array ((deg+1)**ndim,) with poly
+        coefficients. Input for polyval().
+    """
+    assert points.ndim == 2, "points must be 2d array"
+    assert values.ndim == 1, "values must be 1d array"
+    vand = vander(points, deg)
+    return {'coeffs': np.linalg.lstsq(vand, values)[0], 'deg': deg}
+
+
+def polyval(fit, points, der=0):
+    """Evaluate polynomial generated by ``polyfit()`` on `points`.
+
+    Parameters
+    ----------
+    fit, points : see polyfit()
+    der : int, optional
+        Derivative order. Only for 1D, uses np.polyder().
+    
+    Notes
+    -----
+    For 1D we provide "analytic" derivatives using np.polyder(). For ND, we
+    didn't implement an equivalent machinery. For 2D, you might get away with
+    fitting a bispline (see Interpol2D) and use it's derivs. For ND, try rbf.py's RBF
+    interpolator which has at least 1st derivatives for arbitrary dimensions.
+    """
+    if der > 0:
+        assert points.shape[1] == 1, "deriv only for 1d poly"
+        dcoeffs = np.polyder(fit['coeffs'][::-1], m=der)
+        return np.polyval(dcoeffs, points[:,0])
+    else:        
+        vand = vander(points, fit['deg'])
+        return np.dot(vand, fit['coeffs'])
+
+
+def inner_points_mask(points):
+    """Mask array into `points` where ``points[msk]`` are all "inner" points,
+    i.e. `points` with one level of edge points removed. For 1D, this is simply
+    points[1:-1,:] (assuming ordered points). For ND, we calculate and remove
+    the convex hull.
+
+    Parameters
+    ----------
+    points : nd array (npoints, ndim)
+
+    Returns
+    -------
+    msk : (npoints, ndim)
+        Bool array.
+    """
+    msk = np.ones((points.shape[0],), dtype=bool)
+    if points.shape[1] == 1:
+        assert (np.diff(points[:,0]) >= 0.0).all(), ("points not monotonic")
+        msk[0] = False
+        msk[-1] = False
+    else:
+        from scipy.spatial import Delaunay
+        tri = Delaunay(points)
+        edge_idx = np.unique(tri.convex_hull)
+        msk.put(edge_idx, False)
+    return msk    
+
+
+def avgpolyfit(points, values, levels=1, degmin=1, degmax=1, degrange=None):
+    """Same as polyfit(), but fit multiple polys. There are two types of fits,
+    which can be combined. (1) Fit `levels` polys and remove one level of
+    endpoints in each go from `points`. (2) Fit polys with varying degrees (see
+    `degmin` + `degmax` or `degrange`).
+
+    Parameters
+    ----------
+    points, values : see polyfit()
+    levels : int
+        Fit this many polys and remove endpoints from `points` for levels >= 1.
+    degmin, degmax : int
+        min and max degree
+    degrange : sequence
+        range of poly degrees, use either this or `degmin` + `degmax`
+    
+    Returns
+    -------
+    fit : dict
+        {fits, errors, degrees, npoints}, `fits` = sequence of dicts from
+        polyfit(), `errors` =  1d array (ndeg*levels,) with RMS errors of each
+        fit, `degrees` = 1d array (ndeg*levels,) with poly degrees, npoints =
+        1d array (ndeg*levels,) with used number of points.
+    
+    Examples
+    --------
+    >>> fit=avgpolyfit(points, values, degmin=3, degmax=7, levels=5)
+    >>> avgpolyval(fit, newpoints)
+    >>>
+    >>> # the same as polyfit(points, values, deg=3)
+    >>> fit=avgpolyfit(points, values, degmin=3, degmax=3, levels=1)
+    >>> fit=avgpolyfit(points, values, degrange=[3], levels=1)
+    """
+    # In [1]_ (see avgpolyval) they say they use both multiple poly dregees and
+    # end point removal. But multiple degrees is actually pretty useless since
+    # a poly of degree `deg` contains all terms from a `deg`-1 poly. E.g. If we
+    # fit x**2 data with a deg=2 poly, we get the same results as with an
+    # deg=10 poly: all coeffs for deg != 2 are zero. Maybe we need to have a
+    # look at the GIBBS code again -- sparsely commented F77.
+    ndim = points.shape[1]
+    if degrange is None:
+        assert degmin <= degmax, "degmin (%i) > degmax (%i)" %(degmin, degmax)
+        degs = range(degmin, degmax+1)
+    else:
+        degs = degrange
+    ndeg = len(degs)
+    errors = []
+    fits = []
+    degrees = []
+    npoints = []
+    for ilev in range(levels):
+        if ilev >= 1:
+            msk = inner_points_mask(points)
+            points = points[msk,...]
+            values = values[msk]
+        for deg in degs:
+            fit = polyfit(points, values, deg)
+            err = rms(polyval(fit, points) - values, nitems=points.shape[0])
+            fits.append(fit)
+            errors.append(err)
+            degrees.append(deg)
+            npoints.append(points.shape[0])
+    return {'fits': fits, 'errors': np.array(errors), 'degrees': np.array(degrees, dtype=float),
+            'npoints': np.array(npoints, dtype=float)}
+
+
+def avgpolyval(fit, points, der=0, weight_type=1):
+    """Use poly fits from avgpolyfit() and average them according to their RMS
+    error.
+    
+    Parameters
+    ----------
+    fit : tuple
+        Result of avgpolyfit().
+    points : see polyfit()
+    der : see polyval()
+    weight_type : int
+        1 : without poly degree
+        2 : with poly degree as in [1]_
+
+    Notes
+    -----
+    The weighting and averaging is due to [1]_, but by default we don't include
+    the polynomial's degree in the weight as this produces worse fits
+    sometimes.
+    
+    .. [1] Blanco, M.; Francisco, E. & Luana, V., 
+       "GIBBS: isothermal-isobaric thermodynamics of solids from energy
+       curves using a quasi-harmonic Debye model", Computer Physics
+       Communications, 2004, 158, 57-72
+    """
+    fits, errors, degrees, npoints = \
+        fit['fits'], fit['errors'], fit['degrees'], fit['npoints']
+    if weight_type == 1:
+        err = errors / errors.min() 
+    elif weight_type == 2:
+        err = errors / errors.min() * \
+              (degrees + 1.0) / npoints
+    else:
+        raise StandardError("unknown weight_type")
+    weights = np.exp(-err**2.0)
+    weights = weights / weights.sum()
+    ret = np.zeros((points.shape[0],), dtype=float)
+    for ft,wght in itertools.izip(fits, weights):
+        wft = copy.deepcopy(ft)
+        wft['coeffs'] *= wght
+        ret += polyval(wft, points, der=der)
+    return ret        
+
+
+class PolyFit(object):
+    """High level interface to [avg]poly{fit,val}, similar to Spline and
+    Interpol2D. 
+    __init__: `points` must be (npoints,ndim) even if ndim=1.
+    __call__: `points` can be (ndim,) instead of (1,ndim), need this if called in
+               fmin()
+    """
+    def __init__(self, points, values, **kwds):
+        """
+        Parameters
+        ----------
+        points : nd array (npoints, ndim)
+        values : 1d array (npoints,)
+        **kwds : keywords to *polyfit()
+        """
+        self.points = self._fix_shape_init(points)
+        assert self.points.ndim == 2, "points is not 2d array"
+        self.values = values
+        if self._has_keys(kwds, ['degrange', 'degmin', 'degmax', 'levels']):
+            if kwds.has_key('deg'):
+                deg = kwds['deg']
+                kwds.pop('deg')
+                kwds['degrange'] = [deg]
+            self.fitfunc = avgpolyfit
+            self.evalfunc = avgpolyval
+        else:
+            self.fitfunc = polyfit
+            self.evalfunc = polyval
+        self.fit = self.fitfunc(self.points, self.values, **kwds)
+    
+    @staticmethod
+    def _has_keys(dct, keys):
+        if type(keys) != type([]):
+            keys = [keys]
+        ret = False            
+        for k in keys:
+            if dct.has_key(k):
+                ret = True
+                break
+        return ret                
+    
+    @staticmethod
+    def _fix_shape_init(points):
+        return points
+    
+    @staticmethod
+    def _fix_shape_call(points):
+        if points.ndim == 1:
+            return points[None,:]
+        else:
+            return points
+        
+    def __call__(self, points, **kwds):
+        points = self._fix_shape_call(points)
+        ret = self.evalfunc(self.fit, points, **kwds)
+        if points.shape[0] == 1:
+            return ret[0]
+        else:
+            return ret
+
+    def get_min(self, x0=None, **kwds):
+        _kwds = dict(disp=1, xtol=1e-12, ftol=1e-8, maxfun=1e4, maxiter=1e4)
+        _kwds.update(kwds)
+        if x0 is None:
+            idx = self.values.argmin()
+            x0 = self.points[idx,...]
+        xopt = optimize.fmin(self, x0, **_kwds)
+        return xopt                        
+
+
+class PolyFit1D(PolyFit):
+    """1D special case version of PolyFit which handles 1d and scalar `points`
+    Also `get_min()` uses the root of the poly's 1st derivative instead of
+    fmin().
+
+    __init__: points (npoints,1) or (npoints,)
+    __call__: points (npoints,1) or (npoints,) or scalar
+    """
+    def __init__(self, *args, **kwds):
+        """
+        Parameters
+        ----------
+        points : nd array (npoints,) or (npoints,1) 
+        values : 1d array (npoints,)
+        **kwds : keywords to *polyfit()
+        """
+        super(PolyFit1D, self).__init__(*args, **kwds)
+        assert self.points.ndim == 2 and self.points.shape[1] == 1, \
+            ("points has wrong shape: %s, expect (npoints,1)" \
+            %str(self.points.shape))
+    
+    @staticmethod
+    def _fix_shape_init(points):
+        pp = np.asarray(points)
+        # 1 -> (1,1)            
+        if pp.ndim == 0:
+            return np.array([[pp]])
+        # (N,) -> (N,1)
+        elif pp.ndim == 1:            
+            return pp[:,None]
+        elif  pp.ndim == 2:
+            return pp
+        else:
+            raise ValueError("wrong shape or dim")
+    
+    _fix_shape_call = _fix_shape_init
+
+    def _findroot(self, func, x0=None, xab=None, **kwds):
+        if x0 is not None:
+            xx = optimize.newton(func, x0, **kwds)
+        else:
+            if xab is None:
+                xab = [self.points[0,0], self.points[-1,0]]
+            xx = optimize.brentq(func, xab[0], xab[1], **kwds)
+        return xx    
+    
+    def get_min(self, x0=None, xab=None, **kwds):
+        return self._findroot(lambda x: self(x, der=1), x0=x0, xab=xab, 
+                              **kwds)
+                      
