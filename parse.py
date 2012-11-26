@@ -949,8 +949,11 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
         tmp = com.backtick(cmd).strip()
         for sym in ['(', ')', '{', '}']:
             tmp = tmp.replace(sym, '')
-        tmp = tmp.split()            
-        return tmp[1] if len(tmp) == 2 else None
+        tmp = tmp.split()
+        if len(tmp) < 2:
+            return None
+        else:
+            return tmp[1].split('=')[0]
     
     def _get_coords(self):
         """Parse ATOMIC_POSITIONS block. Unit is handled by get_coords_unit()."""
