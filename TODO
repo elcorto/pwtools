@@ -8,6 +8,21 @@ base.py
   http://stackoverflow.com/questions/3012421/python-lazy-property-decorator
   Then, FlexibleGetters can be removed completely!
 
+parse.py
+--------
+* Many classes still call the base classes' __init__ explitely. We get unbound
+  method errors in interactive Ipython sometimes if we reload modules. We need
+  to use use super() instead. But that only calls *one* __init__, namely the
+  one from the major base class::
+
+    class C(B,A):
+        pass
+    # calls only B.__init__, not A.__init__    
+    c=C()
+  
+  In some classes, we call __init__'s of two base classes and cannot use
+  super() then? Is this bad design?
+
 crys.py
 -------
 * All *3d() funcs use simple loops currently. This is slow. Find vectorized

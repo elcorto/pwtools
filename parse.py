@@ -23,7 +23,7 @@ All parsing classes::
     Pw*OutputFile
     Cpmd*OutputFile
 
-are derived from FlexibleGetters -> FileParser {Structure,Trajectory}FileParser
+are derived from FlexibleGetters -> FileParser -> {Structure,Trajectory}FileParser
 
 As a general rule: If a getter (self.get_<attr>() or self._get_<attr>_raw()
 cannot find anything in the file, it returns None. All getters which depend
@@ -165,8 +165,9 @@ def nstep_from_txt(txt):
         return int(txt)
 
 def traj_from_txt(txt, shape, axis=-1, dtype=np.float):
-    """Used for 3d trajectories where the exact shape must be known (N,3,nstep)
-    where N=3 (cell, stress) or N=natoms (coords, forces, ...). 
+    """Used for 3d trajectories where the exact shape must be known, e.g.
+    (nstep,N,3,nstep) where N=3 (cell, stress) or N=natoms (coords, forces,
+    ...). 
     """
     if txt.strip() == '':
         return None
@@ -270,6 +271,9 @@ class StructureFileParser(FileParser, UnitsHandler):
     self.update_units() to set self.units, which are handed over to
     Structure(). The parser itself doesn't apply_units() to itself.
     """
+    # XXX Use Container().attr_lst? Must create Container instance first b/c
+    # attr_lst is created in Container.__init__() . Maybe not worth the
+    # trouble?
     Container = crys.Structure
     cont_attr_lst = [\
         'cell',
@@ -313,6 +317,7 @@ class TrajectoryFileParser(StructureFileParser):
     """Base class for MD-like parsers."""
     Container = crys.Trajectory
     timeaxis = crys.Trajectory(set_all_auto=False).timeaxis
+    # XXX use Trajectory().attr_lst ??
     cont_attr_lst = [\
         'cell',
         'coords',
@@ -660,12 +665,40 @@ class PwSCFOutputFile(StructureFileParser):
 
     Notes
     -----
-    total_force : Pwscf writes a "Total Force" after the "Forces acting on
-        atoms" section . This value a UNnormalized RMS of the force matrix
-        (f_ij, i=1,natoms j=1,2,3) printed. According to .../PW/forces.f90,
-        variable "sumfor", the "Total Force" is
-            sqrt(sum_ij f_ij^2)
-        Use crys.rms3d(self.forces, axis=self.timeaxis) for a normalized value.            
+    Total force: Pwscf writes a "Total Force" after the "Forces acting on
+    atoms" section . This value a UNnormalized RMS of the force matrix
+    (f_ij, i=1,natoms j=1,2,3) printed. According to .../PW/forces.f90,
+    variable "sumfor", the "Total Force" is
+        ``sqrt(sum_ij f_ij^2)``
+    Use ``crys.rms(self.forces)`` (for PwSCFOutputFile) or
+    ``crys.rms3d(self.forces, axis=self.timeaxis)`` (for PwMDOutputFile)
+    instead.
+    
+    Verbose force printing: When using van der Waals (``london=.true.``) or
+    ``verbosity='high'``, then more than one force block (natoms,3) is printed.
+    In that case, we assume the first block to be the sum of all force
+    contributions and that will end up in ``self.forces``. Each subsequent
+    block is discarded from ``self.forces``. However, you may use
+    ``self._forces_raw`` (see ``self._get_forces_raw()``) to obtain all forces,
+    which will have the shape (N*natoms). The forces blocks will be in the
+    following order:
+    
+    =====================   =====================     =======================
+    ``london=.true.``       ``verbosity='high'``      ``verbosity='high'`` + 
+                                                      ``london=.true.`` 
+    =====================   =====================     =======================
+    sum                     sum                       sum          
+    vdw                     non-local                 non-local
+    \                       ionic                     ionic
+    \                       local                     local
+    \                       core                      core
+    \                       Hubbard                   Hubbard
+    \                       SCF correction            SCF correction
+    \                       \                         vdw  
+    =====================   =====================     =======================
+
+    Note that this order may change with QE versions, check your output file!
+    Tested w/ QE 4.3.2 .
     """
     # self.timeaxis: This is the hardcoded time axis. It must be done
     #     this way b/c getters returning a >2d array cannot determine the shape
@@ -722,12 +755,20 @@ class PwSCFOutputFile(StructureFileParser):
         key = r'Forces\s+acting\s+on\s+atoms.*$'
         cmd = r"egrep '%s' %s | wc -l" %(key.replace(r'\s', r'[ ]'), self.filename)
         nstep = nstep_from_txt(com.backtick(cmd))
-        # forces
+        # Need to split traj_from_txt() up into loadtxt() + arr2d_to_3d() b/c
+        # we need to get `nlines` first without an additional "grep ... | wc
+        # -l".
         cmd = "grep 'atom.*type.*force' %s \
             | awk '{print $7\" \"$8\" \"$9}'" %self.filename
-        return traj_from_txt(com.backtick(cmd), 
-                             shape=(nstep,natoms,3),
-                             axis=self.timeaxis)
+        arr2d = np.loadtxt(StringIO(com.backtick(cmd)))
+        nlines = arr2d.shape[0]
+        # nlines_block = number of force lines per step = N*natoms
+        nlines_block = nlines / nstep
+        assert nlines_block % natoms  == 0, ("nlines_block forces doesn't "
+            "match natoms")
+        return arrayio.arr2d_to_3d(arr2d,
+                                   shape=(nstep,nlines_block,3), 
+                                   axis=self.timeaxis)     
     
     def _get_nstep_scf_raw(self):
         verbose("getting _nstep_scf_raw")
@@ -814,8 +855,16 @@ class PwSCFOutputFile(StructureFileParser):
     
     def get_forces(self):
         """Forces [Ry / Bohr]."""
-        return self.raw_slice_get('forces', sl=0, axis=self.timeaxis)
-    
+        if self.check_set_attr('natoms'):
+            # Assume that the first forces block printed are the forces on the
+            # ions. Skip vdw forces or whatever else is printed after that.
+            # Users can use self._forces_raw if they want and know what is
+            # printed in which order in the output file.
+            forces = self.raw_slice_get('forces', sl=0, axis=self.timeaxis)
+            return forces[:self.natoms,:]
+        else:
+            return None
+
     def get_nstep_scf(self):
         return self.raw_slice_get('nstep_scf', sl=0, axis=0)
     
@@ -900,8 +949,11 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
         tmp = com.backtick(cmd).strip()
         for sym in ['(', ')', '{', '}']:
             tmp = tmp.replace(sym, '')
-        tmp = tmp.split()            
-        return tmp[1] if len(tmp) == 2 else None
+        tmp = tmp.split()
+        if len(tmp) < 2:
+            return None
+        else:
+            return tmp[1].split('=')[0]
     
     def _get_coords(self):
         """Parse ATOMIC_POSITIONS block. Unit is handled by get_coords_unit()."""
@@ -1038,7 +1090,11 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
     
     def get_forces(self):
         """[Ry / Bohr] """
-        return self._match_nstep(self.raw_return('forces'))
+        if self.check_set_attr('natoms'):
+            forces = self._match_nstep(self.raw_return('forces'))
+            return forces[:,:self.natoms,:]
+        else:
+            return None
     
     def get_nstep_scf(self):
         return self.raw_return('nstep_scf')

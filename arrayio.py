@@ -196,28 +196,50 @@ def readtxt(fh, axis=None, shape=None, header_maxlines=HEADER_MAXLINES,
         arr = read_arr
     # 3d        
     else:
-        # example:
-        #   axis = 1
-        #   shape = (50, 1000, 3)
-        #   shape_2d_chunk =  (50, 3)
-        shape_2d_chunk = shape[:axis] + shape[(axis+1):]
-        # (50, 1000, 3) : natoms = 50, nstep = 1000, 3 = x,y,z
-        arr = np.empty(shape, dtype=read_arr.dtype)
-        # read_arr: (50*1000, 3)
-        expect_shape = (shape_2d_chunk[0]*shape[axis],) + (shape_2d_chunk[1],)
-        common.assert_cond(read_arr.shape == expect_shape, 
-                    "read 2d array from '%s' has not the correct "
-                    "shape, got %s, expect %s" %(fn, 
-                                                 str(read_arr.shape),
-                                                 str(expect_shape)))
-        # TODO get rid of loop?                                                 
-        sl = [slice(None)]*ndim
-        for ind in range(shape[axis]):
-            sl[axis] = ind
-            arr[sl] = read_arr[ind*shape_2d_chunk[0]:(ind+1)*shape_2d_chunk[0], :]
+        arr = arr2d_to_3d(read_arr, shape=shape, axis=axis)
     verbose("[readtxt]    returning shape: %s" %str(arr.shape))
     return arr
 
+def arr2d_to_3d(arr, shape, axis=-1):
+    """Reshape 2d array `arr` to 3d array of `shape`, with 2d chunks aligned
+    along `axis`.
+    
+    Parameters
+    ----------
+    arr : 2d array
+    shape : tuple
+        Target shape of 3d array
+    axis : int
+        Axis of 3d arr along which 2d chunks are placed.
+    
+    Returns
+    -------
+    arr3d : 3d array 
+
+    Examples
+    --------
+    >>> axis = 1
+    >>> shape = (50, 1000, 3)
+    >>> shape_2d_chunk =  (50, 3)
+    >>> arr.shape = (1000*50,3)
+    """    
+    assert arr.ndim == 2, "input must be 2d array"
+    assert len(shape) == 3
+    shape_2d_chunk = shape[:axis] + shape[(axis+1):]
+    # (50, 1000, 3) : natoms = 50, nstep = 1000, 3 = x,y,z
+    arr3d = np.empty(shape, dtype=arr.dtype)
+    # arr: (50*1000, 3)
+    expect_shape = (shape_2d_chunk[0]*shape[axis],) + (shape_2d_chunk[1],)
+    common.assert_cond(arr.shape == expect_shape, 
+                "input 2d array has not the correct "
+                "shape, got %s, expect %s" %(str(arr.shape),
+                                             str(expect_shape)))
+    # get rid of loop, maybe reshape or stride_tricks?                                               
+    sl = [slice(None)]*3
+    for ind in range(shape[axis]):
+        sl[axis] = ind
+        arr3d[sl] = arr[ind*shape_2d_chunk[0]:(ind+1)*shape_2d_chunk[0], :]
+    return arr3d
 
 def readarr(fn, type='bin'):
     """Read bin or txt array from file `fn`."""

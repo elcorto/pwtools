@@ -8,6 +8,7 @@ from math import sqrt
 import scipy.optimize as optimize
 from scipy.interpolate import bisplrep, \
     bisplev, splev, splrep
+from scipy.integrate import simps
 from pwtools import _flib   
 
 # Hack for older scipy versions.
@@ -63,14 +64,19 @@ def vlinspace(a, b, num, endpoint=True):
     ret[...] = ddv
     ret[0,:] = a
     return np.cumsum(ret, axis=0)
-    
-def norm_int(y, x, area=1.0):
+
+
+def norm_int(y, x, area=1.0, scale=False):
     """Normalize integral area of y(x) to `area`.
     
     Parameters
     ----------
     x,y : numpy 1d arrays
     area : float
+    scale : bool, optional
+        Scale x and y to the same order of magnitude before integration.
+        This may be necessary to avoid numerical trouble if x and y have very
+        different scales.
 
     Returns
     -------
@@ -81,20 +87,18 @@ def norm_int(y, x, area=1.0):
     The argument order y,x might be confusing. x,y would be more natural but we
     stick to the order used in the scipy.integrate routines.
     """
-    from scipy.integrate import simps
-    # First, scale x and y to the same order of magnitude before integration.
-    # This may be necessary to avoid numerical trouble if x and y have very
-    # different scales.
-    fx = 1.0 / np.abs(x).max()
-    fy = 1.0 / np.abs(y).max()
-    sx = fx*x
-    sy = fy*y
-##    # Don't scale.
-##    fx = fy = 1.0
-##    sx, sy = x, y
+    if scale:
+        fx = np.abs(x).max()
+        fy = np.abs(y).max()
+        sx = x / fx
+        sy = y / fy
+    else:    
+        fx = fy = 1.0
+        sx, sy = x, y
     # Area under unscaled y(x).
-    _area = simps(sy, sx) / (fx*fy)
+    _area = simps(sy, sx) * fx * fy
     return y*area/_area
+
 
 # XXX don't use, implement central diffs
 def deriv_fd(y, x=None, n=1):
