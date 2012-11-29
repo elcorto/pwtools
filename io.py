@@ -206,34 +206,33 @@ def write_axsf(filename, obj):
 
 
 class ReadFactory(object):
-    def __init__(self, parser=None, struct_or_traj=None, units=None):
+    def __init__(self, parser=None, struct_or_traj=None):
         self.parser = parser
-        self.units = units
         self.struct_or_traj = struct_or_traj
     
     def __call__(self, filename, **kwds):
         if self.struct_or_traj == 'struct':
-            return self.parser(filename, units=self.units, **kwds).get_struct()
+            return self.parser(filename, **kwds).get_struct()
         elif self.struct_or_traj == 'traj':
-            return self.parser(filename, units=self.units, **kwds).get_traj()
+            return self.parser(filename, **kwds).get_traj()
         else:
             raise StandardError("unknown struct_or_traj: %s" %struct_or_traj)
 
 read_cif = ReadFactory(parser=parse.CifFile, 
                        struct_or_traj='struct', 
-                       units=None)
+                       )
 read_pw_scf = ReadFactory(parser=parse.PwSCFOutputFile, 
                           struct_or_traj='struct', 
-                          units=None)
+                          )
 read_pw_md = ReadFactory(parser=parse.PwMDOutputFile, 
                          struct_or_traj='traj', 
-                         units=None)
+                         )
 read_pw_vcmd = ReadFactory(parser=parse.PwVCMDOutputFile, 
                            struct_or_traj='traj', 
-                           units=None)
+                           )
 read_cpmd_scf = ReadFactory(parser=parse.CpmdSCFOutputFile,
                             struct_or_traj='struct', 
-                            units=None)
+                            )
 read_cpmd_md = ReadFactory(parser=parse.CpmdMDOutputFile, 
                            struct_or_traj='traj', 
-                           units=None)
+                           )
