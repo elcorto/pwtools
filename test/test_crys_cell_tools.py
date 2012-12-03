@@ -4,7 +4,7 @@ from pwtools import crys
 from pwtools.test.tools import aaae, aae
 rand = np.random.rand
 
-def test():
+def test_cell_tools():
     # test known values: simple cubic
     cell_a = 5.0
     cell = np.identity(3)*cell_a
@@ -55,6 +55,7 @@ def test():
     aaae(vol_cell, vol_cc)
     aaae(crys.cell2cc3d(crys.cc2cell3d(cc)), cc)
 
+def test_recip_cell():
     # reciprocal cell
     cell = rand(3,3)
     rcell = crys.recip_cell(cell)
@@ -64,3 +65,18 @@ def test():
     except AssertionError:        
         assert np.allclose(crys.recip_cell(rcell), -1.0 * cell)
     assert np.allclose(crys.volume_cell(rcell), (2*pi)**3.0 / vol)
+
+
+def test_kgrid():
+    # `dk` is very small, just to make all `size` entries odd
+    cell = np.diag([3,4,5]) # Angstrom
+    size = crys.kgrid(cell, dk=0.23)
+    assert (np.array(size) == np.array([9,7,5])).all()
+    size = crys.kgrid(cell, dk=0.23, even=True)
+    assert (np.array(size) == np.array([10,8,6])).all()
+    size, spacing = crys.kgrid(cell, dk=0.23, fullout=True)
+    assert np.allclose(spacing, crys.kgrid(cell, size=size))
+    # big cell, assert Gamma = [1,1,1] or better
+    size = crys.kgrid(cell*100, dk=0.23, minpoints=2)
+    assert (np.array(size) == np.array([2,2,2])).all()
+    

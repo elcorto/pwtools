@@ -312,9 +312,10 @@ def recip_cell(cell):
 
 
 @crys_add_doc
-def kgrid(cell, dk=0.5, minpoints=1, even=False, fullout=False):
+def kgrid(cell, dk=None, size=None, minpoints=1, even=False, fullout=False):
     """
-    Generate k-point grid size ``nx x ny x nz`` for a given grid spacing.
+    Generate k-point grid size ``nx x ny x nz`` for a given grid spacing (`dk
+    != None`) or calculate spacing from size (`size != None`).
 
     Parameters
     ----------
@@ -322,6 +323,8 @@ def kgrid(cell, dk=0.5, minpoints=1, even=False, fullout=False):
     dk : float
         1d target reciprocal grid spacing (along a reciprocal axis). The unit
         is 2*pi / real space length unit defined by `cell`, e.g. 2*pi/Angstrom.
+    size : sequence (3,)
+        Use either `dk` or `size`.
     minpoints : int
         Minimal number of grid points in each direction. May result in smaller
         effective `dk`. `minpoints=1` (default) asserts that at least the
@@ -335,8 +338,9 @@ def kgrid(cell, dk=0.5, minpoints=1, even=False, fullout=False):
 
     Returns
     -------
-    size : if `fullout=False` 
-    size, spacing : if `fullout=True`
+    size : if `dk != None` + `fullout=False` 
+    size, spacing : if `dk != None` + `fullout=True`
+    spacing : if `size` != None and `dk=None`
     size : array (3,) [nx, ny, nz]
         Integer numbers of grid points along each reciprocal axis.
     spacing : 1d array (3,) 
@@ -354,45 +358,47 @@ def kgrid(cell, dk=0.5, minpoints=1, even=False, fullout=False):
     Examples
     --------
     >>> cell=diag([5,5,8])
-    
     >>> kgrid(cell, dk=0.5)
     array([3, 3, 2])
-
     >>> # see effective grid spacing
     >>> kgrid(cell, dk=0.5, fullout=True)
     (array([3, 3, 2]), array([ 0.41887902,  0.41887902,  0.39269908]))
-    
+    >>> # reverse: effective grid spacing for given size
+    >>> kgrid(cell, size=[3,3,2])
+    array([ 0.41887902,  0.41887902,  0.39269908])
     >>> # even grid
     >>> kgrid(cell, dk=0.5, even=True)
     array([4, 4, 2])
-    
     >>> # big cell, at least Gamma with minpoints=1
     >>> kgrid(cell*10, dk=0.5)
     array([1, 1, 1])
-    
     >>> # Create MP mesh
     >>> ase.dft.monkhorst_pack(kgrid(cell, dk=0.5))
     """
+    assert None in [dk, size], "use either `dk` or `size`"
     assert minpoints >= 0
     cell = np.asarray(cell, dtype=float)
     rcell = recip_cell(cell)
     rnorm = np.sqrt((rcell**2.0).sum(axis=1))
-    size = np.round(rnorm / dk)
-    if even:
-        size += (size % 2.0)
-    size = size.astype(int)
-    mask = size < minpoints
-    if mask.any():
-        size[mask] = minpoints
-    # only possible if minpoints=0        
-    if (size == 0).any():
-        raise StandardError("at least one point count is zero, decrease `dk`, "
-                             "size=%s" %str(size))
-    if fullout:
-        return size, rnorm * 1.0 / size
+    if size is None:
+        size = np.round(rnorm / dk)
+        if even:
+            size += (size % 2.0)
+        size = size.astype(int)
+        mask = size < minpoints
+        if mask.any():
+            size[mask] = minpoints
+        # only possible if minpoints=0        
+        if (size == 0).any():
+            raise StandardError("at least one point count is zero, decrease `dk`, "
+                                 "size=%s" %str(size))
+        if fullout:
+            return size, rnorm * 1.0 / size
+        else:
+            return size.astype(int)
     else:
-        return size.astype(int)
-
+        size = np.array(size)
+        return rnorm * 1.0 / size
 
 @crys_add_doc
 def cc2celldm(cryst_const, fac=1.0):
