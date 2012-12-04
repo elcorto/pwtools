@@ -11,7 +11,7 @@ The classes Machine, Calculation and ParameterStudy take a costructor argument
 
 Machine.scratch is used and passed on down. In ParameterStudy, `scratch` is the
 top scratch dir and inside, we use
-``Calculation(scratch=machine.scratch/prefix/idx)``.
+``Calculation(scratch=<machine.scratch>/<prefix>/<idx>)``.
 
 To override default, set scratch to some value. Then::
 
@@ -289,6 +289,8 @@ class FileTemplate(object):
 class Calculation(object):
     """A single calculation, e.g. in dir calc_foo/0/ .
     
+    This class is usually not used on it's own, but only by ParameterStudy.
+
     The dir where file templates live is defined in the FileTemplates (usually
     'calc.templ').
     
@@ -318,7 +320,7 @@ class Calculation(object):
     # SQLEntry instances. In the dict case, let get_sql_record() raise a
     # warning.
     def __init__(self, machine, templates, params, prefix='calc',
-                 idx=0, calc_dir='calc_dir', scratch=None):
+                 idx=0, calc_dir='calc_dir', scratch=None, revision=0):
         """
         Parameters
         ----------
@@ -342,6 +344,10 @@ class Calculation(object):
             Calculation directory to which input files are written.
         scratch : str, optional
             Scratch dir. Default is ``machine.scratch``.
+        revision : int, optional
+            The revision number. This is used in "append" mode to number
+            additions to the study and database:
+            ``ParameterStudy.write_input(..., mode='a')``.
         """
         self.machine = machine
         self.templates = templates
@@ -356,6 +362,7 @@ class Calculation(object):
         self.sql_record['prefix'] = SQLEntry(sqlval=self.prefix)
         self.sql_record['calc_dir'] = SQLEntry(sqlval=self.calc_dir)
         self.sql_record['calc_dir_abs'] = SQLEntry(sqlval=common.fullpath(self.calc_dir))
+        self.sql_record['revision'] = SQLEntry(sqlval=revision)
         self.sql_record.update(self.machine.get_sql_record())                                           
         if self.scratch is not None:
             self.sql_record['scratch'] = SQLEntry(sqlval=self.scratch)
@@ -383,9 +390,9 @@ class ParameterStudy(object):
     based on template files.
     
     The basic idea is to assemble all to-be-varied parameters in a script
-    outside (`params_lst`) and pass these to this class along with a list
-    of input and job file `templates`. Then, a simple loop over the parameter
-    sets is done and input files are written. 
+    outside (`params_lst`) and pass these to this class along with a list of
+    `templates` files, usually software input and batch job files. Then, a
+    simple loop over the parameter sets is done and input files are written. 
 
     Calculation dirs are numbered automatically. The default is
 
@@ -402,7 +409,8 @@ class ParameterStudy(object):
     A sqlite database calc_dir/<db_name> is written. If this class operates
     on a calc_dir where such a database already exists, then the default is
     to append new calculations. The numbering of calc dirs continues at the
-    end. This can be changed with the ``mode`` kwarg of write_input().
+    end. This can be changed with the ``mode`` kwarg of write_input(). By
+    default, a sql column "revision" is added which numbers each addition.
     
     
     Examples
@@ -457,6 +465,7 @@ class ParameterStudy(object):
     See Also
     --------
     comb.nested_loops
+    itertools.product
     sql.sql_column
     sql.sql_matrix
     """
@@ -609,6 +618,7 @@ class ParameterStudy(object):
         sqldb = SQLiteDB(self.dbfn, table=self.db_table)
         # max_idx: counter for calc dir numbering
         if have_new_db:
+            revision = 0
             max_idx = -1
         else:
             if mode == 'a':
@@ -619,6 +629,9 @@ class ParameterStudy(object):
                     raise StandardError("database '%s': table '%s' has no "
                           "column 'idx', don't know how to number calcs"
                           %(self.dbfn, self.db_table))
+                if sqldb.has_column('revision'):
+                    revision = int(sqldb.get_single("select max(revision) \
+                        from %s" %self.db_table)) + 1
             elif mode == 'w':
                 max_idx = -1
         run_txt = "here=$(pwd)\n"
@@ -633,7 +646,8 @@ class ParameterStudy(object):
                                prefix=self.prefix + "_run%i" %idx,
                                idx=idx,
                                calc_dir=calc_subdir,
-                               scratch=pj(self.scratch, str(idx)))
+                               scratch=pj(self.scratch, str(idx)),
+                               revision=revision)
             if mode == 'w' and os.path.exists(calc_subdir):
                 shutil.rmtree(calc_subdir)
             calc.write_input()                               

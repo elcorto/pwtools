@@ -50,11 +50,11 @@ def test():
     # verification. 
     #
     # database:
-    # idx  ecutwfc .. some more cols ..
-    # ---  -------
-    # 0    25.0
-    # 1    50.0
-    # 2    75.0
+    # idx  ecutwfc  revision  .. some more cols ..
+    # ---  -------  --------
+    # 0    25.0     0
+    # 1    50.0     0
+    # 2    75.0     0
     machine = local
     calc_dir = pj(testdir, 'calc_test_1d_1col')
     prefix = 'convergence'
@@ -125,13 +125,13 @@ def test():
     #--------------------------------------------------------------------------
 
     # database:
-    # idx  ecutwfc pw_mkl  .. some more cols ..
-    # ---  ------- ------
-    # 0    25.0    
-    # 1    50.0
-    # 2    75.0
-    # 3    100.0   'yes'
-    # 4    150.0   'yes'
+    # idx  ecutwfc pw_mkl  revision  .. some more cols ..
+    # ---  ------- ------  --------
+    # 0    25.0            0 
+    # 1    50.0            0
+    # 2    75.0            0
+    # 3    100.0   'yes'   1
+    # 4    150.0   'yes'   1
     #
     # Empty fields for idx=0,1,2 in col `pw_mkl` are NULL (sqlite type), like
     # None in Python. This is a simple example of "incomplete parameter sets".
@@ -161,6 +161,8 @@ def test():
         assert float(ecut) == float(file_get(pwfn, 'ecutwfc'))
         assert prefix + '_run%i' %idx == file_get(pwfn, 'prefix')
         assert prefix + '_run%i' %idx == file_get(jobfn, 'prefix')
+    assert db.get_list1d("select revision from calc where idx <= 2") == [0]*3
+    assert db.get_list1d("select revision from calc where idx > 2") == [1]*2
 
     #--------------------------------------------------------------------------
     # Incomplete parameter sets II
