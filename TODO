@@ -52,10 +52,6 @@ pydos.py
 
 * let *_pdos() return one 2d arry with several columns, like crys.rpdf()
 
-* PDOS normalization. ATM we normalize so that Int(faxis, pdos) = area = 1.0. 
-  But there may be others, like area = 3*natoms in the unit cell (not
-  supercell), ...
-
 all
 ---
 * Drop verbose.py. Use the logging or warnings module.
