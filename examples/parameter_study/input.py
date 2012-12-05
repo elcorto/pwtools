@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 
-import os
-import numpy as np
-from pwtools import common, batch, sql, comb
-pj = os.path.join
-
+# First read the code below, then these comments here.
+#
 # step 1
 # ------
 # Define prefix = calculation name usually. Use any string you like, like
@@ -21,9 +18,10 @@ pj = os.path.join
 # the template text. In FileTemplate, the default placeholders are 'XXXFOO' for
 # parameter 'foo'.
 #
-# Note that each arg to Machine (scratch, home, ...) will be converted to a
-# placeholder 'XXXSCRATCH', 'XXXHOME', ... below in ParameterStudy (by using
-# FileTemplate) and can be used in template files.
+# Note that each arg to Machine (scratch, home, jobfn, ...) will be converted
+# to a placeholder 'XXXSCRATCH', 'XXXHOME', ... below in ParameterStudy (by
+# using FileTemplate) and can be used in template files. Also, we use
+# ``machine.jobfn`` in the FileTemplate list, which is == 'job.local'.
 #
 # We could also write the template files to a directory (default is
 # templ_dir='calc.templ)' and use ``FileTemplate(basename='input.in')``.
@@ -68,16 +66,21 @@ pj = os.path.join
 #   ...
 # XXXSCRATCH will get a default value.  
 
+import os
+import numpy as np
+from pwtools import common, batch, sql, comb
+pj = os.path.join
+
 # step 1
 ##prefix = 'job_' + os.path.basename(common.fullpath('.'))
 prefix = 'my_calc'
 
 # step 2
-local = batch.Machine(hostname='local',
-                      subcmd='bash',
-                      scratch='/tmp',
-                      jobfn='job.local',
-                      home='/home/schmerler')
+machine = batch.Machine(hostname='local',
+                        subcmd='bash',
+                        scratch='/tmp',
+                        jobfn='job.local',
+                        home='/home/schmerler')
 
 # step 3
 txt_in = """
@@ -93,7 +96,7 @@ jobname=XXXPREFIX
 my_app.x < input.in > output.out
 """
 templates = [batch.FileTemplate(basename=fn,txt=txt) for fn,txt in \
-    zip(['input.in', 'job.local'],[txt_in, txt_job])]    
+    zip(['input.in', machine.jobfn],[txt_in, txt_job])]    
 
 # step 4
 ecutwfc = sql.sql_column('ecutwfc', np.array([50,60,70,80.0]))
@@ -101,7 +104,7 @@ pseudo = sql.sql_column('pseudo', ['Si.pp', 'Si.paw'])
 params_lst = comb.nested_loops([ecutwfc,pseudo])
 
 # step 5
-calc = batch.ParameterStudy(machine=local,
+calc = batch.ParameterStudy(machine=machine,
                             templates=templates,
                             params_lst=params_lst, 
                             prefix=prefix,
@@ -109,6 +112,8 @@ calc = batch.ParameterStudy(machine=local,
 calc.write_input(sleep=0, backup=True, mode='a')
 
 # Load written sqlite DB and print table.
-db = sql.SQLiteDB('calc_local/calc.db', table='calc')
 print common.backtick("sqlite3 -column -header calc_local/calc.db \
     'select idx,ecutwfc,pseudo,scratch from calc'")
+# Some example db query using Python.    
+db = sql.SQLiteDB('calc_local/calc.db', table='calc')
+print db.get_dict("select idx,ecutwfc,pseudo from calc where ecutwfc <= 60")

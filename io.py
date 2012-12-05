@@ -206,7 +206,17 @@ def write_axsf(filename, obj):
 
 
 class ReadFactory(object):
+    """Factory class to construct callables to parse files."""
     def __init__(self, parser=None, struct_or_traj=None):
+        """
+        Parameters
+        ----------
+        parser : one of parse.*File parsing classes
+        struct_or_traj : str
+            {'struct','traj'}
+            Whether the callables should return parser.get_{struct,traj}()'s
+            return value.
+        """
         self.parser = parser
         self.struct_or_traj = struct_or_traj
     
@@ -219,7 +229,7 @@ class ReadFactory(object):
             raise StandardError("unknown struct_or_traj: %s" %struct_or_traj)
 
 read_cif = ReadFactory(parser=parse.CifFile, 
-                       struct_or_traj='struct', 
+                       struct_or_traj='struct',
                        )
 read_pw_scf = ReadFactory(parser=parse.PwSCFOutputFile, 
                           struct_or_traj='struct', 

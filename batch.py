@@ -412,7 +412,25 @@ class ParameterStudy(object):
     end. This can be changed with the ``mode`` kwarg of write_input(). By
     default, a sql column "revision" is added which numbers each addition.
     
+    Here is a list of pre-defined sql column names which are automatically
+    added and which should not be used as parameter names in e.g. ``param =
+    sql.sql_column(param_name, list_with_values)``
     
+    ==============    ==============
+    param name        from
+    ==============    ==============
+    'hostname'        Machine
+    'subcmd'          Machine
+    'scratch'         Machine
+    'jobfn'           Machine
+    'home'            Machine
+    'idx'             Calculation
+    'prefix'          Calculation
+    'calc_dir'        Calculation
+    'calc_dir_abs'    Calculation
+    'revision'        Calculation
+    ==============    ==============
+
     Examples
     --------
     >>> # Here are some examples for constructing `params_lst`.
@@ -423,19 +441,9 @@ class ParameterStudy(object):
     >>> par1 = sql.sql_column('par1', [1,2,3])
     >>> par2 = sql.sql_column('par2', ['a','b'])
     >>> par3 = ...
-    >>> # 2d grid
-    >>> params_lst = comb.nested_loops([par1, par2])
-    >>> # or
-    >>> params_lst = []
-    >>> for par1 in [1,2,3]:
-    ...     for par2 in ['a','b']:
-    ...         params_lst.append([sql.SQLEntry(key='par1', sqlval=par1),
-    ...                            sql.SQLEntry(key='par2', sqlval=par2),
-    ...                            ])
-    
     >>> # 3d grid   
     >>> params_lst = comb.nested_loops([par1, par2, par3])
-    >>> # or
+    >>> # which is the same as:
     >>> params_lst = []
     >>> for par1 in [1,2,3]:
     ...     for par2 in ['a','b']:
