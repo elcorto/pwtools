@@ -104,32 +104,46 @@ def atspec_str(symbols, masses, pseudos):
     return txt      
 
 
-def kpointstr(lst, base='nk'):
+def kpoints_str(lst, base='nk'):
     """[3,3,3] -> "nk1=3,nk2=3,nk3=3" 
     
     Useful for QE's phonon toolchain ph.x, q2r.x, matdyn.x
     """
     return ','.join(['%s%i=%i' %(base, i+1, x) for i, x in enumerate(lst)])
+kpointstr = kpoints_str
 
 
-def kpointstr_pwin(lst, shift=[0,0,0]):
+def kpoints_str_pwin(lst, shift=[0,0,0]):
     """[3,3,3] -> " 3 3 3 0 0 0" 
+    Useful for pwscf input files, card K_POINTS.
+
+    Parameters
+    ----------
+    lst : sequence (3,)
+    shift : sequence (3,), optional
+    """
+    return ' '.join(map(str, lst+shift))
+kpointstr_pwin = kpoints_str_pwin
+
+
+def kpoints_str_pwin_full(lst, shift=[0,0,0], gamma=True):
+    """Full k-points string for pw.x input files, card K_POINTS.
     
-    Useful for pwscf input files.
+    Parameters
+    ----------
+    lst : sequence (3,)
+    shift : sequence (3,), optional
+    gamma : bool, optional
+        If lst == [1,1,1] then return "K_POINTS gamma", else
+        "K_POINTS automatic \\n 1 1 1 <shift>".
     """
-    if lst == 'gamma':
-        return lst
-    else:        
-        return ' '.join(map(str, lst+shift))
-
-
-def kpointstr_pwin2(lst, shift=[0,0,0]):
-    """Full k-points string for pw.x input files.
-    """
-    if lst == 'gamma':
+    lst = lst if type(lst) == type('s') else list(lst) 
+    if (lst == [1,1,1] and gamma) or (lst == 'gamma'):
         return "K_POINTS gamma"
     else:
         return "K_POINTS automatic\n%s"  %kpointstr_pwin(lst, shift=shift)
+kpointstr_pwin2 = kpoints_str_pwin_full
+
 
 def read_matdyn_modes(filename, natoms=None):
     """Parse modes file produced by QE's matdyn.x.
