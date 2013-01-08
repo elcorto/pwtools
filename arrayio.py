@@ -1,6 +1,6 @@
 # arrayio.py
 #
-# File IO stuff (text and binary files).
+# Array text file IO.
 
 from cStringIO import StringIO
 import numpy as np
@@ -90,6 +90,7 @@ def _write_header_config(fh, config, header_comment=HEADER_COMMENT,
         fh.write(header_comment + ' ' + line)
     ftmp.close()
 
+
 def writetxt(fn, arr, axis=-1, maxdim=TXT_MAXDIM):
     """Write 1d, 2d or 3d arrays to txt file. 
     
@@ -100,7 +101,7 @@ def writetxt(fn, arr, axis=-1, maxdim=TXT_MAXDIM):
     Parameters
     ----------
     fn : filename
-    arr : array (max 3d)
+    arr : nd array
     axis : axis along which 2d chunks are written
     maxdim : highest number of dims that `arr` is allowed to have
     """
@@ -200,6 +201,7 @@ def readtxt(fh, axis=None, shape=None, header_maxlines=HEADER_MAXLINES,
     verbose("[readtxt]    returning shape: %s" %str(arr.shape))
     return arr
 
+
 def arr2d_to_3d(arr, shape, axis=-1):
     """Reshape 2d array `arr` to 3d array of `shape`, with 2d chunks aligned
     along `axis`.
@@ -240,64 +242,4 @@ def arr2d_to_3d(arr, shape, axis=-1):
         sl[axis] = ind
         arr3d[sl] = arr[ind*shape_2d_chunk[0]:(ind+1)*shape_2d_chunk[0], :]
     return arr3d
-
-def readarr(fn, type='bin'):
-    """Read bin or txt array from file `fn`."""
-    verbose("[readarr] reading: %s" %fn)
-    common.assert_cond(type in ['bin', 'txt'], "`type` must be 'bin' or 'txt'")
-    if type == 'bin':
-        return np.load(fn)
-    elif type == 'txt':
-        return readtxt(fn)
-
-
-def writearr(fn, arr, comment=None, info=None,
-             type='bin', axis=-1):
-    """Write `arr` to binary (*.npy) or text file (*.txt) `fn`. Optionally,
-    write a file `fn`.info with some misc information from `comment` and
-    `info`. 
-    
-    Parameters
-    ----------
-    arr : numpy ndarrray
-    fn : str, filename
-    comment : string
-        a comment which will be written to the .info file (must start with '#')
-    info : dict of dicts 
-        sections for the .info file        
-        example:
-            {'foo': {'rofl1': 1, 'rofl2': 2},
-             'bar': {'lol1': 5, 'lol2': 7}
-            }
-            
-            will be converted to
-            [foo]
-            rofl1 = 1
-            rofl2 = 2
-            [bar]
-            lol1 = 5
-            lol2 = 7
-    type : str, {bin,txt)
-    only type == 'txt'
-        axis : axis kwarg for writetxt()
-    """
-    common.assert_cond(type in ['bin', 'txt'], "`type` must be 'bin' or 'txt'")
-    verbose("[writearr] writing: %s" %fn)
-    verbose("[writearr]     shape: %s" %repr(arr.shape))
-    if type == 'txt':
-        verbose("[writearr]     axis: %i" %axis)
-    if type == 'bin':
-        np.save(fn, arr)
-    else:
-        writetxt(fn, arr, axis=axis)
-    # .info file
-    if comment is not None or info is not None:
-        f = open(fn + '.info', 'w')
-        if comment is not None:
-            f.write(comment + '\n')
-        if info is not None:
-            c = PydosConfigParser()
-            c = common.add_to_config(c, info) 
-            c.write(f)
-        f.close()
 

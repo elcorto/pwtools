@@ -1,27 +1,20 @@
-# Test new text input and output
+# Test array text input and output
 
 from StringIO import StringIO
+from pwtools import arrayio
+import os
+import numpy as np
+from testenv import testdir
+pj = os.path.join
 
-def test():
-    from pwtools import arrayio
-    import os
-    import numpy as np
-    from testenv import testdir
-    pj = os.path.join
+def write_read_check(fn, arr, axis=-1, shape=None):
+    print fn + ' ...'
+    arrayio.writetxt(fn, arr, axis=axis)
+    a = arrayio.readtxt(fn, axis=axis, shape=shape)
+    assert (a == arr).all()
 
-    def write_read_check(fn, arr, type='txt', axis=-1):
-        print fn + ' ...'
-        arrayio.writearr(fn, arr, type=type, axis=axis)
-        a = arrayio.readarr(fn, type=type)
-        assert (a == arr).all()
 
-    def write_read_check_raw(fn, arr, axis=None, shape=None):
-        print fn + ' ...'
-        arrayio.writetxt(fn, arr, axis=axis)
-        # ignore file header
-        a = arrayio.readtxt(fn, axis=axis, shape=shape)
-        assert (a == arr).all()
-
+def test_io_txt():
     # 1d
     a = np.arange(0, 3)
     fn = pj(testdir, 'a1d.txt')
@@ -33,30 +26,20 @@ def test():
     fn = pj(testdir, 'a2d.txt')
     write_read_check(fn, a)
 
-    # 3d
+    # 3d, store array along axis 0,1,2,-1
     shape = (3, 5, 7)
     a = np.arange(0, np.prod(shape)).reshape(shape)
-
-    fn = pj(testdir, 'a3d0.txt')
-    write_read_check(fn, a, axis=0)
-
-    fn = pj(testdir, 'a3d1.txt')
-    write_read_check(fn, a, axis=1)
-
-    fn = pj(testdir, 'a3d2.txt')
-    write_read_check(fn, a, axis=2)
-
-    fn = pj(testdir, 'a3dm1.txt')
-    write_read_check(fn, a, axis=-1)
-
-    fn = pj(testdir, 'a3d0r.txt')
-    write_read_check_raw(fn, a, axis=0, shape=shape)
-
-    fn = pj(testdir, 'a3d1r.txt')
-    write_read_check_raw(fn, a, axis=1, shape=shape)
-
-    fn = pj(testdir, 'a3d2r.txt')
-    write_read_check_raw(fn, a, axis=2, shape=shape)
+    
+    # ignore file header if shape != None
+    for sh in [None, shape]:
+        fn = pj(testdir, 'a3d0.txt')
+        write_read_check(fn, a, axis=0, shape=sh)
+        fn = pj(testdir, 'a3d1.txt')
+        write_read_check(fn, a, axis=1, shape=sh)
+        fn = pj(testdir, 'a3d2.txt')
+        write_read_check(fn, a, axis=2, shape=sh)
+        fn = pj(testdir, 'a3dm1.txt')
+        write_read_check(fn, a, axis=-1, shape=sh)
     
     # API
     shape = (3, 5)
