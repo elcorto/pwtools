@@ -43,7 +43,8 @@ Modify ``doc/source/conf.py`` to include numpydoc::
 
     sys.path.insert(0, os.path.abspath('sphinxext'))
     extensions = ['sphinx.ext.autodoc', 'sphinx.ext.coverage',
-                  'sphinx.ext.viewcode', 'numpydoc']
+                  'sphinx.ext.viewcode', 'sphinx.ext.autosummary',
+                  'numpydoc']
     
 .. _sphinx: http://sphinx.pocoo.org/
 

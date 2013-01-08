@@ -1,5 +1,5 @@
-# Run this from iside pwtools/doc/. This transforms all doc strings to numpy
-# format. Only need to be node once, but we keed it b/c the regular expressions
+# Run this from inside pwtools/doc/. This transforms all doc strings to numpy
+# format. Only need to be node once, but we keep it b/c the regular expressions
 # are so nice :)
 
 from pwtools import common

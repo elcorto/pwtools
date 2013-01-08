@@ -28,6 +28,7 @@ import sys, os
 sys.path.insert(0, os.path.abspath('sphinxext'))
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.coverage',
               'sphinx.ext.viewcode', 'sphinx.ext.pngmath',
+              'sphinx.ext.autosummary',
               'numpydoc']
 
 ##extensions += ['sphinx.ext.inheritance_diagram']
