@@ -1,8 +1,0 @@
-some bla bla
-
-  foo = 1.23 baz=4.56 bananas 
- foofoo=1.23xxx4.56 
-
-bar = 1 
-bar = 2 
-bar = 3 
