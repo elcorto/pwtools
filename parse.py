@@ -506,11 +506,14 @@ class PDBFile(StructureFileParser):
         self.init_attr_lst()      
     
     def _get_coords_data(self):
-        self.fd.seek(0)
-        ret = com.igrep(r'(ATOM|HETATM)[\s0-9]+([A-Za-z]+)[\sa-zA-Z0-9]*'
-            r'[\s0-9]+((\s+'+ regex.float_re + r'){3}?)', self.fd)
-        # array of string type            
-        return np.array([[m.group(2)] + m.group(3).split() for m in ret])
+        if self.check_set_attr('txt'):
+            pat = r'(ATOM|HETATM)[\s0-9]+([A-Za-z]+)[\sa-zA-Z0-9]*' + \
+                r'[\s0-9]+((\s+'+ regex.float_re + r'){3}?)'
+            # array of string type            
+            return np.array([[m.group(2)] + m.group(3).split() for m in \
+                             re.finditer(pat,self.txt)])
+        else:
+            return None
     
     def get_symbols(self):
         # list of strings (system:nat,) 
@@ -535,16 +538,13 @@ class PDBFile(StructureFileParser):
         # example:
         # CRYST1   52.000   58.600   61.900  90.00  90.00  90.00  P 21 21 21   8
         #          a        b        c       alpha  beta   gamma  |space grp|  z-value
-        self.fd.seek(0)
-        ret = com.mgrep(r'CRYST1\s+((\s+'+ regex.float_re + r'){6}).*$', self.fd)
-        if len(ret) == 1:
-            match = ret[0]
+        if self.check_set_attr('txt'):
+            pat = r'CRYST1\s+((\s+' + regex.float_re + r'){6}).*'
+            match = re.search(pat, self.txt)
             return np.array(match.group(1).split()).astype(float)
-        elif len(ret) == 0:
-            return None
         else:
-            raise StandardError("found CRYST1 record more then once")
-    
+            return None
+
 
 class CMLFile(StructureFileParser):
     """Parse Chemical Markup Language files (XML-ish format). This file format
