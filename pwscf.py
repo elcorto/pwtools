@@ -21,7 +21,7 @@ def atpos_str(symbols, coords, fmt="%.16e", zero_eps=True):
     coords : array (natoms, 3) with atomic coords, can also be (natoms, >3) to
         add constraints on atomic forces in PWscf
     zero_eps : bool
-        Print values as 0.0 where |value| < eps
+        Print values as 0.0 where ``coords[i,j] < eps``
 
     Returns
     -------
@@ -43,7 +43,7 @@ def atpos_str(symbols, coords, fmt="%.16e", zero_eps=True):
 
 def atpos_str_fast(symbols, coords, work=None):
     """Fast version of atpos_str() for usage in loops. We use a fixed string
-    dtype '|S20' to convert the array `coords` to string form. We also avoid
+    dtype ``|S20`` to convert the array `coords` to string form. We also avoid
     all assert's etc for speed.
     
     Parameters
@@ -52,7 +52,7 @@ def atpos_str_fast(symbols, coords, work=None):
         rows of coords
     coords : array (natoms, 3) with atomic coords, can also be (natoms, >3) to
         add constraints on atomic forces in PWscf
-    work : optional, array of shape (coords.shape[0], coords.shape[1]+1)
+    work : optional, array of shape (natoms, 4)
         Pre-allocated work array. This can be the result of numpy.empty(). It
         is used to temporarily store the string dtype array.
 
@@ -135,7 +135,7 @@ def kpoints_str_pwin_full(lst, shift=[0,0,0], gamma=True):
     shift : sequence (3,), optional
     gamma : bool, optional
         If lst == [1,1,1] then return "K_POINTS gamma", else
-        "K_POINTS automatic \\n 1 1 1 <shift>".
+        "K_POINTS automatic <newline> 1 1 1 <`shift`>".
     """
     lst = lst if type(lst) == type('s') else list(lst) 
     if (lst == [1,1,1] and gamma) or (lst == 'gamma'):
@@ -233,6 +233,7 @@ def read_matdyn_modes(filename, natoms=None):
     freqs = parse.arr1d_from_txt(common.backtick(cmd)).reshape((nqpoints, nmodes))
     return qpoints, freqs, vecs
 
+
 def read_matdyn_freq(filename):
     """Parse frequency file produced by QE's matdyn.x ("flfrq" in matdyn.x
     input, usually "matdyn.freq" or so) when calculating a phonon dispersion on
@@ -251,31 +252,9 @@ def read_matdyn_freq(filename):
         Array with `nbnd` energies/frequencies at each of the `nks` k-points.
         For phonon DOS, nbnd == 3*natoms.
 
-    Notes
-    -----
-    `filename` has the form
-        <header>
-        <k-point, (3,)>
-        <frequencies,(nbnd,)
-        <k-point, (3,)>
-        <frequencies,(nbnd,)
-        ...
-
-        Examples
-        --------
-        &plot nbnd=  12, nks=  70 /
-                   0.000000  0.000000  0.000000
-           0.0000    0.0000    0.0000  235.7472  235.7472  452.7206
-         503.6147  503.6147  528.1935  528.1935  614.2043  740.3496
-                   0.000000  0.000000  0.077505
-          50.9772   50.9772   74.0969  231.6412  231.6412  437.1183
-         504.6069  504.6069  527.5871  527.5871  624.4091  737.7758
-        ... 
-        -------------------------------------------------------------
-    
     See Also
     --------
-    bin/plot_dispersion.py, kpath.py
+    bin/plot_dispersion.py, parse_dis(), kpath.py
     """
     lines = file_readlines(filename)
     # Read number of bands (nbnd) and k-points (nks). OK, Fortran's namelists
@@ -299,6 +278,7 @@ def read_matdyn_freq(filename):
         freqs[ii,:] = items[(ii*step+3):(ii*step+step)]
     return kpoints, freqs
 
+
 # XXX do we really need this function? 
 # XXX the only PWscf-specific thing is that we use read_matdyn_freq() inside.
 def parse_dis(fn_freq, fn_kpath_def=None):
@@ -321,15 +301,16 @@ def parse_dis(fn_freq, fn_kpath_def=None):
         vectors which connect each two adjacent k-points
     freqs : array (nks, nbnd), array with `nbnd` frequencies for each k-point,
         nbnd should be = 3*natom (natom = atoms in the unit cell)
-    special_points_path : SpecialPointsPath instance or None
+    special_points_path : SpecialPointsPath instance if `fn_kpath_def` != None,
+        else None
 
     Notes
     -----
     matdyn.x must have been instructed to calculate a phonon dispersion along a
     predefined path in the BZ. e.g. natom=2, nbnd=6, 101 k-points on path
         
-        Examples
-        --------
+    `matdyn.in`::
+
         &input
             asr='simple',  
             amass(1)=26.981538,
@@ -341,40 +322,38 @@ def parse_dis(fn_freq, fn_kpath_def=None):
         0.000000    0.000000    0.000000   |
         0.037500    0.037500    0.000000   | List of nks = 101 k-points
         ....                               |
-        -------------------------------------------------------------
 
+    `fn_freq` has the form::
 
-    `fn_freq` has the form
         <header>
         <k-point, (3,)>
         <frequencies,(nbnd,)
         <k-point, (3,)>
         <frequencies,(nbnd,)
         ...
+    
+    for example::
 
-        Examples
-        --------
         &plot nbnd=   6, nks= 101 /
                   0.000000  0.000000  0.000000
           0.0000    0.0000    0.0000  456.2385  456.2385  871.5931
                   0.037500  0.037500  0.000000
          23.8811   37.3033   54.3776  455.7569  457.2338  869.8832
-        ... 
-        -------------------------------------------------------------
     
-    `fn_kpath_def` : 
+    `fn_kpath_def`::
+
         <coordinate of special point> #<name>
         ...
+    
+    like so::
 
-        Examples
-        --------
         0    0    0     # $\Gamma$
         0.75 0.75 0     # K
         1 0.5 0         # W
         1 0 0           # X
         0 0 0           # $\Gamma$
         .5 .5 .5        # L
-        -------------------------------------------------------------
+    
     Note that you can put special matplotlib math text in this file. Everything
     after `#' is treated as a Python raw string.
 
@@ -457,7 +436,7 @@ def ibrav2cell(ibrav, celldm):
         cell = aa * np.identity(3)
     elif ibrav == 2:
         # cubic F (fcc), fcc face centered cubic
-        # v1 = a(1,0,0),  v2 = a(0,1,0),  v3 = a(0,0,1)
+        # v1 = (a/2)(-1,0,1),  v2 = (a/2)(0,1,1), v3 = (a/2)(-1,1,0)
         cell = 0.5*aa * np.array([[-1,  0,  1], 
                                   [ 0,  1,  1], 
                                   [-1,  1,  0.0]])

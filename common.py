@@ -212,10 +212,11 @@ def ffloat(st):
 
 
 def frepr(var, ffmt="%.16e"):
-    """Similar to Python's repr(), but 
-    * Return floats formated with `ffmt` if `var` is a float.
-    * If `var` is a string, e.g. 'lala', it returns 'lala' not "'lala'" as
-      Python's repr() does.
+    """Similar to Python's repr(), but return floats formated with `ffmt` if
+    `var` is a float.
+
+    If `var` is a string, e.g. 'lala', it returns 'lala' not "'lala'" as
+    Python's repr() does.
     
     Parameters
     ----------
@@ -224,10 +225,15 @@ def frepr(var, ffmt="%.16e"):
     
     Examples
     --------
-    1     -> '1'
-    1.0   -> '1.000000000000000e+00' 
-    None  -> 'None'
-    'abc' -> 'abc' (repr() does: 'abc' -> "'abc'")
+    >>> frepr(1)
+    '1'
+    >>> frepr(1.0) 
+    '1.000000000000000e+00' 
+    >>> frepr(None)
+    'None'
+    >>> # Python's repr() does: 'abc' -> "'abc'"
+    >>> frepr('abc')
+    'abc' 
     """
     if isinstance(var, types.FloatType):
         return ffmt %var
@@ -282,11 +288,15 @@ def str_arr(arr, fmt='%.16e', delim=' '*4, zero_eps=True):
     fmt : string, format specifier, all entries of arr are formatted with that
     delim : string, delimiter
     zero_eps : bool
-        Print values as 0.0 where |value| < eps
+        Print values as 0.0 where abs(value) < eps
 
     Returns
     -------
-    string
+    str
+
+    Notes
+    -----
+    Essentially, we replicate the core part of np.savetxt.
 
     Examples
     --------
@@ -295,15 +305,10 @@ def str_arr(arr, fmt='%.16e', delim=' '*4, zero_eps=True):
     '0.26 0.35 0.97'
     >>> a=rand(2,3)
     >>> str_arr(a, fmt='%.2f')
-    '0.13 0.75 0.39\n0.54 0.22 0.66'
-
+    '0.13 0.75 0.39\\n0.54 0.22 0.66'
     >>> print str_arr(a, fmt='%.2f')
     0.13 0.75 0.39
     0.54 0.22 0.66
-    
-    Notes
-    -----
-    Essentially, we replicate the core part of np.savetxt.
     """
     arr = np.asarray(arr)
     _arr = fix_eps(arr) if zero_eps else arr
@@ -642,23 +647,23 @@ def permit_sigpipe():
 
     Notes
     -----
-    Some cases like:
+    Things like::
+
         >>> cmd = r"grep pattern /path/to/very_big_file | head -n1"
         >>> pp = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, 
         ...                       stderr=subprocess.PIPE)
         >>> out,err = pp.communicate()
     
-    sometimes end with a broken pipe error:
-        "grep: writing output: Broken pipe"
-    They run fine at the bash prompt, while failing with Popen. The reason is
-    that they actually "kind of" fail in the shell too, namely, SIGPIPE [1,2].
-    This can be seen by runing the call in strace "$ strace grep ...". Popen
-    chokes on that. The solution is to ignore SIGPIPE.
+    sometimes end with a broken pipe error: "grep: writing output: Broken
+    pipe". They run fine at the bash prompt, while failing with Popen. The
+    reason is that they actually "kind of" fail in the shell too, namely,
+    SIGPIPE [1,2]. This can be seen by runing the call in strace "$ strace grep
+    ...". Popen chokes on that. The solution is to ignore SIGPIPE.
 
     References
     ----------
-    [1] http://mail.python.org/pipermail/tutor/2007-October/058042.html
-    [2] http://article.gmane.org/gmane.comp.python.devel/88798/
+    .. [1] http://mail.python.org/pipermail/tutor/2007-October/058042.html
+    .. [2] http://article.gmane.org/gmane.comp.python.devel/88798/
     """
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 

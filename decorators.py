@@ -8,26 +8,28 @@ def open_and_close(func):
     went thru the whole file b/c the things that they search can occur in
     arbitrary order.
     These functions did
+
         * open the file
         * go thru
         * close file
+    
     Now, they all expect file objects, as first argument. This decorator
     assures that the first arg to `func` is a file object. 
+    
     Cases:
-    1st arg is a fileobject
-        do nothig, just call function
-    1st arg is a file name
+    
+    * 1st arg is a fileobject: do nothig, just call function
+    * 1st arg is a file name:
         * open file
         * call func
         * close file
     
-    example
-    -------
-    @open_and_close
-    def file_txt_content(fh):
-        # fh is a file object
-        return fh.read()
-    
+    Examples
+    --------
+    >>> @open_and_close
+    >>> def file_txt_content(fh):
+    ...     # fh is a file object
+    ...     return fh.read()
     >>> fh = open('my_file.txt')
     >>> print file_txt_content(fh)
     >>> fh.close()

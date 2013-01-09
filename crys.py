@@ -709,8 +709,10 @@ def coord_trans(coords, old=None, new=None, copy=True, axis=-1):
     
     The most general case is that you want to transform an MD trajectory from a
     variable cell run, you have smth like this:
+
         | coords.shape = (nstep,natoms,3)
         | old.shape/new.shape = (nstep,3,3)
+    
     You have a set of old and new coordinate systems at each step. 
     Then, use a loop over all time steps and call this function nstep times.
     See also coord_trans3d().
@@ -722,10 +724,12 @@ def coord_trans(coords, old=None, new=None, copy=True, axis=-1):
         coord sys `old`. The only shape resiriction is that the last dim must
         equal the number of coordinates (coords.shape[-1] == M == 3 for normal
         3-dim x,y,z).
-            | 1d : trivial, transform that vector (length M)
-            | 2d : The matrix must have shape (N,M), i.e. N vectors to be 
-            |      transformed are the *rows*.
-            | 3d : coords must have shape (..., M)
+
+        | 1d : trivial, transform that vector (length M)
+        | 2d : The matrix must have shape (N,M), i.e. N vectors to be 
+        |      transformed are the *rows*.
+        | 3d : coords must have shape (..., M)
+        
         If `coords` has a different shape, use `axis` to define the M-axis.
     old, new : 2d arrays (M,M)
         Matrices with the old and new basis vectors as *rows*. Note that in the
@@ -762,14 +766,13 @@ def coord_trans(coords, old=None, new=None, copy=True, axis=-1):
     array([ 1. ,  1.5])
     >>> coord_trans(v_X,X,I)
     array([ 1. ,  1.5])
-    
+    >>> # 3d example
     >>> c_old = np.random.rand(30,200,3)
     >>> old = np.random.rand(3,3)
     >>> new = np.random.rand(3,3)
     >>> c_new = coord_trans(c_old, old=old, new=new)
     >>> c_old2 = coord_trans(c_new, old=new, new=old)
     >>> np.testing.assert_almost_equal(c_old, c_old2)
-    
     >>> # If you have an array of shape, say (10,3,100), i.e. the last
     >>> # dimension is NOT 3, then use numpy.swapaxes() or axis:
     >>> coord_trans(arr, old=..., new=..., axis=1)
@@ -1077,9 +1080,9 @@ def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None,
     Can also handle non-orthorhombic unit cells (simulation boxes). 
     Only fixed-cell MD at the moment.
 
-    rmax
-    ----
-    The maximal `rmax` for which g(r) is correctly normalized is the
+    Notes
+    -----
+    rmax : The maximal `rmax` for which g(r) is correctly normalized is the
     result of rmax_smith(cell), i.e. the radius if the biggest sphere which
     fits entirely into the cell. This is simply L/2 for cubic boxes, for
     instance. We do explicitely allow rmax > rmax_smith() for testing, but be

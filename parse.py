@@ -62,10 +62,12 @@ on it will also return None.
   b/c latter would simply parse self.filname again.
 
 For debugging, we still have many getters which produce redundant
-information, e.g. 
-    cell + cryst_const
-    _<attr>_raw + <attr> (where <attr> = cell, forces, ...)
-    ...
+information, e.g.
+
+    | cell + cryst_const
+    | _<attr>_raw + <attr> (where <attr> = cell, forces, ...)
+    | ...
+
 especially in MD parsers, not so much in StructureFileParser drived
 classes. If parse() is used, all this information retrieved and stored.
 
@@ -668,8 +670,7 @@ class PwSCFOutputFile(StructureFileParser):
     Total force: Pwscf writes a "Total Force" after the "Forces acting on
     atoms" section . This value a UNnormalized RMS of the force matrix
     (f_ij, i=1,natoms j=1,2,3) printed. According to .../PW/forces.f90,
-    variable "sumfor", the "Total Force" is
-        ``sqrt(sum_ij f_ij^2)``
+    variable "sumfor", the "Total Force" is ``sqrt(sum_ij f_ij^2)``.
     Use ``crys.rms(self.forces)`` (for PwSCFOutputFile) or
     ``crys.rms3d(self.forces, axis=self.timeaxis)`` (for PwMDOutputFile)
     instead.
@@ -1081,7 +1082,7 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
         return float_from_txt(com.backtick(cmd))
     
     def get_stress(self):
-        """Stress tensor [kbar]. """
+        """Stress tensor [kbar]."""
         return self._match_nstep(self.raw_return('stress'))
 
     def get_etot(self):
