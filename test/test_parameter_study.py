@@ -39,8 +39,7 @@ local = batch.Machine(hostname='local',
 def assrt_aae(*args, **kwargs):
     np.testing.assert_array_almost_equal(*args, **kwargs)
 
-def test():    
-    pj = os.path.join
+def test_parameter_study():    
     templ_dir = 'files/calc.templ'
     
     #--------------------------------------------------------------------------
@@ -402,3 +401,32 @@ def test():
                                            (idx,)).fetchone()[0]
         assert scratch == db.execute("select scratch from calc where idx==?",
                                      (idx,)).fetchone()[0]
+
+def test_revision():
+    templ_dir = 'files/calc.templ'
+    calc_dir = pj(testdir, 'calc_test_revision')
+    os.makedirs(calc_dir)
+    # create fake db representing a previous study, w/o "revision" column
+    dbfn = pj(calc_dir, 'calc.db')
+    lists = zip([0, 1, 2], [10.0, 20.0, 30.0])
+    sql.makedb(dbfn, lists, ['idx', 'ecutwfc'], table='calc', close=True)
+
+    machine = local
+    prefix = 'convergence'
+    templates = [batch.FileTemplate(basename=fn, templ_dir=templ_dir) \
+                 for fn in ['pw.in', machine.jobfn]]
+    _ecutwfc = [25.0, 50.0, 75.0]
+    ecutwfc = sql.sql_column(key='ecutwfc', lst=_ecutwfc)
+    params_lst = comb.nested_loops([ecutwfc])
+    calc = batch.ParameterStudy(machine=machine, 
+                                templates=templates, 
+                                params_lst=params_lst, 
+                                calc_dir=calc_dir,
+                                prefix='foo')
+    calc.write_input(mode='a')
+    db = sql.SQLiteDB(dbfn, table='calc')
+    dct = db.get_dict("select * from calc")
+    assert dct['idx'] == [0,1,2,3,4,5] 
+    assert dct['ecutwfc'] == [10.0, 20.0, 30.0, 25.0, 50.0, 75.0] 
+    assert dct['revision'] == [None]*3 + [0]*3 
+

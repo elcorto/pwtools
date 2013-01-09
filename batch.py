@@ -625,8 +625,8 @@ class ParameterStudy(object):
         # this call creates a file ``self.dbfn`` if it doesn't exist
         sqldb = SQLiteDB(self.dbfn, table=self.db_table)
         # max_idx: counter for calc dir numbering
+        revision = 0
         if have_new_db:
-            revision = 0
             max_idx = -1
         else:
             if mode == 'a':
