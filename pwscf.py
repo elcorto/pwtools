@@ -369,7 +369,7 @@ def parse_dis(fn_freq, fn_kpath_def=None):
         for line in fhk:    
             spl = line.strip().split()
             special_points.append(
-                kpath.SpecialPoint(np.array(spl[:3], dtype=float), 
+                SpecialPoint(np.array(spl[:3], dtype=float), 
                     r'%s' %spl[-1].replace('#', '')))
         fhk.close()
         special_points_path = SpecialPointsPath(sp_lst=special_points)
