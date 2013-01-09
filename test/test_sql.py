@@ -1,6 +1,6 @@
-# Test the sql module (and Python's sqlite3). We create one db, and inside,
-# one table named "calc". SQL statements can be lowercase or uppercase. i.e.
-# "SELECT * FROM calc WHERE idx==1" == "select * from calc where idx==1".
+# Test the sql module (and Python's sqlite3). SQL statements can be lowercase
+# or uppercase. i.e. "SELECT * FROM calc WHERE idx==1" == "select * from calc
+# where idx==1".
 
 import os
 import numpy as np
@@ -119,7 +119,8 @@ def test_sql():
     bar = db.get_list1d("select bar from calc")
     assert foo == dct['foo']
     assert bar == dct['bar']
-    
+
+def test_sql_matrix():
     # sql_matrix
     lists = [['a', 1.0], ['b', '2.0']]
     colnames = ['foo', 'bar']
@@ -141,20 +142,16 @@ def test_sql():
             else:
                 assert entry.fileval == lists[ii][jj]
             assert entry.sqlval == lists[ii][jj]
-    
-    # makedb
+
+
+def test_attach_fill_column():
+    lists = zip(['a','b']*2, [1.0,2.0]*2)
+    colnames = ['foo','bar']
     dbfn = pj(testdir, 'test3.db')
-    sql.makedb(filename=dbfn, lists=lists, colnames=colnames, mode='w')
-    db = sql.SQLiteDB(dbfn, table='test3')
-    dct =  db.get_dict("select * from test3")
-    assert dct['foo'] == [u'a', u'b']
-    assert dct['bar'] == [1.0, 2.0]
-    sql.makedb(filename=dbfn, lists=lists, colnames=colnames, mode='a')
-    db = sql.SQLiteDB(dbfn, table='test3')
-    dct =  db.get_dict("select * from test3")
-    assert dct['foo'] == [u'a', u'b']*2
-    assert dct['bar'] == [1.0, 2.0]*2
-    
+    if os.path.exists(dbfn):
+        os.remove(dbfn)
+    db = sql.makedb(dbfn, lists, colnames, close=False)
+
     # attach_column, fill_column
     db.attach_column('baz', values=[1,2,3,4,5,6], 
                      extend=False, start=1)
@@ -182,7 +179,7 @@ def test_sql():
                      overwrite=True, start=1)
     assert db.get_list1d('select baz2 from test3') == [2,4,6,8,10,12]
 
-    # --- SQLEntry ----------------------------------------------------
+def test_sql_entry():
     x = SQLEntry(1, 'integer')
     assert x.sqlval == 1
     assert x.sqltype == 'INTEGER'
@@ -208,10 +205,41 @@ def test_sql():
         print val, sqltype
         x = SQLEntry(sqlval=val)
         assert x.sqltype == sqltype
-    
+
+
+def test_fix_sqltype():
     # uppercase type magic
     assert sql.fix_sqltype('integer') == 'INTEGER'
     assert sql.fix_sqltype('float') == 'REAL'
     assert sql.fix_sql_header([('a', 'text'), ('b', 'float')]) == \
            [('a', 'TEXT'), ('b', 'REAL')]
+
+
+def test_makedb():
+    dbfn = pj(testdir, 'test_makedb1.db')
+    if os.path.exists(dbfn):
+        os.remove(dbfn)
+    lists = zip(['a','b'],[1.0,2.0])
+    colnames = ['foo', 'bar']
+    sql.makedb(filename=dbfn, lists=lists, colnames=colnames, mode='w')
+    db = sql.SQLiteDB(dbfn, table='test_makedb1')
+    dct =  db.get_dict("select * from test_makedb1")
+    assert dct['foo'] == [u'a', u'b']
+    assert dct['bar'] == [1.0, 2.0]
+    sql.makedb(filename=dbfn, lists=lists, colnames=colnames, mode='a')
+    db = sql.SQLiteDB(dbfn, table='test_makedb1')
+    dct =  db.get_dict("select * from test_makedb1")
+    assert dct['foo'] == [u'a', u'b']*2
+    assert dct['bar'] == [1.0, 2.0]*2
+    
+    # makedb, set table name, close
+    dbfn = pj(testdir, 'test_makedb2.db')
+    if os.path.exists(dbfn):
+        os.remove(dbfn)
+    db = sql.makedb(dbfn, lists, colnames, mode='w',
+                    table='calc', close=False)    
+    dct =  db.get_dict("select * from calc")
+    assert dct['foo'] == [u'a', u'b']
+    assert dct['bar'] == [1.0, 2.0]
+
 

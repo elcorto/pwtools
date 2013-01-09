@@ -214,6 +214,7 @@ class SQLiteDB(object):
         self.table = table
     
     def get_table(self):
+        """Return string self.table."""
         return self.table
 
     def execute(self, *args, **kwargs):
@@ -425,9 +426,11 @@ class SQLiteDB(object):
         return dct                
 
     def commit(self):
+        """Commit changes to connection."""
         self.conn.commit()
     
     def finish(self):
+        """Commit and close cursor."""
         self.commit()
         self.cur.close()
 
@@ -593,7 +596,7 @@ def sql_matrix(lists, header=None, colnames=None, sqlval_funcs=None, fileval_fun
         newlists.append(newrow)                                   
     return newlists   
 
-def makedb(filename, lists=None, colnames=None, table=None, mode='a', **kwds):
+def makedb(filename, lists, colnames, table=None, mode='a', close=True, **kwds):
     """ Create sqlite db `filename` (mode='w') or append to existing db
     (mode='a'). The database is build up from `lists` and `colnames`, see 
     sql_matrix().
@@ -604,6 +607,10 @@ def makedb(filename, lists=None, colnames=None, table=None, mode='a', **kwds):
     other entries are NULL by default.
 
     If the datsbase file doesn't exist, then mode='a' is the same as mode='w'.
+    
+    By default `close=True`, i.e. a db with a closed connection is returned.
+    For interactive use, `close=False` is what you want. That gives you a db
+    which can be used right away.
 
     Parameters
     ----------
@@ -611,16 +618,31 @@ def makedb(filename, lists=None, colnames=None, table=None, mode='a', **kwds):
     colnames : list of column names, see sql_matrix()
     table : str, optional
         String with table name. If None then we try to set a default name based
-        in `filename`.
+        on `filename`.
     mode : str
         'w': write new db, 'a': append
+    close : bool, optional
+        Close cursor after db has been filled with values.
     **kwds : passed to sql_matrix()
+
+    Returns
+    -------
+    db : SQLiteDB instance
+
+    Examples
+    --------
+    >>> lists=zip([1,2,3],['a','b','c'])
+    >>> db=sql.makedb('/tmp/foo.db', lists, ['col0', 'col1'], mode='w',
+    ...               table='calc', close=False)
+    >>> db.get_dict('select * from calc')
+    {'col0': [1, 2, 3], 'col1': [u'a', u'b', u'c']}
     """
     sufs = ['.db', '.sqlite', '.sqlite3']
-    for suffix in sufs:
-        if filename.endswith(suffix):
-            table = os.path.basename(filename.replace(suffix, ''))
-            break
+    if table is None:
+        for suffix in sufs:
+            if filename.endswith(suffix):
+                table = os.path.basename(filename.replace(suffix, ''))
+                break
     assert table is not None, ("table name missing or could not determine "
                                "from filename")
     assert len(colnames) == len(lists[0]), ("len(colnames) != length of "
@@ -649,5 +671,8 @@ def makedb(filename, lists=None, colnames=None, table=None, mode='a', **kwds):
         values = ','.join(['?']*ncols)
         cmd = 'insert into %s (%s) values (%s)' %(table, names, values)
         db.execute(cmd, [entry.sqlval for entry in row])
-    db.finish() 
+    if close:    
+        db.finish() 
+    else:
+        db.commit()
     return db
