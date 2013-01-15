@@ -1,6 +1,5 @@
 import numpy as np
 from pwtools import mpl, num
-from pwtools.test.tools import aaae
 
 def test_interpol2d():
     x = np.linspace(-5,5,20) 
@@ -11,21 +10,21 @@ def test_interpol2d():
     
     tgt = np.array([  5.0 ,  30])
     inter = num.Interpol2D(dd=dd, what='rbf_multi') 
-    aaae(inter([[-3,-4],[0,0]]), tgt)
+    np.allclose(inter([[-3,-4],[0,0]]), tgt)
     np.allclose(inter.get_min(), 5.0)
     
     inter = num.Interpol2D(dd=dd, what='rbf_gauss')
-    aaae(inter([[-3,-4],[0,0]]), tgt, decimal=3)
+    np.allclose(inter([[-3,-4],[0,0]]), tgt)
     np.allclose(inter.get_min(), 5.0)
     
     inter = num.Interpol2D(dd=dd, what='bispl')
-    aaae(inter([[-3,-4],[0,0]]), tgt)
+    np.allclose(inter([[-3,-4],[0,0]]), tgt)
     np.allclose(inter.get_min(), 5.0)
     
     try:
         from scipy.interpolate import CloughTocher2DInterpolator
         inter = num.Interpol2D(dd=dd, what='ct')
-        aaae(inter([[-3,-4],[0,0]]), tgt, decimal=2)
+        np.allclose(inter([[-3,-4],[0,0]]), tgt)
     except ImportError:
         import warnings
         warnings.warn("couldn't import "
@@ -33,14 +32,14 @@ def test_interpol2d():
    
     # API
     inter = num.Interpol2D(xx=dd.xx, yy=dd.yy, values=dd.zz, what='bispl')
-    aaae(inter([[-3,-4],[0,0]]), tgt)
+    np.allclose(inter([[-3,-4],[0,0]]), tgt)
     np.allclose(inter.get_min(), 5.0)
 
     inter = num.Interpol2D(points=dd.XY, values=dd.zz, what='bispl')
-    aaae(inter([[-3,-4],[0,0]]), tgt)
+    np.allclose(inter([[-3,-4],[0,0]]), tgt)
     np.allclose(inter.get_min(), 5.0)
 
     inter = num.Interpol2D(dd.XY, dd.zz, what='bispl')
-    aaae(inter([[-3,-4],[0,0]]), tgt)
+    np.allclose(inter([[-3,-4],[0,0]]), tgt)
     np.allclose(inter.get_min(), 5.0)
 

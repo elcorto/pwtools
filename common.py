@@ -14,6 +14,7 @@ import shutil
 import re
 import ConfigParser
 import cPickle
+import copy
 import numpy as np
 
 from pwtools.verbose import verbose
@@ -621,6 +622,27 @@ def iflatten(seq):
 def flatten(seq):
     """Same as iflatten(), but returns a list."""
     return [x for x in iflatten(seq)]
+
+
+def pop_from_list(lst, items):
+    """Pop all `items` from `lst` and return a shorter copy of
+    `lst`.
+    
+    Parameters
+    ----------
+    lst: list
+    items : sequence
+
+    Returns
+    -------
+    lst2 : list
+        Copy of `lst` with `items` removed.    
+    """
+    lst2 = copy.deepcopy(lst)
+    for item in items:
+        lst2.pop(lst2.index(item))
+    return lst2    
+
 
 #-----------------------------------------------------------------------------
 # Child processes & shell calls
