@@ -49,9 +49,6 @@ def test():
     arr = np.loadtxt(StringIO(
             common.backtick("grep -A3 PRIMVEC %s | egrep -v -e '--|PRIMVEC'" %axsf_fn)))
     np.testing.assert_array_almost_equal(arr, np.concatenate((cell2d, cell2d), axis=0))
-    arr = np.loadtxt(StringIO(
-            common.backtick("grep -A3 CONVVEC %s | egrep -v -e '--|CONVVEC'" %axsf_fn)))
-    np.testing.assert_array_almost_equal(arr, np.concatenate((cell2d, cell2d), axis=0))
 
     arr = np.loadtxt(StringIO(
             common.backtick("sed -nre 's/^H(.*)/\\1/gp' %s" %axsf_fn)))

@@ -191,13 +191,9 @@ def write_axsf(filename, obj):
         ccf = traj.coords
     axsf_str = "ANIMSTEPS %i\nCRYSTAL" %traj.nstep
     for istep in range(traj.nstep):
-        # for now PRIMVEC == CONVVEC
-        axsf_str += "\nPRIMVEC %i\n%s\nCONVVEC %i\n%s" %(istep+1,
-                                                         common.str_arr(traj.cell[istep,...],
-                                                                        zero_eps=False),
-                                                         istep+1,                  
-                                                         common.str_arr(traj.cell[istep,...],
-                                                                        zero_eps=False))
+        axsf_str += "\nPRIMVEC %i\n%s" %(istep+1,
+                                         common.str_arr(traj.cell[istep,...],
+                                                        zero_eps=False))
         axsf_str += "\nPRIMCOORD %i\n%i 1\n%s" %(istep+1,
                                                  traj.natoms,
                                                  pwscf.atpos_str_fast(traj.symbols, 
