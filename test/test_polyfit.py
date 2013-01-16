@@ -1,6 +1,7 @@
 from itertools import product
 import numpy as np
 from pwtools import num
+from pwtools.test.tools import assert_all_types_equal
 
 def make_kwd_lst(*args):
     kwd_lst = []
@@ -31,10 +32,27 @@ def test_polyfit():
         assert np.allclose(1.0, f(f.get_min(x0=1.0, tol=1e-10)))                  
         assert np.allclose(1.0, f(f.get_min(xab=[-1,1], xtol=1e-10, rtol=1e-16))) 
         
-        # API
+        # API: PolyFit1D __call__ arg: scalar, 1d, 2d
         for xs in [2.0, np.array([2.0]), np.array([[2.0]])]:
             assert np.allclose(5.0, f(xs))
             assert type(np.array([5.0])) == type(np.array([f(xs)]))
+        
+        # API: 3rd arg is always 'deg'
+        fit1 = num.polyfit(x[:,None],y,2)
+        fit2 = num.polyfit(x[:,None],y,deg=2)
+        assert_all_types_equal(fit1, fit2)
+        # avgpolyfit() returns a dict "fit1", where fit1['fits'] is a sequence of
+        # dicts, that's too much for assert_all_types_equal() :), must fiddle
+        # test by hand ...
+        fit1 = num.avgpolyfit(x[:,None],y,2)
+        fit2 = num.avgpolyfit(x[:,None],y,deg=2)
+        for f1,f2 in zip(fit1['fits'], fit2['fits']):
+            assert_all_types_equal(f1, f2)
+        keys = fit1.keys()
+        keys.pop(keys.index('fits'))
+        for key in keys:
+            assert_all_types_equal(fit1[key], fit2[key])
+
 
         # copy self.fit and call avgpolyfit
         y = np.sin(x)

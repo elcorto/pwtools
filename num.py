@@ -1250,8 +1250,8 @@ def polyval(fit, points, der=0, avg=False):
             return np.dot(vand, fit['coeffs']) * vscale + vmin
 
 
-def avgpolyfit(points, values, levels=1, degmin=1, degmax=1, degrange=None,
-               scale=False):
+def avgpolyfit(points, values, deg=None, degmin=None, degmax=None, levels=1, 
+               degrange=None, scale=False):
     """Same as polyfit(), but fit multiple polys. There are two types of fits,
     which can be combined. (1) Fit `levels` polys and remove one level of
     endpoints in each go from `points`. (2) Fit polys with varying degrees (see
@@ -1260,6 +1260,8 @@ def avgpolyfit(points, values, levels=1, degmin=1, degmax=1, degrange=None,
     Parameters
     ----------
     points, values : see polyfit()
+    deg : int, poly degree
+        Use `deg` or `degmin`+`degmin` or `degrange`.
     levels : int
         Fit this many polys and remove endpoints from `points` for levels >= 1.
     degmin, degmax : int
@@ -1282,6 +1284,7 @@ def avgpolyfit(points, values, levels=1, degmin=1, degmax=1, degrange=None,
     >>> avgpolyval(fit, newpoints)
     >>>
     >>> # the same as polyfit(points, values, deg=3)
+    >>> fit=avgpolyfit(points, values, deg=3, levels=1)
     >>> fit=avgpolyfit(points, values, degmin=3, degmax=3, levels=1)
     >>> fit=avgpolyfit(points, values, degrange=[3], levels=1)
     """
@@ -1290,11 +1293,16 @@ def avgpolyfit(points, values, levels=1, degmin=1, degmax=1, degrange=None,
     # a poly of degree `deg` contains all terms from a `deg`-1 poly. E.g. If we
     # fit x**2 data with a deg=2 poly, we get the same results as with an
     # deg=10 poly: all coeffs for deg != 2 are zero. Maybe we need to have a
-    # look at the GIBBS code again -- sparsely commented F77.
+    # look at the GIBBS code again.
     ndim = points.shape[1]
     if degrange is None:
-        assert degmin <= degmax, "degmin (%i) > degmax (%i)" %(degmin, degmax)
-        degs = range(degmin, degmax+1)
+        assert (deg is not None) or ([degmin, degmax] != [None]*2), \
+            ("use deg, degmin+degmax or degrange")
+        if deg is None:    
+            assert degmin <= degmax, "degmin (%i) > degmax (%i)" %(degmin, degmax)
+            degs = range(degmin, degmax+1)
+        else:
+            degs = [deg]
     else:
         degs = degrange
     ndeg = len(degs)
@@ -1373,13 +1381,24 @@ def avgpolyval(fit, points, der=0, weight_type=1):
 
 class PolyFit(object):
     """High level interface to [avg]poly{fit,val}, similar to Spline and
-    Interpol2D. 
+    Interpol2D.
 
-    __init__: `points` must be (npoints,ndim) even if ndim=1.
-    __call__: `points` can be (ndim,) instead of (1,ndim), need this if called in
-               fmin()
+    Arguments and keywords to ``__init__`` are the same as for [avg]polyfit().
+    Keywords to ``__call__`` are same as for [avg]polyval().
+
+    | __init__: `points` must be (npoints,ndim) even if ndim=1.
+    | __call__: `points` can be (ndim,) instead of (1,ndim), need this if called in
+                fmin()
+    
+    Examples
+    --------
+    >>> fit1=polyfit(points, values, deg=3); polyval(fit1, new_points)
+    >>> fit2=avgpolyfit(points, values, degrange=[3], levels=2); avgpolyval(fit2, new_points)
+    >>> # the same
+    >>> f1=PolyFit(points, values, 3); f1(new_points)
+    >>> f2=PolyFit(points, values, degrange=[3], levels=2); f2(new_points)
     """
-    def __init__(self, points, values, **kwds):
+    def __init__(self, points, values, *args, **kwds):
         """
         Parameters
         ----------
@@ -1391,16 +1410,12 @@ class PolyFit(object):
         assert self.points.ndim == 2, "points is not 2d array"
         self.values = values
         if self._has_keys(kwds, ['degrange', 'degmin', 'degmax', 'levels']):
-            if kwds.has_key('deg'):
-                deg = kwds['deg']
-                kwds.pop('deg')
-                kwds['degrange'] = [deg]
             self.fitfunc = avgpolyfit
             self.evalfunc = avgpolyval
         else:
             self.fitfunc = polyfit
             self.evalfunc = polyval
-        self.fit = self.fitfunc(self.points, self.values, **kwds)
+        self.fit = self.fitfunc(self.points, self.values, *args, **kwds)
     
     @staticmethod
     def _has_keys(dct, keys):
@@ -1433,6 +1448,18 @@ class PolyFit(object):
             return ret
 
     def get_min(self, x0=None, **kwds):
+        """Minimize fit function by `scipy.optimize.fmin()`.
+
+        Parameters
+        ----------
+        x0 : 1d array
+            Initial guess
+        **kwds : keywords to fmin()
+        
+        Returns
+        -------
+        scalar
+        """            
         _kwds = dict(disp=1, xtol=1e-12, ftol=1e-8, maxfun=1e4, maxiter=1e4)
         _kwds.update(kwds)
         if x0 is None:
@@ -1447,8 +1474,18 @@ class PolyFit1D(PolyFit):
     Also `get_min()` uses the root of the poly's 1st derivative instead of
     fmin().
 
-    __init__: points (npoints,1) or (npoints,)
-    __call__: points (npoints,1) or (npoints,) or scalar
+    | __init__: points (npoints,1) or (npoints,)
+    | __call__: points (npoints,1) or (npoints,) or scalar
+
+    Examples
+    --------
+    >>> x=np.linspace(-5,5,10); y=(x-1)**2+1
+    >>> f=num.PolyFit1D(x,y,2)
+    >>> f(0)
+    2.0000000000000009
+    >>> f.get_min()
+    1.0
+    >>> xx=linspace(x[0],x[-1],50); plot(x,y,'o'); plot(xx, f(xx))
     """
     def __init__(self, *args, **kwds):
         """
@@ -1487,6 +1524,7 @@ class PolyFit1D(PolyFit):
         return xx    
     
     def get_min(self, x0=None, xab=None, **kwds):
+        """Find minimum from the 1st derivative's root. See Spline.get_min()."""
         return self._findroot(lambda x: self(x, der=1), x0=x0, xab=xab, 
                               **kwds)
                       
