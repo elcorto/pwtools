@@ -1,7 +1,7 @@
 """ Crystal and unit-cell related tools, MD analysis, container classes."""
 
 from math import acos, pi, sin, cos, sqrt
-import textwrap, itertools, time, os, tempfile
+import textwrap, itertools, time, os, tempfile, types, copy
 
 import numpy as np
 from numpy.random import uniform
@@ -282,6 +282,7 @@ def cc2cell3d(cryst_const, axis=0):
         sl[axis] = ii
         ret.append(cc2cell(cryst_const[sl]))
     return np.array(ret)        
+
 
 @crys_add_doc
 def recip_cell(cell):
@@ -2429,6 +2430,27 @@ class Structure(UnitsHandler):
             return np.trace(self.stress)/3.0
         else:
             return None
+    
+    def copy(self):
+        """Return a copy of the inctance."""
+        if self.is_struct:
+            st = Structure(set_all_auto=False)
+        elif self.is_traj:
+            st = Trajectory(set_all_auto=False)
+        # Make sure all attrs in self.attr_lst are set if possible
+        self.set_all()
+        # Copy attrs over
+        for name in self.attr_lst:
+            val = getattr(self, name)
+            if val is None:
+                setattr(st, name, None)
+            # dict.copy() is shallow, use deepcopy instead    
+            elif hasattr(val, 'copy') and not isinstance(val, types.DictType):
+                setattr(st, name, val.copy())
+            else:
+                setattr(st, name, copy.deepcopy(val))
+        return st           
+
 
 class Trajectory(Structure):
     """Here all arrays (input and attrs) have a time axis, i.e. all arrays

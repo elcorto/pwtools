@@ -1,8 +1,9 @@
+import types
 import numpy as np
 
 from pwtools.crys import Structure
 from pwtools import crys, constants
-from pwtools.test.tools import aaae
+from pwtools.test.tools import aaae, assert_all_types_equal
 rand = np.random.rand
 
 # We assume all lengths in Angstrom. Only importans for ASE comparison.
@@ -77,7 +78,41 @@ def test():
     aaae(2*coords, st.coords)                    
     aaae(3*forces, st.forces)                    
     aaae(4*stress, st.stress)                    
-                        
     
     traj = crys.struct2traj(st)
     assert traj.is_traj
+
+    # copy(): Assert everything has another memory location = is a new copy of
+    # the object. IntTypes are NOT copied by copy.deepcopy(), which we use in
+    # Structure.copy(), apparently b/c they are always automatically copied
+    # before in-place operations. Same for float type. 
+    #
+    # >>> a=10; b=a; print id(a); print id(b)
+    # 36669152
+    # 36669152
+    # >>> a*=100; print id(a); print id(b)
+    # 72538264
+    # 36669152
+    # >>> a
+    # 100
+    # >>> b
+    # 10
+    #
+    # >>> a=[1,2,3]; b=a; print id(a); print id(b)
+    # 72624320
+    # 72624320
+    # >>> a[0] = 44; print id(a); print id(b)
+    # 72624320
+    # 72624320
+    # >>> a
+    # [44, 2, 3]
+    # >>> b
+    # [44, 2, 3]
+    st2 = st.copy()
+    for name in st.attr_lst:
+        val = getattr(st,name)
+        if val is not None and not (isinstance(val, types.IntType) or \
+            isinstance(val, types.FloatType)):
+            val2 = getattr(st2,name)
+            assert id(val2) != id(val)
+            assert_all_types_equal(val2, val)

@@ -1,9 +1,10 @@
 # We assume all lengths in Angstrom. Only important for ASE comparison.
 #
+import types
 import numpy as np
 from pwtools.crys import Trajectory, Structure
 from pwtools import crys, constants
-from pwtools.test.tools import aaae
+from pwtools.test.tools import aaae, assert_all_types_equal
 from pwtools import num
 rand = np.random.rand
 
@@ -157,4 +158,13 @@ def test():
             cnt += 1
         assert cnt == nstep, "%i, %i" %(cnt, nstep)    
     
-
+    # copy
+    traj2 = traj.copy()
+    for name in traj.attr_lst:
+        val = getattr(traj,name)
+        if val is not None and not (isinstance(val, types.IntType) or \
+            isinstance(val, types.FloatType)):
+            val2 = getattr(traj2,name)
+            print "test copy:", name, type(val), type(val2)
+            assert id(val2) != id(val)
+            assert_all_types_equal(val2, val)
