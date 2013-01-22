@@ -3,7 +3,7 @@
 # Some handy tools to construct strings for building pwscf input files.
 # Readers for QE postprocessing tool output (matdyn.x  etc).
 
-import re
+import re, os
 import numpy as np
 from pwtools.common import fix_eps, str_arr, file_readlines
 from pwtools import parse, crys, common
@@ -231,6 +231,86 @@ def read_matdyn_modes(filename, natoms=None):
     cmd = r"grep omega %s | sed -re \
             's/.*omega.*=.*\[.*=(.*)\s*\[.*/\1/g'" %filename
     freqs = parse.arr1d_from_txt(common.backtick(cmd)).reshape((nqpoints, nmodes))
+    return qpoints, freqs, vecs
+
+
+def read_dyn(filename, natoms=None):
+    """Read one dynamical matrix file (for 1 qpoint) and extract the same as
+    ``read_matdyn_modes()`` for this qpoint only. 
+    
+    All arrays have one dim less compared to ``read_matdyn_modes()``.
+    
+    Parameters
+    ----------
+    filename : str
+        Name of dyn file. Example: "ph.dyn3" for qpoint 3.
+    natoms : int
+        number of atoms in the cell (used for nmodes=3*natoms only)
+    
+    Returns
+    -------
+    qpoints, freqs, vecs
+    qpoints : 1d array (3,)
+        The qpoint of the dyn file.
+    freqs : 1d array, (nmodes,) where nmodes = 3*natoms
+        3*natoms phonon frequencies in [cm^-1] at the q-point.
+    vecs : 3d complex array (nmodes, natoms, 3)
+        Complex eigenvectors of the dynamical matrix for the q-point.
+    """
+    assert natoms is not None
+    cmd = r"egrep 'q.*=.*\(' %s | tail -n1 | sed -re 's/.*q\s*=.*\((.*)\)/\1/'" %filename
+    qpoints = parse.arr1d_from_txt(common.backtick(cmd))
+    assert qpoints.shape == (3,)
+    nmodes = 3*natoms
+    cmd = r"grep -v 'q.*=' %s | grep '^[ ]*(' | sed -re 's/^\s*\((.*)\)/\1/g'" %filename
+    # vecs_file_flat: (nmodes * natoms, 6)
+    # this line is the bottleneck
+    vecs_file_flat = parse.arr2d_from_txt(common.backtick(cmd))
+    vecs_flat = np.empty((vecs_file_flat.shape[0], 3), dtype=complex)
+    vecs_flat[:,0] = vecs_file_flat[:,0] + 1j*vecs_file_flat[:,1]
+    vecs_flat[:,1] = vecs_file_flat[:,2] + 1j*vecs_file_flat[:,3]
+    vecs_flat[:,2] = vecs_file_flat[:,4] + 1j*vecs_file_flat[:,5]
+    vecs = np.empty((nmodes, natoms, 3), dtype=complex)
+    for imode in range(nmodes):
+        for iatom in range(natoms):
+            idx = imode*natoms + iatom
+            vecs[imode, iatom,:] = vecs_flat[idx, :]
+    cmd = r"grep omega %s | sed -re \
+            's/.*omega.*=.*\[.*=(.*)\s*\[.*/\1/g'" %filename
+    freqs = parse.arr1d_from_txt(common.backtick(cmd))
+    return qpoints, freqs, vecs
+
+
+def read_all_dyn(path, nqpoints=None, natoms=None, base='ph.dyn'):
+    """Same as ``read_matdyn_modes()``, but instead of the file
+    ``matdyn.modes`` which contains freqs,vecs for all qpoints, we read all
+    dynamical matrix files in `path`, one per qpoint.
+
+    Parameters
+    ----------
+    path : str
+        Path where dyn files live.
+    nqpoints : int
+        number of dyn files (e.g. 5 for "ph.dyn1", ..., "ph.dyn5" if
+        ``base='ph.dyn'``)
+    natoms : int
+    base : str
+        Basename of the dyn files.
+    
+    Returns
+    -------
+    Same as ``read_matdyn_modes()``.
+    """
+    nmodes = 3*natoms
+    qpoints = np.empty((nqpoints,3), dtype=float)
+    freqs = np.empty((nqpoints, nmodes), dtype=float)
+    vecs = np.empty((nqpoints, nmodes, natoms, 3), dtype=complex)
+    for iq in range(nqpoints):
+        filename = os.path.join(path, '%s%i' %(base, iq+1))
+        qq, ff, vv = read_dyn(filename, natoms=natoms)
+        qpoints[iq,...] = qq
+        freqs[iq,...] = ff
+        vecs[iq,...] = vv
     return qpoints, freqs, vecs
 
 

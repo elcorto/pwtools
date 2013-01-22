@@ -26,7 +26,7 @@ for iqpoint in range(nqpoints):
             vec_str = " ("
             for icoord in range(3):
                 vecs[iqpoint,imode,iatom,icoord] = num
-                vec_str += "  %f  0  " %num
+                vec_str += "  %f  %f  " %(num, 0.03*num)
                 num += 1
             vec_str += ")"
             print vec_str

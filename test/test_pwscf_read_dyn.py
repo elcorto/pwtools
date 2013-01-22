@@ -2,26 +2,25 @@ import numpy as np
 from pwtools import pwscf
 from pwtools.test.tools import aae
 
-def test_read_matdyn():
-    # matdyn_freq
-    kpoints, freqs = pwscf.read_matdyn_freq('files/matdyn.freq')
-    aae(kpoints,
-        np.array([[0.1, 0.2, 0.3],
-                  [0.2, 0.4, 0.6]]))
-    aae(freqs,
-        np.array([[1,2,3,4,5,6.1,],
-                  [7, 8, 9e-7,10, 11, 12]]))
-    
-    # matdyn_mods
-    qpoints_ref = \
+# matdyn.freq
+kpoints_ref = \
+    np.array([[0.1, 0.2, 0.3],
+              [0.2, 0.4, 0.6]])
+
+freqs_ref = \
+    np.array([[1,2,3,4,5,6.1,],
+              [7, 8, 9e-7,10, 11, 12]])
+
+# matdyn.modes and ph.dyn{1,2}
+qpoints_ref = \
     np.array([[ 0. ,  0. ,  0. ],
               [ 0. ,  0. ,  0.5]])
 
-    freqs_ref = \
+freqs_modes_ref = \
     np.array([[  0.,   7.,  14.,  21.,  28.,  35.],
               [ 42.,  49.,  56.,  63.,  70.,  77.]])
 
-    vecs_real_ref = \
+vecs_real_ref = \
     np.array([[[[  1.,   2.,   3.],
                 [  4.,   5.,   6.]],
                [[  8.,   9.,  10.],
@@ -47,9 +46,31 @@ def test_read_matdyn():
                [[ 78.,  79.,  80.],
                 [ 81.,  82.,  83.]]]])
 
+# See test/utils/gen_matdyn_modes.py. ph.dyn{1,2} copied and adapted by hand
+# from generated matdyn.modes .
+vecs_imag_ref = 0.03*vecs_real_ref
+
+def test_read_matdyn():
+    # matdyn.freq
+    kpoints, freqs = pwscf.read_matdyn_freq('files/matdyn.freq')
+    
+    aae(kpoints, kpoints_ref)
+    aae(freqs, freqs_ref)
+    
+    # matdyn modes: read_matdyn_modes()
     qpoints, freqs, vecs = pwscf.read_matdyn_modes('files/matdyn.modes',
                                                    natoms=2)
     aae(qpoints, qpoints_ref)
-    aae(freqs, freqs_ref)
+    aae(freqs, freqs_modes_ref)
     aae(vecs.real, vecs_real_ref)
-    assert not vecs.imag.any()
+    aae(vecs.imag, vecs_imag_ref)
+
+def test_read_all_dyn():
+    # matdyn modes: read_all_dyn()
+    qpoints, freqs, vecs = pwscf.read_all_dyn('files/dyn/', nqpoints=2, 
+                                              natoms=2, base='ph.dyn')
+    aae(qpoints, qpoints_ref)
+    aae(freqs, freqs_modes_ref)
+    aae(vecs.real, vecs_real_ref)
+    aae(vecs.imag, vecs_imag_ref)
+
