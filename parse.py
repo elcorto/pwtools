@@ -340,22 +340,13 @@ class TrajectoryFileParser(StructureFileParser):
     def get_traj(self):
         return self.get_cont()
 
-class CifFile(StructureFileParser):
-    """Parse Cif file.
 
-    Notes
-    -----
-    cif parsing:
-        We expect PyCifRW [1]_ to be installed, which provides the CifFile
-        module.
-    atom positions:
-        Cif files contain "fractional" coords, which is just 
-        "ATOMIC_POSITIONS crystal" in PWscf, "xred" in Abinit.
-    
+class CifFile(StructureFileParser):
+    """Parse Cif file. Uses PyCifRW [1]_.
+
     References
     ----------
     .. [1] http://pycifrw.berlios.de/
-    .. [2] http://www.quantum-espresso.org/input-syntax/INPUT_PW.html#id53713
     """        
     def __init__(self, filename=None, block=None, *args, **kwds):
         """        
@@ -371,6 +362,7 @@ class CifFile(StructureFileParser):
         # only the ones for which we have getters
         self.attr_lst = [\
             'coords_frac',
+            'coords',
             'symbols',
             'cryst_const',
             ]
@@ -416,12 +408,31 @@ class CifFile(StructureFileParser):
         return cif_block
     
     def get_coords_frac(self):
-        self.try_set_attr('_cif_block')
-        return np.array([map(self.cif_str2float, [x,y,z]) for x,y,z in izip(
-                                   self._cif_block['_atom_site_fract_x'],
-                                   self._cif_block['_atom_site_fract_y'],
-                                   self._cif_block['_atom_site_fract_z'])])
+        if self.check_set_attr('_cif_block'):
+            if self._cif_block.has_key('_atom_site_fract_x'):
+                arr = np.array([map(self.cif_str2float, [x,y,z]) for x,y,z in izip(
+                                    self._cif_block['_atom_site_fract_x'],
+                                    self._cif_block['_atom_site_fract_y'],
+                                    self._cif_block['_atom_site_fract_z'])])
+                return arr                                    
+            else:
+                return None
+        else:
+            return None
         
+    def get_coords(self):
+        if self.check_set_attr('_cif_block'):
+            if self._cif_block.has_key('_atom_site_Cartn_x'):
+                print 'OK'
+                arr = np.array([map(self.cif_str2float, [x,y,z]) for x,y,z in izip(
+                                    self._cif_block['_atom_site_Cartn_x'],
+                                    self._cif_block['_atom_site_Cartn_y'],
+                                    self._cif_block['_atom_site_Cartn_z'])])
+                return arr                                    
+            else:
+                return None
+        else:
+            return None
 
     def get_symbols(self):
         self.try_set_attr('_cif_block')
