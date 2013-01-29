@@ -1194,9 +1194,13 @@ def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None,
     >>> d = rpdf([traj], ...)
     >>> d = rpdf([traj, traj], ...)
     
-    >>> # use bool arrays for `amask`, may need this for more complicated pattern
+    >>> # use bool arrays for `amask`, need this for more complicated pattern
     >>> sy = np.array(traj.symbols)
+    >>> # VMD: sel1='name O', sel2='name H'
     >>> d = rpdf(traj, dr=0.1, amask=[sy=='O', sy=='H'],tmask=np.s_[3000::50])
+    >>> # VMD: sel1='name O', sel2='name H Cl', note that the bool arrays must
+    >>> # be logically OR'ed (| operator) to get the ffect of "H and Cl"
+    >>> d = rpdf(traj, dr=0.1, amask=[sy=='O', (sy=='H') | (sy=='Cl')],tmask=np.s_[3000::50])
     
     >>> # skip distances >1 Ang
     >>> d = rpdf(traj, dr=0.1, amask=['O', 'H'],tmask=np.s_[3000::50]
