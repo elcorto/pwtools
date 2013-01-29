@@ -423,7 +423,6 @@ class CifFile(StructureFileParser):
     def get_coords(self):
         if self.check_set_attr('_cif_block'):
             if self._cif_block.has_key('_atom_site_Cartn_x'):
-                print 'OK'
                 arr = np.array([map(self.cif_str2float, [x,y,z]) for x,y,z in izip(
                                     self._cif_block['_atom_site_Cartn_x'],
                                     self._cif_block['_atom_site_Cartn_y'],
