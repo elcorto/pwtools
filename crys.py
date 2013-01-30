@@ -1805,6 +1805,7 @@ def vmd_measure_gofr(traj, dr, rmax='auto', sel=['all','all'], first=0,
                                 verbose=verbose,tmpdir=tmpdir)
     return ret
 
+
 def distances(struct, pbc=False, squared=False, fullout=False):
     """
     Wrapper for _flib.distsq_frac(). Calculate distances of all atoms in
@@ -1832,6 +1833,16 @@ def distances(struct, pbc=False, squared=False, fullout=False):
     distvecs_frac : (natoms,natoms,3)
         Fractional distance vectors.
     """
+    # numpy version (1x slower):
+    #
+    # cf = struct.coords_frac
+    # cell = struct.cell
+    # distvecs_frac = cf[:,None,:] - cf[None,:,:]
+    # if pbc:
+    #     distvecs_frac = min_image_convention(distvecs_frac)
+    # distvecs = np.dot(distvecs_frac, cell)
+    # distsq = (distvecs**2.0).sum(axis=2)
+    # dists = np.sqrt(distsq)
     nn = struct.natoms
     distsq = fempty((nn,nn))
     distvecs = fempty((nn,nn,3))
