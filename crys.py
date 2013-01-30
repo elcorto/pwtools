@@ -1922,7 +1922,7 @@ def nearest_neighbors(struct, idx=None, skip=None, cutoff=None, num=None, pbc=Tr
     Parameters
     ----------
     struct : Structure
-    idx : str
+    idx : int
         Atom index of the central atom.
     skip : str or sequence of strings
         Symbol(s) of the atoms to skip.
