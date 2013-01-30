@@ -26,50 +26,84 @@
 ! email -- or a patch!
 !
 ! f2py notes
-! ----------
+! ==========
+!
+! passing variables
+! -----------------
 ! Doc:
 ! [1] http://cens.ioc.ee/projects/f2py2e/usersguide/index.html
 ! [2] http://www.sagemath.org/doc/numerical_sage/f2py.html
 ! 
-! A subroutine needs to get input and pre-allocated result arrays. All args are
-! "!f2py intent(in)" by default.
+! A Fortran subroutine always needs to get input and pre-allocated result
+! arrays. The result arrays get overwriten inside the subroutine. This is in
+! contrast to Python fuctions, which usually only take input args and allocate
+! all return args on the fly inside and return them.
+!
+! In f2py, all to a subroutine are "!f2py intent(in)" by default.
 !
 ! All variables declared as "intent(out) foo" will be returned in a tuple (if
 ! there is more then one). Note that there must be one "intent(out)" line for
 ! *each* arg. Also, the order in the tuple is the one of the input args.
 !
-! subroutine foo(a, b, c, d, n)
-!     implicit none
-!     integer :: n
-!     double precision :: a(n,n), b(n,n), c(n,n), d(n,n)
-!     !f2py intent(out) :: c
-!     !f2py intent(out) :: d
-!     c = matmul(a,b)
-!     d = matmul(a,b)*2.0d0
-! end subroutine foo
-!
 ! There are basically two ways of wrapping a subroutine: 
 !
-! (1) the python wrapper doesn't pre-allocate and pass result arrays. In this
-! case, the signature would look like this:: 
+! (1) the python wrapper doesn't pre-allocate and pass result arrays. The
+! Fortran routine looks like this::
+!
+!     subroutine foo(a, b, c, d, n)
+!         implicit none
+!         integer :: n
+!         double precision :: a(n,n), b(n,n), c(n,n), d(n,n)
+!         !f2py intent(out) :: c
+!         !f2py intent(out) :: d
+!         c = matmul(a,b)
+!         d = matmul(a,b)*2.0d0
+!     end subroutine foo
+!
+! and the call signature would be::
+!
 !      c,d = foo(a,b,[n]) 
-! This is the most easy and pythonic way. In that case, the output arrays `c`
-! and `d` are allocated in Fortran in F order, and copied to C order when the
-! fuction returns.
+! 
+! It takes only the inputs `a` and `b` and well as `n` as optional arg, which is
+! determined from `a` and `b`'s array dimension if not given. This is the most
+! easy and pythonic way. In that case, the output arrays `c` and `d` are
+! allocated in Fortran in F order, and copied to C order when the fuction
+! returns. Note that you don't need to pass them when calling the wrapper.
 !
-! (2) Explicitely allocate result arrays on python side and pass in. Change
-! the f2py statement to "!f2py intent(in,out)". Then::  
-!     c,d = foo(a,b,c,d[n])
-! In that case, there are two usage pattern in Python: one can call the wrapper
-! with or without return args b/c the result arrays get overwritten in-place.
-!     c = np.empty(..., order='F')
+! (2) Explicitely allocate result arrays on python side and pass in. 
+!
+!     subroutine foo(a, b, c, d, n)
+!         implicit none
+!         integer :: n
+!         double precision :: a(n,n), b(n,n), c(n,n), d(n,n)
+!         !f2py intent(in,out) :: c
+!         !f2py intent(in,out) :: d
+!         c = matmul(a,b)
+!         d = matmul(a,b)*2.0d0
+!     end subroutine foo
+! 
+! Here, we changed the f2py statement to "!f2py intent(in,out)", telling f2py
+! that the user must supply `c` and `d` explicitely. The signature is now::
+!
+!     c,d = foo(a,b,c,d,[n])
+! 
+! In that case, there are two usage pattern in Python: (A) One can call the wrapper
+! with or (B) without return args b/c the result arrays get overwritten in-place.
+!
+!     c = np.empty(..., order='F')  # allocate result array
 !     d = np.empty(..., order='F')
-!     _flib(a,b,c,d)        # variant 1  
-!     c,d = _flib(a,b,c,d)  # varaint 2
 !
+!     _flib(a,b,c,d)                # variant A
+!     c,d = _flib(a,b,c,d)          # varaint B
+!
+!
+! C/F-order arrays and copies
+! ---------------------------
 ! By default, the f2py wrapper will make a copy of each numpy input array which
+!
 !   * has rank >= 2
 !   * order='C'
+! 
 ! and each output array (F to C order) which was not explicitely passed in.
 ! This can be a real bottleneck for big arrays, sometimes performing much slower
 ! than the actual calculations! Use f2py -DF2PY_REPORT_ON_ARRAY_COPY=1 ... if
