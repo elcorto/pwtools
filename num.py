@@ -1528,3 +1528,60 @@ class PolyFit1D(PolyFit):
         return self._findroot(lambda x: self(x, der=1), x0=x0, xab=xab, 
                               **kwds)
                       
+def match_mask(arr, values, fullout=False, eps=None):
+    """Bool array of ``len(arr)`` which is True if ``arr[i] == values[j],
+    j=0..len(values)``. 
+    
+    This is the same as creating bool arrays like ``arr == some_value`` just
+    that `some_value` can be an array (numpy can only do `some_value` =
+    scalar). By default we assume integer arrays, unless `eps` is used.
+
+    Parameters
+    ----------
+    arr : 1d array
+    values : 1d array
+        Values to be found in `arr`.
+    fullout : bool
+    eps : float
+        Use this threshold to compare array values.
+    
+    Returns
+    -------
+    ret : fullout = False
+    ret, idx_lst : fullout = True
+    ret : 1d array, bool, len(arr)
+        Bool mask array for indexing `arr`. ``arr[ret]`` pulls out all values
+        which are also in `values`.
+    idx_lst : 1d array
+        Indices for which ``arr[idx_lst[i]]`` equals some value in `values`.
+    
+    Examples
+    --------
+    >>> arr=array([1,2,3,4,5]); values=array([1,3])
+    >>> num.match_mask(arr, values)
+    array([ True, False,  True, False, False], dtype=bool)
+    >>> num.match_mask(arr, values, fullout=True)
+    (array([ True, False,  True, False, False], dtype=bool), array([0, 2]))
+    >>> arr[num.match_mask(arr, values)]
+    array([1, 3])
+    >>> # handle cases where len(values) > len(arr) and values not contained in arr
+    >>> arr=array([1,2,3,4,5]); values=array([1,3,3,3,7,9,-3,-4,-5])
+    >>> num.match_mask(arr, values, fullout=True)
+    (array([ True, False,  True, False, False], dtype=bool), array([0, 2]))
+    >>> # float values: use eps
+    >>> num.match_mask(arr+0.1, values, fullout=True, eps=0.2)
+    (array([ True, False,  True, False, False], dtype=bool), array([0, 2]))
+    """
+    assert arr.ndim == 1, ("arr must be 1d array")
+    if eps is None:
+        # assume integer array
+        idx_lst = ((arr[None,:] - values[:,None]) == 0).nonzero()[1]
+    else:        
+        idx_lst = (np.abs(arr[None,:] - values[:,None]) < eps).nonzero()[1]
+    idx_lst = np.unique(idx_lst)        
+    ret = np.zeros((arr.shape[0],), dtype=bool)
+    ret.put(idx_lst, True)
+    if fullout:
+        return ret, idx_lst
+    else:        
+        return ret
