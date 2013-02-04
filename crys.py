@@ -1925,6 +1925,66 @@ def angles(struct, pbc=False, mask_val=999.0, deg=True):
     return anglesijk
 
 
+def nearest_neighbors_from_dists(dists, symbols, idx=None, skip=None, cutoff=None,
+                          num=None, pbc=True, include=False, sort=True, fullout=False):
+    """Core part of nearest_neighbors(), which accepts per-calculated
+    distances. 
+    
+    Can be more efficient in loops where many different
+    nearest neighbors should be calculated from the same distances.
+
+    Parameters
+    ----------
+    dists : 2d array (natoms,natoms)
+        Cartesian distances (see distances()).
+    symbols : sequence of strings (natoms,)  
+        Atom symbols, i.e. struct.symbols
+
+    Rest see nearest_neighbors().    
+    """
+    assert idx != None, "idx is None"
+    assert None in [num,cutoff], "use either num or cutoff"
+    # dists: distance matrix (natoms, natoms), each row or col is sorted like
+    # struct.symbols
+    # 
+    # dist from atom `idx` to all atoms, same as dists[idx,:] b/c `dist` is
+    # symmetric
+    dist1d = dists[:,idx]
+    # order by distance, `idx` first with dist=0
+    idx_lst_sort = np.argsort(dist1d)
+    dist1d_sort = dist1d[idx_lst_sort]
+    symbols_sort = np.array(symbols)[idx_lst_sort]
+    # numpy bool arrays rock!
+    if skip is None:
+        skip_msk = np.zeros((len(symbols_sort),), dtype=bool)
+    else:    
+        if type(skip) == type([]):
+            skip_msk = symbols_sort == skip[0]
+            for item in skip[1:]:
+                skip_msk = skip_msk | (symbols_sort == item)
+        else:
+            skip_msk = symbols_sort == skip
+    if cutoff is None:
+        if include:
+            cut_msk = np.s_[:num+1]
+        else:
+            cut_msk = np.s_[1:num+1]
+        ret_idx = idx_lst_sort[np.invert(skip_msk)][cut_msk]
+    else:
+        if include:
+            cut_msk = dist1d_sort < cutoff
+        else:            
+            cut_msk = (dist1d_sort > 0) & (dist1d_sort < cutoff)
+        ret_idx = idx_lst_sort[cut_msk & np.invert(skip_msk)]
+    if not sort:
+        orig_idx = np.arange(len(dist1d))
+        ret_idx = orig_idx[match_mask(orig_idx,ret_idx)]
+    if fullout:
+        return ret_idx, dist1d[ret_idx]
+    else:
+        return ret_idx
+
+
 def nearest_neighbors(struct, idx=None, skip=None, cutoff=None, num=None, pbc=True,
                       include=False, sort=True, fullout=False):
     """Indices of the nearest neighbor atoms to atom `idx`, skipping atoms
@@ -1999,47 +2059,15 @@ def nearest_neighbors(struct, idx=None, skip=None, cutoff=None, num=None, pbc=Tr
     >>> array(st.symbols)[msk]
     array(['Al', 'Al', 'N', 'N', 'N', 'N', 'N', 'N'], dtype='|S2')
     """
-    assert idx != None, "idx is None"
-    assert None in [num,cutoff], "use either num or cutoff"
-    # distance matrix (natoms, natoms), each row or col is sorted like
-    # struct.symbols
-    dist = distances(struct, pbc=pbc)
-    # dist from atom `idx` to all atoms, same as dist[idx,:] b/c `dist` is
-    # symmetric
-    dist1d = dist[:,idx]
-    # order by distance, `idx` first with dist=0
-    idx_lst_sort = np.argsort(dist1d)
-    dist1d_sort = dist1d[idx_lst_sort]
-    symbols_sort = np.array(struct.symbols)[idx_lst_sort]
-    # numpy bool arrays rock!
-    if skip is None:
-        skip_msk = np.zeros((len(symbols_sort),), dtype=bool)
-    else:    
-        if type(skip) == type([]):
-            skip_msk = symbols_sort == skip[0]
-            for item in skip[1:]:
-                skip_msk = skip_msk | (symbols_sort == item)
-        else:
-            skip_msk = symbols_sort == skip
-    if cutoff is None:
-        if include:
-            cut_msk = np.s_[:num+1]
-        else:
-            cut_msk = np.s_[1:num+1]
-        ret_idx = idx_lst_sort[np.invert(skip_msk)][cut_msk]
-    else:
-        if include:
-            cut_msk = dist1d_sort < cutoff
-        else:            
-            cut_msk = (dist1d_sort > 0) & (dist1d_sort < cutoff)
-        ret_idx = idx_lst_sort[cut_msk & np.invert(skip_msk)]
-    if not sort:
-        orig_idx = np.arange(len(dist1d))
-        ret_idx = orig_idx[match_mask(orig_idx,ret_idx)]
-    if fullout:
-        return ret_idx, dist1d[ret_idx]
-    else:
-        return ret_idx
+    # Distance matrix (natoms, natoms). Each row or col is sorted like
+    # struct.symbols. If used in loops over trajs, the distances() call is the
+    # most costly part, even though coded in Fortran.
+    dists = distances(struct, pbc=pbc)
+    return nearest_neighbors_from_dists(dists=dists, symbols=struct.symbols, idx=idx,
+                                 skip=skip, cutoff=cutoff, num=num, 
+                                 include=include, sort=sort,
+                                 fullout=fullout)
+    
 
 #-----------------------------------------------------------------------------
 # Container classes for crystal structures and trajectories.
