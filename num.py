@@ -1585,3 +1585,96 @@ def match_mask(arr, values, fullout=False, eps=None):
         return ret, idx_lst
     else:        
         return ret
+
+
+def order_similar(arr, repeat=1, order=2):
+    """Band ordering algorithm. Uses up to quadradic extrapolation. Handles
+    crossing points.
+
+    This can be used to order dispersion plots, for instance.
+
+    Parameters
+    ----------
+    arr : 2d array (npoints, ndim)
+        `ndim` 1d data streams with `npoints` each. 
+    repeat : int
+        1: run 1 time, N: run recursively N times
+    order : int
+        Order of extrapolation: 0 = next similar point, 1 = linear using the
+        two last points, 2 = quadratic using the 3 last points
+    
+    Returns
+    -------
+    arr2 : like `arr`
+        Array with ordered data series.
+
+    Notes
+    -----
+    The more points, the better. The first 1-2 steps should start smoothly or
+    the algo will get confused. If you don't get all crossing points resolved,
+    try ``repeat > 1``. But if the algo placed points from different data
+    streams into one, you are lost. Then you can only use more points to make
+    the extrapolation more precise.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pwtools import mpl, num
+    >>> plt = mpl.plt
+    >>> x = np.linspace(0,10,200)
+    >>> a = np.array([np.sin(0.5*x), 
+    ...               1.2*np.cos(2*x), 
+    ...               np.sin(2.5*(x-1.5)),
+    ...               0.2*np.sin(x-1.1),
+    ...               0.3*np.sin(x-1.1),
+    ...               ]).T
+    >>> for ai in a:
+    ...     np.random.shuffle(ai)
+    >>> plt.figure(); plt.plot(a); plt.title('raw data')
+    >>> aa = num.order_similar(a, repeat=1, order=2)
+    >>> plt.figure(); plt.plot(aa); plt.title('sorted, repeat=1, order=2')
+    >>> aa = num.order_similar(a, repeat=2, order=1)
+    >>> plt.figure(); plt.plot(aa); plt.title('sorted, repeat=2, order=1')
+    >>> plt.show()    
+    """
+    assert 0 <= order <= 2, "order must be 0,1,2"
+    assert repeat >= 1, "repeat must be >= 1"
+    _o_zero = False
+    _o_one = False
+    _o_two = False
+    if order >= 0:
+        _o_zero = True
+    if order >= 1:
+        _o_one = True
+    if order == 2:
+        _o_two = True
+    if repeat == 1:
+        ni,nj = arr.shape
+        arr2 = np.empty_like(arr)
+        arr2[0,:] = arr[0,:]
+        for ii in range(ni-1):
+            for jj in range(nj):
+                if (ii == 0) and _o_zero:
+                    # 1st row: choose next similar point
+                    ref = arr2[ii,jj]
+                elif (ii == 1) and _o_one:
+                    # 2 rows: linear extrapolation
+                    ref = 2*arr2[ii,jj] - arr2[ii-1,jj]
+                elif (ii >= 2) and _o_two:
+                    # > 2 rows: quadradic extrapolation
+                    # 
+                    # Calling polyfit is pretty slow and could be
+                    # optimized. For 3 points in x,y, we can write the
+                    # expressions for the coeffs by hand, yes?
+                    x = np.array([0,1,2])
+                    y = arr2[ii-2:ii+1,jj]
+                    p = np.polyfit(x,y,2)
+                    ref = np.polyval(p,3)
+                dif = np.abs(arr[ii+1,:] - ref)
+                idx = np.argmin(dif)
+                arr2[ii+1,jj] = arr[ii+1,idx]
+    else:
+        arr2 = order_similar(arr, repeat=repeat-1)
+    return arr2            
+            
+
