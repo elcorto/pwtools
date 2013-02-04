@@ -1861,6 +1861,31 @@ def distances(struct, pbc=False, squared=False, fullout=False):
         del distvecs_frac
         return dists
 
+
+def distances_traj(traj, pbc=False):
+    """Cartesian distances along a trajectory.
+
+    Wrapper for _flib.distances_traj().
+    
+    Parameters
+    ----------
+    traj : Trajectory
+    pbc : bool
+        Use minimum image distances.
+    
+    Returns
+    -------
+    dists : (nstep, natoms, natoms)
+    """
+    nn = traj.natoms
+    dists = fempty((traj.nstep,nn,nn))
+    _flib.distances_traj(coords_frac=np.asarray(traj.coords_frac, order='F'), 
+                         cell=np.asarray(traj.cell, order='F'), 
+                         pbc=int(pbc),
+                         dists=dists)
+    return dists
+
+
 def angles(struct, pbc=False, mask_val=999.0, deg=True):
     """
     Wrapper for _flib.angles(), which accepts a Structure. 

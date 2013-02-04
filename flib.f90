@@ -382,6 +382,7 @@ subroutine angles(distvecs, dists, mask_val, deg, anglesijk, natoms)
     end if
 end subroutine angles
 
+
 subroutine distsq_frac(coords_frac, cell, pbc, distsq, distvecs, distvecs_frac, natoms)
     ! Special purpose routine to calculate distance vectors, squared distances
     ! and apply minimum image convention (pbc) for fractional atom coords.
@@ -449,3 +450,69 @@ subroutine distsq_frac(coords_frac, cell, pbc, distsq, distvecs, distvecs_frac, 
         end do
     end do
 end subroutine distsq_frac
+
+
+! This routine below works, but on one core it is NOT faster than looping thru a
+! Trajectory in Python::
+!   
+!   >>> tr = Trajectory(...)
+!   >>> for st in tr:
+!   ...     dist = crys.distances(st,...)
+! 
+! where distances() uses distsq_frac(), which is the called 1e4 times if
+! tr.nstep=1e4! See examples/dist_speed_traj.py. We know that looping thru
+! Trajectory is very fast b/c we only use array views when calling
+! tr.__getitem__(). Then, the overhead of calling a f2py wrapper must be very
+! small, proably b/c we allocate arrays in F order in distances() etc. That's
+! pretty impressive!
+!
+! Below, OpenMP scales almost linear (tested up to 4 cores). 
+! But: The array `dists` tends to get quite big (some GB) very quickly.
+!
+! Instead, what is easy on memory *and* scales linear is using
+! multiprocessing.Pool.map(worker,...) to iterare thru a Trajectory in parallel,
+! calling distances() in each worker! That is embarr. parallel and should scale
+! to any cores b/c we only chop the traj into pieces.
+
+subroutine distances_traj(coords_frac, cell, pbc, natoms, nstep, dists)
+    ! Cartesian distances along a trajectory.
+    !
+    ! Parameters
+    ! ----------
+    ! coords_frac : (nstep,natoms,3)
+    ! cell : (nstep,3,3)
+    ! pbc : int
+    !     {0,1}
+    ! dists : (nstep, natoms, natoms)
+    !   dummy input
+    ! natoms,nstep : dummy input  
+    !
+    ! Returns
+    ! -------
+    ! dists : (nstep,natoms,natoms)
+    !     cartesien distances
+    implicit none
+    integer :: natoms, pbc, istep, nstep
+    double precision, intent(in) :: coords_frac(nstep,natoms,3), cell(nstep,3,3)
+    double precision, intent(out) :: dists(nstep,natoms,natoms)
+    double precision :: distsq(natoms,natoms), distvecs_frac(natoms, natoms, 3), &
+                        distvecs(natoms, natoms, 3)
+
+#ifdef __OPENMP    
+    !f2py threadsafe
+#endif    
+    
+    !f2py intent(in,out,overwrite) dists
+    
+    ! Without these private(...) statements the routine produces wrong results.
+    !$omp parallel private(distvecs_frac, distvecs, distsq) 
+    !$omp do
+    do istep=1,nstep
+        call distsq_frac(coords_frac(istep,:,:), &
+                         cell(istep,:,:), &
+                         pbc, distsq, distvecs, distvecs_frac, natoms)
+        dists(istep,:,:) = sqrt(distsq)
+    end do
+    !$omp end do
+    !$omp end parallel
+end subroutine distances_traj
