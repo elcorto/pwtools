@@ -15,7 +15,7 @@ from pwtools import num, atomic_data
 from pwtools.base import FlexibleGetters
 from pwtools.constants import Bohr, Angstrom
 from pwtools import constants, atomic_data, _flib
-from pwtools.num import fempty, rms, rms3d
+from pwtools.num import fempty, rms, rms3d, match_mask
 
 #-----------------------------------------------------------------------------
 # misc math
@@ -1926,7 +1926,7 @@ def angles(struct, pbc=False, mask_val=999.0, deg=True):
 
 
 def nearest_neighbors(struct, idx=None, skip=None, cutoff=None, num=None, pbc=True,
-                      include=False, fullout=False):
+                      include=False, sort=True, fullout=False):
     """Indices of the nearest neighbor atoms to atom `idx`, skipping atoms
     whose symbols are `skip`.
 
@@ -1947,6 +1947,8 @@ def nearest_neighbors(struct, idx=None, skip=None, cutoff=None, num=None, pbc=Tr
     include : bool
         Include central atom in returned index list. Returned index array will
         be one item longer.
+    sort : bool
+        Sort `nn_idx` and `nn_dist` by distance.     
     fullout : bool
         See below.
 
@@ -1958,17 +1960,24 @@ def nearest_neighbors(struct, idx=None, skip=None, cutoff=None, num=None, pbc=Tr
         Indices into struct.symbols / coords.
     nn_dist : 1d array
         Distances ordered as in `nn_idx`.
+    
+    See Also
+    --------
+    num.match_mask
 
     Notes
     -----
-    `num`: Depending on `struct`, there may not be `num` nearest neighbors,
+    `num` : Depending on `struct`, there may not be `num` nearest neighbors,
     especially if you use `skip` to leave certain species out. Then the
     number of returned indices may be less then `num`.
-
-    Ordering: For structs with high symmetry (i.e. bulk crystals) where many
+    
+    Ordering : If ``sort=True``, then returnd indices `nn_idx` and distances
+    `nn_dist` are sorted small -> high. If ``sort=False``, then they are in the
+    same order as the symbols in ``struct.symbols``.
+    For structs with high symmetry (i.e. bulk crystals) where many
     nearest neighbors have the same distance from the central atom, the
-    ordering of the indices depends on the order of the atoms in
-    ``struct.symbols``. In fact, see ``numpy.argsort`` :)
+    ordering of depends on how ``numpy.argsort`` sorts equal values in an
+    array.
 
     Examples
     --------
@@ -1983,19 +1992,25 @@ def nearest_neighbors(struct, idx=None, skip=None, cutoff=None, num=None, pbc=Tr
     array([ 9, 10, 11, 12, 13, 14,  1,  2])
     >>> nd
     [ 2. 2. 2. 2. 2. 2. 2.82842712 2.82842712]
+    >>> # Use `ni` or bool array created from that for indexing
     >>> array(st.symbols)[ni]
-    ['N' 'N' 'N' 'N' 'N' 'N' 'Al' 'Al']
+    array(['Al', 'Al', 'N', 'N', 'N', 'N', 'N', 'N'], dtype='|S2')
+    >>> msk=num.match_mask(arange(st.natoms), ni)
+    >>> array(st.symbols)[msk]
+    array(['Al', 'Al', 'N', 'N', 'N', 'N', 'N', 'N'], dtype='|S2')
     """
     assert idx != None, "idx is None"
     assert None in [num,cutoff], "use either num or cutoff"
-    # distance matrix (natoms, natoms)
+    # distance matrix (natoms, natoms), each row or col is sorted like
+    # struct.symbols
     dist = distances(struct, pbc=pbc)
     # dist from atom `idx` to all atoms, same as dist[idx,:] b/c `dist` is
     # symmetric
     dist1d = dist[:,idx]
     # order by distance, `idx` first with dist=0
-    sort_idx = np.argsort(dist1d)
-    symbols_sort = np.array(struct.symbols)[sort_idx]
+    idx_lst_sort = np.argsort(dist1d)
+    dist1d_sort = dist1d[idx_lst_sort]
+    symbols_sort = np.array(struct.symbols)[idx_lst_sort]
     # numpy bool arrays rock!
     if skip is None:
         skip_msk = np.zeros((len(symbols_sort),), dtype=bool)
@@ -2011,14 +2026,16 @@ def nearest_neighbors(struct, idx=None, skip=None, cutoff=None, num=None, pbc=Tr
             cut_msk = np.s_[:num+1]
         else:
             cut_msk = np.s_[1:num+1]
-        ret_idx = sort_idx[np.invert(skip_msk)][cut_msk]
+        ret_idx = idx_lst_sort[np.invert(skip_msk)][cut_msk]
     else:
-        dist1d_sort = dist1d[sort_idx]
         if include:
             cut_msk = dist1d_sort < cutoff
         else:            
             cut_msk = (dist1d_sort > 0) & (dist1d_sort < cutoff)
-        ret_idx = sort_idx[cut_msk & np.invert(skip_msk)]
+        ret_idx = idx_lst_sort[cut_msk & np.invert(skip_msk)]
+    if not sort:
+        orig_idx = np.arange(len(dist1d))
+        ret_idx = orig_idx[match_mask(orig_idx,ret_idx)]
     if fullout:
         return ret_idx, dist1d[ret_idx]
     else:
