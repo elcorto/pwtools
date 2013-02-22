@@ -480,7 +480,6 @@ class Gibbs(object):
         for idx in range(self.npoints):
             if self.verbose:
                 print "calc_F: axes_flat idx = %i" %idx
-                ret[self.axes_prefix + '/T/Evib'][idx,:] = evib
             ha = HarmonicThermo(freq=self.phdos[idx][:,0], 
                                 dos=self.phdos[idx][:,1],
                                 temp=self.T, 
@@ -495,6 +494,7 @@ class Gibbs(object):
                 ret[self.axes_prefix + '/T/Svib'][idx,:] = svib
                 ret[self.axes_prefix + '/T/Evib'][idx,:] = evib
                 ret[self.axes_prefix + '/T/Cv'][idx,:] = cv
+                ret[self.axes_prefix + '/T/Evib'][idx,:] = evib
         return ret
 
     def calc_G(self, ret=None, calc_all=True):
