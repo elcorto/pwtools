@@ -501,7 +501,7 @@ def set_plot_layout_talk(rctarget=None):
 
 def set_plot_layout_paper(rctarget=None):
     rctarget = get_rctarget(rctarget)
-    rctarget.rc('legend', borderpad=0.2)
+    rctarget.rc('legend', borderpad=0.0)
     # minimal possible spacing, labels do not overlap
     rctarget.rc('legend', labelspacing=0)
     rctarget.rc('savefig', dpi=100)
@@ -514,7 +514,8 @@ def set_plot_layout_paper(rctarget=None):
     rctarget.rc('figure.subplot', right=0.875)
     rctarget.rc('figure.subplot', bottom=0.125)
     rctarget.rc('mathtext', default='regular')
-    rctarget.rc('legend', fancybox=True)
+    rctarget.rc('legend', frameon=False)
+    rctarget.rc('legend', fontsize='medium')
 
 #----------------------------------------------------------------------------
 # new axis line
