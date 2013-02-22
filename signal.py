@@ -5,7 +5,9 @@
 
 import numpy as np
 from scipy.fftpack import fft, ifft
-from pwtools import _flib
+from scipy.signal import convolve, gaussian, kaiserord, firwin, lfilter, freqz
+from scipy.integrate import trapz
+from pwtools import _flib, num
 
 def fftsample(a, b, mode='f', mirr=False):
     """Convert size and resolution between frequency and time domain.
@@ -377,3 +379,210 @@ def acorr(v, method=7, norm=True):
     else:
         return c
 
+
+def gauss(x, std=1.0):
+    """Gaussian function."""
+    return np.exp(-x**2.0 / std)
+
+
+def find_peaks(y, x=None, k=3, spread=2, ymin=None):
+    """Simple peak finding algorithm.
+    
+    Find all peaks where ``y > ymin``. If `x` given, also extract peak maxima
+    positions by fitting a spline of order `k` to each found peak. To find
+    minima, just use ``-y``.
+    
+    Parameters
+    ----------
+    y : 1d array_like
+        data with peaks
+    x : 1d array_like, optional, len(y)
+        x axis
+    k : int
+        order of spline 
+    spread : int
+        Use ``2*spread+1`` points around each peak to fit a spline. Note that
+        we need ``2*spread+1 > k``.
+    ymin : float, optional
+        Find all peaks above that value.
+
+    Returns
+    -------
+    idx0, pos0
+    idx0 : indices of peaks from finite diffs, each peak is at ``x[idx0[i]]``
+    pos0 : refined `x`-positions of peaks if `x` given, else None
+
+    Examples
+    --------
+    >>> from pwtools.signal import gauss, find_peaks
+    >>> x=linspace(0,10,100); y=0.2*gauss(x-0.5,.1) + gauss(x-2,.1) + 0.7*gauss(x-3,0.1) + gauss(x-6,1)
+    >>> find_peaks(y,x, ymin=0.4)
+    ([20, 30, 59], [2.0012154541433453, 3.001285959276882, 5.999893254281085])
+    >>> idx0, pos0=find_peaks(y,x, ymin=0.4)
+    >>> spl=num.Spline(x,y)
+    >>> plot(x,y)
+    >>> for x0 in pos0:
+    ...     plot([x0], [spl(x0)], 'ro')
+    """
+    ymin = y.min() if ymin is None else ymin
+    idx0 = []
+    dfy = np.diff(y, n=1)
+    for ii in range(len(dfy)-1):
+        if dfy[ii] > 0 and dfy[ii+1] < 0 and y[ii] >= ymin:
+            idx0.append(ii+1)
+    pos0 = None
+    if x is not None:
+        pos0 = []
+        for i0 in idx0:
+            sl = slice(i0-spread,i0+1+spread,None)
+            xx = x[sl]
+            yy = y[sl]
+            spl = num.Spline(xx,-yy,k=k,s=None)
+            try:
+                root = spl.get_min()
+                pos0.append(root)
+            except ValueError:
+                raise ValueError("error at idx=%i, x=%f" %(i0,x[i0]))
+    return idx0, pos0
+
+
+def smooth_convolve(x, y, std=1.0, width=None, args=(), area=None,
+                    func=gaussian):
+    """Smooth x-y curve by convolution with `func` of std deviation `std`
+    and optionally normalize integral to `area`.
+
+    `std` and `width` are converted from `x` units to steps and `func` is
+    called as ``func(width_in_steps, std_in_steps, *args)``.
+
+    Parameters
+    ----------
+    x : 1d array
+    y : 1d array
+    std : float
+        sigma in case if a gaussian, same unit as `x`
+    width : float, optional
+        Width of the gaussian, same unit as `x`. Default is ``6*std``. 
+    args : extra args to `func`       
+    area : float or str 'same', optional
+        Target integral area for normalization. None for no normalization.
+    func : callable
+        fuction to convolve with, default is ``scipy.signal.gaussian()``
+
+    Returns
+    -------
+    yc : convolved y
+
+    Examples
+    --------
+    >>> from pwtools import signal
+    >>> x=linspace(0,10,100); y=rand(100)
+    >>> plot(x,y)
+    >>> plot(x, signal.smooth_convolve(x, y, std=0.2, area=np.trapz(y,x)))
+    """
+    nstep = x.shape[0]
+    # width and std are integers relative to nstep, but we get them as x unit,
+    # e.g. Hz or whatever and need to convert to nstep "unit"
+    x_to_step = 1.0 / ((x[-1] - x[0]) / float(nstep))
+    if width is None:        
+        _width = int(std*6.0 * x_to_step)
+    else:
+        _width = width
+    _std = int(std * x_to_step)
+    yc = convolve(y, func(_width, _std, *args), 'same')
+    if area is not None:
+        yc = num.norm_int(yc, x, area=area, scale=True)
+    return yc
+
+
+class FIRFilter(object):
+    """Build and apply a digital FIR filter (low-, high-, band-pass,
+    band-stop). Uses firwin() and in some cases kaiserord().
+    
+    Doc strings stolen from scipy.signal.
+    
+    Notes
+    -----
+    To plot frequency response (the frequency bands), use::
+    >>> f = Filter(...)
+    >>> plot(f.w, abs(f.h))
+    
+    Examples
+    --------
+    .. literalinclude:: ../../../examples/filter_example.py
+
+    References
+    ----------
+    .. [1]: http://www.scipy.org/Cookbook/FIRFilter
+    """
+    def __init__(self, cutoff, nyq, ntaps=None, ripple=None, width=None,
+                 window='hamming', mode='lowpass'):
+        """
+        Parameters
+        ----------
+        cutoff : float or 1D array_like
+            Cutoff frequency of filter (expressed in the same units as `nyq`)
+            OR an array of cutoff frequencies (that is, band edges). In the
+            latter case, the frequencies in `cutoff` should be positive and
+            monotonically increasing between 0 and `nyq`.  The values 0 and
+            `nyq` must not be included in `cutoff`.
+        nyq : float
+            Nyquist frequency [Hz].  Each frequency in `cutoff` must be between 0
+            and `nyq`.
+        ntaps : int
+            Length of the filter (number of coefficients, i.e. the filter
+            order + 1).  `ntaps` must be even if a passband includes the
+            Nyquist frequency. Use either `ntaps` or `ripple` + `width` for a
+            Kaiser window.
+        ripple : float
+            Positive number specifying maximum ripple in passband (dB) and
+            minimum ripple in stopband. Large values (like 1000) remove the
+            "rippling" in the pass band almost completely and make frequency
+            response almost "square" (if `width` is small) but also
+            lead to a large number of filter coeffs (ntaps).
+        width : float
+            Width of transition region (same unit as `nyq`, e.g. Hz).
+        window : string or tuple of string and parameter values
+            Desired window to use. See `scipy.signal.get_window` for a list
+            of windows and required parameters. Default is "hamming". Ignored
+            if `width` and `ripple` givem b/c then ``kaiserord`` is used to
+            build a Kaiser window.
+        mode : str
+            'lowpass', 'highpass', 'bandpass', 'bandstop'
+        """
+        if ntaps is None:
+            assert [ripple, width] != [None]*2, ("ntaps is None, we need "
+                "ripple and width for a Kaiser window")
+            self.ntaps, self.beta = kaiserord(float(ripple), float(width) / nyq)
+            window = ('kaiser', self.beta)
+        else:
+            self.ntaps = ntaps
+        self.window = window               
+        if mode == 'lowpass':
+            pass_zero = True    
+        elif mode == 'highpass':
+            pass_zero = False
+        elif mode == 'bandpass':
+            pass_zero = False
+            assert len(cutoff) == 2
+        elif mode == 'bandstop':
+            pass_zero = True
+            assert len(cutoff) == 2
+            if N % 2 == 0:
+                N += 1
+        else:
+            raise StandardError('unknown mode')
+        self.taps = firwin(numtaps=self.ntaps, cutoff=cutoff, window=self.window, nyq=nyq,
+                           pass_zero=pass_zero, width=width)
+        w,h = freqz(self.taps)
+        self.w = (w/np.pi)*nyq
+        self.h = h
+
+    def __call__(self, x, axis=-1):
+        """Apply filter to signal.
+
+        Parameters
+        ----------
+        x : 1d array
+        axis : int
+        """
+        return lfilter(self.taps, 1.0, x, axis=axis)
