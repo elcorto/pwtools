@@ -6,12 +6,16 @@ import numpy as np
 import common, crys, pwscf, parse
 from pwtools.common import frepr
 from pwtools.constants import Ha, eV
+import warnings
+try:
+    import h5py
+except ImportError:
+    warnings.warn("Cannot import h5py.") 
 
 # Cif parser
 try:
     import CifFile as pycifrw_CifFile
 except ImportError:
-    import warnings
     warnings.warn("Cannot import CifFile from the PyCifRW package. " 
     "Parsing Cif files will not work.")
 
@@ -242,3 +246,22 @@ read_cpmd_scf = ReadFactory(parser=parse.CpmdSCFOutputFile,
 read_cpmd_md = ReadFactory(parser=parse.CpmdMDOutputFile, 
                            struct_or_traj='traj', 
                            )
+
+
+def write_h5(fn, dct, skip=[None]):
+    """Write dictionary with arrays (or whatever HDF5 handles) to h5 file.
+
+    Parameters
+    ----------
+    fn : str
+        filename
+    dct : dict
+    skip : sequence
+        Skip all ``dct[key]`` values which are in `skip`.
+    """
+    fh = h5py.File(fn, mode='w')
+    for key,val in dct.iteritems():
+        if val not in skip:
+            fh[key] = val
+    fh.close()
+

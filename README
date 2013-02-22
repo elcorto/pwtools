@@ -134,6 +134,7 @@ Almost must have:
   path. Note that the executable is assumed to be named "eos.x". See
   ``pwtools.eos.ElkEOSFit`` for usage. Can be installed directly from Elk or
   also [pwextern-free]_.
+* h5py: ``aptitude install python-h5py``
 
 Without BeautifulSoup and PyCifRW, you will get import warnings, some parsing
 classes and IO functions will not work (Cif and CML parsing currently) and some
