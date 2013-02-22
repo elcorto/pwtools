@@ -254,7 +254,7 @@ class Gibbs(object):
     We have 3 cases for how unit cell axis need to be varied.
 
     ==== ===============  ========================  ==============   ============
-    case axes_flat.shape  cell parameter grid       fitfunc          bulk mod
+    case axes_flat.shape  cell parameter grid       fitfunc          bulk modulus
     ==== ===============  ========================  ==============   ============
     1d   (N,) or (N,1)    ax0 = a (-> V)            G(V), thus any   V*d^2G/dV^2 
                           (cubic)                   EOS will do      
@@ -273,17 +273,24 @@ class Gibbs(object):
     Notes
     -----
     fitfunc : Dict with class instances for fitting various things. 
-        Must return ``num.Spline``-like object with ``get_min()`` method.  See
-        `self._default_fit_*` to get an idea, use ``set_fitfunc()`` to change.
-        This can (and should!) be used to tune fitting methods.
-
-        | '1d-G'  : fit G(V), __call__ must accept keyword `der=2` for
-        |           B(V) = V*d^2G/dV^2
-        | '2d-G'  : fit G(ax0,ax1)
-        | '1d-ax' : fit V(ax0)
-        | 'alpha' : fit x_opt(T), x=ax0,ax1,ax2,V and calc alpha_x = 1/x * dx/dT
-        | 'C': fit G_opt(T) and Cp = -T * d^G_opt/dT^2
-    
+        The instances must be a ``num.Spline``-like object with a ``get_min()``
+        method. The __call__() method must accept a keyword `der` for
+        calculating derivatives in some cases. See `self._default_fit_*` to get
+        an idea (e.g. ``num.Spline`` or ``num.PolyFit``), use ``set_fitfunc()``
+        to change. This can (and should!) be used to tune fitting methods.
+   
+        ========  ==========================================================
+        key       value  
+        ========  ==========================================================
+        '1d-G'    fit G(V), ``__call__(V,der=2)`` for B(V) =
+                  V*d^2G/dV^2
+        '2d-G'    fit G(ax0,ax1)
+        '1d-ax'   fit V(ax0)
+        'alpha'   fit x_opt(T), x=ax0,ax1,ax2,V,
+                  ``__call__(T,der=1)`` for alpha_x = 1/x * dx/dT
+        'C'       fit G_opt(T), ``__call__(T,der=2)`` for 
+                  Cp = -T * d^G_opt/dT^2
+        ========  ==========================================================
         
     The methods `calc_F` and `calc_G` return dicts with nd-arrays holding
     calculated thermodynamic properites. Naming convention for dict keys
@@ -291,7 +298,7 @@ class Gibbs(object):
     ``/group0/group1/array``, thus the last name in the path is the name of the
     array (`z` in the examples below). All previous names define the grid and
     thus the dimension of the array. A group name starting with "#" is just a
-    prefix. Below, `nx=len(x)`. 
+    prefix. Below, `na=len(a)`, etc. 
     
     ==============  ==  ================   ================================
     ``/a/z``        1d  (na,)              "z along a-grid"
@@ -308,7 +315,7 @@ class Gibbs(object):
     created by nested loops ``[(ax0_i,ax1_i) for ax0_i in ax0 for ax1_i in
     ax1]`` and therefore have shape (nax0*nax1,2) or (nax0*nax1*nax2,3) . But
     that is not required. They can be completely unctructured (e.g. if points
-    have beed added later to the grid manually) -- only `fitfunc` must be able
+    have been added later to the grid manually) -- only `fitfunc` must be able
     to handle that.
 
     Units
@@ -323,7 +330,7 @@ class Gibbs(object):
     =================== =====================
     """
     def __init__(self, T=None, P=None, etot=None, phdos=None, axes_flat=None,
-                 volfunc_ax=None, dosarea=None, case=None, verbose=False):
+                 volfunc_ax=None, case=None, **kwds):
         """
         Parameters
         ----------
@@ -353,20 +360,23 @@ class Gibbs(object):
                 | 2d: [a0, a1]
                 | 3d: [a0, a1, a2]
             with a0,a1,a2 the length of the unit cell axes.
-        dosarea : see HarmonicThermo
         case : str, optional
             '1d', '2d', '3d' or None. If None then it will be determined from
             axes_flat.shape[1]. Can be used to evaluate "fake" 1d data: set
             case='1d' but let `axes_flat` be (N,2) or (N,3)
-        verbose : bool, optional    
+        **kwds: keywords 
+            passed to HarmonicThermo and added here as `self.<key>=<value>`
         """
-        self.verbose = verbose
+        self.kwds = dict(verbose=False, fixnan=True, skipfreq=True,
+                         dosarea=None)
+        self.kwds.update(kwds)                         
+        for k,v in self.kwds.iteritems():
+            setattr(self, k, v)
         self.T = T
         self.P = P
         self.etot = etot
         self.phdos = phdos
         self.volfunc_ax = volfunc_ax
-        self.dosarea = dosarea
         self.axes_flat = axes_flat if axes_flat.ndim == 2 else axes_flat[:,None]
         self.nT = len(self.T)
         self.nP = len(self.P)
@@ -394,6 +404,15 @@ class Gibbs(object):
             }
     
     def set_fitfunc(self, what, func):
+        """Update dict with fitting fucntions: ``self.fitfunc[what] = func``.
+
+        Parameters
+        ----------
+        what : str
+            One of self.fitfunc.keys()
+        func : 
+            callable class instance
+        """            
         assert what in self.fitfunc.keys(), ("unknown key: '%s'" %what)
         self.fitfunc[what] = func
 
@@ -424,11 +443,15 @@ class Gibbs(object):
 ##        _eos.fit()
 ##        return _eos.spl_ev
     
-    def calc_F(self):
-        """
-        Calculate free energy properties along T axes for each axes grid point
+    def calc_F(self, calc_all=False):
+        """Calculate free energy properties along T axes for each axes grid point
         (ax0,ax1,ax2) in `self.axes_flat`. Also used by `calc_G()`. Uses
         HarmonicThermo.
+        
+        Parameters
+        ----------
+        calc_all : bool
+            Calculate only F, Fvib or all (F, Fvib, Evib, Svib, Cv)
 
         Returns
         -------
@@ -446,29 +469,38 @@ class Gibbs(object):
                 | '/ax0-ax1-ax2/T/Fvib'
                 | ...
         """
+        if calc_all:
+            names = ['F', 'Fvib', 'Evib', 'Svib', 'Cv']
+        else:
+            names = ['F', 'Fvib']
         ret = dict((self.axes_prefix + '/T/%s' %name, 
                     np.empty((self.npoints, self.nT), 
                              dtype=float)) \
-                    for name in ['F', 'Fvib'])
+                    for name in names)
         for idx in range(self.npoints):
             if self.verbose:
-                print "calc_F: idx = %i" %idx
+                print "calc_F: axes_flat idx = %i" %idx
+                ret[self.axes_prefix + '/T/Evib'][idx,:] = evib
             ha = HarmonicThermo(freq=self.phdos[idx][:,0], 
                                 dos=self.phdos[idx][:,1],
                                 temp=self.T, 
-                                fixnan=True,
-                                skipfreq=True,
-                                dosarea=self.dosarea,
-                                verbose=self.verbose)
+                                **self.kwds)
             fvib = ha.fvib()
             ret[self.axes_prefix + '/T/F'][idx,:] = self.etot[idx] + fvib                            
             ret[self.axes_prefix + '/T/Fvib'][idx,:] = fvib 
+            if calc_all:
+                svib = ha.svib()
+                cv = ha.cv()
+                evib = fvib + self.T * svib # or call ha.evib()
+                ret[self.axes_prefix + '/T/Svib'][idx,:] = svib
+                ret[self.axes_prefix + '/T/Evib'][idx,:] = evib
+                ret[self.axes_prefix + '/T/Cv'][idx,:] = cv
         return ret
 
     def calc_G(self, ret=None, calc_all=True):
         """
-        Gibbs free energy and related properties on T-P grid. Uses
-        self.fitfunc.
+        Gibbs free energy and related properties on T-P grid. 
+        Uses self.fitfunc.
 
         Parameters
         ----------
