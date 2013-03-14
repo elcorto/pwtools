@@ -496,6 +496,7 @@ class Gibbs(object):
                     np.empty((self.npoints, self.nT), 
                              dtype=float)) \
                     for name in names)
+        ret[self.axes_prefix + '/Etot'] = self.etot
         for idx in range(self.npoints):
             if self.verbose:
                 print "calc_F: axes_flat idx = %i" %idx
