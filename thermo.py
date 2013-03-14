@@ -537,7 +537,7 @@ class Gibbs(object):
             from minimizing G(ax0,ax1,ax2,T,P) w.r.t. (ax0,ax1,ax2).         
         """
         if ret is None:
-            ret = self.calc_F()
+            ret = self.calc_F(calc_all=calc_all)
         ret['/T/P' + self.axes_prefix + '/G'] = np.empty((self.nT,self.nP,self.npoints), dtype=float)
         for tidx in range(self.nT):
             for pidx in range(self.nP):
