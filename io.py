@@ -265,3 +265,17 @@ def write_h5(fn, dct, skip=[None]):
             fh[key] = val
     fh.close()
 
+
+def read_h5(fn):
+    """Load h5 file into dict."""
+    fh = h5py.File(fn, mode='r') 
+    dct = {}
+    def get(name, obj, dct=dct):
+        if isinstance(obj, h5py.Dataset):
+            _name = name if name.startswith('/') else '/'+name
+            dct[_name] = obj.value
+    fh.visititems(get)            
+    fh.close()
+    return dct
+
+load_h5 = read_h5
