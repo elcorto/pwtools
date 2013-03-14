@@ -328,6 +328,23 @@ class Gibbs(object):
     Cv,Cp               R (8.4314 J/(mol*K))
     alpha_{V,ax{0,1,2}} 1/K
     =================== =====================
+
+    Examples
+    --------
+    >>> from pwtoold import mpl
+    >>> gibbs=Gibbs(..., T=linspace(5,2500,100), P=linspace(0,20,5),...)
+    >>> gibbs.set_fitfunc('C', lambda x,y: num.PolyFit1D(x,y,deg=5))
+    >>> g = gibbs.calc_G(calc_all=True)
+    >>> # 1d case
+    >>> V = g['/ax0/V']; G=g['/T/P/ax0/G'], T=g['/T/T']
+    >>> # plot G(V) for all T and P=20 GPa
+    >>> plot(V, G[:,-1,:].T)
+    >>> # Cp(T) for all P
+    >>> plot(T,g['/#opt/T/P/Cp'])
+    >>> # 2d case plot G(ax0,ax1) for T=2500 K, P=0 GPa
+    >>> G=g['/T/P/ax0-ax1/G']
+    >>> d=mpl.Data3D(zz=G[-1,0,:], xx=axes_flat[:,0], yy=axes_flat[:,1])
+    >>> fig,ax=mpl.fig_ax3d(); ax.scatter(d.xx,d.yy,d.zz); show()
     """
     def __init__(self, T=None, P=None, etot=None, phdos=None, axes_flat=None,
                  volfunc_ax=None, case=None, **kwds):
@@ -367,6 +384,8 @@ class Gibbs(object):
         **kwds: keywords 
             passed to HarmonicThermo and added here as `self.<key>=<value>`
         """
+        assert axes_flat.shape[0] == len(phdos), ("axes_flat and phdos "
+            "not equally long")
         self.kwds = dict(verbose=False, fixnan=True, skipfreq=True,
                          dosarea=None)
         self.kwds.update(kwds)                         
