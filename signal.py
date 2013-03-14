@@ -380,9 +380,26 @@ def acorr(v, method=7, norm=True):
         return c
 
 
-def gauss(x, std=1.0):
-    """Gaussian function."""
-    return np.exp(-x**2.0 / std)
+def gauss(x, std=1.0, norm=False):
+    """Gaussian function.
+    
+    Parameters
+    ----------
+    x : 1d array
+    std : float
+        sigma
+    norm : bool
+        Norm such that integrate(gauss(x),x=-inf,inf) = 1, i.e. normalize and
+        return a PDF.
+    
+    Returns
+    -------
+    array_like(x)
+    """
+    if norm:
+        return 1.0 / std / np.sqrt(2*np.pi) * np.exp(-x**2.0 / 2.0 / std**2.0)
+    else:
+        return np.exp(-x**2.0 / 2.0 / std**2.0)
 
 
 def find_peaks(y, x=None, k=3, spread=2, ymin=None):
