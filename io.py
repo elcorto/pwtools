@@ -221,6 +221,14 @@ class ReadFactory(object):
         self.struct_or_traj = struct_or_traj
     
     def __call__(self, filename, **kwds):
+        """
+        Parameters
+        ----------
+        filename : str
+            Name of the file to parse.
+        **kwds : keywords args
+            passed to the parser class (e.g. units=...)
+        """
         if self.struct_or_traj == 'struct':
             return self.parser(filename, **kwds).get_struct()
         elif self.struct_or_traj == 'traj':
