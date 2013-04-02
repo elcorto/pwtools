@@ -4,7 +4,7 @@
 
 import numpy as np
 import common, crys, pwscf, parse
-from pwtools.common import frepr
+from pwtools.common import frepr, cpickle_load
 from pwtools.constants import Ha, eV
 import warnings
 try:
@@ -20,7 +20,7 @@ except ImportError:
     "Parsing Cif files will not work.")
 
 def wien_sgroup_input(struct, lat_symbol='P'):
-    """Generate input for WIEN2K's sgroup tool.
+    """Generate input for WIEN2K's ``sgroup`` symmetry analysis tool.
     
     length: can be any
 
@@ -79,6 +79,22 @@ def wien_sgroup_input(struct, lat_symbol='P'):
     for sym, coord in zip(struct.symbols, struct.coords_frac):
         txt += fmt % tuple(coord) + '\n' + sym + '\n'
     return txt
+
+
+def write_wien_sgroup(filename, struct, **kwds):
+    """
+    Write `struct` to input file for WIEN2K's ``sgroup`` symmetry analysis
+    tool.
+
+    Parameters
+    ----------
+    filename : str
+        name of the output file
+    struct : Structure
+    **kwds : see wien_sgroup_input()
+    """
+    txt = wien_sgroup_input(struct, **kwds)
+    common.file_write(filename, txt)
 
 
 def write_cif(filename, struct):
