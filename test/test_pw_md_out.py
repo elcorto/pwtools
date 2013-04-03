@@ -25,10 +25,10 @@ def test_pw_md_out():
     # Skip coords and cell b/c they are modified by self.alat and
     # pp1.alat = 1.0, pp2.alat = 5.9098
     attr_lst = common.pop_from_list(pp1.attr_lst, ['coords', 'cell'])
-    adae(pp1.__dict__, pp2.__dict__, attr_lst=attr_lst)         
+    adae(pp1.__dict__, pp2.__dict__, keys=attr_lst)         
     
     traj2 = pp2.get_traj()
-    adae(traj1.__dict__, traj2.__dict__, attr_lst=traj1.attr_lst)
+    adae(traj1.__dict__, traj2.__dict__, keys=traj1.attr_lst)
 
     pp3 = PwMDOutputFile(filename=filename)
     assert alat == pp3.get_alat() # self.use_alat=True default

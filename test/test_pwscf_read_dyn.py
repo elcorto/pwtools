@@ -1,6 +1,6 @@
 import numpy as np
 from pwtools import pwscf
-from pwtools.test.tools import aae
+from pwtools.test.tools import aae, aaae
 
 # matdyn.freq
 kpoints_ref = \
@@ -63,7 +63,7 @@ def test_read_matdyn():
     aae(qpoints, qpoints_ref)
     aae(freqs, freqs_modes_ref)
     aae(vecs.real, vecs_real_ref)
-    aae(vecs.imag, vecs_imag_ref)
+    aaae(vecs.imag, vecs_imag_ref)
 
 def test_read_all_dyn():
     # matdyn modes: read_all_dyn()
@@ -72,5 +72,5 @@ def test_read_all_dyn():
     aae(qpoints, qpoints_ref)
     aae(freqs, freqs_modes_ref)
     aae(vecs.real, vecs_real_ref)
-    aae(vecs.imag, vecs_imag_ref)
+    aaae(vecs.imag, vecs_imag_ref)
 

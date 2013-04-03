@@ -28,7 +28,7 @@ def test():
     mass = traj.mass # amu
     dt = traj.timestep # fs
     timeaxis = traj.timeaxis
-    aae(150.0, dt * constants.fs / constants.tryd) # dt=150 Rydberg time units
+    assert np.allclose(150.0, dt * constants.fs / constants.tryd) # dt=150 Rydberg time units
     fd, dd = pd.direct_pdos(V, m=mass, dt=dt, axis=timeaxis)
     fv, dv = pd.vacf_pdos(V, m=mass, dt=dt, mirr=True, axis=timeaxis)
 

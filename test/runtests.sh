@@ -29,18 +29,23 @@ Run these w/o building extensions b/c you know that they haven't changed.
 
 Notes
 -----
-For tests calling Fortran extensions: Stdout from Fortran ends up in the
-wrong order in the logfile. To see the correct output, run these tests by
-hand (./runtests.sh test_foo.py).
+* For tests calling Fortran extensions: Stdout from Fortran ends up in the
+  wrong order in the logfile. To see the correct output, run these tests by
+  hand (./runtests.sh test_foo.py).
 
-We make sure that the correct (this) package is picked up by the interpreter,
-no matter how you named it (e.g. "from pwtools import *" will fail if the
-package's root dir is named /path/to/pwtools-dev or such). Therefore, and b/c
-of security, we copy the whole package to a tmp dir and run the tests there.
+* We make sure that the correct (this) package is picked up by the interpreter,
+  no matter how you named it (e.g. "from pwtools import *" will fail if the
+  package's root dir is named /path/to/pwtools-dev or such). Therefore, and b/c
+  of security, we copy the whole package to a tmp dir and run the tests there.
 
-For test_f2py_flib_openmp.py, we set OMP_NUM_THREADS=3. This will
-oversubscribe any CPU with less than 3 cores, but should run fine.
+* For test_f2py_flib_openmp.py, we set OMP_NUM_THREADS=3. This will
+  oversubscribe any CPU with less than 3 cores, but should run fine.
 
+* If all tests pass, good. If they do and the logfile does not contain warnings
+  but only some KNOWNFAIL statements .. very good.EOF
+
+* test_rbf.py may seldomly fail if the generated random data is not good. Just
+  re-run the test in that case.
 EOF
 }
 

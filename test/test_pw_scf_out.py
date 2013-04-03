@@ -56,9 +56,9 @@ def test():
     aaae(coords_frac, struct1.coords_frac)
     aaae(forces, struct1.forces)
     aaae(stress, struct1.stress)
-    aae(volume, struct1.volume)
-    aae(etot, struct1.etot)
-    aae(pressure, struct1.pressure)
+    assert np.allclose(volume, struct1.volume)
+    assert np.allclose(etot, struct1.etot)
+    assert np.allclose(pressure, struct1.pressure)
     
     # use_alat=True, alat = 10.2626 Bohr
     pp2 = PwSCFOutputFile(filename=filename, use_alat=True)
@@ -73,10 +73,10 @@ def test():
     # Skip coords adn cell b/c they are modified by self.alat and
     # pp1.alat = 1.0, pp2.alat = 10.2626 
     attr_lst = common.pop_from_list(pp1.attr_lst, ['coords', 'cell'])
-    adae(pp1.__dict__, pp2.__dict__, attr_lst=attr_lst)         
+    adae(pp1.__dict__, pp2.__dict__, keys=attr_lst)         
 
     attr_lst = struct1.attr_lst
-    adae(struct1.__dict__, struct2.__dict__, attr_lst=attr_lst)         
+    adae(struct1.__dict__, struct2.__dict__, keys=attr_lst)         
     
     pp3 = PwSCFOutputFile(filename=filename)
     assert alat == pp3.get_alat() # self.use_alat=True default

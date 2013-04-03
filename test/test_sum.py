@@ -9,9 +9,9 @@ def test():
     # this all goes thru np.sum(), must produce exact same result
     assert sum(arr) == sum(arr, axis=None) == arr.sum()
     
-    # must use aae() b/c summing order is apparently different in
+    # must use aaae() b/c summing order is apparently different in
     # np.sum(axis=None) -> small numerical noise
-    aae(sum(arr, axis=(0,1,2)), arr.sum())
+    aaae(sum(arr, axis=(0,1,2)), arr.sum())
 
     aaae(sum(arr, axis=0), arr.sum(axis=0))
     aaae(sum(arr, axis=1), arr.sum(axis=1))
