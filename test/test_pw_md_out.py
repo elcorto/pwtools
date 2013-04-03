@@ -1,3 +1,4 @@
+import numpy as np
 from pwtools.parse import PwMDOutputFile
 from pwtools import common
 from pwtools.constants import Bohr, Ang
@@ -13,6 +14,7 @@ def test_pw_md_out():
         'coords_frac',
         ]
     assert_attrs_not_none(pp1, none_attrs=none_attrs)
+    assert np.allclose(pp1.timestep, 150.0) # tryd
     traj1 = pp1.get_traj()
     assert_attrs_not_none(traj1)
 
@@ -20,6 +22,7 @@ def test_pw_md_out():
                          use_alat=False,
                          units={'length': alat*Bohr/Ang})
     pp2.parse()                         
+    assert np.allclose(pp2.timestep, 150.0) # tryd
     assert_attrs_not_none(pp2, none_attrs=none_attrs)
     
     # Skip coords and cell b/c they are modified by self.alat and
