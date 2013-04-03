@@ -2441,19 +2441,44 @@ class Structure(UnitsHandler):
         else:
             return None
     
-    def get_ase_atoms(self):
-        """Return ASE Atoms object. Obviously, you must have ASE installed. We
-        use scaled_positions=self.coords_frac, so only self.cell must be in
+    def get_ase_atoms(self, **kwds):
+        """Return ASE Atoms object. 
+        
+        Obviously, you must have ASE installed. We use
+        ``scaled_positions=self.coords_frac``, so only ``self.cell`` must be in
         [Ang].
+
+        Parameters
+        ----------
+        **kwds : 
+            additional keywords passed to the Atoms() constructor.
+
+        Notes
+        -----
+        By default, we use ``Atoms(...,pbc=False)`` to avoid pbc-wrapping
+        ``atoms.scaled_positions`` (we don't want that for MD structures, for
+        instance). If you need the pbc flag in your Atoms object, then use::
+        
+        >>> atoms=struct.get_ase_atoms(pbc=True)
+        >>> # or 
+        >>> atoms=struct.get_ase_atoms()
+        >>> atoms.set_pbc(True) 
+
+        but then, ``scaled_positions`` will be wrapped by ASE and I'm not sure
+        if ``atoms.positions`` is updated in that case. Please test that -- I
+        don't use ASE much.
         """
         req = ['coords_frac', 'cell', 'symbols']
         if self.check_set_attr_lst(req):
             # We don't wanna make ase a dependency. Import only when needed.
             from ase import Atoms
-            return Atoms(symbols=self.symbols,
-                         scaled_positions=self.coords_frac,
-                         cell=self.cell,
-                         pbc=[1,1,1])
+            _kwds = {'pbc': False}
+            _kwds.update(kwds)
+            at = Atoms(symbols=self.symbols,
+                       scaled_positions=self.coords_frac,
+                       cell=self.cell,
+                       **_kwds)
+            return at                
         else:
             return None
 
@@ -2897,6 +2922,10 @@ def atoms2struct(at):
     return Structure(symbols=at.get_chemical_symbols(),
                      cell=at.get_cell(),
                      coords_frac=at.get_scaled_positions())
+
+def struct2atoms(st, **kwds):
+    """Transform Structure to ASE Atoms object."""
+    return st.get_ase_atoms(**kwds)
 
 def struct2traj(obj):
     """Transform Structure to Trajectory with nstep=1."""

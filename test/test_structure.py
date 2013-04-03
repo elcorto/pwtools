@@ -38,12 +38,6 @@ def test():
             st.try_set_attr(name)
             assert getattr(st, name) is not None, "attr None: %s" %name
             assert eval('st.get_%s()'%name) is not None, "getter returns None: %s" %name
-    try:
-        import ase
-        atoms = st.get_ase_atoms()
-        aaae(atoms.get_cell(), cell)
-    except ImportError:
-        print("cannot import ase, skip test get_ase_atoms()")
     aaae(coords_frac, st.coords_frac)
     aaae(cryst_const, st.cryst_const)
     assert st.natoms == natoms
