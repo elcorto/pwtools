@@ -980,7 +980,7 @@ def rms(arr, nitems='all'):
     Parameters
     ----------
     arr : ndarray
-    nitems : {'all', float)
+    nitems : {'all', float}
         normalization constant, the sum of squares is divided by this number,
         set to unity for no normalization, if 'all' then use nitems = number of
         elements in the array
@@ -1006,7 +1006,7 @@ def rms3d(arr, axis=0, nitems='all'):
     axis : int
         The axis along which the RMS of all sub-arrays is to be computed
         (usually time axis in MD).
-    nitems : {'all', float)
+    nitems : {'all', float}
         normalization constant, the sum of squares is divided by this number,
         set to unity for no normalization, if 'all' then use nitems = number of
         elements in each sub-array along `axis`
@@ -1107,7 +1107,7 @@ def poly_powers(ndim, deg):
     
     To fit, we solve A . a = y, where a = [a0,...,ak].
 
-    The retutned array `powers` has k rows, where each row holds the powers for
+    The returned array `powers` has k rows, where each row holds the powers for
     one term in the poly. For ndim=1 and poly order k, we have::
         
         [[0],
@@ -1152,7 +1152,7 @@ def poly_powers(ndim, deg):
 
 
 def vander(points, deg):
-    """N-dim Vandermonde matrix for data `points` and a polynom of degree
+    """N-dim Vandermonde matrix for data `points` and a polynomial of degree
     `deg`.
 
     Parameters
