@@ -988,7 +988,12 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
             return None
 
     def _get_cell(self):
-        """Parse CELL_PARAMETERS block."""
+        """Parse CELL_PARAMETERS block. 
+        
+        The block unit is ignored here. Only the content of the block is parsed
+        (i.e. the CELL_PARAMETERS as they are in the file). See also
+        ``_get_block_header_unit()`` and ``get_cell``.
+        """
         verbose("getting _cell")
         # nstep
         key = 'CELL_PARAMETERS'
@@ -999,6 +1004,34 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
         return traj_from_txt(com.backtick(cmd), 
                              shape=(nstep,3,3),
                              axis=self.timeaxis)
+    
+    def _get_cell_step_unit(self):
+        """Parse CELL_PARAMETERS unit printed at each time step.
+        
+        ::
+            CELL_PARAMETERS (alat= 22.75306514)
+
+        Returns
+        -------
+        unit : 1d array (nstep,)
+            1d array with alat for each time step.         
+        
+        Notes
+        -----
+        During one run, that alat value doesn't change and is the same as alat
+        returned by ``get_alat()``. But it is needed if you parse an output
+        file which is a concatenation of multiple smaller files from vc-md runs
+        where that alat value has changed. This happens if a vc-md is
+        restarted. Then the new alat in the restart run is that of the last
+        cell of the old run.
+        """
+        cmd = 'grep -m1 CELL_PARAMETERS.*alat.*= %s' %self.filename
+        if com.backtick(cmd).strip() == '':
+            return None
+        else:
+            cmd = r"grep CELL_PARAMETERS %s | sed -re 's/.*alat.*=\s*(" \
+                %self.filename + regex.float_re + r")\)*.*/\1/g'"
+            return arr1d_from_txt(com.backtick(cmd))
 
     def _match_nstep(self, arr):
         """Get nstep from _coords.shape[0] and return the last nstep steps from
@@ -1046,12 +1079,17 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
     def get_cell(self):
         """Cell [Bohr]. Return 3d array from CELL_PARAMETERS or 2d array
         self._cell_2d . If coords_unit='alat', then [Bohr] if
-        self.alat in [Bohr]."""
-        if self.check_set_attr_lst(['_cell', 'cell_unit', 'alat']):
+        self.alat or self._cell_step_unit in [Bohr]."""
+        if self.check_set_attr_lst(['_cell', 'cell_unit']):
             if self.cell_unit in ['bohr', None]:
                 return self._cell
             elif self.cell_unit == 'alat':
-                return self._cell * self.alat
+                if self.check_set_attr('_cell_step_unit'):
+                    return self._cell * self._cell_step_unit[:,None,None]
+                elif self.check_set_attr('alat'):                    
+                    return self._cell * self.alat
+                else:
+                    return None
             elif self.cell_unit == 'angstrom':
                 return self._cell * Angstrom / Bohr
             else:
