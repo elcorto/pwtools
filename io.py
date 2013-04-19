@@ -167,11 +167,11 @@ def write_xyz(filename, obj, name='pwtools_dummy_mol_name'):
     traj = crys.struct2traj(obj)
     xyz_str = ""
     for istep in range(traj.nstep):
-        xyz_str += "%i\n%s\n%s\n" %(traj.natoms,
-                                    name + '.%i' %(istep + 1),
-                                    pwscf.atpos_str_fast(traj.symbols, 
-                                                         traj.coords[istep,...]),
-                                   )
+        xyz_str += "%i\n%s\n%s" %(traj.natoms,
+                                  name + '.%i' %(istep + 1),
+                                  pwscf.atpos_str_fast(traj.symbols, 
+                                                       traj.coords[istep,...]),
+                                  )
     common.file_write(filename, xyz_str)
 
 
