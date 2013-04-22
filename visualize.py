@@ -1,6 +1,39 @@
+"""
+Interfaces for molecular viewers
+================================
+
+The viewers defined here are meant to be used for quick interactive structure
+and trajectory display.
+
+VMD
+---
+
+Use :func:`view_vmd_xyz` or :func:`view_vmd_axsf`. To execute a tcl script
+after the struct has loaded (in the shell: ``vmd -e script.tcl foo.xyz``), use::
+
+>>> tr = crys.Trajectory(...)
+>>> view_vmd_axsf(tr, options='-e script.tcl')
+
+Note that the viewer (in this case VMD) is simply called like ``vmd
+structfile``, which can take very long for big MD data b/c the VMD default
+is to use smth like ``mol new ... waitfor 1``, which is slow. In that case you
+want to call VMD directly::
+
+    $ vmd
+    vmd > mol new /tmp/foo.axsf type xsf waitfor all
+    vmd > set molid 0
+    vmd > source ~/work/vmd/ca_salt.tcl
+
+The trick here is ``... waitfor all``. See the VMD manual for the ``mol``
+command. Or you place these lines in a script and use::
+
+    $ vmd script_to_execute.tcl
+"""
+
 from tempfile import mkstemp
 import os
 from pwtools import io, common
+
 
 class ViewFactory(object):
     """Factory for creating interface functions to external molecular
@@ -22,15 +55,32 @@ class ViewFactory(object):
         writer : callable
             Called as ``writer(obj, structfile)``. Write struct file to read by
             viewer.
+        
+        Examples
+        --------
+        >>> viewer = ViewFactory(...)
+        >>> viewer(struct)
+        >>> # To start more than one viewer, use bg=True to send the spawned
+        >>> # process to the background. Will leave temp files on disk.
+        >>> viewer(struct1, bg=True)
+        >>> viewer(struct2, bg=True)
         """
         self.cmd = cmd
         self.assert_cmd = assert_cmd
         self.suffix = suffix
         self.writer = writer
-
+        self.doc = {'doc': doc}
+    
     def __call__(self, obj, logfile=None, structfile=None, disp=False,
-                 keepfiles=False, tmpdir='/tmp', wait=True, bg=False):
-        """                 
+                 keepfiles=False, tmpdir='/tmp', wait=True, bg=False,
+                 options=''):
+        """
+        Call viewer. 
+        
+        The executed shell command is::
+            
+            <cmd> <options> <structfile> > <logfile>
+        
         Parameters
         ----------
         obj : Structure or Trajectory
@@ -51,16 +101,7 @@ class ViewFactory(object):
             `keepfiles=True`. The latter is needed b/c with just `wait=False`,
             temp files will be deleted right after the shell call and the
             viewer program may complain.
-
-        Examples
-        --------
-        >>> viewer = ViewFactory(...)
-        >>> viewer(struct)
-        >>> # To start more than one viewer, use bg=True to send the spawned
-        >>> # process to the background. Will leave temp files on disk.
-        >>> viewer(struct1, bg=True)
-        >>> viewer(struct2, bg=True)
-        """
+        """        
         if bg:
             wait = False
             keepfiles = True
@@ -77,9 +118,9 @@ class ViewFactory(object):
                                   prefix='pwtools_view_log_')
         self.writer(structfile, obj)
         if disp:
-            cmd_str = self.cmd + " %s 2>&1 | tee %s" %(structfile, logfile)
+            cmd_str = "%s %s %s 2>&1 | tee %s" %(self.cmd, options, structfile, logfile)
         else:       
-            cmd_str = self.cmd + " %s > %s 2>&1" %(structfile, logfile)
+            cmd_str = "%s %s %s > %s 2>&1" %(self.cmd, options, structfile, logfile)
         common.system(cmd_str, wait=wait)
         if not keepfiles:
             os.unlink(structfile)
@@ -99,6 +140,16 @@ view_xcrysden = \
     ViewFactory(cmd='xcrysden --axsf',
                 suffix='.axsf',
                 writer=io.write_axsf)
+
+view_vmd_axsf = \
+    ViewFactory(cmd='vmd',
+                suffix='.axsf',
+                writer=io.write_axsf)
+
+view_vmd_xyz = \
+    ViewFactory(cmd='vmd',
+                suffix='.xyz',
+                writer=io.write_xyz)
 
 view_jmol = \
     ViewFactory(cmd='jmol',
