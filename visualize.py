@@ -69,7 +69,6 @@ class ViewFactory(object):
         self.assert_cmd = assert_cmd
         self.suffix = suffix
         self.writer = writer
-        self.doc = {'doc': doc}
     
     def __call__(self, obj, logfile=None, structfile=None, disp=False,
                  keepfiles=False, tmpdir='/tmp', wait=True, bg=False,
