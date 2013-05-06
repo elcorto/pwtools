@@ -432,9 +432,11 @@ def find_peaks(y, x=None, k=3, spread=2, ymin=None):
     Examples
     --------
     >>> from pwtools.signal import gauss, find_peaks
-    >>> x=linspace(0,10,100); y=0.2*gauss(x-0.5,.1) + gauss(x-2,.1) + 0.7*gauss(x-3,0.1) + gauss(x-6,1)
+    >>> from pwtools import num
+    >>> x=linspace(0,10,300); y=0.2*gauss(x-0.5,.1) + gauss(x-2,.1) + 0.7*gauss(x-3,0.1) + gauss(x-6,1)
+    >>> # ymin=0.4: ignore first peak at x=0.5
     >>> find_peaks(y,x, ymin=0.4)
-    ([20, 30, 59], [2.0012154541433453, 3.001285959276882, 5.999893254281085])
+    ([60, 90, 179], [2.000231296097065, 3.0007122565950572, 5.999998055132549])
     >>> idx0, pos0=find_peaks(y,x, ymin=0.4)
     >>> spl=num.Spline(x,y)
     >>> plot(x,y)
@@ -459,7 +461,7 @@ def find_peaks(y, x=None, k=3, spread=2, ymin=None):
                 root = spl.get_min()
                 pos0.append(root)
             except ValueError:
-                raise ValueError("error at idx=%i, x=%f" %(i0,x[i0]))
+                raise ValueError("error calculating spline maximum at idx=%i, x=%f" %(i0,x[i0]))
     return idx0, pos0
 
 
@@ -467,10 +469,7 @@ def smooth_convolve(x, y, std=1.0, width=None, args=(), area=None,
                     func=gaussian):
     """Smooth x-y curve by convolution with `func` of std deviation `std`
     and optionally normalize integral to `area`.
-
-    `std` and `width` are converted from `x` units to steps and `func` is
-    called as ``func(width_in_steps, std_in_steps, *args)``.
-
+    
     Parameters
     ----------
     x : 1d array
@@ -480,7 +479,7 @@ def smooth_convolve(x, y, std=1.0, width=None, args=(), area=None,
     width : float, optional
         Width of the gaussian, same unit as `x`. Default is ``6*std``. 
     args : extra args to `func`       
-    area : float or str 'same', optional
+    area : {None,float}, optional
         Target integral area for normalization. None for no normalization.
     func : callable
         fuction to convolve with, default is ``scipy.signal.gaussian()``
@@ -495,6 +494,16 @@ def smooth_convolve(x, y, std=1.0, width=None, args=(), area=None,
     >>> x=linspace(0,10,100); y=rand(100)
     >>> plot(x,y)
     >>> plot(x, signal.smooth_convolve(x, y, std=0.2, area=np.trapz(y,x)))
+
+    Notes
+    -----
+    `std` and `width` are converted from `x` units to steps and `func` is
+    called as ``func(width_in_steps, std_in_steps, *args)``.
+    
+    `width` determines the number of points calculated for the convolution
+    kernel, i.e. `func`. It should be bigger then `std`. The convolved signal
+    will converge with increasing `width`. The default ``width=6*std`` is
+    usually OK, but it may be worth checking that for your signals.
     """
     nstep = x.shape[0]
     # width and std are integers relative to nstep, but we get them as x unit,
@@ -503,7 +512,7 @@ def smooth_convolve(x, y, std=1.0, width=None, args=(), area=None,
     if width is None:        
         _width = int(std*6.0 * x_to_step)
     else:
-        _width = width
+        _width = int(width * x_to_step)
     _std = int(std * x_to_step)
     yc = convolve(y, func(_width, _std, *args), 'same')
     if area is not None:
@@ -519,7 +528,7 @@ class FIRFilter(object):
     
     Notes
     -----
-    To plot frequency response (the frequency bands), use::
+    To plot the frequency response (the frequency bands), use::
     >>> f = Filter(...)
     >>> plot(f.w, abs(f.h))
     
