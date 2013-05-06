@@ -1950,9 +1950,10 @@ def angles(struct, pbc=False, mask_val=999.0, deg=True):
     return anglesijk
 
 
-def nearest_neighbors_from_dists(dists, symbols, idx=None, skip=None, cutoff=None,
-                          num=None, pbc=True, include=False, sort=True, fullout=False):
-    """Core part of nearest_neighbors(), which accepts per-calculated
+def nearest_neighbors_from_dists(dists, symbols, idx=None, skip=None,
+                                 cutoff=None, num=None, pbc=True, 
+                                 sort=True, fullout=False):
+    """Core part of nearest_neighbors(), which accepts pre-calculated
     distances. 
     
     Can be more efficient in loops where many different
@@ -1979,28 +1980,21 @@ def nearest_neighbors_from_dists(dists, symbols, idx=None, skip=None, cutoff=Non
     idx_lst_sort = np.argsort(dist1d)
     dist1d_sort = dist1d[idx_lst_sort]
     symbols_sort = np.array(symbols)[idx_lst_sort]
-    # numpy bool arrays rock!
-    if skip is None:
-        skip_msk = np.zeros((len(symbols_sort),), dtype=bool)
-    else:    
-        if type(skip) == type([]):
-            skip_msk = symbols_sort == skip[0]
-            for item in skip[1:]:
-                skip_msk = skip_msk | (symbols_sort == item)
-        else:
-            skip_msk = symbols_sort == skip
+    skip = common.asseq(skip)
+    if skip != [None]:
+        msk = symbols_sort == skip[0]
+        for item in skip[1:]:
+            msk = msk | (symbols_sort == item)
+        only_msk = np.invert(msk)
+    else:            
+        only_msk = np.ones((len(symbols_sort),), dtype=bool)
     if cutoff is None:
-        if include:
-            cut_msk = np.s_[:num+1]
-        else:
-            cut_msk = np.s_[1:num+1]
-        ret_idx = idx_lst_sort[np.invert(skip_msk)][cut_msk]
+        # ``1:`` : central atom excluded
+        cut_msk = np.s_[1:num+1]
+        ret_idx = idx_lst_sort[only_msk][cut_msk]
     else:
-        if include:
-            cut_msk = dist1d_sort < cutoff
-        else:            
-            cut_msk = (dist1d_sort > 0) & (dist1d_sort < cutoff)
-        ret_idx = idx_lst_sort[cut_msk & np.invert(skip_msk)]
+        cut_msk = (dist1d_sort > 0) & (dist1d_sort < cutoff)
+        ret_idx = idx_lst_sort[cut_msk & only_msk]
     if not sort:
         orig_idx = np.arange(len(dist1d))
         ret_idx = orig_idx[match_mask(orig_idx,ret_idx)]
@@ -2011,7 +2005,7 @@ def nearest_neighbors_from_dists(dists, symbols, idx=None, skip=None, cutoff=Non
 
 
 def nearest_neighbors(struct, idx=None, skip=None, cutoff=None, num=None, pbc=True,
-                      include=False, sort=True, fullout=False):
+                      sort=True, fullout=False):
     """Indices of the nearest neighbor atoms to atom `idx`, skipping atoms
     whose symbols are `skip`.
 
@@ -2029,9 +2023,6 @@ def nearest_neighbors(struct, idx=None, skip=None, cutoff=None, num=None, pbc=Tr
         neighbors within that radius. Use either `num` of `cutoff`.
     pbc : bool
         Apply PBC to distances.
-    include : bool
-        Include central atom in returned index list. Returned index array will
-        be one item longer.
     sort : bool
         Sort `nn_idx` and `nn_dist` by distance.     
     fullout : bool
@@ -2083,15 +2074,20 @@ def nearest_neighbors(struct, idx=None, skip=None, cutoff=None, num=None, pbc=Tr
     >>> msk=num.match_mask(arange(st.natoms), ni)
     >>> array(st.symbols)[msk]
     array(['Al', 'Al', 'N', 'N', 'N', 'N', 'N', 'N'], dtype='|S2')
+    >>> # If you have many different symbols to skip and you don't want to type
+    >>> # a longish `skip` list, then use smth like this to include only 'O'
+    >>> # for example
+    >>> symbols=['Ca', 'Cl', 'Cl'] + ['O']*10 + ['H']*20
+    >>> skip=filter(lambda x: x!='O', set(symbols))
+    >>> ['H', 'Ca', 'Cl']
     """
     # Distance matrix (natoms, natoms). Each row or col is sorted like
     # struct.symbols. If used in loops over trajs, the distances() call is the
     # most costly part, even though coded in Fortran.
     dists = distances(struct, pbc=pbc)
     return nearest_neighbors_from_dists(dists=dists, symbols=struct.symbols, idx=idx,
-                                 skip=skip, cutoff=cutoff, num=num, 
-                                 include=include, sort=sort,
-                                 fullout=fullout)
+                                        skip=skip, cutoff=cutoff, num=num, 
+                                        sort=sort, fullout=fullout)
     
 
 #-----------------------------------------------------------------------------

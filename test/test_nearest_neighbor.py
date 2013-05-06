@@ -33,10 +33,6 @@ def test_nn():
     assert aequal(nearest_neighbors(struct, idx=3, num=2, skip=['O','Cl']),
                   np.array([1,0]))
     
-    # [3, 1, 0]
-    assert aequal(nearest_neighbors(struct, idx=3, num=2, skip=['O','Cl'],
-                  include=True), np.array([3,1,0]))
-
     # [2, 4]
     assert aequal(nearest_neighbors(struct, idx=3, cutoff=1.2),
                   np.array([2,4]))
@@ -44,10 +40,6 @@ def test_nn():
     # []
     assert aequal(nearest_neighbors(struct, idx=3, cutoff=1.2, skip='O'),
                   np.array([]))
-    
-    # [3]
-    assert aequal(nearest_neighbors(struct, idx=3, cutoff=1.2, skip='O',
-                  include=True), np.array([3]))
     
     # [2,4,1,5]
     assert aequal(nearest_neighbors(struct, idx=3, cutoff=2.1, skip=None),
@@ -60,4 +52,4 @@ def test_nn():
     # [1,0], with dist
     d=nearest_neighbors(struct, idx=3, num=2, skip=['O','Cl'], fullout=True)[1] 
     np.allclose(d, np.array([1.98,3.0]))
-
+    
