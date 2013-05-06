@@ -21,7 +21,7 @@ from pwtools.verbose import verbose
 # backward compat, remove later
 from pwtools.num import normalize, vlinspace, norm_int, deriv_fd, deriv_spl, \
     _splroot, findmin, findroot, slicetake, sliceput, Spline
- 
+
 
 def assert_cond(cond, string=None):
     """Use this instead of `assert cond, string`. It's been said on
@@ -643,6 +643,14 @@ def pop_from_list(lst, items):
         lst2.pop(lst2.index(item))
     return lst2    
 
+
+def asseq(arg):
+    """Assert `arg` to be a sequence. If it already is one (see ``is_seq``)
+    then return it, else return a length 1 list."""
+    if is_seq(arg):
+        return arg
+    else:
+        return [arg]
 
 #-----------------------------------------------------------------------------
 # Child processes & shell calls
