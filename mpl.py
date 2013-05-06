@@ -204,9 +204,10 @@ class Plot(object):
             leg = ax.legend(*self.collect_legends(axnames), **kwargs)
         return leg
 
-    def savefig(self, base, ext=['png']):
+    def savefig(self, base, ext=['png'], **kwds):
         for ex in ext:
-            self.fig.savefig(base + '.' + ex)
+            self.fig.savefig(base + '.' + ex, **kwds)
+
 
 def prepare_plots(names, projection='2d', **kwds):
     """Return a dict of Plot instances.
