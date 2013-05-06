@@ -36,32 +36,30 @@ def usage():
     directly.
     """)
 
-dbar="==============================================================================="
-argv = sys.argv[1:]
-
-if '-h' in argv or '--help' in argv:
-    usage()
-    sys.exit()
-
-if argv == []:
-    args = "-r 0:tip"
-else:    
-    args = ' '.join(sys.argv[1:])
-
-prefix_lst = ['ENH', 'BUG', 'API', 'INT']
-rex = re.compile('^(' + '|'.join(prefix_lst) + ').*')
-cmd = r'hg log -v %s --template "{desc}\n"' %args
-lines = common.backtick(cmd).splitlines()
-for prefix in prefix_lst:
-    print dbar
-    go = False
-    for line in lines:
-        if line.startswith(prefix):
-            print line
-            go = True
-        else:
-            if go and (line.startswith(' ') and (rex.match(line) is None)):
+if __name__ == '__main__':
+    dbar="="*79
+    argv = sys.argv[1:]
+    if '-h' in argv or '--help' in argv:
+        usage()
+        sys.exit()
+    if argv == []:
+        args = "-r 0:tip"
+    else:    
+        args = ' '.join(sys.argv[1:])
+    prefix_lst = ['ENH', 'BUG', 'API', 'INT']
+    rex = re.compile('^(' + '|'.join(prefix_lst) + ').*')
+    cmd = r'hg log -v %s --template "{desc}\n"' %args
+    lines = common.backtick(cmd).splitlines()
+    for prefix in prefix_lst:
+        print dbar
+        go = False
+        for line in lines:
+            if line.startswith(prefix):
                 print line
+                go = True
             else:
-                go = False
-                continue
+                if go and (line.startswith(' ') and (rex.match(line) is None)):
+                    print line
+                else:
+                    go = False
+                    continue
