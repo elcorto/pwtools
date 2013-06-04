@@ -657,9 +657,10 @@ def rmsd(traj, ref_idx=0):
     return rms3d(coords, axis=traj.timeaxis, nitems=float(traj.natoms))
 
 
-def pbc_wrap(coords_frac, copy=True, mask=[True]*3, xyz_axis=-1):
-    """Apply periodic boundary conditions. Wrap atoms with fractional coords >
-    1 or < 0 into the cell.
+def pbc_wrap_coords(coords_frac, copy=True, mask=[True]*3, xyz_axis=-1):
+    """Apply periodic boundary conditions to array of fractional coords. 
+    
+    Wrap atoms with fractional coords > 1 or < 0 into the cell.
     
     Parameters
     ----------
@@ -700,6 +701,31 @@ def pbc_wrap(coords_frac, copy=True, mask=[True]*3, xyz_axis=-1):
             sl[xyz_axis] = i
             tmp[sl] %= 1.0
     return tmp        
+
+
+def pbc_wrap(obj, copy=True, **kwds):
+    """Apply periodic boundary conditions to fractional coords. 
+
+    Same as ``pbc_wrap_coords`` but accepts a Structure or Trajectory instead
+    of the array ``coords_frac``. Returns an object with atoms
+    (coords_frac and coords) wrapped into the cell.
+
+    Parameters
+    ----------
+    obj : Structure or Trajectory
+    copy : bool
+        Return copy or in-place modified object.
+    **kwds : keywords
+        passed to nearest_neighbors()
+    """
+    out = obj.copy() if copy else obj
+    # set to None so that it will be re-calculated by set_all()
+    out.coords = None
+    # copy=False: in-place modify b/c we copied the whole object before if
+    # requested by user        
+    pbc_wrap_coords(obj.coords_frac, copy=False, **kwds)
+    out.set_all()
+    return out
 
 
 def coord_trans(coords, old=None, new=None, copy=True, axis=-1):
