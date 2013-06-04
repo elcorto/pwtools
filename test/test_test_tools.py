@@ -53,4 +53,3 @@ def test_tools():
         tools.assert_all_types_equal(1.0, 1, strict=True)
     except AssertionError:
         print "KNOWNFAIL: different types not allowed"
-

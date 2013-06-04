@@ -43,8 +43,12 @@ float_t = type(1.0)
 int_t = type(1)
 
 def msg(txt):
+    """Uncomment for debugging if tests fail."""
 ##    print(txt)
     pass
+
+def err(txt):
+    print('error: ' + txt)
 
 def default_equal(a, b):
     return a == b
@@ -88,7 +92,7 @@ class AllTypesFactory(object):
         d2_t = type(d2)
         if strict:
             if d1_t != d2_t: 
-                msg("AllTypesFactory: d1 (%s) and d2 (%s) are not the "
+                err("AllTypesFactory: d1 (%s) and d2 (%s) are not the "
                       "same type" %(d1_t, d2_t))
                 return False       
         for typ, comp_func in self.comp_map.iteritems():
@@ -157,7 +161,11 @@ class DictWithAllTypesFactory(object):
             keys = attr_lst
         d1_keys = d1.keys()    
         d2_keys = d2.keys()
-        if d1_keys != d2_keys:
+        if len(d1_keys) != len(d2_keys):
+            err("DictWithAllTypesFactory: key list not equally long")
+            return False
+        if set(d1_keys) != set(d2_keys):
+            err("DictWithAllTypesFactory: keys not equal")
             return False
         _keys = d1_keys if keys is None else keys    
         ret = True
@@ -167,7 +175,7 @@ class DictWithAllTypesFactory(object):
             d2_t = type(d2[key])
             if strict:
                 if d1_t != d2_t: 
-                    msg("DictWithAllTypesFactory: d1[%s] (%s) and d2[%s] (%s) are not "
+                    err("DictWithAllTypesFactory: d1[%s] (%s) and d2[%s] (%s) are not "
                           "the same type" %(key, d1_t, key, d2_t))
                     return False
             if d1_t == dict_t:
