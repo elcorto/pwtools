@@ -2088,7 +2088,30 @@ def nearest_neighbors(struct, idx=None, skip=None, cutoff=None, num=None, pbc=Tr
     return nearest_neighbors_from_dists(dists=dists, symbols=struct.symbols, idx=idx,
                                         skip=skip, cutoff=cutoff, num=num, 
                                         sort=sort, fullout=fullout)
-    
+
+
+def nearest_neighbors_struct(struct, **kwds):
+    """Return Structure with only nearest neighbors. 
+
+    Calls ``nearest_neighbors()`` and takes the same arguments. The returned
+    Structure contains the central atom set by the `idx` keyword to
+    nearest_neighbors().
+
+    Examples
+    --------
+    >>> from pwtools import crys, visualize
+    >>> st = crys.nearest_neighbors_struct(struct, cutoff=3.3, skip='H')
+    >>> visualize.view_avogadro(st)
+    """
+    ni = nearest_neighbors(struct, **kwds)
+    # include `idx` atom
+    ni = np.concatenate((ni, [kwds['idx']]))
+    msk = num.match_mask(np.arange(struct.natoms), ni)
+    new_struct = Structure(coords_frac=struct.coords_frac[msk,:],
+                           cell=struct.cell,
+                           symbols=np.array(struct.symbols)[msk].tolist())
+    return new_struct                           
+
 
 #-----------------------------------------------------------------------------
 # Container classes for crystal structures and trajectories.
