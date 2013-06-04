@@ -272,21 +272,21 @@ read_cpmd_md = ReadFactory(parser=parse.CpmdMDOutputFile,
                            )
 
 
-def write_h5(fn, dct, skip=[None]):
+def write_h5(fn, dct):
     """Write dictionary with arrays (or whatever HDF5 handles) to h5 file.
+    
+    Dict keys are supposed to be HDF group + dataset names like `/a/b/c/dset`.
+    The leading slash can be skipped.
 
     Parameters
     ----------
     fn : str
         filename
     dct : dict
-    skip : sequence
-        Skip all ``dct[key]`` values which are in `skip`.
     """
     fh = h5py.File(fn, mode='w')
     for key,val in dct.iteritems():
-        if val not in skip:
-            fh[key] = val
+        fh[key] = val
     fh.close()
 
 
