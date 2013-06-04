@@ -290,15 +290,42 @@ def write_h5(fn, dct, skip=[None]):
     fh.close()
 
 
-def read_h5(fn):
-    """Load h5 file into dict."""
-    fh = h5py.File(fn, mode='r') 
+def read_h5(fn, group='/', rel=False):
+    """Read h5 file into dict.
+    
+    Dict keys are the group + dataset names, e.g. 'a/b/c/dset' if `rel=False`
+    or relative names like 'c/dset' if ``group=/a/b`` and `rel=True`.
+    The first slash is always removed.
+
+    Parameters
+    ----------
+    fn : str
+        filename
+    group : str 
+        The full group name under which to extract all datasets.
+    rel : bool        
+        Return names relative to `group`.
+    
+    Examples
+    --------
+    >>> read_h5('foo.h5').keys()
+    ['a/b/d1', 'a/b/d2', 'a/c/d3', 'x/y/z']
+    >>> read_h5('foo.h5', group='/a/b/').keys()
+    ['a/b/d1', 'a/b/d2']
+    >>> read_h5('foo.h5', group='/a/b/', rel=True).keys()
+    ['d1', 'd2']
+    """
+    fh = h5py.File(fn, mode='r')
+    grp = fh[group]
     dct = {}
-    def get(name, obj, dct=dct):
+    def get(name, obj, dct=dct, rel=rel, group=group):
         if isinstance(obj, h5py.Dataset):
-            _name = name if name.startswith('/') else '/'+name
-            dct[_name] = obj.value
-    fh.visititems(get)            
+            if not rel:
+                name = common.pj(group, name)
+                if name.startswith('/'):
+                    name = name[1:]
+            dct[name] = obj.value
+    grp.visititems(get)            
     fh.close()
     return dct
 
