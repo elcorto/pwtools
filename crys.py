@@ -723,7 +723,7 @@ def pbc_wrap(obj, copy=True, **kwds):
     out.coords = None
     # copy=False: in-place modify b/c we copied the whole object before if
     # requested by user        
-    pbc_wrap_coords(obj.coords_frac, copy=False, **kwds)
+    pbc_wrap_coords(out.coords_frac, copy=False, **kwds)
     out.set_all()
     return out
 
