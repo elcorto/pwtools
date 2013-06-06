@@ -255,6 +255,9 @@ class ReadFactory(object):
 read_cif = ReadFactory(parser=parse.CifFile, 
                        struct_or_traj='struct',
                        )
+read_pdb = ReadFactory(parser=parse.PDBFile, 
+                       struct_or_traj='struct',
+                       )
 read_pw_scf = ReadFactory(parser=parse.PwSCFOutputFile, 
                           struct_or_traj='struct', 
                           )
