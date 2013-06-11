@@ -17,6 +17,9 @@ from pwtools.constants import Bohr, Angstrom
 from pwtools import constants, atomic_data, _flib
 from pwtools.num import fempty, rms, rms3d, match_mask
 
+import warnings
+warnings.simplefilter('always')
+
 #-----------------------------------------------------------------------------
 # misc math
 #-----------------------------------------------------------------------------
@@ -298,6 +301,19 @@ def recip_cell(cell):
     -------
     rcell : array (3,3) 
         Reciprocal vectors as rows.
+    
+    Examples
+    --------
+    >>> # the length of recip. cell vectors for a cubic cell of 1 Ang side
+    >>> # length is 2*pi
+    >>> crys.recip_cell(identity(3))/2/pi
+    array([[ 1.,  0.,  0.],
+           [ 0.,  1.,  0.],
+           [ 0.,  0.,  1.]])
+    >>> crys.recip_cell(identity(3)*2)/2/pi
+    array([[ 0.5,  0. ,  0. ],
+           [ 0. ,  0.5,  0. ],
+           [ 0. ,  0. ,  0.5]])
     """
     cell = np.asarray(cell, dtype=float)
     assert_cond(cell.shape == (3,3), "cell must be (3,3) array")
@@ -312,36 +328,37 @@ def recip_cell(cell):
     return rcell
 
 
-@crys_add_doc
-def kgrid(cell, dk=None, size=None, minpoints=1, even=False, fullout=False):
-    """
-    Generate k-point grid size ``nx x ny x nz`` for a given grid spacing (`dk
-    != None`) or calculate spacing from size (`size != None`).
+def grid_in_cell(cell, h=None, size=None, minpoints=1, even=False, fullout=False):
+    """For a given cell, generate grid `size` from grid spacing `h` or vice
+    versa. 
+    
+    Usually used to calculate k-grids for reciprocal cells. See also `kgrid()`.
 
     Parameters
     ----------
-    %(cell_doc)s
-    dk : float
-        1d target reciprocal grid spacing (along a reciprocal axis). The unit
-        is 2*pi / real space length unit defined by `cell`, e.g. 2*pi/Angstrom.
+    cell : array (3,3)
+        Cell with vectors as rows.
+    h : float
+        1d target grid spacing along a cell axis. Unit is that of the cell
+        sides.
     size : sequence (3,)
-        Use either `dk` or `size`.
+        Use either `h` or `size`.
     minpoints : int
         Minimal number of grid points in each direction. May result in smaller
-        effective `dk`. `minpoints=1` (default) asserts that at least the
-        Gamma point [1,1,1] is returned.  Otherwise, big cells or big `dk`
+        effective `h`. `minpoints=1` (default) asserts that at least the
+        Gamma point [1,1,1] is returned.  Otherwise, big cells or big `h`
         values will create zero grid points.
     even : bool
         Force even grid point numbers. Here, we add 1 to odd points, thus
-        creating a grid more dense than requested by `dk`.
+        creating a grid more dense than requested by `h`.
     fullout : bool
         See below.
 
     Returns
     -------
-    size : if `dk != None` + `fullout=False` 
-    size, spacing : if `dk != None` + `fullout=True`
-    spacing : if `size` != None and `dk=None`
+    size : if `h != None` + `fullout=False` 
+    size, spacing : if `h != None` + `fullout=True`
+    spacing : if `size` != None and `h=None`
     size : array (3,) [nx, ny, nz]
         Integer numbers of grid points along each reciprocal axis.
     spacing : 1d array (3,) 
@@ -350,39 +367,26 @@ def kgrid(cell, dk=None, size=None, minpoints=1, even=False, fullout=False):
     Notes
     -----
     * B/c an integer array is created by rounding, the effective grid spacing
-      will mostly be slightly bigger/smaller then `dk` (see `fullout`).
-    * The reciprocal cell is calculated using ``recip_cell()``, so the
-      normalization used there applies here as well.
-    * ``dk=0.5`` seems to produce a sufficiently dense grid for insulators.
-      Metals need a finer k-grid for electrons.
-    
+      will mostly be slightly bigger/smaller then `h` (see `fullout`).
+
     Examples
     --------
-    >>> cell=diag([5,5,8])
-    >>> kgrid(cell, dk=0.5)
-    array([3, 3, 2])
-    >>> # see effective grid spacing
-    >>> kgrid(cell, dk=0.5, fullout=True)
-    (array([3, 3, 2]), array([ 0.41887902,  0.41887902,  0.39269908]))
-    >>> # reverse: effective grid spacing for given size
-    >>> kgrid(cell, size=[3,3,2])
-    array([ 0.41887902,  0.41887902,  0.39269908])
-    >>> # even grid
-    >>> kgrid(cell, dk=0.5, even=True)
-    array([4, 4, 2])
-    >>> # big cell, at least Gamma with minpoints=1
-    >>> kgrid(cell*10, dk=0.5)
-    array([1, 1, 1])
-    >>> # Create MP mesh
-    >>> ase.dft.monkhorst_pack(kgrid(cell, dk=0.5))
+    >>> crys.grid_in_cell(diag([1,2,3]), h=1)
+    array([1, 2, 3])
+    >>> crys.grid_in_cell(diag([1,2,3]), h=0.5)
+    array([2, 4, 6])
+    >>> crys.grid_in_cell(diag([1,2,3]), h=0.5, fullout=True)
+    (array([2, 4, 6]), array([ 0.5,  0.5,  0.5]))
+    >>> crys.grid_in_cell(diag([1,2,3]), size=[2,2,2])
+    array([ 0.5,  1. ,  1.5])
     """
-    assert None in [dk, size], "use either `dk` or `size`"
+    spacing = h
+    assert None in [spacing, size], "use either `h` or `size`"
     assert minpoints >= 0
     cell = np.asarray(cell, dtype=float)
-    rcell = recip_cell(cell)
-    rnorm = np.sqrt((rcell**2.0).sum(axis=1))
+    norms = np.sqrt((cell**2.0).sum(axis=1))
     if size is None:
-        size = np.round(rnorm / dk)
+        size = np.round(norms / spacing)
         if even:
             size += (size % 2.0)
         size = size.astype(int)
@@ -391,15 +395,77 @@ def kgrid(cell, dk=None, size=None, minpoints=1, even=False, fullout=False):
             size[mask] = minpoints
         # only possible if minpoints=0        
         if (size == 0).any():
-            raise StandardError("at least one point count is zero, decrease `dk`, "
+            raise StandardError("at least one point count is zero, decrease `spacing`, "
                                  "size=%s" %str(size))
         if fullout:
-            return size, rnorm * 1.0 / size
+            return size, norms * 1.0 / size
         else:
             return size.astype(int)
     else:
         size = np.array(size)
-        return rnorm * 1.0 / size
+        return norms * 1.0 / size
+
+
+def kgrid(cell, **kwds):
+    """Calculate k-point grid for given real-space cell or grid spacing from
+    grid size.
+
+    This is a convenience and backward compat function which does
+    ``grid_in_cell(recip_cell(cell), **kwds)``.
+    
+    Parameters
+    ----------
+    cell : array (3,3)
+        Real space unit cell.
+    **kwds : See grid_in_cell()        
+
+    Returns
+    -------
+    See grid_in_cell().
+
+    Notes
+    -----
+    * Since the reciprocal cell is calculated with `recip_cell`, ``h=0.5``
+      1/Ang seems to produce a sufficiently dense grid for insulators. Metals
+      need a finer k-grid for electrons.
+    
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pwtools.crys import kgrid
+    >>> cell = np.diag([5,5,8])
+    >>> kgrid(cell, h=0.5)
+    array([3, 3, 2])
+    >>> # see effective grid spacing
+    >>> kgrid(cell, h=0.5, fullout=True)
+    (array([3, 3, 2]), array([ 0.41887902,  0.41887902,  0.39269908]))
+    >>> # reverse: effective grid spacing for given size
+    >>> kgrid(cell, size=[3,3,2])
+    array([ 0.41887902,  0.41887902,  0.39269908])
+    >>> # even grid
+    >>> kgrid(cell, h=0.5, even=True)
+    array([4, 4, 2])
+    >>> # big cell, at least Gamma with minpoints=1
+    >>> kgrid(cell*10, h=0.5)
+    array([1, 1, 1])
+    >>> # Create MP mesh
+    >>> ase.dft.monkhorst_pack(kgrid(cell, h=0.5))
+    >>> # cell: 1 Ang side length, recip cell 2*pi/Ang side length, 
+    >>> # unit of h: 1/Ang
+    >>> crys.recip_cell(np.identity(3))
+    array([[ 6.28318531,  0.        ,  0.        ],
+           [ 0.        ,  6.28318531,  0.        ],
+           [ 0.        ,  0.        ,  6.28318531]])
+    >>> kgrid(np.identity(3), h=pi, fullout=True)
+    (array([2, 2, 2]), array([ 3.14159265,  3.14159265,  3.14159265]))
+    """
+    if kwds.has_key('dk'):
+        warnings.warn("`dk` is deprecated, use `h` instead",
+                      DeprecationWarning)
+        kwds['h'] = kwds['dk']
+        kwds.pop('dk')
+    return grid_in_cell(recip_cell(cell), **kwds)
+
 
 @crys_add_doc
 def cc2celldm(cryst_const, fac=1.0):
