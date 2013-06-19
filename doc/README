@@ -1,0 +1,10 @@
+This dir contains the documentation rst source files. To build the html doc,
+do::
+
+    make html
+    firefox build/html/index.html 
+
+For this to work, you need Sphinx, the Python documention generation tool. If
+you don't have that, you can simply read the ``source/written/*.rst`` files :)
+
+.. vim:syn=rst

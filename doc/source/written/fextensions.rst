@@ -1,6 +1,20 @@
-Compile Fortran extensions. Generates *.so and *.pyf (f2py interface) files.
+.. _fextensions:
+
+Compiling Fortran extensions and OpenMP notes
+=============================================
+
+Use the ``Makefile``::
+
+    $ make help
+    make gfortran            # gfortran, default
+    make gfortran-omp        # gfortran + OpenMP
+    make ifort               # ifort
+    make ifort-omp           # ifort + OpenMP
+
+Generates ``*.so`` and ``*.pyf`` (f2py interface) files.
 
 You need:
+
 * numpy
 * a Fortran compiler
 * Python headers (for Linux: usually a package python-dev or python-devel,
@@ -14,30 +28,32 @@ Compiler / f2py
 Instead of letting numpy.distutils pick a compiler + special flags, which is
 not trivial and therefore almost never works, it is much easier to simply
 define the compiler to use + architecture-specific flags. See F90 and ARCH in
-the Makefiles.
+the Makefile.
 
-Also, numpy.distutils has default -03 for fcompiler. --f90flags="-02" does NOT
-override this. We get "-O3 -O2" and a compiler warning. We have to use f2py's
---opt= flag.
+Also, numpy.distutils has default -03 for fcompiler. ``--f90flags="-02"`` does NOT
+override this. We get ``-O3 -O2`` and a compiler warning. We have to use f2py's
+``--opt=`` flag.
 
-On some systems (Debian), you may have
+On some systems (Debian), you may have::
+
   /usr/bin/f2py -> f2py2.6
   /usr/bin/f2py2.5
   /usr/bin/f2py2.6
-and such. But usually F2PY=f2py is fine.
+
+and such. But usually ``F2PY=f2py`` is fine.
 
 OpenMP 
 ------
 We managed to speed up the calculations by sprinkling some OpenMP
-pragmas in *.f90. This works pretty good. If you wanna try, use 
+pragmas in ``*.f90``. This works pretty good. If you wanna try, use 
 ``make ifort-omp`` or ``make gfortran-omp``.
 
 If all went well, _flib.so should be linked to libgomp (or libiomp for ifort).
-Check with
+Check with::
 	
 	$ ldd _flib.so
 
-Setting the number of threads:  
+Setting the number of threads::  
 	
 	$ export OMP_NUM_THREADS=2
 	$ python -c "import numpy as np; from pwtools.pydos import fvacf; \
