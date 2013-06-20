@@ -178,15 +178,15 @@ reciprocal cell (2*pi/Ang):
 relation of recip. vector lengths (a:b:c)
 {rrel}
 
-kpoint grids for some dk [2*pi/Ang] resolutions
+kpoint grids for some h [2*pi/Ang] resolutions
 {kpoints}
 """
 
 cell_ang = struct.cell * Bohr/Angstrom
 kpoints = ''
-for dk in np.arange(.2, 1, .1):
-    kpoints += "dk = %.3f  size = %s\n" \
-        %(dk, str_arr(crys.kgrid(cell_ang, dk=dk), fmt='%i'))
+for h in np.arange(.2, 1, .1):
+    kpoints += "h = %.3f  size = %s\n" \
+        %(h, str_arr(crys.kgrid(cell_ang, h=h), fmt='%i'))
 
 rules = {'bar': bar,
          'rcell_bohr': str_arr(rcell),
