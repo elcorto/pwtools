@@ -2213,6 +2213,8 @@ class UnitsHandler(FlexibleGetters):
     def __init__(self, units=None):
         # XXX cryst_const is not in 'length' and needs to be treated specially,
         # see _apply_units_raw()
+        
+        # map physical quantity to variable names in Structure/Trajectory
         self.units_map = \
             {'length':      ['cell', 'coords', 'abc'],
              'energy':      ['etot', 'ekin'],

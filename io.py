@@ -273,6 +273,12 @@ read_cpmd_scf = ReadFactory(parser=parse.CpmdSCFOutputFile,
 read_cpmd_md = ReadFactory(parser=parse.CpmdMDOutputFile, 
                            struct_or_traj='traj', 
                            )
+read_cp2k_scf = ReadFactory(parser=parse.Cp2kSCFOutputFile, 
+                           struct_or_traj='struct', 
+                           )
+read_cp2k_md = ReadFactory(parser=parse.Cp2kMDOutputFile, 
+                           struct_or_traj='traj', 
+                           )
 
 
 def write_h5(fn, dct):

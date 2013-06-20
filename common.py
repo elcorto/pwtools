@@ -701,7 +701,6 @@ def permit_sigpipe():
     """
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
-
 def backtick(call):
     """Convenient shell backtick replacement with gentle error handling.
 

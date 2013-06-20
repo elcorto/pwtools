@@ -22,23 +22,32 @@ parse.py
   
   In some classes, we call __init__'s of two base classes and cannot use
   super() then? Is this bad design?
-* Speed: For big MD text data, the bottleneck is np.loadtxt()! We can get a
+* Speed: For big MD text data, the bottleneck is actually np.loadtxt() in
+  arayio.readtxt(), which is called by parse.traj_from_txt(). We can get a
   massive speedup by using smth like np.fromstring(common.backtick('grep ...'),
-  dtype=float, sep=' ').reshape((natoms*nstep,3)). We need to use reshape b/c
-  fromstring just reads numbers into a 1d array, happily ignoring linebreaks
-  and multiple white spaces (like Fortran). So, we need to know the shape of
-  each read 2d array (e.g. (natoms*nstep,3)). But that's no problem since we
-  can calculate natoms*nstep from len(array) / 3. We would have to re-write
-  some of the parse.arr*_from_txt(). That way, we can skip cStringIO + loadtxt
-  and probably also arrayio.readtxt() completely! The latter is only used to
-  transform 2d arrays from loadtxt() (natoms*nstep,3) into 3d arrays (nstep,
-  natoms, 3). Maybe we can do that w/ reshape? Or we use the recently fleshed
-  out arrayio.arr2d_to_3d() for that!
+  dtype=float, sep=' ').reshape((nstep,natoms,3)) for all arrays which have
+  been written like
+      for i in range(nstep):
+        for j in range(natoms):
+            for k in [0,1,2]:
+                ...
+  in the host simulation code (PWscf, etc). These 2d arrays in the text files
+  have shape (nstep*natoms,3). We need to use reshape b/c fromstring just reads
+  numbers into a 1d array, happily ignoring linebreaks and multiple white
+  spaces (like Fortran). So, we need to know the shape of the array. But most
+  of the time, we know that. In fact, in each traj_from_txt() call we use
+  shape=(nstep,...) anyway! Also, traj_from_txt(..., axis=...) is only needed
+  if axis!=0. We would have to re-write some of the parse.arr*_from_txt(). That
+  way, we can skip cStringIO + arrayio.readtxt() + loadtxt() completely!
+  readtxt() is only used to transform 2d arrays from loadtxt() (nstep*natoms,3)
+  into 3d arrays (nstep, natoms, 3). For axis=0, we can use reshape. For other
+  cases, we can use arrayio.arr2d_to_3d() directly.
   
 crys.py
 -------
 * All *3d() funcs use simple loops currently. This is slow. Find vectorized
-  versions or re-implement in Fortran (flib.f90) / Cython / ...
+  versions or re-implement in Fortran (flib.f90) / Cython. But use profiling
+  first! Ipython's %prun or kernprof.py / line profiler.
 * Structure / Trajectory: Instead of cryst_const, store abc+angles, apply
   length unit to abc and derive cell + cryst_const from abc+angles. 
 * rpdf(): Use scipy.spatial.distance.pdist() or cdist() or a variant of
@@ -67,8 +76,6 @@ pydos.py
 all
 ---
 * Drop verbose.py. Use the logging or warnings module.
-* In some modules, we changed absolute to relative imports. 
-  If we keep this, change in all modules.
 * rename all functions foo3d() -> foo_traj(). But not funcs wich take 3d arrays
   directly!
 
@@ -81,9 +88,10 @@ cmd line tools in bin/
   as a replacement for xcrysden's pwo2xsf.sh . Maybe unify all into smth like 
   any2axsf.py. However, whith the new API, we may not need that anymore. Just
   use smth like
-  >>> traj = parse.SomeMDParser(...).get_traj()
-  >>> sc = crys.scell3d(traj, (3,3,3))
-  >>> io.write_axsf('foo_3x3x3.axsf', sc)
+    >>> traj = parse.SomeMDParser(...).get_traj()
+    >>> sc = crys.scell3d(traj, (3,3,3))
+    >>> io.write_axsf('foo_3x3x3.axsf', sc)
+  So all these tools can be removed.
 
 tests
 -----

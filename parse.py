@@ -297,10 +297,11 @@ class StructureFileParser(FileParser, UnitsHandler):
         # ... which are updated with user input. The resulting self.units is
         # passed to Container.
         self.update_units(units)
-        # init all attrs to None which go into Structure()
+        # init all attrs to None which go into Container
         self.init_attr_lst(self.cont_attr_lst)            
     
     def get_cont(self):
+        """Populate and return a Container object."""
         if not self.parse_called:
             self.parse()
         cont = self.Container(set_all_auto=False, units=self.units)
@@ -314,6 +315,7 @@ class StructureFileParser(FileParser, UnitsHandler):
     
     def get_struct(self):
         return self.get_cont()
+
 
 class TrajectoryFileParser(StructureFileParser):
     """Base class for MD-like parsers."""
@@ -1753,4 +1755,253 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
         cmd = r"grep 'TIME STEP FOR IONS' %s | \
             sed -re 's/.*IONS:\s+(.*)$/\1/'" %self.filename
         return float_from_txt(com.backtick(cmd))            
+
+class Cp2kSCFOutputFile(StructureFileParser):
+    """CP2K SCF output parser ("global/run_type energy_force,print_level low"). 
+
+    Notes
+    -----
+    * Since we mainly use "global/print_level low", we don't bother to
+      special-case for "global/print_level medium". Therefore, we don't extract
+      cell and coords. SCF runs are only done for convergence tests, so forces,
+      etot and stress are important.
+    * It seems that with default &print settings, SCF runs write the stress
+      tensor in GPa, while for MD, the default is bar. Thank you very much!
+    """
+    default_units = \
+        {'energy': Ha / eV, # Ha -> eV
+         'forces': Ha / eV * Angstrom / Bohr, # Ha / Bohr -> eV / Angstrom
+        } 
+    
+    def __init__(self, *args, **kwds):
+        StructureFileParser.__init__(self, *args, **kwds)
+        self.attr_lst = [\
+            'natoms',
+            'etot',
+            'forces',
+            'stress',
+            'symbols',
+        ]
+    
+    def _get_natoms_symbols_forces(self):
+        cmd = r"sed -nre '1,/ATOMIC FORCES/d; " + \
+               "1,/Atom\s+Kind\s+Element/d; " + \
+               "/SUM OF ATOMIC FORCES/q;p' %s" %self.filename
+        ret = com.backtick(cmd).strip()
+        if ret != '':
+            arr = np.array([x.split() for x in ret.splitlines()])
+            return {'natoms': arr.shape[0],
+                    'symbols': arr[:,2].tolist(),
+                    'forces': arr[:,3:].astype(float)}
+        else:
+            return None
+    
+    def get_natoms(self):
+        if self.check_set_attr('_natoms_symbols_forces'):
+            return self._natoms_symbols_forces['natoms']
+        else:
+            return None
+
+    def get_symbols(self):
+        if self.check_set_attr('_natoms_symbols_forces'):
+            return self._natoms_symbols_forces['symbols']
+        else:
+            return None
+
+    def get_forces(self):
+        """[Ha/Bohr]"""
+        if self.check_set_attr('_natoms_symbols_forces'):
+            return self._natoms_symbols_forces['forces']
+        else:
+            return None
+
+    def get_etot(self):
+        """[Ha]"""
+        cmd = r"sed -nre 's/.*ENERGY.*Total.*energy.*:(.*)/\1/p' %s" %self.filename
+        return float_from_txt(com.backtick(cmd))
+
+    
+    def get_stress(self):
+        """[GPa]"""
+        cmd = r"grep -A5 'STRESS TENSOR.*GPa' %s | egrep -v 'X[ ]+Y[ ]+Z' | \
+            egrep '^[ ]+(X|Y|Z)'" %self.filename
+        ret = com.backtick(cmd).strip()
+        arr = np.array([x.split() for x in ret.splitlines()])
+        return arr[:,1:].astype(float)
+
+
+class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
+    """CP2K MD output parser. Tested with cp2k v2.4, "global/run_type
+    md,print_level low".
+    """
+    def __init__(self, *args, **kwds):
+        TrajectoryFileParser.__init__(self, *args, **kwds)
+        self.units['stress'] = 1e-4 # bar -> GPa
+        self.units['velocity'] = Bohr/thart / Ang*fs, # Bohr/thart -> Ang/fs
+        self.attr_lst = [\
+            'cell',
+            'coords',
+            'econst',
+            'ekin',
+            'etot',
+            'forces',
+            'natoms',
+            'stress',
+            'symbols',
+            'temperature',
+            'timestep',
+            'velocity',
+        ]
+        self.init_attr_lst()
+    
+    @staticmethod
+    def _cp2k_repack_arr(arr):
+        """Convert arr, which is an unrolled (nstep,3,3) array, back."""
+        out = np.empty((arr.shape[0],3,3), dtype=float)
+        out[:,0,0] = arr[:,2]
+        out[:,0,1] = arr[:,3]
+        out[:,0,2] = arr[:,4]
+        out[:,1,0] = arr[:,5]
+        out[:,1,1] = arr[:,6]
+        out[:,1,2] = arr[:,7]
+        out[:,2,0] = arr[:,8]
+        out[:,2,1] = arr[:,9]
+        out[:,2,2] = arr[:,10]
+        return out
+    
+    def _cp2k_xyz2arr(self, fn):
+        """Parse cp2k style XYZ files and return the 3d array."""
+        cmd = "grep 'i = .*time =' %s | wc -l" %fn
+        nstep = nstep_from_txt(com.backtick(cmd))
+        natoms = int_from_txt(com.backtick("head -n1 %s" %fn))
+        cmd = "awk '!/i =.*time =|^[ ]+[0-9]+/ \
+            {printf $2\" \"$3\" \"$4\"\\n\"}' %s" %fn
+        assert self.timeaxis == 0
+##        return traj_from_txt(common.backtick(cmd), shape=(nstep,natoms,3), axis=0)
+        return np.fromstring(common.backtick(cmd), sep=' ').reshape(nstep,natoms,3)
+
+    def _get_cell_file_arr(self):
+        fn = common.pj(self.basedir, 'PROJECT-1.cell')
+        if os.path.exists(fn):
+            return np.loadtxt(fn)
+        else:            
+            return None
+    
+    def _get_ener_file_arr(self):
+        fn = common.pj(self.basedir, 'PROJECT-1.ener')
+        if os.path.exists(fn):
+            return np.loadtxt(fn)
+        else:            
+            return None
+   
+    def _get_stress_file_arr(self):
+        fn = common.pj(self.basedir, 'PROJECT-1.stress')
+        if os.path.exists(fn):
+            return np.loadtxt(fn)
+        else:            
+            return None
+    
+    def get_natoms(self):
+        cmd = r"grep -m1 'Number of atoms:' %s | \
+            sed -re 's/.*:(.*)/\1/'" %self.filename
+        return int_from_txt(com.backtick(cmd)) 
+    
+    def get_timestep(self):
+        """[fs]"""
+        cmd = r"egrep -m1 'MD\| Time Step \[fs\]' %s | \
+            sed -re 's/.*\](.*)/\1/'" %self.filename
+        return float_from_txt(com.backtick(cmd))            
+
+    def _get_coords_symbols(self):
+        """Cartesian [Ang]"""
+        fn = common.pj(self.basedir, 'PROJECT-pos-1.xyz')
+        if os.path.exists(fn):
+            coords = self._cp2k_xyz2arr(fn)
+            if self.check_set_attr('natoms'):
+                cmd = r"grep -m1 -A%i 'i =' %s | \
+                    grep -v 'i ='| awk '{print $1}'" %(self.natoms,fn) 
+                symbols = com.backtick(cmd).strip().split()
+                return {'coords': coords, 'symbols': symbols}
+            else:
+                return None
+        else:            
+            return None
+    
+    def get_coords(self):
+        """Cartesian [Ang]"""
+        if self.check_set_attr('_coords_symbols'):
+            return self._coords_symbols['coords']
+        else:
+            return None
+
+    def get_symbols(self):
+        if self.check_set_attr('_coords_symbols'):
+            return self._coords_symbols['symbols']
+        else:
+            return None
+    
+    def get_forces(self):
+        """[Ha/Bohr]"""
+        fn = common.pj(self.basedir, 'PROJECT-frc-1.xyz')
+        if os.path.exists(fn):
+            return self._cp2k_xyz2arr(fn)
+        else:            
+            return None
+    
+    def get_velocity(self):
+        """[Bohr/thart]"""
+        fn = common.pj(self.basedir, 'PROJECT-vel-1.xyz')
+        if os.path.exists(fn):
+            return self._cp2k_xyz2arr(fn)
+        else:            
+            return None
+    
+    def get_stress(self):
+        """[bar]"""
+        if self.check_set_attr('_stress_file_arr'):
+            return self._cp2k_repack_arr(self._stress_file_arr)
+        else:
+            return None
+
+    def get_ekin(self):
+        """[Ha]"""
+        if self.check_set_attr('_ener_file_arr'):
+            return self._ener_file_arr[:,2]
+        else:
+            return None
+
+    def get_temperature(self):
+        """[K]"""
+        if self.check_set_attr('_ener_file_arr'):
+            return self._ener_file_arr[:,3]
+        else:
+            return None
+    
+    def get_etot(self):
+        """[Ha]"""
+        if self.check_set_attr('_ener_file_arr'):
+            return self._ener_file_arr[:,4]
+        else:
+            return None
+    
+    def get_econst(self):
+        """[Ha]"""
+        if self.check_set_attr('_ener_file_arr'):
+            return self._ener_file_arr[:,5]
+        else:
+            return None
+    
+    def get_cell(self):
+        """[Ang]"""
+        if self.check_set_attr('_cell_file_arr'):
+            return self._cp2k_repack_arr(self._cell_file_arr)
+        else:
+            return None
+
+    def get_volume(self):
+        """[Ang^3]"""
+        if self.check_set_attr('_cell_file_arr'):
+            return self._cell_file_arr[:,-1]
+        else:
+            return None
 
