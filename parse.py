@@ -1754,6 +1754,3 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
             sed -re 's/.*IONS:\s+(.*)$/\1/'" %self.filename
         return float_from_txt(com.backtick(cmd))            
 
-
-# backward compat
-PwOutputFile = PwMDOutputFile
