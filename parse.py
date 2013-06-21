@@ -1500,7 +1500,6 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
             'etot',
             'forces',
             'natoms',
-            'nstep',
             'stress',
             'symbols',
             'temperature',
@@ -1712,13 +1711,6 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
         req = '_coords_vel_forces'
         self.try_set_attr(req)
         return self._coords_vel_forces['forces'] if self.is_set_attr(req) \
-            else None
-    
-    def get_nstep(self):
-        verbose("getting nstep")
-        req = '_energies_file'
-        self.try_set_attr(req)
-        return int(self._energies_file['nfi'][-1]) if self.is_set_attr(req) \
             else None
     
     def get_stress(self):
