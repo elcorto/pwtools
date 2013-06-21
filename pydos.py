@@ -12,31 +12,6 @@ import constants, _flib, num
 from pwtools.verbose import verbose
 from pwtools.signal import pad_zeros, welch
 
-def velocity(coords, dt=None, axis=0):
-    """Compute velocity from 3d array with MD trajectory by simple finite
-    differences.
-        
-    Parameters
-    ----------
-    coords : 3d array
-        Cartesian atomic coords of an MD trajectory. The time axis is defined
-        by "axis". Along this axis, 2d arrays (natoms,3) are expected.
-    dt: optional, float
-        time step
-    axis : optional, int
-        Time axis of "coords".
-
-    Returns
-    -------
-    vel : 3D array
-        Usally, this is (nstep-1,natoms, 3)
-    """
-    vel = np.diff(coords, n=1, axis=axis)
-    if dt is not None:
-        vel /= dt
-    return vel
-
-
 def pyvacf(vel, m=None, method=3):
     """Reference implementation for calculating the VACF of velocities in 3d
     array `vel`. This is slow. Use for debugging only. For production, use

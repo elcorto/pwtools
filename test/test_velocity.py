@@ -1,18 +1,6 @@
 import os
 import numpy as np
-from pwtools.pydos import velocity
-from pwtools import common, io
-
-
-def test_velocity_n1():
-    # Test most simple minded finite diff velocities.
-    coords = np.arange(2*3*6).reshape(2,3,6)
-    v1 = velocity(coords, axis=-1)
-    v2 = coords[...,1:] - coords[...,:-1]
-    v3 = np.diff(coords, n=1, axis=-1)
-    assert v1.shape == v2.shape == v3.shape == (2,3,5)
-    assert (v1 == v2).all()
-    assert (v1 == v3).all()
+from pwtools import common, io, crys
 
 def test_velocity_traj():
     # Test Trajectory.get_velocity() against velocities output from CP2K. The
@@ -37,3 +25,8 @@ def test_velocity_traj():
     ##ax.plot(v1[1:-1,:,0], 'b')
     ##ax.plot(v2[1:-1,:,0], 'r')
     ##mpl.plt.show()
+    
+    shape = (100,10,3)
+    arr = np.random.rand(*shape)
+    assert crys.velocity_traj(arr, axis=0).shape == shape
+    assert crys.velocity_traj(arr, axis=0, endpoints=False).shape == (98,10,3)

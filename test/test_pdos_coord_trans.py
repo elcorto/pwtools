@@ -5,16 +5,13 @@
 # In the resulting plot, "cart" and "cart2" must be exactly the same. "cell1"
 # must match in principle, but not overlay the other two. 
 
-# XXX how to treat knownfails w/ nose?
 def test():
     import numpy as np
     from pwtools import pydos as pd
-    from pwtools.crys import coord_trans
-    ##from matplotlib import pyplot as plt
-    timeaxis=0
+    from pwtools.crys import coord_trans, velocity_traj
 
-    def pdos(coords_arr_3d):
-        f, d = pd.direct_pdos(pd.velocity(coords_arr_3d, axis=timeaxis))
+    def pdos(coords_arr_3d, axis=0):
+        f, d = pd.direct_pdos(velocity_traj(coords_arr_3d, axis=axis))
         return d
 
     rand = np.random.random
@@ -37,11 +34,6 @@ def test():
     dos = {}
     for key, val in coords.iteritems():
         dos[key] = pdos(val)
-
-    ##for key, val in dos.iteritems():
-    ##    plt.plot(val, label=key)
-    ##plt.legend()
-    ##plt.show()
 
     np.testing.assert_array_almost_equal(dos['cart'], dos['cart2'])
     try:
