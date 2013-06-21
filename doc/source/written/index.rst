@@ -3,7 +3,7 @@
    features
    install
    fextensions
-   parsing
+   units
    phonon_dos
    pwscf
    refs

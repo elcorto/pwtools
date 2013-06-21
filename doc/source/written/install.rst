@@ -8,6 +8,9 @@ somewhere and run ``make`` to compile extensions::
     $ mv pwtools-x.y.z $HOME/python/pwtools
     $ cd $HOME/python/pwtools
     $ make
+    # ~/.bashrc or ~/.profile
+    export PATH=$HOME/python/pwtools/bin:$PATH
+    export PYTHONPATH=$PYTHONPATH:$HOME/python
 
 See :ref:`fextensions` for more information on how to build the extension
 modules.
@@ -53,7 +56,9 @@ Without ``eos``, :mod:`pwtools.eos.ElkEOSFit` and related tests won't work.
 Suggested:
 
 * matplotlib (``examples/``)
-* VMD [vmd]_ (``examples/rpdf/``), must register before download
+* VMD [vmd]_ (``examples/rpdf/``, :func:`~pwtools.crys.call_vmd_measure_gofr`,
+  :func:`~pwtools.visualize.view_vmd_axsf`,
+  :func:`~pwtools.visualize.view_vmd_xyz`), must register before download
 
 Optional:
 
@@ -61,20 +66,7 @@ Optional:
   ``examples/``). Need to register before download.
 
 The "pwextern-free" package [pwextern-free]_ over at bitbucket.org contains
-add-in tools which we don't want / can ship directly with pwtools.
-
-Path issues (.bashrc/.profile)
-------------------------------
-
-Suppose all files are in ``$HOME/python/pwtools/``::
-    
-    # makes "import pwtools" possible
-    export PYTHONPATH=$PYTHONPATH:$HOME/python
-    # If you like, make cmd line tools available.    
-    export PATH=$HOME/python/pwtools/bin:$PATH
-
-Note that the basename of the dir *must* be named "pwtools" b/c it's the
-package's root dir.
+add-on tools which we don't want / can ship directly with pwtools.
 
 Running tests
 -------------

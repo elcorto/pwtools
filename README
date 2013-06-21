@@ -1,8 +1,12 @@
 About
 -----
-This is the pwtools package. 
+The pwtools package.
+Copyright (C) 2008-2013 Steve Schmerler <mefx@gmx.net>
 
-See doc/ for doumentation, install notes etc.
+See doc/ for doumentation and extended install notes (e.g. dependencies on
+other python packages).
+
+Also: Read the Source, Luke!
 
 Quick install
 -------------
@@ -15,5 +19,8 @@ somewhere and run ``make`` to compile extensions::
     $ mv pwtools-x.y.z $HOME/python/pwtools
     $ cd $HOME/python/pwtools
     $ make
+    # ~/.bashrc or ~/.profile
+    export PATH=$HOME/python/pwtools/bin:$PATH
+    export PYTHONPATH=$PYTHONPATH:$HOME/python
 
 .. vim:syn=rst
