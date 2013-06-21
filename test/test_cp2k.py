@@ -16,9 +16,9 @@ def test_cp2k_md():
     # This parser and others have get_econst(), but not all, so ATM it's not
     # part of the Trajectory API
     attr_lst.pop(attr_lst.index('econst'))
-    dr = 'files/cp2k/md/print_level_low'
-    base = os.path.dirname(dr) 
-    fn = '%s/cp2k.out' %dr
-    print common.backtick('tar -C {} -xzf {}.tgz'.format(base,dr))
-    tr = io.read_cp2k_md(fn)
-    assert_attrs_not_none(tr, attr_lst=attr_lst)        
+    for dr in ['files/cp2k/md/npt_f_print_low', 'files/cp2k/md/nvt_print_low']:
+        base = os.path.dirname(dr) 
+        fn = '%s/cp2k.out' %dr
+        print common.backtick('tar -C {} -xzf {}.tgz'.format(base,dr))
+        tr = io.read_cp2k_md(fn)
+        assert_attrs_not_none(tr, attr_lst=attr_lst)        

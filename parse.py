@@ -334,6 +334,7 @@ class TrajectoryFileParser(StructureFileParser):
         'symbols',
         'temperature',
         'timestep',
+        'velocity',
         ]
     
     def get_struct(self):
