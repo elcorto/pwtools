@@ -18,7 +18,14 @@ def test_velocity_traj():
     # calculate from coords + time step, b/c of central diffs, only steps 1:-1
     # are the same
     v2 = tr.get_velocity()
+    print ">>>> np.abs(v1).max()", np.abs(v1).max()
+    print ">>>> np.abs(v1).min()", np.abs(v1).min()
+    print ">>>> np.abs(v2).max()", np.abs(v2).max()
+    print ">>>> np.abs(v2).min()", np.abs(v2).min()
+    print ">>>> np.abs(v1-v2).max()", np.abs(v1-v2).max()
+    print ">>>> np.abs(v1-v2).min()", np.abs(v1-v2).min()
     assert np.allclose(v1[1:-1,...], v2[1:-1,...], atol=1e-4)
+
 
     ##from pwtools import mpl
     ##fig,ax = mpl.fig_ax()

@@ -231,6 +231,9 @@ class FileParser(FlexibleGetters):
         FlexibleGetters.__init__(self)
         self.filename = filename
         if self.filename is not None:
+            # XXX self.fd is not needed most of the time!!! Get rid. Don't
+            # open the file by default! Add smth like open_file(), which can be
+            # called on demand.
             self.fd = open(self.filename, 'r')
             self.basedir = os.path.dirname(self.filename)
         else:
@@ -268,47 +271,30 @@ class FileParser(FlexibleGetters):
 
 class StructureFileParser(FileParser, UnitsHandler):
     """Base class for single-structure parsers.
-    
-    Derived from UnitsHandler, but we actually only use it for
-    self.update_units() to set self.units, which are handed over to
-    Structure(). The parser itself doesn't apply_units() to itself.
     """
-    # XXX Use Container().attr_lst? Must create Container instance first b/c
-    # attr_lst is created in Container.__init__() . Maybe not worth the
-    # trouble?
     Container = crys.Structure
-    cont_attr_lst = [\
-        'cell',
-        'coords',
-        'coords_frac',
-        'cryst_const',
-        'etot',
-        'forces',
-        'stress',
-        'symbols',
-        ]
-    default_units = {}        
-
+    default_units = {}    
     def __init__(self, filename=None, units=None):
         FileParser.__init__(self, filename=filename)
         UnitsHandler.__init__(self)
-        # Parsers can have default units ...
+        # Each derived parser class has `default_units`, with which self.units
+        # is updated. Then, self.units is updated from user input if we are
+        # called as ``SomeParser(...,units=...)``. Last, self.units is passed
+        # to Container(..., units=self.units) and units are applied there.
+        # Clear? :)
         self.update_units(self.default_units)
-        # ... which are updated with user input. The resulting self.units is
-        # passed to Container.
         self.update_units(units)
-        # init all attrs to None which go into Container
-        self.init_attr_lst(self.cont_attr_lst)            
+        self.cont = self.Container(set_all_auto=False, units=self.units)
+        self.init_attr_lst(self.cont.attr_lst)            
     
     def get_cont(self):
         """Populate and return a Container object."""
         if not self.parse_called:
             self.parse()
-        cont = self.Container(set_all_auto=False, units=self.units)
-        for attr_name in self.cont_attr_lst:
-            setattr(cont, attr_name, getattr(self, attr_name))
-        cont.set_all()
-        return cont
+        for attr_name in self.cont.attr_lst:
+            setattr(self.cont, attr_name, getattr(self, attr_name))
+        self.cont.set_all()
+        return self.cont
    
     def apply_units(self):
         raise NotImplementedError("don't use that in parsers")
@@ -320,22 +306,9 @@ class StructureFileParser(FileParser, UnitsHandler):
 class TrajectoryFileParser(StructureFileParser):
     """Base class for MD-like parsers."""
     Container = crys.Trajectory
-    timeaxis = crys.Trajectory(set_all_auto=False).timeaxis
-    # XXX use Trajectory().attr_lst ??
-    cont_attr_lst = [\
-        'cell',
-        'coords',
-        'coords_frac',
-        'cryst_const',
-        'ekin',
-        'etot',
-        'forces',
-        'stress',
-        'symbols',
-        'temperature',
-        'timestep',
-        'velocity',
-        ]
+    # timeaxis in Trajectory defined before __init__, so we don't need to
+    # instantiate the object
+    timeaxis = Container.timeaxis
     
     def get_struct(self):
         raise NotImplementedError("use get_traj()")
@@ -1828,9 +1801,9 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
     md,print_level low".
     """
     def __init__(self, *args, **kwds):
+        self.default_units['stress'] = 1e-4 # bar -> GPa
+        self.default_units['velocity'] = Bohr/thart / Ang*fs, # Bohr/thart -> Ang/fs
         TrajectoryFileParser.__init__(self, *args, **kwds)
-        self.units['stress'] = 1e-4 # bar -> GPa
-        self.units['velocity'] = Bohr/thart / Ang*fs, # Bohr/thart -> Ang/fs
         self.attr_lst = [\
             'cell',
             'coords',

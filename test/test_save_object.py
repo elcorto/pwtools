@@ -30,7 +30,8 @@ def test():
     print ">>> ... done"
 
     print ">>> checking equalness of attrs in loaded object ..."
-    known_fails = {'fd': 'closed/uninitialized file'}
+    known_fails = {'fd': 'closed/uninitialized file',
+                   'cont': 'container object'}
     arr_t = type(np.array([1]))
     dict_t = type({})
     for attr in c.__dict__.iterkeys():

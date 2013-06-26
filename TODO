@@ -127,6 +127,8 @@ constants.py / units in general
   transition, first introduce apu (atomic pressure unit = GPa, later ASE value
   = eV / Ang**3), atu (atomic time unit = fs, later ASE value = ???) in
   constants.py and use that everywhere instead of assuming GPa and fs.
-
+* The units implementation is a mess. Now, we have UnitsHandler ->
+  StructureFileParser -> parse.*OutputFile and default_units in each 
+  *OutputFile. This must be simplified. 
 
 # vim:comments=fb\:*

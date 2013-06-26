@@ -665,10 +665,12 @@ def scell3d(traj, dims):
     nmask = mask.shape[0]
     sc_symbols = np.array(traj.symbols).repeat(nmask).tolist() if (traj.symbols \
                  is not None) else None
+    
     # cool, eh?
     # (nstep, natoms, 1, 3) + (1, 1, nmask, 3) -> (nstep, natoms, nmask, 3)
     sc_coords_frac = (traj.coords_frac[...,None,:] \
                       + mask[None,None,...]).reshape(traj.nstep,traj.natoms*nmask,3)
+    
     # (nstep,3,3) * (1,3,1) -> (nstep, 3,3)                      
     sc_cell = traj.cell * np.asarray(dims)[None,:,None]
     sc_coords_frac[:,:,0] /= dims[0]
@@ -2261,7 +2263,7 @@ def nearest_neighbors_struct(struct, **kwds):
 #-----------------------------------------------------------------------------
 
 class UnitsHandler(FlexibleGetters):
-    def __init__(self, units=None):
+    def __init__(self):
         # XXX cryst_const is not in 'length' and needs to be treated specially,
         # see _apply_units_raw()
         
@@ -2277,8 +2279,8 @@ class UnitsHandler(FlexibleGetters):
              }
         self._default_units = dict([(key, 1.0) for key in self.units_map.keys()])
         self.units_applied = False
-        self.init_units()
-        self.update_units(units)
+        # Init all unit factors in self.units to 1.0
+        self.units = self._default_units.copy()
 
     def _apply_units_raw(self):
         """Only used by derived classes. Apply unit factors to all attrs in
@@ -2310,10 +2312,6 @@ class UnitsHandler(FlexibleGetters):
         if not self.units_applied:
             self._apply_units_raw()
 
-    def init_units(self):
-        """Init all unit factors in self.units to 1.0."""
-        self.units = self._default_units.copy()
-    
     def update_units(self, units):
         """Update self.units dict from `units`. All units not contained in
         `units` remain at the default (1.0), see self._default_units.
@@ -2328,6 +2326,7 @@ class UnitsHandler(FlexibleGetters):
                 if key not in all_units:
                     raise StandardError("unknown unit: %s" %str(key))
             self.units.update(units)
+
 
 class Structure(UnitsHandler):
     """Base class for containers which hold a single crystal structure (unit
@@ -2483,7 +2482,8 @@ class Structure(UnitsHandler):
             (which is redundant). If only one is given, the other is calculated
             from it. See coord_trans().
         """
-        super(Structure, self).__init__(units=units)
+        super(Structure, self).__init__()
+        self.update_units(units)
         self._init(kwds, set_all_auto)
         
     def _init(self, kwds, set_all_auto):
