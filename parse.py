@@ -22,8 +22,9 @@ All parsing classes::
 
     Pw*OutputFile
     Cpmd*OutputFile
+    Cp2k*OutputFile
 
-are derived from FlexibleGetters -> FileParser -> {Structure,Trajectory}FileParser
+are derived from FlexibleGetters -> UnitsHandler ->  {Structure,Trajectory}FileParser
 
 As a general rule: If a getter (self.get_<attr>() or self._get_<attr>_raw()
 cannot find anything in the file, it returns None. All getters which depend
@@ -46,7 +47,7 @@ on it will also return None.
   parse().
 
 * Use dump('foo.pk') only for temporary storage and fast re-reading. Use
-  pwtool.common.cpickle_load(foo.pk). See also the FileParser.load() docstring.
+  pwtool.common.cpickle_load(foo.pk). See also the *FileParser.load() docstring.
 
 * Keep the original parsed output file around (self.filename), avoid
   get_txt().
@@ -216,66 +217,16 @@ def axis_lens(seq, axis=0):
 # Parsers
 #-----------------------------------------------------------------------------
 
-class FileParser(FlexibleGetters):
-    """Base class for file parsers.
-    
-    All getters are called in the default self.parse() which can be overridden
-    in derived classes.
-    """
-    def __init__(self, filename=None):
-        """
-        Parameters
-        ----------
-        filename : str, name of the file to parse
-        """
-        FlexibleGetters.__init__(self)
-        self.filename = filename
-        if self.filename is not None:
-            # XXX self.fd is not needed most of the time!!! Get rid. Don't
-            # open the file by default! Add smth like open_file(), which can be
-            # called on demand.
-            self.fd = open(self.filename, 'r')
-            self.basedir = os.path.dirname(self.filename)
-        else:
-            self.fd = None
-            self.basedir = None
-        self.parse_called = False    
-
-    def __del__(self):
-        """Destructor. If self.fd has not been closed yet (in self.parse()),
-        then do it here, eventually."""
-        self.close_file()
-    
-    def _is_file_open(self):
-        if self.is_set_attr('fd'):
-            return (not self.fd.closed)
-        else:
-            return False
-
-    def close_file(self):
-        if self._is_file_open():
-            self.fd.close()
-    
-    def parse(self):
-        self.set_all()
-        self.close_file()
-        self.parse_called = True
-
-    def get_txt(self):
-        if self._is_file_open():
-            self.fd.seek(0)    
-            return self.fd.read().strip()
-        else:
-            raise StandardError("self.fd is None or closed")
-
-
-class StructureFileParser(FileParser, UnitsHandler):
+class StructureFileParser(UnitsHandler):
     """Base class for single-structure parsers.
     """
     Container = crys.Structure
     default_units = {}    
     def __init__(self, filename=None, units=None):
-        FileParser.__init__(self, filename=filename)
+        self.parse_called = False    
+        self.filename = filename
+        self.basedir = os.path.dirname(self.filename) if (self.filename is not
+            None) else None
         UnitsHandler.__init__(self)
         # Each derived parser class has `default_units`, with which self.units
         # is updated. Then, self.units is updated from user input if we are
@@ -287,6 +238,10 @@ class StructureFileParser(FileParser, UnitsHandler):
         self.cont = self.Container(set_all_auto=False, units=self.units)
         self.init_attr_lst(self.cont.attr_lst)            
     
+    def parse(self):
+        self.set_all()
+        self.parse_called = True
+
     def get_cont(self):
         """Populate and return a Container object."""
         if not self.parse_called:
@@ -492,16 +447,15 @@ class PDBFile(StructureFileParser):
             'cryst_const',
             ]
         self.init_attr_lst()      
+        if self.filename is not None:
+            self.txt = common.file_read(self.filename)
     
     def _get_coords_data(self):
-        if self.check_set_attr('txt'):
-            pat = r'(ATOM|HETATM)[\s0-9]+([A-Za-z]+)[\sa-zA-Z0-9]*' + \
-                r'[\s0-9]+((\s+'+ regex.float_re + r'){3}?)'
-            # array of string type            
-            return np.array([[m.group(2)] + m.group(3).split() for m in \
-                             re.finditer(pat,self.txt)])
-        else:
-            return None
+        pat = r'(ATOM|HETATM)[\s0-9]+([A-Za-z]+)[\sa-zA-Z0-9]*' + \
+            r'[\s0-9]+((\s+'+ regex.float_re + r'){3}?)'
+        # array of string type            
+        return np.array([[m.group(2)] + m.group(3).split() for m in \
+                         re.finditer(pat,self.txt)])
     
     def get_symbols(self):
         # list of strings (system:nat,) 
@@ -526,12 +480,9 @@ class PDBFile(StructureFileParser):
         # example:
         # CRYST1   52.000   58.600   61.900  90.00  90.00  90.00  P 21 21 21   8
         #          a        b        c       alpha  beta   gamma  |space grp|  z-value
-        if self.check_set_attr('txt'):
-            pat = r'CRYST1\s+((\s+' + regex.float_re + r'){6}).*'
-            match = re.search(pat, self.txt)
-            return np.array(match.group(1).split()).astype(float)
-        else:
-            return None
+        pat = r'CRYST1\s+((\s+' + regex.float_re + r'){6}).*'
+        match = re.search(pat, self.txt)
+        return np.array(match.group(1).split()).astype(float)
 
 
 class CMLFile(StructureFileParser):
