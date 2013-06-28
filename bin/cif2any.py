@@ -13,6 +13,12 @@ from pwtools import crys, atomic_data, pwscf, io
 from pwtools.common import str_arr, seq2str
 from pwtools.constants import Bohr, Angstrom
 
+def indent(txt, num=4):
+    """Indent text block by `num` white spaces."""
+    space = " "*num
+    return '\n'.join(space + line for line in txt.splitlines())
+
+
 # All lengths in Bohr
 struct = io.read_cif(sys.argv[1], units={'length': Angstrom/Bohr})
 rcell = crys.recip_cell(struct.cell)
@@ -23,11 +29,11 @@ atspec = pwscf.atspec_str(struct.symbols_unique,
                           mass_unique, 
                           [sym + '.UPF' for sym in struct.symbols_unique])
 celldm = crys.cc2celldm(struct.cryst_const)
+atpos_frac = pwscf.atpos_str(struct.symbols, struct.coords_frac)
 
-print bar
 print("""\
 Notes
-=====
+-----
 The .cif file is assumed to contain NO symmetry information:
     _symmetry_space_group_name_H-M          'P 1'
     _symmetry_Int_Tables_number             1
@@ -57,11 +63,11 @@ PWscf
 We always output ibrav=0, CELL_PARAMETERS and all celldm(1..6) even though you
 don't need all that at the same time. Check pw.x's manual. 
 """)
-print "\n"
 
 #-------------------------------------------------------------------------------
 # PWSCF
 #-------------------------------------------------------------------------------
+print "\n"
 out = """
 {bar}
 PWSCF
@@ -101,7 +107,7 @@ CELL_PARAMETERS bohr
 ATOMIC_SPECIES
 {atspec}
 ATOMIC_POSITIONS crystal
-{atpos}
+{atpos_frac}
 """
 rules = {'bar': bar,
          'nat': struct.natoms,
@@ -110,7 +116,7 @@ rules = {'bar': bar,
          'cp_bohr': str_arr(struct.cell),
          'cp_ang': str_arr(struct.cell * Bohr / Angstrom),
          'atspec': atspec,
-         'atpos': pwscf.atpos_str(struct.symbols, struct.coords_frac)
+         'atpos_frac': atpos_frac,
         }
 for ii, cd in enumerate(celldm):
     rules['cd%i' %(ii+1,)] = cd
@@ -120,6 +126,7 @@ print out.format(**rules)
 #-------------------------------------------------------------------------------
 # ABINIT
 #-------------------------------------------------------------------------------
+print "\n"
 print bar
 print "ABINIT"
 print bar
@@ -137,6 +144,7 @@ print "pseudopotential order:\n%s" %"\n".join(["%s %i" %(sym, zz) for sym,zz in
 #-------------------------------------------------------------------------------
 # CPMD
 #-------------------------------------------------------------------------------
+print "\n"
 print bar
 print "CPMD"
 print bar
@@ -156,9 +164,46 @@ for sym, natoms in struct.nspecies.iteritems():
     mask = np.array(struct.symbols) == sym
     print "*%s.psp\n    LMAX=XXXLMAX_%s LOC=XXXLOC_%s" %((sym,) + (sym.upper(),)*2)
     print "    %i" %natoms
-    print str_arr(struct.coords_frac[mask,:])    
+    print indent(str_arr(struct.coords_frac[mask,:]),4)    
 print "&END"
 
+
+#-------------------------------------------------------------------------------
+# CP2K
+#-------------------------------------------------------------------------------
+templ = """\
+\n
+{bar}
+CP2K
+{bar}
+&force_eval
+    &subsys
+        &cell
+            abc {abc}
+            alpha_beta_gamma {angles}
+        &end cell
+        &coord
+            scaled t
+{atpos_frac}
+        &end coord
+{kinds}
+    &end subsys
+&end force_eval
+"""
+kind_templ = """\
+        &kind {atom}
+            basis_set XXXBASISSET_{atom}
+            potential XXXPOTENTIAL_{atom}
+        &end kind"""
+kinds = ''
+for atom in struct.symbols_unique:
+    kinds += kind_templ.format(atom=atom)
+txt = templ.format(abc=str_arr(struct.cryst_const[:3]*Bohr/Angstrom),
+                   angles=str_arr(struct.cryst_const[3:]),
+                   atpos_frac=indent(atpos_frac,12),
+                   kinds=kinds,
+                   bar=bar)
+print txt
 
 #-------------------------------------------------------------------------------
 # general crystal information
@@ -169,16 +214,16 @@ out = """
 general crystal information
 {bar}
 
-reciprocal cell (2*pi/Bohr):
+reciprocal cell [1/Bohr]:
 {rcell_bohr}
 
-reciprocal cell (2*pi/Ang):
+reciprocal cell [1/Ang]:
 {rcell_ang}
 
 relation of recip. vector lengths (a:b:c)
 {rrel}
 
-kpoint grids for some h [2*pi/Ang] resolutions
+kpoint grids for some h [1/Ang] resolutions
 {kpoints}
 """
 
