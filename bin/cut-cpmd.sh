@@ -32,11 +32,12 @@ options:
 
 example
 -------
-Say your calc ran 8423 steps, then was killed. The RESTART is written every 50
-steps, so the last was written at 8400. A restart with fresh files in a new
-directory using "RESTART ACCUMULATORS" and continuing files with <<< NEW
-DATA >>> starts at 8401 and thus repeats 8401..8423. You want to delete 23
-steps from the old CELL, ENERGIES, etc files before the restart. Then use:
+Say your calc ran 8423 steps, then was killed. The restart file is written
+every 50 steps, so the last was written at 8400. A restart using "RESTART
+ACCUMULATORS" and continuing files with "<<< NEW DATA >>>" markers starts at
+8401 and thus repeats 8401..8423. You want to delete these 23 steps from the
+old CELL, ENERGIES, etc files before the restart, such that they are cleanly
+continued. Then use:
 
 $ $prog /path/to/calc/ 8401 
 EOF
