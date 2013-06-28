@@ -736,8 +736,11 @@ def velocity_traj(arr, dt=1.0, axis=0, endpoints=True):
 
 
 def rmsd(traj, ref_idx=0):
-    """Root mean square distance over an MD trajectory. The normalization
-    constant is the number of atoms.
+    """Root mean square distance over an MD trajectory. 
+    
+    The normalization constant is the number of atoms. Takes the RMS of the
+    difference of *cartesian* coords at each time step. Only meaningful if
+    ``tr.coords`` are *not* pbc-wrapped.
     
     Parameters
     ----------
@@ -807,8 +810,8 @@ def pbc_wrap_coords(coords_frac, copy=True, mask=[True]*3, xyz_axis=-1):
     and the array in the global scope is modified! In fact, then these do the
     same::
     
-        >>> a = pbc_wrap(a, copy=False)
-        >>> pbc_wrap(a, copy=False)
+        >>> a = pbc_wrap_coords(a, copy=False)
+        >>> pbc_wrap_coords(a, copy=False)
     """
     assert coords_frac.shape[xyz_axis] == 3, "dim of xyz_axis of `coords_frac` must be == 3"
     ndim = coords_frac.ndim
@@ -835,7 +838,7 @@ def pbc_wrap(obj, copy=True, **kwds):
     copy : bool
         Return copy or in-place modified object.
     **kwds : keywords
-        passed to nearest_neighbors()
+        passed to pbc_wrap_coords()
     """
     out = obj.copy() if copy else obj
     # set to None so that it will be re-calculated by set_all()
