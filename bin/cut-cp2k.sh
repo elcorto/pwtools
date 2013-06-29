@@ -117,9 +117,15 @@ for fn in $file_cell $file_ener $file_stress; do
     fi        
 done    
 
+natoms=$(head -n1 $file_pos | tr -d ' ')
 for fn in $file_frc $file_pos $file_vel; do
     if [ -f $fn ]; then
-        cmd="sed -i.$bakname -re '/i =\s+$step_to_cut,\s+/,\$d' $fn; sed -i -re '\$d' $fn"
+        cmd="sed -i.$bakname -re '/i =\s+$step_to_cut,\s+/,\$d' $fn; "
+        # Delete last line, but only if it really contains only one integer =
+        # $natoms.
+        if tail -n1 $fn | egrep -q "[ ]+$natoms[ ]*\$"; then
+            cmd="$cmd sed -i -re '\$d' $fn"
+        fi
         echo $fn
         $simulate && echo "    $cmd" || eval $cmd
     fi        
