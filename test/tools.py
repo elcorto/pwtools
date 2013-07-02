@@ -44,8 +44,8 @@ int_t = type(1)
 
 def msg(txt):
     """Uncomment for debugging if tests fail."""
-##    print(txt)
-    pass
+    print(txt)
+##    pass
 
 def err(txt):
     print('error: ' + txt)
@@ -159,14 +159,16 @@ class DictWithAllTypesFactory(object):
             warnings.warn("'attr_lst' keyword deprecated. Use 'keys' instead.",
                           DeprecationWarning)
             keys = attr_lst
-        d1_keys = d1.keys()    
-        d2_keys = d2.keys()
-        if len(d1_keys) != len(d2_keys):
-            err("DictWithAllTypesFactory: key list not equally long")
-            return False
-        if set(d1_keys) != set(d2_keys):
-            err("DictWithAllTypesFactory: keys not equal")
-            return False
+        # Test equal keys only if user doesn't provide them.            
+        if keys is None:            
+            d1_keys = d1.keys()    
+            d2_keys = d2.keys()
+            if len(d1_keys) != len(d2_keys):
+                err("DictWithAllTypesFactory: key list not equally long")
+                return False
+            if set(d1_keys) != set(d2_keys):
+                err("DictWithAllTypesFactory: keys not equal")
+                return False
         _keys = d1_keys if keys is None else keys    
         ret = True
         for key in _keys:

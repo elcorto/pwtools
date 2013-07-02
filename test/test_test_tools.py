@@ -53,3 +53,8 @@ def test_tools():
         tools.assert_all_types_equal(1.0, 1, strict=True)
     except AssertionError:
         print "KNOWNFAIL: different types not allowed"
+    
+    # test keys=[...], i.e. ignore some keys in both dicts
+    x2 = copy.deepcopy(x1)
+    x2['c'] = 1.0
+    assert tools.dict_with_all_types_equal(x1, x2, keys=['a','b',type(1)])
