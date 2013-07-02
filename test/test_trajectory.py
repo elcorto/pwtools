@@ -4,11 +4,12 @@ import types
 import numpy as np
 from pwtools.crys import Trajectory, Structure
 from pwtools import crys, constants
-from pwtools.test.tools import aaae, assert_all_types_equal
+from pwtools.test.tools import aaae, assert_all_types_equal,\
+    assert_attrs_not_none, assert_dict_with_all_types_equal
 from pwtools import num
 rand = np.random.rand
 
-def test():
+def test_traj():
     natoms = 10
     nstep = 100
     cell = rand(nstep,3,3)
@@ -150,7 +151,27 @@ def test():
     struct = traj[0]        
     for attr_name in struct_attrs:
         assert getattr(struct,attr_name) is not None    
+    # slices, return traj
+    tsl = traj[10:80:2]
+    assert tsl.nstep == traj.nstep / 2 - 15
+    assert_attrs_not_none(tsl)
+    tsl = traj[slice(10,80,2)]
+    assert tsl.nstep == traj.nstep / 2 - 15
+    assert_attrs_not_none(tsl)
+    tsl = traj[np.s_[10:80:2]]
+    assert tsl.nstep == traj.nstep / 2 - 15
+    assert_attrs_not_none(tsl)
+    assert tsl.is_traj
     
+    # Returned Structure has no timestep attr, but Trajectory has, even if it
+    # has only one step 
+    assert not traj[0].is_set_attr('timestep')
+    assert traj[0:1].is_set_attr('timestep')
+    
+    aa = traj[0]
+    bb = traj[0:1]
+    assert_dict_with_all_types_equal(aa.__dict__, bb.__dict__, keys=aa.attr_lst)
+
     # repeat iter
     for i in range(2):
         cnt = 0
@@ -168,3 +189,4 @@ def test():
             print "test copy:", name, type(val), type(val2)
             assert id(val2) != id(val)
             assert_all_types_equal(val2, val)
+

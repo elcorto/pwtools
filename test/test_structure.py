@@ -8,7 +8,7 @@ rand = np.random.rand
 
 # We assume all lengths in Angstrom. Only importans for ASE comparison.
 
-def test():
+def test_struct():
     natoms = 10
     cell = np.array([[3,0,0],
                      [1.1,5,-0.04],
@@ -110,3 +110,9 @@ def test():
             val2 = getattr(st2,name)
             assert id(val2) != id(val)
             assert_all_types_equal(val2, val)
+
+def test_get_traj():
+    st = Structure(coords_frac=rand(20,3),
+                   symbols=['H']*20,
+                   forces=rand(20,3))
+    st.get_traj(5)                   

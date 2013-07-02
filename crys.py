@@ -2445,7 +2445,12 @@ class Structure(UnitsHandler):
     
     is_struct = True
     is_traj = False
-
+    
+    # For get_traj(), also used in Trajectory. This means that a Structure has
+    # a `timeaxis` attr, which is mildly illogical, but practicality beats
+    # purity.
+    timeaxis = 0
+ 
     @crys_add_doc
     def __init__(self, 
                  set_all_auto=True,
@@ -2495,10 +2500,7 @@ class Structure(UnitsHandler):
         derived classes."""
         self.set_all_auto = set_all_auto
         
-        # for get_traj()
-        self.timeaxis = 0
-        
-        # init all in self.attr_lst to None
+       # init all in self.attr_lst to None
         self.attr_lst = self.input_attr_lst + self.derived_attr_lst
         self.init_attr_lst()
         self.init_attr_lst(self.extra_attr_lst)
@@ -2744,7 +2746,8 @@ class Trajectory(Structure):
     
     Iteration over a Trajectory instance yields Structure instances, see
     Examples. This can be used to apply functions which only take Structures as
-    inputs.
+    inputs. Slicing along the time axis is also supported, so you can do stuff
+    like ``traj[5000::10]``.
 
     Parameters
     ----------
@@ -2789,7 +2792,6 @@ class Trajectory(Structure):
         ]
     extra_attr_lst = Structure.extra_attr_lst + [\
         ]
-    timeaxis = 0        
     
     is_struct = False
     is_traj = True
@@ -2804,8 +2806,12 @@ class Trajectory(Structure):
         # main assumption is that all attrs which would be set by set_all_auto
         # in Structure (e.g. automatic calculation of stuff from minimal input)
         # is not necassary b/c that has already happened here in Trajectory.
-        st = Structure(set_all_auto=False)
-        assert self.nstep is not None
+        want_traj = False
+        if isinstance(idx, slice):
+            obj = Trajectory(set_all_auto=False)
+            want_traj = True
+        else:            
+            obj = Structure(set_all_auto=False)
         for attr_name in self.attr_lst:
             if attr_name not in self.attrs_only_traj:
                 attr = getattr(self, attr_name)
@@ -2813,13 +2819,24 @@ class Trajectory(Structure):
                     if attr_name in self.attrs_nstep:
                         if attr_name in self.attrs_nstep_2d_3d \
                             and attr.shape[self.timeaxis] == self.nstep:
-                            setattr(st, attr_name, attr[idx,...])
+                            setattr(obj, attr_name, attr[idx,...])
                         elif attr_name in self.attrs_nstep_1d \
                             and attr.shape[self.timeaxis] == self.nstep:
-                            setattr(st, attr_name, attr[idx])
+                            setattr(obj, attr_name, attr[idx])
                     else:                        
-                        setattr(st, attr_name, attr)
-        return st
+                        setattr(obj, attr_name, attr)
+        # hack: add attrs_only_traj back                         
+        if want_traj:
+            obj.nstep = obj.get_nstep()
+            obj.timeaxis = self.timeaxis
+            attr_names = self.attrs_only_traj[:]
+            if self.is_set_attr('timestep'):
+                obj.timestep = self.timestep
+            else:                
+                attr_names.pop(attr_names.index('timestep'))
+            for name in attr_names:
+                assert getattr(obj, name) is not None
+        return obj
 
     def __iter__(self):
         return self
@@ -2852,7 +2869,7 @@ class Trajectory(Structure):
              'temperature']
         self.attrs_only_traj = \
             ['nstep',
-             'timeaxis']
+             'timestep']
         for attr in self.attrs_nstep_3d:
             if self.is_set_attr(attr):
                 assert getattr(self, attr).ndim == 3, ("not 3d array: %s" %attr)
