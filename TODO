@@ -43,6 +43,13 @@ parse.py
   into 3d arrays (nstep, natoms, 3). For axis=0, we can use reshape. For other
   cases, we can use arrayio.arr2d_to_3d() directly.
   
+  We did some profiling using kernprof.py on Cp2kMDOutputFile, which already
+  uses fromstring(backtick(cmd)).reshape(...). We found that the Python
+  overhead for this command compared to executing all the grep/sed/awk stuff in
+  `cmd` directly in the shell is small (about 10% top). So, the rest of
+  slowdown comes from stuff which we do in pure Python with the parsed
+  arrays (esp. in Trajectory, I guess, which calls crys.*3d() a lot).
+
 crys.py
 -------
 * All *3d() funcs use simple loops currently. This is slow. Find vectorized
@@ -76,8 +83,8 @@ pydos.py
 all
 ---
 * Drop verbose.py. Use the logging or warnings module.
-* rename all functions foo3d() -> foo_traj(). But not funcs wich take 3d arrays
-  directly!
+* rename all functions foo3d() -> foo_traj(). But not funcs which take 3d arrays
+  directly. Only those which take a Trajectory as argument.
 
 
 cmd line tools in bin/
