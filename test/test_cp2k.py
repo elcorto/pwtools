@@ -22,3 +22,20 @@ def test_cp2k_md():
         print common.backtick('tar -C {} -xzf {}.tgz'.format(base,dr))
         tr = io.read_cp2k_md(fn)
         assert_attrs_not_none(tr, attr_lst=attr_lst)        
+
+def test_cp2k_cell_opt():
+    attr_lst = parse.Cp2kRelaxOutputFile().attr_lst
+    attr_lst.pop(attr_lst.index('econst'))
+    none_attrs = ['ekin',
+                  'temperature',
+                  'timestep',
+                  'forces',
+                  'velocity',
+                  ]
+    for dr in ['files/cp2k/cell_opt/cell_opt']:
+        base = os.path.dirname(dr) 
+        fn = '%s/cp2k.out' %dr
+        print common.backtick('tar -C {} -xzf {}.tgz'.format(base,dr))
+        tr = io.read_cp2k_relax(fn)
+        assert_attrs_not_none(tr, attr_lst=attr_lst, none_attrs=none_attrs)        
+

@@ -225,8 +225,13 @@ class StructureFileParser(UnitsHandler):
     def __init__(self, filename=None, units=None):
         self.parse_called = False    
         self.filename = filename
+        # Some parsers do 
+        #   self._foo_file = os.path.join(self.basedir,'foo')
+        # in their __init__. That should not fail if we create an instance
+        # without passing a filename, like parser=SomeParsingClass(). So
+        # instead of setting basedir=None by default, we set it to '.' .
         self.basedir = os.path.dirname(self.filename) if (self.filename is not
-            None) else None
+            None) else '.'
         UnitsHandler.__init__(self)
         # Each derived parser class has `default_units`, with which self.units
         # is updated. Then, self.units is updated from user input if we are
@@ -1673,6 +1678,7 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
             sed -re 's/.*IONS:\s+(.*)$/\1/'" %self.filename
         return float_from_txt(com.backtick(cmd))            
 
+
 class Cp2kSCFOutputFile(StructureFileParser):
     """CP2K SCF output parser ("global/run_type energy_force,print_level low"). 
 
@@ -1700,6 +1706,11 @@ class Cp2kSCFOutputFile(StructureFileParser):
             'symbols',
         ]
     
+    def _get_run_type(self):
+        cmd = r"grep -m1 'GLOBAL.*Run type' {} | sed \
+            -re 's/.*type\s+(.*)\s*/\1/'".format(self.filename)
+        return com.backtick(cmd).strip()            
+
     def _get_natoms_symbols_forces(self):
         cmd = r"sed -nre '1,/ATOMIC FORCES/d; " + \
                "1,/Atom\s+Kind\s+Element/d; " + \
@@ -1770,6 +1781,12 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
             'velocity',
         ]
         self.init_attr_lst()
+        self._cell_file = common.pj(self.basedir, 'PROJECT-1.cell')
+        self._ener_file = common.pj(self.basedir, 'PROJECT-1.ener')
+        self._stress_file = common.pj(self.basedir, 'PROJECT-1.stress')
+        self._pos_file = common.pj(self.basedir, 'PROJECT-pos-1.xyz')
+        self._frc_file = common.pj(self.basedir, 'PROJECT-frc-1.xyz')
+        self._vel_file = common.pj(self.basedir, 'PROJECT-vel-1.xyz')
     
     @staticmethod
     def _cp2k_repack_arr(arr):
@@ -1788,36 +1805,32 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
     
     def _cp2k_xyz2arr(self, fn):
         """Parse cp2k style XYZ files and return the 3d array."""
-        cmd = "grep 'i = .*time =' %s | wc -l" %fn
+        cmd = "grep 'i = .*E =' %s | wc -l" %fn
         nstep = nstep_from_txt(com.backtick(cmd))
         natoms = int_from_txt(com.backtick("head -n1 %s" %fn))
-        cmd = "awk '!/i =.*time =|^[ ]+[0-9]+/ \
+        cmd = "awk '!/i =.*E =|^[ ]+[0-9]+/ \
             {printf $2\" \"$3\" \"$4\"\\n\"}' %s" %fn
         assert self.timeaxis == 0
-##        return traj_from_txt(common.backtick(cmd), shape=(nstep,natoms,3), axis=0)
         return np.fromstring(common.backtick(cmd), sep=' ').reshape(nstep,natoms,3)
 
     def _get_cell_file_arr(self):
-        fn = common.pj(self.basedir, 'PROJECT-1.cell')
-        if os.path.exists(fn):
-            return np.loadtxt(fn)
+        if os.path.exists(self._cell_file):
+            return np.loadtxt(self._cell_file)
         else:            
             return None
     
     def _get_ener_file_arr(self):
-        fn = common.pj(self.basedir, 'PROJECT-1.ener')
-        if os.path.exists(fn):
-            return np.loadtxt(fn)
+        if os.path.exists(self._ener_file):
+            return np.loadtxt(self._ener_file)
         else:            
             return None
-   
+
     def _get_stress_file_arr(self):
-        fn = common.pj(self.basedir, 'PROJECT-1.stress')
-        if os.path.exists(fn):
-            return np.loadtxt(fn)
+        if os.path.exists(self._stress_file):
+            return np.loadtxt(self._stress_file)
         else:            
             return None
-    
+
     def get_natoms(self):
         cmd = r"grep -m1 'Number of atoms:' %s | \
             sed -re 's/.*:(.*)/\1/'" %self.filename
@@ -1831,12 +1844,11 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
 
     def _get_coords_symbols(self):
         """Cartesian [Ang]"""
-        fn = common.pj(self.basedir, 'PROJECT-pos-1.xyz')
-        if os.path.exists(fn):
-            coords = self._cp2k_xyz2arr(fn)
+        if os.path.exists(self._pos_file):
+            coords = self._cp2k_xyz2arr(self._pos_file)
             if self.check_set_attr('natoms'):
                 cmd = r"grep -m1 -A%i 'i =' %s | \
-                    grep -v 'i ='| awk '{print $1}'" %(self.natoms,fn) 
+                    grep -v 'i ='| awk '{print $1}'" %(self.natoms,self._pos_file) 
                 symbols = com.backtick(cmd).strip().split()
                 return {'coords': coords, 'symbols': symbols}
             else:
@@ -1859,17 +1871,15 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
     
     def get_forces(self):
         """[Ha/Bohr]"""
-        fn = common.pj(self.basedir, 'PROJECT-frc-1.xyz')
-        if os.path.exists(fn):
-            return self._cp2k_xyz2arr(fn)
+        if os.path.exists(self._frc_file):
+            return self._cp2k_xyz2arr(self._frc_file)
         else:            
             return None
     
     def get_velocity(self):
         """[Bohr/thart]"""
-        fn = common.pj(self.basedir, 'PROJECT-vel-1.xyz')
-        if os.path.exists(fn):
-            return self._cp2k_xyz2arr(fn)
+        if os.path.exists(self._vel_file):
+            return self._cp2k_xyz2arr(self._vel_file)
         else:            
             return None
     
@@ -1919,6 +1929,54 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
         """[Ang^3]"""
         if self.check_set_attr('_cell_file_arr'):
             return self._cell_file_arr[:,-1]
+        else:
+            return None
+
+
+class Cp2kRelaxOutputFile(Cp2kMDOutputFile):
+    """Parse cp2k global/run_type cell_opt. geo_opt might also work, but not
+    tested yet."""
+    def get_natoms(self):
+        if os.path.exists(self._pos_file):
+            cmd = r"head -n1 {}".format(self._pos_file)
+            return int_from_txt(com.backtick(cmd))
+        else:
+            return None
+    
+    def get_etot(self):
+        if os.path.exists(self._pos_file):
+            cmd = r"awk '/i =.*E/ {print $6}' %s" %self._pos_file
+            return arr1d_from_txt(com.backtick(cmd))
+        else:
+            return None
+        
+    def get_cell(self):
+        # For cell_opt, cp2k does a final scf calc after the cell optimization.
+        # That creates an additional time step in _pos_file, but NOT in
+        # _cell_file. Then, coords[-1,...] and coords[-2,...] are the same b/c
+        # the final geometry is simply scf'ed again. Also etot is one step
+        # longer. Handle that by appending cell[-1,...] to the end of the cell
+        # array in order to have equal length. Need that to make get_traj()
+        # happy.
+        if self.check_set_attr('_cell_file_arr'): 
+            cell = self._cp2k_repack_arr(self._cell_file_arr)
+            self.assert_set_attr('_run_type')
+            if self._run_type == 'CELL_OPT':
+                if self.check_set_attr('coords'):
+                    offset = self.coords.shape[0] - cell.shape[0] 
+                    if offset == 1:
+                        return np.concatenate((cell, cell[-1,...][None,...]), 
+                                               axis=0)
+                    else:
+                        raise StandardError("cell and coords have a timestep "
+                            "offset != 1, dunno what to do "
+                            "(offset={}, coords: {}, cell: {})".format(offset,self.coords.shape, cell.shape))
+                else:
+                    return None
+            # GEO_OPT not tested yet. Simply return cell for now unchanged, if
+            # defined.
+            else:
+                return cell
         else:
             return None
 
