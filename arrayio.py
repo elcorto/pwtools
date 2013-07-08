@@ -91,7 +91,7 @@ def _write_header_config(fh, config, header_comment=HEADER_COMMENT,
     ftmp.close()
 
 
-def writetxt(fn, arr, axis=-1, maxdim=TXT_MAXDIM):
+def writetxt(fn, arr, axis=-1, maxdim=TXT_MAXDIM, header=True):
     """Write 1d, 2d or 3d arrays to txt file. 
     
     If 3d, write as 2d chunks. Take the 2d chunks along `axis`. Write a
@@ -104,16 +104,19 @@ def writetxt(fn, arr, axis=-1, maxdim=TXT_MAXDIM):
     arr : nd array
     axis : axis along which 2d chunks are written
     maxdim : highest number of dims that `arr` is allowed to have
+    header : bool
+        Write ini style header. Can be used by readtxt().
     """
     verbose("[writetxt] writing: %s" %fn)
     common.assert_cond(arr.ndim <= maxdim, 'no rank > %i arrays supported' %maxdim)
     fh = open(fn, 'w+')
-    c = PydosConfigParser()
-    sec = 'array'
-    c.add_section(sec)
-    c.set(sec, 'shape', common.seq2str(arr.shape))
-    c.set(sec, 'axis', axis)
-    _write_header_config(fh, c)
+    if header:
+        c = PydosConfigParser()
+        sec = 'array'
+        c.add_section(sec)
+        c.set(sec, 'shape', common.seq2str(arr.shape))
+        c.set(sec, 'axis', axis)
+        _write_header_config(fh, c)
     # 1d and 2d case
     if arr.ndim < maxdim:
         np.savetxt(fh, arr)
@@ -226,17 +229,16 @@ def arr2d_to_3d(arr, shape, axis=-1):
     >>> arr.shape = (1000*50,3)
     """    
     assert arr.ndim == 2, "input must be 2d array"
-    assert len(shape) == 3
+    assert len(shape) == TXT_MAXDIM
     shape_2d_chunk = shape[:axis] + shape[(axis+1):]
-    # (50, 1000, 3) : natoms = 50, nstep = 1000, 3 = x,y,z
-    arr3d = np.empty(shape, dtype=arr.dtype)
-    # arr: (50*1000, 3)
+    # arr:   (50*1000, 3)
+    # arr3d: (50, 1000, 3) : natoms = 50, nstep = 1000, 3 = x,y,z
     expect_shape = (shape_2d_chunk[0]*shape[axis],) + (shape_2d_chunk[1],)
     common.assert_cond(arr.shape == expect_shape, 
                 "input 2d array has not the correct "
                 "shape, got %s, expect %s" %(str(arr.shape),
                                              str(expect_shape)))
-    # get rid of loop, maybe reshape or stride_tricks?                                               
+    arr3d = np.empty(shape, dtype=arr.dtype)
     sl = [slice(None)]*3
     for ind in range(shape[axis]):
         sl[axis] = ind
