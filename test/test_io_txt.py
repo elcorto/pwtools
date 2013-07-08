@@ -1,11 +1,12 @@
 # Test array text input and output
 
 from StringIO import StringIO
-from pwtools import arrayio
+from pwtools import arrayio, parse
 import os
 import numpy as np
 from testenv import testdir
 pj = os.path.join
+rand = np.random.rand
 
 def write_read_check(fn, arr, axis=-1, shape=None):
     print fn + ' ...'
@@ -65,3 +66,28 @@ def test_io_txt():
     arr = arrayio.readtxt(StringIO(txt), shape=(2,3), axis=-1, dtype=int,
                           converters=dict((x,lambda a: int(float(a))) for x in [0,1,2]))
     assert arr.dtype == np.array([1]).dtype
+
+
+def test_traj_from_txt():
+    shape = (10,20,30)
+    arr3d_orig = np.random.rand(*shape)
+    axis = 0
+    # general stuff for axis != 0, here for axis=0 we have written_shape==shape
+    shape_2d_chunk = shape[:axis] + shape[(axis+1):]
+    written_shape = (shape[axis],) + shape_2d_chunk
+    print "axis, written_shape:", axis, written_shape
+    fn = pj(testdir, 'arr_test_traj_from_txt_axis%i.txt' %axis)
+    arrayio.writetxt(fn, arr3d_orig, axis=axis, header=False)
+    with open(fn) as fd:
+        arr3d = parse.traj_from_txt(fd.read(), axis=axis,
+                                    shape=written_shape)
+        fd.seek(0)                                    
+        # test if the "old" way of reading also works 
+        arr3d_readtxt = arrayio.readtxt(fd, shape=written_shape, axis=axis)
+        assert (arr3d_readtxt == arr3d_orig).all()    
+    # now test traj_from_txt result 
+    assert arr3d.shape == arr3d_orig.shape, \
+           ("axis={}, shapes: read={} written={} orig={}".format(axis,
+                  arr3d.shape, written_shape, arr3d_orig.shape))
+    assert (arr3d == arr3d_orig).all()
+

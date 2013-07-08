@@ -81,7 +81,6 @@ if __name__ == '__main__':
                                   sel=[s1,s2],
                                   first=first,
                                   last=last,
-                                  keepfiles=True,
                                   tmpdir=tmpdir,
                                   )
         print("rmax_auto: %f" %crys.rmax_smith(traj.cell[0,...]))

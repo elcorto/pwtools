@@ -22,26 +22,6 @@ parse.py
   
   In some classes, we call __init__'s of two base classes and cannot use
   super() then? Is this bad design?
-* Speed: For big MD text data, the bottleneck is actually np.loadtxt() in
-  arayio.readtxt(), which is called by parse.traj_from_txt(). We can get a
-  massive speedup by using smth like np.fromstring(common.backtick('grep ...'),
-  dtype=float, sep=' ').reshape((nstep,natoms,3)) for all arrays which have
-  been written like
-      for i in range(nstep):
-        for j in range(natoms):
-            for k in [0,1,2]:
-                ...
-  in the host simulation code (PWscf, etc). These 2d arrays in the text files
-  have shape (nstep*natoms,3). We need to use reshape b/c fromstring just reads
-  numbers into a 1d array, happily ignoring linebreaks and multiple white
-  spaces (like Fortran). So, we need to know the shape of the array. But most
-  of the time, we know that. In fact, in each traj_from_txt() call we use
-  shape=(nstep,...) anyway! Also, traj_from_txt(..., axis=...) is only needed
-  if axis!=0. We would have to re-write some of the parse.arr*_from_txt(). That
-  way, we can skip cStringIO + arrayio.readtxt() + loadtxt() completely!
-  readtxt() is only used to transform 2d arrays from loadtxt() (nstep*natoms,3)
-  into 3d arrays (nstep, natoms, 3). For axis=0, we can use reshape. For other
-  cases, we can use arrayio.arr2d_to_3d() directly.
   
   We did some profiling using kernprof.py on Cp2kMDOutputFile, which already
   uses fromstring(backtick(cmd)).reshape(...). We found that the Python
@@ -77,7 +57,6 @@ pydos.py
 --------
 * unify vacf_pdos(), direct_pdos(), they have almost the same signature and
   functionality, use a kwarg 'method' to select the method of calculation
-
 * let *_pdos() return one 2d arry with several columns, like crys.rpdf()
 
 all

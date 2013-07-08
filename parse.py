@@ -167,16 +167,41 @@ def nstep_from_txt(txt):
     else:
         return int(txt)
 
-def traj_from_txt(txt, shape, axis=-1, dtype=np.float):
-    """Used for 3d trajectories where the exact shape must be known, e.g.
-    (nstep,N,3,nstep) where N=3 (cell, stress) or N=natoms (coords, forces,
-    ...). 
+def traj_from_txt(txt, shape, axis=0, dtype=np.float, sep=' '):
+    """Used for 3d trajectories where the exact shape of the array as written
+    by the MD code must be known, e.g. (nstep,N,3) where N=3 (cell, stress) or
+    N=natoms (coords, forces, ...). 
+
+    We use np.fromstring for speed, so `txt` can only contain numbers and
+    separators (white space), no comments (like "# this is the header"), which
+    numpy.loadtxt() would handle.
+
+    Parameters
+    ----------
+    txt : string
+        Text containing numbers (e.g. from ``common.backtick("grep ...")``)
+    shape : tuple
+        The 3d shape of the array when written along `axis` (see also
+        arrayio.writetxt()) to text as 2d chunks and read back in as 3d array.
+        Used to reconstruct the array.
+    axis : int
+        Axis along which the array was written in 2d chunks to text. (see
+        also `axis` in arrayio.writetxt()).
+        Used to reconstruct the array. 
+        Only axis=0 implemented.
+    dtype, sep : passed to np.fromstring    
     """
     if txt.strip() == '':
         return None
     else:
-        ret = arrayio.readtxt(StringIO(txt), axis=axis, shape=shape, dtype=dtype)
-        return ret
+        assert len(shape) == 3, ("only 3d arrays supported")
+        assert axis == 0, ("only axis=0 implemented")
+        # Works only for axis = 0, but this is the only case we have when
+        # parsing MD code output. Else, some rollaxis would be needed. E.g. if
+        # shape=(natoms,nstep,3) and therefore axis=1, then we would do
+        # np.rollaxis(fromstring(...).reshape(shape), axis=1, start=0) ->
+        # (nstep,natoms,3)
+        return np.fromstring(txt, sep=sep, dtype=dtype).reshape(shape)
 
 def arr1d_from_txt(txt, dtype=np.float):
     if txt.strip() == '':
@@ -1520,6 +1545,11 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
             assert nstep % 1.0 == 0.0, (str(self.__class__) + \
                 "nlines is not a multiple of nstep in %s" %fn)
             nstep = int(nstep)
+            # Need to use the slower arrayio.readtxt() here instead of
+            # traj_from_txt() which uses fast fromstring() b/c we have
+            # comments='<<<<'. The other way would be to  use
+            # common.backtick("grep -v '<<<<' ...")) the text such that we have
+            # only numbers in it and then pass that to traj_from_txt().
             arr = arrayio.readtxt(fn, axis=self.timeaxis, shape=(nstep, self.natoms, ncols),
                              comments='<<<<')
             dct = {}
