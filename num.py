@@ -8,7 +8,7 @@ from math import sqrt
 import scipy.optimize as optimize
 from scipy.interpolate import bisplrep, \
     bisplev, splev, splrep
-from scipy.integrate import simps
+from scipy.integrate import simps, trapz
 from pwtools import _flib   
 
 # Hack for older scipy versions.
@@ -66,7 +66,7 @@ def vlinspace(a, b, num, endpoint=True):
     return np.cumsum(ret, axis=0)
 
 
-def norm_int(y, x, area=1.0, scale=False):
+def norm_int(y, x, area=1.0, scale=False, func=simps):
     """Normalize integral area of y(x) to `area`.
     
     Parameters
@@ -77,6 +77,9 @@ def norm_int(y, x, area=1.0, scale=False):
         Scale x and y to the same order of magnitude before integration.
         This may be necessary to avoid numerical trouble if x and y have very
         different scales.
+    func : callable
+        Function to do integration (like scipy.integrate.{simps,trapz,...}
+        Called as ``func(y,x)``. Default: simps
 
     Returns
     -------
@@ -96,7 +99,7 @@ def norm_int(y, x, area=1.0, scale=False):
         fx = fy = 1.0
         sx, sy = x, y
     # Area under unscaled y(x).
-    _area = simps(sy, sx) * fx * fy
+    _area = func(sy, sx) * fx * fy
     return y*area/_area
 
 
