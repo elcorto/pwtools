@@ -22,13 +22,12 @@ parse.py
   
   In some classes, we call __init__'s of two base classes and cannot use
   super() then? Is this bad design?
-  
-  We did some profiling using kernprof.py on Cp2kMDOutputFile, which already
-  uses fromstring(backtick(cmd)).reshape(...). We found that the Python
+* Speed: We did some profiling using kernprof.py on Cp2kMDOutputFile, which
+  uses np.fromstring(backtick(cmd)).reshape(...). We found that the Python
   overhead for this command compared to executing all the grep/sed/awk stuff in
   `cmd` directly in the shell is small (about 10% top). So, the rest of
-  slowdown comes from stuff which we do in pure Python with the parsed
-  arrays (esp. in Trajectory, I guess, which calls crys.*3d() a lot).
+  slowdown comes from stuff which we do in pure Python with the parsed arrays
+  (esp. in Trajectory, I guess, which calls crys.*3d() a lot).
 
 crys.py
 -------
