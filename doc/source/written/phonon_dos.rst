@@ -7,7 +7,8 @@ See also :func:`pwtools.signal.acorr`, ``method=7``.
 
 Correlation via fft. After ifft, the imaginary part is (in theory) =
 0, in practise < 1e-16, so we are safe to return the real part only.
-cross-correlation theorem for the two-sided correlation is::
+
+The cross-correlation theorem for the two-sided correlation::
 
   corr(a,b) = ifft(fft(a)*fft(b).conj())
 

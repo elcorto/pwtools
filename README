@@ -3,8 +3,20 @@ About
 The pwtools package.
 Copyright (C) 2008-2013 Steve Schmerler <mefx .a. gmx.net>
 
+pwtools is a package for pre- and postprocessing of atomic calculations, mostly
+targeted to Quantum Espresso, CPMD and CP2K.
+
+Documentation
+-------------
 See doc/ for doumentation and extended install notes (e.g. dependencies on
-other python packages).
+other python packages). This dir contains rst source files which can be used to
+build nice sphinx html docu. A semi-recent version of that can be found at
+http://elcorto.bitbucket.org/pwtools
+
+You can always build the doc of your current pwtools version by::
+
+    make -C doc html
+    firefox build/html/index.html
 
 Also: Read the Source, Luke!
 
