@@ -54,8 +54,6 @@ crys.py
 
 pydos.py
 --------
-* unify vacf_pdos(), direct_pdos(), they have almost the same signature and
-  functionality, use a kwarg 'method' to select the method of calculation
 * let *_pdos() return one 2d arry with several columns, like crys.rpdf()
 
 all

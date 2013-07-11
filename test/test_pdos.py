@@ -29,11 +29,16 @@ def test():
     dt = traj.timestep # fs
     timeaxis = traj.timeaxis
     assert np.allclose(150.0, dt * constants.fs / constants.tryd) # dt=150 Rydberg time units
-    fd, dd = pd.direct_pdos(V, m=mass, dt=dt, axis=timeaxis)
+    fd, dd = pd.direct_pdos(V, m=mass, dt=dt, axis=timeaxis, npad=1, tonext=False)
     fv, dv = pd.vacf_pdos(V, m=mass, dt=dt, mirr=True, axis=timeaxis)
 
     np.testing.assert_array_almost_equal(fd, fv, err_msg="freq not equal")
     np.testing.assert_array_almost_equal(dd, dv, err_msg="dos not equal")
+    
+    assert (fd == np.loadtxt('files/ref_test_pdos/fd.txt.gz')).all()
+    assert (fv == np.loadtxt('files/ref_test_pdos/fv.txt.gz')).all()
+    assert (dd == np.loadtxt('files/ref_test_pdos/dd.txt.gz')).all()
+    assert (dv == np.loadtxt('files/ref_test_pdos/dv.txt.gz')).all()
 
     df = fd[1] - fd[0]
     print "Nyquist freq: %e" %(0.5/dt)
@@ -47,7 +52,7 @@ def test():
                                                         mirr=True, full_out=True)
 
     # Test padding for speed.
-    fd, dd, ffd, fdd, si = pd.direct_pdos(V, m=mass, dt=dt, pad_tonext=True, \
+    fd, dd, ffd, fdd, si = pd.direct_pdos(V, m=mass, dt=dt, npad=1, tonext=True, \
                            full_out=True)
     assert len(fd) == len(dd)
     assert len(ffd) == len(fdd)

@@ -112,14 +112,14 @@ def dft(a, method='loop'):
         | => use only with medium size arrays
 
     N = len(a)
-    sqrt(-1) == np.sqrt(1.0 + 0.0*j) = 1.0j
+    sqrt(complex(-1)) = np.sqrt(-1 + 0*j) = 1j
 
     Forward DFT, see [2]_ and [3]_ , scipy.fftpack.fft():
-        y[k] = sum(n=0...N-1) a[n] * exp(-2*pi*n*k*sqrt(-1)/N)
+        y[k] = sum(n=0...N-1) a[n] * exp(-2*pi*n*k*j/N)
         k = 0 ... N-1
     
     Backward DFT, see [1]_ eq. 12.1.6, 12.2.2:
-        y[k] = sum(n=0...N-1) a[n] * exp(2*pi*n*k*sqrt(-1)/N)
+        y[k] = sum(n=0...N-1) a[n] * exp(2*pi*n*k*j/N)
         k = 0 ... N-1
 
     The algo for method=='matmul' is the matrix mult from [1]_, but as Forward
@@ -155,6 +155,20 @@ def dft_axis(arr, axis=-1):
     """Same as scipy.fftpack.fft(arr, axis=axis), but *much* slower."""
     return np.apply_along_axis(dft, axis, arr)
  
+
+def ezfft(y, dt=1.0):
+    """
+    Examples
+    --------
+    >>> t=linspace(0,1,200) 
+    >>> x=sin(2*pi*10*t) 
+    >>> f,d=signal.ezfft(x, t[1]-t[0])
+    >>> plot(f,abs(d))
+    """
+    faxis = np.fft.fftfreq(len(y), dt)
+    split_idx = len(faxis)/2
+    return faxis[:split_idx], fft(y)[:split_idx]
+
 
 def pad_zeros(arr, axis=0, where='end', nadd=None, upto=None, tonext=None,
               tonext_min=None):
@@ -228,14 +242,11 @@ def pad_zeros(arr, axis=0, where='end', nadd=None, upto=None, tonext=None,
                 # beware of int overflows starting w/ 2**arange(64), but we
                 # will never have such long arrays anyway
                 two_powers = 2**np.arange(30)
-                if tonext_min > two_powers[-1]:
-                    print "[pad_zeros]: WARNING: required array length longer \
-                           than highest power of two, will not pad"
-                    nadd = 0
-                else:
-                    power = two_powers[np.searchsorted(two_powers,
-                                                      tonext_min)]
-                    nadd = power - arr.shape[axis]                                                       
+                assert tonext_min <= two_powers[-1], ("tonext_min exceeds "
+                    "max power of 2")
+                power = two_powers[np.searchsorted(two_powers,
+                                                  tonext_min)]
+                nadd = power - arr.shape[axis]                                                       
         else:
             nadd = upto - arr.shape[axis]
     if nadd == 0:
@@ -267,6 +278,13 @@ def welch(M, sym=1):
         w = w[:-1]
     return w
 
+
+def mirror(arr, axis=0):
+    """Mirror array `arr` at index 0 along `axis`. 
+    The length of the returned array is 2*arr.shape[axis]-1 ."""
+    return np.concatenate((arr[::-1],arr[1:]), axis=axis)
+
+
 # Generalization to correlation corr(v,w) should be straightforward.
 # Autocorrelation is then corr(v,v).
 def acorr(v, method=7, norm=True):
@@ -277,6 +295,7 @@ def acorr(v, method=7, norm=True):
         c(t) = <v(0) v(t)> / <v(0)**2>
             
     The x-axis is the offset "t" (or "lag" in Digital Signal Processing lit.).
+    Since the ACF is symmetric around t=0, we return only t=0...len(v)-1 .
 
     Several Python and Fortran implememtations. The Python versions are mostly
     for reference and are slow, except for fft-based, which is by far the
@@ -356,20 +375,6 @@ def acorr(v, method=7, norm=True):
     elif method == 6: 
         return _flib.acorr(v, c, 2, _norm)
     elif method == 7: 
-        # Correlation via fft. After ifft, the imaginary part is (in theory) =
-        # 0, in practise < 1e-16.
-        # Cross-Correlation Theorem:
-        #   corr(a,b)(t) = Int(-oo, +oo) a(tau)*conj(b)(tau+t) dtau   
-        #                = ifft(fft(a)*fft(b).conj())
-        # If a == b (like here), then this reduces to the special case of the 
-        # Wiener-Khinchin Theorem (autocorrelation of `a`):
-        #   corr(a,a) = ifft(np.abs(fft(a))**2)
-        # Note that fft(a) is complex in gereal and abs() must be used!  Both
-        # theorems assume *periodic* data, i.e. `a` and `b` repeat after
-        # `nstep` points. To deal with non-periodic data, we use zero-padding
-        # at the end of `a` [1]. The result `c` contains the correlations for
-        # positive and negative lags. Since the ACF is symmetric around lag=0,
-        # we return 0 ... +lag.
         vv = np.concatenate((v, np.zeros((nstep,),dtype=float)))
         c = ifft(np.abs(fft(vv))**2.0)[:nstep].real
     else:

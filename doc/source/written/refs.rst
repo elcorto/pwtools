@@ -10,3 +10,4 @@
 .. [vmd] http://www.ks.uiuc.edu/Research/vmd/
 .. [pwextern-free] https://bitbucket.org/elcorto/pwextern-free
 .. [phonopy] http://phonopy.sourceforge.net
+.. [tfreq] http://www.timteatro.net/2010/09/29/velocity-autocorrelation-and-vibrational-spectrum-calculation   

@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*- 
 
+# XXX This example script is old and doesn't work ATM. However, you may get
+# some hints about how to call the fourier.x (from CPMD) tool from Python ...
+
 """
 methods
 -------

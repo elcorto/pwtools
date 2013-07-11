@@ -1,16 +1,12 @@
-def test():
-    import numpy as np
-    from pwtools.signal import acorr
+import numpy as np
+from pwtools.signal import acorr
 
+def test_acorr():
     arr = np.random.rand(100)
-    ref = acorr(arr, method=1, norm=True)
-    for m in range(2,8):
-        print "%i : 1" %m
-        np.testing.assert_array_almost_equal(acorr(arr, method=m, norm=True), 
-                                             ref)    
-    
-    ref = acorr(arr, method=1, norm=False)
-    for m in range(2,8):
-        print "%i : 1" %m
-        np.testing.assert_array_almost_equal(acorr(arr, method=m, norm=False), 
-                                                   ref)           
+    for norm in [True,False]:
+        ref = acorr(arr, method=1, norm=norm)
+        for m in range(2,8):
+            print "%i : 1" %m
+            np.testing.assert_array_almost_equal(acorr(arr, method=m, 
+                                                       norm=norm), 
+                                                 ref)    
