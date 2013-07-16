@@ -1886,6 +1886,20 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
         else:            
             return None
     
+    def _get_forces_from_outfile(self):
+        if self.check_set_attr('natoms'):
+            cmd = r"grep -c 'ATOMIC FORCES in' %s" %self.filename
+            nstep = nstep_from_txt(com.backtick(cmd))
+            cmd = r"sed -re '/^\s*$/d' {fn} | grep -A{nlines} 'ATOMIC FORCES in' \
+                 | egrep -v -e 'ATOM|--|Kind' \
+                 | tr -s ' ' | cut -d ' ' -f5-".format(fn=self.filename,
+                                                       nlines=self.natoms+1)
+            return traj_from_txt(com.backtick(cmd), 
+                                 shape=(nstep,self.natoms,3),
+                                 axis=self.timeaxis)              
+        else:
+            return None
+
     def get_coords(self):
         """Cartesian [Ang]"""
         if self.check_set_attr('_coords_symbols'):
@@ -1904,7 +1918,7 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
         if os.path.exists(self._frc_file):
             return self._cp2k_xyz2arr(self._frc_file)
         else:            
-            return None
+            return self._get_forces_from_outfile()
     
     def get_velocity(self):
         """[Bohr/thart]"""
