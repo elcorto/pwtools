@@ -36,7 +36,7 @@ def atpos_str(symbols, coords, fmt="%.16e", zero_eps=True):
     coords = np.asarray(coords)
     assert len(symbols) == coords.shape[0], "len(symbols) != coords.shape[0]"
     _coords = fix_eps(coords) if zero_eps else coords
-    txt = '\n'.join("%s\t%s" %(symbols[i], str_arr(row, fmt=fmt, zero_eps=False)) \
+    txt = '\n'.join("%s    %s" %(symbols[i], str_arr(row, fmt=fmt, zero_eps=False)) \
         for i,row in enumerate(_coords))
     return txt        
 
