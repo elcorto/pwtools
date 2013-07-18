@@ -579,7 +579,7 @@ class ParameterStudy(object):
             self.calc_dir = calc_dir
         self.dbfn = pj(self.calc_dir, self.db_name)
 
-    def write_input(self, mode='a', backup=True, sleep=0):
+    def write_input(self, mode='a', backup=True, sleep=0, excl=True):
         """
         Create calculation dir(s) for each parameter set and write input files
         based on ``templates``. Write sqlite database storing all relevant
@@ -612,6 +612,11 @@ class ParameterStudy(object):
         sleep : int, optional
             For the script to start (submitt) all jobs: time in seconds for the
             shell sleep(1) commmand.
+        excl : bool
+            If in append mode, a file <calc_root>/excl_push with all indices of
+            calculations from old revisions is written. Can be used with
+            ``rsync --exclude-from=excl_push`` when pushing appended new
+            calculations to a cluster.
         """
         assert mode in ['a', 'w'], "Unknown mode: '%s'" %mode
         if os.path.exists(self.calc_dir):
@@ -681,6 +686,11 @@ class ParameterStudy(object):
                   ",".join(record.keys()),
                   ",".join(['?']*len(record.keys())))
             sqldb.execute(cmd, tuple(entry.sqlval for entry in record.itervalues()))
+        if excl and revision > 0 and sqldb.has_column('revision'):
+            old_idx_lst = [str(x) for x, in sqldb.execute("select idx from calc where \
+                                                          revision < ?", (revision,))]
+            common.file_write(pj(self.calc_root, 'excl_push'),
+                              '\n'.join(old_idx_lst))
         sqldb.finish()
 
 

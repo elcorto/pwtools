@@ -430,3 +430,47 @@ def test_revision():
     assert dct['ecutwfc'] == [10.0, 20.0, 30.0, 25.0, 50.0, 75.0] 
     assert dct['revision'] == [None]*3 + [0]*3 
 
+
+def test_excl():
+    templ_dir = 'files/calc.templ'
+    calc_root = pj(testdir, 'calc_test_excl_root')
+    calc_dir = pj(calc_root, 'calc_test_excl')
+    dbfn = pj(calc_dir, 'calc.db')
+    excl = pj(calc_root, 'excl_push')
+
+    machine = local
+    templates = [batch.FileTemplate(basename=fn, templ_dir=templ_dir) \
+                 for fn in ['pw.in', machine.jobfn]]
+    # write study revision=0
+    params = [[sql.SQLEntry(key='ecutwfc', sqlval=x)] for x in [10.0,20.0,30.0]]
+    calc = batch.ParameterStudy(machine=machine, 
+                                templates=templates, 
+                                params_lst=params, 
+                                calc_dir=calc_dir,
+                                calc_root=calc_root,
+                                prefix='foo')
+    calc.write_input(mode='a')
+    
+    # write study revision=1, this time write excl_push
+    params = [[sql.SQLEntry(key='ecutwfc', sqlval=x)] for x in [40.0,50.0]]
+    calc = batch.ParameterStudy(machine=machine, 
+                                templates=templates, 
+                                params_lst=params, 
+                                calc_dir=calc_dir,
+                                calc_root=calc_root,
+                                prefix='foo')
+    calc.write_input(mode='a')
+    with open(excl) as fn:
+        assert fn.read().split() == ['0','1','2']
+
+    # write study revision=2, this time write excl_push
+    params = [[sql.SQLEntry(key='ecutwfc', sqlval=x)] for x in [60.,70.,80.]]
+    calc = batch.ParameterStudy(machine=machine, 
+                                templates=templates, 
+                                params_lst=params, 
+                                calc_dir=calc_dir,
+                                calc_root=calc_root,
+                                prefix='foo')
+    calc.write_input(mode='a')
+    with open(excl) as fn:
+        assert fn.read().split() == ['0','1','2','3','4']
