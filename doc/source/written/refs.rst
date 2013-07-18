@@ -1,5 +1,6 @@
 .. [qe] http://www.quantum-espresso.org
 .. [cpmd] http://www.cpmd.org
+.. [cp2k] http://cp2k.org   
 .. [ase] https://wiki.fysik.dtu.dk/ase
 .. [mttk] Glenn J. Martyna and Mark E. Tuckerman and Douglas J. Tobias and Michael
     L. Klein, "Explicit reversible integrators for extended systems
@@ -11,3 +12,4 @@
 .. [pwextern-free] https://bitbucket.org/elcorto/pwextern-free
 .. [phonopy] http://phonopy.sourceforge.net
 .. [tfreq] http://www.timteatro.net/2010/09/29/velocity-autocorrelation-and-vibrational-spectrum-calculation   
+.. [spglib] http://spglib.sourceforge.net/   

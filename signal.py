@@ -375,6 +375,8 @@ def acorr(v, method=7, norm=True):
     elif method == 6: 
         return _flib.acorr(v, c, 2, _norm)
     elif method == 7: 
+        # Correlation via fft. After ifft, the imaginary part is (in theory) =
+        # 0, in practise < 1e-16, so we are safe to return the real part only.
         vv = np.concatenate((v, np.zeros((nstep,),dtype=float)))
         c = ifft(np.abs(fft(vv))**2.0)[:nstep].real
     else:

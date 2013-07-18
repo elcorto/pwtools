@@ -6,6 +6,7 @@
    units
    phonon_dos
    pwscf
+   tutorial
    refs
 
 .. toctree::

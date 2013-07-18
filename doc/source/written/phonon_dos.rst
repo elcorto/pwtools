@@ -3,30 +3,34 @@ Velocity autocorrelation function and phonon DOS
 
 Correlation and power spectrum
 ------------------------------
-See also :func:`pwtools.signal.acorr`, ``method=7``.
-
-Correlation via fft. After ifft, the imaginary part is (in theory) =
-0, in practise < 1e-16, so we are safe to return the real part only.
+Here are some (textbook) notes about correlation, which you should read in
+order to understand how the phonon DOS (= vibrational density of states =
+power spectrum of the atomic velocities) is calculated in pwtools.
 
 The cross-correlation theorem for the two-sided correlation::
 
   corr(a,b) = ifft(fft(a)*fft(b).conj())
 
-If a == b (like here), then this reduces to the special case of the 
-Wiener-Khinchin theorem (autocorrelation of `a`)::
+If a == b, then this reduces to the special case of the Wiener-Khinchin theorem
+(autocorrelation of `a`)::
   
   corr(a,a) = ifft(abs(fft(a))**2)
 
+where the power spectrum of `a` is simply ``PSD = fft(corr(a,a)) == abs(fft(a))**2``.
+
 Both theorems assume *periodic* data, i.e. `a` and `b` repeat after `nstep`
-points. To deal with non-periodic data, we use zero-padding at the end of `a`.
-The result of ``ifft(...)`` contains the correlations for positive and negative
-lags. Since the autocorrelation function is symmetric around lag=0, we return
-0 ... +lag.
+points. To deal with non-periodic data, we use zero-padding with ``nstep-1``
+points at the end of `a`. Therefore, the correlated signal is ``2*nstep-1``
+points long and contains the correlations for positive and negative lags. Since
+the autocorrelation function is symmetric around lag=0, we return 0 ... +lag,
+see :func:`pwtools.signal.acorr`. To compare that with
+``scipy.signal.correlate(a,a,'full')``, we need to mirror the result at lag=0.
 
 Here are these equalities with discrete data. Note that due to the
 way in which fft/ifft packs the data in the returned array, we need
 to do some slicing + mirror tricks to get it right. In each example,
-the arrays c1,c2,c3 and p1,p2 are the same.
+the arrays c1,c2,c3 and p1,p2 are the same and for ``corr(v,v)`` we use
+``acorr(v)`` here.
 
 Two-sided correlation for -lag...0...+lag::
     
@@ -55,6 +59,9 @@ The zero-padding must be done always! It is done inside
 
 Note that the two-sided correlation calculated like this is ``2*nstep-1`` long.
 
+The fft-based correlation is implemented, along with other methods, in
+:func:`pwtools.signal.acorr`.
+
 Padding and smoothing
 ---------------------
 
@@ -75,7 +82,8 @@ Calculation of the phonon DOS from MD data in pwtools
 -----------------------------------------------------
 
 There are two ways of computing the phonon density of states (PDOS) from 
-an MD trajectory (V is is array of atomic velocities, see pydos.velocity(). 
+an MD trajectory (V is the 3d array of atomic velocities with shape
+(nstep,natoms,3), i.e. ``Trajectory.velocity``, see pydos.velocity(). 
 
 (1) vacf way: FFT of the velocity autocorrelation function (vacf):
     V -> VACF -> FFT(VACF) = PDOS, see pydos.vacf_pdos()
@@ -91,6 +99,8 @@ Method (1) still exists for historical reasons and as reference.
 
 * By default, direct_pdos() uses zero padding to get the same frequency
   resolution as you would get with mirroring the signal in vacf_pdos().
+  Also, padding is necessary b/c of the arguments outlined above for the 1d
+  case.
 
 * Both methods use Welch windowing by default to reduce "leakage" from
   neighboring peaks. See also examples/pdos_methods.py 
@@ -100,4 +110,7 @@ Method (1) still exists for historical reasons and as reference.
 * The frequency axis of the PDOS is in Hz. It is "f", NOT the angular frequency 
   2*pi*f. See also examples/pdos_methods.py .
 
-
+* The difference to the 1d case: 
+    * mass weighting: this affects only the relative peak `heights` in the
+      PDOS, not the peak positions
+    * averaging over `natoms` to get a 1d array (time series) 

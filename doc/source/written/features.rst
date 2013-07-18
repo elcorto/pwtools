@@ -15,17 +15,20 @@ Features
 * velocity autocorrelation function and phonon DOS from MD trajectories
   (:mod:`~pwtools.pydos`)
 
-* parsing of PWscf [qe]_ and CPMD [cpmd]_ output into Python objects for easy
-  access (:mod:`~pwtools.parse`)
+* parsing of PWscf [qe]_, CPMD [cpmd]_ and CP2K [cp2k]_ output into Python
+  objects for easy access (:mod:`~pwtools.parse`)
 
 * structure io: read cif, cml, pdb, write axsf, cif, xyz  (:mod:`~pwtools.io`)
+
+* pythonic interface to external molecular viewers for interactive use:
+  xcrysden, avogadro, jmol, vmd (:mod:`~pwtools.visualize`)
 
 * interface to external EOS fitting tools (:mod:`~pwtools.eos`)
 
 * thermodynamic properties in the quasi-harmonic approximation from phonon
   density of states (:mod:`~pwtools.thermo`) 
 
-* MD analayis: radial pair distribution function (own implementation and VMD
+* MD analyis: radial pair distribution function (own implementation and VMD
   [vmd]_ interface), RMS, RMSD (:mod:`~pwtools.crys`)
 
 * unit cell related tools: super cell building, coordinate transformation,
@@ -40,19 +43,20 @@ Features
 * tools to handle matplotlib plots in scripts (:mod:`~pwtools.mpl`)
 
 
-The very nice ASE [ase]_ project is in some way related. It also stores MD
-trajectory data in Python objects for further manipulation. It's IO
-capabilities are more developed. If needed, one can for instance convert a
-:class:`~pwtools.crys.Structure` to an ASE Atoms object and use ASEs file
-writers. ASE provides interfaces to a large pile of ab initio codes
-("calculators"). MD and structure optimization in ASE is coded in Python, using
-only the calculator's SCF engine in every step to get energy and forces.
-Unfortunately, it does not  provide wave function extrapolation for
-Born-Oppenheimer MD [*] and phonon calculations based on density functional
-perturbation theory like PWscf/PH or Abinit (only supercell frozen phonons can
-be done with the related [phonopy]_ package). The focus of the pwtools
-package is to be a handy pre- and postprocessor providing pythonic access to
-all input and output quantities of the used ab initio codes (PWscf, CPMD). 
+The very nice ASE [ase]_ project is in some way related. It also stores atomic
+structure data in Python objects for further manipulation. If needed, one can
+convert a :class:`~pwtools.crys.Structure` to an ASE Atoms object, for instance
+in order to use the very good spglib [spglib]_ symmetry analyis tool. The
+design goal of ASE is different from pwtools. It provides interfaces to a large
+pile of ab initio codes ("calculators"). MD and structure optimization in ASE
+is coded in Python, using only the calculator's SCF engine in every step to get
+energy and forces. I'm not sure if it provides wave function extrapolation for
+Born-Oppenheimer MD [*]. Phonon calculations based on density functional
+perturbation theory like PWscf/PH or Abinit are not implemented (maybe in
+GPAW?). However, the supercell method can be used with the related [phonopy]_
+package. The focus of the pwtools package is to be a handy pre- and
+postprocessor providing pythonic access to all input and output quantities of
+the used ab initio codes.
 
 In fact, appart from :mod:`~pwtools.parse`, which implements parsers for ab
 initio code output and :mod:`~pwtools.pwscf`, all other parts of the package
