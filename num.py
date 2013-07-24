@@ -1681,3 +1681,6 @@ def order_similar(arr, repeat=1, order=2):
     return arr2            
             
 
+def round_up_next_multiple(x, mult):
+    """Round integer `x` up to the next possible multiple of `mult`."""
+    return x - (x % mult) + mult
