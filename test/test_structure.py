@@ -1,7 +1,7 @@
 import types
 import numpy as np
 
-from pwtools.crys import Structure
+from pwtools.crys import Structure, Trajectory
 from pwtools import crys, constants
 from pwtools.test.tools import aaae, assert_all_types_equal
 rand = np.random.rand

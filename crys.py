@@ -2493,6 +2493,7 @@ class Structure(UnitsHandler):
         super(Structure, self).__init__()
         self.update_units(units)
         self._init(kwds, set_all_auto)
+        self.np_array_t = type(np.array([1]))
         
     def _init(self, kwds, set_all_auto):
         """Join attr lists, assign input args from **kwds, call set_all() to calculate
@@ -2525,24 +2526,24 @@ class Structure(UnitsHandler):
         # Call UnitsHandler.set_all(), which is FlexibleGetters.set_all().
         super(Structure, self).set_all()
     
-    def _extend_if_possible(self, arr, nstep):
-        if arr is not None:
-            return num.extend_array(arr, nstep, axis=self.timeaxis)
+    def _extend_if_possible(self, thing, nstep):
+        if thing is not None:
+            if type(thing) == self.np_array_t:
+                return num.extend_array(thing, nstep, axis=self.timeaxis)
+            else:
+                return np.array([thing]*nstep)
         else:
             return None
 
     def get_traj(self, nstep):
         """Return a Trajectory object, where this Structure is copied `nstep`
-        times. Only structure-related attrs are passed."""
-        return Trajectory(coords=self._extend_if_possible(self.coords, nstep),
-                          coords_frac=self._extend_if_possible(self.coords_frac,
-                            nstep),
-                          cell=self._extend_if_possible(self.cell, nstep),
-                          cryst_const=self._extend_if_possible(self.cryst_const,
-                            nstep),
-                          symbols=self.symbols,
-                          forces=self._extend_if_possible(self.forces, nstep),
-                          stress=self._extend_if_possible(self.stress, nstep))
+        times."""
+        tr = Trajectory(set_all_auto=False)
+        for attr_name in self.attr_lst:
+            attr = getattr(self, attr_name)
+            setattr(tr, attr_name, self._extend_if_possible(attr,nstep))
+        tr.set_all()
+        return tr
     
     def get_coords(self):
         """Cartesian coords."""
@@ -2728,6 +2729,9 @@ class Structure(UnitsHandler):
                 setattr(st, name, val.copy())
             else:
                 setattr(st, name, copy.deepcopy(val))
+        # XXX used to set attrs_nstep_* and attrs_only_traj; This is really
+        # messy. We should move the definition of these to Trajectory.__init__
+        st.set_all()
         return st           
 
 
@@ -3063,7 +3067,8 @@ class Trajectory(Structure):
         return self.timestep
 
     def get_traj(self):
-        return None
+        raise StandardError("calling Trajectory.get_traj makes "
+                            "no sense")
 
 def atoms2struct(at):
     """Transform ASE Atoms object to Structure."""
@@ -3335,4 +3340,30 @@ class RandomStructure(object):
         else:            
             return self._get_random_struct_nofail()
 
-    
+
+def concatenate(lst):
+    """Concatenate Structure or Trajectory objects into one Trajectory.
+    Mixing both types is not possible ATM.
+
+    Parameters
+    ----------
+    lst : sequence of Structure or Trajectory instances
+
+    Returns
+    -------
+    tr : Trajectory
+    """
+    trlst = [struct2traj(obj) for obj in lst]
+    tr = Trajectory(set_all_auto=True)
+    for attr_name in tr.attrs_nstep:
+        if getattr(trlst[0], attr_name) is not None:
+            x = tuple(getattr(x,attr_name) for x in trlst)
+            attr = np.concatenate(x, axis=0)
+            setattr(tr, attr_name, attr)
+    attrs_traj = tr.attrs_nstep + tr.attrs_only_traj                
+    for attr_name in tr.attr_lst:
+        if attr_name not in attrs_traj:
+            if getattr(trlst[0], attr_name) is not None:
+                setattr(tr, attr_name, getattr(trlst[0], attr_name))
+    tr.set_all()        
+    return tr                

@@ -190,3 +190,41 @@ def test_traj():
             assert id(val2) != id(val)
             assert_all_types_equal(val2, val)
 
+
+def test_concatenate():
+    natoms = 10
+    nstep = 100
+    cell = rand(nstep,3,3)
+    stress = rand(nstep,3,3)
+    forces = rand(nstep,natoms,3)
+    etot=rand(nstep)
+    cryst_const = crys.cell2cc3d(cell, axis=0)
+    coords_frac = np.random.rand(nstep,natoms,3)
+    symbols = ['H']*natoms
+    tr = Trajectory(coords_frac=coords_frac,
+                    cell=cell,
+                    symbols=symbols,
+                    forces=forces,
+                    stress=stress,
+                    etot=etot,
+                    timestep=1,
+                    )
+    st = Structure(coords_frac=rand(natoms,3),
+                   symbols=symbols,
+                   forces=rand(natoms,3),
+                   cell=rand(3,3),
+                   etot=3.14,
+                   stress=rand(3,3))
+    
+    tr_cat = crys.concatenate([st]*3)
+    assert tr_cat.nstep == 3
+    assert tr_cat.timestep is None
+    for attr_name in tr_cat.attrs_nstep:
+        print attr_name
+        if attr_name not in ['velocity', 'ekin', 'temperature']:
+            assert getattr(tr_cat, attr_name).shape[0] == 3
+    tr_cat = crys.concatenate([tr]*3)
+    assert tr_cat.nstep == 300
+    for attr_name in tr_cat.attrs_nstep:
+        assert getattr(tr_cat, attr_name).shape[0] == 300
+
