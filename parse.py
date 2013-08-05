@@ -753,11 +753,11 @@ class PwSCFOutputFile(StructureFileParser):
         self.try_set_attr('natoms')
         natoms = self.natoms
         # coords
-        cmd = r"egrep -A%i 'site.*atom.*positions.*units.*\)' %s | tail -n%i | \
+        cmd = r"egrep -m1 -A%i 'site.*atom.*positions.*units.*\)' %s | tail -n%i | \
               sed -re 's/.*\((.*)\)/\1/g'" \
               %(natoms, self.filename, natoms)
         coords = arr2d_from_txt(com.backtick(cmd))
-        cmd = r"egrep -A%i 'site.*atom.*positions.*units.*\)' %s | tail -n%i | \
+        cmd = r"egrep -m1 -A%i 'site.*atom.*positions.*units.*\)' %s | tail -n%i | \
               awk '{print $2}'" \
               %(natoms, self.filename, natoms)
         symbols = com.backtick(cmd).strip().split()
