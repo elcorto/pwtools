@@ -5,10 +5,11 @@
 import os
 import numpy as np
 from pwtools.parse import PwMDOutputFile
-from pwtools import common
+from pwtools import common, crys, io
 from testenv import testdir
-
 from pwtools.test.tools import ade
+
+rand = np.random.rand
 
 def test():
     filename = 'files/pw.md.out'
@@ -57,3 +58,11 @@ def test():
                 assert c_val == c2_val, "fail: %s: %s, %s" \
                                         %(attr, c_val, c2_val)
     common.system('gzip %s' %filename)
+
+def test_save_mkdir():
+    path = os.path.join(testdir, 'foo', 'bar', 'baz')
+    assert not os.path.exists(path)
+    fn = os.path.join(path, 'grr.pk')
+    st = crys.Structure(coords=rand(10,3), cell=rand(3,3), symbols=['H']*10)
+    st.dump(fn, mkdir=True)
+    io.cpickle_load(fn)
