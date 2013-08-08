@@ -42,7 +42,7 @@ Notes
   oversubscribe any CPU with less than 3 cores, but should run fine.
 
 * If all tests pass, good. If they do and the logfile does not contain warnings
-  but only some KNOWNFAIL statements .. very good.EOF
+  but only some KNOWNFAIL statements .. very good
 
 * test_rbf.py may seldomly fail if the generated random data is not good. Just
   re-run the test in that case.

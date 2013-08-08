@@ -2804,7 +2804,14 @@ class Trajectory(Structure):
     _index = -1
     
     def __getitem__(self, idx):
-        # For efficiency, bypass the whole Structure.__init__ and
+        """If `idx` is a single index, a Structure is returned. If it is a
+        slice object (numpy slicing syntax supported), then a Trajectory is
+        returned. That Trajectory has all attrs of the original one, but
+        `timestep` is set to None since that is undefined in general (e.g.
+        traj[::2] would change the timestep to 2x the original value). Don't
+        want/need to implement special-case code for that.
+        """
+        # For efficiency, we bypass the whole Structure.__init__ and
         # FlexibleGetters machinery completely by explicitely setting attributes.
         # This works b/c we have the same attribute names here and there. The
         # main assumption is that all attrs which would be set by set_all_auto
@@ -2831,15 +2838,13 @@ class Trajectory(Structure):
                         setattr(obj, attr_name, attr)
         # hack: add attrs_only_traj back                         
         if want_traj:
+            # After slicing, calculate new nstep
             obj.nstep = obj.get_nstep()
             obj.timeaxis = self.timeaxis
-            attr_names = self.attrs_only_traj[:]
-            if self.is_set_attr('timestep'):
-                obj.timestep = self.timestep
-            else:                
-                attr_names.pop(attr_names.index('timestep'))
-            for name in attr_names:
-                assert getattr(obj, name) is not None
+            obj.timestep = None
+            for name in self.attrs_only_traj:
+                if name != 'timestep':
+                    assert getattr(obj, name) is not None
         return obj
 
     def __iter__(self):
@@ -3353,17 +3358,72 @@ def concatenate(lst):
     -------
     tr : Trajectory
     """
+    # This fucntion could be used as __sum__ in Structure/Trajectory. Since
+    # Trajectory is a list-like object, the sum of Trajectories would be like a
+    # list sum, i.e. a concatenation. 
+    #
+    # But for that mixing types (i.e. cat Structure and Trajectories) must be
+    # supported. From all objects in `lst`, the "least common filled API" must
+    # be returned, i.e. a Trajectory which has only attrs which are not None in
+    # each object. This must be tested before by going thru the list once, hmmm
+    # ... sound hackish.
+    #
+    # Anyway, mixing types would be most easy if we finally unify Structure and
+    # Trajectory such that Structure = Trajectory[0] with all
+    # Trajectory-related stuff simply None instead of not defined (like ekin,
+    # temperature, nstep, timestep), just as we do in parse.py
+    #
     trlst = [struct2traj(obj) for obj in lst]
-    tr = Trajectory(set_all_auto=True)
-    for attr_name in tr.attrs_nstep:
+    traj = Trajectory(set_all_auto=True)
+    for attr_name in traj.attrs_nstep:
+        # Assume that not-none attrs from first object are also not None for
+        # all others.
         if getattr(trlst[0], attr_name) is not None:
-            x = tuple(getattr(x,attr_name) for x in trlst)
-            attr = np.concatenate(x, axis=0)
-            setattr(tr, attr_name, attr)
-    attrs_traj = tr.attrs_nstep + tr.attrs_only_traj                
-    for attr_name in tr.attr_lst:
+            attr = np.concatenate(tuple(getattr(x,attr_name) for x in trlst), 
+                                  axis=0)
+            setattr(traj, attr_name, attr)
+    attrs_traj = traj.attrs_nstep + traj.attrs_only_traj                
+    for attr_name in traj.attr_lst:
+        if (attr_name not in attrs_traj) and \
+           (getattr(trlst[0], attr_name) is not None):
+            setattr(traj, attr_name, getattr(trlst[0], attr_name))
+    traj.set_all()        
+    return traj                
+
+
+def mean(traj):
+    """Mean of Trajectory along `timeaxis`, like numpy.mean(array,axis=0).
+
+    Parameters
+    ----------
+    traj : Trajectory
+
+    Returns
+    -------
+    Structure
+    
+    Examples
+    --------
+    >>> #  a slice of the Trajectory
+    >>> st = mean(tr[200:500])
+    >>> # Say we know that coords_frac is pbc-wrpapped for some reason but
+    >>> # coords is not. Make sure that we average only coords and force a
+    >>> # recalculation of coords_frac by setting it to None.
+    >>> tr.coords_frac = None
+    >>> st = mean(tr)
+    """
+    assert traj.is_traj
+    struct = Structure(set_all_auto=False)
+    for attr_name in traj.attrs_nstep:
+        attr = getattr(traj, attr_name)
+        if attr is not None:
+            setattr(struct, attr_name, attr.mean(axis=traj.timeaxis))
+    attrs_traj = traj.attrs_nstep + traj.attrs_only_traj
+    for attr_name in traj.attr_lst:
         if attr_name not in attrs_traj:
-            if getattr(trlst[0], attr_name) is not None:
-                setattr(tr, attr_name, getattr(trlst[0], attr_name))
-    tr.set_all()        
-    return tr                
+            attr = getattr(traj, attr_name)
+            if attr is not None:
+                setattr(struct, attr_name, attr)
+    struct.set_all()
+    return struct
+
