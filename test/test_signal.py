@@ -1,18 +1,36 @@
 import numpy as np
-from pwtools.signal import gauss, find_peaks, smooth_convolve
+from scipy.signal import hanning
+from pwtools.signal import gauss, find_peaks, smooth
 from pwtools import num
+rand = np.random.rand
 
-def test_smooth_convolve():
-    x = np.linspace(0,10,100) 
-    y = np.random.rand(100)
-    std = 0.2
-    for area in [None,  np.trapz(y,x)]:
-        ys_ref = smooth_convolve(x, y, std=std, area=area)
-        for width in [None, 6*std, 12*std]:
-            ys = smooth_convolve(x, y, std=std, width=width, area=area)
-            print np.abs(ys_ref - ys).max()
-            assert np.allclose(ys_ref, ys, rtol=1e-2)
-    
+def test_smooth_1d():
+    for N in [20,21,99,100,101]:
+        # values in [9.0,11.0]
+        x = rand(N) + 10
+        for M in [3,4,13,14]:
+            xsm = smooth(x, hanning(M))
+            assert len(xsm) == N
+            # Smoothed signal should not go to zero if edge effects are handled
+            # properly. Also assert proper normalization (i.e. smoothe signal
+            # is "in the middle" of the noisy original data).
+            assert xsm.min() >= 9.0 
+            assert xsm.max() <= 11.0 
+        assert np.allclose(smooth(x, np.array([0.0,1,0])),x)
+
+
+def test_smooth_nd():
+    # (500, 20, 3)
+    a = rand(500)[:,None,None].repeat(20,1).repeat(3,2) + 10
+    kern = hanning(21)
+    asm = smooth(a, kern[:,None,None], axis=0)
+    assert asm.shape == a.shape
+    for jj in range(asm.shape[1]):
+        for kk in range(asm.shape[2]):
+            assert np.allclose(asm[:,jj,kk], smooth(a[:,jj,kk], kern))
+            assert asm[:,jj,kk].min() >= 9.0 
+            assert asm[:,jj,kk].max() <= 11.0 
+
 
 def test_find_peaks():
     x = np.linspace(0,10,300) 

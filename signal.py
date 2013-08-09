@@ -5,9 +5,10 @@
 
 import numpy as np
 from scipy.fftpack import fft, ifft
-from scipy.signal import convolve, gaussian, kaiserord, firwin, lfilter, freqz
+from scipy.signal import fftconvolve, gaussian, kaiserord, firwin, lfilter, freqz
 from scipy.integrate import trapz
 from pwtools import _flib, num
+
 
 def fftsample(a, b, mode='f', mirr=False):
     """Convert size and resolution between frequency and time domain.
@@ -472,59 +473,85 @@ def find_peaks(y, x=None, k=3, spread=2, ymin=None):
     return idx0, pos0
 
 
-def smooth_convolve(x, y, std=1.0, width=None, args=(), area=None,
-                    func=gaussian):
-    """Smooth x-y curve by convolution with `func` of std deviation `std`
-    and optionally normalize integral to `area`.
+def smooth(data, kern, axis=0):
+    """Smooth `data` by convolution with a kernel `kern`. 
     
+    Uses scipy.signal.fftconvolve().
+
     Parameters
     ----------
-    x : 1d array
-    y : 1d array
-    std : float
-        sigma in case if a gaussian, same unit as `x`
-    width : float, optional
-        Width of the gaussian, same unit as `x`. Default is ``6*std``. 
-    args : extra args to `func`       
-    area : {None,float}, optional
-        Target integral area for normalization. None for no normalization.
-    func : callable
-        fuction to convolve with, default is ``scipy.signal.gaussian()``
-
-    Returns
-    -------
-    yc : convolved y
+    data : nd array
+        The data to smooth. Example: 1d (N,) or (N,natoms,3)
+        for trajectory
+    kern : nd array
+        Convolution kernel. Example: 1d (M,) or (M,1,1)
+        for trajectory
+    axis : int
+        Axis along which to do the smoothing. That is actually not needed for
+        the convolution ``fftconvolve(data, kern)`` but is used for padding the
+        data along `axis` to handle edge effects before convolution.
 
     Examples
     --------
-    >>> from pwtools import signal
-    >>> x=linspace(0,10,100); y=rand(100)
-    >>> plot(x,y)
-    >>> plot(x, signal.smooth_convolve(x, y, std=0.2, area=np.trapz(y,x)))
+    >>> from pwtools.signal import welch
+    >>> x = linspace(0,2*pi,500); a=cos(x)+rand(500) 
+    >>> plot(a, color='0.7')
+    >>> k=scipy.signal.hanning(21)
+    >>> plot(signal.smooth(a,k), 'r', label='hanning')
+    >>> k=scipy.signal.gaussian(21, 3)
+    >>> plot(signal.smooth(a,k), 'g', label='gauss')
+    >>> k=welch(21)
+    >>> plot(signal.smooth(a,k), 'y', label='welch')
+    >>> # odd kernel [0,1,0] reproduces data exactly
+    >>> figure()
+    >>> x=linspace(0,2*pi,15); k=scipy.signal.hanning(3)
+    >>> plot(cos(x))
+    >>> plot(signal.smooth(cos(x),k), 'r')
+    >>> # smooth a trajectory of atomic coordinates
+    >>> figure()
+    >>> x = linspace(0,2*pi,500)
+    >>> a = rand(500,20,3) + cos(x)[:,None,None] # (nstep, natoms, 3)
+    >>> k=scipy.signal.hanning(21)[:,None,None]
+    >>> plot(a[:,0,0], color='0.7'); plot(signal.smooth(a,k)[:,0,0],'r')
 
+    References
+    ----------
+    [1] http://wiki.scipy.org/Cookbook/SignalSmooth
+    
     Notes
     -----
-    `std` and `width` are converted from `x` units to steps and `func` is
-    called as ``func(width_in_steps, std_in_steps, *args)``.
+    Even kernels result in shifted signals, odd kernels are better.
     
-    `width` determines the number of points calculated for the convolution
-    kernel, i.e. `func`. It should be bigger then `std`. The convolved signal
-    will converge with increasing `width`. The default ``width=6*std`` is
-    usually OK, but it may be worth checking that for your signals.
+    Usual kernels (window functions) are created by e.g.
+    ``scipy.signal.hanning(width)``. For ``kern=scipy.signal.gaussian(width,
+    std)``, two values are needed, namely `width` and `std*, where  `width`
+    determines the number of points calculated for the convolution kernel, as
+    in the other cases. But what is actually important is `std`, which
+    determines the "used width" of the gaussian. Say we use len(data)=100,
+    ``kern=hanning(50)``. That would be a massively wide window and we would
+    smooth away all details. OTOH, using ``gaussian(50,3)`` would generate a
+    kernel of the same with (i.e. data points), but the gauss peak which is
+    effectively used for convolution is much smaller. For ``gaussian()``,
+    `width` should be bigger then `std`. The convolved signal will converge
+    with increasing `width`. Good values are `width=6*std` and bigger. You may
+    want to check that for your signals.
     """
-    nstep = x.shape[0]
-    # width and std are integers relative to nstep, but we get them as x unit,
-    # e.g. Hz or whatever and need to convert to nstep "unit"
-    x_to_step = 1.0 / ((x[-1] - x[0]) / float(nstep))
-    if width is None:        
-        _width = int(std*6.0 * x_to_step)
-    else:
-        _width = int(width * x_to_step)
-    _std = int(std * x_to_step)
-    yc = convolve(y, func(_width, _std, *args), 'same')
-    if area is not None:
-        yc = num.norm_int(yc, x, area=area, scale=True)
-    return yc
+    N = data.shape[axis]
+    M = kern.shape[axis]
+    assert M < N, "kernel must be shorter than signal"
+    dstart = num.slicetake(data, sl=slice(M,0,-1), axis=axis)
+    dend = num.slicetake(data, sl=slice(-2,-(M+1),-1), axis=axis)
+    sig = np.concatenate((dstart, data, dend), axis=axis)
+    ret = fftconvolve(sig, kern/float(kern.sum()), 'valid')
+    del sig
+    if M % 2 == 0:
+        sl = slice(M/2,-(M/2))
+    else:        
+        sl = slice(M/2+1,-(M/2))
+    ret = num.slicetake(ret, sl=sl, axis=axis)        
+    assert ret.shape == data.shape
+    return ret
+
 
 
 class FIRFilter(object):
