@@ -8,13 +8,11 @@ from numpy.random import uniform
 from scipy.linalg import inv
 from scipy.integrate import cumtrapz
 
+from pwtools import common, signal, num, atomic_data, constants, _flib
 from pwtools.common import assert_cond
-from pwtools import common
 from pwtools.decorators import crys_add_doc
-from pwtools import num, atomic_data
 from pwtools.base import FlexibleGetters
 from pwtools.constants import Bohr, Angstrom
-from pwtools import constants, atomic_data, _flib
 from pwtools.num import fempty, rms, rms3d, match_mask
 
 import warnings
@@ -3426,4 +3424,59 @@ def mean(traj):
                 setattr(struct, attr_name, attr)
     struct.set_all()
     return struct
+
+
+def smooth(traj, kern):
+    """Smooth Trajectory along `timeaxis`.
+
+    Each array in `traj.attrs_nstep` is smoothed by convolution with `kern`
+    along `timeaxis`, i.e. coords, coords_frac, etot, ... The kernel is
+    automatically broadcast to the shape of each array. A similar feature can
+    be found in VMD -> Representations -> Trajectory.
+
+    Parameters
+    ----------
+    traj : Trajectory
+    kern : 1d array
+        Convolution kernel (smoothing window, see signal.smooth()).
+
+    Returns
+    -------
+    tr : Trajectory
+        Has the same `nstep` and `timestep` as the input Trajectory.
+    
+    Examples
+    --------
+    >>> kern = scipy.signal.hanning(101)
+    >>> trs = smooth(tr, kern)
+    """
+    assert traj.is_traj
+    assert kern.ndim == 1, "need 1d kernel"
+    if traj.timeaxis == 0:
+        kk1d = kern
+        kk2d = kern[:,None]
+        kk3d = kern[:,None,None]
+    else:
+        # ... but is trivial to add
+        raise StandardError("timeaxis != 0 not implemented")
+    out = Trajectory(set_all_auto=False)
+    for attr_name in traj.attrs_nstep:
+        attr = getattr(traj, attr_name)
+        if attr is not None:
+            if attr.ndim == 1:
+                kk = kk1d
+            elif attr.ndim == 2:
+                kk = kk2d
+            elif attr.ndim == 3:
+                kk = kk3d
+            setattr(out, attr_name, signal.smooth(attr, kk,
+                                                  axis=traj.timeaxis))
+    # nstep and timestep are the same for the smoothed traj
+    for attr_name in traj.attr_lst:
+        if attr_name not in traj.attrs_nstep:
+            attr = getattr(traj, attr_name)
+            if attr is not None:
+                setattr(out, attr_name, attr)
+    out.set_all()                
+    return out
 

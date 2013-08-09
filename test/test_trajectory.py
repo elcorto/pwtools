@@ -2,6 +2,7 @@
 #
 import types
 import numpy as np
+from scipy.signal import hanning
 from pwtools.crys import Trajectory, Structure
 from pwtools import crys, constants
 from pwtools.test.tools import aaae, assert_all_types_equal,\
@@ -281,4 +282,20 @@ def test_mean():
                                getattr(tr, attr_name).mean(axis=tr.timeaxis))
         
 
+def test_smooth():
+    tr = get_rand_traj()
+    trs = crys.smooth(tr, hanning(11))
+    assert_attrs_not_none(trs, attr_lst=tr.attr_lst)
+    for name in tr.attrs_nstep:
+        a1 = getattr(tr, name)
+        a2 = getattr(trs, name)
+        assert a1.shape == a2.shape
+        assert np.abs(a1 - a2).sum() > 0.0
+    assert trs.timestep == tr.timestep
+    assert trs.nstep == tr.nstep
+    trs = crys.smooth(tr, hanning(3))
+    for name in tr.attrs_nstep:
+        a1 = getattr(tr, name)
+        a2 = getattr(trs, name)
+        assert np.allclose(a1, a2)
 
