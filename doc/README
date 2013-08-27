@@ -7,4 +7,16 @@ do::
 For this to work, you need Sphinx, the Python documention generation tool. If
 you don't have that, you can simply read the ``source/written/*.rst`` files :)
 
+To generate the API doc source automagically, you need ``sphinx-autodoc.py``
+[1]_ which is used as in ``generate-apidoc.sh`` to generate
+``source/generated/*``. But this is optional. The html doc build from the
+hand-written doc files in ``source/written/`` is not affected by this. But if
+you have it, then::
+    
+    ./generate-apidoc.sh
+    make html
+    firefox build/html/index.html 
+
+.. [1] https://bitbucket.org/elcorto/sphinx-autodoc
+
 .. vim:syn=rst

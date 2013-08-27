@@ -29,8 +29,8 @@ OK, so use a :math:`2\times2\times3` MP grid. Instead of defining ``cell`` by
 hand, you could also build your structure, have it in a Structure object, say
 ``st`` and use ``st.cell`` instead.
 
-Parse MD code and plot stuff
-----------------------------
+Parse MD code output and plot stuff
+-----------------------------------
 Lets take cp2k as an example (assuming an interactive Ipython session)::
     
     >>> from pwtools import io

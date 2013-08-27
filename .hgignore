@@ -5,3 +5,4 @@ syntax: regexp
 
 syntax: glob
 doc/build
+doc/source/generated
