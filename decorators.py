@@ -2,6 +2,7 @@ import types
 import gzip
 import textwrap
 import os
+from functools import wraps
 
 def open_and_close(func):
     """Decorator for all parsing functions that originally got a file name and
@@ -36,6 +37,7 @@ def open_and_close(func):
     >>>
     >>> print file_txt_content('my_file.txt')
     """
+    @wraps(func)
     def wrapper(*args, **kwargs):
         largs = list(args)
         if isinstance(largs[0], types.StringType):
@@ -63,14 +65,6 @@ def open_and_close(func):
             # try fiddling with try-except here. There just won't be any
             # filename.
             return func(*args, **kwargs)
-    # TODO: Use functools.wraps() to decorate wrapper() to pass func.__doc__
-    # and func.__name__ along.
-    _doc = func.__doc__
-    if _doc is not None:
-        _doc = _doc.replace('@args_fh_extra_doc@', "If fh is a file object, it "
-            "will not be closed.")
-    wrapper.__doc__ = _doc
-    wrapper.__name__ = func.__name__            
     return wrapper        
 
 
