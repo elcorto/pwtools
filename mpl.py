@@ -241,18 +241,28 @@ def prepare_plots(names, projection='2d', **kwds):
     return plots        
 
 
-class Data3D(object):
+class Data2D(object):
     """Container which converts between different x-y-z data formats frequently
-    used by scipy.interpolate.bispl{rep,ev} and mpl_toolkits.mplot3d fuctions.
+    used by ``scipy.interpolate.bispl{rep,ev}`` and ``mpl_toolkits.mplot3d``
+    fuctions.
+
+    2D because the data is a 2D scalar field, i.e. `z(x,y)`. See
+    also :class:`~pwtools.num.Interpol2D`.
     """
     def __init__(self, x=None, y=None, xx=None, yy=None, zz=None, X=None,
                  Y=None, Z=None, XY=None):
         """
+        Use either `x`, `y` or `xx`, `yy` or `X`, `Y` or `XY` to define the x-y
+        data. z-data is optional. For that, use `Z` or `zz`. Conversion to all
+        forms is done automatically.
+
         Parameters
         ----------
-        x,y : 1d arrays, shape (nx,) (ny,)
+        x,y : 1d arrays, (nx,) and (ny,)
             These are the raw x and y "axes".
-        X,Y,Z: meshgrid-like 2d arrays (nx, ny), see meshgridt()
+        X,Y,Z : 2d arrays (nx, ny) 
+            Like ``np.meshgrid`` but transposed to have shape (nx,ny), see also 
+            :func:`~pwtools.mpl.meshgridt`
         xx,yy,zz : 1d arrays (nx*ny)
             "Double-loop" versions of x,y,Z, input for ax3d.scatter() or
             bisplrep(). 
@@ -260,47 +270,52 @@ class Data3D(object):
 
         Examples
         --------
-        x = linspace(...,5)
-        y = linspace(...,5)
-        X,Y = mpl.meshgridt(x,y)
-        Z = X**2+Y**2
-        data = Data3D(x=x,y=y,Z=Z)
-        xi = linspace(...,50)
-        yi = linspace(...,50)
-        ZI = bisplev(xi,yi,bisplrep(data.xx, data.yy, data.zz))
-        spline = Data3D(x=xi, y=yi, Z=ZI)
-        ax3d.scatter(data.xx, data.yy, data.zz)
-        ax3d.plot_wireframe(data.X, data.Y, data.Z)
-        ax3d.plot_surface(spline.X, spline.Y, spline.Z, cstride=1, rstride=1)
+        >>> from pwtools.mpl import Data2D, meshgridt
+        >>> from scipy.interpolate import bisplrep, bisplev
+        >>> x = linspace(-5,5,10)
+        >>> y = linspace(-5,5,10)
+        >>> X,Y = meshgridt(x,y)
+        >>> Z = X**2+Y**2
+        >>> data = Data2D(x=x,y=y,Z=Z)
+        >>> xi = linspace(-5,5,50)
+        >>> yi = linspace(-5,5,50)
+        >>> ZI = bisplev(xi,yi,bisplrep(data.xx, data.yy, data.zz))
+        >>> spline = Data2D(x=xi, y=yi, Z=ZI)
+        >>> fig,ax3d = mpl.fig_ax3d()
+        >>> ax3d.scatter(data.xx, data.yy, data.zz, color='b')
+        >>> ax3d.plot_wireframe(data.X, data.Y, data.Z, color='g')
+        >>> ax3d.plot_surface(spline.X, spline.Y, spline.Z, cstride=1, 
+        ...                   rstride=1, color='r')
 
         Notes
         -----
-        Shape of X,Y,Z:
-
-        In 
-            X,Y = meshgridt(x,y), 
-        X and Y are the *transposed* versions of  
-            X,Y = numpy.meshgrid()
-        which returns (ny,nx). The shape (nx,ny), which we use, is more
-        intuitive and also used in ax3d.plot_surface() etc. The output of
-        scipy.interpolate.bisplev() is also (nx,ny).        
+        ``X,Y = meshgridt(x,y)`` are the *transposed* versions of ``X,Y =
+        numpy.meshgrid()`` which returns shape (ny,nx). The shape (nx,ny),
+        which we use, is more intuitive and also used in ``ax3d.plot_surface``
+        etc. The output of ``scipy.interpolate.bisplev`` is also (nx,ny).        
         
-        xx,yy,zz:
-
+        ::
+            
             nx = 10
             ny = 5
             x = linspace(...,nx)
             y = linspace(...,ny)
+        
         To calculate z=f(x,y) on the x,y-grid, use meshgridt() or X.T, Y.T
-        from numpy.meshgrid(). 
+        from numpy.meshgrid()::
+            
             X,Y = meshgridt(x,y)
             Z = X**2 + Y**2
+
         X,Y,Z are good for data generation and plotting (ax3d.plot_wireframe()). But
-        the input to bisplrep() must be flat X,Y,Z (xx,yy,zz) like so:
+        the input to bisplrep() must be flat X,Y,Z (xx,yy,zz) like so::
+            
             xx = X.flatten()
             yy = Y.flatten()
             zz = Z.flatten()
-        The same, as explicit loops:
+
+        The same, as explicit loops::
+
             xx = np.empty((nx*ny), dtype=float)
             yy = np.empty((nx*ny), dtype=float)
             zz = np.empty((nx*ny), dtype=float)
@@ -310,11 +325,26 @@ class Data3D(object):
                     xx[idx] = x[ii]
                     yy[idx] = y[jj]
                     zz[idx] = x[ii]**2 + y[jj]**2
-        Construct the spline and evaluate
+        
+        or::
+            
+            XY = np.array([k for k in itertools.product(x,y)])
+            xx = XY[:,0]
+            yy = XY[:,1]
+            zz = xx**2 + yy**2
+
+        Construct the spline and evaluate::
+
             spl = bisplrep(xx,yy,zz,...)
             ZI = bisplev(x,y)
-        Note that for evaluation, we must use the "axes" x and y, not xx and yy! 
-        ZI has the correct shape: (nx, ny), which is the shape of np.outer(x,y).
+        
+        `ZI` has the correct shape: (nx, ny), which is the shape of
+        ``np.outer(x,y)``.
+        
+        The "inverse meshgrid" operation to transform `xx`, `yy` to `x`, `y` is
+        done by using ``numpy.unique``. We assumes that ``xx`` and ``yy`` are
+        generated like in the nested loop above. For otherwise ordered `xx`,
+        `yy` this will fail. 
         """
         self.x = x
         self.y = y
@@ -332,46 +362,45 @@ class Data3D(object):
             self.X,self.Y = meshgridt(self.x, self.y)
             self.xx = self.X.flatten()
             self.yy = self.Y.flatten()
-        else:
-            if self.X is not None:
-                self.x = self.X[:,0]
-                self.xx = self.X.flatten()
-            if self.Y is not None:
-                self.y = self.Y[0,:]
-                self.yy = self.Y.flatten()
-        if self.Z is not None:
-            self.zz = self.Z.flatten()
-        # reverse meshgrid, may be unsafe, assumes that xx and yy
-        # are in the order:
-        #    for ii in range(nx):
-        #        for jj in range(ny):
-        #            idx = ii*ny+jj
-        #            xx[idx] = x[ii]
-        #            yy[idx] = y[jj]
-        #            zz[idx] = ...
-        # also fails for meaningless xx/yy data like when all xx[i] are the
-        # same 
-        if self.x is None:
+            self.XY = np.array([self.xx, self.yy]).T
+        elif [self.X,self.Y] != [None]*2: 
+            self.x = self.X[:,0]
+            self.xx = self.X.flatten()
+            self.y = self.Y[0,:]
+            self.yy = self.Y.flatten()
+            self.XY = np.array([self.xx, self.yy]).T
+        elif [self.xx,self.yy] != [None]*2: 
             self.x = np.unique(self.xx)
-        if self.y is None:
             self.y = np.unique(self.yy)
-        self.X,self.Y = meshgridt(self.x, self.y)
+            self.X,self.Y = meshgridt(self.x, self.y)
+            self.XY = np.array([self.xx, self.yy]).T
+        elif self.XY is not None:
+            self.xx = self.XY[:,0]
+            self.yy = self.XY[:,1]
+            self.x = np.unique(self.xx)
+            self.y = np.unique(self.yy)
+            self.X,self.Y = meshgridt(self.x, self.y)
+        else:
+            raise StandardError("cannot determine x and y from input")
+        # by now, we have all forms of x and y: x,y; xx,yy; X,Y; XY            
+        self.nx = len(self.x)
+        self.ny = len(self.y)
+        # Z is optional
         if self.Z is None:
             if self.zz is not None:
                 self.Z = self.zz.reshape(len(self.x), len(self.y))
-        if self.XY is None:
-            self.XY = np.array([self.xx,self.yy]).T
-        if self.x is not None:
-            self.nx = len(self.x)
-        if self.y is not None:
-            self.ny = len(self.y)
+        else:
+            self.zz = self.Z.flatten()
 
-def get_3d_testdata():
+# backwd compat
+Data3D = Data2D
+
+def get_2d_testdata():
     x = np.linspace(-5,5,20)
     y = np.linspace(-5,5,20)
     X,Y = meshgridt(x,y)
     Z = np.sin(X) + np.cos(Y)
-    return Data3D(X=X, Y=Y, Z=Z)
+    return Data2D(X=X, Y=Y, Z=Z)
 
 
 #----------------------------------------------------------------------------
