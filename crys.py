@@ -2524,22 +2524,25 @@ class Structure(UnitsHandler):
         # Call UnitsHandler.set_all(), which is FlexibleGetters.set_all().
         super(Structure, self).set_all()
     
-    def _extend_if_possible(self, thing, nstep):
-        if thing is not None:
-            if type(thing) == self.np_array_t:
-                return num.extend_array(thing, nstep, axis=self.timeaxis)
-            else:
-                return np.array([thing]*nstep)
-        else:
-            return None
-
     def get_traj(self, nstep):
         """Return a Trajectory object, where this Structure is copied `nstep`
         times."""
-        tr = Trajectory(set_all_auto=False)
+        # XXX Need to use set_all_auto=True to have attrs_nstep set in tr, i.e.
+        # we go thru the whole init machinery but have all attrs None. OK. We
+        # really need to move the code which sets self.attr* to __init__().
+        tr = Trajectory(set_all_auto=True)
         for attr_name in self.attr_lst:
             attr = getattr(self, attr_name)
-            setattr(tr, attr_name, self._extend_if_possible(attr,nstep))
+            if attr is None:
+                new_attr = None
+            elif attr_name in tr.attrs_nstep:
+                if type(attr) == self.np_array_t:
+                    new_attr = num.extend_array(attr, nstep, axis=self.timeaxis)
+                else:
+                    new_attr = np.array([attr]*nstep)
+            else:
+                new_attr = copy.deepcopy(attr)
+            setattr(tr, attr_name, new_attr)
         tr.set_all()
         return tr
     

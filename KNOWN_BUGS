@@ -1,7 +1,5 @@
 * Test fail in test_pdos
 
-* Test fail in test_rpdf
-
 * A Trajectory returned by a slice operation cannot be iterated over b/c it
   has no attrs_nstep attribute b/c that is set in set_all()  which we don't
   call in __getitem__ b/c of speed. A similar problem with copy() was fixed in 

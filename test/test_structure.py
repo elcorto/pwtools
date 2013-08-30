@@ -111,8 +111,21 @@ def test_struct():
             assert id(val2) != id(val)
             assert_all_types_equal(val2, val)
 
+
 def test_get_traj():
     st = Structure(coords_frac=rand(20,3),
                    symbols=['H']*20,
-                   forces=rand(20,3))
-    st.get_traj(5)                   
+                   forces=rand(20,3),
+                   stress=rand(3,3),
+                   etot=42.23)
+    nstep = 5
+    tr = st.get_traj(nstep)
+    for name in st.attr_lst:
+        print name
+        attr = getattr(tr, name)
+        if attr is not None:
+            if name in tr.attrs_nstep:
+                assert attr.shape[tr.timeaxis] == nstep
+            else:
+                attr_st = getattr(st, name)
+                assert_all_types_equal(attr, attr_st)
