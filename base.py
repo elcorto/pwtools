@@ -11,7 +11,8 @@ class FlexibleGetters(object):
     assured that the code in each getter is only executed once (by using checks
     with self.is_set_attr()).
     
-    For each attr, there must exist a getter. We define the convention 
+    For each attr, there must exist a getter. We define the convention::
+      
       self.foo  -> self.get_foo() 
       self.bar  -> self.get_bar()  
       self._baz -> self._get_baz() # note the underscores
@@ -28,33 +29,35 @@ class FlexibleGetters(object):
    
     Examples
     --------
-    class MySuperParsingClass(FlexibleGetters):
-        def __init__(self):
-            self.set_attr_lst(['foo', 'bar', '_baz'])
-            self.set_all()
-        
-        def set_all(self):
-            "Sets self.foo, self.bar and self._baz by calling their
-            getters"
-            for attr in self.attr_lst:
-                self.try_set_attr(attr)
-        
-        # Getters call each other
-        def _get_baz(self):
-            return self.calc_baz()
-        
-        def get_bar(self):
-            if self.check_set_attr('_baz'):
-                return self.calc_stuff(self._baz)**2.0
-            else:
-                return None
+    ::
 
-        def get_foo(self):
-            required = ['bar', '_baz']
-            if self.check_set_attr_lst(required):
-                return do_stuff(self._baz, self.bar)
-            else:
-                return None
+        class MySuperParsingClass(FlexibleGetters):
+            def __init__(self):
+                self.set_attr_lst(['foo', 'bar', '_baz'])
+                self.set_all()
+            
+            def set_all(self):
+                "Sets self.foo, self.bar and self._baz by calling their
+                getters"
+                for attr in self.attr_lst:
+                    self.try_set_attr(attr)
+            
+            # Getters call each other
+            def _get_baz(self):
+                return self.calc_baz()
+            
+            def get_bar(self):
+                if self.check_set_attr('_baz'):
+                    return self.calc_stuff(self._baz)**2.0
+                else:
+                    return None
+
+            def get_foo(self):
+                required = ['bar', '_baz']
+                if self.check_set_attr_lst(required):
+                    return do_stuff(self._baz, self.bar)
+                else:
+                    return None
     
     Setting self.attr_lst is optional. It is supposed to be used only in
     set_all(). The try_set_attr() - method works without it, too. 
@@ -161,15 +164,15 @@ class FlexibleGetters(object):
         
         Examples
         --------
-        # save
+        >>> # save
         >>> x = FileParser('foo.txt')
         >>> x.parse()
         >>> x.dump('foo.pk')
-        # load: method 1 - recommended
+        >>> # load: method 1 - recommended
         >>> xx = common.cpickle_load('foo.pk')
-        # or 
+        >>> # or 
         >>> xx = cPickle.load(open('foo.pk'))
-        # load: method 2, not used / tested much
+        >>> # load: method 2, not used / tested much
         >>> xx = FileParser()
         >>> xx.load('foo.pk')
         """
@@ -204,10 +207,10 @@ class FlexibleGetters(object):
 
     def try_set_attr(self, attr):
         """If self.<attr> does not exist or is None, then invoke an
-        appropirately named getter as if this command would be executed:
+        appropirately named getter as if this command would be executed::
         
-        self.foo = self.get_foo()
-        self._foo = self._get_foo()
+            self.foo = self.get_foo()
+            self._foo = self._get_foo()
 
         Parameters
         ----------
@@ -230,13 +233,15 @@ class FlexibleGetters(object):
         
         Examples
         --------
+        ::
+            
             def get_foo(self):
                 if self.check_set_attr('bar'):
                     return self.bar * 2
                 else:
                     return None
         
-        which is the same as
+        which is the same as ::
 
             def get_foo(self):
                 self.try_set_attr('bar):
@@ -244,6 +249,7 @@ class FlexibleGetters(object):
                     return self.bar * 2
                 else:
                     return None
+        
         """
         self.try_set_attr(attr)
         return self.is_set_attr(attr) 
@@ -274,9 +280,10 @@ class FlexibleGetters(object):
     
     def raw_slice_get(self, attr_name, sl, axis):
         """Shortcut method:
-        * call try_set_attr(_<attr_name>_raw) -> set
-          self._<attr_name>_raw to None or smth else
-        * if set, return self._<attr_name>_raw sliced by `sl` along `axis`,
+
+        * call ``try_set_attr(_<attr_name>_raw)`` -> set
+          ``self._<attr_name>_raw`` to None or smth else
+        * if set, return ``self._<attr_name>_raw`` sliced by `sl` along `axis`,
           else return None
         """
         raw_attr_name = '_%s_raw' %attr_name
@@ -294,10 +301,10 @@ class FlexibleGetters(object):
             return None
     
     def raw_return(self, attr_name):
-        """Call try_set_attr(_<attr_name>_raw) and return it if set, else
-        None. This is faster but the same the same as 
-            raw_slice_get(<attr_name>, sl=slice(None), axis=0)
-        or axis=1 or any other valid axis.
+        """Call ``try_set_attr(_<attr_name>_raw)`` and return it if set, else
+        None. This is faster but the same the same as
+        ``raw_slice_get(<attr_name>, sl=slice(None), axis=0)`` or axis=1 or any
+        other valid axis.
         """
         raw_attr_name = '_%s_raw' %attr_name
         self.try_set_attr(raw_attr_name)

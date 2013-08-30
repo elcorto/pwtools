@@ -129,13 +129,15 @@ class SQLiteDB(object):
     
     Currently, we assume that the db has one table only, therefore we
     enforce `table` in the constructor.
-
+    
+    Notes
+    -----
     exported methods:
-    -----------------
-    self.cur.execute() -> execute()
-    self.conn.commit() -> commit()
-    where self.cur  -> sqlite3.Cursor
-          self.conn -> sqlite3.Connection
+
+    | self.cur.execute() -> execute()
+    | self.conn.commit() -> commit()
+    | where self.cur  -> sqlite3.Cursor
+    |       self.conn -> sqlite3.Connection
     
     Examples
     --------

@@ -10,15 +10,14 @@ Documentation
 -------------
 See doc/ for doumentation and extended install notes (e.g. dependencies on
 other python packages). This dir contains rst source files which can be used to
-build nice sphinx html docu. A semi-recent version of that can be found at
+build nice sphinx html docu. See doc/README to find out how to build the html
+docu by youself. A semi-recent version of that can be found at
 http://elcorto.bitbucket.org/pwtools
 
-You can always build the doc of your current pwtools version by::
+By far the most documentation is contained in the source doc strings. Therefore
+it is most helpful to look at the `API reference doc`_ and/or simply:
 
-    make -C doc html
-    firefox build/html/index.html
-
-Also: Read the Source, Luke!
+    Read the Source, Luke!
 
 Quick install
 -------------
@@ -35,4 +34,5 @@ somewhere and run ``make`` to compile extensions::
     export PATH=$HOME/python/pwtools/bin:$PATH
     export PYTHONPATH=$PYTHONPATH:$HOME/python
 
+.. _API reference doc: http://elcorto.bitbucket.org/pwtools/generated/api/index.html
 .. vim:syn=rst

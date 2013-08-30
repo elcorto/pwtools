@@ -742,9 +742,11 @@ class Interpol2D(object):
             'ct'        : scipy.interpolate.CloughTocher2DInterpolator
             'bispl'     : scipy.interpolate.bispl{rep,ev}    
         **initkwds : keywords passed on to the interpolator's constructor             
-
-        possible keywords (examples):
-        -----------------------------
+        
+        Notes
+        -----
+        Possible keywords (examples):
+        
         rbf :
             param='est'
             param=0.05

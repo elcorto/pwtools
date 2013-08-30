@@ -67,13 +67,13 @@ def ipermute(seq):
     Notes
     -----
     algo : We use the Counting QuickPerm Algorithm [1]_. Works like Heap's
-        Algorithm [2]_,[3]_, but not recursive. Uses N!-1 swaps.
+        Algorithm [2]_ [3]_  but not recursive. Uses N!-1 swaps.
 
     References
     ----------
-    [1] http://permute.tchs.info/quickperm.php
-    [2] www.cs.princeton.edu/~rs/talks/perms.pdf, page 12
-    [3] http://www.cut-the-knot.org/do_you_know/AllPerm.shtml
+    .. [1] http://permute.tchs.info/quickperm.php
+    .. [2] www.cs.princeton.edu/~rs/talks/perms.pdf, page 12
+    .. [3] http://www.cut-the-knot.org/do_you_know/AllPerm.shtml
     """
     # copy input
     aa = list(seq)[:]

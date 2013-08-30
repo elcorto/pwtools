@@ -32,8 +32,8 @@ def precond(arr, rng=[0,1], shift=True, scale=True, atol=1e-8):
     -------
     out : same shape as `arr`
 
-    Examaples
-    ---------
+    Examples
+    --------
     >>> precond(array([[1,2,3],[4,5,6]]))
     array([[ 0. ,  0.5,  1. ],
            [ 0. ,  0.5,  1. ]])
