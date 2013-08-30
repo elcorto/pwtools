@@ -51,6 +51,17 @@ crys.py
   We want:  
     st.cell # call self.get_cell() if not calculated etc.
   This can be done only if we turn all attrs into lazy evaluated properties.
+* Make Structure the nstep=1 special case of Trajectory, not the other way
+  around as it is now, i.e. derive Structure from Trajectory. For Structure,
+  return coords[0,...] etc. Since the two are so closely related anyway, it
+  would be natural to do it that way. Then, we get rid of all the
+  attrs_only_traj stuff. A Structure constructed by st=Structure(coords=...,
+  cell)...) will then have attrs like ekin and velocity which are all None.
+  That's OK. Right now we distinguish between attrs which only Trajectory can
+  have (like velocity), but that is motivated only by a physics gut
+  feeling. In fact that is not needed or used anywhere and
+  instead causes endless problems. If a struct is sliced from a Trajectory,
+  then the atoms *can* have a velocity, why not?
 
 pydos.py
 --------

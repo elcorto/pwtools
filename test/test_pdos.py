@@ -5,7 +5,7 @@ from pwtools import pydos as pd
 from pwtools.crys import coord_trans
 from pwtools.test.tools import aae
 
-def test():
+def test_pdos():
     filename = 'files/pw.md.out'
     common.system('gunzip %s.gz' %filename)
     pp = parse.PwMDOutputFile(filename=filename)
@@ -35,10 +35,10 @@ def test():
     np.testing.assert_array_almost_equal(fd, fv, err_msg="freq not equal")
     np.testing.assert_array_almost_equal(dd, dv, err_msg="dos not equal")
     
-    assert (fd == np.loadtxt('files/ref_test_pdos/fd.txt.gz')).all()
-    assert (fv == np.loadtxt('files/ref_test_pdos/fv.txt.gz')).all()
-    assert (dd == np.loadtxt('files/ref_test_pdos/dd.txt.gz')).all()
-    assert (dv == np.loadtxt('files/ref_test_pdos/dv.txt.gz')).all()
+    assert np.allclose(fd, np.loadtxt('files/ref_test_pdos/fd.txt.gz'))
+    assert np.allclose(fv, np.loadtxt('files/ref_test_pdos/fv.txt.gz'))
+    assert np.allclose(dd, np.loadtxt('files/ref_test_pdos/dd.txt.gz'))
+    assert np.allclose(dv, np.loadtxt('files/ref_test_pdos/dv.txt.gz'))
 
     df = fd[1] - fd[0]
     print "Nyquist freq: %e" %(0.5/dt)
@@ -56,7 +56,7 @@ def test():
                            full_out=True)
     assert len(fd) == len(dd)
     assert len(ffd) == len(fdd)
-    # If `pad_tonext` is used, full fft array lengths must be a power of two.
+    # If `tonext` is used, full fft array lengths must be a power of two.
     assert len(ffd) >= 2*V.shape[timeaxis] - 1
     assert np.log2(len(ffd)) % 1.0 == 0.0
 
