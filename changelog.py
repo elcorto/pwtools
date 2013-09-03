@@ -21,17 +21,22 @@ def usage():
     ------
     We have the convention to format commit messages like that:
 
-    ENH: foo bar
-         baz
-    BUG: foo bar
-         baz
-    API: foo bar
-         baz
-    INT: foo bar
-         baz
+    KIND: foo bar
+          baz
+    KIND: lala 1 2           
 
-    where ENH = enhancement, BUG = bug fix, API = API change, INT = internal
-    refactoring. If a commit message doesn't fit into that pattern, it will be
+    where KIND is one of:
+
+        API = API change: code will not run w/o change (e.g. function renamed
+              or removed) 
+        BEH = behavior change (e.g. different default values), but no API
+              change, code will run unchanged but might give silghtly
+              different results
+        ENH = enhancement, addition of new features 
+        BUG = bug fix 
+        INT = internal refactoring w/o BEH or API change
+
+    If a commit message doesn't fit into that pattern, it will be
     ignored. If you want to saerch the history by yourself, then use  "hg log"
     directly.
     """)
@@ -46,7 +51,7 @@ if __name__ == '__main__':
         args = "-r 0:tip"
     else:    
         args = ' '.join(sys.argv[1:])
-    prefix_lst = ['ENH', 'BUG', 'API', 'INT']
+    prefix_lst = ['ENH', 'BUG', 'API', 'BEH', 'INT']
     rex = re.compile('^(' + '|'.join(prefix_lst) + ').*')
     cmd = r'hg log -v %s --template "{desc}\n"' %args
     lines = common.backtick(cmd).splitlines()
