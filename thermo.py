@@ -7,7 +7,7 @@ from scipy.integrate import simps, trapz
 from pwtools.constants import kb, hplanck, R, pi, c0, Ry_to_J, eV,\
     eV_by_Ang3_to_GPa
 from pwtools.verbose import verbose
-from pwtools import crys, num, mpl
+from pwtools import num, mpl
 
 def coth(x):
     return 1.0/np.tanh(x)
@@ -138,8 +138,8 @@ class HarmonicThermo(object):
                 imask = np.invert(mask)
                 nskip = len(imask.nonzero()[0])
                 if len(imask) > 0:
-                    frms = crys.rms(self.f[imask])
-                    drms = crys.rms(self.dos[imask])
+                    frms = num.rms(self.f[imask])
+                    drms = num.rms(self.dos[imask])
                     self._printwarn("HarmonicThermo: skipping %i dos points: "
                         "rms(f)=%e, rms(dos)=%e" %(nskip, frms, drms))
             self.f = self.f[mask]
@@ -156,7 +156,6 @@ class HarmonicThermo(object):
         _area = self.integrator(sy, sx) * fx * fy
         return y*area/_area
         
-
     def _printwarn(self, msg):
         if self.verbose:
             print(msg)
@@ -182,7 +181,8 @@ class HarmonicThermo(object):
                 self._printwarn("HarmonicThermo._integrate: warning: "
                                 "fixing %i NaNs in y!" %len(mask))
                 y[mask] = self.nanfill
-        return np.array([self.integrator(y[i,:], f) for i in range(y.shape[0])])
+        # this call signature works for scipy.integrate,{trapz,simps}
+        return self.integrator(y, x=f, axis=1) 
     
     def _get_temp(self, temp):
         if (self.T is None) and (temp is None):
@@ -251,7 +251,7 @@ class Gibbs(object):
     approximation, given some variation grid of unit cell axes (`axes_flat`) and
     corresponding phonon DOS data for each grid point.
     
-    We have 3 cases for how unit cell axis need to be varied.
+    We have 3 cases for how unit cell axis can be be varied.
 
     ==== ===============  ========================  ==============   ============
     case axes_flat.shape  cell parameter grid       fitfunc          bulk modulus
@@ -272,26 +272,41 @@ class Gibbs(object):
 
     Notes
     -----
-    fitfunc : Dict with class instances for fitting various things. 
-        The instances must be a ``num.Spline``-like object with a ``get_min()``
-        method. The __call__() method must accept a keyword `der` for
-        calculating derivatives in some cases. See `self._default_fit_*` to get
-        an idea (e.g. ``num.Spline`` or ``num.PolyFit``), use ``set_fitfunc()``
-        to change. This can (and should!) be used to tune fitting methods.
+    ``fitfunc`` : Dict with class instances for fitting various things. 
+    The instances must be a :class:`~pwtools.num.Spline`-like object with a
+    ``get_min()`` method. The ``__call__()`` method must accept a keyword
+    `der` for calculating derivatives in some cases. See
+    `self._default_fit_*` to get an idea: for 1d
+    :class:`~pwtools.num.Spline` or :class:`~pwtools.num.PolyFit1D`, for
+    2d: :class:`~pwtools.num.PolyFit` or :class:`~pwtools.num.Interpol2D`.
+    See also ``scipy.interpolate``. Use
+    :meth:`~pwtools.thermo.Gibbs.set_fitfunc` to change. This can (and
+    should!) be used to tune fitting methods.
    
-        ========  ==========================================================
-        key       value  
-        ========  ==========================================================
-        '1d-G'    fit G(V), ``__call__(V,der=2)`` for B(V) =
-                  V*d^2G/dV^2
-        '2d-G'    fit G(ax0,ax1)
-        '1d-ax'   fit V(ax0)
-        'alpha'   fit x_opt(T), x=ax0,ax1,ax2,V,
-                  ``__call__(T,der=1)`` for alpha_x = 1/x * dx/dT
-        'C'       fit G_opt(T), ``__call__(T,der=2)`` for 
-                  Cp = -T * d^G_opt/dT^2
-        ========  ==========================================================
-        
+    ========  ==========================================================
+    key       value  
+    ========  ==========================================================
+    '1d-G'    fit G(V), ``__call__(V,der=2)`` for B(V) =
+              V*d^2G/dV^2
+    '2d-G'    fit G(ax0,ax1)
+    '1d-ax'   fit V(ax0)
+    'alpha'   fit x_opt(T), x=ax0,ax1,ax2,V,
+              ``__call__(T,der=1)`` for alpha_x = 1/x * dx/dT
+    'C'       fit G_opt(T), ``__call__(T,der=2)`` for 
+              Cp = -T * d^G_opt/dT^2
+    ========  ==========================================================
+    
+    Hints for which fitfuncs to choose: The defaults are pretty good, but
+    nevertheless tessting is mandatory! Good choices are
+    :class:`~pwtools.num.PolyFit` / :class:`~pwtools.num.PolyFit1D` for all
+    axes-related grids (1d-G, 2d-G, 1d-ax) since you won't have too many
+    points here. Then a fit is better than a :class:`~pwtools.num.Spline`.
+    Always use ``PolyFit(..., scale=True)`` or scale the x-y data manually
+    before fitting to the same order of magnitude! For T grids, choose a very
+    fine T-axis (e.g. ``T=linspace(.., num=300)`` and use a
+    :class:`~pwtools.num.Spline`. Needed to resolve details of alpha(T) and
+    C(T).
+
     The methods `calc_F` and `calc_G` return dicts with nd-arrays holding
     calculated thermodynamic properites. Naming convention for dict keys
     returned by methods: The keys (strings) mimic HDF5 path names, e.g.
@@ -300,18 +315,18 @@ class Gibbs(object):
     thus the dimension of the array. A group name starting with "#" is just a
     prefix. Below, `na=len(a)`, etc. 
     
-    ==============  ==  ================   ================================
-    ``/a/z``        1d  (na,)              "z along a-grid"
-    ``/a/b/z``      2d  (na,nb)            "z on a-b grid"
-    ``/a/b/c/x/z``  4d  (na,nb,nc,nx)
-    ``/a-b/z``      1d  (na*nb,)           "z on flattened a-b grid"
-    ``/a-b-c/z``    1d  (na*nb*nc,)        "z on flattened a-b-c grid"
-    ``/#foo/a/z``   1d  (na,)              "z along a-grid"
-    ==============  ==  ================   ================================
+    ==============  ====  ================   ================================
+    key             ndim  shape              description   
+    ==============  ====  ================   ================================
+    ``/a/z``        1d    (na,)              z on 1d a-grid
+    ``/a/b/z``      2d    (na,nb)            z on 2d a-b grid
+    ``/a/b/c/z``    3d    (na,nb,nc)         z on 3d a-b-c grid
+    ``/a-b/z``      1d    (na*nb,)           z on flattened a-b grid
+    ``/a-b-c/z``    1d    (na*nb*nc,)        z on flattened a-b-c grid
+    ``/#opt/a/z``   1d    (na,)              optimized z on a-grid
+    ==============  ====  ================   ================================
     
-    Input `axes_flat`:
-    
-    Usually, flat grids like "ax0-ax1" or "ax0-ax1-ax2" (see `axes_flat`) are
+    `axes_flat` : Usually, flat grids like "ax0-ax1" or "ax0-ax1-ax2" are
     created by nested loops ``[(ax0_i,ax1_i) for ax0_i in ax0 for ax1_i in
     ax1]`` and therefore have shape (nax0*nax1,2) or (nax0*nax1*nax2,3) . But
     that is not required. They can be completely unctructured (e.g. if points
@@ -328,7 +343,7 @@ class Gibbs(object):
     Cv,Cp               R (8.4314 J/(mol*K))
     alpha_{V,ax{0,1,2}} 1/K
     =================== =====================
-
+    
     Examples
     --------
     >>> from pwtoold import mpl
@@ -343,7 +358,7 @@ class Gibbs(object):
     >>> plot(T,g['/#opt/T/P/Cp'])
     >>> # 2d case plot G(ax0,ax1) for T=2500 K, P=0 GPa
     >>> G=g['/T/P/ax0-ax1/G']
-    >>> d=mpl.Data3D(zz=G[-1,0,:], xx=axes_flat[:,0], yy=axes_flat[:,1])
+    >>> d=mpl.Data2D(XY=axes_flat, zz=G[-1,0,:])
     >>> fig,ax=mpl.fig_ax3d(); ax.scatter(d.xx,d.yy,d.zz); show()
     """
     def __init__(self, T=None, P=None, etot=None, phdos=None, axes_flat=None,
@@ -386,7 +401,7 @@ class Gibbs(object):
         """
         assert axes_flat.shape[0] == len(phdos), ("axes_flat and phdos "
             "not equally long")
-        self.kwds = dict(verbose=False, fixnan=True, skipfreq=True,
+        self.kwds = dict(verbose=False, fixnan=False, skipfreq=True,
                          dosarea=None)
         self.kwds.update(kwds)                         
         for k,v in self.kwds.iteritems():
@@ -428,7 +443,7 @@ class Gibbs(object):
         Parameters
         ----------
         what : str
-            One of self.fitfunc.keys()
+            One of ``self.fitfunc.keys()``
         func : 
             callable class instance
         """            
@@ -436,17 +451,16 @@ class Gibbs(object):
         self.fitfunc[what] = func
 
     @staticmethod
-    def _default_fit_1d_G(x,y):
-        return num.Spline(x,y, s=None, k=5)
+    def _default_fit_1d_G(x, y):
+        return num.PolyFit1D(x, y, deg=5, scale=True)
     
     @staticmethod
     def _default_fit_2d_G(points, values):    
-        return num.Interpol2D(points, 
-                              values, what='bispl', kx=5, ky=5, s=None)
+        return num.PolyFit(points, values, deg=5, scale=True)
     
     @staticmethod
     def _default_fit_1d_ax(x, y):
-        return num.Spline(x, y, k=5, s=None)
+        return num.PolyFit1D(x, y, deg=5, scale=True)
 
     @staticmethod
     def _default_fit_alpha(x, y):
@@ -456,16 +470,10 @@ class Gibbs(object):
     def _default_fit_C(x, y):
         return num.Spline(x, y, k=5, s=None)
 
-##    @staticmethod
-##    def _default_fit_1d_G(x,y):
-##        _eos = eos.ElkEOSFit(energy=y, volume=x, verbose=False)
-##        _eos.fit()
-##        return _eos.spl_ev
-    
     def calc_F(self, calc_all=False):
-        """Calculate free energy properties along T axes for each axes grid point
+        """Calculate free energy properties along T axis for each axes grid point
         (ax0,ax1,ax2) in `self.axes_flat`. Also used by `calc_G()`. Uses
-        HarmonicThermo.
+        :class:`~pwtools.thermo.HarmonicThermo`.
         
         Parameters
         ----------
