@@ -970,8 +970,9 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
 
         Returns
         -------
-        unit : 1d array (nstep,)
-            1d array with alat for each time step.         
+        unit : 1d array (nstep,) or None
+            1d array with alat for each time step if 'CELL_PARAMETERS.*alat' is
+            found; None if not found or if use_alat=False.
         
         Notes
         -----
@@ -986,9 +987,12 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
         if com.backtick(cmd).strip() == '':
             return None
         else:
-            cmd = r"grep CELL_PARAMETERS %s | sed -re 's/.*alat.*=\s*(" \
-                %self.filename + regex.float_re + r")\)*.*/\1/g'"
-            return arr1d_from_txt(com.backtick(cmd))
+            if self.use_alat:
+                cmd = r"grep CELL_PARAMETERS %s | sed -re 's/.*alat.*=\s*(" \
+                    %self.filename + regex.float_re + r")\)*.*/\1/g'"
+                return arr1d_from_txt(com.backtick(cmd))
+            else:
+                return None
 
     def _match_nstep(self, arr):
         """Get nstep from _coords.shape[0] and return the last nstep steps from
