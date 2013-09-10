@@ -694,47 +694,76 @@ class ParameterStudy(object):
         sqldb.finish()
 
 
-def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s"):
+def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s", mode='last', orig=False):
     """Convergence table. Assume that quantity `xx` was varied, resulting in
     `yy` values. Return a string (table) listing::
 
-        x, y, diff-next, diff-last 
-    
-    where each row of diff-next is np.diff(y), i.e. the difference to the *next*
-    row and diff-last the difference to the last value yy[-1].
+        x, dy1, dy2, ...
     
     Useful for quickly viewing the results of a convergence study, where we
-    assume that the sequence yy[0], yy[1], ... yy[-1] converges to some
-    constant value.
+    assume that the sequence of `yy` values converges to a constant value.
 
     Parameters
     ----------
-    xx : 1d sequence (need not be numpy array)
-    yy : 1d sequence, len(xx), must be convertable to numpy float array
+    xx : 1d sequence
+    yy : 1d sequence, nested 1d sequences, 2d array
+        Values varied with `xx`. Each row is one parameter.
     ffmt, sfmt : str
         Format strings for floats (`ffmt`) and strings (`sfmt`)
-    
+    mode : str
+        'next' or 'last'. Difference to the next value ``y[i+1] - y[i]`` or to
+        the last ``y[-1] - y[i]``.
+    orig : bool
+        Print original `yy` data as well.
+
     Examples
     --------
     >>> kpoints = ['2 2 2', '4 4 4', '8 8 8']
     >>> etot = [-300.0, -310.0, -312.0]
-    >>> print conv_table(kpoints, etot)
-              x              y      diff-next      diff-last
-          2 2 2      -300.0000       -10.0000       -12.0000
-          4 4 4      -310.0000        -2.0000        -2.0000
-          8 8 8      -312.0000         0.0000         0.0000
-    
+    >>> forces_rms = [0.3, 0.2, 0.1]
+    >>> print batch.conv_table(kpoints, etot, mode='last')
+          2 2 2       -12.0000 
+          4 4 4        -2.0000 
+          8 8 8         0.0000 
+    >>> print batch.conv_table(kpoints, [etot,forces_rms], mode='last')
+          2 2 2       -12.0000        -0.2000
+          4 4 4        -2.0000        -0.1000
+          8 8 8         0.0000         0.0000
+    >>> print batch.conv_table(kpoints, [etot,forces_rms], mode='last', orig=True)
+          2 2 2       -12.0000      -300.0000        -0.2000         0.3000
+          4 4 4        -2.0000      -310.0000        -0.1000         0.2000
+          8 8 8         0.0000      -312.0000         0.0000         0.1000
+    >>> print batch.conv_table(kpoints, np.array([etot,forces_rms]), mode='next')
+          2 2 2       -10.0000        -0.1000
+          4 4 4        -2.0000        -0.1000
+          8 8 8         0.0000         0.0000
     """
-    yy = np.asarray(yy, dtype=np.float)
-    lenxx = len(xx)
-    dyy = yy[:,None].repeat(2,1)
-    # dyy: column 0: diff-next
-    # dyy: column 1: diff-last
-    dyy[-1,0] = 0.0
-    dyy[:-1,0] = np.diff(yy)
-    dyy[:,1] = yy[-1] - dyy[:,1]
-    st = (sfmt*4 + "\n") %("x", "y", "diff-next", "diff-last")
-    fmtstr = ("%s"*4 + "\n") %((sfmt,) + (ffmt,)*3)
-    for idx in range(lenxx):
-        st += fmtstr %(xx[idx], yy[idx], dyy[idx,0], dyy[idx,1])
+    npoints = len(xx)
+    yy = np.asarray(yy).copy()
+    if yy.ndim == 1:
+        yy = yy[:,None]
+    else:
+        yy = yy.T
+    ny = yy.shape[1]
+    dyy = np.empty_like(yy)
+    for iy in range(ny):
+        if mode == 'next':
+            dyy[-1,iy] = 0.0
+            dyy[:-1,iy] = np.diff(yy[:,iy])
+        elif mode == 'last':    
+            dyy[:,iy] = yy[-1,iy] - yy[:,iy]
+        else:
+            raise StandardError("unknown mode")
+    if orig:            
+        fmtstr = ("%s"*(2*ny+1) + "\n") %((sfmt,) + (ffmt,)*2*ny)
+    else:
+        fmtstr = ("%s"*(ny+1)   + "\n") %((sfmt,) + (ffmt,)*ny)
+    st = ''
+    for idx in range(npoints):
+        if orig:
+            repl = (xx[idx],) + \
+                tuple(common.flatten([dyy[idx,iy],yy[idx,iy]] for iy in range(ny)))
+        else:
+            repl = (xx[idx],) + tuple(dyy[idx,iy] for iy in range(ny))
+        st += fmtstr %repl
     return st
