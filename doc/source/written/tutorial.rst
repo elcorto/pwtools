@@ -6,9 +6,9 @@ common tasks.
 
 Using ASE?
 ----------
-No problem, use :func:`pwtools.crys.atoms2struct` and
-:func:`pwtools.crys.struct2atoms` to convert back and forth. If you have a
-:class:`pwtools.crys.Structure`, you can also use the ``get_ase_atoms`` method,
+No problem, use :func:`~pwtools.crys.atoms2struct` and
+:func:`~pwtools.crys.struct2atoms` to convert back and forth. If you have a
+:class:`~pwtools.crys.Structure`, you can also use the ``get_ase_atoms`` method,
 which is the same as ``struct2atoms(struct)``.
 
 Find Monkhorst-Pack k-grid sampling for a given unit cell
@@ -50,3 +50,7 @@ want to know the space group of the final optimized structure, namely
     >>> spglib.get_spacegroup(tr[-1].get_ase_atoms(), symprec=1e-2)
 
 Easy, eh?
+
+Parameter studies
+-----------------
+See :ref:`param_study_example`.

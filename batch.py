@@ -1,32 +1,4 @@
-"""
-scratch handling
-----------------
-The classes Machine, Calculation and ParameterStudy take a costructor argument
-`scratch`, which defaults to None::
-
-    m=Machine(scratch='/foo')                               -> '/foo'
-    Calculation(scratch=None, machine=m)                    -> '/foo'
-    ParameterStudy(scratch=None, prefix='bar', machine=m)   -> '/foo/bar/0'
-                                                               '/foo/bar/1'
-
-Machine.scratch is used and passed on down. In ParameterStudy, `scratch` is the
-top scratch dir and inside, we use
-``Calculation(scratch=<machine.scratch>/<prefix>/<idx>)``.
-
-To override default, set scratch to some value. Then::
-
-    m=Machine(scratch='/foo')                               -> '/foo'
-    Calculation(scratch='/bar', machine=m)                  -> '/bar'
-    ParameterStudy(scratch='/bar', prefix='bar', machine=m) -> '/bar/0'
-                                                               '/bar/1'
-
-Exactly as with the `calc_dir` keyword, only ParameterStudy does some magic and
-creates sub dirs for each calculation.
-"""
-
-import os
-import shutil
-import warnings
+import os, copy, shutil, warnings
 import numpy as np
 from pwtools import common
 from pwtools.sql import SQLEntry, SQLiteDB
@@ -39,17 +11,16 @@ from pwtools.sql import sql_column, sql_matrix
 class Machine(object):
     """This is a container for machine-specific stuff. Most of the
     machine-specific settings can (and should) be placed in the corresponding
-    job template file. But some settings need to be in sync between files (e.g.
-    outdir (pw.in) and scratch (job.*). For this stuff, we use this class.
+    job template file. But some settings need to be in sync between files like
+    the scratch dir, the $HOME etc.
     
     Useful to predefine commonly used machines.
 
-    Note that the template file for the jobfile is not handled by this class.
-    This must be done outside by FileTemplate. We only provide a method to
-    store the jobfile name (`jobfn`).
-    """
+    Note that the template file for the jobfile `jobfn` is not handled by this
+    class. This must be done outside by :class:`FileTemplate`. We only provide
+    a method to store the jobfile name. """
     def __init__(self, hostname=None, subcmd=None, scratch=None, 
-                 jobfn=None, home=None, name=None):
+                 jobfn=None, home=None):
         """
         Parameters
         ----------
@@ -64,51 +35,29 @@ class Machine(object):
         home : str
             $HOME
         """
-        if name is not None:
-            warnings.simplefilter('always')
-            warnings.warn("`name` is deprecated, use `hostname` instead , "
-                "self.hostname = name will used, self.name will be set but "
-                "not appear in the output of self.get_sql_record()", 
-                DeprecationWarning)
-            hostname = name
-            self.name = hostname
-        # attr_lst
         self.hostname = hostname
         self.subcmd = subcmd
         self.scratch = scratch
         self.home = home
-        # extra
-        if os.sep in jobfn:
-            raise StandardError("Path separator in `jobfn`: '%s', "
+        if (jobfn is not None) and (os.sep in jobfn):
+            raise StandardError("path separator in `jobfn`: '%s', "
                   "this should be a basename." %jobfn)
         self.jobfn = jobfn
-                
-        self.attr_lst = ['hostname',
-                         'subcmd', 
+        self.attr_lst = ['subcmd', 
                          'scratch',
                          'jobfn',
                          'home'
                          ]
-
+    
     def get_sql_record(self):
-        """Return a dict of SQLEntry instances. Each key is a attr name from self.attr_lst."""        
+        """Return a dict of SQLEntry instances. Each key is a attr name from
+        self.attr_lst. """        
         dct = {}
         for key in self.attr_lst:
             val = getattr(self, key)
-            if val is not None:
-                dct[key] = SQLEntry(sqltype='TEXT', sqlval=val)
+            dct[key] = SQLEntry(key=key, sqlval=val)
         return dct
     
-    def get_queue(self, ncores):
-        """Return string with batch queue name based on requested number of
-        cores `ncores`.
-
-        Parameters
-        ----------
-        ncores : int
-        """
-        return None
-
 
 class FileTemplate(object):
     """Class to represent a template file in parameter studies.
@@ -287,21 +236,13 @@ class FileTemplate(object):
 
 
 class Calculation(object):
-    """A single calculation, e.g. in dir calc_foo/0/ .
+    """A single calculation, e.g. in dir calc_foo/0/. A Calculation is bound to
+    one Machine.
     
     This class is usually not used on it's own, but only by ParameterStudy.
 
     The dir where file templates live is defined in the FileTemplates (usually
     'calc.templ').
-    
-    Default keys in sql_record:
-
-    | idx : self.idx
-    | prefix : self.prefix
-    | calc_dir : self.calc_dir
-    |     Usually the relative path of the calculation dir.
-    | calc_dir_abs : absolute path
-    | scratch : scratch dir
     """
     # XXX ATM, the `params` argument is a list of SQLEntry instances which is
     # converted to a dict self.sql_record. This is fine in the context of
@@ -319,14 +260,14 @@ class Calculation(object):
     # ParameterStudy. Maybe allow `params` to be either a dict or a list of
     # SQLEntry instances. In the dict case, let get_sql_record() raise a
     # warning.
-    def __init__(self, machine, templates, params, prefix='calc',
-                 idx=0, calc_dir='calc_dir', scratch=None, revision=0):
+    def __init__(self, machine=None, templates=[], params=[],
+                 calc_dir='calc_dir'):
         """
         Parameters
         ----------
-        machine : instance of batch.Machine
-            The get_sql_record() method is used to add machine-specific
-            parameters to `self.sql_record`.
+        machine : Machine, optional
+            Used to add machine specific attributes. Pulled from
+            Machine.get_sql_record(). Used for FileTemplate replacement.
         templates : sequence
             Sequence of FileTemplate instances.
         params : sequence of SQLEntry instances
@@ -334,41 +275,21 @@ class Calculation(object):
             each SQLEntry will be converted to a placeholder in each
             FileTemplate and an attempt to replacement in the template files is
             made.
-        prefix : str, optional
-            Unique string identifying this calculation. Usually the base of a
-            string for the jobname in a batch queue script. See also ``prefix``
-            in ParameterStudy.
-        idx : int, optional
-            The number of this calculation. Useful in ParameterStudy.
         calc_dir : str, optional
             Calculation directory to which input files are written.
-        scratch : str, optional
-            Scratch dir. Default is ``machine.scratch``.
-        revision : int, optional
-            The revision number. This is used in "append" mode to number
-            additions to the study and database:
-            ``ParameterStudy.write_input(..., mode='a')``.
         """
         self.machine = machine
         self.templates = templates
         self.params = params
-        self.prefix = prefix
-        self.idx = idx
         self.calc_dir = calc_dir
-        self.scratch = self.machine.scratch if scratch is \
-            None else scratch
-        self.sql_record = {}
-        self.sql_record['idx'] = SQLEntry(sqlval=self.idx)
-        self.sql_record['prefix'] = SQLEntry(sqlval=self.prefix)
-        self.sql_record['calc_dir'] = SQLEntry(sqlval=self.calc_dir)
-        self.sql_record['calc_dir_abs'] = SQLEntry(sqlval=common.fullpath(self.calc_dir))
-        self.sql_record['revision'] = SQLEntry(sqlval=revision)
-        self.sql_record.update(self.machine.get_sql_record())                                           
-        if self.scratch is not None:
-            self.sql_record['scratch'] = SQLEntry(sqlval=self.scratch)
-        for entry in self.params:
-            self.sql_record[entry.key] = entry
-    
+        self.sql_record = dict((sqlentry.key, sqlentry) \
+                                for sqlentry in self.params)
+        # add machine-specific stuff only for replacement, doesn't go into
+        # database
+        self.sql_record_write = copy.deepcopy(self.sql_record)
+        if self.machine is not None:
+            self.sql_record_write.update(self.machine.get_sql_record())                                           
+
     def get_sql_record(self):
         """Return a dict of SQLEntry instances. Each key is a candidate
         placeholder for the FileTemplates.
@@ -382,7 +303,7 @@ class Calculation(object):
         if not os.path.exists(self.calc_dir):
             os.makedirs(self.calc_dir)
         for templ in self.templates:
-            templ.writesql(self.sql_record, self.calc_dir)
+            templ.writesql(self.sql_record_write, self.calc_dir)
 
 
 class ParameterStudy(object):
@@ -406,36 +327,18 @@ class ParameterStudy(object):
         ./calc_foo/2
         ...
     
-    A sqlite database calc_dir/<db_name> is written. If this class operates
-    on a calc_dir where such a database already exists, then the default is
-    to append new calculations. The numbering of calc dirs continues at the
-    end. This can be changed with the ``mode`` kwarg of write_input(). By
-    default, a sql column "revision" is added which numbers each addition.
+    A sqlite database calc_dir_root/<db_name> is written. If this class
+    operates on a `calc_dir_root` where such a database already exists, then
+    the default is to append new calculations. The numbering of calc dirs
+    continues at the end. This can be changed with the `mode` kwarg of
+    write_input(). By default, a sql column "revision" is added which numbers
+    each addition.
     
-    Here is a list of pre-defined sql column names which are automatically
-    added and which should not be used as parameter names in e.g. ``param =
-    sql.sql_column(param_name, list_with_values)``
-    
-    ==============    ==============
-    param name        from
-    ==============    ==============
-    'hostname'        Machine
-    'subcmd'          Machine
-    'scratch'         Machine
-    'jobfn'           Machine
-    'home'            Machine
-    'idx'             Calculation
-    'prefix'          Calculation
-    'calc_dir'        Calculation
-    'calc_dir_abs'    Calculation
-    'revision'        Calculation
-    ==============    ==============
-
     Examples
     --------
     >>> # Here are some examples for constructing `params_lst`.
     >>> #
-    >>> # Vary two (three, ...) params on a 2d (3d, ...) grid: In fact, the
+    >>> # Vary two (three, ...) params_lst on a 2d (3d, ...) grid: In fact, the
     >>> # way you are constructing params_lst is only a matter of zip() and
     >>> # comb.nested_loops()
     >>> par1 = sql.sql_column('par1', [1,2,3])
@@ -456,12 +359,6 @@ class ParameterStudy(object):
     >>> # vary par1 and par2 together, and par3 -> 2d grid w/ par1+par2 on one
     >>> # axis and par3 on the other
     >>> params_lst = comb.nested_loops([zip(par1, par2), par3], flatten=True)
-    >>>  
-    >>> # That's all.
-    >>> # An alternative way of doing the 2d grid is using sql_matrix:
-    >>> pars = comb.nested_loops([[1,2,3], ['a', 'b']])
-    >>> params_lst = sql.sql_matrix(pars, [('par1', 'integer'), 
-    >>>                                    ('par2', 'text')])
     
     Here is a complete example:
 
@@ -513,13 +410,15 @@ class ParameterStudy(object):
     # 
     # Each row (or record in sqlite) will be one Calculation, getting
     # it's own dir.
-    def __init__(self, machine, templates, params_lst, prefix='calc',
-                 db_name='calc.db', db_table='calc', calc_dir=None, calc_root=os.curdir,
-                 calc_dir_prefix='calc', scratch=None):
+    def __init__(self, machines=[], templates=[], params_lst=[], study_name='calc',
+                 db_name='calc.db', db_table='calc', calc_root=os.curdir,
+                 calc_dir_prefix='calc'):
         """                 
         Parameters
         ----------
-        machine, templates : see Calculation
+        machines : sequence or Machine
+            List of Machine instances or a single Machine
+        templates : see Calculation
         params_lst : list of lists
             The "parameter sets". Each sublist is a set of calculation
             parameters as SQLEntry instances::
@@ -541,43 +440,28 @@ class ParameterStudy(object):
             same length or `key` attributes per entry ("incomplete parameter
             sets"). The sqlite table header is compiled from all distinct
             `key`s found.
-        prefix : str, optional
-            Calculation name. From this, the prefix for input files and job
-            name etc. will be built. By default, a string "_run<idx>" is
-            appended to create a unique name.
+        study_name : str, optional
+            Name for the parameter study. From this, the `calc_name` for input
+            files and job name etc. will be built. By default, a string
+            "_run<idx>" is appended to create a unique name.
         db_name : str, optional
             Basename of the sqlite database.
         db_table : str, optional
             Name of the sqlite database table.
-        calc_dir : str, optional
-            Top calculation dir (e.g. 'calc_foo' and each calc in
-            'calc_foo/0, calc_foo/1, ...').
-            Default: <calc_root>/<calc_dir_prefix>_<machine.hostname>/
         calc_root : str, optional
             Root of all calc dirs.
         calc_dir_prefix : str, optional
             Prefix for the top calculation dir (e.g. 'calc' for 'calc_foo').
-        scratch : str, optional
-            Top scratch dir (e.g. '/scratch/myjob/') and each calc in
-            '/scratch/myjob/0, /scratch/myjob/1 ...' Default is
-            ``machine.scratch/prefix``.
-        """            
-        self.machine = machine
+        """
+        self.machines = machines if (type([]) == type(machines)) else [machines]
         self.templates = templates
         self.params_lst = params_lst
-        self.prefix = prefix
+        self.study_name = study_name
         self.db_name = db_name
         self.db_table = db_table
         self.calc_root = calc_root
         self.calc_dir_prefix = calc_dir_prefix
-        self.scratch = pj(self.machine.scratch, self.prefix) if \
-            scratch is None else scratch
-        if calc_dir is None:
-            self.calc_dir = pj(self.calc_root, self.calc_dir_prefix + \
-                               '_%s' %self.machine.hostname)
-        else:
-            self.calc_dir = calc_dir
-        self.dbfn = pj(self.calc_dir, self.db_name)
+        self.dbfn = pj(self.calc_root, self.db_name)
 
     def write_input(self, mode='a', backup=True, sleep=0, excl=True):
         """
@@ -619,14 +503,10 @@ class ParameterStudy(object):
             calculations to a cluster.
         """
         assert mode in ['a', 'w'], "Unknown mode: '%s'" %mode
-        if os.path.exists(self.calc_dir):
-            if backup:
-                common.backup(self.calc_dir)
-            if mode == 'w':
-                os.remove(self.dbfn)
-        else:        
-            os.makedirs(self.calc_dir)
+        if mode == 'w' and os.path.exists(self.dbfn):
+            os.remove(self.dbfn)
         have_new_db = not os.path.exists(self.dbfn)
+        common.makedirs(self.calc_root)
         # this call creates a file ``self.dbfn`` if it doesn't exist
         sqldb = SQLiteDB(self.dbfn, table=self.db_table)
         # max_idx: counter for calc dir numbering
@@ -647,27 +527,42 @@ class ParameterStudy(object):
                         from %s" %self.db_table)) + 1
             elif mode == 'w':
                 max_idx = -1
-        run_txt = "here=$(pwd)\n"
         sql_records = []
-        for _idx, params in enumerate(self.params_lst):
-            params = common.flatten(params)
-            idx = max_idx + _idx + 1
-            calc_subdir = pj(self.calc_dir, str(idx))
-            calc = Calculation(machine=self.machine,
-                               templates=self.templates,
-                               params=params,
-                               prefix=self.prefix + "_run%i" %idx,
-                               idx=idx,
-                               calc_dir=calc_subdir,
-                               scratch=pj(self.scratch, str(idx)),
-                               revision=revision)
-            if mode == 'w' and os.path.exists(calc_subdir):
-                shutil.rmtree(calc_subdir)
-            calc.write_input()                               
-            sql_records.append(calc.get_sql_record())
-            run_txt += "cd %i && %s %s && cd $here && sleep %i\n" %(idx,\
-                        self.machine.subcmd, self.machine.jobfn, sleep)
-        common.file_write(pj(self.calc_dir, 'run.sh'), run_txt)
+        hostnames = []
+        for imach, machine in enumerate(self.machines):
+            hostnames.append(machine.hostname)
+            calc_dir = pj(self.calc_root, self.calc_dir_prefix + \
+                          '_%s' %machine.hostname)
+            if os.path.exists(calc_dir) and backup:
+                common.backup(calc_dir)
+            run_txt = "here=$(pwd)\n"
+            for _idx, params in enumerate(self.params_lst):
+                params = common.flatten(params)
+                idx = max_idx + _idx + 1
+                calc_subdir = pj(calc_dir, str(idx))
+                extra_dct = \
+                    {'revision': revision,
+                     'study_name': self.study_name,
+                     'idx': idx,
+                     'calc_name' : self.study_name + "_run%i" %idx,
+                     }
+                extra_params = [SQLEntry(key=key, sqlval=val) for key,val in \
+                                extra_dct.iteritems()]
+                calc = Calculation(machine=machine,
+                                   templates=self.templates,
+                                   params=params + extra_params,
+                                   calc_dir=calc_subdir,
+                                   )
+                if mode == 'w' and os.path.exists(calc_subdir):
+                    shutil.rmtree(calc_subdir)
+                calc.write_input()                               
+                run_txt += "cd %i && %s %s && cd $here && sleep %i\n" %(idx,\
+                            machine.subcmd, machine.jobfn, sleep)
+                if imach == 0:                            
+                    sql_records.append(calc.get_sql_record())
+            common.file_write(pj(calc_dir, 'run.sh'), run_txt)
+        for record in sql_records:
+            record['hostname'] = SQLEntry(sqlval=','.join(hostnames))
         # for incomplete parameters: collect header parts from all records and
         # make a set = unique entries
         raw_header = [(key, entry.sqltype.upper()) for record in sql_records \
@@ -767,3 +662,35 @@ def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s", mode='last', orig=False):
             repl = (xx[idx],) + tuple(dyy[idx,iy] for iy in range(ny))
         st += fmtstr %repl
     return st
+
+
+def default_repl_keys():
+    """Return a dict of default keys for replacement in a
+    :class:`~pwtools.batch.ParameterStudy`. Each key will in practice be
+    processed by :class:`~pwtools.batch.FileTemplate`, such that e.g. the key
+    'foo' becomes the placeholder 'XXXFOO'.
+
+    Each of these placeholders can be used in any parameter study in any file
+    template, indenpendent from `params` to
+    :class:`~pwtools.batch.ParameterStudy`.
+    """
+    # HACK!!! Due to the way ParameterStudy.write_input() is coded, we really
+    # need to set up a dummy ParameterStudy and read out the database to get
+    # the replacement keys :-)
+    import tempfile
+    m = Machine(hostname='foo')
+    calc_root = tempfile.mkdtemp()
+    print ("writing test files to: %s, will be deleted" %calc_root)
+    params_lst = [[SQLEntry(key='dummy', sqlval=1)]]
+    study = ParameterStudy(machines=m, params_lst=params_lst,
+                           calc_root=calc_root)
+    study.write_input()
+    db = SQLiteDB(study.dbfn, table='calc')
+    keys = [str(x[0]) for x in db.get_header()]
+    for kk in ['dummy', 'hostname']:
+        keys.pop(keys.index(kk))
+    db.finish()
+    ret = {'ParameterStudy' : keys,
+           'Machine' : m.get_sql_record().keys()}
+    shutil.rmtree(calc_root)
+    return ret

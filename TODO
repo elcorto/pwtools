@@ -102,18 +102,6 @@ examples
 --------
 Clean up examples/phonon_dos/pdos_methods.py .
 
-batch.py
---------
-* ParameterStudy: Make extending a study on another machine more easy: Change
-  calc.db path to be one above calc_<machine> and automatically make links
-  calc/0 -> ../calc_<machine>/0 ?? But that is only convenient for extending a
-  study on another machine, while writing to the same database b/c we don't
-  care on which machine a calc was run. Currently the workaround is to create
-  the input for all machines, maybe extend on one machine and manually
-  link-merge all into calc/ and copy the most recent calc_<machine>/calc.db
-  file to calc/. But it doesn't work if we do one input for multiple machines
-  and manually start only a subset on each machine. Hmmm.
-
 constants.py / units in general
 -------------------------------
 * Maybe change pressure (GPa currently) and time step (fs = 1e-15 sec) units to
