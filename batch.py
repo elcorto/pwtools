@@ -15,12 +15,9 @@ class Machine(object):
     the scratch dir, the $HOME etc.
     
     Useful to predefine commonly used machines.
-
-    Note that the template file for the jobfile `jobfn` is not handled by this
-    class. This must be done outside by :class:`FileTemplate`. We only provide
-    a method to store the jobfile name. """
+    """
     def __init__(self, hostname=None, subcmd=None, scratch=None, 
-                 jobfn=None, home=None):
+                 home=None, template=None, filename=None):
         """
         Parameters
         ----------
@@ -30,25 +27,34 @@ class Machine(object):
             shell command to submit jobfiles (e.g. 'bsub <', 'qsub')
         scratch : str
             scratch dir (like '/scratch')
-        jobfn : str
-            basename of jobfile, can be used as FileTemplate(basename=jobfn)
         home : str
             $HOME
+        template : FileTemplate
+        filename : str
+            full jobfile name for FileTemplate (e.g.
+            'calc.templ/job.local'), use either this or `template`
         """
+        assert None in [filename, template], ("use either `filename` "
+                                              "or `template`")
         self.hostname = hostname
         self.subcmd = subcmd
         self.scratch = scratch
         self.home = home
-        if (jobfn is not None) and (os.sep in jobfn):
-            raise StandardError("path separator in `jobfn`: '%s', "
-                  "this should be a basename." %jobfn)
-        self.jobfn = jobfn
-        self.attr_lst = ['subcmd', 
+        self.template = template
+        self.filename = filename
+        self.attr_lst = ['subcmd',
                          'scratch',
-                         'jobfn',
-                         'home'
+                         'home',
                          ]
+        if (self.template is None) and (self.filename is not None):
+            self.template = FileTemplate(filename=self.filename)
     
+    def get_jobfile_basename(self):
+        if self.template is not None:
+            return self.template.basename
+        else:
+            raise StandardError("cannot get job file name")
+
     def get_sql_record(self):
         """Return a dict of SQLEntry instances. Each key is a attr name from
         self.attr_lst. """        
@@ -95,15 +101,13 @@ class FileTemplate(object):
         >>> # match the placeholders defined by dct.keys(). This is the most simple
         >>> # case.
         >>> #
-        >>> templ = FileTemplate(basename='pw.in',
-        ...                      templ_dir='calc.templ', 
+        >>> templ = FileTemplate(filename='calc.templ/pw.in',
         ...                      func=lambda x: "@%s@" %x)
         >>> templ.write(dct, 'calc/0')
         >>> 
         >>> # Now with `keys` explicitely.
-        >>> templ = FileTemplate(basename='pw.in',
+        >>> templ = FileTemplate(filename='calc.templ/pw.in',
         ...                      keys=['prefix', 'ecutwfc'],
-        ...                      templ_dir='calc.templ',
         ...                      func=lambda x: "@%s@" %x)
         >>> templ.write(dct, 'calc/0')
         >>>
@@ -114,8 +118,8 @@ class FileTemplate(object):
         >>> sct['ecutwfc'] = SQLEntry(sqlval=23.0)
         >>> templ.writesql(dct, 'calc/0')
     """
-    def __init__(self, basename='pw.in', txt=None, keys=None, templ_dir='calc.templ',
-                 func=lambda x:'XXX'+x.upper()):
+    def __init__(self, basename=None, txt=None, keys=None, templ_dir='calc.templ',
+                 filename=None, func=lambda x:'XXX'+x.upper()):
         """
         Parameters
         ----------
@@ -138,7 +142,10 @@ class FileTemplate(object):
             |     keys.
             | keys=[]: The template file is simply copied to `calc_dir` (see
             |     self.write()).
-        templ_dir : dir where the template lives (e.g. calc.templ)
+        templ_dir : dir where the template lives (e.g. 'calc.templ')
+        filename : str
+            full file name of the template, then templ_dir=os.path.dirname(filename)
+            and basename=os.path.basename(filename)
         func : callable
             | A function which takes a string (key) and returns a string, which
             | is the placeholder corresponding to that key.
@@ -147,13 +154,13 @@ class FileTemplate(object):
             |     placeholder = "XXXLALA"
             |     func = lambda x: "XXX" + x.upper()
         """
+        assert (filename is None) or (basename is None), \
+               ("use either `filename` or `templ_dir` + `basename`")
         self.keys = keys
-        self.templ_dir = templ_dir
         self.txt = txt
-        
         # We hardcode the convention that template and target files live in
         # different dirs and have the same name ("basename") there.
-        #   template = <dir>/<basename>
+        #   template = <templ_dir>/<basename>
         #   target   = <calc_dir>/<basename>
         # e.g.
         #   template = calc.templ/pw.in
@@ -162,11 +169,15 @@ class FileTemplate(object):
         #   template = ./pw.in.templ
         #   target   = ./pw.in
         # is not possible.
-        self.basename = basename
-        self.filename = pj(self.templ_dir, self.basename)
+        if filename is None:
+            self.templ_dir = templ_dir
+            self.basename = basename
+            self.filename = pj(templ_dir, basename)
+        else:
+            self.filename = filename
+            self.templ_dir = os.path.dirname(filename)
+            self.basename = os.path.basename(filename)
         self.func = func
-        
-        self._get_placeholder = self.func
         
     def write(self, dct, calc_dir='calc', mode='dct'):
         """Write file self.filename (e.g. calc/0/pw.in) by replacing 
@@ -216,10 +227,10 @@ class FileTemplate(object):
             rules = {}
             for key in _keys:
                 if mode == 'dct':
-                    rules[self._get_placeholder(key)] = dct[key]
+                    rules[self.func(key)] = dct[key]
                 elif mode == 'sql':                    
                     # dct = sql_record, a list of SQLEntry's
-                    rules[self._get_placeholder(key)] = dct[key].fileval
+                    rules[self.func(key)] = dct[key].fileval
                 else:
                     raise StandardError("'mode' must be wrong")
             new_txt = common.template_replace(txt, 
@@ -276,7 +287,8 @@ class Calculation(object):
             FileTemplate and an attempt to replacement in the template files is
             made.
         calc_dir : str, optional
-            Calculation directory to which input files are written.
+            Calculation directory to which input files are written (e.g.
+            'calc_foo/0/')
         """
         self.machine = machine
         self.templates = templates
@@ -289,6 +301,9 @@ class Calculation(object):
         self.sql_record_write = copy.deepcopy(self.sql_record)
         if self.machine is not None:
             self.sql_record_write.update(self.machine.get_sql_record())                                           
+            # use machine.template if it has one
+            if self.machine.template is not None:
+                self.templates.append(self.machine.template)
 
     def get_sql_record(self):
         """Return a dict of SQLEntry instances. Each key is a candidate
@@ -312,33 +327,33 @@ class ParameterStudy(object):
     
     The basic idea is to assemble all to-be-varied parameters in a script
     outside (`params_lst`) and pass these to this class along with a list of
-    `templates` files, usually software input and batch job files. Then, a
-    simple loop over the parameter sets is done and input files are written. 
+    `templates` files, usually software input files. Then, a simple loop over
+    the parameter sets is done and input files are written. 
 
     Calculation dirs are numbered automatically. The default is
 
-        calc_dir = <calc_root>/<calc_dir_prefix>_<machine.hostname>, e.g.
-        ./calc_foo
+        ``calc_dir = <calc_root>/<calc_dir_prefix>_<machine.hostname>``, e.g.
+        ``./calc_foo``
     
     and each calculation for each parameter set
 
-        ./calc_foo/0
-        ./calc_foo/1
-        ./calc_foo/2
-        ...
+        | ``./calc_foo/0``
+        | ``./calc_foo/1``
+        | ``./calc_foo/2``
+        | ``...``
     
-    A sqlite database calc_dir_root/<db_name> is written. If this class
+    A sqlite database ``calc_dir_root/<db_name>`` is written. If this class
     operates on a `calc_dir_root` where such a database already exists, then
     the default is to append new calculations. The numbering of calc dirs
     continues at the end. This can be changed with the `mode` kwarg of
-    write_input(). By default, a sql column "revision" is added which numbers
-    each addition.
+    :meth:`~ParameterStudy.write_input`. By default, a sql column "revision" is
+    added which numbers each addition.
     
     Examples
     --------
     >>> # Here are some examples for constructing `params_lst`.
-    >>> #
-    >>> # Vary two (three, ...) params_lst on a 2d (3d, ...) grid: In fact, the
+    >>> 
+    >>> # Vary two (three, ...) parameters on a 2d (3d, ...) grid: In fact, the
     >>> # way you are constructing params_lst is only a matter of zip() and
     >>> # comb.nested_loops()
     >>> par1 = sql.sql_column('par1', [1,2,3])
@@ -362,17 +377,15 @@ class ParameterStudy(object):
     
     Here is a complete example:
 
-    .. literalinclude:: ../../../examples/parameter_study/input.py
+    .. literalinclude:: ../../../../examples/parameter_study/input.py
     
-    See test/test_parameter_study.py, esp. the test "Incomplete parameter sets"
-    for more complicated cases.
+    See test/test_parameter_study.py for more examples.
 
     See Also
     --------
-    comb.nested_loops
     itertools.product
+    comb.nested_loops
     sql.sql_column
-    sql.sql_matrix
     """
     # more notes
     # ----------
@@ -548,8 +561,9 @@ class ParameterStudy(object):
                      }
                 extra_params = [SQLEntry(key=key, sqlval=val) for key,val in \
                                 extra_dct.iteritems()]
+                # templates[:] to copy b/c they may be modified in Calculation
                 calc = Calculation(machine=machine,
-                                   templates=self.templates,
+                                   templates=self.templates[:], 
                                    params=params + extra_params,
                                    calc_dir=calc_subdir,
                                    )
@@ -557,7 +571,7 @@ class ParameterStudy(object):
                     shutil.rmtree(calc_subdir)
                 calc.write_input()                               
                 run_txt += "cd %i && %s %s && cd $here && sleep %i\n" %(idx,\
-                            machine.subcmd, machine.jobfn, sleep)
+                            machine.subcmd, machine.get_jobfile_basename(), sleep)
                 if imach == 0:                            
                     sql_records.append(calc.get_sql_record())
             common.file_write(pj(calc_dir, 'run.sh'), run_txt)
@@ -666,31 +680,39 @@ def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s", mode='last', orig=False):
 
 def default_repl_keys():
     """Return a dict of default keys for replacement in a
-    :class:`~pwtools.batch.ParameterStudy`. Each key will in practice be
-    processed by :class:`~pwtools.batch.FileTemplate`, such that e.g. the key
-    'foo' becomes the placeholder 'XXXFOO'.
+    :class:`ParameterStudy`. Each key will in practice be processed by
+    :class:`FileTemplate`, such that e.g. the key 'foo' becomes the placeholder
+    'XXXFOO'.
 
     Each of these placeholders can be used in any parameter study in any file
-    template, indenpendent from `params` to
-    :class:`~pwtools.batch.ParameterStudy`.
+    template, indenpendent from `params_lst` to :class:`ParameterStudy`.
+
+    Notes
+    -----
+    If this function is called, dummy files are written to a temp dir, the
+    datsbase is read, and the file are deleted.
     """
     # HACK!!! Due to the way ParameterStudy.write_input() is coded, we really
     # need to set up a dummy ParameterStudy and read out the database to get
     # the replacement keys :-)
     import tempfile
-    m = Machine(hostname='foo')
     calc_root = tempfile.mkdtemp()
+    jobfn_templ = pj(calc_root, 'foo.job')
+    common.file_write(jobfn_templ, 'dummy job template, go away!')
+    m = Machine(hostname='foo', 
+                template=FileTemplate(basename='foo.job',
+                                      templ_dir=calc_root))
     print ("writing test files to: %s, will be deleted" %calc_root)
     params_lst = [[SQLEntry(key='dummy', sqlval=1)]]
     study = ParameterStudy(machines=m, params_lst=params_lst,
                            calc_root=calc_root)
     study.write_input()
     db = SQLiteDB(study.dbfn, table='calc')
-    keys = [str(x[0]) for x in db.get_header()]
+    db_keys = [str(x[0]) for x in db.get_header()]
     for kk in ['dummy', 'hostname']:
-        keys.pop(keys.index(kk))
+        db_keys.pop(db_keys.index(kk))
     db.finish()
-    ret = {'ParameterStudy' : keys,
+    ret = {'ParameterStudy' : db_keys,
            'Machine' : m.get_sql_record().keys()}
     shutil.rmtree(calc_root)
     return ret

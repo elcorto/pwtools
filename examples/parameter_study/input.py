@@ -11,14 +11,15 @@ Define study_name. Use any string you like, like 'my_calc'.
 step 2
 -------
 Create Machine instances. For each machine, calculations are written to
-calc_host1/ and calc_host2/, if requested in ParameterStudy.
+calc_host1/ and calc_host2/, if requested in ParameterStudy. Job template files
+are defined by `filename`.
 
 step 3
 ------
-Create list of templates. In FileTemplate, the default placeholders are
-'XXXFOO' for replacement key 'foo'. Use batch.default_repl_keys() to get a list
-of all supported default replacement keys, which are defined in ParameterStudy,
-Calculation and Machine.
+Create list of templates for calculation input. In FileTemplate, the default
+placeholders are 'XXXFOO' for replacement key 'foo'. Use
+batch.default_repl_keys() to get a list of all supported default replacement
+keys, which are defined in ParameterStudy, Calculation and Machine.
 
 step 4
 -------
@@ -54,14 +55,14 @@ host1 = \
     batch.Machine(hostname='host1',
                   subcmd='bash',
                   scratch='/tmp',
-                  jobfn='job.host1',
+                  filename='calc.templ/job.host1',
                   home='/home/schmerler')
 
 host2 = \
     batch.Machine(hostname='host2',
                   subcmd='qsub',
                   scratch='/scratch/schmerler',
-                  jobfn='job.host2',
+                  filename='calc.templ/job.host2',
                   home='/home/schmer42')
 
 # step 3
@@ -96,21 +97,18 @@ scratch     =   /big/share/fastfs/XXXSTUDY_NAME/XXXIDX
 mkdir -pv $scratch
 /path/to/apps/bin/my_app.x < input.in > output.out
 """
-# FileTemplate using `txt`
-#
-# templates = [batch.FileTemplate(basename='input.in',txt=txt_in)] 
-# for fn, txt in zip([host1.jobfn, host2.jobfn],[txt_job_host1, txt_job_host2]):
-#     templates.append(batch.FileTemplate(basename=fn, txt=txt))
-#
-# usual case: read templates from disk (in this example we write them first)
+# read templates from disk (in this example we write them first), another
+# possibility is to use 
+#   host1 = Machine(template=FileTemplate(txt=txt_job_host1, 
+#                                         basename='job.host1'),
+#                   ...)
 if not os.path.exists('calc.templ'):
     os.makedirs('calc.templ')
 common.file_write('calc.templ/job.host1', txt_job_host1)
 common.file_write('calc.templ/job.host2', txt_job_host2)
 common.file_write('calc.templ/input.in', txt_in)
 machines = [host1, host2]
-templates = [batch.FileTemplate(basename=m.jobfn) for m in machines] + \
-            [batch.FileTemplate(basename='input.in')]
+templates = [batch.FileTemplate(basename='input.in')]
 
 
 # step 4

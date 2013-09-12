@@ -1,6 +1,6 @@
-import os, string, re
+import os
 import numpy as np
-from pwtools import comb, batch, common, sql, regex
+from pwtools import comb, batch, common, sql
 from pwtools.test.tools import all_types_equal, assert_all_types_equal
 from testenv import testdir
 pj = os.path.join
@@ -40,7 +40,7 @@ def check_generated(calc_root, machine_dct, params_lst, revision):
         for hostname in hostname_str.split(','):
             machine = machine_dct[hostname]
             calc_dir = pj(calc_root, 'calc_%s' %machine.hostname, str(idx))
-            for base in ['pw.in', machine.jobfn]:
+            for base in ['pw.in', machine.get_jobfile_basename()]:
                 fn = pj(calc_dir, base)
                 assert os.path.exists(fn)
                 lines = common.file_readlines(fn)
@@ -72,29 +72,51 @@ def check_generated(calc_root, machine_dct, params_lst, revision):
 
 
 def test_parameter_study():    
+    templ_dir = 'files/calc.templ'
+    calc_root = pj(testdir, 'calc_test_param_study')
+    
+    # filename: FileTemplate built from that internally
     host1 = batch.Machine(hostname='host1',
                           subcmd='qsub_host1',
                           home='/home/host1/user',
                           scratch='/tmp/host1',
-                          jobfn='job.host1')
-
+                          filename='files/calc.templ/job.host1')
+    
+    # template: provide FileTemplate directly
     host2 = batch.Machine(hostname='host2',
                           subcmd='qsub_host2',
                           home='/home/host2/user',
                           scratch='/tmp/host2',
-                          jobfn='job.host2')
+                          template=batch.FileTemplate(basename='job.host2', 
+                                                      templ_dir=templ_dir))
     
+    # use template text here instead of a file
+    host3_txt = """
+subcmd=XXXSUBCMD
+scratch=XXXSCRATCH
+home=XXXHOME
+calc_name=XXXCALC_NAME
+idx=XXXIDX
+revision=XXXREVISION
+study_name=XXXSTUDY_NAME
+"""    
+    host3 = batch.Machine(hostname='host3',
+                          subcmd='qsub_host3',
+                          home='/home/host3/user',
+                          scratch='/tmp/host3',
+                          template=batch.FileTemplate(basename='job.host3', 
+                                                      txt=host3_txt))
+    
+
     # only needed for this test
     machine_dct = {'host1': host1,
-                   'host2': host2}
+                   'host2': host2,
+                   'host3': host3,
+                   }
 
-    templ_dir = 'files/calc.templ'
     
-    calc_root = pj(testdir, 'calc_test_param_study')
     study_name = 'convergence'
-    templates = [batch.FileTemplate(basename='pw.in', templ_dir=templ_dir)] + \
-                [batch.FileTemplate(basename=m.jobfn, templ_dir=templ_dir) \
-                 for m in [host1,host2]]
+    templates = [batch.FileTemplate(basename='pw.in', templ_dir=templ_dir)]
 
     param1 = sql.sql_column(key='param1', lst=[25.0, 50.0, 75.0])
     param2 = sql.sql_column(key='param2', lst=['2x2x2','3x3x3'])
@@ -113,7 +135,7 @@ def test_parameter_study():
 
     # extend study
     params_lst1 = comb.nested_loops([param2,param3])
-    calc = batch.ParameterStudy(machines=[host1,host2], 
+    calc = batch.ParameterStudy(machines=[host1,host2,host3], 
                                 templates=templates, 
                                 params_lst=params_lst1, 
                                 study_name=study_name,

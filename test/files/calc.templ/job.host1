@@ -1,6 +1,5 @@
 subcmd=XXXSUBCMD
 scratch=XXXSCRATCH
-jobfn=XXXJOBFN
 home=XXXHOME
 calc_name=XXXCALC_NAME
 idx=XXXIDX

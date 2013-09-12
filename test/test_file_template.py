@@ -5,7 +5,7 @@ from pwtools import sql
 from testenv import testdir
 pj = os.path.join
 
-def test():
+def test_placeholders():
     templ_dir = pj(testdir, 'calc.templ')
     templ_fn = pj(templ_dir, 'foo.in')
     tgt_dir = pj(testdir, 'calc')
@@ -56,4 +56,12 @@ def test():
     rules = {'foo': 1, 'bar': 'lala', 'baz': 3}
     templ.write(rules, calc_dir=tgt_dir)
     assert file_read(tgt_fn).strip() == "1 lala 3"
+
+def test_file_names():
+    templ = FileTemplate(filename='/foo/bar.in')
+    assert templ.basename == 'bar.in'
+    assert templ.templ_dir == '/foo'
+    templ = FileTemplate(basename='bar.in')
+    assert templ.templ_dir == 'calc.templ'
+    assert templ.filename == 'calc.templ/bar.in'
 
