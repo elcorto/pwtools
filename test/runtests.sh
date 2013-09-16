@@ -91,7 +91,7 @@ prnt "... ready"
 
 if $build; then
     prnt "build extension modules ..."
-    [ -f Makefile ] && make -B >> $logfile 2>&1
+    [ -f Makefile ] && make gfortran-omp -B >> $logfile 2>&1
     prnt "... ready"
 fi 
 

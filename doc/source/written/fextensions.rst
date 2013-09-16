@@ -74,8 +74,15 @@ Tests
 -----
 When developing OpenMP code, you may find that code doesn't produce correct
 results, even if it runs, if OpenMP is used incorrectly :) The test script
-test/runtests.sh just calls `make`, which builds the default target, i.e.
-*non*-OpenMP code. Therefore, tests will pass b/c the code is correct in serial
-mode. So, for development, it is better to use ``make ifort-omp`` + ``runtests.sh
---nobuild`` in separate steps to make sure the right version of the extension
-is being built.
+``test/runtests.sh`` calls `make gfortran-omp`, so if code is broken by OpenMP,
+all test using the Fortran extensions might fail. To run tests with other
+builds, use one  of::
+    
+    make gfortran
+    make ifort
+    make ifort-omp
+
+and::
+
+    cd test 
+    ./runtests.sh --nobuild 
