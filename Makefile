@@ -1,6 +1,6 @@
 # vim:ts=4:sw=4:noet
 #
-# See doc/README.make
+# See doc/ for more information on building the extension modules.
 	    
 F2PY=f2py
 F2PY_FLAGS=--opt='-O3' \

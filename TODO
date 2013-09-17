@@ -73,25 +73,9 @@ all
 * rename all functions foo3d() -> foo_traj(). But not funcs which take 3d arrays
   directly. Only those which take a Trajectory as argument.
 
-
-cmd line tools in bin/
-----------------------
-* We now have abi2axsf.py and cpmd2axsf.py, where the latter is capable of
-  doing more nice things like buildung a supercell of the trajectory. If we
-  need this machinery for pw.x output too, then it's time to write pwo2axsf.py
-  as a replacement for xcrysden's pwo2xsf.sh . Maybe unify all into smth like 
-  any2axsf.py. However, whith the new API, we may not need that anymore. Just
-  use smth like
-    >>> traj = parse.SomeMDParser(...).get_traj()
-    >>> sc = crys.scell3d(traj, (3,3,3))
-    >>> io.write_axsf('foo_3x3x3.axsf', sc)
-  So all these tools can be removed.
-
 tests
 -----
 * Handle known fails with nose.
-* In all test/test_*.py files, rename function test() -> test_<something>(), so
-  that ``nosetests --exclude='.*<something>.*'`` works. 
 
 plotting dispersions
 --------------------
@@ -109,6 +93,7 @@ constants.py / units in general
   transition, first introduce apu (atomic pressure unit = GPa, later ASE value
   = eV / Ang**3), atu (atomic time unit = fs, later ASE value = ???) in
   constants.py and use that everywhere instead of assuming GPa and fs.
+  Set apu_to_GPa =1.0 for now etc...
 * The units implementation is a mess. Now, we have UnitsHandler ->
   StructureFileParser -> parse.*OutputFile and default_units in each 
   *OutputFile. This must be simplified. 

@@ -217,17 +217,18 @@ def pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
     
     Notes
     -----
-    padding (only method='direct'): By default we pad the velocities `vel` with
-        npad*(nstep-1) zeros along axis (the time axis) before FFT b/c the
-        signal is not periodic. For npad=1, this gives us the exact same
-        spectrum and frequency resolution as with pdos(...,
-        method='vacf',mirr=True) b/c the array to be fft'ed has length
-        2*nstep-1 along the time axis in both cases (remember that the array
-        length = length of the time axis influences the freq. resolution). FFT
-        is only fast for arrays with length = a power of two. Therefore, you
-        may get very different fft speeds depending on whether 2*nstep-1 is a
-        power of two or not (in most cases it won't). Try using `tonext` but
-        remember that you get another (better) frequency resolution.
+    padding (only method='direct'): With `npad` we pad the velocities `vel`
+        with ``npad*(nstep-1)`` zeros along `axis` (the time axis) before FFT
+        b/c the signal is not periodic. For `npad=1`, this gives us the exact
+        same spectrum and frequency resolution as with ``pdos(...,
+        method='vacf',mirr=True)`` b/c the array to be fft'ed has length
+        ``2*nstep-1`` along the time axis in both cases (remember that the
+        array length = length of the time axis influences the freq.
+        resolution). FFT is only fast for arrays with length = a power of two.
+        Therefore, you may get very different fft speeds depending on whether
+        ``2*nstep-1`` is a power of two or not (in most cases it won't). Try
+        using `tonext` but remember that you get another (better) frequency
+        resolution.
 
     References
     ----------
