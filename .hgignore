@@ -4,5 +4,6 @@ syntax: regexp
 .*\.pyf$
 
 syntax: glob
+build
 doc/build
 doc/source/generated

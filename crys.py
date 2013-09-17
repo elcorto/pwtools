@@ -1915,7 +1915,8 @@ def vmd_measure_gofr(traj, dr, rmax='auto', sel=['all','all'], first=0,
     num_int : 1d array, (len(rad),) 
         the (averaged) number integral ``number_density*hist*4*pi*r**2.0*dr``
     """
-    from pwtools.io import write_axsf
+    # Need to import here b/c of cyclic dependency crys -> io -> crys ...
+    from pwtools import io
     traj = struct2traj(traj)
     # Speed: The VMD command "measure gofr" is multithreaded and written in C.
     # That's why it is faster then the pure Python rpdf() above when we have to
@@ -1944,7 +1945,7 @@ def vmd_measure_gofr(traj, dr, rmax='auto', sel=['all','all'], first=0,
         step = 1
     else:
         traj2 = traj
-    write_axsf(trajfn, traj2)
+    io.write_axsf(trajfn, traj2)
     ret = call_vmd_measure_gofr(trajfn, dr=dr, rmax=rmax, sel=sel, 
                                 fntype='xsf', first=first,
                                 last=last, step=step, usepbc=usepbc,

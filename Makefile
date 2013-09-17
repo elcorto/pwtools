@@ -48,8 +48,10 @@ libs: _flib.so _fsymfunc.so
 # $* = flib
 # $? = flib.f90
 _%.so: %.f90
-	$(F2PY) -h $*.pyf $? -m _$* --overwrite-signature
-	$(F2PY) -c $*.pyf $? $(F2PY_FLAGS)
+	mkdir -pv build; cp -v $*.f90 build/; cd build; \
+	$(F2PY) -h $*.pyf $? -m _$* --overwrite-signature; \
+	$(F2PY) -c $*.pyf $? $(F2PY_FLAGS); \
+	pwd; cp -v _$*.so ../ 
 
 clean:
-	rm -vf *.so *.pyf
+	rm -rvf *.so build

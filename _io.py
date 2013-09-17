@@ -1,16 +1,22 @@
-# io.py
-#
-# struct I/O
+"""
+High level Structure and Trajectory I/O. HDF5 convenience IO functions.
+"""
 
-import numpy as np
-import common, crys, pwscf, parse
-from pwtools.common import frepr, cpickle_load
-from pwtools.constants import Ha, eV
 import warnings
+# Need to import that before anyone imports numpy. WTF?
 try:
     import h5py
 except ImportError:
     warnings.warn("Cannot import h5py.") 
+
+import numpy as np
+
+from pwtools.common import frepr, cpickle_load
+from pwtools.constants import Ha, eV
+from pwtools import parse
+from pwtools import crys
+from pwtools import common
+from pwtools import pwscf
 
 # Cif parser
 try:

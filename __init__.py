@@ -1,3 +1,6 @@
+from __future__ import absolute_import
+from . import _io as io
+
 __all__ = [\
     'arrayio',
     'atomic_data',
