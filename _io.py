@@ -218,8 +218,7 @@ def write_axsf(filename, obj):
     axsf_str = "ANIMSTEPS %i\nCRYSTAL" %traj.nstep
     for istep in range(traj.nstep):
         axsf_str += "\nPRIMVEC %i\n%s" %(istep+1,
-                                         common.str_arr(traj.cell[istep,...],
-                                                        zero_eps=False))
+                                         common.str_arr(traj.cell[istep,...]))
         axsf_str += "\nPRIMCOORD %i\n%i 1\n%s" %(istep+1,
                                                  traj.natoms,
                                                  pwscf.atpos_str_fast(traj.symbols, 

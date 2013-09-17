@@ -21,6 +21,8 @@ except ImportError:
     # needed.
     CloughTocher2DInterpolator = None
 
+# constants
+EPS = np.finfo(float).eps
 
 def normalize(a):
     """Normalize array by it's max value. Works also for complex arrays.

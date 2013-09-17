@@ -7,7 +7,7 @@
 from __future__ import absolute_import
 import signal
 
-import types
+import types, warnings
 import os
 import subprocess
 import shutil
@@ -18,10 +18,7 @@ import copy
 import numpy as np
 
 from pwtools.verbose import verbose
-# backward compat, remove later
-from pwtools.num import normalize, vlinspace, norm_int, deriv_fd, deriv_spl, \
-    _splroot, findmin, findroot, slicetake, sliceput, Spline
-
+from pwtools.num import EPS
 
 def assert_cond(cond, string=None):
     """Use this instead of `assert cond, string`. It's been said on
@@ -261,7 +258,7 @@ def str2tup(*args, **kwargs):
     return tuple(str2seq(*args, **kwargs))
 
 
-def fix_eps(arr, eps=1.5*np.finfo(float).eps, copy=True):
+def fix_eps(arr, eps=EPS, copy=True):
     """Set values of arr to zero where abs(arr) <= eps.
 
     Parameters
@@ -275,21 +272,26 @@ def fix_eps(arr, eps=1.5*np.finfo(float).eps, copy=True):
     -------
     numpy nd array
     """
+    assert eps > 0.0, "eps must be > 0"
     _arr = arr.copy() if copy else arr
     _arr[np.abs(_arr) <= eps] = 0.0
     return _arr
 
 
-def str_arr(arr, fmt='%.16e', delim=' '*4, zero_eps=True):
+def str_arr(arr, fmt='%.16e', delim=' '*4, zero_eps=None, eps=EPS):
     """Convert array `arr` to nice string representation for printing.
     
     Parameters
     ----------
-    arr : array_like, 1d or 2d array
-    fmt : string, format specifier, all entries of arr are formatted with that
-    delim : string, delimiter
-    zero_eps : bool
-        Print values as 0.0 where abs(value) < eps
+    arr : array_like 
+        1d or 2d array
+    fmt : str 
+        format specifier, all entries of arr are formatted with that
+    delim : str 
+        delimiter
+    eps : float
+        Print values as 0.0 where abs(value) < eps. If eps < 0.0, then disable
+        this.
 
     Returns
     -------
@@ -311,8 +313,11 @@ def str_arr(arr, fmt='%.16e', delim=' '*4, zero_eps=True):
     0.13 0.75 0.39
     0.54 0.22 0.66
     """
+    if zero_eps is not None:
+        warnings.warn("`zero_eps` is deprecated, use `eps` > 0 instead",
+                      DeprecationWarning)
     arr = np.asarray(arr)
-    _arr = fix_eps(arr) if zero_eps else arr
+    _arr = fix_eps(arr, eps=eps) if eps > 0.0 else arr
     if _arr.ndim == 1:
         return delim.join([fmt]*_arr.size) % tuple(_arr)
     elif _arr.ndim == 2:

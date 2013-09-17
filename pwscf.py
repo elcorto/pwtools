@@ -3,25 +3,30 @@
 # Some handy tools to construct strings for building pwscf input files.
 # Readers for QE postprocessing tool output (matdyn.x  etc).
 
-import re, os
+import re, os, warnings
 import numpy as np
 from pwtools.common import fix_eps, str_arr, file_readlines
 from pwtools import parse, crys, common
+from pwtools.num import EPS
 from math import sin, acos, sqrt
 
-def atpos_str(symbols, coords, fmt="%.16e", zero_eps=True):
+def atpos_str(symbols, coords, fmt="%.16e", zero_eps=None, eps=EPS, delim=4*' '):
     """Convenience function to make a string for the ATOMIC_POSITIONS section
-    of a pw.x input file. Usually, this can be used to process the output of
-    crys.scell().
+    of a pw.x input file.
     
     Parameters
     ----------
-    symbols : list of strings with atom symbols, (natoms,), must match with the
+    symbols : sequence
+        strings with atom symbols, (natoms,), must match with the
         rows of coords
-    coords : array (natoms, 3) with atomic coords, can also be (natoms, >3) to
-        add constraints on atomic forces in PWscf
-    zero_eps : bool
-        Print values as 0.0 where ``coords[i,j] < eps``
+    coords : array (natoms, 3) 
+        with atomic coords, can also be (natoms, >3) to add constraints on
+        atomic forces in PWscf
+    eps : float
+        Print values as 0.0 where abs(coords[i,j]) < eps. If eps < 0.0, then
+        disable this.
+    delim : str
+        delimiter between columns
 
     Returns
     -------
@@ -33,11 +38,14 @@ def atpos_str(symbols, coords, fmt="%.16e", zero_eps=True):
     Al      0.0000000000    0.0000000000    0.0000000000
     N       0.0000000000    0.0000000000    1.0000000000
     """
+    if zero_eps is not None:
+        warnings.warn("`zero_eps` is deprecated, use `eps` > 0 instead",
+                      DeprecationWarning)
     coords = np.asarray(coords)
     assert len(symbols) == coords.shape[0], "len(symbols) != coords.shape[0]"
-    _coords = fix_eps(coords) if zero_eps else coords
-    txt = '\n'.join("%s    %s" %(symbols[i], str_arr(row, fmt=fmt, zero_eps=False)) \
-        for i,row in enumerate(_coords))
+    txt = '\n'.join("%s%s%s" %(symbols[i], delim, str_arr(row, fmt=fmt, eps=eps,
+                                                          delim=delim)) \
+        for i,row in enumerate(coords))
     return txt        
 
 
