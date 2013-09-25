@@ -1,0 +1,8 @@
+# input file for super fast simulation code
+data_dir    =   XXXHOME/share/pseudo
+calc_name   =   XXXCALC_NAME
+my_path     =   XXXHOME/calculations
+study_name  =   XXXSTUDY_NAME
+scratch     =   /scratch/XXXSTUDY_NAME/XXXIDX
+ecutwfc     =   XXXECUTWFC
+pseudo      =   XXXPSEUDO

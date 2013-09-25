@@ -516,8 +516,11 @@ class ParameterStudy(object):
             calculations to a cluster.
         """
         assert mode in ['a', 'w'], "Unknown mode: '%s'" %mode
-        if mode == 'w' and os.path.exists(self.dbfn):
-            os.remove(self.dbfn)
+        if os.path.exists(self.dbfn):
+            if backup:
+                common.backup(self.dbfn)
+            if mode == 'w':
+                os.remove(self.dbfn)
         have_new_db = not os.path.exists(self.dbfn)
         common.makedirs(self.calc_root)
         # this call creates a file ``self.dbfn`` if it doesn't exist
@@ -546,8 +549,11 @@ class ParameterStudy(object):
             hostnames.append(machine.hostname)
             calc_dir = pj(self.calc_root, self.calc_dir_prefix + \
                           '_%s' %machine.hostname)
-            if os.path.exists(calc_dir) and backup:
-                common.backup(calc_dir)
+            if os.path.exists(calc_dir):
+                if backup:
+                    common.backup(calc_dir)
+                if mode == 'w':
+                    common.system("rm -r %s" %calc_dir, wait=True)
             run_txt = "here=$(pwd)\n"
             for _idx, params in enumerate(self.params_lst):
                 params = common.flatten(params)

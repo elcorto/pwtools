@@ -1,0 +1,9 @@
+# job file for host1
+#
+#BSUB -N XXXCALC_NAME
+#BSUB -q long.q
+data_dir    =   XXXHOME/share/pseudo
+scratch     =   /big/share/fastfs/XXXSTUDY_NAME/XXXIDX
+# running job
+mkdir -pv $scratch
+/path/to/apps/bin/my_app.x < input.in > output.out

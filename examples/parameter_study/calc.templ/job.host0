@@ -1,0 +1,8 @@
+# job file for host0
+#PBS -N XXXCALC_NAME
+#PBS -q short.q
+data_dir    =   XXXHOME/share/pseudo
+scratch     =   /scratch/XXXSTUDY_NAME/XXXIDX
+# running job
+mkdir -pv $scratch
+my_app.x < input.in > output.out
