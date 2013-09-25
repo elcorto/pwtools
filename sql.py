@@ -4,6 +4,7 @@ from pwtools import common
 from itertools import izip
 import os
 
+
 def get_test_db():
     """Return in-memory database for playing around."""
     db = SQLiteDB(':memory:', table='calc')
@@ -13,8 +14,11 @@ def get_test_db():
     db.commit()
     return db
 
+
 def find_sqltype(val):
     """
+    Find sqlite data type which matches the type of `val`.
+
     Parameters
     ----------
     val : any python type
@@ -37,8 +41,11 @@ def find_sqltype(val):
     raise StandardError("type '%s' unknown, cannot find mapping "
         "to sqlite3 type" %str(type(val)))
 
+
 def fix_sqltype(sqltype):
-    """
+    """Fix `sqltype` string. Force uppercase string and  
+    change 'FLOAT' -> 'REAL'.
+
     Parameters
     ----------
     sqltype : str
@@ -46,12 +53,12 @@ def fix_sqltype(sqltype):
     Returns
     -------
     st : string
-        Force uppercase string, change 'FLOAT' -> 'REAL'.
     """
     st = sqltype.upper()
     if st == 'FLOAT':
         st = 'REAL'
     return st        
+
 
 def fix_sql_header(header):
     """fix_sqltype() applied to any sqltype in `header`"""
@@ -122,22 +129,30 @@ class SQLEntry(object):
         self.key = key
 
 
+# Implementation of multiple tables support: It works perfect, but new code
+# changes will need good testing. This is b/c we explicitely pass
+# `table` around as arg to every method which used to use self.table. That 
+# affects all "convenience" methods like "has_column()" etc. Now it is very
+# easy to introduce bugs, if passing `table` is forgotten. 
+#
+# The reason for doing this is that SQLiteDB was first developed with the
+# assumption that we always use one db + one table in it. But often, the
+# `table` is not even needed, i.e. for all statements like "select * from
+# <table>" where the user passes the table name in the command, which is
+# actually the most common use case. The only convenience method which is
+# really used often is add_column().
+#
+# We may need to add a class SQLiteTable, which behaves like the old SQLiteDB
+# with enforced `table` and use self.table everywhere in methods which need it.
+# SQLiteDB would be composed of multiple SQLiteTable instances. But this sounds
+# to fancy and complicated. We just wanted a *simpler* interface to sqlite3,
+# not another implementation. So, lets not add more convenience methods. Things
+# like attach_column() are already as complicated as it gets and almost not
+# used, even though they work!
 class SQLiteDB(object):
-    """Small convenience inerface class for sqlite3. It abstacts away the
-    connecting to the database etc. It simplifies the usage of connection and
-    cursor objects (bit like the "shortcuts" already defined in sqlite3).   
-    
-    Currently, we assume that the db has one table only, therefore we
-    enforce `table` in the constructor.
-    
-    Notes
-    -----
-    exported methods:
-
-    | self.cur.execute() -> execute()
-    | self.conn.commit() -> commit()
-    | where self.cur  -> sqlite3.Cursor
-    |       self.conn -> sqlite3.Connection
+    """Interface class which wraps the sqlite3 module. It abstacts away the
+    connecting to the database and cursor setup and adds some convenience
+    methods.   
     
     Examples
     --------
@@ -164,11 +179,16 @@ class SQLiteDB(object):
     >>> db.get_array("select a,c from calc")
     array([[ 1.,  5.],
            [ 2.,  5.]])
-    
+    >>> # db in memory, attach and query over multiple databases, assume both
+    >>> # databases have a table named 'calc'
+    >>> db = SQLiteDB(':memory:')
+    >>> db.executescript("attach 'foo.db' as foo; attach 'bar.db' as bar;")
+    >>> db.get_array("select foo.calc.a,bar.calc.b from foo.calc,bar.calc "
+    ... "where foo.calc.idx==bar.calc.idx and foo.calc.c not like '%gohome%'")
+
     Notes
     -----
-    There are actually 2 methods to put entries into the db. Fwiw, this is a
-    general sqlite3 (module) note.
+    There are actually 2 methods to put entries into the db:
 
     1) Use sqlite3 placeholder syntax. This is recommended. Here, automatic
        type conversion Python -> sqlite is done by the sqlite3 module. For
@@ -196,15 +216,24 @@ class SQLiteDB(object):
         db_fn : str
             database filename
         table : str, optional
-            name of the database table
+            name of the database table, you can also use :meth:`set_table`
+            later or the `table` keyword in all methods which need to know to
+            which database table you're talking
         """            
         self.db_fn = db_fn
         self.conn = sqlite3.connect(db_fn)
         self.cur = self.conn.cursor()
-        self.table = table
-        if self.table is None:
-            raise StandardError("table missing")
+        self.set_table(table)
     
+    def _get_table(self, table):
+        if table is None:
+            if self.table is None:
+                raise StandardError("table and self.table are None")
+            else:
+                return self.table
+        else:
+            return table
+
     def set_table(self, table):
         """Set the table name (aka switch to another table).
 
@@ -220,45 +249,67 @@ class SQLiteDB(object):
         return self.table
 
     def execute(self, *args, **kwargs):
-        """This calls self.cur.execute()"""
+        """This calls self.cur.execute()."""
         return self.cur.execute(*args, **kwargs)
+    
+    def executemany(self, *args, **kwargs):
+        """This calls self.cur.executemany()."""
+        return self.cur.executemany(*args, **kwargs)
+    
+    def executescript(self, *args, **kwargs):
+        """This calls self.cur.executescript(). 
+        
+        Returns what `executescript` returns. Calling
+        ``executescript().fetchall()`` returns []."""
+        return self.cur.executescript(*args, **kwargs)
     
     def has_table(self, table):
         """Check if a table named `table` already extists."""
         assert table is not None, ("table is None")
         return self.execute("pragma table_info(%s)" %table).fetchall() != []
 
-    def has_column(self, col):
-        """Check if table self.table already has the column `col`.
+    def has_column(self, col, table=None):
+        """Check if `table`  already has the column `col`.
         
         Parameters
         ----------
         col : str
             column name in the database
+        table : str, optional            
         """            
-        for entry in self.get_header():
+        for entry in self.get_header(self._get_table(table)):
             if entry[0] == col:
                 return True
         return False                
     
-    def add_column(self, col, sqltype):
-        """Add column `col` with type `sqltype`. 
+    def add_column(self, col, sqltype, table=None):
+        """Add column `col` with type `sqltype` to the header. To actually put
+        data into that, use :meth:`execute` and standard sql statements or see 
+        :meth:`attach_column` or :meth:`fill_column`.
         
         Parameters
         ----------
         col : str
             column name
         sqltype : str
-            sqlite data type (see SQLEntry)
+            sqlite data type (see :class:`SQLEntry`)
+        table : str, optional            
         """
-        if not self.has_column(col):
+        table = self._get_table(table)
+        if not self.has_column(col, table=table):
             self.execute("ALTER TABLE %s ADD COLUMN %s %s" \
-                        %(self.table, col, fix_sqltype(sqltype)))
+                        %(table, col, fix_sqltype(sqltype)))
     
-    def add_columns(self, header):
+    def add_columns(self, header, table=None):
         """Convenience function to add multiple columns from `header`. See
-        get_header().
+        :meth:`get_header`.
         
+        Parameters
+        ----------
+        header : sequence
+            see :meth:`get_header`
+        table : str, optional            
+
         Examples
         --------
         >>> db.add_columns([('a', 'text'), ('b', 'real')])
@@ -266,21 +317,28 @@ class SQLiteDB(object):
         >>> db.add_column('a', 'text')
         >>> db.add_column('b', 'real')
         """
+        kwds = {'table': self._get_table(table)}
         for entry in fix_sql_header(header):
-            self.add_column(*entry)
+            self.add_column(*entry, **kwds)
     
-    def get_max_rowid(self):
+    def get_max_rowid(self, table=None):
         """Return max(rowid), which is equal to the number of rows in
-        self.table ."""
-        return self.get_single("select max(rowid) from %s" %self.table)
+        `table`.
+        
+        Parameters
+        ----------
+        table : str, optional            
+        """
+        return self.get_single("select max(rowid) from %s" %self._get_table(table))
 
-    def fill_column(self, col, values, start=1, extend=True, overwrite=False):
+    def fill_column(self, col, values, start=1, extend=True, 
+                    overwrite=False, table=None):
         """Fill existing column `col` with values from `values`, starting from
         rowid `start`. "rowid" is a special sqlite column which is always
         present and which numbers all rows. 
 
         The column must already exist. To add a new column and fill it, see
-        attach_column().
+        :meth:`attach_column`.
         
         Parameters
         ----------
@@ -290,18 +348,21 @@ class SQLiteDB(object):
             Values to be inserted.
         start : int
             sqlite rowid value to start at (first row: start=1)
-        extend : If `extend=True` and `len(values)` extends the last row, then
+        extend : bool
+            If `extend=True` and `len(values)` extends the last row, then
             continue to add values. All other column entries will be NULL. If
             False, then we silently stop inserting at the last row.
         overwrite : bool
             Whether to overwrite entries which are not NULL (None in Python).
+        table : str, optional            
         """
         # The operation "update <table> ..." works only as long as there is at
         # least one column with a non-NULL entry. After that, rowid is not
         # defined and nothing gets inserted. Then, we need to use "insert into
         # ..." to appand rows to the bottom.
-        maxrowid = self.get_max_rowid()
-        assert self.has_column(col), "column missing: %s" %col
+        table = self._get_table(table)
+        maxrowid = self.get_max_rowid(table)
+        assert self.has_column(col, table=table), "column missing: %s" %col
         if not extend:
             assert start <= maxrowid, "start > maxrowid"
         rowid = start
@@ -309,25 +370,24 @@ class SQLiteDB(object):
             if rowid <= maxrowid:
                 if not overwrite:
                     _val = self.get_single("select %s from %s where rowid==?" \
-                            %(col, self.table), (rowid,))
+                            %(col, table), (rowid,))
                     assert _val is None, ("value for column '%s' at rowid "
                         "%i is not NULL (%s)" %(col, rowid, repr(_val)))
                 self.execute("update %s set %s=? where rowid==?" \
-                             %(self.table, col), (val, rowid))
+                             %(table, col), (val, rowid))
             else:
                 if extend:
-                    self.execute("insert into %s (%s) values (?)" %(self.table,
+                    self.execute("insert into %s (%s) values (?)" %(table,
                         col,), (val,))
             rowid += 1                
     
-    def attach_column(self, col, values, sqltype=None, **kwds):
+    def attach_column(self, col, values, sqltype=None, table=None, **kwds):
         """Attach (add) a new column named `col` of `sqltype` and fill it with
         `values`. With overwrite=True, allow writing into existing columns,
-        i.e. behave like fill_column().
+        i.e. behave like :meth:`fill_column`.
         
-        This is a short-cut method which essentially does:
-            add_column(...)
-            fill_column(...)
+        This is a short-cut method which essentially does 
+        ``add_column(...); fill_column(...)``
 
         Parameters
         ----------
@@ -337,50 +397,59 @@ class SQLiteDB(object):
             Values to be inserted.
         sqltype : str, optional
             sqlite type of values in `values`, obtained from values[0] if None
-        **kwds : additional keywords passed to fill_column(),
-            default: start=1, extend=True, overwrite=False
+        table : str, optional            
+        **kwds : 
+            additional keywords passed to :meth:`fill_column`,
+            default: `start=1, extend=True, overwrite=False`
         """
-        current_kwds = {'start':1, 'extend': True, 'overwrite': False}
+        table = self._get_table(table)
+        current_kwds = {'start':1, 'extend': True, 'overwrite': False, 
+                        'table': table}
         current_kwds.update(kwds)
         if not current_kwds['overwrite']:
-            assert not self.has_column(col), ("column already present: %s, use " 
-                                              "overwrite=True" %col)
+            assert not self.has_column(col, table=table), \
+                       ("column already present: %s, use " 
+                        "overwrite=True" %col)
         if sqltype is None:
             sqltype = find_sqltype(values[0])
-        self.add_column(col, sqltype)
+        self.add_column(col, sqltype, table=table)
         self.fill_column(col, values, **current_kwds)
 
-    def get_header(self):
-        """Return the "header" of the table `table':
+    def get_header(self, table=None):
+        """Return the header of the `table`:
+
+        Parameters
+        ----------
+        table : str, optional
 
         Examples
         --------
-        >>> db = SQLiteDB('test.db', table='foo')
-        >>> db.execute("create table foo (a text, b real)"
-        >>> db.get_header() 
+        >>> db = SQLiteDB('test.db')
+        >>> db.execute("create table foo (a text, b real)")
+        >>> db.get_header('foo') 
         [('a', 'text'), ('b', 'real')]
         """
         return [(x[1], x[2]) for x in \
-                self.execute("PRAGMA table_info(%s)" %self.table)]
+                self.execute("PRAGMA table_info(%s)" %self._get_table(table))]
     
-    def create_table(self, header):
-        """Create a table named self.table from `header`. `header` is in the
-        same format which get_header() returns.
+    def create_table(self, header, table=None):
+        """Create a `table` from `header`. `header` is in the
+        same format which :meth:`get_header` returns.
         
         Parameters
         ----------
         header : list of lists/tuples
             [(colname1, sqltype1), (colname2, sqltype2), ...]
+        table : str, optional
         """
-        self.execute("CREATE TABLE %s (%s)" %(self.table, 
+        self.execute("CREATE TABLE %s (%s)" %(self._get_table(table), 
                                             ','.join("%s %s" %(x[0], x[1]) \
                                             for x in fix_sql_header(header))))
     
     def get_list1d(self, *args, **kwargs):
-        """Shortcut for commonly used functionality: If one extracts a single
-        column, then self.cur.fetchall() returns a list of tuples like 
-            [(1,), (2,)]. 
-        We call fetchall() and return the flattened list. 
+        """Shortcut for commonly used functionality. If one extracts a single
+        column, then ``self.cur.fetchall()`` returns a list of tuples like
+        ``[(1,), (2,)]`` We call ``fetchall()`` and return the flattened list. 
         """
         return common.flatten(self.execute(*args, **kwargs).fetchall())
     
@@ -392,11 +461,11 @@ class SQLiteDB(object):
         return ret[0]
 
     def get_array1d(self, *args, **kwargs):
-        """Same as get_list1d, but return numpy array."""
+        """Same as :meth:`get_list1d`, but return numpy array."""
         return np.array(self.get_list1d(*args, **kwargs))
     
     def get_array(self, *args, **kwargs):
-        """Return result of self.execute().fetchall() as numpy array. 
+        """Return result of ``self.execute().fetchall()`` as numpy array. 
         
         Usful for 2d arrays, i.e. convert result of extracting >1 columns to
         numpy 2d array. The result depends on the data types of the columns."""
@@ -405,9 +474,11 @@ class SQLiteDB(object):
     def get_dict(self, *args, **kwargs):
         """For the provided select statement, return a dict where each key is
         the column name and the column is a list. Column names are obtained
-        from the Cursor.description attribute.
-
-        "select foo,bar from calc" would return
+        from the ``Cursor.description`` attribute.
+        
+        Examples
+        --------
+        >>> db.get_dict("select foo,bar from calc")
         {'foo': [1,2,3],
          'bar': ['x', 'y', 'z']}
         """
@@ -597,6 +668,7 @@ def sql_matrix(lists, header=None, colnames=None, sqlval_funcs=None, fileval_fun
                                    fileval=_fileval_funcs[key](entry)))
         newlists.append(newrow)                                   
     return newlists   
+
 
 def makedb(filename, lists, colnames, table=None, mode='a', close=True, **kwds):
     """ Create sqlite db `filename` (mode='w') or append to existing db

@@ -31,7 +31,7 @@ How to change pre-defined comparison functions
 ... lambda x,y: np.allclose(x,y,atol=0.1,rtol=0.1)
 """
 
-import warnings, copy
+import warnings, copy, tempfile
 import numpy as np
 from pwtools import num
 warnings.simplefilter('always')

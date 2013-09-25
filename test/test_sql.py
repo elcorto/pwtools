@@ -2,7 +2,7 @@
 # or uppercase. i.e. "SELECT * FROM calc WHERE idx==1" == "select * from calc
 # where idx==1".
 
-import os
+import os, tempfile
 import numpy as np
 from pwtools.sql import SQLiteDB, SQLEntry
 from pwtools import sql
@@ -214,32 +214,87 @@ def test_fix_sqltype():
     assert sql.fix_sql_header([('a', 'text'), ('b', 'float')]) == \
            [('a', 'TEXT'), ('b', 'REAL')]
 
-
-def test_makedb():
-    dbfn = pj(testdir, 'test_makedb1.db')
+def _rand_db_filename():
+    fd, dbfn = tempfile.mkstemp(dir=testdir, suffix='.db')
     if os.path.exists(dbfn):
         os.remove(dbfn)
+    return dbfn
+
+def test_makedb():
     lists = zip(['a','b'],[1.0,2.0])
     colnames = ['foo', 'bar']
+    dbfn = _rand_db_filename()
+    table = dbfn.split('/')[-1].replace('.db','')
     sql.makedb(filename=dbfn, lists=lists, colnames=colnames, mode='w')
-    db = sql.SQLiteDB(dbfn, table='test_makedb1')
-    dct =  db.get_dict("select * from test_makedb1")
+    db = sql.SQLiteDB(dbfn, table=table)
+    dct =  db.get_dict("select * from %s" %table)
     assert dct['foo'] == [u'a', u'b']
     assert dct['bar'] == [1.0, 2.0]
     sql.makedb(filename=dbfn, lists=lists, colnames=colnames, mode='a')
-    db = sql.SQLiteDB(dbfn, table='test_makedb1')
-    dct =  db.get_dict("select * from test_makedb1")
+    db = sql.SQLiteDB(dbfn, table=table)
+    dct =  db.get_dict("select * from %s" %table)
     assert dct['foo'] == [u'a', u'b']*2
     assert dct['bar'] == [1.0, 2.0]*2
     
-    # makedb, set table name, close
-    dbfn = pj(testdir, 'test_makedb2.db')
-    if os.path.exists(dbfn):
-        os.remove(dbfn)
+    # makedb, set table name, close=False, return open db 
+    dbfn = _rand_db_filename()
+    table = dbfn.split('/')[-1].replace('.db','')
     db = sql.makedb(dbfn, lists, colnames, mode='w',
-                    table='calc', close=False)    
-    dct =  db.get_dict("select * from calc")
+                    table=table, close=False)    
+    dct =  db.get_dict("select * from %s" %table)
     assert dct['foo'] == [u'a', u'b']
     assert dct['bar'] == [1.0, 2.0]
 
 
+def test_multi_table():
+    fn1 = _rand_db_filename()
+    fn2 = _rand_db_filename()
+    sql.makedb(filename=fn1, lists=zip([0,1],['a','b'],[1.0,2.0]),
+               colnames=['idx', 'c1', 'c2'], mode='w', table='tab1')
+    sql.makedb(filename=fn2, lists=zip([0,1,2],['c','d','e'],[3.0,4.0,5.0]),
+               colnames=['idx', 'c1', 'c2'], mode='w', table='tab1')
+    # in memory db
+    db = sql.SQLiteDB(':memory:')
+    db.executescript("attach '%s' as db1; attach '%s' as db2" %(fn1, fn2))
+    cmd = """
+select 
+    db1.tab1.idx,
+    db1.tab1.c1  as db1_c1,
+    db2.tab1.c1  as db2_c1,
+    db2.tab1.c2  as db2_c2
+from     
+    db1.tab1,db2.tab1 
+where 
+    db1.tab1.idx==db2.tab1.idx;
+    """
+    dct = db.get_dict(cmd)
+    assert dct['idx'] == [0,1]                      
+    assert dct['db1_c1'] == ['a','b']                      
+    assert dct['db2_c1'] == ['c','d']                      
+    assert dct['db2_c2'] == [3.0,4.0]                      
+
+    # multi table
+    db = sql.SQLiteDB(fn1)
+    header1 = [('idx','INTEGER'),
+               ('c1', 'TEXT'),
+               ('c2', 'REAL')]
+    assert db.get_header(table='tab1') == header1
+    header2 = [('x','REAL'), ('y', 'TEXT')]
+    db.create_table(header2, table='tab2')
+    db.execute("insert into tab2 ('x', 'y') values (1.0, 'a')")
+    db.execute("insert into tab2 ('x', 'y') values (2.0, 'b')")
+    db.attach_column(col='z', values=[88,99], table='tab2')
+    header2 += [('z', 'INTEGER')]
+    assert db.get_header(table='tab2') == header2
+    assert db.has_table('tab2')
+    assert db.has_column('idx', table='tab1')
+    assert db.has_column('x', table='tab2')
+    assert db.get_max_rowid('tab2') == 2
+    db.set_table('tab1')
+    assert db.has_column('idx') 
+    assert db.get_header() == header1
+    assert db.get_max_rowid() == 2
+    db.set_table('tab2')
+    assert db.get_header() == header2
+    assert db.has_column('x') 
+    assert db.get_max_rowid() == 2
