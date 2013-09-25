@@ -4,7 +4,7 @@ from pwtools import common
 from pwtools.test.tools import assert_attrs_not_none
 pj = os.path.join
 
-def test():
+def test_cpmd_scf():
     basedr = 'files/cpmd'
     dr = 'files/cpmd/scf'
     common.system('tar -C %s -xzf %s.tgz' %(basedr, dr))

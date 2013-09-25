@@ -2,7 +2,7 @@
 # whole object in binary to disk using the dump() method, which actually uses
 # cPickle. 
 
-import os
+import os, tempfile
 import numpy as np
 from pwtools.parse import PwMDOutputFile
 from pwtools import common, crys, io
@@ -11,11 +11,17 @@ from pwtools.test.tools import ade
 
 rand = np.random.rand
 
-def test():
-    filename = 'files/pw.md.out'
+def test_save_object():
+    tmpdir = tempfile.mkdtemp(dir=testdir, prefix=__file__)
+    base = 'pw.md.out'
+    filename = '{tdr}/{base}'.format(tdr=tmpdir, base=base)
+    cmd = "mkdir -p {tdr}; cp files/{base}.gz {tdr}/; \
+           gunzip {fn}.gz;".format(tdr=tmpdir,
+                                   base=base, fn=filename)
+    common.system(cmd, wait=True)
+    assert os.path.exists(filename)
     dumpfile = os.path.join(testdir, 'pw.md.pk')
 
-    common.system('gunzip %s.gz' %filename)
     c = PwMDOutputFile(filename=filename)
     print ">>> parsing ..."
     c.parse()
@@ -57,7 +63,6 @@ def test():
             else:
                 assert c_val == c2_val, "fail: %s: %s, %s" \
                                         %(attr, c_val, c2_val)
-    common.system('gzip %s' %filename)
 
 def test_save_mkdir():
     path = os.path.join(testdir, 'foo', 'bar', 'baz')

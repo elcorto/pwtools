@@ -3,22 +3,22 @@ compare nested dictionaries containing numpy arrays etc.
 
 The following functions are defined:
 
-array_equal
-all_types_no_dict_equal
-dict_with_all_types_equal
-all_types_equal
+:func:`array_equal`
+:func:`all_types_no_dict_equal`
+:func:`dict_with_all_types_equal`
+:func:`all_types_equal`
 
-array_almost_equal
-all_types_no_dict_almost_equal
-dict_with_all_types_almost_equal
-all_types_almost_equal
+:func:`array_almost_equal`
+:func:`all_types_no_dict_almost_equal`
+:func:`dict_with_all_types_almost_equal`
+:func:`all_types_almost_equal`
 
 For each, we also have a corresponding ``assert_*`` function.
 
-The only high-level functions which you really need are ``all_types_equal`` and
-``all_types_almost_equal``. These also handle nested dicts with numpy arrays
-etc. All other ``*equal()`` function are used by those for special cases, but
-can also be called directly, of course.
+The only high-level functions which you really need are :func:`all_types_equal`
+and :func:`all_types_almost_equal`. These also handle nested dicts with numpy
+arrays etc. All other ``*equal()`` function are used by those for special
+cases, but can also be called directly, of course.
 
 How to change pre-defined comparison functions
 ----------------------------------------------
@@ -29,6 +29,8 @@ How to change pre-defined comparison functions
 ... lambda x,y: np.allclose(x,y,atol=0.1,rtol=0.1)
 >>> tt.assert_all_types_almost_equal.comp_func.comp_map[tt.arr_t] = \
 ... lambda x,y: np.allclose(x,y,atol=0.1,rtol=0.1)
+
+Easy, eh? :)
 """
 
 import warnings, copy, tempfile

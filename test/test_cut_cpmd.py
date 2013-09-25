@@ -14,6 +14,6 @@ def run(dr, none_attrs=[]):
     common.system('../bin/cut-cpmd.sh %s 20 > %s/cut-cpmd.log' %(dr, testdir))
     common.system('rm -r %s' %dr)
 
-def test():
+def test_cut_cpmd():
     run(dr='files/cpmd/md_cp_pr/')
 

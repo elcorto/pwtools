@@ -16,7 +16,7 @@ import numpy as np
 from pwtools import num
 asrt = np.testing.assert_array_almost_equal
 
-def test():
+def test_deriv():
     x = np.linspace(0,10,100)
     y = np.sin(x)
     for n in [1,2]:

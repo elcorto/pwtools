@@ -1,7 +1,7 @@
 import numpy as np
 from pwtools.num import vlinspace
 
-def test():
+def test_vlinspace():
     aa = np.array([0,0,0]) 
     bb = np.array([1,1,1])
     

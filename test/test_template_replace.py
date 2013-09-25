@@ -2,7 +2,7 @@ import os
 from pwtools.common import template_replace
 pj = os.path.join
 
-def test():
+def test_template_replace():
     # default 'dct' mode
     templ_txt = "%(foo)i %(bar)s"
     rules = {'foo': 1, 'bar': 'lala'}

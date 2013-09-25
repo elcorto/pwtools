@@ -4,7 +4,7 @@ from pwtools.parse import CifFile
 from pwtools import io
 from testenv import testdir
 
-def test():
+def test_cif():
     for filename in ['files/cif_struct.cif', 'files/cif_cart_struct.cif']:
         p1 = CifFile(filename).get_struct()
         assert p1.cell is not None

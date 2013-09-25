@@ -4,7 +4,7 @@ from pwtools.crys import Structure, Trajectory
 from pwtools.test.tools import adae
 rand = np.random.rand
 
-def test():
+def test_scell():
     cell = np.identity(3)
     coords_frac = np.array([[0.5, 0.5, 0.5],
                        [1,1,1]])

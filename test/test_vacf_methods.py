@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-def test():
+def test_vacf_methods():
     import numpy as np
     import math
     from pwtools import pydos

@@ -3,7 +3,7 @@ from pwtools.num import sum
 from pwtools.test.tools import aaae, aae
 rand = np.random.rand
 
-def test():
+def test_sum():
     arr = rand(2,3,4)
     
     # this all goes thru np.sum(), must produce exact same result

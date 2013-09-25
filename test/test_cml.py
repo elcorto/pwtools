@@ -1,4 +1,4 @@
-def test():
+def test_cml():
     from pwtools.parse import CMLFile
     from pwtools import common
 

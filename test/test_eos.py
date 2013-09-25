@@ -20,7 +20,7 @@ from testenv import testdir
 
 Bohr3_to_Ang3 = (Bohr**3 / Ang**3)
 
-def test():
+def test_eos():
     # This must be on your $PATH.
     exe = 'eos.x'
     app = common.backtick("which %s" %exe)

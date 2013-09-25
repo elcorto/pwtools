@@ -3,7 +3,7 @@ import numpy as np
 from pwtools.common import is_seq, file_write
 from testenv import testdir
 
-def test():
+def test_is_seq():
     fn = os.path.join(testdir, 'is_seq_test_file')
     file_write(fn, 'lala')
     fd = open(fn , 'r')

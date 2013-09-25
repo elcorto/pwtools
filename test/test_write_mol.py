@@ -17,7 +17,7 @@ from pwtools.constants import Ha, eV
 pj = os.path.join
 
 
-def test():
+def test_write_mol():
     units={'forces': Ha / eV}
     nstep = 2
     cell2d = np.random.rand(3,3)

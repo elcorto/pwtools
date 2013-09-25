@@ -1,4 +1,4 @@
-def test():
+def test_fft():
     import numpy as np
     from pwtools import signal
     from scipy.fftpack import fft

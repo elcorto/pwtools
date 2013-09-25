@@ -1,6 +1,6 @@
 from pwtools.sql import sql_column
 
-def test():
+def test_sql_column():
     x = sql_column(key='foo', 
                    sqltype='integer', 
                    lst=[1,2,3])

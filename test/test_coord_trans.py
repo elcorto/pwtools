@@ -5,7 +5,7 @@ from pwtools import num
 from pwtools.test.tools import aaae
 rand = np.random.rand
 
-def test():
+def test_coord_trans():
     #-----------------------------------------------------------
     # 2D
     #-----------------------------------------------------------

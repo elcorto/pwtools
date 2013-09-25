@@ -9,7 +9,7 @@ def create_full_dir(dn):
     for name in ['a', 'b', 'c']:
         file_write(pj(dn, name), 'foo')
 
-def test():
+def test_backup():
     # file
     name = tempfile.mktemp(prefix='testfile', dir=testdir)
     file_write(name, 'foo')

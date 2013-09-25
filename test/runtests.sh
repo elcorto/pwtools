@@ -27,6 +27,10 @@ Run only some tests.
 ./runtests.sh --nobuild test_foo.py test_bar.py
 Run these w/o building extensions b/c you know that they haven't changed.
 
+./runtests.sh --nobuild --processes=4 --process-timeout=60
+Multiprocessing, yeah! May need --process-timeout on slow machines or if many
+more processes than cores are used.
+
 Notes
 -----
 * For tests calling Fortran extensions: Stdout from Fortran ends up in the

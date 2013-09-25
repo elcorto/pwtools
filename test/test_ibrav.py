@@ -3,7 +3,7 @@ from math import pi, cos
 from pwtools.pwscf import ibrav2cell
 from pwtools import crys
 
-def test():
+def test_ibrav():
     # bogus
     aa = 3.0
     bb = 4.0

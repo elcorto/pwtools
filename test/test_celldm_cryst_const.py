@@ -4,7 +4,7 @@ from pwtools.crys import cc2celldm, celldm2cc
 def assrt(a,b):
     np.testing.assert_array_almost_equal(a, b)
 
-def test():
+def test_celldm_cryst_const():
     cc = np.array([3,4,5, 30, 50, 123.0])
     assrt(cc, celldm2cc(cc2celldm(cc)))
     

@@ -6,7 +6,7 @@ rand = np.random.rand
 def equal(a,b):
     assert (a == b).all()
 
-def test():
+def test_extend_array():
     arr = rand(3,3)
     nrep = 5
     a0 = num.extend_array(arr, nrep, axis=0)

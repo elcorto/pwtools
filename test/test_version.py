@@ -1,6 +1,6 @@
 
 
-def test():
+def test_version():
     from pwtools import version
     from distutils.version import StrictVersion
 

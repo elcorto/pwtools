@@ -2,7 +2,7 @@ import itertools
 from numpy.random import randint
 from pwtools import comb
 
-def test():
+def test_perms():
     lo,hi = 3,7
     nn = randint(lo, hi)
     seq = randint(0, 10, nn)

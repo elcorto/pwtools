@@ -5,7 +5,7 @@
 # In the resulting plot, "cart" and "cart2" must be exactly the same. "cell1"
 # must match in principle, but not overlay the other two. 
 
-def test():
+def test_pdos_coord_trans():
     import numpy as np
     from pwtools import pydos as pd
     from pwtools.crys import coord_trans, velocity_traj

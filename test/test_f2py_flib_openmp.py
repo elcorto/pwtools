@@ -1,4 +1,4 @@
-def test():
+def test_f2py_flib_openmp():
     import numpy as np
     from pwtools import _flib
     from pwtools.pydos import fvacf

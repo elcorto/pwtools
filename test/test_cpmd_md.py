@@ -36,7 +36,7 @@ def run(filename, none_attrs=[]):
                 assert attr.ndim == 3, "FAILED - not 3d: %s" %attr_name
     common.system('rm -r %s' %dr)
 
-def test():
+def test_cpmd_md():
     # For BO-MD w/ ODIIS optimizer, ekin_elec = [0,0,...,0] but not None.
     run(filename='files/cpmd/md_bo_odiis/cpmd.bo.out',
         none_attrs=['stress',

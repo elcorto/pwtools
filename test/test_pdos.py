@@ -1,13 +1,22 @@
 import numpy as np
+import os, tempfile
 from pwtools import parse, common, constants
 from pwtools import common
 from pwtools import pydos as pd
 from pwtools.crys import coord_trans
 from pwtools.test.tools import aae
+from pwtools.test.testenv import testdir
 
 def test_pdos():
-    filename = 'files/pw.md.out'
-    common.system('gunzip %s.gz' %filename)
+    tmpdir = tempfile.mkdtemp(dir=testdir, prefix=__file__)
+    base = 'pw.md.out'
+    filename = '{tdr}/{base}'.format(tdr=tmpdir, base=base)
+    cmd = "mkdir -p {tdr}; cp files/{base}.gz {tdr}/; \
+           gunzip {fn}.gz;".format(tdr=tmpdir,
+                                   base=base, fn=filename)
+    common.system(cmd, wait=True)
+    assert os.path.exists(filename)
+    
     pp = parse.PwMDOutputFile(filename=filename)
     traj = pp.get_traj()
 
@@ -59,5 +68,3 @@ def test_pdos():
     # If `tonext` is used, full fft array lengths must be a power of two.
     assert len(ffd) >= 2*V.shape[timeaxis] - 1
     assert np.log2(len(ffd)) % 1.0 == 0.0
-
-    common.system('gzip %s' %filename)

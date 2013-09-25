@@ -2,7 +2,7 @@ import numpy as np
 from scipy.interpolate import splev
 from pwtools.num import Spline
 
-def test():
+def test_spline():
     x = np.linspace(0,10,100)
     y = np.sin(x)
     spl = Spline(x,y)

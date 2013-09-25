@@ -4,7 +4,7 @@ from pwtools import common
 from pwtools.constants import Ang, Bohr
 from pwtools.test.tools import aaae, aae, assert_attrs_not_none, ade, adae
 
-def test():
+def test_pw_scf_out():
     
     # ref data for Structure, all lengths in Ang, energy in eV
     natoms = 2
