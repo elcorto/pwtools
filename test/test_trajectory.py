@@ -284,7 +284,9 @@ def test_mean():
 
 def test_smooth():
     tr = get_rand_traj()
+    assert len(tr.attrs_nstep) > 0
     trs = crys.smooth(tr, hanning(11))
+    assert len(trs.attrs_nstep) > 0
     assert_attrs_not_none(trs, attr_lst=tr.attr_lst)
     for name in tr.attrs_nstep:
         a1 = getattr(tr, name)
@@ -293,9 +295,31 @@ def test_smooth():
         assert np.abs(a1 - a2).sum() > 0.0
     assert trs.timestep == tr.timestep
     assert trs.nstep == tr.nstep
+    
+    # reproduce data with kernel [0,1,0]
     trs = crys.smooth(tr, hanning(3))
     for name in tr.attrs_nstep:
         a1 = getattr(tr, name)
         a2 = getattr(trs, name)
         assert np.allclose(a1, a2)
-
+    
+    trs1 = crys.smooth(tr, hanning(3), method=1)
+    trs2 = crys.smooth(tr, hanning(3), method=2)
+    assert len(trs1.attrs_nstep) > 0
+    assert len(trs2.attrs_nstep) > 0
+    for name in tr.attrs_nstep:
+        a1 = getattr(tr, name)
+        a2 = getattr(trs1, name)
+        a3 = getattr(trs2, name)
+        assert np.allclose(a1, a2)
+        assert np.allclose(a1, a3)
+    
+    trs1 = crys.smooth(tr, hanning(11), method=1)
+    trs2 = crys.smooth(tr, hanning(11), method=2)
+    assert len(trs1.attrs_nstep) > 0
+    assert len(trs2.attrs_nstep) > 0
+    for name in trs1.attrs_nstep:
+        a1 = getattr(trs1, name)
+        a2 = getattr(trs2, name)
+        assert np.allclose(a1, a2)
+    

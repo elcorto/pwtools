@@ -25,7 +25,7 @@ warnings.simplefilter('always')
 def norm(a):
     """2-norm for real vectors."""
     assert_cond(len(a.shape) == 1, "input must be 1d array")
-    # math.sqrt is faster then np.sqrt for scalar args
+    # math.sqrt is faster than np.sqrt for scalar args
     return sqrt(np.dot(a,a))
 
 
@@ -1919,7 +1919,7 @@ def vmd_measure_gofr(traj, dr, rmax='auto', sel=['all','all'], first=0,
     from pwtools import io
     traj = struct2traj(traj)
     # Speed: The VMD command "measure gofr" is multithreaded and written in C.
-    # That's why it is faster then the pure Python rpdf() above when we have to
+    # That's why it is faster than the pure Python rpdf() above when we have to
     # average many timesteps. But the writing of the .axsf file here is
     # actually the bottleneck and makes this function slower.
     if tmpdir is None:
@@ -3430,20 +3430,27 @@ def mean(traj):
     return struct
 
 
-def smooth(traj, kern):
+def smooth(traj, kern, method=1):
     """Smooth Trajectory along `timeaxis`.
 
     Each array in `traj.attrs_nstep` is smoothed by convolution with `kern`
-    along `timeaxis`, i.e. coords, coords_frac, etot, ... The kernel is
-    automatically broadcast to the shape of each array. A similar feature can
-    be found in VMD -> Representations -> Trajectory.
+    along `timeaxis`, i.e. coords, coords_frac, etot, ... The kernel is only
+    required to be an1d array and is automatically broadcast to the shape of
+    each array. A similar feature can be found in VMD -> Representations ->
+    Trajectory.
 
     Parameters
     ----------
     traj : Trajectory
     kern : 1d array
         Convolution kernel (smoothing window, see signal.smooth()).
-
+    method : int
+        Choose how to do the convolution.
+        1 : loops over 1d convolutions, easy on memory, sometimes faster
+            than method=2 (default)
+        2 : up to 3d kernel by broadcasting, can be very memory hungry for
+            big `traj` (i.e. 1e5 timesteps, 128 atoms)
+    
     Returns
     -------
     tr : Trajectory
@@ -3451,15 +3458,15 @@ def smooth(traj, kern):
     
     Examples
     --------
-    >>> kern = scipy.signal.hanning(101)
+    >>> kern = scipy.signal.hann(101)
     >>> trs = smooth(tr, kern)
     """
     assert traj.is_traj
     assert kern.ndim == 1, "need 1d kernel"
     if traj.timeaxis == 0:
-        kk1d = kern
-        kk2d = kern[:,None]
-        kk3d = kern[:,None,None]
+        kern1d = kern
+        kern2d = kern[:,None]
+        kern3d = kern[:,None,None]
     else:
         # ... but is trivial to add
         raise StandardError("timeaxis != 0 not implemented")
@@ -3467,14 +3474,38 @@ def smooth(traj, kern):
     for attr_name in traj.attrs_nstep:
         attr = getattr(traj, attr_name)
         if attr is not None:
-            if attr.ndim == 1:
-                kk = kk1d
-            elif attr.ndim == 2:
-                kk = kk2d
-            elif attr.ndim == 3:
-                kk = kk3d
-            setattr(out, attr_name, signal.smooth(attr, kk,
-                                                  axis=traj.timeaxis))
+            if method == 1:
+                # Remove that if we want to generalize to timeaxis != 0 and
+                # adapt code below.
+                if attr.ndim > 1:
+                    assert traj.timeaxis == 0
+                if attr.ndim == 1:
+                    tmp = signal.smooth(attr, kern, axis=traj.timeaxis)
+                elif attr.ndim == 2:
+                    tmp = np.empty_like(attr)
+                    for jj in range(attr.shape[1]):
+                        tmp[:,jj] = signal.smooth(attr[:,jj], kern)
+                elif attr.ndim == 3:
+                    tmp = np.empty_like(attr)
+                    for jj in range(attr.shape[1]):
+                        for kk in range(attr.shape[2]):
+                            tmp[:,jj,kk] = signal.smooth(attr[:,jj,kk], kern)
+                else:
+                    raise StandardError("ndim != 1,2,3 not allowed")
+                setattr(out, attr_name, tmp)
+            elif method == 2:
+                if attr.ndim == 1:
+                    krn = kern1d
+                elif attr.ndim == 2:
+                    krn = kern2d
+                elif attr.ndim == 3:
+                    krn = kern3d
+                else:
+                    raise StandardError("ndim != 1,2,3 not allowed")
+                setattr(out, attr_name, signal.smooth(attr, krn,
+                                                      axis=traj.timeaxis))
+            else:
+                raise StandardError("unknown method")
     # nstep and timestep are the same for the smoothed traj
     for attr_name in traj.attr_lst:
         if attr_name not in traj.attrs_nstep:

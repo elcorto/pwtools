@@ -496,22 +496,22 @@ def smooth(data, kern, axis=0):
     >>> from pwtools.signal import welch
     >>> x = linspace(0,2*pi,500); a=cos(x)+rand(500) 
     >>> plot(a, color='0.7')
-    >>> k=scipy.signal.hanning(21)
-    >>> plot(signal.smooth(a,k), 'r', label='hanning')
+    >>> k=scipy.signal.hann(21)
+    >>> plot(signal.smooth(a,k), 'r', label='hann')
     >>> k=scipy.signal.gaussian(21, 3)
     >>> plot(signal.smooth(a,k), 'g', label='gauss')
     >>> k=welch(21)
     >>> plot(signal.smooth(a,k), 'y', label='welch')
     >>> # odd kernel [0,1,0] reproduces data exactly
     >>> figure()
-    >>> x=linspace(0,2*pi,15); k=scipy.signal.hanning(3)
+    >>> x=linspace(0,2*pi,15); k=scipy.signal.hann(3)
     >>> plot(cos(x))
     >>> plot(signal.smooth(cos(x),k), 'r')
     >>> # smooth a trajectory of atomic coordinates
     >>> figure()
     >>> x = linspace(0,2*pi,500)
     >>> a = rand(500,20,3) + cos(x)[:,None,None] # (nstep, natoms, 3)
-    >>> k=scipy.signal.hanning(21)[:,None,None]
+    >>> k=scipy.signal.hann(21)[:,None,None]
     >>> plot(a[:,0,0], color='0.7'); plot(signal.smooth(a,k)[:,0,0],'r')
 
     References
@@ -520,21 +520,48 @@ def smooth(data, kern, axis=0):
     
     Notes
     -----
+    
+    Kernels:
+
     Even kernels result in shifted signals, odd kernels are better.
     
     Usual kernels (window functions) are created by e.g.
-    ``scipy.signal.hanning(width)``. For ``kern=scipy.signal.gaussian(width,
-    std)``, two values are needed, namely `width` and `std*, where  `width`
+    ``scipy.signal.hann(width)``. For ``kern=scipy.signal.gaussian(width,
+    std)``, two values are needed, namely `width` and `std`, where  `width`
     determines the number of points calculated for the convolution kernel, as
     in the other cases. But what is actually important is `std`, which
     determines the "used width" of the gaussian. Say we use len(data)=100,
-    ``kern=hanning(50)``. That would be a massively wide window and we would
+    ``kern=hann(50)``. That would be a massively wide window and we would
     smooth away all details. OTOH, using ``gaussian(50,3)`` would generate a
     kernel of the same with (i.e. data points), but the gauss peak which is
     effectively used for convolution is much smaller. For ``gaussian()``,
     `width` should be bigger then `std`. The convolved signal will converge
     with increasing `width`. Good values are `width=6*std` and bigger. You may
     want to check that for your signals.
+
+    Memory:
+
+    For big data, fftconvolve() can easily eat up all your memory, for
+    example::
+
+    >>> arr = ones((1e5,200,3)) 
+    >>> kern = scipy.signal.hann(101)
+    >>> ret = scipy.signal.fftconvolve(arr, kern[:,None,None])
+    
+    Then it is better to loop over some or all of the remaing dimensions::
+
+    >>> ret = np.empty_like(arr)
+    >>> for jj in range(arr.shape[1]):
+    ...     ret[:,jj,:] = smooth(arr[:,jj,:], kern[:,None])
+    
+    or::
+    
+    >>> for jj in range(arr.shape[1]):
+    ...     for kk in range(arr.shape[2]):
+    ...         ret[:,jj,kk] = smooth(arr[:,jj,kk], kern) 
+    
+    The size of the chunk over which you explicitely loop depends on the data
+    of course.
     """
     N = data.shape[axis]
     M = kern.shape[axis]
@@ -549,7 +576,7 @@ def smooth(data, kern, axis=0):
     else:        
         sl = slice(M/2+1,-(M/2))
     ret = num.slicetake(ret, sl=sl, axis=axis)        
-    assert ret.shape == data.shape
+    assert ret.shape == data.shape, ("ups, ret.shape != data.shape")
     return ret
 
 
