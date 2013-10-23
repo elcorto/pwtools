@@ -86,6 +86,7 @@ cat > $rsync_excl << EOF
 *.pyc
 *.pyo
 *.pyf
+doc/
 EOF
 $build && echo '*.so' >> $rsync_excl
 rsync -av ../ $tgtdir --exclude-from=$rsync_excl > $logfile 2>&1
