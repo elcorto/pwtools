@@ -85,6 +85,7 @@ def test_traj():
             assert getattr(traj, name) is not None, "attr None: %s" %name
             assert eval('traj.get_%s()'%name) is not None, "getter returns None: %s" %name
     aaae(coords_frac, traj.coords_frac)
+    aaae(coords, traj.coords)
     aaae(cryst_const, traj.cryst_const)
     aaae(np.trace(stress, axis1=1, axis2=2)/3.0, traj.pressure)
     assert traj.coords.shape == (nstep,natoms,3)
@@ -322,4 +323,27 @@ def test_smooth():
         a1 = getattr(trs1, name)
         a2 = getattr(trs2, name)
         assert np.allclose(a1, a2)
+
+
+def test_coords_trans():
+    natoms = 10
+    nstep = 100
+    cell = rand(nstep,3,3)
+    cryst_const = crys.cell2cc3d(cell, axis=0)
+    coords_frac = np.random.rand(nstep,natoms,3)
+    coords = crys.coord_trans3d(coords=coords_frac,
+                                old=cell,
+                                new=num.extend_array(np.identity(3),
+                                                     nstep,axis=0),
+                                axis=1,
+                                timeaxis=0)                                                    
     
+    traj = Trajectory(coords_frac=coords_frac,
+                      cell=cell)
+    assert np.allclose(cryst_const, traj.cryst_const)
+    assert np.allclose(coords, traj.coords)
+    
+    traj = Trajectory(coords=coords,
+                      cell=cell)
+    assert np.allclose(coords_frac, traj.coords_frac)
+

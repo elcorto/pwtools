@@ -40,6 +40,7 @@ def test_struct():
             assert eval('st.get_%s()'%name) is not None, "getter returns None: %s" %name
     aaae(coords_frac, st.coords_frac)
     aaae(cryst_const, st.cryst_const)
+    aaae(coords, st.coords)
     assert st.natoms == natoms
 
     st = Structure(coords_frac=coords_frac,
@@ -129,3 +130,25 @@ def test_get_traj():
             else:
                 attr_st = getattr(st, name)
                 assert_all_types_equal(attr, attr_st)
+
+def test_coord_trans():
+    natoms = 10
+    cell = np.array([[3,0,0],
+                     [1.1,5,-0.04],
+                     [-0.33,1.5,7]])
+    cryst_const = crys.cell2cc(cell)                 
+    coords_frac = rand(natoms,3)
+    coords = crys.coord_trans(coords=coords_frac,
+                              old=cell,
+                              new=np.identity(3))
+    
+    st = crys.Structure(coords=coords, 
+                        cell=cell)
+    assert np.allclose(coords_frac, st.coords_frac)
+    st = crys.Structure(coords_frac=coords_frac, 
+                        cell=cell)
+    assert np.allclose(coords, st.coords)   
+
+    st = crys.Structure(coords=coords, 
+                        cell=cell)
+    assert np.allclose(cryst_const, st.cryst_const)   

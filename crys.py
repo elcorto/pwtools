@@ -2412,7 +2412,6 @@ class Structure(UnitsHandler):
         if not self.is_set_attr('coords'):
             if self.is_set_attr('coords_frac') and \
                self.check_set_attr('cell'):
-                # short-cut to bypass coord_trans() 
                 return np.dot(self.coords_frac, self.cell)
             else:
                 return None
@@ -2423,9 +2422,7 @@ class Structure(UnitsHandler):
         """Fractional coords."""
         if not self.is_set_attr('coords_frac'):
             if self.is_set_attr('coords') and self.check_set_attr('cell'):
-                return coord_trans(coords=self.coords,
-                                   old=np.identity(3),
-                                   new=self.cell)
+                return _flib.cart2frac(self.coords, self.cell)
             else:
                 return None
         else:
@@ -2852,15 +2849,7 @@ class Trajectory(Structure):
                     str(req_shape_coords_frac)))
                 assert self.cell.shape == (nstep,3,3), ("shape mismatch: "
                     "cell: %s, coords_frac: %s" %(self.cell.shape, self.coords_frac.shape))
-                # Can use dot() directly if we special-case fixed-cell and use
-                # cell = 2d array                    
-                arr = coord_trans3d(self.coords_frac,
-                                    old=self.cell,
-                                    new=self._extend_array(np.identity(3), 
-                                                           nstep=nstep),
-                                    axis=1,
-                                    timeaxis=self.timeaxis)
-                return arr
+                return _flib.frac2cart_traj(self.coords_frac, self.cell)
             else:
                 return None
         else:
@@ -2877,13 +2866,7 @@ class Trajectory(Structure):
                     str(req_shape_coords)))
                 assert self.cell.shape == (nstep,3,3), ("shape mismatch: "
                     "cell: %s, coords: %s" %(self.cell.shape, self.coords.shape))
-                arr = coord_trans3d(self.coords,
-                                    old=self._extend_array(np.identity(3),
-                                                           nstep=nstep),
-                                    new=self.cell,
-                                    axis=1,
-                                    timeaxis=self.timeaxis)
-                return arr
+                return _flib.cart2frac_traj(self.coords, self.cell)                                    
             else:
                 return None
         else:
