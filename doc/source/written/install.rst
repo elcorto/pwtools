@@ -20,7 +20,8 @@ Add-on packages / other required tools
 
 On Debian:: 
 
-    aptitude install python-numpy python-scipy python-nose python-dev python-h5py gfortran python-beautifulsoup python-matplotlib
+    aptitude install python-numpy python-scipy python-nose python-dev python-h5py gfortran \
+                     python-beautifulsoup python-matplotlib liblapack3 
 
 Must have:    
 
@@ -29,6 +30,7 @@ Must have:
 * nose (for running tests in test/)
 * python headers (development files for compiling Fortran extension)  
 * Fortran compiler (e.g. gfortran will do fine)
+* Blas and Lapack (for ``flib.f90``)
 * Unix tools: grep, sed, awk, tail, wc (for :mod:`~pwtools.parse`); gzip/gunzip (for
   ``test/``)
 

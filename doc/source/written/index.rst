@@ -5,6 +5,7 @@
    fextensions
    units
    phonon_dos
+   coord_trans
    pwscf
    tutorial
    refs

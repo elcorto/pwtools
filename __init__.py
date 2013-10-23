@@ -13,7 +13,6 @@ __all__ = [\
     'decorators',
     'eos',
     'ffnet',
-    'flib_wrap',
     'io',
     'kpath',
     'mpl',

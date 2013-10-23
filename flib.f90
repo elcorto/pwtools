@@ -4,10 +4,9 @@
 !
 ! Compilation / usage
 ! -------------------
-! See Makefile for compilation, pydos.fvacf() and flib_wrap.py usage.
+! See Makefile for compilation.
 !
-! You may use the f2py Python wrapper function directly as _flib.<function>(...)
-! or the top-level wrapper, e.g. in flib_wrap.py if there is one.
+! Use the f2py Python wrapper function directly as _flib.<function>(...)
 !
 ! To see the function signature of the f2py wrapper function, do:
 !   $ python -c 'from pwtools import _flib; print _flib.<function>.__doc__'
@@ -39,13 +38,13 @@
 ! contrast to Python fuctions, which usually only take input args and allocate
 ! all return args on the fly inside and return them.
 !
-! In f2py, all to a subroutine are "!f2py intent(in)" by default.
+! In f2py, all args to a subroutine are "!f2py intent(in)" by default.
 !
 ! All variables declared as "intent(out) foo" will be returned in a tuple (if
 ! there is more then one). Note that there must be one "intent(out)" line for
 ! *each* arg. Also, the order in the tuple is the one of the input args.
 !
-! There are basically two ways of wrapping a subroutine: 
+! There are basically 2 (well, 2.5) ways of wrapping a subroutine: 
 !
 ! (1) the python wrapper doesn't pre-allocate and pass result arrays. The
 ! Fortran routine looks like this::
@@ -67,8 +66,11 @@
 ! It takes only the inputs `a` and `b` and well as `n` as optional arg, which is
 ! determined from `a` and `b`'s array dimension if not given. This is the most
 ! easy and pythonic way. In that case, the output arrays `c` and `d` are
-! allocated in Fortran in F order, and copied to C order when the fuction
-! returns. Note that you don't need to pass them when calling the wrapper.
+! allocated in Fortran in F order. Note that you don't need to pass them when
+! calling the wrapper.
+!
+! Note: It used to be that `c` and `d` are copied to C order when the f2py
+! wrapper function returns. But see method 3 below!
 !
 ! (2) Explicitely allocate result arrays on python side and pass in. 
 !
@@ -94,11 +96,36 @@
 !     d = np.empty(..., order='F')
 !
 !     _flib(a,b,c,d)                # variant A
-!     c,d = _flib(a,b,c,d)          # varaint B
+!     c,d = _flib(a,b,c,d)          # variant B
 !
+! 
+! (3) Don't use f2py comment lines and get F order arrays back without passing
+! them in.
 !
-! C/F-order arrays and copies
-! ---------------------------
+! Last time I checked (numpy 1.7.1) and with a prototype *without* special f2py
+! comment lines, `c` and `d` are allocated in Fortran and also passed back to
+! Python as order='F' arrays, i.e. without making a copy to C order.
+!
+!     subroutine foo(a, b, c, d, n)
+!         implicit none
+!         integer :: n
+!         double precision, intent(in) :: a(n,n), b(n,n) 
+!         double precision, intent(out) :: c(n,n), d(n,n)
+!         c = matmul(a,b)
+!         d = matmul(a,b)*2.0d0
+!     end subroutine foo
+! 
+! and the f2py wrapper signature as in case (1)::
+!
+!      c,d = foo(a,b,[n]) 
+! 
+! This is the best version b/c we don't need to explicitely allocate `c` and `d`
+! in F order in Python and pass in + we get F order arrys back w/o a copy. This
+! is cool as long as we don't need C-order arrays in Python.
+!
+! C/F-order arrays and copies (method 1 and 2 only)
+! -------------------------------------------------
+! 
 ! By default, the f2py wrapper will make a copy of each numpy input array which
 !
 !   * has rank >= 2
@@ -116,6 +143,11 @@
 ! (in,out,overwrite)". The latter case will add an arg ``overwrite_foo`` which
 ! defaults to 1 (True). If input arrays are small, passing them as C order might
 ! be OK.
+!
+! As mentioned, also method (3) doesn't make any copy if all input arrays (a and
+! b) are F-order. No need to do anything with c and d here. This seems to be
+! the best solution currently. Maybe we should check the f2py changelog more
+! often ...
 
 #define stdout 6
 #define stderr 0
@@ -516,3 +548,86 @@ subroutine distances_traj(coords_frac, cell, pbc, natoms, nstep, dists)
     !$omp end do
     !$omp end parallel
 end subroutine distances_traj
+
+
+subroutine solve(aa, bb, nn, xx)
+    ! Solve linear system a*x=b. 
+    ! 
+    ! Parameters
+    ! ----------
+    ! aa : (nn,nn)
+    ! bb : (nn,)
+    ! nn : int
+    ! xx : (nn,)
+    !   result array
+    !
+    ! Notes
+    ! -----
+    ! Only shape(x) = shape(b) = nn, i.e. only one right hand side. This is only
+    ! for testing if we use dgesv() right.
+    !
+    implicit none
+    integer :: nn
+    double precision, intent(in) :: aa(nn,nn), bb(nn)
+    double precision, intent(out) :: xx(nn)
+    integer :: ipiv(nn), info
+    
+    ! Make a copy of bb b/c that will be overwritten in dgesv(). Not sure if
+    ! this is the Fortran way to do it. But the Pyhon wrapper works and doesn't
+    ! overwrite `bb`.
+    xx(:) = bb(:)
+    call dgesv(nn, 1, aa, nn, ipiv, xx, nn, info)
+end subroutine solve
+
+
+subroutine frac2cart(coords_frac, cell, natoms, coords)
+    implicit none
+    integer :: ii, jj, natoms
+    double precision, intent(in) :: coords_frac(natoms, 3), cell(3,3)
+    double precision, intent(out) :: coords(natoms, 3)
+
+    do ii=1,natoms
+        ! same as: matmul(transpose(cell), coords_frac(ii,:))
+        coords(ii,:) = matmul(coords_frac(ii,:), cell)
+    end do        
+end subroutine frac2cart
+
+
+subroutine cart2frac(coords, cell, natoms, coords_frac)
+    implicit none
+    integer :: natoms, ipiv(3), info
+    double precision, intent(in) :: coords(natoms, 3), cell(3,3)
+    double precision, intent(out) :: coords_frac(natoms, 3)
+    double precision :: wrk(3,natoms)
+    
+    ! solve for all `natoms` RHS at once 
+    wrk = transpose(coords)
+    call dgesv(3, natoms, transpose(cell), 3, ipiv, wrk, 3, info)
+    coords_frac = transpose(wrk)
+end subroutine cart2frac
+
+
+subroutine frac2cart_traj(coords_frac, cell, nstep, natoms, coords)
+    implicit none
+    integer :: ii, natoms, nstep
+    double precision, intent(in) :: coords_frac(nstep, natoms, 3), cell(nstep, 3,3)
+    double precision, intent(out) :: coords(nstep, natoms, 3)
+
+    do ii=1,nstep
+        call frac2cart(coords_frac(ii,:,:), cell(ii,:,:), natoms, &
+                        coords(ii,:,:))
+    end do        
+end subroutine frac2cart_traj
+
+
+subroutine cart2frac_traj(coords, cell, nstep, natoms, coords_frac)
+    implicit none
+    integer :: ii, natoms, nstep
+    double precision, intent(in) :: coords(nstep, natoms, 3), cell(nstep, 3,3)
+    double precision, intent(out) :: coords_frac(nstep, natoms, 3)
+
+    do ii=1,nstep
+        call cart2frac(coords(ii,:,:), cell(ii,:,:), natoms, &
+                        coords_frac(ii,:,:))
+    end do        
+end subroutine cart2frac_traj

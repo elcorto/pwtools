@@ -10,6 +10,7 @@ F2PY_FLAGS=--opt='-O3' \
 			--f90flags="$(F90FLAGS) $(OMP_F90_FLAGS)" \
 			--f77flags="$(F90FLAGS) $(OMP_F90_FLAGS)" \
 			$(F2PY_OMP_F90_FLAGS) \
+			-llapack \
 ##			-DF2PY_REPORT_ON_ARRAY_COPY=1 \
 
 OMP_F90_FLAGS=
@@ -23,7 +24,7 @@ ifort-omp: OMP_F90_FLAGS=-openmp -D__OPENMP -D__SF45_INNER
 ifort-omp: F2PY_OMP_F90_FLAGS=-liomp5
 
 gfortran: F90=gfortran
-gfortran: F90FLAGS=-x f95-cpp-input 
+gfortran: F90FLAGS=-x f95-cpp-input
 gfortran: ARCH=-mmmx -msse2
 gfortran-omp: OMP_F90_FLAGS=-fopenmp -D__OPENMP -D__SF45_INNER
 gfortran-omp: F2PY_OMP_F90_FLAGS=-lgomp
