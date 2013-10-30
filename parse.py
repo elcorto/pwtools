@@ -700,10 +700,10 @@ class PwSCFOutputFile(StructureFileParser):
     def _get_stress_raw(self):
         verbose("getting _stress_raw")
         key = 'P='
-        cmd = "grep %s %s | wc -l" %(key, self.filename)
+        cmd = "grep -c %s %s" %(key, self.filename)
         nstep = nstep_from_txt(com.backtick(cmd))
         cmd = "grep -A3 '%s' %s | grep -v -e %s -e '--'| \
-              awk '{printf $4\"  \"$5\"  \"$6\"\\n\"}'" \
+              awk '{print $4\"  \"$5\"  \"$6}'" \
               %(key, self.filename, key)
         return traj_from_txt(com.backtick(cmd), 
                              shape=(nstep,3,3),
@@ -721,7 +721,7 @@ class PwSCFOutputFile(StructureFileParser):
         # nstep: get it from outfile b/c the value in any input file will be
         # wrong if the output file is a concatenation of multiple smaller files
         key = r'Forces\s+acting\s+on\s+atoms.*$'
-        cmd = r"egrep '%s' %s | wc -l" %(key.replace(r'\s', r'[ ]'), self.filename)
+        cmd = r"egrep -c '%s' %s" %(key.replace(r'\s', r'[ ]'), self.filename)
         nstep = nstep_from_txt(com.backtick(cmd))
         # Need to split traj_from_txt() up into loadtxt() + arr2d_to_3d() b/c
         # we need to get `nlines` first without an additional "grep ... | wc
@@ -932,11 +932,11 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
             # nstep: get it from outfile b/c the value in any input file will be
             # wrong if the output file is a concatenation of multiple smaller files
             key = 'ATOMIC_POSITIONS'
-            cmd = 'grep %s %s | wc -l' %(key, self.filename)
+            cmd = 'grep -c %s %s' %(key, self.filename)
             nstep = nstep_from_txt(com.backtick(cmd))
             # coords
             cmd = "grep -A%i '%s' %s | grep -v -e %s -e '--' | \
-                  awk '{printf $2\"  \"$3\"  \"$4\"\\n\"}'" \
+                  awk '{print $2\"  \"$3\"  \"$4}'" \
                   %(natoms, key, self.filename, key)
             return traj_from_txt(com.backtick(cmd), 
                                  shape=(nstep,natoms,3),
@@ -954,7 +954,7 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
         verbose("getting _cell")
         # nstep
         key = 'CELL_PARAMETERS'
-        cmd = 'grep %s %s | wc -l' %(key, self.filename)
+        cmd = 'grep -c %s %s' %(key, self.filename)
         nstep = nstep_from_txt(com.backtick(cmd))
         # cell            
         cmd = "grep -A3 %s %s | grep -v -e %s -e '--'" %(key, self.filename, key)
@@ -1290,14 +1290,14 @@ class CpmdSCFOutputFile(StructureFileParser):
     
     def get_natoms(self):
         """Number of atoms. Apparently only printed as "NUMBER OF ATOMS ..." in
-        the SCF case, not in MD. So we use wc -l on the GEOMETRY file, which
+        the SCF case, not in MD. So we use "grep -c" on the GEOMETRY file, which
         has `natoms` lines (normally) and 6 colunms. Sometimes (so far seen in
         variable cell calcs) there are some additional lines w/ 3 columns,
         which we skip."""
         verbose("getting natoms")
         fn = os.path.join(self.basedir, 'GEOMETRY')
         if os.path.exists(fn):
-            cmd = "egrep '([0-9][ ]+.*){5,}' %s | wc -l" %fn
+            cmd = "egrep -c '([0-9][ ]+.*){5,}' %s" %fn
             return int_from_txt(com.backtick(cmd))
         else:
             return None
@@ -1543,7 +1543,7 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
             ncols = 7
             fn = fn_tr
         if have_file:
-            cmd = "grep -v '<<<<' %s | wc -l | awk '{print $1}'" %fn
+            cmd = "grep -c -v '<<<<' %s" %fn
             nlines = int_from_txt(com.backtick(cmd))
             nstep = float(nlines) / float(self.natoms)
             assert nstep % 1.0 == 0.0, (str(self.__class__) + \
@@ -1581,7 +1581,7 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
         if os.path.exists(fn):
             cmd = "head -n2 %s | tail -n1 | wc | awk '{print $2}'" %fn
             ncols = int_from_txt(com.backtick(cmd))
-            cmd = "grep 'CELL PARAMETERS' %s | wc -l" %fn
+            cmd = "grep -c 'CELL PARAMETERS' %s" %fn
             nstep = int_from_txt(com.backtick(cmd))
             cmd = "grep -A3 'CELL PARAMETERS' %s | grep -v 'CELL'" %fn
             arr = traj_from_txt(com.backtick(cmd), 
@@ -1681,7 +1681,7 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
         verbose("getting stress")
         fn = os.path.join(self.basedir, 'STRESS')
         if os.path.exists(fn):
-            cmd = "grep 'TOTAL STRESS' %s | wc -l" %fn
+            cmd = "grep -c 'TOTAL STRESS' %s" %fn
             nstep = int_from_txt(com.backtick(cmd))
             cmd = "grep -A3 'TOTAL STRESS TENSOR' %s | grep -v TOTAL" %fn
             return traj_from_txt(com.backtick(cmd), 
@@ -1839,11 +1839,11 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
     
     def _cp2k_xyz2arr(self, fn):
         """Parse cp2k style XYZ files and return the 3d array."""
-        cmd = "grep 'i = .*E =' %s | wc -l" %fn
+        cmd = "grep -c 'i = .*E =' %s" %fn
         nstep = nstep_from_txt(com.backtick(cmd))
         natoms = int_from_txt(com.backtick("head -n1 %s" %fn))
         cmd = "awk '!/i =.*E =|^[ ]+[0-9]+/ \
-            {printf $2\" \"$3\" \"$4\"\\n\"}' %s" %fn
+            {print $2\" \"$3\" \"$4}' %s" %fn
         assert self.timeaxis == 0
         return np.fromstring(common.backtick(cmd), sep=' ').reshape(nstep,natoms,3)
 
