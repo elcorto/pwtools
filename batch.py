@@ -722,3 +722,18 @@ def default_repl_keys():
            'Machine' : m.get_sql_record().keys()}
     shutil.rmtree(calc_root)
     return ret
+
+class Case(object):
+    """General purpose container class, supporting only keywords in the
+    constructor.
+    
+    Examples
+    --------
+    >>> case1 = Case(foo=1, bar=2)
+    >>> case2 = Case(foo=11, bar=22)
+    >>> for case in [case1, case2]: print case.foo, case.bar
+    """
+    def __init__(self, **kwds):
+        for k,v in kwds.iteritems():
+            setattr(self, k, v)
+
