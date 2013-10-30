@@ -38,36 +38,55 @@ import numpy as np
 from pwtools import num
 warnings.simplefilter('always')
 
+
 # define types, could probably also use the types module
 arr_t = type(np.array([1.0]))
 dict_t = type({'1': 1})
 float_t = type(1.0)
 int_t = type(1)
 
+
 def msg(txt):
     """Uncomment for debugging if tests fail."""
     print(txt)
 ##    pass
 
+
 def err(txt):
     print('error: ' + txt)
 
+
+def true_or_false(cond):
+    if cond:
+        print ".. ok"
+        return True
+    else:
+        print ".. uuhhhh, FAIL!"
+        return False
+
+
+# Basic comparison functions.
+#
 def default_equal(a, b):
-    return a == b
+    return true_or_false(a == b)
+
 
 def array_equal(a,b):
-    return (a==b).all()
+    return true_or_false((a==b).all())
 
 
 def array_almost_equal(a, b, **kwds):
-    return np.allclose(a, b, **kwds)
+    return true_or_false(np.allclose(a, b, **kwds))
 
 
 class AllTypesFactory(object):
-    """Factory for creating functions which compare "any" type. We need a dict
-    `comp_map` which maps types (result of ``type(foo)``) to a comparison
-    function for that type which returns True or False and is called like
-    ``comp_map[<type>](a,b)``. Also a ``comp_map['default']`` entry is needed.
+    """Factory for creating functions which compare "any" type. 
+    
+    We need a dict `comp_map` which maps types (result of ``type(foo)``) to a
+    comparison function for that type which returns True or False and is called
+    like ``comp_map[<type>](a,b)``. Also a ``comp_map['default']`` entry is
+    needed. This is used for all cases where no entry ``comp_map[<type>]`` for
+    a given type can be found.
     """
     def __init__(self, comp_map={}):
         """
@@ -110,34 +129,6 @@ class AllTypesFactory(object):
         msg("AllTypesFactory: type=default, comp_func=%s" \
               %str(comp_func))
         return comp_func(d1, d2)          
-
-
-class AssertFactory(object):
-    """Factory for comparison functions which simply do ``assert
-    comp_func(*args, **kwds)``."""
-    def __init__(self, comp_func=None):
-        self.comp_func = comp_func
-    
-    def __call__(self, *args, **kwds):
-        assert self.comp_func(*args, **kwds)
-
-
-# comp maps for AllTypesFactory, without dicts
-comp_map_no_dict_equal = {\
-    arr_t: array_equal,
-    'default': default_equal,
-    }
-
-comp_map_no_dict_almost_equal = {\
-    arr_t: array_almost_equal,
-    int_t: array_almost_equal,
-    float_t: array_almost_equal,
-    'default': default_equal,
-    }
-
-# compare all types, but no dicts
-all_types_no_dict_equal = AllTypesFactory(comp_map=comp_map_no_dict_equal)
-all_types_no_dict_almost_equal = AllTypesFactory(comp_map=comp_map_no_dict_almost_equal)
 
 
 class DictWithAllTypesFactory(object):
@@ -216,6 +207,35 @@ def assert_attrs_not_none(pp, attr_lst=None, none_attrs=[]):
         if name not in none_attrs:
             assert attr is not None, "FAILED: obj: %s attr: %s is None" \
                 %(str(pp), name)
+
+
+class AssertFactory(object):
+    """Factory for comparison functions which simply do ``assert
+    comp_func(*args, **kwds)``."""
+    def __init__(self, comp_func=None):
+        self.comp_func = comp_func
+    
+    def __call__(self, *args, **kwds):
+        assert self.comp_func(*args, **kwds)
+
+
+# comp maps for AllTypesFactory, without dicts
+comp_map_no_dict_equal = {\
+    arr_t: array_equal,
+    'default': default_equal,
+    }
+
+comp_map_no_dict_almost_equal = {\
+    arr_t: array_almost_equal,
+    int_t: array_almost_equal,
+    float_t: array_almost_equal,
+    'default': default_equal,
+    }
+
+# compare all types, but no dicts
+all_types_no_dict_equal = AllTypesFactory(comp_map=comp_map_no_dict_equal)
+all_types_no_dict_almost_equal = AllTypesFactory(comp_map=comp_map_no_dict_almost_equal)
+
 
 # compare dicts with any type as values, dict values cause recusion until a
 # non-dict is found, that is the compared with comp_func
