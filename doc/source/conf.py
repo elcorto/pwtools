@@ -54,7 +54,8 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.coverage',
 # inserted.
 ##autoclass_content = 'both'
 
-autodoc_default_flags = ['members', 'show-inheritance', 'special-members']
+autodoc_default_flags = ['members', 'show-inheritance', 'special-members',
+                         'no-inherited-members']
 ##autodoc_default_flags = ['members']
 
 autosummary_generate = True

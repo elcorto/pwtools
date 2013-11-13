@@ -42,18 +42,23 @@ Almost must have:
   when the CifFile module from the pycifrw package is imported. There is a
   patched version from [pwextern-free]_, which deals with that.
   Note that recent versions of PyCifRW may already include that fix, so first
-  try that. Hint: goolge for "pycifrw" :)
-* eos (for :mod:`~pwtools.eos`): The tool "eos" from the Elk code [elk]_ must be on your
-  path. Note that the executable is assumed to be named "eos.x". See
-  :class:`pwtools.eos.ElkEOSFit` for usage. Can be installed directly from Elk or
-  also [pwextern-free]_.
-* h5py
+  try that. Hint: google for "pycifrw" :)
+* eos (for :mod:`~pwtools.eos`): The tool "eos" from the Elk code [elk]_ must
+  be on your path. Note that the executable is assumed to be named "eos.x"
+  instead of the default name "eos". See :class:`pwtools.eos.ElkEOSFit` for
+  usage. Can be installed directly from Elk or also [pwextern-free]_.
+* h5py: only for some functions in :mod:`~pwtools.io.` currently
+* pyspglib [spglib]_
 
-Without BeautifulSoup and PyCifRW, you will get import warnings, some parsing
-classes and IO functions will not work (Cif and CML parsing currently) and some
-tests will fail. If you don't need that functionality, uncomment the warnings
-and import statements at the top of :mod:`~pwtools.parse` and :mod:`~pwtools.io`.
-Without ``eos``, :mod:`pwtools.eos.ElkEOSFit` and related tests won't work.
+Effects of missig dependencies:
+
+* BeautifulSoup and PyCifRW: You will get import warnings, some parsing
+  classes and IO functions will not work (Cif and CML parsing currently) and some
+  tests will fail. If you don't need that functionality, uncomment the warnings
+  and import statements at the top of :mod:`~pwtools.parse` and :mod:`~pwtools.io`.
+* eos: :mod:`pwtools.eos.ElkEOSFit` and related tests won't work.
+* spglib: some symmetry finding functions in :mod:`~pwtools.symmetry` won't
+  work
 
 Suggested:
 

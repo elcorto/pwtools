@@ -8,6 +8,17 @@ rand = np.random.rand
 
 # We assume all lengths in Angstrom. Only importans for ASE comparison.
 
+def get_rand_struct():
+    natoms = 10
+    symbols = ['H']*natoms
+    st = Structure(coords_frac=rand(natoms,3),
+                   symbols=symbols,
+                   forces=rand(natoms,3),
+                   cell=rand(3,3),
+                   etot=3.14,
+                   stress=rand(3,3))
+    return st
+
 def test_struct():
     natoms = 10
     cell = np.array([[3,0,0],
@@ -152,3 +163,17 @@ def test_coord_trans():
     st = crys.Structure(coords=coords, 
                         cell=cell)
     assert np.allclose(cryst_const, st.cryst_const)   
+
+
+def test_get_fake_ase_atoms():
+    st = get_rand_struct()
+    atoms = st.get_fake_ase_atoms()
+    assert (st.coords_frac == atoms.get_scaled_positions()).all()
+    assert (st.cell == atoms.get_cell()).all()
+    assert (atoms.get_atomic_numbers() == np.array(st.get_znucl())).all()
+
+
+def test_znucl():
+    st = Structure(symbols=['Al']*2 + ['N']*3)
+    assert st.znucl == [13]*2 + [7]*3
+    assert st.znucl_unique == [13,7]

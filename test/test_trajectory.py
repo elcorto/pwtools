@@ -166,6 +166,7 @@ def test_traj():
         'typat',
         'velocity',
         'znucl',
+        'znucl_unique',
         ]
     for name in not_none_attrs:
         assert getattr(traj, name) is not None, "attr None: %s" %name

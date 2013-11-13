@@ -14,9 +14,9 @@ from pwtools.decorators import crys_add_doc
 from pwtools.base import FlexibleGetters
 from pwtools.constants import Bohr, Angstrom
 from pwtools.num import fempty, rms, rms3d, match_mask
-
 import warnings
 warnings.simplefilter('always')
+
 
 #-----------------------------------------------------------------------------
 # misc math
@@ -2241,7 +2241,7 @@ class Structure(UnitsHandler):
     {'Al': 1, 'N': 2}
     >>> st.typat
     [2, 1, 1, 1, 2, 2, 1]
-    >>> st.znucl
+    >>> st.znucl_unique
     [13, 7]
     >>> st.nspecies
     {'Al': 4, 'N': 3}
@@ -2289,6 +2289,7 @@ class Structure(UnitsHandler):
         'symbols_unique',
         'order',
         'typat',
+        'znucl_unique',
         'znucl',
         'ntypat',
         'nspecies',
@@ -2300,6 +2301,7 @@ class Structure(UnitsHandler):
     # get_<attr>() them by default
     extra_attr_lst = [\
         'ase_atoms',
+        'fake_ase_atoms',
         ]
     
     is_struct = True
@@ -2429,20 +2431,23 @@ class Structure(UnitsHandler):
             return self.coords_frac
     
     def get_symbols(self):
-        """Return list of atomic symbols."""
+        """List of atomic symbols."""
         return self.symbols
     
     def get_forces(self):
-        """Return forces (natoms,3)."""
+        """Forces (natoms,3)."""
         return self.forces
 
     def get_stress(self):
+        """Stress tensor (3,3)"""
         return self.stress
 
     def get_etot(self):
+        """Total anergy."""
         return self.etot
 
     def get_cell(self):
+        """Unit cell (3,3)"""
         if not self.is_set_attr('cell'):
             if self.is_set_attr('cryst_const'):
                 return cc2cell(self.cryst_const)
@@ -2452,6 +2457,7 @@ class Structure(UnitsHandler):
             return self.cell
     
     def get_cryst_const(self):
+        """[a,b,c,alpha,beta,gamma]"""
         if not self.is_set_attr('cryst_const'):
             if self.is_set_attr('cell'):
                 return cell2cc(self.cell)
@@ -2481,6 +2487,10 @@ class Structure(UnitsHandler):
         ----------
         **kwds : 
             additional keywords passed to the Atoms() constructor.
+        
+        See Also
+        --------
+        :meth:`get_fake_ase_atoms`
 
         Notes
         -----
@@ -2488,6 +2498,8 @@ class Structure(UnitsHandler):
         ``atoms.scaled_positions`` (we don't want that for MD structures, for
         instance). If you need the pbc flag in your Atoms object, then use::
         
+        >>> # Note that the `pbc` flag is passed to ase.Atoms, so you can use
+        >>> # whatever that accepts, like pbc=[1,1,1] etc. 
         >>> atoms=struct.get_ase_atoms(pbc=True)
         >>> # or 
         >>> atoms=struct.get_ase_atoms()
@@ -2510,6 +2522,12 @@ class Structure(UnitsHandler):
             return at                
         else:
             return None
+    
+    def get_fake_ase_atoms(self):
+        """FakeASEAtoms instance representing this Structure."""
+        return FakeASEAtoms(scaled_positions=self.get_coords_frac(),
+                            cell=self.get_cell(),
+                            symbols=self.get_symbols())
 
     def get_symbols_unique(self):
         return np.unique(self.symbols).tolist() if \
@@ -2528,9 +2546,21 @@ class Structure(UnitsHandler):
         else:
             return None
     
-    def get_znucl(self):
+    def get_znucl_unique(self):
+        """Unique atomic numbers, e.g. [13,7] for
+        symbols=['Al','Al','N',N'].
+        """
         if self.check_set_attr('symbols_unique'):
-            return [atomic_data.pt[sym]['number'] for sym in self.symbols_unique]
+            return [atomic_data.numbers[sym] for sym in self.symbols_unique]
+        else:
+            return None
+
+    def get_znucl(self):
+        """All atomic numbers, e.g. [13,13,7,7] for
+        symbols=['Al','Al','N',N'].
+        """
+        if self.check_set_attr('symbols'):
+            return [atomic_data.numbers[sym] for sym in self.symbols]
         else:
             return None
 
@@ -2541,6 +2571,7 @@ class Structure(UnitsHandler):
             return None
     
     def get_nspecies(self):
+        """Number of distinct atomic symbols."""
         if self.check_set_attr_lst(['order', 'typat']):
             return dict([(sym, self.typat.count(idx)) for sym, idx in 
                          self.order.iteritems()])
@@ -2936,6 +2967,27 @@ def struct2traj(obj):
         return obj
     else:
         return obj.get_traj(nstep=1)
+
+
+class FakeASEAtoms(Structure):
+    """Mimic the basic behavior of ``ase.Atoms``. 
+
+    Used for ``spglib``.
+    """
+    def __init__(self, scaled_positions=None, cell=None, symbols=None):
+        super(FakeASEAtoms, self).__init__(coords_frac=scaled_positions,
+                                           cell=cell,
+                                           symbols=symbols)
+        self.get_scaled_positions = self.get_coords_frac
+        self.get_positions = self.get_coords
+        self.get_number_of_atoms = self.get_natoms
+
+    def get_magnetic_moments(self):
+        return None
+
+    def get_atomic_numbers(self):
+        return np.array(self.get_znucl())
+
 
 class RandomStructureFail(Exception):
     def __init__(self, msg):

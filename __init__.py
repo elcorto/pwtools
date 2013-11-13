@@ -26,6 +26,7 @@ __all__ = [\
     'signal',
     'sql',
     'symfunc',
+    'symmetry',
     'thermo',
     'timer',
     'verbose',

@@ -727,6 +727,8 @@ def backtick(call):
 #-----------------------------------------------------------------------------
 
 def cpickle_load(filename):
+    """Load object written by ``cPickle.dump()``.
+    """
     return cPickle.load(open(filename, 'rb'))
 
 #-----------------------------------------------------------------------------
