@@ -4,6 +4,7 @@ import numpy as np
 from pwtools.crys import Structure, Trajectory
 from pwtools import crys, constants
 from pwtools.test.tools import aaae, assert_all_types_equal
+from pwtools.test import tools
 rand = np.random.rand
 
 # We assume all lengths in Angstrom. Only importans for ASE comparison.
@@ -177,3 +178,29 @@ def test_znucl():
     st = Structure(symbols=['Al']*2 + ['N']*3)
     assert st.znucl == [13]*2 + [7]*3
     assert st.znucl_unique == [13,7]
+
+def test_mix():
+    symbols = ['H']*3 + ['Au']*7
+    natoms = len(symbols)
+    st1 = Structure(coords_frac=rand(natoms,3),
+                    symbols=symbols,
+                    cell=rand(3,3))
+    st2 = Structure(coords_frac=rand(natoms,3),
+                    symbols=symbols,
+                    cell=rand(3,3))
+
+    tr = crys.mix(st1, st2, alpha=np.linspace(0,1,20))
+    assert tr.nstep == 20
+    assert tr.coords_frac.shape == (20, st1.natoms, 3)
+    
+    for idx,st in [(0,st1), (-1, st2)]:
+        tools.assert_dict_with_all_types_almost_equal(st.__dict__,
+                                                      tr[idx].__dict__,
+                                                      keys=st1.attr_lst)
+    for x in [0.5, 0.9]:
+        tr = crys.mix(st1, st2, alpha=np.array([x]))
+        assert tr.nstep == 1
+        tools.assert_all_types_almost_equal(tr[0].coords, (1-x)*st1.coords + x*st2.coords)
+        tools.assert_all_types_almost_equal(tr[0].cell, (1-x)*st1.cell + x*st2.cell)
+
+

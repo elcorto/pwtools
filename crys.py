@@ -3410,3 +3410,36 @@ def smooth(traj, kern, method=1):
     out.set_all()                
     return out
 
+
+def mix(st1, st2, alpha):
+    """Linear interpolation between two Structures based on the numbers in
+    `alpha`. Returns a :class:`Trajectory`.
+    
+    Mix two structures as (1-alpha)*st1 + alpha*st2. `coords` and `cell` are
+    used.
+
+    Parameters
+    ----------
+    st1, st2 : Structures
+    alpha : 1d sequence
+        parameter values for mixing
+
+    Returns
+    -------
+    tr : Trajectory
+        tr.nstep == len(alpha)
+
+    Examples
+    --------
+    >>> mix(st1, st2, linspace(0,1,50))
+    """
+    assert st1.coords.ndim == 2
+    assert st1.cell.ndim == 2
+    assert st1.coords.shape == st2.coords.shape
+    assert st1.symbols == st2.symbols
+    coords = np.empty_like(st1.coords)
+    cell = np.empty_like(st1.cell)
+    rr = alpha[:,None,None]
+    coords = rr * st2.coords[None,:,:] + (1.0 - rr) * st1.coords[None,:,:]
+    cell = rr * st2.cell[None,:,:] + (1.0 - rr) * st1.cell[None,:,:]
+    return Trajectory(coords=coords, cell=cell, symbols=st1.symbols)
