@@ -1,6 +1,6 @@
 # thermo.py
 #
-# (Quasi)harmonic approximation.
+# (Quasi)harmonic approximation. Thermal expansion tools.
 
 import numpy as np
 from scipy.integrate import simps, trapz
@@ -624,3 +624,72 @@ class Gibbs(object):
                 ret['/#opt/T/P/Cp'][:,pidx] = -self.T * fit(self.T, der=2)
         return ret                
 
+
+def debye_func(x, nstep=100, zero=1e-8):
+    """Debye function
+
+    :math:`f(x) = 3 \int_0^1 t^3 / [\exp(t x) - 1] dt`
+    
+    Parameters
+    ----------
+    x : float or 1d array
+    nstep : int
+        number of points for integration
+    zero : float
+        approximate the 0 in the integral by this (small!) number
+    """    
+    x = np.atleast_1d(x)
+    if x.ndim == 1:
+        x = x[:,None]
+    else:
+        raise StandardError("x is not 1d array")
+    tt = np.linspace(zero, 1.0, nstep)
+    return 3.0 * trapz(tt**3.0 / (np.exp(tt*x) - 1.0), tt, axis=1)
+
+
+def einstein_func(x):
+    """Einstein function 
+    
+    :math:`f(x) = 1 / [ \exp(x) - 1 ]`
+    
+    Parameters
+    ----------
+    x : float or 1d array
+    """
+    x = np.atleast_1d(x)
+    return 1.0 / (np.exp(x) - 1.0)
+
+
+def expansion(temp, alpha, theta, x0=1.0, func=debye_func):
+    """Calculate thermal expansion according to the model in `func`.
+     
+    Parameters
+    ----------
+    temp : array_like 
+        temperature
+    alpha : float
+        high-T limit expansion coeff
+    theta
+        Debye or Einstein temperature
+    x0 : float
+        axis length at T=0
+    func : callable
+        Usually :func:`debye_func` or :func:`einstein_func`
+    
+    Examples
+    --------
+    >>> # thermal expansion coeff alpha_x = 1/x(T) * dx/dT
+    >>> from pwtools.thermo import expansion, debye_func, einstein_func
+    >>> from pwtools import num
+    >>> T=linspace(5,2500,100)
+    >>> for zero in [1e-3, 1e-8]:
+    >>>     x = expansion(T, 5e-6, 1200, 3, lambda x: debye_func(x,zero=zero)) 
+    >>>     plot(T, num.deriv_spl(x, T, n=1)/x)
+    >>> x = expansion(T, 5e-6, 1200, 3, einstein_func) 
+    >>> plot(T, num.deriv_spl(x, T, n=1)/x)
+    
+    References
+    ----------
+    [1] Figge et al., Appl. Phys. Lett. 94, 101915 (2009)
+    """
+    return x0 * (1.0 + alpha * theta * func(theta / temp))
