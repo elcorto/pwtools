@@ -3443,3 +3443,74 @@ def mix(st1, st2, alpha):
     coords = rr * st2.coords[None,:,:] + (1.0 - rr) * st1.coords[None,:,:]
     cell = rr * st2.cell[None,:,:] + (1.0 - rr) * st1.cell[None,:,:]
     return Trajectory(coords=coords, cell=cell, symbols=st1.symbols)
+
+
+def align_cart(obj, x=None, y=None, vecs=None, indices=None, cart=None,
+               eps=1e-5):
+    """Align obj w.r.t. a new cartesian coord sys defined by x,y and
+    z=cross(x,y).
+    
+    The new coord sys can be defined either by `x` + `y` or `vecs` or
+    `indices` or `cart`.
+
+    Parameters
+    ----------
+    obj : Structure or Trajectory
+    x, y : (3,)
+        The two vectors spanning the x-y plane.
+    vecs : (3,3)
+        Array with 3 vectors as rows `[v0, v1, v2]` and ``x = v1 - v0``, 
+        ``y = v2 - v0``
+    indices : sequence (4,) or (3,)
+        Indices of atoms with positions `v0,v1,v2`. Length 4 for obj=Trajectory
+        and length 3 for obj=Structure.
+        ``indices=[time_step, idx0, idx1, idx2]`` or ``[idx0, idx1, idx2]``
+        with
+           | ``v0 = obj.coords[time_step, idx0, ...]`` (Trajectory)
+           | ``v1 = obj.coords[time_step, idx1, ...]`` 
+           | ``v2 = obj.coords[time_step, idx2, ...]`` 
+        or
+           | ``v0 = obj.coords[idx0, ...]`` (Structure)
+           | ``v1 = obj.coords[idx1, ...]``
+           | ``v2 = obj.coords[idx2, ...]``
+    cart : (3,3)
+        new cartesian coord sys ``[x,y,z]``, matrix must be orthogonal
+    eps : float
+        Threshold for orthogonality check. Use `eps <= 0` to disable the check.
+
+    Returns
+    -------
+    out : Structure or Trajectory
+    """
+    if cart is None:
+        if [x,y] == [None,None]:
+            if indices is None:
+                v0 = vecs[0,:]    
+                v1 = vecs[1,:]
+                v2 = vecs[2,:]
+            else:
+                if len(indices) == 4:
+                    v0 = obj.coords[indices[0], indices[1], ...]
+                    v1 = obj.coords[indices[0], indices[2], ...]
+                    v2 = obj.coords[indices[0], indices[3], ...]
+                else:                
+                    v0 = obj.coords[indices[0], ...]
+                    v1 = obj.coords[indices[1], ...]
+                    v2 = obj.coords[indices[2], ...]
+            x = v1 - v0
+            y = v2 - v0
+        xx = x.copy() / norm(x)
+        yy = y.copy() / norm(y)
+        cart = np.array([xx, yy, np.cross(xx, yy)])
+    if eps > 0:
+        assert np.allclose(inv(cart), cart.T, atol=eps)
+    if obj.is_traj:
+        container = Trajectory
+    else:
+        container = Structure
+    obj_new = container(coords_frac=obj.coords_frac.copy(),
+                        symbols=obj.symbols,
+                        cell=np.dot(obj.cell, cart.T),
+                        )
+    return obj_new                        
+    
