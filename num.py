@@ -105,69 +105,7 @@ def norm_int(y, x, area=1.0, scale=False, func=simps):
     return y*area/_area
 
 
-# XXX don't use, implement central diffs
-def deriv_fd(y, x=None, n=1):
-    """n-th derivative for 1d arrays of possibly nonuniformly sampled data.
-    Returns matching x-axis for plotting. Simple finite differences are used:
-    f'(x) = [f(x+h) - f(x)] / h
-    
-    Parameters
-    ----------
-    x,y : 1d arrays of same length
-        if x=None, then x=arange(len(y)) is used
-    n : int
-        order of the derivative
-    
-    Returns
-    -------
-    xd, yd
-    xd : 1d array, (len(x)-n,)
-        matching x-axis
-    yd : 1d array, (len(x)-n,)
-        n-th derivative of y at points xd
-
-    Notes
-    -----
-    n > 1 (e.g. n=2 -> 2nd derivative) is done by
-    recursive application. 
-    
-    For nonuniformly sampled data, errors blow up quickly. You are strongly
-    engouraged to re-sample the data with constant h (e.g. by spline
-    interpolation first). Then, derivatives up to ~ 4th order are OK for
-    plotting, not for further calculations (unless h is *very* small)!.
-    If you need very accurate derivatives, look into NR, 3rd ed., ch. 5.7 and
-    maybe scipy.derivative(). 
-
-    Each application returns len(x)-1 points. So for n=3, the returned x and y
-    have len(x)-3.
-
-    Examples
-    --------
-    >>> x=sort(rand(100)*10); y=sin(x); plot(x,y, 'o-'); plot(x,cos(x), 'o-')
-    >>> x1,y1=deriv_fd(y,x,1) # cos(x)
-    >>> x2,y2=deriv_fd(y,x,2) # -sin(x)
-    >>> plot(x1, y1, lw=2) # cos(x)
-    >>> plot(x2, -y2, lw=2) # sin(x)
-    >>> x=linspace(0,10,100); y=sin(x); plot(x,y, 'o-'); plot(x,cos(x), 'o-')
-    >>> ...
-    
-    See Also
-    --------
-    numpy.diff()
-    numpy.gradient()
-    """
-    assert n > 0, "n <= 0 makes no sense"
-    if n > 1:
-        x,y = deriv_fd(y, x, n=1)
-        return deriv_fd(y, x, n=n-1)
-    else:            
-        if x is None:
-            x = np.arange(len(y))
-        dx = np.diff(x)
-        return x[:-1]+.5*dx, np.diff(y)/dx
-
-
-def deriv_spl(y, x=None, xnew=None, n=1, fullout=True, **splrep_kwargs):
+def deriv_spl(y, x=None, xnew=None, n=1, fullout=False, **splrep_kwargs):
     """n-th derivative for 1d arrays of possibly nonuniformly sampled data.
     Returns matching x-axis for plotting. Splines are used.
     
