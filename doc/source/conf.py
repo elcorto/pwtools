@@ -34,7 +34,7 @@ sys.path.insert(0, os.path.abspath('sphinxext'))
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.coverage',
               'sphinx.ext.viewcode',
               'sphinx.ext.autosummary',
-##              'sphinx.ext.pngmath',
+              'sphinx.ext.pngmath',
               'numpydoc',
               ]
 
@@ -214,6 +214,10 @@ latex_elements = {
 # Additional stuff for the LaTeX preamble.
 #'preamble': '',
 }
+
+pngmath_latex_preamble = r"\newcommand{\ve}[1]{\mathbf{#1}} "
+
+
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).

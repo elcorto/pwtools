@@ -552,13 +552,13 @@ def smooth(data, kern, axis=0):
 
     >>> ret = np.empty_like(arr)
     >>> for jj in range(arr.shape[1]):
-    ...     ret[:,jj,:] = smooth(arr[:,jj,:], kern[:,None])
+    >>>     ret[:,jj,:] = smooth(arr[:,jj,:], kern[:,None])
     
     or::
     
     >>> for jj in range(arr.shape[1]):
-    ...     for kk in range(arr.shape[2]):
-    ...         ret[:,jj,kk] = smooth(arr[:,jj,kk], kern) 
+    >>>     for kk in range(arr.shape[2]):
+    >>>         ret[:,jj,kk] = smooth(arr[:,jj,kk], kern) 
     
     The size of the chunk over which you explicitely loop depends on the data
     of course.
