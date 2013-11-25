@@ -19,9 +19,11 @@ it is most helpful to look at the `API reference doc`_ and/or simply:
 
     Read the Source, Luke!
 
+Many examples, besides the ones in The Source are in ``test/``.
+
 Quick install
 -------------
-See doc/source/written/install.rst . For the impatient:
+See ``doc/source/written/install.rst`` . For the impatient:
 
 There is no installation script (i.e. setup.py). Just copy the whole package
 somewhere and run ``make`` to compile extensions::
@@ -35,4 +37,3 @@ somewhere and run ``make`` to compile extensions::
     export PYTHONPATH=$PYTHONPATH:$HOME/python
 
 .. _API reference doc: http://elcorto.bitbucket.org/pwtools/generated/api/index.html
-.. vim:syn=rst

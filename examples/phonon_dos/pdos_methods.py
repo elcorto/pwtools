@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*- 
-
-# XXX This example script is old and doesn't work ATM. However, you may get
-# some hints about how to call the fourier.x (from CPMD) tool from Python ...
-
 """
 methods
 -------
@@ -117,7 +112,7 @@ main.f90, there is a part:
   wave_fac = 219474.0_dbl/data_t
 
 whete `data_t` is our input dt in Hartree atomic units (dt [s] / constants.th).
-Now WTF is this number 219474.0 !!?? By experiment(!), we found that it is
+Now what is this number 219474.0 !!?? By experiment(!), we found that it is
     1 / constants.th / (constants.c0*100) / (2*pi)
 
 Some variables in main.f90 and the corresponding value here (main.f90 : here)
@@ -143,18 +138,18 @@ The n+1 might be wrong leading to very slightly shifted frequencies, though.
 """
 
 import os
+import shutil
 from math import pi
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.fftpack import fft
-##from scipy import signal
-from pwtools import pydos, constants, common, num, signal
+from pwtools import pydos, constants, common, num, signal, crys
 
 rand = np.random.rand
 pj = os.path.join
 
 def cut_norm(full_y, dt, area=1.0):
-    """Cut out and FFT spectrum from scipy.fftpack.fft() (or numpy.fft.fft())
+    """Cut out an FFT spectrum from scipy.fftpack.fft() (or numpy.fft.fft())
     result and normalize the integral `int(f) y(f) df = area`.
     
     full_y : 1d array
@@ -173,17 +168,20 @@ def cut_norm(full_y, dt, area=1.0):
 # common settings for 1d and 3d case
 ###############################################################################
 
-fourier_exe = common.fullpath('~/soft/lib/fourier/fourier.x')
+fourier_exe = common.fullpath('~/soft/bin/fourier.x')
 fourier_dir = '/tmp/fourier_test'
 use_fourier = os.path.exists(fourier_exe)
+print "temp dir: %s" %fourier_dir
+print "trying to find fourier.x: %s" %fourier_exe
 if use_fourier:
-    print "will use fourier.x"
-    if not os.path.exists(fourier_dir):
-        os.mkdir(fourier_dir)
-    else:        
-        print("warning: dir exists: %s" %fourier_dir)
+    print "ok, will use fourier.x"
+    if os.path.exists(fourier_dir):
+        shutil.rmtree(fourier_dir)
+        os.makedirs(fourier_dir)
+    else:
+        os.makedirs(fourier_dir)
 else:
-    print "will NOT use fourier.x"
+    print "not found, will skip fourier.x"
 
 # For the calculation of nstep and dt, we increase `fmax` to
 # fmax*fmax_extend_fac to lower dt. That way, the signal still contains
@@ -202,11 +200,11 @@ dt, nstep = signal.fftsample(fmax*fmax_extend_fac, df)
 nstep = int(nstep)
 taxis = np.linspace(0, dt*nstep, nstep, endpoint=False)
 
-print "dt [s]:", dt
-print "dt [Hartree]:", dt/constants.th
-print "nstep:", nstep
-print "fmax [Hz]:", fmax
-print "nfreq:", nfreq
+##print "dt [s]:", dt
+##print "dt [Hartree]:", dt/constants.th
+##print "nstep:", nstep
+##print "fmax [Hz]:", fmax
+##print "nfreq:", nfreq
 
 
 ###############################################################################
@@ -218,10 +216,8 @@ print "nfreq:", nfreq
 # coords: 1d signal composed of `nfreq` sin's containing frequencies up to
 # `fmax`, the power spectrum of `coords` must reproduce peaks at these
 # frequencies exactly
-print "coords ..."
 freqs = rand(nfreq)*fmax
 freqs.sort()
-print "frequencies:", freqs
 coords = np.sin(2*pi*freqs[:,None]*taxis).sum(axis=0)
 
 # below, `arr` is used fo all following calcs
@@ -237,41 +233,39 @@ arr = np.diff(coords) # "velocity"
 # = (2N-1,), i.e. the point at t=0 apprears only once. Padding increases the
 # frequency resolution (almost factor 2) to exactly the same df as we get for
 # method 2 b/c of the mirroring of the signal there.
-print "|fft(arr)|^2 ..."
 fft_arr = signal.pad_zeros(arr*signal.welch(arr.shape[0]), nadd=arr.shape[0]-1)
 y1 = np.abs(fft(fft_arr))**2
-print "y1.shape", y1.shape 
 
 # 2) fft the autocorrelation of `arr`
-print "|fft(acorr(arr))| ..."
 fft_arr = pydos.mirror(signal.acorr(arr*signal.welch(arr.shape[0]), method=5))
 y2 = np.abs(fft(fft_arr))
-print "y2.shape", y2.shape 
 
 # 3) fourier.x
 #
 # For the 1d case, we write the time trace in a format suggested in the CPMD
-# manual and the fourier.x README file: awk ’ { print $1, 0.0, 0.0, 0.0, 0.0,
-# 0.0, $2; } ’ ENERGIES > ekinc.dat where ENERGIES is a CPMD output file. From
+# manual and the fourier.x README file: awk '{ print $1, 0.0, 0.0, 0.0, 0.0,
+# 0.0, $2; }' ENERGIES > ekinc.dat where ENERGIES is a CPMD output file. From
 # that, only column 1 (time step) and some energy value from column 2 is used.
 if use_fourier:
-    print "fourier.x ..."
     fourier_in_data = np.zeros((arr.shape[0],7))
     fourier_in_data[:,0] = np.arange(arr.shape[0])
-    fourier_in_data[:,6] = arr
+    fourier_in_data[:,4] = arr
     fourier_in_data_fn = pj(fourier_dir, 'fourier_in_data_1d.txt')
     fourier_out_data_fn = pj(fourier_dir, 'fourier_out_data_1d.txt')
     fourier_in_fn = pj(fourier_dir, 'fourier_1d.in')
-    fourier_in_txt = '%s\n%s\n%.16e\n%f\n%.16e\n%i' %(fourier_in_data_fn,
-                                                      fourier_out_data_fn,
-                                                      dt/constants.th,
-                                                      300,
-                                                      fmax*fmax_extend_fac/(constants.c0*100),
-                                                      1)
+    fourier_out_fn = pj(fourier_dir, 'fourier_1d.log')
+    fourier_in_txt = '%s\n%s\n%e\n%e\n%e\n%i' %(fourier_in_data_fn,
+                                                fourier_out_data_fn,
+                                                dt/constants.th,
+                                                0,
+                                                fmax*fmax_extend_fac/(constants.c0*100),
+                                                1)
     common.file_write(fourier_in_fn, fourier_in_txt)
-    np.savetxt(fourier_in_data_fn, fourier_in_data)
-    # that prints some jabber
-    common.system(fourier_exe + ' < ' + fourier_in_fn)
+    # In order to make picky gfortrans happy, we need to use savetxt(...,
+    # fmt="%g") such that the first column is an integer (1 instead of
+    # 1.0000e+00). 
+    np.savetxt(fourier_in_data_fn, fourier_in_data, fmt='%g')
+    common.system("%s < %s > %s" %(fourier_exe, fourier_in_fn, fourier_out_fn))
     fourier_out_data = np.loadtxt(fourier_out_data_fn)
     f3 = fourier_out_data[:,0]*(constants.c0*100) # 1/cm -> Hz
     y3n = num.norm_int(fourier_out_data[:,1], f3)
@@ -282,7 +276,6 @@ f2, y2n = cut_norm(y2, dt)
 figs = []
 axs = []
 
-print "plotting ..."
 figs.append(plt.figure())
 axs.append(figs[-1].add_subplot(111))
 axs[-1].set_title('1d arr')
@@ -292,12 +285,11 @@ if use_fourier:
     axs[-1].plot(f3, y3n, label='1d fourier.x')
 axs[-1].legend()
 
-
 ###############################################################################
 # 3d arrays
 ###############################################################################
 
-time_axis = -1
+time_axis = 0
 
 # Now, 3d arrays with "real" atomic velocities, test the pydos methods.
 
@@ -305,17 +297,17 @@ time_axis = -1
 # traces for `natoms` atoms. Each x,y,z trajectory is a sum of sin's (`coords`
 # in the 1d case).
 natoms = 5
-coords = np.empty((natoms, 3, nstep))
+coords = np.empty((nstep, natoms, 3))
 # `nfreq` frequencies for each x,y,z component of each atom
 freqs = rand(natoms, 3, nfreq)*fmax
 for i in range(natoms):
     for k in range(3):
         # vector w/ frequencies: freqs[i,k,:] <=> f_j, j=0, ..., nfreq-1
         # sum_j sin(2*pi*f_j*t)
-        coords[i,k,:] = np.sin(2*pi*freqs[i,k,:][:,None]*taxis).sum(axis=0)
+        coords[:,i,k] = np.sin(2*pi*freqs[i,k,:][:,None]*taxis).sum(axis=0)
 
 ##arr = coords
-arr = pydos.velocity(coords)
+arr = crys.velocity_traj(coords)
 massvec = rand(natoms)
 
 # no mass weighting
@@ -334,11 +326,12 @@ if use_fourier:
     # weighting.
     fourier_in_data = np.zeros((arr.shape[time_axis],7))
     fourier_in_data[:,0] = np.arange(arr.shape[time_axis])
-    print "running fourier.x for all atoms ..."
-    for iatom in range(arr.shape[0]):
-        fourier_in_data[:,4] = arr[iatom,0,:]
-        fourier_in_data[:,5] = arr[iatom,1,:]
-        fourier_in_data[:,6] = arr[iatom,2,:]
+    fourier_out_fn = pj(fourier_dir, 'fourier_3d.log')
+    common.system("rm -f %s" %fourier_out_fn)
+    for iatom in range(arr.shape[1]):
+        fourier_in_data[:,4] = arr[:,iatom,0]
+        fourier_in_data[:,5] = arr[:,iatom,1]
+        fourier_in_data[:,6] = arr[:,iatom,2]
         fourier_in_data_fn = pj(fourier_dir, 'fourier_in_data_3d_atom%i.txt'
                                 %iatom)
         fourier_out_data_fn = pj(fourier_dir, 'fourier_out_data_3d_atom%i.txt'
@@ -347,12 +340,14 @@ if use_fourier:
         fourier_in_txt = '%s\n%s\n%.16e\n%f\n%.16e\n%i' %(fourier_in_data_fn,
                                                           fourier_out_data_fn,
                                                           dt/constants.th,
-                                                          300,
+                                                          0,
                                                           fmax*fmax_extend_fac/(constants.c0*100),
                                                           1)
         common.file_write(fourier_in_fn, fourier_in_txt)
-        np.savetxt(fourier_in_data_fn, fourier_in_data)
-        common.system(fourier_exe + ' < ' + fourier_in_fn + ' > /dev/null')
+        np.savetxt(fourier_in_data_fn, fourier_in_data, fmt='%g')
+        common.system("{exe} < {inp} >> {log}".format(exe=fourier_exe, 
+                                                      inp=fourier_in_fn, 
+                                                      log=fourier_out_fn))
         fourier_loaded_data = np.loadtxt(fourier_out_data_fn)
         # frequency axis fourier_out_data[:,0] is the same for all atoms, sum up
         # only power spectra
