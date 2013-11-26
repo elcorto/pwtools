@@ -355,8 +355,8 @@ if use_fourier:
             fourier_out_data = fourier_loaded_data
         else:        
             fourier_out_data[:,1:] += fourier_loaded_data[:,1:]
-        f8 = fourier_out_data[:,0]*(constants.c0*100)
-        y8n = num.norm_int(fourier_out_data[:,1], f8)
+    f8 = fourier_out_data[:,0]*(constants.c0*100)
+    y8n = num.norm_int(fourier_out_data[:,1], f8)
 
 figs.append(plt.figure())
 axs.append(figs[-1].add_subplot(111))
