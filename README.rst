@@ -1,7 +1,10 @@
 About
 -----
-The pwtools package.
-Copyright (C) 2008-2013 Steve Schmerler <mefx .a. gmx.net>
+.. image:: .em.png
+   :scale: 40%
+   :align: right
+
+The pwtools package. Copyright (C) 2008-2013 Steve Schmerler 
 
 pwtools is a package for pre- and postprocessing of atomic calculations, mostly
 targeted to Quantum Espresso, CPMD and CP2K.
