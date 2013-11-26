@@ -1,5 +1,7 @@
 #!/bin/bash
 
+make clean
+
 # ensure a clean doc generated doc source tree
 rm -rfv build/ source/generated/
 
