@@ -135,7 +135,7 @@ def fvacf(vel, m=None, method=2, nthreads=None):
     #
     natoms = vel.shape[1]
     nstep = vel.shape[0]
-    assert vel.shape[-1] == 3
+    assert vel.shape[-1] == 3, ("last dim of vel must be 3: (nstep,natoms,3)")
     # `c` as "intent(in, out)" could be "intent(out), allocatable" or so,
     # makes extension more pythonic, don't pass `c` in, let be allocated on
     # Fortran side
@@ -146,7 +146,9 @@ def fvacf(vel, m=None, method=2, nthreads=None):
         use_m = 0
     else:
         use_m = 1
-    # (nstep, natoms, 3) -> (natoms, 3, nstep)
+    # XXX: (nstep, natoms, 3) -> (natoms, 3, nstep)
+    # Change shape of `vel` to legacy format used in _flib.vacf(). We really
+    # need to re-order the loops in flib.f90.
     vel_f = np.rollaxis(vel, 0, 3)
     assert vel_f.shape == (natoms, 3, nstep)
     verbose("calling _flib.vacf ...")
@@ -204,17 +206,32 @@ def pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
     Returns
     -------
     if full_out = False
-        (faxis, pdos)
-        faxis : 1d array [1/unit(dt)]
-        pdos : 1d array, the phonon DOS, normalized to `area`
+        | ``(faxis, pdos)``
+        | faxis : 1d array [1/unit(dt)]
+        | pdos : 1d array, the phonon DOS, normalized to `area`
     if full_out = True
-        if method == 'direct':
-            (faxis, pdos, (full_faxis, full_pdos, split_idx))
-        if method == 'vavcf':
-            (faxis, pdos, (full_faxis, full_pdos, split_idx, vacf, fft_vacf))
-            fft_vacf : 1d complex array, result of fft(vacf) or fft(mirror(vacf))
-            vacf : 1d array, the VACF
+        | if method == 'direct':
+        |     ``(faxis, pdos, (full_faxis, full_pdos, split_idx))``
+        | if method == 'vavcf':
+        |     ``(faxis, pdos, (full_faxis, full_pdos, split_idx, vacf, fft_vacf))``
+        |     fft_vacf : 1d complex array, result of fft(vacf) or fft(mirror(vacf))
+        |     vacf : 1d array, the VACF
     
+    Examples
+    --------
+    >>> from pwtools.constants import fs,rcm_to_Hz
+    >>> tr = Trajectory(...)
+    >>> # freq in [Hz] if timestep in [s]
+    >>> freq,dos = pdos(tr.velocity, m=tr.mass, dt=tr.timestep*fs, 
+    >>>                 method='direct', npad=1)
+    >>> # frequency in [1/cm]
+    >>> plot(freq/rcm_to_Hz, d)
+    
+    See Also
+    --------
+    :func:`direct_pdos`
+    :func:`vacf_pdos`
+
     Notes
     -----
     padding (only method='direct'): With `npad` we pad the velocities `vel`

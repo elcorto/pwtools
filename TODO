@@ -98,4 +98,10 @@ constants.py / units in general
   StructureFileParser -> parse.*OutputFile and default_units in each 
   *OutputFile. This must be simplified. 
 
+flib.f90
+--------
+* vacf() uses (natoms, 3, nstep) instead of (nstep,natoms,3). We take care of
+  that in the wrapper pydos.fvacf() but it would be nice to have a consistent
+  implementation.
+
 # vim:comments=fb\:*

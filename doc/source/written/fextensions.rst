@@ -17,11 +17,11 @@ You need:
 
 * numpy
 * a Fortran compiler
-* Python headers (for Linux: usually a package python-dev or python-devel,
-  see the package manager of your distro)
+* Python headers (Debian/Ubuntu: python-dev)
+* Lapack (Debian: liblapack3)
 
 The module is compiled with f2py (currently part of numpy, tested with numpy
-1.1.0 .. 1.6.x). 
+1.1.0 .. 1.7.x). 
 
 Compiler / f2py
 ---------------
@@ -57,7 +57,7 @@ Setting the number of threads::
 	
 	$ export OMP_NUM_THREADS=2
 	$ python -c "import numpy as np; from pwtools.pydos import fvacf; \
-	             fvacf(np.random.rand(1000,3,5000))"
+	             fvacf(np.random.rand(5000,1000,3))"
 
 If this env var is NOT set, then OpenMP uses all available cores (e.g. 4 on a
 quad-core box).

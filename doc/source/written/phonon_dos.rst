@@ -5,7 +5,8 @@ Correlation and power spectrum
 ------------------------------
 Here are some (textbook) notes about correlation, which you should read in
 order to understand how the phonon DOS (= vibrational density of states =
-power spectrum of the atomic velocities) is calculated in pwtools.
+power spectrum of the atomic velocities) is calculated in pwtools (see
+:mod:`~pwtools.pydos`).
 
 The cross-correlation theorem for the two-sided correlation::
 
@@ -22,9 +23,10 @@ Both theorems assume *periodic* data, i.e. `a` and `b` repeat after `nstep`
 points. To deal with non-periodic data, we use zero-padding with ``nstep-1``
 points at the end of `a`. Therefore, the correlated signal is ``2*nstep-1``
 points long and contains the correlations for positive and negative lags. Since
-the autocorrelation function is symmetric around lag=0, we return 0 ... +lag,
-see :func:`pwtools.signal.acorr`. To compare that with
-``scipy.signal.correlate(a,a,'full')``, we need to mirror the result at lag=0.
+the autocorrelation function is symmetric around lag=0, we return 0 ... +lag
+in :func:`pwtools.signal.acorr`. To compare that with
+``scipy.signal.correlate(a,a,'full')``, we need to mirror the result at lag=0
+again.
 
 Here are these equalities with discrete data. Note that due to the
 way in which fft/ifft packs the data in the returned array, we need
@@ -71,28 +73,31 @@ which calculates the phonon DOS from MD data. But what he does is padding the
 odd b/c the padding must be done on `v` as outlined above. Also, he uses
 smoothing (convolution with a gaussian, i.e. ``fft(smooth(pad(acorr(v))))``)
 after padding, which is less effective than using a Welch (or any other) window
-functin. But I haven't tested the code, so ...
+function. But I haven't tested the code, so ...
 
-For smoothing the spectrum using our implementation, either use more padding in
-the case ``p1=(abs(fft(pad(v)))**2.0)[:n]`` or smooth the `spectrum` afterwards
-by using :func:`pwtools.signal.smooth_convolve`.
+For smoothing the spectrum using our implementation, either use more padding
+`of the time series` in the case ``p1=(abs(fft(pad(v)))**2.0)[:n]`` or smooth
+the `spectrum` afterwards by using :func:`pwtools.signal.smooth`.
 
 
 Calculation of the phonon DOS from MD data in pwtools
 -----------------------------------------------------
 
-There are two ways of computing the phonon density of states (PDOS) from 
-an MD trajectory (V is the 3d array of atomic velocities with shape
-(nstep,natoms,3), i.e. ``Trajectory.velocity``, see pydos.velocity(). 
+There are two ways of computing the phonon density of states (PDOS) from an MD
+trajectory (V is the 3d array of atomic velocities with shape (nstep,natoms,3),
+i.e. ``Trajectory.velocity``, see :func:`~pwtools.crys.velocity_traj`. 
 
 (1) vacf way: FFT of the velocity autocorrelation function (vacf):
-    V -> VACF -> FFT(VACF) = PDOS, see pydos.vacf_pdos()
-(2) direct way: ``|FFT(V)**2|`` = PDOS, see pydos.direct_pdos(), this is much
-    faster and mathematically exactly the same, see examples/pdos_methods.py
-    and test/test_pdos.py .
+    V -> VACF -> FFT(VACF) = PDOS, see :func:`~pwtools.pydos.vacf_pdos`
+(2) direct way: ``|FFT(V)**2|`` = PDOS, see :func:`~pwtools.pydos.direct_pdos`,
+    this is much faster and mathematically exactly the same, see
+    ``examples/examples/phonon_dos`` and ``test/test_pdos.py`` .
 
 Both methods are implemented but actually only method (2) is worth using.
 Method (1) still exists for historical reasons and as reference.
+
+The actual implementation is in :func:`~pwtools.pydos.pdos` and the above two
+functions are convenience wrappers.
 
 * In method (1), if you mirror the VACF at t=0 before the FFT, then you get
   double frequency resolution. 
@@ -103,7 +108,7 @@ Method (1) still exists for historical reasons and as reference.
   case.
 
 * Both methods use Welch windowing by default to reduce "leakage" from
-  neighboring peaks. See also examples/pdos_methods.py 
+  neighboring peaks.
 
 * Both methods must produce exactly the same results (up to numerical noise).
 
