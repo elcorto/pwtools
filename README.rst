@@ -1,9 +1,5 @@
 About
 -----
-.. image:: .em.png
-   :scale: 40%
-   :align: right
-
 The pwtools package. Copyright (C) 2008-2013 Steve Schmerler 
 
 pwtools is a package for pre- and postprocessing of atomic calculations, mostly
@@ -38,5 +34,11 @@ somewhere and run ``make`` to compile extensions::
     # ~/.bashrc or ~/.profile
     export PATH=$HOME/python/pwtools/bin:$PATH
     export PYTHONPATH=$PYTHONPATH:$HOME/python
+
+Contact
+-------
+Read the text version of this file.
+
+.. and look into the file ./.em.png
 
 .. _API reference doc: http://elcorto.bitbucket.org/pwtools/generated/api/index.html
