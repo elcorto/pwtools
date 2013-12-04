@@ -1,8 +1,7 @@
 #!/bin/bash
 
+# ensure a clean generated tree
 make clean
-
-# ensure a clean doc generated doc source tree
 rm -rfv build/ source/generated/
 
 # generate API doc rst files

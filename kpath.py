@@ -10,13 +10,15 @@ def kpath(vecs, N=10):
 
     Parameters
     ----------
-    vecs: array (K,M) with K vectors of the Brillouin zone (so M = 3 usually :)
+    vecs : array (K,M) 
+        Array with K vectors of the Brillouin zone (so M = 3 usually :)
     N : int
 
     Returns
     -------
-    new_vecs : array (N*(K-1)+1,M) with a fine grid of vectors along the path 
-        defined by `vecs`
+    new_vecs : array (N*(K-1)+1,M) 
+        Array with a fine grid of vectors along the path 
+        defined by `vecs`.
     
     Notes
     -----

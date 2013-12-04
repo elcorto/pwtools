@@ -104,7 +104,7 @@ cd test/
 
 # HACK: communicate variable to test_*.py modules. All tests which write temp
 # files must import this module and write their files to "testdir":
-# >>> from testenv import testdir
+# >>> from pwtools.test.testenv import testdir
 # >>> filename = os.path.join(testdir, 'foo_tmp.txt')
 # >>> ...
 echo "testdir='$testdir'" > testenv.py

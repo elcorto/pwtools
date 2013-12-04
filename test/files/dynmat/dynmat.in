@@ -1,0 +1,10 @@
+
+&input
+    fildyn='ph.dyn',
+    q(1)=1.000000,q(2)=0.000000,q(3)=0.000000
+    amass(1)=26.981538,
+    amass(2)=14.00674,
+    asr='crystal',
+    filout='dynmat.modes',
+    filxsf='dynmat.axsf',
+/

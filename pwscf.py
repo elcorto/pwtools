@@ -1,11 +1,11 @@
 # pwscf.py
 #
 # Some handy tools to construct strings for building pwscf input files.
-# Readers for QE postprocessing tool output (matdyn.x  etc).
+# Readers for QE postprocessing tool output (matdyn.x, dynmat.x).
 
 import re, os, warnings
 import numpy as np
-from pwtools.common import fix_eps, str_arr, file_readlines
+from pwtools.common import fix_eps, str_arr, file_readlines, pj
 from pwtools import parse, crys, common
 from pwtools.num import EPS
 from math import sin, acos, sqrt
@@ -230,23 +230,18 @@ def read_matdyn_modes(filename, natoms=None):
     vecs_flat[:,0] = vecs_file_flat[:,0] + 1j*vecs_file_flat[:,1]
     vecs_flat[:,1] = vecs_file_flat[:,2] + 1j*vecs_file_flat[:,3]
     vecs_flat[:,2] = vecs_file_flat[:,4] + 1j*vecs_file_flat[:,5]
-    vecs = np.empty((nqpoints, nmodes, natoms, 3), dtype=complex)
-    for iq in range(nqpoints):
-        for imode in range(nmodes):
-            for iatom in range(natoms):
-                idx = iq*nmodes*natoms + imode*natoms + iatom
-                vecs[iq, imode, iatom,:] = vecs_flat[idx, :]
+    vecs = vecs_flat.flatten().reshape(nqpoints, nmodes, natoms, 3)
     cmd = r"grep omega %s | sed -re \
             's/.*omega.*=.*\[.*=(.*)\s*\[.*/\1/g'" %filename
-    freqs = parse.arr1d_from_txt(common.backtick(cmd)).reshape((nqpoints, nmodes))
+    freqs = np.fromstring(common.backtick(cmd), sep=' ').reshape((nqpoints, nmodes))
     return qpoints, freqs, vecs
 
 
 def read_dyn(filename, natoms=None):
-    """Read one dynamical matrix file (for 1 qpoint) and extract the same as
-    ``read_matdyn_modes()`` for this qpoint only. 
+    """Read one dynamical matrix file (for 1 qpoint) produced by ``ph.x`` and
+    extract the same as :func:`read_matdyn_modes` for this qpoint only. 
     
-    All arrays have one dim less compared to ``read_matdyn_modes()``.
+    All arrays have one dim less compared to :func:`read_matdyn_modes`.
     
     Parameters
     ----------
@@ -267,7 +262,7 @@ def read_dyn(filename, natoms=None):
     """
     assert natoms is not None
     cmd = r"egrep 'q.*=.*\(' %s | tail -n1 | sed -re 's/.*q\s*=.*\((.*)\)/\1/'" %filename
-    qpoints = parse.arr1d_from_txt(common.backtick(cmd))
+    qpoints = np.fromstring(common.backtick(cmd), sep=' ')
     assert qpoints.shape == (3,)
     nmodes = 3*natoms
     cmd = r"grep -v 'q.*=' %s | grep '^[ ]*(' | sed -re 's/^\s*\((.*)\)/\1/g'" %filename
@@ -278,19 +273,15 @@ def read_dyn(filename, natoms=None):
     vecs_flat[:,0] = vecs_file_flat[:,0] + 1j*vecs_file_flat[:,1]
     vecs_flat[:,1] = vecs_file_flat[:,2] + 1j*vecs_file_flat[:,3]
     vecs_flat[:,2] = vecs_file_flat[:,4] + 1j*vecs_file_flat[:,5]
-    vecs = np.empty((nmodes, natoms, 3), dtype=complex)
-    for imode in range(nmodes):
-        for iatom in range(natoms):
-            idx = imode*natoms + iatom
-            vecs[imode, iatom,:] = vecs_flat[idx, :]
+    vecs = vecs_flat.flatten().reshape(nmodes, natoms, 3)
     cmd = r"grep omega %s | sed -re \
             's/.*omega.*=.*\[.*=(.*)\s*\[.*/\1/g'" %filename
-    freqs = parse.arr1d_from_txt(common.backtick(cmd))
+    freqs = np.fromstring(common.backtick(cmd), sep=' ')
     return qpoints, freqs, vecs
 
 
 def read_all_dyn(path, nqpoints=None, natoms=None, base='ph.dyn'):
-    """Same as ``read_matdyn_modes()``, but instead of the file
+    """Same as :func:`read_matdyn_modes()`, but instead of the file
     ``matdyn.modes`` which contains freqs,vecs for all qpoints, we read all
     dynamical matrix files in `path`, one per qpoint.
 
@@ -307,7 +298,8 @@ def read_all_dyn(path, nqpoints=None, natoms=None, base='ph.dyn'):
     
     Returns
     -------
-    Same as ``read_matdyn_modes()``.
+    (qpoint,freqs,vecs)
+        Same as :func:`read_matdyn_modes`
     """
     nmodes = 3*natoms
     qpoints = np.empty((nqpoints,3), dtype=float)
@@ -320,6 +312,121 @@ def read_all_dyn(path, nqpoints=None, natoms=None, base='ph.dyn'):
         freqs[iq,...] = ff
         vecs[iq,...] = vv
     return qpoints, freqs, vecs
+
+
+def read_dynmat(path='.', natoms=None, filename='dynmat.out', axsf='dynmat.axsf'):
+    """Read ``dynmat.x`` output.
+
+    `freqs` are parsed from `filename` and `vecs` from `axsf`. `qpoints` is
+    alawys Gamma, i.e. [0,0,0].     
+
+    Output format is the same as in :func:`read_dyn`.
+
+    Parameters
+    ----------
+    path : str
+        path where output files are
+    natoms : int
+    filename : str
+        Text output from dynmat.x, where the frequencies are printed, relative
+        to `path`.
+    axsf : str
+        AXSF file (``filxsf`` in input) with mode vectors as forces.
+    
+    Returns
+    -------
+    qpoints, freqs, vecs
+    qpoints : 1d array (3,)
+        The qpoint, which is Gamma, i.e. [0,0,0]
+    freqs : 1d array, (nmodes,) where nmodes = 3*natoms
+        3*natoms phonon frequencies in [cm^-1] at the q-point.
+    vecs : 3d real array (nmodes, natoms, 3)
+        Real parts (???) if the eigenvectors of the dynamical matrix for the
+        q-point.
+    
+    Notes
+    -----
+    We assume the output to be generated with ``dynmat.x < dynmat.in >
+    dynmat.out``. 
+    """
+    assert natoms is not None, ("natoms is None")
+    nmodes = 3*natoms
+    out_fn = pj(path, filename)
+    axsf_fn = pj(path, axsf)
+    cmd = "grep -A{} PRIMCO {} | sed -re '/PRIMCO.*/{{N;d;}}' | \
+            awk '{{print $5\" \"$6\" \"$7}}'".format(natoms+1, axsf_fn)
+    qpoints = np.zeros((3,))
+    vecs = np.fromstring(common.backtick(cmd), sep=' ').reshape(nmodes,natoms,3)
+    cmd = "grep -A{} 'mode.*cm-1' {} | grep -v mode | \
+           awk '{{print $2}}'".format(nmodes, out_fn)
+    freqs = np.fromstring(common.backtick(cmd), sep=' ')
+    return qpoints,freqs,vecs
+
+
+def read_dynmat_ir_raman(filename='dynmat.out', natoms=None, 
+                         cols={1: 'freqs', 3:'ir', 4: 'raman', 5: 'depol'}):
+    """Read ``dynmat.x`` text output file and extract IR and Raman
+    intensities.
+    
+    Parameters
+    ----------
+    filename : str
+        dynmat.x text output file (e.g. from ``dynmat.x < dynmat.in >
+        dynmat.out``)
+    natoms : int
+        number of atoms in the cell
+    cols : dict
+        column numbers of the text block
+
+    Returns
+    -------
+    cols = None 
+        Return the parsed array as found in the file
+    cols = dict 
+        Return dict with keys from `cols` and 1d arrays ``{'freqs': <array>,
+        'ir': <array>, 'raman': <array>, 'depol': <array>}``. If a column is
+        not present, the array is None.
+ 
+    Notes
+    -----
+    The parsed textblock looks like this::
+
+        # mode   [cm-1]    [THz]      IR          Raman   depol.fact
+            1      0.00    0.0000    0.0000         0.0005    0.7414
+            2      0.00    0.0000    0.0000         0.0005    0.7465
+            3      0.00    0.0000    0.0000         0.0018    0.2647
+            4    252.27    7.5627    0.0000         0.0073    0.7500
+            5    252.27    7.5627    0.0000         0.0073    0.7500
+            6    548.44   16.4419    0.0000         0.0000    0.7434
+            7    603.32   18.0872   35.9045        18.9075    0.7366
+            8    656.82   19.6910    0.0000         7.9317    0.7500
+            9    656.82   19.6910    0.0000         7.9317    0.7500
+           10    669.67   20.0762   31.5712         5.0265    0.7500
+           11    738.22   22.1311    0.0000         0.0000    0.7306
+           12    922.64   27.6600   31.5712         5.0265    0.7500
+    
+    Some columns (e.g. IR, Raman) may be missing.
+    """                    
+    assert natoms is not None, ("natoms is None")
+    cmd = "grep -A{} 'mode.*cm-1' {} | grep -v mode".format(3*natoms, filename)
+    arr = parse.arr2d_from_txt(common.backtick(cmd))
+    if cols is None:
+        return arr
+    else:
+        dct = {}
+        for ii,name in cols.iteritems():
+            if arr.shape[1] >= (ii+1):
+                dct[name] = arr[:,ii]
+            else:
+                dct[name] = None
+        return dct
+
+
+def read_dynmat_out(*args, **kwds):
+    """Backward compat wrapper for :func:`read_dynmat_ir_raman`."""
+    warnings.warn("read_dynmat_out() is deprecated, use read_dynmat_ir_raman()",
+                  DeprecationWarning)
+    return read_dynmat_ir_raman(*args, **kwds)                  
 
 
 def read_matdyn_freq(filename):
@@ -342,7 +449,7 @@ def read_matdyn_freq(filename):
 
     See Also
     --------
-    bin/plot_dispersion.py, parse_dis(), kpath.py
+    bin/plot_dispersion.py, :func:`parse_dis`, :mod:`pwtools.kpath`
     """
     lines = file_readlines(filename)
     # Read number of bands (nbnd) and k-points (nks). OK, Fortran's namelists
