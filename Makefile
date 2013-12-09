@@ -20,13 +20,13 @@ F2PY_OMP_F90_FLAGS=
 ifort: F90=ifort
 ifort: F90FLAGS=-fpp -no-prec-div -fast-transcendentals
 ifort: ARCH=-xHost
-ifort-omp: OMP_F90_FLAGS=-openmp -D__OPENMP -D__SF45_INNER
+ifort-omp: OMP_F90_FLAGS=-openmp -D__OPENMP
 ifort-omp: F2PY_OMP_F90_FLAGS=-liomp5
 
 gfortran: F90=gfortran
 gfortran: F90FLAGS=-x f95-cpp-input
 gfortran: ARCH=-mmmx -msse2
-gfortran-omp: OMP_F90_FLAGS=-fopenmp -D__OPENMP -D__SF45_INNER
+gfortran-omp: OMP_F90_FLAGS=-fopenmp -D__OPENMP
 gfortran-omp: F2PY_OMP_F90_FLAGS=-lgomp
 
 # user targets (e.g. make gfortran)
@@ -42,7 +42,7 @@ help:
 	@echo "make ifort-omp           # ifort + OpenMP"
 
 # internal targets
-libs: _flib.so _fsymfunc.so
+libs: _flib.so
 
 # http://www.cprogramming.com/tutorial/makefiles_continued.html
 # %  = flib

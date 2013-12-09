@@ -25,7 +25,6 @@ __all__ = [\
     'regex',
     'signal',
     'sql',
-    'symfunc',
     'symmetry',
     'thermo',
     'timer',
