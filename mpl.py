@@ -3,9 +3,7 @@
 # Plotting stuff for matplotlib: layouts, predefined markers etc.
 
 import itertools
-import sys
-import os
-from pwtools import common
+from pwtools import common, num
 import warnings
 import matplotlib
 from matplotlib import pyplot as plt
@@ -24,23 +22,6 @@ except ImportError:
 #----------------------------------------------------------------------------
 # mpl helpers, boilerplate stuff
 #----------------------------------------------------------------------------
-
-def meshgridt(x, y):
-    """A version of 
-        X,Y = numpy.meshgrid(x,y) 
-    which returns X and Y transposed, i.e. (nx, ny) instead (ny, nx) 
-    where nx,ny = len(x),len(y).
-
-    This is useful for dealing with 2D splines in 
-    scipy.interpolate.bisplev(), which also returns a (nx,ny) array.
-    
-    Parameters
-    ----------
-    x,y : 1d arrays
-    """
-    X,Y = np.meshgrid(x,y)
-    return X.T, Y.T
-
 
 def plotlines3d(ax3d, x,y,z, *args, **kwargs):
     """Plot x-z curves stacked along y.
@@ -262,7 +243,7 @@ class Data2D(object):
             These are the raw x and y "axes".
         X,Y,Z : 2d arrays (nx, ny) 
             Like ``np.meshgrid`` but transposed to have shape (nx,ny), see also 
-            :func:`~pwtools.mpl.meshgridt`
+            :func:`~pwtools.num.meshgridt`
         xx,yy,zz : 1d arrays (nx*ny)
             "Double-loop" versions of x,y,Z, input for ax3d.scatter() or
             bisplrep(). 
@@ -270,11 +251,12 @@ class Data2D(object):
 
         Examples
         --------
-        >>> from pwtools.mpl import Data2D, meshgridt
+        >>> from pwtools.mpl import Data2D, 
+        >>> from pwtools import num
         >>> from scipy.interpolate import bisplrep, bisplev
         >>> x = linspace(-5,5,10)
         >>> y = linspace(-5,5,10)
-        >>> X,Y = meshgridt(x,y)
+        >>> X,Y = num.meshgridt(x,y)
         >>> Z = X**2+Y**2
         >>> data = Data2D(x=x,y=y,Z=Z)
         >>> xi = linspace(-5,5,50)
@@ -289,7 +271,7 @@ class Data2D(object):
 
         Notes
         -----
-        ``X,Y = meshgridt(x,y)`` are the *transposed* versions of ``X,Y =
+        ``X,Y = num.meshgridt(x,y)`` are the *transposed* versions of ``X,Y =
         numpy.meshgrid()`` which returns shape (ny,nx). The shape (nx,ny),
         which we use, is more intuitive and also used in ``ax3d.plot_surface``
         etc. The output of ``scipy.interpolate.bisplev`` is also (nx,ny).        
@@ -301,10 +283,10 @@ class Data2D(object):
             x = linspace(...,nx)
             y = linspace(...,ny)
         
-        To calculate z=f(x,y) on the x,y-grid, use meshgridt() or X.T, Y.T
+        To calculate z=f(x,y) on the x,y-grid, use num.meshgridt() or X.T, Y.T
         from numpy.meshgrid()::
             
-            X,Y = meshgridt(x,y)
+            X,Y = num.meshgridt(x,y)
             Z = X**2 + Y**2
 
         X,Y,Z are good for data generation and plotting (ax3d.plot_wireframe()). But
@@ -359,7 +341,7 @@ class Data2D(object):
 
     def update(self):
         if [self.x,self.y] != [None]*2:
-            self.X,self.Y = meshgridt(self.x, self.y)
+            self.X,self.Y = num.meshgridt(self.x, self.y)
             self.xx = self.X.flatten()
             self.yy = self.Y.flatten()
             self.XY = np.array([self.xx, self.yy]).T
@@ -372,14 +354,14 @@ class Data2D(object):
         elif [self.xx,self.yy] != [None]*2: 
             self.x = np.unique(self.xx)
             self.y = np.unique(self.yy)
-            self.X,self.Y = meshgridt(self.x, self.y)
+            self.X,self.Y = num.meshgridt(self.x, self.y)
             self.XY = np.array([self.xx, self.yy]).T
         elif self.XY is not None:
             self.xx = self.XY[:,0]
             self.yy = self.XY[:,1]
             self.x = np.unique(self.xx)
             self.y = np.unique(self.yy)
-            self.X,self.Y = meshgridt(self.x, self.y)
+            self.X,self.Y = num.meshgridt(self.x, self.y)
         else:
             raise StandardError("cannot determine x and y from input")
         # by now, we have all forms of x and y: x,y; xx,yy; X,Y; XY            
@@ -398,7 +380,7 @@ Data3D = Data2D
 def get_2d_testdata():
     x = np.linspace(-5,5,20)
     y = np.linspace(-5,5,20)
-    X,Y = meshgridt(x,y)
+    X,Y = num.meshgridt(x,y)
     Z = np.sin(X) + np.cos(Y)
     return Data2D(X=X, Y=Y, Z=Z)
 
@@ -649,3 +631,10 @@ if __name__ == '__main__':
     ax3d.set_zlabel('z')
     
     plt.show()
+
+# deprecation warnings
+def meshgridt(*args, **kwds):
+    warnings.simplefilter('always')
+    warnings.warn("mpl.meshgridt is deprecated, use num.meshgridt", 
+                  DeprecationWarning)
+    return num.meshgridt(*args, **kwds)

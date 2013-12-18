@@ -1,9 +1,9 @@
-from pwtools import crys
+from pwtools import random as rand
 
 def test_rand_struct():
     # close_scale is small -> make sure that struct generation doesn't fail,
     # only API test here
-    rs = crys.RandomStructure(symbols=['Si']*10, 
+    rs = rand.RandomStructure(symbols=['Si']*10, 
                               vol_scale=3, 
                               angle_range=[60.0, 120.0],
                               vol_range_scale=[0.7, 1.3],
@@ -22,7 +22,7 @@ def test_rand_struct():
     assert st.natoms == len(st.symbols) == 10
 
     # catch exception
-    rs = crys.RandomStructure(symbols=['Si']*100, 
+    rs = rand.RandomStructure(symbols=['Si']*100, 
                               vol_scale=3, 
                               angle_range=[60.0, 120.0],
                               vol_range_scale=[0.7, 1.3],
@@ -32,5 +32,5 @@ def test_rand_struct():
                               atom_maxtry=1)
     try:                              
         st = rs.get_random_struct(fail=True)
-    except crys.RandomStructureFail as ex:
+    except rand.RandomStructureFail as ex:
         print "KNOWNFAIL: catched exception: %s" %ex.msg

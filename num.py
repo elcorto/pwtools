@@ -1631,3 +1631,27 @@ def round_up_next_multiple(x, mult):
     else:
         return x
 
+def norm(a):
+    """2-norm for real vectors."""
+    assert len(a.shape) == 1, "input must be 1d array"
+    # math.sqrt is faster than np.sqrt for scalar args
+    return sqrt(np.dot(a,a))
+
+
+def meshgridt(x, y):
+    """A version of 
+        X,Y = numpy.meshgrid(x,y) 
+    which returns X and Y transposed, i.e. (nx, ny) instead (ny, nx) 
+    where nx,ny = len(x),len(y).
+
+    This is useful for dealing with 2D splines in 
+    scipy.interpolate.bisplev(), which also returns a (nx,ny) array.
+    
+    Parameters
+    ----------
+    x,y : 1d arrays
+    """
+    X,Y = np.meshgrid(x,y)
+    return X.T, Y.T
+
+
