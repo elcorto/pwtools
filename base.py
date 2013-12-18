@@ -156,7 +156,9 @@ class FlexibleGetters(object):
         # Dumping with protocol "2" is supposed to be the fastest binary format
         # writing method. Probably, this is platform-specific.
         if mkdir:
-            common.makedirs(os.path.dirname(dump_filename))
+            dr = os.path.dirname(dump_filename)
+            if dr != '':
+                common.makedirs(dr)
         cPickle.dump(self, open(dump_filename, 'wb'), 2)
 
     def load(self, dump_filename):
