@@ -2441,6 +2441,7 @@ class Structure(UnitsHandler):
             return self.cryst_const
     
     def get_natoms(self):
+        """Number of atoms."""
         if self.is_set_attr('symbols'):
             return len(self.symbols)
         elif self.is_set_attr('coords'):
@@ -2498,16 +2499,26 @@ class Structure(UnitsHandler):
             return None
     
     def get_fake_ase_atoms(self):
-        """FakeASEAtoms instance representing this Structure."""
+        """:class:`FakeASEAtoms` instance representing this Structure."""
         return FakeASEAtoms(scaled_positions=self.get_coords_frac(),
                             cell=self.get_cell(),
                             symbols=self.get_symbols())
 
     def get_symbols_unique(self):
+        """List of unique atom symbols. 
+        
+        ``[Al,N]`` if ``symbols=['Al']*10 + ['N']*10``.
+        ``len(self.symbols_unique)`` = number of atomic species"""
         return np.unique(self.symbols).tolist() if \
             self.check_set_attr('symbols') else None
 
     def get_order(self):
+        """Dict which maps ``symbols_unique`` to numbers, starting at 1.
+        
+        ``{'Al': 1, 'N':2, 'O': 3, 'Si': 4}`` for ``symbols=['Al']*5 + ['N']*5
+        + ['O']*10 + ['Si']*20``.
+        Can be used in mapping a atom "type" number to a symbol (e.g. in
+        LAMMPS)."""
         if self.check_set_attr('symbols_unique'):
             return dict([(sym, num+1) for num, sym in
                          enumerate(self.symbols_unique)])
@@ -2515,14 +2526,20 @@ class Structure(UnitsHandler):
             return None
 
     def get_typat(self):
+        """List of atom type integers in ``self.order``, same length as
+        `symbols`.
+
+        ``[1]*10 + [2]*10`` for ````symbols=['Al']*10 + ['N']*10``.
+        """
         if self.check_set_attr_lst(['symbols', 'order']):
             return [self.order[ss] for ss in self.symbols]
         else:
             return None
     
     def get_znucl_unique(self):
-        """Unique atomic numbers, e.g. [13,7] for
-        symbols=['Al','Al','N',N'].
+        """Unique atomic numbers. 
+        
+        ``[13,7]`` for ``symbols = ['Al','Al','N',N']``.
         """
         if self.check_set_attr('symbols_unique'):
             return [atomic_data.numbers[sym] for sym in self.symbols_unique]
@@ -2530,8 +2547,9 @@ class Structure(UnitsHandler):
             return None
 
     def get_znucl(self):
-        """All atomic numbers, e.g. [13,13,7,7] for
-        symbols=['Al','Al','N',N'].
+        """All atomic numbers. 
+        
+        ``[13,13,7,7]`` for ``symbols = ['Al','Al','N',N']``.
         """
         if self.check_set_attr('symbols'):
             return [atomic_data.numbers[sym] for sym in self.symbols]
@@ -2539,13 +2557,17 @@ class Structure(UnitsHandler):
             return None
 
     def get_ntypat(self):
-        if self.check_set_attr('order'):
-            return len(self.order.keys())
+        """Number of atomic species.
+        
+        2 for ``symbols=['Al','Al','N',N']``.
+        """
+        if self.check_set_attr('symbols_unique'):
+            return len(self.symbols_unique)
         else:
             return None
     
     def get_nspecies(self):
-        """Number of distinct atomic symbols."""
+        """Dict with number of atoms per species."""
         if self.check_set_attr_lst(['order', 'typat']):
             return dict([(sym, self.typat.count(idx)) for sym, idx in 
                          self.order.iteritems()])
@@ -2562,6 +2584,7 @@ class Structure(UnitsHandler):
             return None
     
     def get_volume(self):
+        """Unit cell volume."""
         if self.check_set_attr('cell'):
             return volume_cell(self.cell)
         else:
