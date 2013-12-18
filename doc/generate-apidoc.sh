@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # ensure a clean generated tree
+rm -v $(find ../ -name "*.pyc")
 make clean
 rm -rfv build/ source/generated/
 
