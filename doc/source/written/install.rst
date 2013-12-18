@@ -21,7 +21,7 @@ Add-on packages / other required tools
 On Debian:: 
 
     aptitude install python-numpy python-scipy python-nose python-dev python-h5py gfortran \
-                     python-beautifulsoup python-matplotlib liblapack3 
+                     python-beautifulsoup python-matplotlib liblapack-dev
 
 Must have:    
 

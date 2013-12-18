@@ -1168,6 +1168,7 @@ def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None,
     >>> traj = parse.CpmdMDOutputFile(...).get_traj() # or io.read_cpmd_md(...)
     >>> d = rpdf(traj, dr=0.1, amask=['O', 'H'],tmask=np.s_[3000::50])
     >>> plot(d[:,0], d[:,1], label='g(r)')
+    >>> twinx()
     >>> plot(d[:,0], d[:,2], label='number integral')
     
     >>> # the same as rpdf(traj,...)
