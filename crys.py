@@ -1,4 +1,4 @@
-""" Crystal and unit-cell related tools, MD analysis, container classes."""
+# Crystal and unit-cell related tools, MD analysis, container classes
 
 from math import acos, pi, sin, cos, sqrt
 import textwrap, time, os, tempfile, types, copy

@@ -1,6 +1,4 @@
-"""
-High level Structure and Trajectory I/O. HDF5 convenience IO functions.
-"""
+# High level Structure and Trajectory I/O. HDF5 convenience IO functions.
 
 try:
     import h5py
