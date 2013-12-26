@@ -42,7 +42,7 @@ help:
 	@echo "make ifort-omp           # ifort + OpenMP"
 
 # internal targets
-libs: _flib.so
+libs: _flib.so _dcd.so
 
 # http://www.cprogramming.com/tutorial/makefiles_continued.html
 # %  = flib

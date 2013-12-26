@@ -5,11 +5,11 @@ try:
 except ImportError:
     warnings.warn("Cannot import h5py.") 
 
-import warnings
+import warnings, os
 import numpy as np
 from pwtools.common import frepr, cpickle_load
 from pwtools.constants import Ha, eV
-from pwtools import parse
+from pwtools import parse, atomic_data, lammps
 from pwtools import crys
 from pwtools import common
 from pwtools import pwscf
@@ -223,6 +223,75 @@ def write_axsf(filename, obj):
     common.file_write(filename, axsf_str)
 
 
+def write_lammps(filename, struct, symbolsbasename='lmp.struct.symbols'):
+    """Write Structure object to lammps format. That file can be read in a
+    lammps input file by ``read_data``. Write file ``lmp.struct.symbols`` with
+    atom symbols.
+    
+    Parameters
+    ----------
+    filename : str 
+        name of file to write
+    symbolsbasename : str, optional
+        file for atom symbols
+    struct : Structure
+
+    References
+    ----------
+    ase.calculators.lammpsrun (ASE 3.8).
+    """
+    dr = os.path.dirname(filename)
+    fn = os.path.join(dr, symbolsbasename)
+    common.file_write(fn, '\n'.join(struct.symbols))        
+    common.file_write(filename, lammps.struct_str(struct))
+
+
+def write_h5(fn, dct):
+    """Write dictionary with arrays (or whatever HDF5 handles) to h5 file.
+    
+    Dict keys are supposed to be HDF group + dataset names like `/a/b/c/dset`.
+    The leading slash can be skipped.
+
+    Parameters
+    ----------
+    fn : str
+        filename
+    dct : dict
+    """
+    fh = h5py.File(fn, mode='w')
+    for key,val in dct.iteritems():
+        fh[key] = val
+    fh.close()
+
+
+def read_h5(fn, group='/', rel=False):
+    """Read h5 file into dict.
+    
+    Dict keys are the group + dataset names, e.g. '/a/b/c/dset'.
+
+    Parameters
+    ----------
+    fn : str
+        filename
+    
+    Examples
+    --------
+    >>> read_h5('foo.h5').keys()
+    ['/a/b/d1', '/a/b/d2', '/a/c/d3', '/x/y/z']
+    """
+    fh = h5py.File(fn, mode='r') 
+    dct = {}
+    def get(name, obj, dct=dct):
+        if isinstance(obj, h5py.Dataset):
+            _name = name if name.startswith('/') else '/'+name
+            dct[_name] = obj.value
+    fh.visititems(get)            
+    fh.close()
+    return dct
+
+load_h5 = read_h5
+
+
 class ReadFactory(object):
     """Factory class to construct callables to parse files."""
     def __init__(self, parser=None, struct_or_traj=None):
@@ -284,49 +353,12 @@ read_cp2k_md = ReadFactory(parser=parse.Cp2kMDOutputFile,
 read_cp2k_relax = ReadFactory(parser=parse.Cp2kRelaxOutputFile, 
                               struct_or_traj='traj', 
                               )
+read_lammps_md_txt = ReadFactory(parser=parse.LammpsTextMDOutputFile, 
+                                 struct_or_traj='traj', 
+                                 )
+read_lammps_md_dcd = ReadFactory(parser=parse.LammpsDcdMDOutputFile, 
+                                 struct_or_traj='traj', 
+                                 )
 
 
-def write_h5(fn, dct):
-    """Write dictionary with arrays (or whatever HDF5 handles) to h5 file.
-    
-    Dict keys are supposed to be HDF group + dataset names like `/a/b/c/dset`.
-    The leading slash can be skipped.
 
-    Parameters
-    ----------
-    fn : str
-        filename
-    dct : dict
-    """
-    fh = h5py.File(fn, mode='w')
-    for key,val in dct.iteritems():
-        fh[key] = val
-    fh.close()
-
-
-def read_h5(fn, group='/', rel=False):
-    """Read h5 file into dict.
-    
-    Dict keys are the group + dataset names, e.g. '/a/b/c/dset'.
-
-    Parameters
-    ----------
-    fn : str
-        filename
-    
-    Examples
-    --------
-    >>> read_h5('foo.h5').keys()
-    ['/a/b/d1', '/a/b/d2', '/a/c/d3', '/x/y/z']
-    """
-    fh = h5py.File(fn, mode='r') 
-    dct = {}
-    def get(name, obj, dct=dct):
-        if isinstance(obj, h5py.Dataset):
-            _name = name if name.startswith('/') else '/'+name
-            dct[_name] = obj.value
-    fh.visititems(get)            
-    fh.close()
-    return dct
-
-load_h5 = read_h5

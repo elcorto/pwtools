@@ -19,3 +19,5 @@ def print_doc_attr(module):
 
 from pwtools import _flib
 print_doc_attr(_flib)
+from pwtools import _dcd
+print_doc_attr(_dcd)

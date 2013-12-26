@@ -25,10 +25,11 @@ How to change pre-defined comparison functions
 ::
 
 >>> import pwtools.test.tools as tt
+# Update comparison functions's comp_map dictionary
 >>> tt.all_types_almost_equal.comp_map[tt.arr_t] = \
-... lambda x,y: np.allclose(x,y,atol=0.1,rtol=0.1)
+... lambda x,y: tt.true_or_false(np.allclose(x,y,atol=0.1,rtol=0.1))
 >>> tt.assert_all_types_almost_equal.comp_func.comp_map[tt.arr_t] = \
-... lambda x,y: np.allclose(x,y,atol=0.1,rtol=0.1)
+... lambda x,y: tt.true_or_false(np.allclose(x,y,atol=0.1,rtol=0.1))
 
 Easy, eh? :)
 """
