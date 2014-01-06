@@ -2,7 +2,7 @@
 #
 # Interface classes for calling EOS fitting apps.
 #
-# Just compile the app to produce an executable, e.g. eos.x. Then use 
+# Compile the app to produce an executable, e.g. eos.x. Then use 
 # app='/path/to/eos.x' in the constructor.
 
 import os
@@ -13,7 +13,7 @@ from pwtools.constants import Ry, Ha, Bohr, Ang, eV
 from pwtools.base import FlexibleGetters
 
 class ExternEOS(FlexibleGetters):
-    """Base class for calling extern (Fortran) EOS-fitting apps. The class
+    """Base class for calling extern EOS-fitting executables. The class
     writes an input file, calls the app, loads E(V) fitted data and loads or
     calcutates P(V), B(V).
 
@@ -36,17 +36,22 @@ class ExternEOS(FlexibleGetters):
 
     Examples
     --------
-    >>> eos = SomeEOSClass(app='super_fitting_app.x', energy=ee, volume=vv)
-    >>> eos.fit()
+    >>> from pwtools import eos
+    >>> efit = eos.ElkEOSFit(app='eos.x', energy=ee, volume=vv)
+    >>> efit.fit()
     >>> plot(vv, ee, 'o-', label='E(V) data')
-    >>> plot(eos.ev[:,0], eos.ev[:,1], label='E(V) fit')
-    >>> plot(eos.pv[:,0], eos.pv[:,1], label='P=-dE/dV')
-    >>> plot(eos.ev[:,0], eos.spl_ev(eos.ev[:,0]), label='spline E(V)')
-    >>> plot(eos.pv[:,0], eos.spl_pv(eos.pv[:,0]), label='spline P(V)')
-    >>> print "min:", eos.get_min()
-
+    >>> plot(efit.ev[:,0], efit.ev[:,1], label='E(V) fit')
+    >>> plot(efit.pv[:,0], efit.pv[:,1], label='P=-dE/dV')
+    >>> plot(efit.ev[:,0], efit.spl_ev(efit.ev[:,0]), label='spline E(V)')
+    >>> plot(efit.pv[:,0], efit.spl_pv(efit.pv[:,0]), label='spline P(V)')
+    >>> print "V0={v0} E0={e0} B0={b0} P0={p0}".format(**efit.get_min())
+    
+    Notes
+    -----
     For derived classes:
-    Implement _fit(), which sets self.{ev,pv}.
+    Implement _fit(), which sets self.{ev,pv}. `bv` and `spl_bv` are always
+    calculated from `ev` or `pv` when :meth:`fit` is called, see also
+    :meth:`calc_bv` and :meth:`set_bv_method`.
     """
     # Notes
     # -----
@@ -187,9 +192,12 @@ class ExternEOS(FlexibleGetters):
 
         Notes
         -----
-        If the pressure at the E(V) minimum is not very close to zero (say ~
-        1e-10), then your E-V data is incorrect. Usually, this is because of
-        poorly converged calculations (low ecut, too few k-points).
+        We have two sources for pressure: (a) The code which calculated E(V),
+        i.e. usually some ab initio code (PWscf, ...). (b) Calculated pressure
+        P=-dE/dV from the EOS fit to E(V). If the (a) pressure at the E(V)
+        minimum is not very close to zero (say ~ 1e-10), then your E-V data is
+        incorrect. Usually, this is because of poorly converged calculations
+        (low cufoff / bad basis set, too few k-points).
         """
         self.try_set_attr('spl_pv')
         self.try_set_attr('spl_ev')
@@ -386,7 +394,3 @@ class ElkEOSFit(ExternEOS):
         fitpv = np.loadtxt(os.path.join(self.dir,'PVPAI.OUT'))
         fitpv[:,0] *= (self.natoms * Bohr**3 / Ang**3)
         self.pv = fitpv
-
-# backward compat
-BossEOSfit = BossEOSFit
-ElkEOSfit = ElkEOSFit
