@@ -53,3 +53,6 @@ def test_spline():
     assert spl.splrep_kwargs['k'] == 2       
     assert spl.splrep_kwargs['s'] == 0.1
 
+    # scalar 
+    assert type(spl(1.0)) != type(np.array(1.0))
+

@@ -235,6 +235,7 @@ class Spline(object):
             Whether to use `eps` to ckeck interpolation accuracy.
         **splrep_kwargs : keywords args to splrep(), default: k=3, s=0            
         """
+        self.arr_zero_dim_t = type(np.array(1.0))
         self.x = x
         self.y = y
         self.eps = eps
@@ -283,7 +284,13 @@ class Spline(object):
         return (tmp == 0).all()
 
     def splev(self, x, *args, **kwargs):
-        return splev(x, self.tck, *args, **kwargs)
+        ret = splev(x, self.tck, *args, **kwargs)
+        # splev() retrns array(<number>) for scalar input, convert to scalar
+        # float
+        if type(ret) == self.arr_zero_dim_t and ret.ndim == 0:
+            return float(ret)
+        else:
+            return ret
 
     def invsplev(self, y0, x0=None, xab=None):
         """Lookup x for a given y, i.e. "inverse spline evaluation", hence
