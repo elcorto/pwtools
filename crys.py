@@ -2949,6 +2949,53 @@ class Trajectory(Structure):
         raise StandardError("calling Trajectory.get_traj makes "
                             "no sense")
 
+    def compress(self, forget=['forces', 'stress', 
+                               'coords','cryst_const'], dtype=np.float32):
+        """Compress Trajectory by deleting unused or redundant attrs (see
+        `forget`). Cast float arrays to `dtype`. float32 is usually quite OK
+        for MD data.
+        
+        Parameters
+        ----------
+        forget : list
+            Names of attributes to delete. They will be set to None.
+        dtype : numpy dtype
+        """
+        arr_t = type(np.array([1.0]))
+        float_ts = [np.float16, np.float32, np.float64, np.float128]
+        for name in self.attr_lst:
+            if name in forget:
+                setattr(self, name, None)
+            else:            
+                attr = getattr(self, name)
+                if (type(attr) == arr_t) and (attr.dtype in float_ts) and \
+                    attr.dtype != dtype:
+                    setattr(self, name, attr.astype(dtype))
+
+
+def compress(traj, copy=True, **kwds):
+    """Wrapper for :meth:`Trajectory.compress`. 
+
+    Parameters
+    ----------
+    copy : bool
+        Return compressed copy or in-place modified object.
+    **kwds : keywords
+        keywords to :meth:`Trajectory.compress`
+
+    Examples
+    --------
+    >>> trc = compress(tr, copy=True, forget=['coords'])
+    >>> trc.dump('very_small_file.pk')
+    """
+    if copy:
+        out = traj.copy()
+    else:
+        out = traj
+    out.compress(**kwds)
+    return out
+
+
 def atoms2struct(at):
     """Transform ASE Atoms object to Structure."""
     return Structure(symbols=at.get_chemical_symbols(),
@@ -3258,4 +3305,5 @@ def align_cart(obj, x=None, y=None, vecs=None, indices=None, cart=None,
                         cell=np.dot(obj.cell, cart.T),
                         )
     return obj_new                        
-    
+
+

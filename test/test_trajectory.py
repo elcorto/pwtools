@@ -348,3 +348,27 @@ def test_coords_trans():
                       cell=cell)
     assert np.allclose(coords_frac, traj.coords_frac)
 
+
+def test_compress():
+    old = get_rand_traj()
+    float_dtype_old = old.coords.dtype
+    float_dtype_new = np.float32
+    assert float_dtype_new != float_dtype_old
+    arr_t = type(np.array([1.0]))
+    forget = ['stress', 'velocity']
+    new = crys.compress(old, copy=True, dtype=float_dtype_new, forget=forget)
+    for name in forget:
+        assert getattr(new, name) is None
+        assert getattr(old, name) is not None
+    for name in old.attr_lst:
+        if name in forget:
+            continue
+        attr_old = getattr(old, name)
+        if (type(attr_old) == arr_t) and (attr_old.dtype == float_dtype_old):
+            print name
+            attr_new = getattr(new, name)
+            assert type(attr_new) == arr_t
+            assert attr_new.dtype == float_dtype_new
+            assert abs(attr_old - attr_new).sum() > 0.0
+
+
