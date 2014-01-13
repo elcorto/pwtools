@@ -2227,8 +2227,12 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
             return None
     
     def get_etot(self):
+        """Potetntial energy PotEng [eV]. etot+ekin here is
+        TotEng=PotEng+KinEng in lammps. In DFT, the potential energy is usually
+        called "total energy".
+        """
         if self.check_set_attr('_thermo_dct'):
-            return self._get_from_dct(self._thermo_dct, 'TotEng')
+            return self._get_from_dct(self._thermo_dct, 'PotEng')
         else:
             return None
     
