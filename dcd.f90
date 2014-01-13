@@ -12,6 +12,16 @@
 ! * http://www.csb.pitt.edu/prody/
 ! * and of course VMD, but we can't wrap that due to a lacking Python API AFAIK
 
+subroutine check_iost(iost, filename)
+    implicit none
+    integer :: iost
+    character(len=1024) :: filename
+    if (iost /= 0) then
+        write(*,*) "IO error ", iost, "with file: '", trim(filename), "'"
+        stop 1
+    end if
+end subroutine check_iost    
+
 subroutine read_dcd_header_from_unit(unt, nstep, natoms, timestep)
     ! Read header from DCD file.
     !
@@ -163,9 +173,12 @@ subroutine read_dcd_header(filename, nstep, natoms, timestep)
     !
     character(len=1024) :: filename
     integer, intent(out) :: nstep, natoms
+    integer :: iost
     real, intent(out) :: timestep
 
-    open(1, file=trim(filename), status='old', form='unformatted', action='read')
+    open(1, file=trim(filename), status='old', form='unformatted', &
+         action='read', iostat=iost)
+    call check_iost(iost, filename)         
     call read_dcd_header_from_unit(1, nstep, natoms, timestep)
     close(1)
 end subroutine read_dcd_header
@@ -199,12 +212,14 @@ subroutine read_dcd_data(filename, cryst_const, coords, nstep, natoms)
     ! mail, or a patch!
     implicit none
     character(len=1024) :: filename
-    integer :: nstep, natoms
+    integer :: nstep, natoms, iost
     double precision, intent(out):: cryst_const(nstep,6)
     real, intent(out) :: coords(nstep, natoms, 3)
     real :: timestep
 
-    open(1, file=trim(filename), status='old', form='unformatted', action='read')
+    open(1, file=trim(filename), status='old', form='unformatted', &
+         action='read', iostat=iost)
+    call check_iost(iost, filename)         
     ! read header again only to advance in file to the data section
     call read_dcd_header_from_unit(1, nstep, natoms, timestep)
     call read_dcd_data_from_unit(1, cryst_const, coords, nstep, natoms)

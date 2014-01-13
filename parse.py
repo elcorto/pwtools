@@ -240,6 +240,20 @@ def axis_lens(seq, axis=0):
             ret.append(0)
     return ret            
 
+# wrappers for _dcd functions with file-not-found error handling
+def read_dcd_header(filename):
+    if os.path.exists(filename):
+        return _dcd.read_dcd_header(filename)
+    else:
+        raise StandardError("file not found: {}".format(filename))
+
+def read_dcd_data(filename, nstep, natoms):
+    if os.path.exists(filename):
+        return _dcd.read_dcd_data(filename, nstep, natoms)
+    else:
+        raise StandardError("file not found: {}".format(filename))
+
+
 #-----------------------------------------------------------------------------
 # Parsers
 #-----------------------------------------------------------------------------
@@ -2366,12 +2380,12 @@ class LammpsDcdMDOutputFile(LammpsTextMDOutputFile):
         self.dcdfilename = pj(self.basedir, 'lmp.out.dcd')
 
     def _get_header(self):
-        a, b, c = _dcd.read_dcd_header(self.dcdfilename)
+        a, b, c = read_dcd_header(self.dcdfilename)
         return {'nstep': a, 'natoms': b, 'timestep': c}
     
     def _get_cryst_const_coords(self):
         if self.check_set_attr_lst(['nstep', 'natoms']):
-            a, b = _dcd.read_dcd_data(self.dcdfilename, self.nstep, self.natoms)
+            a, b = read_dcd_data(self.dcdfilename, self.nstep, self.natoms)
             return {'cryst_const': a, 'coords': b}
         else:
             return None
