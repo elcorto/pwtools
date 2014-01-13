@@ -1,4 +1,4 @@
-import os
+import os, tempfile
 import numpy as np
 from pwtools import io, common, crys, parse
 from pwtools.test import tools
@@ -60,3 +60,10 @@ def test_parse_vc_relax():
     run('files/lammps/vc-relax.tgz', 
         skip=['forces', 'coords_frac', 'velocity'], 
         atol_map={'volume': 1e-4})
+
+def test_missing_files():
+    tmpdir = tempfile.mkdtemp(dir=testdir, prefix=__file__)
+    pp = parse.LammpsTextMDOutputFile(filename='{}/foo'.format(tmpdir))
+    pp.parse()
+    pp = parse.LammpsDcdMDOutputFile(filename='{}/foo'.format(tmpdir))
+    pp.parse()

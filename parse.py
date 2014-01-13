@@ -2049,9 +2049,9 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
     """Parse LAMMPS text output. 
     
     We parse the default ``log.lammps`` file (`filename`) with ``thermo``
-    output and a custom dump file ``lmp.out.dump`` created by something
-    like ``dump 2 all custom 1 lmp.out.dump ...`` Tested with MD and structure
-    optimization (``minimize``).
+    output and, if present, a custom dump file ``lmp.out.dump`` created by
+    something like ``dump 2 all custom 1 lmp.out.dump ...`` Tested with MD and
+    structure optimization (``minimize``).
    
     Currently hardcoded file names:
         | `dumpfilename` = ``basedir/lmp.out.dump`` 
@@ -2144,6 +2144,7 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
             'cell',
             'coords_frac',
             'coords',
+            'cryst_const',
             'ekin',
             'etot',
             'forces',
@@ -2153,6 +2154,7 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
             'temperature',
             'timestep',
             'velocity',
+            'volume',
         ]
         self.init_attr_lst()
         self.order = order
@@ -2177,16 +2179,20 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
         assert mod == 0, msg
 
     def _get_thermo_dct(self):
-        header = com.backtick("grep -m1 Step %s" %self.filename).split()
-        # strip all text from log.lammps except for the data columns, tune the
-        # regex to include "e" as in "1.23e-4"
-        cmd = r"sed -re '/Minimization stats:/,$d' %s | \
-            egrep -v '#|[a-df-zA-DF-Z]|^[ ]*$'" %self.filename
-        arr = arr2d_from_txt(com.backtick(cmd))
-        return dict((x, arr[:,ii]) for ii,x in enumerate(header))
-    
+        if os.path.exists(self.filename):
+            header = com.backtick("grep -m1 Step %s" %self.filename).split()
+            # strip all text from log.lammps except for the data columns, tune the
+            # regex to include "e" as in "1.23e-4"
+            cmd = r"sed -re '/Minimization stats:/,$d' %s | \
+                egrep -v '#|[a-df-zA-DF-Z]|^[ ]*$'" %self.filename
+            arr = arr2d_from_txt(com.backtick(cmd))
+            return dict((x, arr[:,ii]) for ii,x in enumerate(header))
+        else:
+            return None
+
     def _get_dump_dct(self):
-        if self.check_set_attr_lst(['natoms', 'dumpfilename']):
+        if self.check_set_attr('natoms') and \
+           os.path.exists(self.dumpfilename):
             cmd = r"grep -c 'ITEM: TIMESTEP' %s" %self.dumpfilename
             nstep = nstep_from_txt(com.backtick(cmd))
             header = com.backtick("grep -m1 'ITEM: ATOMS' %s \
@@ -2214,13 +2220,12 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
         else:
             return None
     
-    def get_dumpfilename(self):
-        # need that for self.check_set_attr('dumpfilename')
-        return self.dumpfilename
-
     def get_natoms(self):
-        cmd = r"grep -A1 -m1 'ITEM: NUMBER OF ATOMS' %s | tail -n1" %self.dumpfilename
-        return nstep_from_txt(com.backtick(cmd))
+        if os.path.exists(self.dumpfilename):
+            cmd = r"grep -A1 -m1 'ITEM: NUMBER OF ATOMS' %s | tail -n1" %self.dumpfilename
+            return nstep_from_txt(com.backtick(cmd))
+        else:
+            return None
     
     def get_stress(self):
         if self.check_set_attr('_thermo_dct'):
@@ -2262,6 +2267,26 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
         else:
             return None
     
+    def get_volume(self):
+        if self.check_set_attr('_thermo_dct'):
+            return self._get_from_dct(self._thermo_dct, 'Volume')
+        else:
+            return None
+    
+    def get_cryst_const(self):
+        if self.check_set_attr('_thermo_dct'):
+            keys = 'Cella Cellb Cellc CellAlpha CellBeta CellGamma'.split()
+            for k in keys:
+                if not self._thermo_dct.has_key(k):
+                    return None
+            nstep = len(self._thermo_dct['Cella'])
+            ret = np.empty((nstep,6))
+            for ii,k in enumerate(keys):
+                ret[:,ii] = self._thermo_dct[k]
+            return ret
+        else:
+            return None
+
     def get_coords_frac(self):
         if self.check_set_attr('_dump_dct'):
             keys = 'xsu ysu zsu'.split()
@@ -2291,10 +2316,13 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
             return None
     
     def get_timestep(self):
-        cmd = r"grep -m1 timestep %s | \
-                sed -re 's/.*step (.*)/\1/'" %self.filename
-        return float_from_txt(com.backtick(cmd))
-    
+        if os.path.exists(self.filename):
+            cmd = r"grep -m1 timestep %s | \
+                    sed -re 's/.*step (.*)/\1/'" %self.filename
+            return float_from_txt(com.backtick(cmd))
+        else:
+            return None
+
     def get_symbols(self):
         if os.path.exists(self.symbolsfilename):
             return com.file_read(self.symbolsfilename).split()
@@ -2315,36 +2343,39 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
             return None
     
     def get_cell(self):
-        cmd = r"grep -c 'ITEM: BOX BOUNDS' %s" %self.dumpfilename
-        nstep = nstep_from_txt(com.backtick(cmd))
-        cmd = r"grep -A3 'ITEM: BOX BOUNDS' %s | \
-                egrep -ve '--|ITEM'" %self.dumpfilename
-        arr = np.fromstring(com.backtick(cmd), sep=' ').reshape((nstep,3,3))
-        cell = np.zeros_like(arr)
-        for ii in range(nstep):
-            xlo_bound = arr[ii,0,0]
-            xhi_bound = arr[ii,0,1]
-            ylo_bound = arr[ii,1,0]
-            yhi_bound = arr[ii,1,1]
-            zlo = arr[ii,2,0]
-            zhi = arr[ii,2,1]
-            xy =  arr[ii,0,2]
-            xz =  arr[ii,1,2]
-            yz =  arr[ii,2,2]
-            xlo = xlo_bound - min(0.0,xy,xz,xy+xz)
-            xhi = xhi_bound - max(0.0,xy,xz,xy+xz)
-            ylo = ylo_bound - min(0.0,yz)
-            yhi = yhi_bound - max(0.0,yz)
-            # [[x,  0,  0],
-            #  [xy, y,  0],
-            #  [xz, yz, z]]
-            cell[ii,0,0] = xhi-xlo
-            cell[ii,1,1] = yhi-ylo
-            cell[ii,2,2] = zhi-zlo
-            cell[ii,1,0] = xy
-            cell[ii,2,0] = xz
-            cell[ii,2,1] = yz
-        return cell                
+        if os.path.exists(self.dumpfilename):
+            cmd = r"grep -c 'ITEM: BOX BOUNDS' %s" %self.dumpfilename
+            nstep = nstep_from_txt(com.backtick(cmd))
+            cmd = r"grep -A3 'ITEM: BOX BOUNDS' %s | \
+                    egrep -ve '--|ITEM'" %self.dumpfilename
+            arr = np.fromstring(com.backtick(cmd), sep=' ').reshape((nstep,3,3))
+            cell = np.zeros_like(arr)
+            for ii in range(nstep):
+                xlo_bound = arr[ii,0,0]
+                xhi_bound = arr[ii,0,1]
+                ylo_bound = arr[ii,1,0]
+                yhi_bound = arr[ii,1,1]
+                zlo = arr[ii,2,0]
+                zhi = arr[ii,2,1]
+                xy =  arr[ii,0,2]
+                xz =  arr[ii,1,2]
+                yz =  arr[ii,2,2]
+                xlo = xlo_bound - min(0.0,xy,xz,xy+xz)
+                xhi = xhi_bound - max(0.0,xy,xz,xy+xz)
+                ylo = ylo_bound - min(0.0,yz)
+                yhi = yhi_bound - max(0.0,yz)
+                # [[x,  0,  0],
+                #  [xy, y,  0],
+                #  [xz, yz, z]]
+                cell[ii,0,0] = xhi-xlo
+                cell[ii,1,1] = yhi-ylo
+                cell[ii,2,2] = zhi-zlo
+                cell[ii,1,0] = xy
+                cell[ii,2,0] = xz
+                cell[ii,2,1] = yz
+            return cell                
+        else:
+            return None
 
 
 class LammpsDcdMDOutputFile(LammpsTextMDOutputFile):
@@ -2375,16 +2406,21 @@ class LammpsDcdMDOutputFile(LammpsTextMDOutputFile):
             'symbols',
             'temperature',
             'timestep',
+            'volume',
         ]
         self.init_attr_lst()
         self.dcdfilename = pj(self.basedir, 'lmp.out.dcd')
 
     def _get_header(self):
-        a, b, c = read_dcd_header(self.dcdfilename)
-        return {'nstep': a, 'natoms': b, 'timestep': c}
+        if os.path.exists(self.dcdfilename):
+            a, b, c = read_dcd_header(self.dcdfilename)
+            return {'nstep': a, 'natoms': b, 'timestep': c}
+        else:
+            return None
     
     def _get_cryst_const_coords(self):
-        if self.check_set_attr_lst(['nstep', 'natoms']):
+        if self.check_set_attr_lst(['nstep', 'natoms']) and \
+           os.path.exists(self.dcdfilename):
             a, b = read_dcd_data(self.dcdfilename, self.nstep, self.natoms)
             return {'cryst_const': a, 'coords': b}
         else:
@@ -2414,33 +2450,3 @@ class LammpsDcdMDOutputFile(LammpsTextMDOutputFile):
         else:
             return None
 
-##class LammpsDcdMDOutputFile(TrajectoryFileParser):
-##    dcdfilename = 'lmp.out.dcd'
-##    
-##    def _get_dcd_reader(self):
-##        import MDAnalysis
-##        return MDAnalysis.coordinates.LAMMPS.DCDReader(self.dcdfilename)
-##    
-##    def get_natoms(self):
-##        if self.check_set_attr('_dcd_reader'):
-##            return self._dcd_reader.numatoms
-##        else:
-##            return None
-##
-##    def get_nstep(self):
-##        if self.check_set_attr('_dcd_reader'):
-##            return self._dcd_reader.numframes
-##        else:
-##            return None
-##    
-##    def get_coords(self):
-##        if self.check_set_attr_lst(['_dcd_reader','nstep', 'natoms']):
-##            arr = np.empty((self.nstep, self.natoms, 3))
-##            for ii,ts in enumerate(self._dcd_reader):
-##                arr[ii,:,0] = ts._x
-##                arr[ii,:,1] = ts._y
-##                arr[ii,:,2] = ts._z
-##            return arr
-##        else:
-##            return None
-    
