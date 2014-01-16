@@ -592,10 +592,13 @@ def extend_array(arr, nstep, axis=0):
 
 def sum(arr, axis=None, keepdims=False, **kwds):
     """This numpy.sum() with some features implemented which can be found in
-    numpy 2.0 (we have 1.5.1), probably a lot faster there, namely axis=tuple
-    possible, keepdims keyword. Docstrings shamelessly stolen from numpy and
-    adapted here and there.
-    
+    numpy v1.7 and later: `axis` can be a tuple to select arbitrary axes to sum
+    over.
+
+    We also have a `keepdims` keyword, which however works completely different
+    from numpy. Docstrings shamelessly stolen from numpy and adapted here
+    and there.
+
     Parameters
     ----------
     arr : nd array
@@ -607,9 +610,9 @@ def sum(arr, axis=None, keepdims=False, **kwds):
         If this is a tuple of ints, a sum is performed on multiple
         axes, instead of a single axis or all the axes as before.
     keepdims : bool, optional
-        If this is set to True, the axes from ``axis`` are left in the result
-        as dimensions with size one, and the reduction (sum) is performed for
-        all remaining axes.
+        If this is set to True, the axes from `axis` are left in the result
+        and the reduction (sum) is performed for all remaining axes. Therefore,
+        it reverses the `axis` to be summed over.
     **kwds : passed to np.sum().        
 
     Examples
@@ -623,8 +626,13 @@ def sum(arr, axis=None, keepdims=False, **kwds):
     (2, 4)
     >>> num.sum(a, axis=(1,)).shape
     (2, 4)
+    >>> # same as axis=1, i.e. it inverts the axis over which we sum
     >>> num.sum(a, axis=(0,2), keepdims=True).shape
     (2, 4)
+    >>> # numpy's keepdims has another meaning: it leave the summed axis (0,2)
+    >>> # as dimension of size 1 to allow broadcasting
+    >>> numpy.sum(a, axis=(0,2), keepdims=True).shape
+    (1, 3, 1)
     >>> num.sum(a, axis=(1,)) - num.sum(a, axis=1)
     array([[ 0.,  0.,  0.,  0.],
            [ 0.,  0.,  0.,  0.]])
