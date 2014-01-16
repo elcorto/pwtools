@@ -73,10 +73,14 @@ def default_equal(a, b):
 
 
 def array_equal(a,b):
-    return true_or_false((a==b).all())
+    return true_or_false((a==b).all() and a.ndim == b.ndim)
 
 
 def array_almost_equal(a, b, **kwds):
+    return true_or_false(np.allclose(a, b, **kwds) and a.ndim == b.ndim)
+
+
+def float_almost_equal(a, b, **kwds):
     return true_or_false(np.allclose(a, b, **kwds))
 
 
@@ -228,8 +232,8 @@ comp_map_no_dict_equal = {\
 
 comp_map_no_dict_almost_equal = {\
     arr_t: array_almost_equal,
-    int_t: array_almost_equal,
-    float_t: array_almost_equal,
+    int_t: float_almost_equal,
+    float_t: float_almost_equal,
     'default': default_equal,
     }
 

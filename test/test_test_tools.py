@@ -58,3 +58,20 @@ def test_tools():
     x2 = copy.deepcopy(x1)
     x2['c'] = 1.0
     assert tools.dict_with_all_types_equal(x1, x2, keys=['a','b',type(1)])
+
+    # fail on same array content but different dimensions
+    a = np.random.rand(1,2,3)
+    b = a[None,...]
+    # this is True and IMHO a numpy bug b/c the dimensions are
+    # different
+    assert (a==b).all()
+    # must catch that here
+    assert not tools.array_equal(a,b)
+
+    a = np.random.rand(1,2,3)
+    b = (a + 1e-8)[None,...]
+    assert not (a==b).all() # make sure they are numerically differrent
+    assert np.allclose(a,b) # True but should be False
+    assert not tools.array_almost_equal(a,b) # ok
+
+
