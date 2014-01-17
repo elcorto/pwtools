@@ -1814,7 +1814,7 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
     """
     def __init__(self, *args, **kwds):
         self.default_units['stress'] = 1e-4 # bar -> GPa
-        self.default_units['velocity'] = Bohr/thart / Ang*fs, # Bohr/thart -> Ang/fs
+        self.default_units['velocity'] = Bohr/thart / Ang*fs # Bohr/thart -> Ang/fs
         TrajectoryFileParser.__init__(self, *args, **kwds)
         self.attr_lst = [\
             'cell',
