@@ -2166,6 +2166,85 @@ class UnitsHandler(FlexibleGetters):
 
 
 class Structure(UnitsHandler):
+    """Container class for representing a single crystal structure (unit
+    cell + atoms).
+    
+    Derived classes may add attributes and getters but the idea is that this
+    class is the minimal API for how to pass an atomic structure around.
+    
+    Units are supposed to be similar to ASE:
+
+    =========== ==============  ===============================
+    what        unit            SI
+    =========== ==============  ===============================
+    length      Angstrom        (1e-10 m)
+    energy      eV              (1.602176487e-19 J)
+    forces      eV / Angstrom
+    stress      GPa             (not eV/Angstrom**3)
+    temperature K             
+    velocity    Angstrom / fs
+    time        fs              (1e-15 s)
+    mass        amu             (1.6605387820000001e-27 kg)
+    =========== ==============  ===============================
+    
+    Unit conversion factors, which are applied to input arguments for
+    conversion to the above units can be given by the `units` input keyword.
+
+    Note that we cannot verify the unit of input args to the constructor, but
+    all functions in this package, which use Structure / Trajectory as
+    container classes, assume these units.
+
+    This class is very much like ase.Atoms, but without the "calculators".
+    You can use :meth:`get_ase_atoms` to get an Atoms object or
+    :meth:`get_fake_ase_atoms` for a minimal Atoms-like object.
+    
+    Examples
+    --------
+    >>> symbols=['N', 'Al', 'Al', 'Al', 'N', 'N', 'Al']
+    >>> coords_frac=rand(len(symbols),3)
+    >>> cryst_const=np.array([5,5,5,90,90,90.0])
+    >>> st=Structure(coords_frac=coords_frac, 
+    ...              cryst_const=cryst_const, 
+    ...              symbols=symbols)
+    >>> st.symbols
+    ['N', 'Al', 'Al', 'Al', 'N', 'N', 'Al']
+    >>> st.symbols_unique
+    ['Al', 'N']
+    >>> st.order
+    {'Al': 1, 'N': 2}
+    >>> st.typat
+    [2, 1, 1, 1, 2, 2, 1]
+    >>> st.znucl_unique
+    [13, 7]
+    >>> st.nspecies
+    {'Al': 4, 'N': 3}
+    >>> st.coords
+    array([[ 1.1016541 ,  4.52833103,  0.57668453],
+           [ 0.18088339,  3.41219704,  4.93127985],
+           [ 2.98639824,  2.87207221,  2.36208784],
+           [ 2.89717342,  4.21088541,  3.13154023],
+           [ 2.28147351,  2.39398397,  1.49245281],
+           [ 3.16196033,  3.72534409,  3.24555934],
+           [ 4.90318748,  2.02974457,  2.49846847]])
+    >>> st.coords_frac
+    array([[ 0.22033082,  0.90566621,  0.11533691],
+           [ 0.03617668,  0.68243941,  0.98625597],
+           [ 0.59727965,  0.57441444,  0.47241757],
+           [ 0.57943468,  0.84217708,  0.62630805],
+           [ 0.4562947 ,  0.47879679,  0.29849056],
+           [ 0.63239207,  0.74506882,  0.64911187],
+           [ 0.9806375 ,  0.40594891,  0.49969369]])
+    >>> st.cryst_const
+    array([  5.,   5.,   5.,  90.,  90.,  90.])
+    >>> st.cell
+    array([[  5.00000000e+00,   0.00000000e+00,   0.00000000e+00],
+           [  3.06161700e-16,   5.00000000e+00,   0.00000000e+00],
+           [  3.06161700e-16,   3.06161700e-16,   5.00000000e+00]])
+    >>> st.get_ase_atoms()
+    Atoms(symbols='NAl3N2Al', positions=..., cell=[[2.64588604295, 0.0, 0.0],
+    [1.6201379367036871e-16, 2.64588604295, 0.0], [1.6201379367036871e-16,
+    1.6201379367036871e-16, 2.64588604295]], pbc=[True, True, True])
+    """
     
     # attrs_nstep arrays have shape (nstep,...), i.e time along `timeaxis`
     timeaxis = 0
@@ -2173,8 +2252,63 @@ class Structure(UnitsHandler):
     is_traj = False
     is_struct = True
                 
-    ##@crys_add_doc
     def __init__(self, set_all_auto=True, units=None, **kwds):
+        """
+        Parameters
+        ----------
+        coords : (natoms, 3) [Ang]
+            Cartesian coords.
+            Optional if `coords_frac` given.
+        coords_frac : (natoms, 3)
+            Fractional coords w.r.t. `cell`.
+            Optional if `coords` given.
+        symbols : sequence of strings (natoms,)
+            atom symbols
+        cell : (3,3)
+            Unit cell vectors as rows. [Ang]
+            Optional if `cryst_const` given.
+        cryst_const : (6,)
+            [a,b,c,alpha,beta,gamma]; a,b,c in [Ang]
+            Optional if `cell` given.
+        forces : (natoms, 3), optional
+            [eV/Ang]
+        stress : (3,3), optional
+            stress tensor [GPa]
+        etot : float, optional 
+            total energy [eV]
+        units : optional, dict, 
+            see :class:`UnitsHandler`
+        set_all_auto : optional, bool
+            Call :meth:`set_all` in :meth:`__init__`.
+        
+        Only Trajectory
+
+        ekin : (nstep,)
+            [eV]
+        forces : (nstep,natoms,3)
+            [eV/Ang]
+        pressure : (nstep,)
+            [GPa]
+        stress : (nstep,3,3)
+            [GPa]
+        temperature : (nstep,)
+            [K]
+        timestep : float
+            [fs]
+        velocity : (nstep, natoms, 3)
+            [Ang/fs]
+        volume : (nstep,)
+            [Ang^3]
+
+        Notes
+        -----
+        cell, cryst_const : Provide either `cell` or `cryst_const`, or both
+            (which is redundant). If only one is given, the other is calculated
+            from it. See {cell2cc,cc2cell}.
+        coords, coords_frac : Provide either `coords` or `coords_frac`, or both
+            (which is redundant). If only one is given, the other is calculated
+            from it. See coord_trans().
+        """
         # accepted by input, some derived if not given
         self.input_attr_lst = [\
             'cell',
@@ -2191,7 +2325,6 @@ class Structure(UnitsHandler):
             'timestep',
             'velocity',
             'volume',
-            'timestep',
             ]
         # not as input, only derived from input attrs            
         self.derived_attr_lst = [\
@@ -2726,7 +2859,39 @@ class Structure(UnitsHandler):
 
     
 class Trajectory(Structure):
+    """Like :class:`Structure`, but all attrs in `attrs_nstep` have a timeaxis
+    along axis=0 and length `nstep`:
+       
+    ===========     ============    ================
+    attribute       Structure       Trajectory
+    ===========     ============    ================
+    coords          (nstoms,3)      (nstep,natoms,3)
+    coords_frac     (nstoms,3)      (nstep,natoms,3) 
+    cryst_const     (nstoms,3)      (nstep,natoms,3) 
+    forces          (nstoms,3)      (nstep,natoms,3)     
+    velocity        --              (nstep,natoms,3) 
+    cryst_const     (6,)            (nstep,6)
+    cell            (3,3)           (nstep,3,3)
+    stress          (3,3)           (nstep,3,3)
+    etot            scalar          (nstep,)
+    volume          scalar          (nstep,)                 
+    pressure        scalar          (nstep,)                 
+    ekin            --              (nstep,)
+    temperature     --              (nstep,)
+    time            --              (nstep,)
+    ===========     ============    ================
     
+    Also, we have additional attrs which are only defined for
+    :class:`Trajectory` see `attrs_only_traj`: 
+    
+    | nstep
+    | timestep
+    | time
+    | ekin
+    | velocity
+    | temperature
+
+    """
     is_traj = True
     is_struct = False
 

@@ -15,4 +15,4 @@ rm -rfv build/ source/generated/
 # generate API doc rst files
 echo "using: $autodoc"
 $autodoc -s source -a generated/api -d generated/doc -w written \
-         -X 'test\.test_' pwtools
+         -X 'test\.test_|changelog' pwtools
