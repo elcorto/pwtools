@@ -4,18 +4,25 @@ do::
     make html
     firefox build/html/index.html 
 
-For this to work, you need Sphinx, the Python documention generation tool. If
-you don't have that, you can simply read the ``source/written/*.rst`` files :)
+For this to work, you need Sphinx, the Python documention generation tool
+(Debian: ``apt-get install python-sphinx``). If you don't have that, you can
+simply read the ``source/written/*.rst`` files :)
 
-To generate the API doc source automagically, you need ``sphinx-autodoc.py``
-[1]_ which is used as in ``generate-apidoc.sh`` to generate
-``source/generated/*``. But this is optional. The html doc build from the
-hand-written doc files in ``source/written/`` is not affected by this. But if
-you have it, then::
+By default (i.e. unpacked tarball or checked out source from bitbucket), this
+will build the hand-written documentation (like the tutorial and install notes)
+located in ``source/written/``.
+
+If you like to generate the optional API doc source ``*.rst`` files
+automagically before ``make html``, you need ``sphinx-autodoc.py`` [1]_ which
+is used as in ``generate-apidoc.sh`` to generate ``source/generated/*``:: 
     
+    hg clone https://bitbucket.org/elcorto/sphinx-autodoc
     ./generate-apidoc.sh
     make html
     firefox build/html/index.html 
+
+``generate-apidoc.sh`` will use the checked out ``sphinx-autodoc``.
+Then, ``make html`` will run longer and produce many more warnings :)
 
 .. [1] https://bitbucket.org/elcorto/sphinx-autodoc
 

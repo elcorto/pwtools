@@ -1,3 +1,6 @@
+Documentation
+-------------
+
 .. toctree::
 
    features
@@ -9,7 +12,3 @@
    pwscf
    tutorial
    refs
-
-.. toctree::
-   
-..   api

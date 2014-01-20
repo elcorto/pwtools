@@ -1,8 +1,8 @@
 Welcome to the pwtools documentation
 ------------------------------------
 
-``pwtools`` is a package for pre- and postprocessing of atomic calculations,
-mostly targeted to Quantum Espresso, CPMD and CP2K.
+``pwtools`` is a package for pre- and postprocessing of atomic calculations, mostly
+targeted to Quantum Espresso, CPMD, CP2K and LAMMPS.
 
 .. toctree::
    :maxdepth: 3
