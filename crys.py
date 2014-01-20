@@ -2166,344 +2166,410 @@ class UnitsHandler(FlexibleGetters):
 
 
 class Structure(UnitsHandler):
-    """Base class for containers which hold a single crystal structure (unit
-    cell + atoms).
     
-    This is a defined minimal interface for how to store a crystal structure in
-    pwtools.
-
-    Derived classes may add attributes and getters but the idea is that this
-    class is the minimal API for how to pass an atomic structure around.
-    
-    Units are supposed to be similar to ASE:
-
-    | length :     Angstrom        (1e-10 m)
-    | energy :     eV              (1.602176487e-19 J)
-    | forces :     eV / Angstrom
-    | stress :     GPa             (not eV/Angstrom**3)
-    | time :       fs              (1e-15 s)
-    | velocity :   Angstrom / fs
-    | mass :       amu             (1.6605387820000001e-27 kg)
-
-    Note that we cannot verify the unit of input args to the constructor, but
-    all functions in this package, which use Structure / Trajectory as
-    container classes, assume these units.
-
-    This class is very much like ase.Atoms, but without the "calculators".
-    You can use ``get_ase_atoms()`` to get an Atoms object.
-    
-    Derived classes should use ``set_all_auto=False`` if they call
-    ``Structure.__init__()`` explicitely in their ``__init__()``.
-    ``set_all_auto=True`` is default for container use::
-
-        class Derived(Structure):
-            def __init__(self, ...):
-                Structure.__init__(set_all_auto=False, ...)
-
-    Examples
-    --------
-    >>> symbols=['N', 'Al', 'Al', 'Al', 'N', 'N', 'Al']
-    >>> coords_frac=rand(len(symbols),3)
-    >>> cryst_const=np.array([5,5,5,90,90,90.0])
-    >>> st=Structure(coords_frac=coords_frac, 
-    ...              cryst_const=cryst_const, 
-    ...              symbols=symbols)
-    >>> st.symbols
-    ['N', 'Al', 'Al', 'Al', 'N', 'N', 'Al']
-    >>> st.symbols_unique
-    ['Al', 'N']
-    >>> st.order
-    {'Al': 1, 'N': 2}
-    >>> st.typat
-    [2, 1, 1, 1, 2, 2, 1]
-    >>> st.znucl_unique
-    [13, 7]
-    >>> st.nspecies
-    {'Al': 4, 'N': 3}
-    >>> st.coords
-    array([[ 1.1016541 ,  4.52833103,  0.57668453],
-           [ 0.18088339,  3.41219704,  4.93127985],
-           [ 2.98639824,  2.87207221,  2.36208784],
-           [ 2.89717342,  4.21088541,  3.13154023],
-           [ 2.28147351,  2.39398397,  1.49245281],
-           [ 3.16196033,  3.72534409,  3.24555934],
-           [ 4.90318748,  2.02974457,  2.49846847]])
-    >>> st.coords_frac
-    array([[ 0.22033082,  0.90566621,  0.11533691],
-           [ 0.03617668,  0.68243941,  0.98625597],
-           [ 0.59727965,  0.57441444,  0.47241757],
-           [ 0.57943468,  0.84217708,  0.62630805],
-           [ 0.4562947 ,  0.47879679,  0.29849056],
-           [ 0.63239207,  0.74506882,  0.64911187],
-           [ 0.9806375 ,  0.40594891,  0.49969369]])
-    >>> st.cryst_const
-    array([  5.,   5.,   5.,  90.,  90.,  90.])
-    >>> st.cell
-    array([[  5.00000000e+00,   0.00000000e+00,   0.00000000e+00],
-           [  3.06161700e-16,   5.00000000e+00,   0.00000000e+00],
-           [  3.06161700e-16,   3.06161700e-16,   5.00000000e+00]])
-    >>> st.get_ase_atoms()
-    Atoms(symbols='NAl3N2Al', positions=..., cell=[[2.64588604295, 0.0, 0.0],
-    [1.6201379367036871e-16, 2.64588604295, 0.0], [1.6201379367036871e-16,
-    1.6201379367036871e-16, 2.64588604295]], pbc=[True, True, True])
-    """
-    # from input **kwds, get_<attr>() by default
-    input_attr_lst = [\
-        'coords',
-        'coords_frac',
-        'symbols',
-        'cell',
-        'cryst_const',
-        'forces',
-        'stress',
-        'etot',
-        ]
-    # derived, get_<attr>() by default
-    derived_attr_lst = [\
-        'natoms',
-        'symbols_unique',
-        'order',
-        'typat',
-        'znucl_unique',
-        'znucl',
-        'ntypat',
-        'nspecies',
-        'mass',
-        'volume',
-        'pressure',
-        ]
-    # extra convenience attrs, derived, have a getter, but don't
-    # get_<attr>() them by default
-    extra_attr_lst = [\
-        'ase_atoms',
-        'fake_ase_atoms',
-        ]
-    
-    is_struct = True
-    is_traj = False
-    
-    # For get_traj(), also used in Trajectory. This means that a Structure has
-    # a `timeaxis` attr, which is mildly illogical, but practicality beats
-    # purity.
+    # attrs_nstep arrays have shape (nstep,...), i.e time along `timeaxis`
     timeaxis = 0
- 
-    @crys_add_doc
-    def __init__(self, 
-                 set_all_auto=True,
-                 units=None,
-                 **kwds):
-        """
-        Parameters
-        ----------
-        coords : 2d array (natoms, 3) [Ang]
-            Cartesian coords.
-            Optional if `coords_frac` given.
-        coords_frac : 2d array (natoms, 3)
-            Fractional coords w.r.t. `cell`.
-            Optional if `coords` given.
-        symbols : sequence of strings (natoms,)
-            atom symbols
-        %(cell_doc)s 
-            Vectors are rows. [Ang]
-            Optional if `cryst_const` given.
-        %(cryst_const_doc)s
-            cryst_const[:3] = [a,b,c]. [Ang]
-            Optional if `cell` given.
-        forces : optional, 2d array (natoms, 3) with forces [eV/Ang]
-        stress : optional, 2d array (3,3), stress tensor [GPa]
-        etot : optional, scalar, total energy [eV]
-        units : optional, dict, see UnitsHandler
-        set_all_auto : optional, bool
-            Call self.set_all() in __init__(). Set to False in derived
-            classes.
+    
+    is_traj = False
+    is_struct = True
+                
+    ##@crys_add_doc
+    def __init__(self, set_all_auto=True, units=None, **kwds):
+        # accepted by input, some derived if not given
+        self.input_attr_lst = [\
+            'cell',
+            'coords',
+            'coords_frac',
+            'cryst_const',
+            'ekin',
+            'etot',
+            'forces',
+            'pressure',
+            'stress',
+            'symbols',
+            'temperature',
+            'timestep',
+            'velocity',
+            'volume',
+            'timestep',
+            ]
+        # not as input, only derived from input attrs            
+        self.derived_attr_lst = [\
+            'mass',
+            'natoms',
+            'nspecies',
+            'nstep',
+            'ntypat',
+            'order',
+            'symbols_unique',
+            'typat',
+            'time',
+            'znucl',
+            'znucl_unique',
+            ] 
+        # If these are given as input args, then they must be 3d.
+        self.attrs_nstep_3d = [\
+            'coords', 
+            'coords_frac', 
+            'stress', 
+            'forces',
+            'velocity',
+            'cell',         # can be 2d, see _extend()
+            ]
+        self.attrs_nstep_2d = [\
+            'cryst_const',  # can be 1d, see _extend()
+            ]
+        self.attrs_nstep_1d = [\
+            'pressure',
+            'volume',   
+            'etot',
+            'ekin',
+            'temperature',
+            'time',
+            ]
+        self.attrs_only_traj = [\
+            'nstep',
+            'timestep',
+            'time',
+            'ekin',
+            'velocity',
+            'temperature',
+            ]
 
-        Notes
-        -----
-        cell, cryst_const : Provide either `cell` or `cryst_const`, or both
-            (which is redundant). If only one is given, the other is calculated
-            from it. See {cell2cc,cc2cell}.
-        coords, coords_frac : Provide either `coords` or `coords_frac`, or both
-            (which is redundant). If only one is given, the other is calculated
-            from it. See coord_trans().
-        """
-        super(Structure, self).__init__()
-        self.update_units(units)
-        self._init(kwds, set_all_auto)
-        self.np_array_t = type(np.array([1]))
-        
-    def _init(self, kwds, set_all_auto):
-        """Join attr lists, assign input args from **kwds, call set_all() to calculate
-        properties if set_all_auto==True. Shall be called in __init__, also in
-        derived classes."""
-        self.set_all_auto = set_all_auto
-        
-       # init all in self.attr_lst to None
+        self.attrs_nstep = self.attrs_nstep_3d + self.attrs_nstep_2d + \
+                           self.attrs_nstep_1d
+        self.attrs_nstep_2d_3d = self.attrs_nstep_3d + self.attrs_nstep_2d
+         
+        # init all in self.attr_lst to None
         self.attr_lst = self.input_attr_lst + self.derived_attr_lst
         self.init_attr_lst()
-        self.init_attr_lst(self.extra_attr_lst)
         
-        # input args may overwrite default None
+        # hackish but virtually no overhead here: create Structure by deleting
+        # stuff in attributes lists
+        if self.is_struct:
+            del self.attrs_nstep
+            for name in self.attrs_only_traj:
+                # while: for some reason list.remove() doesn't always work
+                while name in self.attr_lst:
+                    self.attr_lst.pop(self.attr_lst.index(name))
+        
+        super(Structure, self).__init__()
+        self.np_array_t = type(np.array([1]))
+
+        # for iteration
+        self._index = -1
+
+        # initialize the self.units dictionary with unit conversion factors,
+        # used in self.apply_units()
+        self.update_units(units)
+        
+        self.set_all_auto = set_all_auto
+        
+        # assign input args, overwrite default None
         #   self.foo = foo
         #   self.bar = bar
         #   ...
-        for attr in kwds.keys():
-            if attr not in self.input_attr_lst:
-                raise StandardError("illegal input arg: '%s', allowed: %s" \
-                    %(attr, str(self.input_attr_lst)))
-            else:                    
-                setattr(self, attr, kwds[attr])
-        
+        for name in kwds.keys():
+            assert name in self.input_attr_lst, \
+                "illegal input arg: '%s', allowed: %s" %(name, str(self.input_attr_lst))
+            # cell can be 2d and will be treated by _extend() later
+            if self.is_traj and (name in self.attrs_nstep_3d) and \
+               name != 'cell':
+                assert kwds[name].ndim == 3, "input '%s' is not 3d" %name 
+            setattr(self, name, kwds[name])
+
+
+        # calculate all missing attrs if requested, their units are based on
+        # the ones set above
         if self.set_all_auto:
             self.set_all()
-    
+
     def set_all(self):
-        """Populate object. Apply units, call all getters."""
+        """Apply units and populate object (i.e. call all getters)."""
+        # Extend cell and cryst_const to nstep length if needed. They won't
+        # have the timeaxis if they don't have that on input and if
+        # set_all_auto=False.
         self.apply_units()
-        # Call UnitsHandler.set_all(), which is FlexibleGetters.set_all().
+        if self.is_traj:
+            self._extend()
         super(Structure, self).set_all()
+   
+    def _extend(self):
+        if self.check_set_attr('nstep'):
+            if self.is_set_attr('cell'):
+                self.cell = self._extend_cell(self.cell)
+            if self.is_set_attr('cryst_const'):
+                self.cryst_const = self._extend_cc(self.cryst_const)
+
+    def _extend_array(self, arr, nstep=None):
+        if nstep is None:
+            self.assert_set_attr('nstep')
+            nstep = self.nstep
+        return num.extend_array(arr, nstep, axis=self.timeaxis)
     
-    def get_traj(self, nstep):
-        """Return a Trajectory object, where this Structure is copied `nstep`
-        times."""
-        # XXX Need to use set_all_auto=True to have attrs_nstep set in tr, i.e.
-        # we go thru the whole init machinery but have all attrs None. OK. We
-        # really need to move the code which sets self.attr* to __init__().
-        tr = Trajectory(set_all_auto=True)
-        for attr_name in self.attr_lst:
-            attr = getattr(self, attr_name)
-            if attr is None:
-                new_attr = None
-            elif attr_name in tr.attrs_nstep:
-                if type(attr) == self.np_array_t:
-                    new_attr = num.extend_array(attr, nstep, axis=self.timeaxis)
-                else:
-                    new_attr = np.array([attr]*nstep)
+    def _extend_cell(self, cell):
+        if cell is None:
+            return cell
+        if cell.shape == (3,3):
+            return self._extend_array(cell)
+        elif cell.shape == (1,3,3):            
+            return self._extend_array(cell[0,...])
+        else:
+            return cell
+
+    def _extend_cc(self, cc):
+        if cc is None:
+            return cc
+        if cc.shape == (6,):
+            return self._extend_array(cc)
+        elif cc.shape == (1,6):            
+            return self._extend_array(cc[0,...])
+        else:
+            return cc
+    
+    def compress(self, forget=['forces', 'stress', 
+                               'coords','cryst_const'], dtype=np.float32):
+        """Compress Trajectory by deleting unused or redundant attrs (see
+        `forget`). Cast float arrays to `dtype`. float32 is usually quite OK
+        for MD data.
+        
+        Parameters
+        ----------
+        forget : list
+            Names of attributes to delete. They will be set to None.
+        dtype : numpy dtype
+        """
+        float_ts = [np.float16, np.float32, np.float64, np.float128]
+        for name in self.attr_lst:
+            if name in forget:
+                setattr(self, name, None)
+            else:            
+                attr = getattr(self, name)
+                if (type(attr) == self.np_array_t) and (attr.dtype in float_ts) and \
+                    attr.dtype != dtype:
+                    setattr(self, name, attr.astype(dtype))
+
+    def copy(self):
+        """Return a copy of the inctance."""
+        if self.is_struct:
+            obj = Structure(set_all_auto=False)
+        elif self.is_traj:
+            obj = Trajectory(set_all_auto=False)
+        # Copy attrs over
+        for name in self.attr_lst:
+            val = getattr(self, name)
+            if val is None:
+                setattr(obj, name, None)
+            # dict.copy() is shallow, use deepcopy instead    
+            elif hasattr(val, 'copy') and not isinstance(val, types.DictType):
+                setattr(obj, name, val.copy())
             else:
-                new_attr = copy.deepcopy(attr)
-            setattr(tr, attr_name, new_attr)
-        tr.set_all()
-        return tr
+                setattr(obj, name, copy.deepcopy(val))
+        return obj           
+
+    def get_velocity(self):
+        """Calculate `velocity` from `coords` and `timestep` if
+        `velocity=None`. 
+        """ 
+        if self.is_struct:
+            raise NotImplementedError("only in Trajectory")
+        if not self.is_set_attr('velocity'):
+            if self.check_set_attr_lst(['coords', 'timestep']):
+                return velocity_traj(self.coords, dt=self.timestep, axis=0,
+                                     endpoints=True)
+            else:
+                return None
+        else:
+            return self.velocity
+    
+    def get_ekin(self):
+        """ ekin [eV] """
+        if self.is_struct:
+            raise NotImplementedError("only in Trajectory")
+        if not self.is_set_attr('ekin'):
+            if self.check_set_attr_lst(['mass', 'velocity']):
+                # velocity [Ang/fs], mass [amu]
+                vv = self.velocity
+                mm = self.mass
+                amu = constants.amu # kg
+                fs = constants.fs
+                eV = constants.eV
+                assert self.timeaxis == 0
+                return ((vv**2.0).sum(axis=2)*mm[None,:]/2.0).sum(axis=1) * (Angstrom/fs)**2 * amu / eV
+            else:
+                return None
+        else:
+            return self.ekin
+    
+    def get_temperature(self):
+        """ [K] """
+        if self.is_struct:
+            raise NotImplementedError("only in Trajectory")
+        if not self.is_set_attr('temperature'):
+            if self.check_set_attr_lst(['ekin', 'natoms']):
+                return self.ekin * constants.eV / self.natoms / constants.kb * (2.0/3.0)
+            else:
+                return None
+        else:
+            return self.temperature
+
+    def get_natoms(self):
+        if self.is_traj:
+            axis = 1
+        else: 
+            axis = 0
+        if self.is_set_attr('symbols'):
+            return len(self.symbols)
+        elif self.is_set_attr('coords'):
+            return self.coords.shape[axis]
+        elif self.is_set_attr('coords_frac'):
+            return self.coords_frac.shape[axis]
+        else:
+            return None
     
     def get_coords(self):
-        """Cartesian coords."""
-        if not self.is_set_attr('coords'):
-            if self.is_set_attr('coords_frac') and \
-               self.check_set_attr('cell'):
-                return np.dot(self.coords_frac, self.cell)
+        if self.is_struct:
+            if not self.is_set_attr('coords'):
+                if self.is_set_attr('coords_frac') and self.check_set_attr('cell'):
+                    return np.dot(self.coords_frac, self.cell)
+                else:
+                    return None
             else:
-                return None
-        else:
-            return self.coords
-    
+                return self.coords
+        else: 
+            if not self.is_set_attr('coords'):
+                if self.is_set_attr('coords_frac') and \
+                   self.check_set_attr_lst(['cell', 'natoms']):
+                    nstep = self.coords_frac.shape[self.timeaxis]
+                    req_shape_coords_frac = (nstep,self.natoms,3)
+                    assert self.coords_frac.shape == req_shape_coords_frac, ("shape "
+                        "mismatch: coords_frac: %s, need: %s" %(str(self.coords_frac.shape),
+                        str(req_shape_coords_frac)))
+                    assert self.cell.shape == (nstep,3,3), ("shape mismatch: "
+                        "cell: %s, coords_frac: %s" %(self.cell.shape, self.coords_frac.shape))
+                    return _flib.frac2cart_traj(self.coords_frac, self.cell)
+                else:
+                    return None
+            else:
+                return self.coords
+
     def get_coords_frac(self):
-        """Fractional coords."""
-        if not self.is_set_attr('coords_frac'):
-            if self.is_set_attr('coords') and self.check_set_attr('cell'):
-                return _flib.cart2frac(self.coords, self.cell)
+        if self.is_struct:
+            if not self.is_set_attr('coords_frac'):
+                if self.is_set_attr('coords') and self.check_set_attr('cell'):
+                    return _flib.cart2frac(self.coords, self.cell)
+                else:
+                    return None
+            else:
+                return self.coords_frac
+        else: 
+            if not self.is_set_attr('coords_frac'):
+                if self.is_set_attr('coords') and \
+                   self.check_set_attr_lst(['cell', 'natoms']):
+                    nstep = self.coords.shape[self.timeaxis]
+                    req_shape_coords = (nstep,self.natoms,3)
+                    assert self.coords.shape == req_shape_coords, ("shape "
+                        "mismatch: coords: %s, need: %s" %(str(self.coords.shape),
+                        str(req_shape_coords)))
+                    assert self.cell.shape == (nstep,3,3), ("shape mismatch: "
+                        "cell: %s, coords: %s" %(self.cell.shape, self.coords.shape))
+                    return _flib.cart2frac_traj(self.coords, self.cell)                                    
+                else:
+                    return None
+            else:
+                return self.coords_frac
+    
+    def get_volume(self):
+        if not self.is_set_attr('volume'):
+            if self.check_set_attr('cell'):
+                if self.is_traj:
+                    return volume_cell3d(self.cell, axis=self.timeaxis)
+                else:    
+                    return volume_cell(self.cell)
             else:
                 return None
         else:
-            return self.coords_frac
+            return self.volume
     
-    def get_symbols(self):
-        """List of atomic symbols."""
-        return self.symbols
-    
-    def get_forces(self):
-        """Forces (natoms,3)."""
-        return self.forces
-
-    def get_stress(self):
-        """Stress tensor (3,3)"""
-        return self.stress
-
-    def get_etot(self):
-        """Total anergy."""
-        return self.etot
-
     def get_cell(self):
-        """Unit cell (3,3)"""
         if not self.is_set_attr('cell'):
             if self.is_set_attr('cryst_const'):
-                return cc2cell(self.cryst_const)
+                if self.is_traj:
+                    cc = self._extend_cc(self.cryst_const)
+                    return cc2cell3d(cc, axis=self.timeaxis)
+                else:
+                    return cc2cell(self.cryst_const)
             else:
                 return None
         else:
             return self.cell
     
     def get_cryst_const(self):
-        """[a,b,c,alpha,beta,gamma]"""
         if not self.is_set_attr('cryst_const'):
             if self.is_set_attr('cell'):
-                return cell2cc(self.cell)
+                if self.is_traj:
+                    cell = self._extend_cell(self.cell)
+                    return cell2cc3d(cell, axis=self.timeaxis)
+                else:    
+                    return cell2cc(self.cell)
             else:
                 return None
         else:
             return self.cryst_const
     
-    def get_natoms(self):
-        """Number of atoms."""
-        if self.is_set_attr('symbols'):
-            return len(self.symbols)
-        elif self.is_set_attr('coords'):
-            return self.coords.shape[0]
+    def get_pressure(self):
+        if not self.is_set_attr('pressure'):
+            if self.check_set_attr('stress'):
+                if self.is_traj:
+                    assert self.timeaxis == 0
+                    return np.trace(self.stress,axis1=1, axis2=2)/3.0
+                else:
+                    return np.trace(self.stress)/3.0
+            else:
+                return None
+        else:
+            return self.pressure
+    
+    def get_time(self):
+        if self.is_struct:
+            raise NotImplementedError("only in Trajectory")
+        else:            
+            if self.check_set_attr_lst(['timestep', 'nstep']):
+                return np.linspace(0, (self.nstep-1)*self.timestep, self.nstep)
+            else:
+                return None
+                        
+    def get_timestep(self):
+        if self.is_struct:
+            raise NotImplementedError("only in Trajectory")
+        else:            
+            return self.timestep
+
+    def get_nstep(self):
+        if self.is_struct:
+            raise NotImplementedError("only in Trajectory")
+        if self.is_set_attr('coords'):
+            return self.coords.shape[self.timeaxis]
         elif self.is_set_attr('coords_frac'):
-            return self.coords_frac.shape[0]
+            return self.coords_frac.shape[self.timeaxis]
         else:
             return None
     
-    def get_ase_atoms(self, **kwds):
-        """Return ASE Atoms object. 
-        
-        Obviously, you must have ASE installed. We use
-        ``scaled_positions=self.coords_frac``, so only ``self.cell`` must be in
-        [Ang].
-
-        Parameters
-        ----------
-        **kwds : 
-            additional keywords passed to the Atoms() constructor.
-        
-        See Also
-        --------
-        :meth:`get_fake_ase_atoms`
-
-        Notes
-        -----
-        By default, we use ``Atoms(...,pbc=False)`` to avoid pbc-wrapping
-        ``atoms.scaled_positions`` (we don't want that for MD structures, for
-        instance). If you need the pbc flag in your Atoms object, then use::
-        
-        >>> # Note that the `pbc` flag is passed to ase.Atoms, so you can use
-        >>> # whatever that accepts, like pbc=[1,1,1] etc. 
-        >>> atoms=struct.get_ase_atoms(pbc=True)
-        >>> # or 
-        >>> atoms=struct.get_ase_atoms()
-        >>> atoms.set_pbc(True) 
-
-        but then, ``scaled_positions`` will be wrapped by ASE and I'm not sure
-        if ``atoms.positions`` is updated in that case. Please test that -- I
-        don't use ASE much.
-        """
-        req = ['coords_frac', 'cell', 'symbols']
-        if self.check_set_attr_lst(req):
-            # We don't wanna make ase a dependency. Import only when needed.
-            from ase import Atoms
-            _kwds = {'pbc': False}
-            _kwds.update(kwds)
-            at = Atoms(symbols=self.symbols,
-                       scaled_positions=self.coords_frac,
-                       cell=self.cell,
-                       **_kwds)
-            return at                
-        else:
-            return None
+    def get_symbols(self):
+        """List of atomic symbols."""
+        return self.symbols
     
-    def get_fake_ase_atoms(self):
-        """:class:`FakeASEAtoms` instance representing this Structure."""
-        return FakeASEAtoms(scaled_positions=self.get_coords_frac(),
-                            cell=self.get_cell(),
-                            symbols=self.get_symbols())
+    def get_forces(self):
+        """Forces."""
+        return self.forces
+
+    def get_stress(self):
+        """Stress tensor"""
+        return self.stress
+
+    def get_etot(self):
+        """Total anergy."""
+        return self.etot
 
     def get_symbols_unique(self):
         """List of unique atom symbols. 
@@ -2584,159 +2650,129 @@ class Structure(UnitsHandler):
         else:
             return None
     
-    def get_volume(self):
-        """Unit cell volume."""
-        if self.check_set_attr('cell'):
-            return volume_cell(self.cell)
-        else:
-            return None
-    
-    def get_pressure(self):
-        """As in PWscf, pressure = 1/3*trace(stress), ignoring
-        off-diagonal elements."""
-        if self.check_set_attr('stress'):
-            return np.trace(self.stress)/3.0
-        else:
-            return None
-    
-    def copy(self):
-        """Return a copy of the inctance."""
-        if self.is_struct:
-            st = Structure(set_all_auto=False)
-        elif self.is_traj:
-            st = Trajectory(set_all_auto=False)
-        # Make sure all attrs in self.attr_lst are set if possible
-        self.set_all()
-        # Copy attrs over
-        for name in self.attr_lst:
-            val = getattr(self, name)
-            if val is None:
-                setattr(st, name, None)
-            # dict.copy() is shallow, use deepcopy instead    
-            elif hasattr(val, 'copy') and not isinstance(val, types.DictType):
-                setattr(st, name, val.copy())
-            else:
-                setattr(st, name, copy.deepcopy(val))
-        # XXX used to set attrs_nstep_* and attrs_only_traj; This is really
-        # messy. We should move the definition of these to Trajectory.__init__
-        st.set_all()
-        return st           
-
-
-class Trajectory(Structure):
-    """Here all arrays (input and attrs) have a time axis, i.e. all arrays
-    have one dim more along the time axis (self.timeaxis) compared to
-    Structure, e.g.
-
-        | coords      (natoms,3)  -> (nstep, natoms, 3)
-        | cryst_const (6,)        -> (nstep, 6)
-        | ...
+    def get_ase_atoms(self, **kwds):
+        """Return ASE Atoms object. 
         
-    An exception for fixed-cell MD-data are the inputs ``cell``
-    (``cryst_const``), which can be 2d (1d)  and will be "broadcast"
-    automatically along the time axis (see num.extend_array()).
+        Obviously, you must have ASE installed. We use
+        ``scaled_positions=self.coords_frac``, so only ``self.cell`` must be in
+        [Ang].
+
+        Parameters
+        ----------
+        **kwds : 
+            additional keywords passed to the Atoms() constructor.
+        
+        See Also
+        --------
+        :meth:`get_fake_ase_atoms`
+
+        Notes
+        -----
+        By default, we use ``Atoms(...,pbc=False)`` to avoid pbc-wrapping
+        ``atoms.scaled_positions`` (we don't want that for MD structures, for
+        instance). If you need the pbc flag in your Atoms object, then use::
+        
+        >>> # Note that the `pbc` flag is passed to ase.Atoms, so you can use
+        >>> # whatever that accepts, like pbc=[1,1,1] etc. 
+        >>> atoms=struct.get_ase_atoms(pbc=True)
+        >>> # or 
+        >>> atoms=struct.get_ase_atoms()
+        >>> atoms.set_pbc(True) 
+
+        but then, ``scaled_positions`` will be wrapped by ASE and I'm not sure
+        if ``atoms.positions`` is updated in that case. Please test that -- I
+        don't use ASE much.
+        """
+        req = ['coords_frac', 'cell', 'symbols']
+        if self.check_set_attr_lst(req):
+            # We don't wanna make ase a dependency. Import only when needed.
+            from ase import Atoms
+            _kwds = {'pbc': False}
+            _kwds.update(kwds)
+            at = Atoms(symbols=self.symbols,
+                       scaled_positions=self.coords_frac,
+                       cell=self.cell,
+                       **_kwds)
+            return at                
+        else:
+            return None
     
-    Iteration over a Trajectory instance yields Structure instances, see
-    Examples. This can be used to apply functions which only take Structures as
-    inputs. Slicing along the time axis is also supported, so you can do stuff
-    like ``traj[5000::10]``.
+    def get_fake_ase_atoms(self):
+        """:class:`FakeASEAtoms` instance representing this Structure."""
+        return FakeASEAtoms(scaled_positions=self.get_coords_frac(),
+                            cell=self.get_cell(),
+                            symbols=self.get_symbols())
 
-    Parameters
-    ----------
-    See Structure, plus:
+    def get_traj(self, nstep):
+        """Return a Trajectory object, where this Structure is copied `nstep`
+        times."""
+        tr = Trajectory(set_all_auto=False)
+        for attr_name in self.attr_lst:
+            attr = getattr(self, attr_name)
+            if attr is None:
+                new_attr = None
+            elif attr_name in tr.attrs_nstep:
+                if type(attr) == self.np_array_t:
+                    new_attr = num.extend_array(attr, nstep, axis=self.timeaxis)
+                else:
+                    new_attr = np.array([attr]*nstep)
+            else:
+                new_attr = copy.deepcopy(attr)
+            setattr(tr, attr_name, new_attr)
+        # re-calculate nstep    
+        tr.nstep = None
+        tr.set_all()    
+        return tr
 
-    ekin : optional, 1d array [eV]
-        Kinetic energy of the ions. Calculated from `velocity` if not given.
-    temperature : optional, 1d array [K]        
-        Ionic temperature. Calculated from `ekin` if not given.
-    velocity: optional, 3d array (nstep, natoms, 3) [Ang / fs]
-        Ionic velocity. Calculated from `coords` if not given.
-    timestep : scalar [fs]
-        Ionic (and cell) time step.
     
-    Examples
-    --------
-    >>> traj = Trajectory(coords_frac=rand(10,5,3), cell=identity(3)*5,
-    ...                   symbols=['H']*5, timestep=100)
-    >>> print traj.nstep
-    >>> distance_arrays = [crys.distances(struct) for struct in traj]
-    >>> plot(tr.temperature)
-
-    Notes
-    -----
-    We calculate coords -> velocity -> ekin -> temperature for the ions if
-    these quantities are not provided as input args. One could do the same
-    thing for cell, if one treats `cell` as coords of 3 atoms. This is not done
-    currently. We would also need a new input arg mass_cell. The CPMD parsers
-    have something like ekin_cell, temperature_cell etc, parsed from CPMD's
-    output, though.
-
-    """
-    # additional input args, some are derived if not given in the input
-    input_attr_lst = Structure.input_attr_lst + [\
-        'ekin',
-        'temperature',
-        'velocity',
-        'timestep',
-        ]
-    derived_attr_lst = Structure.derived_attr_lst + [\
-        'nstep',
-        ]
-    extra_attr_lst = Structure.extra_attr_lst + [\
-        ]
+class Trajectory(Structure):
     
-    is_struct = False
     is_traj = True
+    is_struct = False
 
-    # for iteration
-    _index = -1
+    def __init__(self, *args, **kwds):
+        super(Trajectory, self).__init__(*args, **kwds)
+    
+    def __iter__(self):
+        return self
     
     def __getitem__(self, idx):
-        """If `idx` is a single index, a Structure is returned. If it is a
-        slice object (numpy slicing syntax supported), then a Trajectory is
-        returned. That Trajectory has all attrs of the original one, but
-        `timestep` is set to None since that is undefined in general (e.g.
-        traj[::2] would change the timestep to 2x the original value). Don't
-        want/need to implement special-case code for that.
-        """
-        # For efficiency, we bypass the whole Structure.__init__ and
-        # FlexibleGetters machinery completely by explicitely setting attributes.
-        # This works b/c we have the same attribute names here and there. The
-        # main assumption is that all attrs which would be set by set_all_auto
-        # in Structure (e.g. automatic calculation of stuff from minimal input)
-        # is not necassary b/c that has already happened here in Trajectory.
         want_traj = False
         if isinstance(idx, slice):
             obj = Trajectory(set_all_auto=False)
+            timestep_fac = idx.step if idx.step is not None else 1.0
             want_traj = True
         else:            
             obj = Structure(set_all_auto=False)
-        for attr_name in self.attr_lst:
-            if attr_name not in self.attrs_only_traj:
-                attr = getattr(self, attr_name)
-                if attr is not None:    
-                    if attr_name in self.attrs_nstep:
-                        if attr_name in self.attrs_nstep_2d_3d \
-                            and attr.shape[self.timeaxis] == self.nstep:
-                            setattr(obj, attr_name, attr[idx,...])
-                        elif attr_name in self.attrs_nstep_1d \
-                            and attr.shape[self.timeaxis] == self.nstep:
-                            setattr(obj, attr_name, attr[idx])
-                    else:                        
-                        setattr(obj, attr_name, attr)
-        # hack: add attrs_only_traj back                         
+            timestep_fac = None
+        for name in self.attr_lst:
+            if not want_traj and name in self.attrs_only_traj:
+                continue
+            attr = getattr(self, name)
+            if attr is not None:    
+                if name in self.attrs_nstep:
+                    # the timeaxis check may be a problem for parsed MD data
+                    # where some arrays are 1 or two steps longer/shorter than
+                    # coords (from which we get nstep), for example lammps:
+                    # temperature, volume, etc can be longer if multiple runs
+                    # are done from the same input file and the parser
+                    # currently doesn't handle that
+                    if name in self.attrs_nstep_2d_3d \
+                        and attr.shape[self.timeaxis] == self.nstep:
+                        setattr(obj, name, attr[idx,...])
+                    elif name in self.attrs_nstep_1d \
+                        and attr.shape[self.timeaxis] == self.nstep:
+                        setattr(obj, name, attr[idx])
+                else:                        
+                    setattr(obj, name, attr)
+            else:                    
+                setattr(obj, name, None)
+        # After possible slicing, calculate new nstep
         if want_traj:
-            # After slicing, calculate new nstep
             obj.nstep = obj.get_nstep()
-            obj.timeaxis = self.timeaxis
-            obj.timestep = None
-            for name in self.attrs_only_traj:
-                if name != 'timestep':
-                    assert getattr(obj, name) is not None
+            if obj.is_set_attr('timestep'):
+                obj.timestep *= timestep_fac
         return obj
-
-    def __iter__(self):
-        return self
     
     def next(self):
         self._index += 1
@@ -2745,232 +2781,15 @@ class Trajectory(Structure):
             raise StopIteration
         else:
             return self[self._index]
-
-    def set_all(self):
-        """Populate object. Apply units, extend arrays, call all getters.
-        """
-        # If these are given as input args, then they must be 3d.        
-        self.attrs_nstep_3d = \
-            ['coords', 
-             'coords_frac', 
-             'stress', 
-             'forces',
-             'velocity']
-        self.attrs_nstep_2d = \
-            ['cryst_const']
-        self.attrs_nstep_1d = \
-            ['pressure',
-             'volume',   
-             'etot',
-             'ekin',
-             'temperature']
-        self.attrs_only_traj = \
-            ['nstep',
-             'timestep']
-        for attr in self.attrs_nstep_3d:
-            if self.is_set_attr(attr):
-                assert getattr(self, attr).ndim == 3, ("not 3d array: %s" %attr)
-        self.apply_units()                
-        self._extend()
-        # add that here b/c that will be _extend()-ed to 3d
-        self.attrs_nstep_3d += ['cell']                
-        self.attrs_nstep = self.attrs_nstep_3d + self.attrs_nstep_2d + \
-            self.attrs_nstep_1d     
-        self.attrs_nstep_2d_3d = self.attrs_nstep_3d + self.attrs_nstep_2d
-        # Don't call super(Trajectory, self).set_all(), as this will call
-        # Structure.set_all(), which in turn may do something we don't want,
-        # like applying units 2 times. ATM, it would work b/c
-        # UnitsHandler.apply_units() won't do that.
-        super(Structure, self).set_all()
-
-    def _extend(self):
-        if self.check_set_attr('nstep'):
-            if self.is_set_attr('cell'):
-                self.cell = self._extend_cell(self.cell)
-            if self.is_set_attr('cryst_const'):
-                self.cryst_const = self._extend_cc(self.cryst_const)
-
-    def _extend_array(self, arr, nstep=None):
-        if nstep is None:
-            self.assert_set_attr('nstep')
-            nstep = self.nstep
-        return num.extend_array(arr, nstep, axis=self.timeaxis)
     
-    def _extend_cell(self, cell):
-        if cell is None:
-            return cell
-        if cell.shape == (3,3):
-            return self._extend_array(cell)
-        elif cell.shape == (1,3,3):            
-            return self._extend_array(cell[0,...])
-        else:
-            return cell
-
-    def _extend_cc(self, cc):
-        if cc is None:
-            return cc
-        if cc.shape == (6,):
-            return self._extend_array(cc)
-        elif cc.shape == (1,6):            
-            return self._extend_array(cc[0,...])
-        else:
-            return cc
-    
-    def get_velocity(self):
-        """Calculate `velocity` from `coords` and `timestep` if
-        `velocity=None`. 
-        """ 
-        if not self.is_set_attr('velocity'):
-            if self.check_set_attr_lst(['coords', 'timestep']):
-                return velocity_traj(self.coords, dt=self.timestep, axis=0,
-                                     endpoints=True)
-            else:
-                return None
-        else:
-            return self.velocity
-    
-    def get_ekin(self):
-        if not self.is_set_attr('ekin'):
-            if self.check_set_attr_lst(['mass', 'velocity']):
-                # velocity [Ang/fs], mass [amu]
-                vv = self.velocity
-                mm = self.mass
-                amu = constants.amu # kg
-                fs = constants.fs
-                eV = constants.eV
-                assert self.timeaxis == 0
-                return ((vv**2.0).sum(axis=2)*mm[None,:]/2.0).sum(axis=1) * (Angstrom/fs)**2 * amu / eV
-            else:
-                return None
-        else:
-            return self.ekin
-    
-    def get_temperature(self):
-        if not self.is_set_attr('temperature'):
-            if self.check_set_attr_lst(['ekin', 'natoms']):
-                return self.ekin * constants.eV / self.natoms / constants.kb * (2.0/3.0)
-            else:
-                return None
-        else:
-            return self.temperature
-
     def get_ase_atoms(self):
-        raise NotImplementedError("makes no sense for trajectories")
+        raise NotImplementedError("only in Structure")
 
-    def get_natoms(self):
-        if self.is_set_attr('symbols'):
-            return len(self.symbols)
-        elif self.is_set_attr('coords'):
-            return self.coords.shape[1]
-        elif self.is_set_attr('coords_frac'):
-            return self.coords_frac.shape[1]
-        else:
-            return None
-    
-    def get_coords(self):
-        if not self.is_set_attr('coords'):
-            if self.is_set_attr('coords_frac') and \
-               self.check_set_attr_lst(['cell', 'natoms']):
-                nstep = self.coords_frac.shape[self.timeaxis]
-                req_shape_coords_frac = (nstep,self.natoms,3)
-                assert self.coords_frac.shape == req_shape_coords_frac, ("shape "
-                    "mismatch: coords_frac: %s, need: %s" %(str(self.coords_frac.shape),
-                    str(req_shape_coords_frac)))
-                assert self.cell.shape == (nstep,3,3), ("shape mismatch: "
-                    "cell: %s, coords_frac: %s" %(self.cell.shape, self.coords_frac.shape))
-                return _flib.frac2cart_traj(self.coords_frac, self.cell)
-            else:
-                return None
-        else:
-            return self.coords
-
-    def get_coords_frac(self):
-        if not self.is_set_attr('coords_frac'):
-            if self.is_set_attr('coords') and \
-               self.check_set_attr_lst(['cell', 'natoms']):
-                nstep = self.coords.shape[self.timeaxis]
-                req_shape_coords = (nstep,self.natoms,3)
-                assert self.coords.shape == req_shape_coords, ("shape "
-                    "mismatch: coords: %s, need: %s" %(str(self.coords.shape),
-                    str(req_shape_coords)))
-                assert self.cell.shape == (nstep,3,3), ("shape mismatch: "
-                    "cell: %s, coords: %s" %(self.cell.shape, self.coords.shape))
-                return _flib.cart2frac_traj(self.coords, self.cell)                                    
-            else:
-                return None
-        else:
-            return self.coords_frac
-    
-    def get_volume(self):
-        if self.check_set_attr('cell'):
-            return volume_cell3d(self.cell, axis=self.timeaxis)
-        else:
-            return None
-    
-    def get_cell(self):
-        if not self.is_set_attr('cell'):
-            if self.is_set_attr('cryst_const'):
-                cc = self._extend_cc(self.cryst_const)
-                return cc2cell3d(cc, axis=self.timeaxis)
-            else:
-                return None
-        else:
-            return self._extend_cell(self.cell)
-    
-    def get_cryst_const(self):
-        if not self.is_set_attr('cryst_const'):
-            if self.is_set_attr('cell'):
-                cell = self._extend_cell(self.cell)
-                return cell2cc3d(cell, axis=self.timeaxis)
-            else:
-                return None
-        else:
-            return self._extend_cc(self.cryst_const)
-    
-    def get_nstep(self):
-        if self.is_set_attr('coords'):
-            return self.coords.shape[self.timeaxis]
-        elif self.is_set_attr('coords_frac'):
-            return self.coords_frac.shape[self.timeaxis]
-        else:
-            return None
-    
-    def get_pressure(self):
-        if self.check_set_attr('stress'):
-            assert self.timeaxis == 0
-            return np.trace(self.stress,axis1=1, axis2=2)/3.0
-        else:
-            return None
-    
-    def get_timestep(self):
-        return self.timestep
+    def get_fake_ase_atoms(self):
+        raise NotImplementedError("only in Structure")
 
     def get_traj(self):
-        raise StandardError("calling Trajectory.get_traj makes "
-                            "no sense")
-
-    def compress(self, forget=['forces', 'stress', 
-                               'coords','cryst_const'], dtype=np.float32):
-        """Compress Trajectory by deleting unused or redundant attrs (see
-        `forget`). Cast float arrays to `dtype`. float32 is usually quite OK
-        for MD data.
-        
-        Parameters
-        ----------
-        forget : list
-            Names of attributes to delete. They will be set to None.
-        dtype : numpy dtype
-        """
-        arr_t = type(np.array([1.0]))
-        float_ts = [np.float16, np.float32, np.float64, np.float128]
-        for name in self.attr_lst:
-            if name in forget:
-                setattr(self, name, None)
-            else:            
-                attr = getattr(self, name)
-                if (type(attr) == arr_t) and (attr.dtype in float_ts) and \
-                    attr.dtype != dtype:
-                    setattr(self, name, attr.astype(dtype))
+        raise NotImplementedError("only in Structure")
 
 
 def compress(traj, copy=True, **kwds):
@@ -3034,49 +2853,41 @@ class FakeASEAtoms(Structure):
         return np.array(self.get_znucl())
 
 
+def populated_attrs(lst):
+    """Set with attr names which are not None in all objects in `lst`."""
+    attr_lists = [[name for name in obj.attr_lst \
+        if getattr(obj,name) is not None] for obj in lst]
+    return set.intersection(*(set(x) for x in attr_lists))
+
 
 def concatenate(lst):
     """Concatenate Structure or Trajectory objects into one Trajectory.
-    Mixing both types is not possible ATM.
+    
+    For non-nstep attrs (symbols,...), the first item is used and no check is
+    made whether they are the same in the others.
 
     Parameters
     ----------
-    lst : sequence of Structure or Trajectory instances
+    lst : sequence of Structure or Trajectory instances or both
 
     Returns
     -------
     tr : Trajectory
     """
-    # This fucntion could be used as __sum__ in Structure/Trajectory. Since
-    # Trajectory is a list-like object, the sum of Trajectories would be like a
-    # list sum, i.e. a concatenation. 
-    #
-    # But for that mixing types (i.e. cat Structure and Trajectories) must be
-    # supported. From all objects in `lst`, the "least common filled API" must
-    # be returned, i.e. a Trajectory which has only attrs which are not None in
-    # each object. This must be tested before by going thru the list once, hmmm
-    # ... sound hackish.
-    #
-    # Anyway, mixing types would be most easy if we finally unify Structure and
-    # Trajectory such that Structure = Trajectory[0] with all
-    # Trajectory-related stuff simply None instead of not defined (like ekin,
-    # temperature, nstep, timestep), just as we do in parse.py
-    #
     trlst = [struct2traj(obj) for obj in lst]
-    traj = Trajectory(set_all_auto=True)
-    for attr_name in traj.attrs_nstep:
-        # Assume that not-none attrs from first object are also not None for
-        # all others.
-        if getattr(trlst[0], attr_name) is not None:
-            attr = np.concatenate(tuple(getattr(x,attr_name) for x in trlst), 
-                                  axis=0)
-            setattr(traj, attr_name, attr)
+    traj = Trajectory(set_all_auto=False)
+    com_attrs = populated_attrs(trlst)
+    attr_lst = set.intersection(com_attrs, set(traj.attrs_nstep))
+    for name in attr_lst:
+        attr = np.concatenate(tuple(getattr(x,name) for x in trlst), 
+                              axis=0)
+        setattr(traj, name, attr)
     attrs_traj = traj.attrs_nstep + traj.attrs_only_traj                
-    for attr_name in traj.attr_lst:
-        if (attr_name not in attrs_traj) and \
-           (getattr(trlst[0], attr_name) is not None):
-            setattr(traj, attr_name, getattr(trlst[0], attr_name))
-    traj.set_all()        
+    for name in set.symmetric_difference(com_attrs, set(attrs_traj)):
+        setattr(traj, name, getattr(trlst[0], name))
+    traj.timestep = None
+    traj.time = None
+    traj.nstep = traj.get_nstep()
     return traj                
 
 
@@ -3089,7 +2900,9 @@ def mean(traj):
 
     Returns
     -------
-    Structure
+    Structure : 
+        instance with extra velocity, temperature, ekin attrs which can hold
+        the mean of the input `traj`
     
     Examples
     --------
@@ -3097,23 +2910,30 @@ def mean(traj):
     >>> st = mean(tr[200:500])
     >>> # Say we know that coords_frac is pbc-wrpapped for some reason but
     >>> # coords is not. Make sure that we average only coords and force a
-    >>> # recalculation of coords_frac by setting it to None.
+    >>> # recalculation of coords_frac by setting it to None and calling
+    >>> # set_all() at the end.
     >>> tr.coords_frac = None
     >>> st = mean(tr)
+    >>> st.set_all()
     """
     assert traj.is_traj
     struct = Structure(set_all_auto=False)
-    for attr_name in traj.attrs_nstep:
+    # add some non-Structure attrs like velocity,ekin,temperature 
+    attrs_only_traj = ['time', 'timestep', 'nstep']
+    extra = list(set.difference(set(traj.attrs_only_traj),
+                                set(attrs_only_traj)))
+    struct.attr_lst += extra                           
+    for attr_name in set.difference(set(traj.attrs_nstep), 
+                                    set(attrs_only_traj)):
         attr = getattr(traj, attr_name)
         if attr is not None:
             setattr(struct, attr_name, attr.mean(axis=traj.timeaxis))
-    attrs_traj = traj.attrs_nstep + traj.attrs_only_traj
-    for attr_name in traj.attr_lst:
-        if attr_name not in attrs_traj:
-            attr = getattr(traj, attr_name)
-            if attr is not None:
-                setattr(struct, attr_name, attr)
-    struct.set_all()
+    attrs_traj = traj.attrs_nstep + attrs_only_traj
+    for attr_name in set.difference(set(traj.attr_lst),
+                                    set(attrs_traj)):
+        attr = getattr(traj, attr_name)
+        if attr is not None:
+            setattr(struct, attr_name, attr)
     return struct
 
 
@@ -3193,13 +3013,11 @@ def smooth(traj, kern, method=1):
                                                       axis=traj.timeaxis))
             else:
                 raise StandardError("unknown method")
-    # nstep and timestep are the same for the smoothed traj
-    for attr_name in traj.attr_lst:
-        if attr_name not in traj.attrs_nstep:
-            attr = getattr(traj, attr_name)
-            if attr is not None:
-                setattr(out, attr_name, attr)
-    out.set_all()                
+    # nstep and timestep are the same for the smoothed traj, so we can copy all
+    # non-nstep attrs over
+    for attr_name in set.difference(set(traj.attr_lst), 
+                                    set(traj.attrs_nstep)):
+        setattr(out, attr_name, getattr(traj, attr_name))
     return out
 
 

@@ -1,6 +1,6 @@
 # We assume all lengths in Angstrom. Only important for ASE comparison.
 #
-import types
+import types, copy
 import numpy as np
 from scipy.signal import hanning
 from pwtools.crys import Trajectory, Structure
@@ -26,7 +26,7 @@ def get_rand_traj():
                     forces=forces,
                     stress=stress,
                     etot=etot,
-                    timestep=1,
+                    timestep=1.11,
                     )
     return tr
 
@@ -41,6 +41,17 @@ def get_rand_struct():
                    etot=3.14,
                    stress=rand(3,3))
     return st
+
+
+def remove_from_lst(lst, items):
+    _lst = copy.deepcopy(lst)
+    for item in items:
+        while item in _lst:
+            _lst.remove(item)
+        if item in _lst:
+            raise StandardError("hmm, item %s still in lst" %item)
+    return _lst
+
 
 
 def test_traj():
@@ -79,11 +90,11 @@ def test_traj():
                     )
     # Test if all getters work.
     for name in traj.attr_lst:
-        print name
-        if name not in ['ase_atoms']:
-            traj.try_set_attr(name)
-            assert getattr(traj, name) is not None, "attr None: %s" %name
-            assert eval('traj.get_%s()'%name) is not None, "getter returns None: %s" %name
+        print "test if getters work:", name
+        traj.try_set_attr(name)
+        assert getattr(traj, name) is not None, "attr None: %s" %name
+        assert eval('traj.get_%s()'%name) is not None, "getter returns None: %s" %name
+        print "test if getters work:", name, "... ok"
     aaae(coords_frac, traj.coords_frac)
     aaae(coords, traj.coords)
     aaae(cryst_const, traj.cryst_const)
@@ -107,10 +118,6 @@ def test_traj():
     traj = Trajectory(coords_frac=coords_frac,
                     symbols=symbols,
                     cryst_const=cryst_const)
-    try:
-        aaae(cell, traj.cell)
-    except AssertionError:
-        print "KNOWNFAIL: differrnt cell orientation"
     np.testing.assert_almost_equal(crys.volume_cell3d(cell),
                                    crys.volume_cell3d(traj.cell))
     aaae(cryst_const, crys.cell2cc3d(traj.cell))
@@ -146,32 +153,6 @@ def test_traj():
     aaae(3*forces, traj.forces)                    
     aaae(4*stress, traj.stress)                    
     
-    # minimal input
-    traj = Trajectory(coords=coords, 
-                    symbols=symbols,
-                    timestep=1)
-    not_none_attrs = [\
-        'coords',
-        'ekin',
-        'mass',
-        'natoms',
-        'nspecies',
-        'nstep',
-        'ntypat',
-        'order',
-        'symbols',
-        'symbols_unique',
-        'temperature',
-        'timestep',
-        'typat',
-        'velocity',
-        'znucl',
-        'znucl_unique',
-        ]
-    for name in not_none_attrs:
-        assert getattr(traj, name) is not None, "attr None: %s" %name
-        assert eval('traj.get_%s()'%name) is not None, "getter returns None: %s" %name
-    
     # iterate, check if Structures are complete
     traj = Trajectory(coords=coords, 
                       symbols=symbols,
@@ -180,16 +161,21 @@ def test_traj():
                       stress=stress,
                       etot=etot,
                       timestep=1.0)
-    keys = traj.attr_lst[:]
-    keys.pop(keys.index('timestep'))
-    struct_attrs = Structure().attr_lst
     for struct in traj:
         assert struct.is_struct, "st is not Structure"
         assert not struct.is_traj, "st is Trajectory"
-    struct = traj[0]        
-    for attr_name in struct_attrs:
-        assert getattr(struct,attr_name) is not None    
+        assert_attrs_not_none(struct)
+    struct = traj[0]
+    for attr_name in traj.attr_lst:
+        if attr_name in struct.attrs_only_traj:
+            msg = "tr[0] %s is not None" %attr_name
+            assert getattr(struct,attr_name) is None, msg
+        else:            
+            msg = "tr[0] %s is None" %attr_name
+            assert getattr(struct,attr_name) is not None, msg
+    
     # slices, return traj
+    keys = traj.attr_lst[:]
     tsl = traj[10:80:2]
     assert tsl.nstep == traj.nstep / 2 - 15
     assert_attrs_not_none(tsl, attr_lst=keys)
@@ -203,20 +189,10 @@ def test_traj():
     
     # iteration over sliced traj
     tsl = traj[10:80:2]
-    try:
-        for x in tsl:
-            pass
-    # FIXME            
-    except AttributeError:
-        print("FIXME: KNOWNFAIL: AttributeError: 'Trajectory' object "
-              "has no attribute 'attrs_only_traj'")
+    for x in tsl:
+        pass
     for x in tsl.copy():
         pass
-
-    # nstep=1 traj must at least fulfull Structure API
-    aa = traj[0]
-    bb = traj[0:1]
-    assert_dict_with_all_types_equal(aa.__dict__, bb.__dict__, keys=aa.attr_lst)
 
     # repeat iter
     for i in range(2):
@@ -239,48 +215,109 @@ def test_traj():
                                      keys=traj.attr_lst)
 
 
-
 def test_concatenate():
-    tr = get_rand_traj()
     st = get_rand_struct()
+    nstep = 5
     
-    # cat Structures, resulting traj needs to fulfill Structure API
-    tr_cat = crys.concatenate([st]*3)
+    # cat Structure
+    tr_cat = crys.concatenate([st]*nstep)
+    keys = tr_cat.attr_lst
+    assert tr_cat.nstep == nstep
     for x in tr_cat:
         assert_dict_with_all_types_equal(x.__dict__, st.__dict__,
-                                         keys=st.attr_lst) 
-    assert tr_cat.nstep == 3
-    assert tr_cat.timestep is None
+                                         keys=keys)
+    none_attrs = ['ekin', 'timestep', 'velocity', 'temperature', 'time']
     for attr_name in tr_cat.attrs_nstep:
-        print attr_name
-        if attr_name not in ['velocity', 'ekin', 'temperature']:
-            assert getattr(tr_cat, attr_name).shape[0] == 3
+        if attr_name in none_attrs:
+            assert getattr(tr_cat, attr_name) is None
+        else:
+            print "test_concatenate: shape[0] == nstep:", attr_name
+            assert getattr(tr_cat, attr_name).shape[0] == nstep
+            print "test_concatenate: shape[0] == nstep:", attr_name, "...ok"
     
-    # cat Trajectory, resulting Trajectory needs to fulfill Trajectory API, but
-    # timestep must be undefined
+    # cat Trajectory
+    tr = get_rand_traj()
     tr_cat = crys.concatenate([tr]*3)
-    assert tr_cat.timestep is None
-    keys = tr.attr_lst[:]
-    keys.pop(keys.index('timestep'))
+    assert tr_cat.nstep == 3*tr.nstep
+    none_attrs = ['timestep', 'time']
+    keys = remove_from_lst(tr_cat.attr_lst, none_attrs)
     for x in [tr_cat[0:tr.nstep], 
               tr_cat[tr.nstep:2*tr.nstep], 
               tr_cat[2*tr.nstep:3*tr.nstep]]:
         assert_dict_with_all_types_equal(x.__dict__, tr.__dict__,
                                          keys=keys) 
-    assert tr_cat.nstep == 300
     for attr_name in tr_cat.attrs_nstep:
-        assert getattr(tr_cat, attr_name).shape[0] == 300
+        if attr_name in none_attrs:
+            assert getattr(tr_cat, attr_name) is None
+        else:
+            assert getattr(tr_cat, attr_name).shape[0] == 3*tr.nstep
+
+    # cat mixed, Structure is minimal API
+    st = get_rand_struct()
+    tr = crys.concatenate([st]*5)
+    tr_cat = crys.concatenate([st]*5 + [tr])
+    assert tr_cat.nstep == 10
+    none_attrs = ['ekin', 'timestep', 'velocity', 'temperature', 'time']
+    keys = remove_from_lst(tr_cat.attr_lst, none_attrs)
+    for x in tr_cat:
+        assert_dict_with_all_types_equal(x.__dict__, st.__dict__,
+                                         keys=keys)
+    for attr_name in tr_cat.attrs_nstep:
+        if attr_name in none_attrs:
+            assert getattr(tr_cat, attr_name) is None
+        else:
+            assert getattr(tr_cat, attr_name).shape[0] == 10
+
+
+def test_populated_attrs():
+    class Dummy(object):
+        def __init__(self, **kwds):
+            self.attr_lst = ['a','b','c', 'd']
+            for name in self.attr_lst:
+                setattr(self, name, None)
+            for k,v in kwds.iteritems():
+                setattr(self, k, v)
     
+    x = Dummy(a=1,b=2,c=3,d=8)
+    y = Dummy(a=4)
+    z = Dummy(d=7)
+    assert crys.populated_attrs([x,y]) == set(['a'])
+    assert crys.populated_attrs([x,y,z]) == set([])
+
+
+def test_api():
+    tr = get_rand_traj()
+    st = get_rand_struct()
+    for name in st.attr_lst:
+        assert getattr(tr, name) is not None
+    for name in tr.attrs_only_traj:
+        assert getattr(st, name) is None
+    
+    aa = tr[0]      # Structure
+    bb = tr[0:1]    # Trajectory
+    keys = set.difference(set(aa.attr_lst), set(aa.attrs_only_traj))
+    assert aa.is_struct
+    assert bb.is_traj
+    # remove timeaxis before comparing arrays
+    for name in bb.attrs_nstep:
+        attr = getattr(bb, name)
+        if attr.ndim == 1:
+            setattr(bb, name, attr[0])
+        else:            
+            setattr(bb, name, attr[0,...])
+    assert_dict_with_all_types_equal(aa.__dict__, bb.__dict__, keys=keys)
+
 
 def test_mean():
-    lst = [get_rand_struct() for i in range(10)]
-    tr = crys.concatenate(lst)
+    tr = get_rand_traj()
     st_mean = crys.mean(tr)
-    for attr_name in tr.attrs_nstep:
-        # Structure is retutrned, so only Structure API is fulfilled
-        if attr_name in st_mean.attr_lst:
-            print ">>>>", attr_name
-            assert np.allclose(getattr(st_mean, attr_name), 
+    attrs_only_traj = ['time', 'timestep', 'nstep']
+    for attr_name in tr.attr_lst:
+        attr = getattr(st_mean, attr_name)
+        if attr_name in attrs_only_traj:
+            assert attr is None, "%s is not None" %attr_name
+        elif attr_name in tr.attrs_nstep:
+            assert np.allclose(attr, 
                                getattr(tr, attr_name).mean(axis=tr.timeaxis))
         
 
@@ -369,6 +406,7 @@ def test_compress():
             attr_new = getattr(new, name)
             assert type(attr_new) == arr_t
             assert attr_new.dtype == float_dtype_new
+            # for all non-integer attrs, there must be a small numerical
+            # difference
             assert abs(attr_old - attr_new).sum() > 0.0
-
 

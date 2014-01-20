@@ -294,6 +294,7 @@ class StructureFileParser(UnitsHandler):
             self.parse()
         for attr_name in self.cont.attr_lst:
             setattr(self.cont, attr_name, getattr(self, attr_name))
+        # we assume that cont.set_all() calls apply_units()
         self.cont.set_all()
         return self.cont
    

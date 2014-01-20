@@ -45,11 +45,10 @@ def test_struct():
     
     # Test if all getters work.
     for name in st.attr_lst:
-        if name not in ['ase_atoms']:
-            print name
-            st.try_set_attr(name)
-            assert getattr(st, name) is not None, "attr None: %s" %name
-            assert eval('st.get_%s()'%name) is not None, "getter returns None: %s" %name
+        print name
+        st.try_set_attr(name)
+        assert getattr(st, name) is not None, "attr None: %s" %name
+        assert eval('st.get_%s()'%name) is not None, "getter returns None: %s" %name
     aaae(coords_frac, st.coords_frac)
     aaae(cryst_const, st.cryst_const)
     aaae(coords, st.coords)
@@ -67,10 +66,6 @@ def test_struct():
                    symbols=symbols,
                    cryst_const=cryst_const)
     assert st.get_cell() is not None
-    try:
-        aaae(cell, st.get_cell())
-    except AssertionError:
-        print "KNOWNFAIL: differrnt cell orientation"
     np.testing.assert_almost_equal(crys.volume_cell(cell),
                                    crys.volume_cell(st.get_cell()))
     aaae(cryst_const, crys.cell2cc(st.get_cell()))

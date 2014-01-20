@@ -29,6 +29,7 @@ def test_pw_vc_relax_out():
         'temperature',
         'timestep',
         'velocity',
+        'time',
         ]
     assert_attrs_not_none(traj, none_attrs=none_attrs)
     assert pp.cell_unit == 'alat'
