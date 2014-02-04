@@ -67,3 +67,22 @@ def test_missing_files():
     pp.parse()
     pp = parse.LammpsDcdMDOutputFile(filename='{}/foo'.format(tmpdir))
     pp.parse()
+
+def test_mix_output():
+    # Mixing 'run' and 'minimize' commands (and/or using either command
+    # multiple times) causes massive jibber-jabber text output in log.lammps,
+    # which we filter. Check if we get the  "thermo_style custom" data between
+    # "Step..." and "Loop..." from each command. 
+    #
+    # In this test, we have 3 commands (minimize, run (short MD), minimize),
+    # which are all set to perform 10 steps, so we have 30 in total. Due to
+    # redundant printing by lammps, the result arrays are a bit longer.
+    tgz = 'files/lammps/mix_output.tgz'
+    tgz_path = os.path.dirname(tgz)
+    unpack_path = tgz.replace('.tgz','')
+    common.system("tar -C {} -xzf {}".format(tgz_path,tgz))
+    tr = io.read_lammps_md_txt("{}/log.lammps".format(unpack_path))
+    assert tr.nstep == 31
+    assert tr.coords.shape == (31,4,3)
+    assert tr.stress.shape == (33,3,3)
+    assert tr.temperature.shape == (33,)
