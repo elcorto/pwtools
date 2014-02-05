@@ -1495,6 +1495,8 @@ def match_mask(arr, values, fullout=False, eps=None):
     This is the same as creating bool arrays like ``arr == some_value`` just
     that `some_value` can be an array (numpy can only do `some_value` =
     scalar). By default we assume integer arrays, unless `eps` is used.
+    
+    With `eps=None` and `fullout=False`, it behaves like ``numpy.in1d``.
 
     Parameters
     ----------
@@ -1531,6 +1533,10 @@ def match_mask(arr, values, fullout=False, eps=None):
     >>> # float values: use eps
     >>> num.match_mask(arr+0.1, values, fullout=True, eps=0.2)
     (array([ True, False,  True, False, False], dtype=bool), array([0, 2]))
+    
+    See Also
+    --------
+    numpy.in1d
     """
     assert arr.ndim == 1, ("arr must be 1d array")
     if eps is None:

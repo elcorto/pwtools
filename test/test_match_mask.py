@@ -11,14 +11,19 @@ def test_match_mask():
     assert (ret[0] == msk).all()
     assert (ret[1] == idx).all()
     assert (arr[msk] == np.array([1, 3])).all()
+    assert (ret[0] == np.in1d(arr, values)).all()
     
     # handle cases where len(values) > len(arr) and values not contained in arr
     values = np.array([1,3,3,3,7,9,-3,-4,-5])
     ret = num.match_mask(arr, values, fullout=True)
     assert (ret[0] == msk).all()
     assert (ret[1] == idx).all()
-    
+    assert (ret[0] == np.in1d(arr, values)).all()
+
     # float values: use eps
     ret = num.match_mask(arr+0.1, values, fullout=True, eps=0.2)
     assert (ret[0] == msk).all()
     assert (ret[1] == idx).all()
+    
+    msk = num.match_mask(np.array([1,2]), np.array([3,4])) 
+    assert (msk == np.array([False]*2)).all()
