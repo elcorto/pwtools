@@ -3226,7 +3226,7 @@ def align_cart(obj, x=None, y=None, vecs=None, indices=None, cart=None,
     z=cross(x,y).
     
     The new coord sys can be defined either by `x` + `y` or `vecs` or
-    `indices` or `cart`.
+    `indices` or `cart`. Vectors need not be normalized.
 
     Parameters
     ----------
@@ -3237,10 +3237,9 @@ def align_cart(obj, x=None, y=None, vecs=None, indices=None, cart=None,
         Array with 3 vectors as rows `[v0, v1, v2]` and ``x = v1 - v0``, 
         ``y = v2 - v0``
     indices : sequence (4,) or (3,)
-        Indices of atoms with positions `v0,v1,v2`. Length 4 for obj=Trajectory
-        and length 3 for obj=Structure.
-        ``indices=[time_step, idx0, idx1, idx2]`` or ``[idx0, idx1, idx2]``
-        with
+        Indices of atoms in `obj` with positions `v0,v1,v2`. Length 4 for
+        obj=Trajectory: ``indices=[time_step, idx0, idx1, idx2]`` and length 3
+        for obj=Structure: ``[idx0, idx1, idx2]`` with
            | ``v0 = obj.coords[time_step, idx0, ...]`` (Trajectory)
            | ``v1 = obj.coords[time_step, idx1, ...]`` 
            | ``v2 = obj.coords[time_step, idx2, ...]`` 
@@ -3256,6 +3255,17 @@ def align_cart(obj, x=None, y=None, vecs=None, indices=None, cart=None,
     Returns
     -------
     out : Structure or Trajectory
+
+    Notes
+    -----
+    In case of a :class:`Trajectory`, the same rotation is applied to all
+    structs, so the *relative* orientation within the Trajectory is not
+    changed. That is OK if each struct shall be rotated in the same way.
+    If however each struct has a different orientation, then you need
+    to loop over the Trajectory like::
+    
+    >>> from pwtools.crys import align_cart, concatenate
+    >>> trnew = concatenate([align_cart(st, cart=...) for st in tr])
     """
     if cart is None:
         if [x,y] == [None,None]:
