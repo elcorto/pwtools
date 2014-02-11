@@ -8,7 +8,7 @@ def test_velocity_traj():
     dr = 'files/cp2k/md/nvt_print_low'
     base = os.path.dirname(dr) 
     fn = '%s/cp2k.out' %dr
-    print common.backtick('tar -C {} -xzf {}.tgz'.format(base,dr))
+    print common.backtick('tar -C {0} -xzf {1}.tgz'.format(base,dr))
     tr = io.read_cp2k_md(fn)
     # read from data file
     v1 = tr.velocity.copy()

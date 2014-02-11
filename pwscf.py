@@ -353,11 +353,11 @@ def read_dynmat(path='.', natoms=None, filename='dynmat.out', axsf='dynmat.axsf'
     nmodes = 3*natoms
     out_fn = pj(path, filename)
     axsf_fn = pj(path, axsf)
-    cmd = "grep -A{} PRIMCO {} | sed -re '/PRIMCO.*/{{N;d;}}' | \
+    cmd = "grep -A{0} PRIMCO {1} | sed -re '/PRIMCO.*/{{N;d;}}' | \
             awk '{{print $5\" \"$6\" \"$7}}'".format(natoms+1, axsf_fn)
     qpoints = np.zeros((3,))
     vecs = np.fromstring(common.backtick(cmd), sep=' ').reshape(nmodes,natoms,3)
-    cmd = "grep -A{} 'mode.*cm-1' {} | grep -v mode | \
+    cmd = "grep -A{0} 'mode.*cm-1' {1} | grep -v mode | \
            awk '{{print $2}}'".format(nmodes, out_fn)
     freqs = np.fromstring(common.backtick(cmd), sep=' ')
     return qpoints,freqs,vecs
@@ -408,7 +408,7 @@ def read_dynmat_ir_raman(filename='dynmat.out', natoms=None,
     Some columns (e.g. IR, Raman) may be missing.
     """                    
     assert natoms is not None, ("natoms is None")
-    cmd = "grep -A{} 'mode.*cm-1' {} | grep -v mode".format(3*natoms, filename)
+    cmd = "grep -A{0} 'mode.*cm-1' {1} | grep -v mode".format(3*natoms, filename)
     arr = parse.arr2d_from_txt(common.backtick(cmd))
     if cols is None:
         return arr

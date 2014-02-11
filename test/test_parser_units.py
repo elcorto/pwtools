@@ -22,8 +22,8 @@ def test_parser_units():
             if pp.default_units.has_key(key):
                 # Check if default units go correctly into self.units.
                 assert pp.default_units[key] == pp.units[key], ("default unit "
-                    "not passed on correct: key={}, default={}, "
-                    "current={}".format(key, pp.default_units[key],
+                    "not passed on correct: key={0}, default={1}, "
+                    "current={2}".format(key, pp.default_units[key],
                                         pp.units[key]))
                 # Check if units passed by the user are correctly passed on.
                 dval = pp.default_units[key]

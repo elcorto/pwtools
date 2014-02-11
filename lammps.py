@@ -27,7 +27,7 @@ def struct_str(struct):
     st.coords = None
     st.cell = None
     st.set_all()
-    head_str = "structure written by pwtools {}".format(time.asctime())        
+    head_str = "structure written by pwtools {0}".format(time.asctime())        
     info_str = '%i atoms\n%i atom types' %(st.natoms, len(st.symbols_unique))
     cell_str = "0.0 {x:.14g} xlo xhi\n0.0 {y:.14g} ylo yhi\n0.0 {z:.14g} zlo zhi\n"
     cell_str += "{tilts} xy xz yz\n"

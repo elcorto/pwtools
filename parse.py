@@ -245,13 +245,13 @@ def read_dcd_header(filename):
     if os.path.exists(filename):
         return _dcd.read_dcd_header(filename)
     else:
-        raise StandardError("file not found: {}".format(filename))
+        raise StandardError("file not found: {0}".format(filename))
 
 def read_dcd_data(filename, nstep, natoms):
     if os.path.exists(filename):
         return _dcd.read_dcd_data(filename, nstep, natoms)
     else:
-        raise StandardError("file not found: {}".format(filename))
+        raise StandardError("file not found: {0}".format(filename))
 
 
 #-----------------------------------------------------------------------------
@@ -1758,7 +1758,7 @@ class Cp2kSCFOutputFile(StructureFileParser):
         ]
     
     def _get_run_type(self):
-        cmd = r"grep -m1 'GLOBAL.*Run type' {} | sed \
+        cmd = r"grep -m1 'GLOBAL.*Run type' {0} | sed \
             -re 's/.*type\s+(.*)\s*/\1/'".format(self.filename)
         return com.backtick(cmd).strip()            
 
@@ -2003,7 +2003,7 @@ class Cp2kRelaxOutputFile(Cp2kMDOutputFile):
     tested yet."""
     def get_natoms(self):
         if os.path.exists(self._pos_file):
-            cmd = r"head -n1 {}".format(self._pos_file)
+            cmd = r"head -n1 {0}".format(self._pos_file)
             return int_from_txt(com.backtick(cmd))
         else:
             return None
@@ -2035,7 +2035,7 @@ class Cp2kRelaxOutputFile(Cp2kMDOutputFile):
                     else:
                         raise StandardError("cell and coords have a timestep "
                             "offset != 1, dunno what to do "
-                            "(offset={}, coords: {}, cell: {})".format(offset,self.coords.shape, cell.shape))
+                            "(offset={0}, coords: {1}, cell: {2})".format(offset,self.coords.shape, cell.shape))
                 else:
                     return None
             # GEO_OPT not tested yet. Simply return cell for now unchanged, if

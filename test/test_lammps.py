@@ -31,9 +31,9 @@ def set_atol(atol=1e-8):
 def run(tgz, skip=[], atol_map={}):
     tgz_path = os.path.dirname(tgz)
     unpack_path = tgz.replace('.tgz','')
-    common.system("tar -C {} -xzf {}".format(tgz_path,tgz))
-    tr1 = io.read_lammps_md_txt("{}/log.lammps".format(unpack_path))
-    tr2 = io.read_lammps_md_dcd("{}/log.lammps".format(unpack_path))
+    common.system("tar -C {0} -xzf {1}".format(tgz_path,tgz))
+    tr1 = io.read_lammps_md_txt("{0}/log.lammps".format(unpack_path))
+    tr2 = io.read_lammps_md_dcd("{0}/log.lammps".format(unpack_path))
     for name in tr1.attr_lst:
         if name in skip:
             continue
@@ -63,9 +63,9 @@ def test_parse_vc_relax():
 
 def test_missing_files():
     tmpdir = tempfile.mkdtemp(dir=testdir, prefix=__file__)
-    pp = parse.LammpsTextMDOutputFile(filename='{}/foo'.format(tmpdir))
+    pp = parse.LammpsTextMDOutputFile(filename='{0}/foo'.format(tmpdir))
     pp.parse()
-    pp = parse.LammpsDcdMDOutputFile(filename='{}/foo'.format(tmpdir))
+    pp = parse.LammpsDcdMDOutputFile(filename='{0}/foo'.format(tmpdir))
     pp.parse()
 
 def test_mix_output():
@@ -80,8 +80,8 @@ def test_mix_output():
     tgz = 'files/lammps/mix_output.tgz'
     tgz_path = os.path.dirname(tgz)
     unpack_path = tgz.replace('.tgz','')
-    common.system("tar -C {} -xzf {}".format(tgz_path,tgz))
-    tr = io.read_lammps_md_txt("{}/log.lammps".format(unpack_path))
+    common.system("tar -C {0} -xzf {1}".format(tgz_path,tgz))
+    tr = io.read_lammps_md_txt("{0}/log.lammps".format(unpack_path))
     assert tr.nstep == 31
     assert tr.coords.shape == (31,4,3)
     assert tr.stress.shape == (33,3,3)

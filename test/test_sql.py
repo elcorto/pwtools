@@ -2,7 +2,7 @@
 # or uppercase. i.e. "SELECT * FROM calc WHERE idx==1" == "select * from calc
 # where idx==1".
 
-import os, tempfile
+import os, tempfile, sys
 import numpy as np
 from pwtools.sql import SQLiteDB, SQLEntry
 from pwtools import sql
@@ -11,7 +11,16 @@ from testenv import testdir
 pj = os.path.join
 
 def test_sql():
-
+    # Check for sqlite3 command line tool. In Python 3.3, we can use
+    # shutil.which().
+    have_sqlite3 = False
+    for pp in sys.path:
+        exe = pj(pp, 'sqlite3')
+        if os.path.isfile(exe):
+            print "found:", exe
+            have_sqlite3 = True
+            break
+        
     # --- SQLiteDB ----------------------------------------------------
     dbfn = pj(testdir, 'test.db')
     if os.path.exists(dbfn):
@@ -44,9 +53,11 @@ def test_sql():
     assert float(db.get_single("select foo from calc where idx==0")) == 1.1
 
     assert header == db.get_header()
-    # call sqlite3, the cmd line interface
-    assert common.backtick("sqlite3 %s 'select * from calc'" %dbfn) \
-        == '0|1.1|a\n1|2.2|b\n2|3.3|c\n'
+    
+    if have_sqlite3:
+        # call sqlite3, the cmd line interface
+        assert common.backtick("sqlite3 %s 'select * from calc'" %dbfn) \
+            == '0|1.1|a\n1|2.2|b\n2|3.3|c\n'
 
     # ret = 
     # [(0, 1.1000000000000001, u'a'),
@@ -92,7 +103,8 @@ def test_sql():
     db.execute("UPDATE %s SET baz='yy' where idx==1" %db.table)
     db.execute("UPDATE %s SET baz=? where idx==2" %db.table, ('zz',))
     db.commit()
-    print common.backtick("sqlite3 %s 'select * from calc'" %dbfn)
+    if have_sqlite3:
+        print common.backtick("sqlite3 %s 'select * from calc'" %dbfn)
     print db.execute("select baz from calc").fetchall()
     assert db.execute("select baz from calc").fetchall() == \
         [(u'xx',), (u'yy',), (u'zz',)]

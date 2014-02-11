@@ -87,7 +87,7 @@ def test_traj_from_txt():
         assert (arr3d_readtxt == arr3d_orig).all()    
     # now test traj_from_txt result 
     assert arr3d.shape == arr3d_orig.shape, \
-           ("axis={}, shapes: read={} written={} orig={}".format(axis,
+           ("axis={0}, shapes: read={1} written={2} orig={3}".format(axis,
                   arr3d.shape, written_shape, arr3d_orig.shape))
     assert (arr3d == arr3d_orig).all()
 

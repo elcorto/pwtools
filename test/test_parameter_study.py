@@ -12,8 +12,8 @@ def check_key_in_file(lines, key, file_target):
     for ll in lines:
         if ll.strip().startswith(key):
             file_val_str = ll.split('=')[1].strip()
-            print("check_key_in_file: key={}, "
-                  "file_val_str={}, file_target={}".format(key, file_val_str, file_target))
+            print("check_key_in_file: key={0}, "
+                  "file_val_str={1}, file_target={2}".format(key, file_val_str, file_target))
             # hack to convert string from file to correct type, failed
             # conversion raises ValueError
             ret = False
@@ -63,8 +63,8 @@ def check_generated(calc_root, machine_dct, params_lst, revision):
                         assert_all_types_equal(db_val, sqlentry.sqlval)
                     else:
                         db_val = 'NOT_DEFINED_IN_DB'
-                    print("check_generated: idx={}, sqlentry.key={}, "
-                          "sqlentry.sqlval={}, db_val={}".format(idx, sqlentry.key, 
+                    print("check_generated: idx={0}, sqlentry.key={1}, "
+                          "sqlentry.sqlval={2}, db_val={3}".format(idx, sqlentry.key, 
                                                                  sqlentry.sqlval,
                                                                  db_val))
                     check_key_in_file(lines, sqlentry.key, sqlentry.sqlval)
