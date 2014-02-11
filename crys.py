@@ -2472,13 +2472,12 @@ class Structure(UnitsHandler):
             Names of attributes to delete. They will be set to None.
         dtype : numpy dtype
         """
-        float_ts = [np.float16, np.float32, np.float64, np.float128]
         for name in self.attr_lst:
             if name in forget:
                 setattr(self, name, None)
             else:            
                 attr = getattr(self, name)
-                if (type(attr) == self.np_array_t) and (attr.dtype in float_ts) and \
+                if (type(attr) == self.np_array_t) and (attr.dtype.kind == 'f') and \
                     attr.dtype != dtype:
                     setattr(self, name, attr.astype(dtype))
 

@@ -388,6 +388,9 @@ def test_coords_trans():
 
 def test_compress():
     old = get_rand_traj()
+    # fake integer arrary which should not be casted
+    assert old.forces is not None
+    old.forces = np.ones_like(old.forces).astype(int)
     float_dtype_old = old.coords.dtype
     float_dtype_new = np.float32
     assert float_dtype_new != float_dtype_old
@@ -401,12 +404,17 @@ def test_compress():
         if name in forget:
             continue
         attr_old = getattr(old, name)
-        if (type(attr_old) == arr_t) and (attr_old.dtype == float_dtype_old):
-            print name
+        if type(attr_old) == arr_t:
             attr_new = getattr(new, name)
-            assert type(attr_new) == arr_t
-            assert attr_new.dtype == float_dtype_new
-            # for all non-integer attrs, there must be a small numerical
-            # difference
-            assert abs(attr_old - attr_new).sum() > 0.0
-
+            if (attr_old.dtype == float_dtype_old) and \
+                (attr_old.dtype.kind=='f'):
+                print name
+                assert type(attr_new) == arr_t
+                assert attr_new.dtype == float_dtype_new
+                # for all non-integer attrs, there must be a small numerical
+                # difference
+                assert abs(attr_old - attr_new).sum() > 0.0
+            else:
+                assert attr_old.dtype == attr_new.dtype
+    # sanity check
+    assert new.forces.dtype.kind in ('u','i')
