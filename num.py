@@ -68,7 +68,7 @@ def vlinspace(a, b, num, endpoint=True):
     return np.cumsum(ret, axis=0)
 
 
-def norm_int(y, x, area=1.0, scale=False, func=simps):
+def norm_int(y, x, area=1.0, scale=True, func=simps):
     """Normalize integral area of y(x) to `area`.
     
     Parameters
@@ -150,6 +150,7 @@ def deriv_spl(y, x=None, xnew=None, n=1, fullout=False, **splrep_kwargs):
     else:
         return yd
 
+# XXX should be deprecated in favor of using only Spline
 def _splroot(x, y, der=0):
     # helper for find{min,root}
     tck = splrep(x, y, k=3, s=0)
@@ -158,6 +159,7 @@ def _splroot(x, y, der=0):
     return np.array([x0, splev(x0, tck)])
 
 
+# XXX should be deprecated in favor of using only Spline(x,y).get_min()
 def findmin(x, y):
     """Find minimum of x-y curve by searching for the root of the 1st
     derivative of a spline thru x,y. `x` must be sorted min -> max and the
@@ -177,6 +179,7 @@ def findmin(x, y):
     return _splroot(x, y, der=1)
 
 
+# XXX should be deprecated in favor of using only Spline(x,y).get_root()
 def findroot(x, y):
     """Find root of x-y curve by searching for the root of a spline thru x,y.
     `x` must be sorted min -> max and the interval [x[0], x[-1]] must contain
@@ -252,6 +255,9 @@ class Spline(object):
     def __call__(self, *args, **kwargs):
         return self.splev(*args, **kwargs)
 
+
+    # XXX can't we define a global findroot() which is used in PolyFit1D and
+    # Spline??
     def _findroot(self, func, x0=None, xab=None):
         """Find root of `func` by Newton's method if `x0` is given or Brent's
         method if `xab` is given. If neither is given, then
@@ -338,15 +344,15 @@ class Spline(object):
         
         Parameters
         ----------
-        x0 or xab: see self.invsplev()
+        x0 or xab : 
+            see :meth:`invsplev`
         
         Returns
         -------
         xx : scalar
             min(y) = y(xx)
         """
-        func = lambda x: self.splev(x, der=1)
-        return self._findroot(func, x0=x0, xab=xab)
+        return self._findroot(lambda x: self.splev(x, der=1), x0=x0, xab=xab)
     
     def get_root(self, x0=None, xab=None):
         """Return x where y(x) = 0 by calculating the root of the spline.
@@ -356,7 +362,8 @@ class Spline(object):
         
         Parameters
         ----------
-        x0 or xab: see self.invsplev()
+        x0 or xab :
+            see :meth:`invsplev`
         
         Returns
         -------
@@ -689,7 +696,7 @@ class Interpol2D(object):
         values : (npoints, 1)
         xx,yy : (npoints, 1)
             Use either `points` + `values` or `xx` + `yy` + `values` or `dd`.
-        dd : pwtools.mpl.Data3D instance
+        dd : pwtools.mpl.Data2D instance
         what : str, optional
             which interpolator to use
             'rbf_multi' : RBFN w/ multiquadric rbf
@@ -718,7 +725,7 @@ class Interpol2D(object):
         >>> y=x 
         >>> X,Y=np.meshgrid(x,y); X=X.T; Y=Y.T 
         >>> Z=(X+3)**2+(Y+4)**2 + 5 
-        >>> dd=mpl.Data3D(X=X,Y=Y,Z=Z)
+        >>> dd=mpl.Data2D(X=X,Y=Y,Z=Z)
         >>> inter=num.Interpol2D(dd=dd, what='rbf_multi'); inter([[-3,-4],[0,0]])
         array([  5.0000001 ,  29.99999975])
         >>> inter=num.Interpol2D(dd=dd, what='rbf_gauss'); inter([[-3,-4],[0,0]])
@@ -1135,7 +1142,7 @@ def vander(points, deg):
     return tmp.prod(axis=1)
 
 
-def polyfit(points, values, deg, scale=False):
+def polyfit(points, values, deg, scale=True):
     """Fit nd polynomial of dregree `deg`. The dimension is ``points.shape[1]``.
 
     Parameters
@@ -1157,6 +1164,23 @@ def polyfit(points, values, deg, scale=False):
         {coeffs, deg, pscale, vscale, pmin, vmin} where coeffs = 1d array
         ((deg+1)**ndim,) with poly coefficients and `*min` and `*scale` are for
         data scaling. Input for polyval().
+    
+    Notes
+    -----
+    `scale`: numpy.polyfit does only x-scaling by default, which seems to be
+    enough for most real world data. So, with `scale=True` you should get
+    almost exactly the numpy result, while there may be small differences for
+    `scale=False` and funny scaled data (e.g. x=-1000 ... 1000 and y = 0 ...
+    0.0001). 
+
+    Because ``fit['coeffs']`` are w.r.t. scaled data, you cannot compare them to
+    the result of np.polyfit directly. Only with `scale=False` you can compare
+    the coeffs. However, you may simply compare the resulting fits, evaluated
+    at the same points.
+
+    See Also
+    --------
+    :class:`PolyFit`, :class:`PolyFit1D`, :func:`polyval`
     """
     assert points.ndim == 2, "points must be 2d array"
     assert values.ndim == 1, "values must be 1d array"
@@ -1193,6 +1217,10 @@ def polyval(fit, points, der=0, avg=False):
     didn't implement an equivalent machinery. For 2D, you might get away with
     fitting a bispline (see Interpol2D) and use it's derivs. For ND, try rbf.py's RBF
     interpolator which has at least 1st derivatives for arbitrary dimensions.
+
+    See Also
+    --------
+    :class:`PolyFit`, :class:`PolyFit1D`, :func:`polyfit`
     """
     pscale, pmin = fit['pscale'], fit['pmin']
     vscale, vmin = fit['vscale'], fit['vmin']
@@ -1211,7 +1239,7 @@ def polyval(fit, points, der=0, avg=False):
 
 
 def avgpolyfit(points, values, deg=None, degmin=None, degmax=None, levels=1, 
-               degrange=None, scale=False):
+               degrange=None, scale=True):
     """Same as polyfit(), but fit multiple polys. There are two types of fits,
     which can be combined. (1) Fit `levels` polys and remove one level of
     endpoints in each go from `points`. (2) Fit polys with varying degrees (see
@@ -1412,8 +1440,9 @@ class PolyFit(object):
 
         Parameters
         ----------
-        x0 : 1d array
-            Initial guess
+        x0 : 1d array, optional
+            Initial guess. If not given then `points[i,...]` at the min of
+            `values` is used.
         **kwds : keywords to fmin()
         
         Returns
@@ -1445,7 +1474,11 @@ class PolyFit1D(PolyFit):
     2.0000000000000009
     >>> f.get_min()
     1.0
-    >>> xx=linspace(x[0],x[-1],50); plot(x,y,'o'); plot(xx, f(xx))
+    >>> xx = linspace(x[0],x[-1],50) 
+    >>> plot(x,y,'o', label='data') 
+    >>> plot(xx, f(xx), label='poly')
+    >>> plot(xx, f(xx,der=1), label='d(poly)/dx')
+    >>> legend()
     """
     def __init__(self, *args, **kwds):
         """
@@ -1473,7 +1506,9 @@ class PolyFit1D(PolyFit):
             raise ValueError("wrong shape or dim")
     
     _fix_shape_call = _fix_shape_init
-
+    
+    # XXX can't we define a global findroot() which is used in PolyFit1D and
+    # Spline??
     def _findroot(self, func, x0=None, xab=None, **kwds):
         if x0 is not None:
             xx = optimize.newton(func, x0, **kwds)
@@ -1484,7 +1519,18 @@ class PolyFit1D(PolyFit):
         return xx    
     
     def get_min(self, x0=None, xab=None, **kwds):
-        """Find minimum from the 1st derivative's root. See Spline.get_min()."""
+        """Minimize fit by calculating the 1st derivative's root. Use Brent's
+        method by default.
+        
+        See :meth:`Spline.get_min`
+        
+        Parameters
+        ----------
+        x0 : float,optional
+            initial guess for Newton method
+        xab : length-2 list [xa,xb], optional
+            window for Brent method, if skipped then we use x[0] and x[-1]
+        """
         return self._findroot(lambda x: self(x, der=1), x0=x0, xab=xab, 
                               **kwds)
                       

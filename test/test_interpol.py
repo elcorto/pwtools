@@ -6,7 +6,7 @@ def test_interpol2d():
     y = x 
     X,Y = np.meshgrid(x,y); X=X.T; Y=Y.T 
     Z = (X+3)**2+(Y+4)**2 + 5 
-    dd = mpl.Data3D(X=X,Y=Y,Z=Z)
+    dd = mpl.Data2D(X=X,Y=Y,Z=Z)
     
     tgt = np.array([  5.0 ,  30])
     inter = num.Interpol2D(dd=dd, what='rbf_multi') 

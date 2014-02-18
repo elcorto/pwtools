@@ -272,17 +272,21 @@ class Gibbs(object):
 
     Notes
     -----
-    ``fitfunc`` : Dict with class instances for fitting various things. 
+    Functions for fitting G(V), V(T) etc are defined in a dictionary attribute
+    ``fitfunc``. This is a dict with functions, which have the signature
+    ``func(x,y)``. The functions get x-y type data and return a class instance.
     The instances must be a :class:`~pwtools.num.Spline`-like object with a
-    ``get_min()`` method. The ``__call__()`` method must accept a keyword
-    `der` for calculating derivatives in some cases. See
-    `self._default_fit_*` to get an idea: for 1d
-    :class:`~pwtools.num.Spline` or :class:`~pwtools.num.PolyFit1D`, for
-    2d: :class:`~pwtools.num.PolyFit` or :class:`~pwtools.num.Interpol2D`.
-    See also ``scipy.interpolate``. Use
-    :meth:`~pwtools.thermo.Gibbs.set_fitfunc` to change. This can (and
-    should!) be used to tune fitting methods.
-   
+    ``get_min()`` method. The ``__call__()`` method must accept a keyword `der`
+    for calculating derivatives in some cases. See `self._default_fit_*` to get
+    an idea: for 1d :class:`~pwtools.num.Spline` or
+    :class:`~pwtools.num.PolyFit1D`, for 2d: :class:`~pwtools.num.PolyFit` or
+    :class:`~pwtools.num.Interpol2D`. See also ``scipy.interpolate``. Use
+    :meth:`~pwtools.thermo.Gibbs.set_fitfunc` to change. This can (and should!)
+    be used to tune fitting methods. See examples below for how to change fit 
+    functions.
+    
+    Here is a list of all value `fitfunc` keys and what they do:
+
     ========  ==========================================================
     key       value  
     ========  ==========================================================
@@ -305,7 +309,7 @@ class Gibbs(object):
     before fitting to the same order of magnitude! For T grids, choose a very
     fine T-axis (e.g. ``T=linspace(.., num=300)`` and use a
     :class:`~pwtools.num.Spline`. Needed to resolve details of alpha(T) and
-    C(T).
+    C(T). 
 
     The methods `calc_F` and `calc_G` return dicts with nd-arrays holding
     calculated thermodynamic properites. Naming convention for dict keys
@@ -346,9 +350,23 @@ class Gibbs(object):
     
     Examples
     --------
-    >>> from pwtoold import mpl
-    >>> gibbs=Gibbs(..., T=linspace(5,2500,100), P=linspace(0,20,5),...)
-    >>> gibbs.set_fitfunc('C', lambda x,y: num.PolyFit1D(x,y,deg=5))
+    
+    See also ``test/test_gibbs.py`` for worked examples using fake data.
+    Really, go there and have a look. Now!
+
+    >>> from pwtools import mpl, crys, eos
+    >>> # isotropic cell
+    >>> volfunc_ax = lambda x: crys.volume_cc(np.array([[x[0]]*3 + [90]*3]))
+    >>> gibbs=Gibbs(axes_flat=..., etot=..., phdos=...,
+    ...             T=linspace(5,2500,100), P=linspace(0,20,5), 
+    ...             volfunc_ax=volfunc_ax)
+    >>> # EOS fit for G(V)
+    >>> def fit_1d_G(x,y):
+    ...     efit = eos.ElkEOSFit(energy=y, volume=x, verbose=False)
+    ...     efit.fit()
+    ...     return efit.spl_ev
+    >>> gibbs.set_fitfunc('C', lambda x,y: num.PolyFit1D(x,y,deg=5,scale=True))
+    >>> gibbs.set_fitfunc('1d-G', fit_1d_G)
     >>> g = gibbs.calc_G(calc_all=True)
     >>> # 1d case
     >>> V = g['/ax0/V']; G=g['/T/P/ax0/G'], T=g['/T/T']

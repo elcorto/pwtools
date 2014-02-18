@@ -22,20 +22,20 @@ def test_polyfit():
         print kwds
         # 1D
         x = np.linspace(-5,5,100) 
-        y = x**2.0 + 1.0
+        y = x**2.0 - 1.0
         f = num.PolyFit1D(x,y,**kwds)
         assert np.allclose(y, f(x))
         assert np.allclose(2.0*x, f(x, der=1))
         assert np.allclose(2.0, f(x, der=2))
-        assert np.allclose(1.0, f(f.get_min()))
-        assert np.allclose(1.0, f(f.get_min(xtol=1e-10)))                         
-        assert np.allclose(1.0, f(f.get_min(x0=1.0, tol=1e-10)))                  
-        assert np.allclose(1.0, f(f.get_min(xab=[-1,1], xtol=1e-10, rtol=1e-16))) 
+        assert np.allclose(-1.0, f(f.get_min()))
+        assert np.allclose(-1.0, f(f.get_min(xtol=1e-10)))                         
+        assert np.allclose(-1.0, f(f.get_min(x0=1.0, tol=1e-10)))                  
+        assert np.allclose(-1.0, f(f.get_min(xab=[-1,1], xtol=1e-10, rtol=1e-16))) 
         
         # API: PolyFit1D __call__ arg: scalar, 1d, 2d
         for xs in [2.0, np.array([2.0]), np.array([[2.0]])]:
-            assert np.allclose(5.0, f(xs))
-            assert type(np.array([5.0])) == type(np.array([f(xs)]))
+            assert np.allclose(3.0, f(xs))
+            assert type(np.array([3.0])) == type(np.array([f(xs)]))
         
         # API: 3rd arg is always 'deg'
         fit1 = num.polyfit(x[:,None],y,2)
@@ -75,16 +75,16 @@ def test_polyfit():
         points = np.array([xy for xy in product(x,y)])
         xx = points[:,0]
         yy = points[:,1]
-        zz = (xx-2)**2.0 + (yy-1)**4.0 + 1.0
+        zz = (xx-2)**2.0 + (yy-1)**4.0 - 1.0
         f = num.PolyFit(points, zz, **kwds)
         assert np.allclose(zz, f(points))
         print f.get_min(xtol=1e-10, ftol=1e-10)
         assert np.allclose(np.array([2.0, 1.0]), f.get_min(xtol=1e-10, ftol=1e-8), atol=1e-3)
-        assert np.allclose(1.0, f(f.get_min()))
+        assert np.allclose(-1.0, f(f.get_min()))
 
         for xs in [np.array([4.0,3.0]), np.array([[4.0,3.0]])]:
-            assert np.allclose(21.0, f(xs))
-            assert type(np.array([21.0])) == type(np.array([f(xs)]))
+            assert np.allclose(19.0, f(xs))
+            assert type(np.array([19.0])) == type(np.array([f(xs)]))
         
         # mix terms
         zz = xx**2.0 + yy**2.0 + xx*yy**2.0

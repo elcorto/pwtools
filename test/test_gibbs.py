@@ -10,6 +10,7 @@ def test_gibbs():
     nax = 6
     # phonon freq axis
     freq = np.linspace(0,1000,300) # cm^-1
+    # use log-scale T axis to resolve details at T=0
     T = np.logspace(np.log10(5),np.log10(2000),50)
     P = np.linspace(0,5,2)
 

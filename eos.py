@@ -99,7 +99,8 @@ class ExternEOS(FlexibleGetters):
         if not os.path.exists(self.dir):
             os.makedirs(self.dir)
         if self.verbose:            
-            print("Find your results in %s/" %self.dir)
+            print("After calling the fit() method, find data from '%s' "
+                  "in %s/" %(self.app, self.dir))
         self.infn = os.path.join(self.dir, 'eos.in')
     
     def _fit(self):
