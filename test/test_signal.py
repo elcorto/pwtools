@@ -12,10 +12,11 @@ def test_smooth_1d():
             xsm = smooth(x, hanning(M))
             assert len(xsm) == N
             # Smoothed signal should not go to zero if edge effects are handled
-            # properly. Also assert proper normalization (i.e. smoothe signal
+            # properly. Also assert proper normalization (i.e. smoothed signal
             # is "in the middle" of the noisy original data).
             assert xsm.min() >= 9.0 
             assert xsm.max() <= 11.0 
+        # convolution with delta peak produces same data exactly
         assert np.allclose(smooth(x, np.array([0.0,1,0])),x)
 
 

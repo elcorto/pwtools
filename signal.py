@@ -279,6 +279,49 @@ def welch(M, sym=1):
         w = w[:-1]
     return w
 
+def lorentz(M, std=1.0, sym=True):
+    """Lorentz window (same as Cauchy function). Function skeleton stolen from
+    scipy.signal.gaussian().
+    
+    The Lorentz function is
+
+    .. math:: 
+
+        L(x) = \\frac{\Gamma}{(x-x_0)^2 + \Gamma^2}
+    
+    Some definitions use :math:`1/2\,\Gamma` instead of :math:`\Gamma`, but
+    without 1/2 we get comparable peak width to Gaussians when using this
+    window in convolutions, thus ``scipy.signal.gaussian(M, std=5)`` is similar
+    to ``lorentz(M, std=5)``.
+
+    Parameters
+    ----------
+    M : int
+        number of points
+    std : float 
+        spread parameter
+    sym : bool
+    
+    Returns
+    -------
+    w : (M,)
+    """
+    if M < 1:
+        return np.array([])
+    if M == 1:
+        return np.ones(1,dtype=float)
+    odd = M % 2
+    if not sym and not odd:
+        M = M+1
+    n = np.arange(0, M) - (M - 1.0) / 2.0
+    w = std / (n**2.0 + std**2.0)
+    w /= w.max()
+    if not sym and not odd:
+        w = w[:-1]
+    return w
+
+cauchy = lorentz
+
 
 def mirror(arr, axis=0):
     """Mirror array `arr` at index 0 along `axis`. 
@@ -473,10 +516,16 @@ def find_peaks(y, x=None, k=3, spread=2, ymin=None):
     return idx0, pos0
 
 
-def smooth(data, kern, axis=0):
+def smooth(data, kern, axis=0, norm=True):
     """Smooth `data` by convolution with a kernel `kern`. 
     
-    Uses scipy.signal.fftconvolve().
+    Uses scipy.signal.fftconvolve(). 
+    
+    Note that with `norm=True` (default), `kern` is normalized before
+    convolution, so the symmetric property of the convolution conv(data,kern)
+    == conv(kern,data) is lost in that case.
+
+    Also, len(kern) < len(data) aling `axis` is required.
 
     Parameters
     ----------
@@ -490,6 +539,9 @@ def smooth(data, kern, axis=0):
         Axis along which to do the smoothing. That is actually not needed for
         the convolution ``fftconvolve(data, kern)`` but is used for padding the
         data along `axis` to handle edge effects before convolution.
+    norm : bool
+        Normalize kernel. Default is True. This assures that the smoothed
+        signal lies within the data.
 
     Examples
     --------
@@ -502,7 +554,8 @@ def smooth(data, kern, axis=0):
     >>> plot(signal.smooth(a,k), 'g', label='gauss')
     >>> k=welch(21)
     >>> plot(signal.smooth(a,k), 'y', label='welch')
-    >>> # odd kernel [0,1,0] reproduces data exactly
+    >>> # odd kernel [0,1,0] reproduces data exactly, i.e. convolution with
+    >>> # delta peak
     >>> figure()
     >>> x=linspace(0,2*pi,15); k=scipy.signal.hann(3)
     >>> plot(cos(x))
@@ -518,6 +571,11 @@ def smooth(data, kern, axis=0):
     ----------
     [1] http://wiki.scipy.org/Cookbook/SignalSmooth
     
+    See Also
+    --------
+    :func:`welch`
+    :func:`lorentz`
+
     Notes
     -----
     
@@ -543,7 +601,8 @@ def smooth(data, kern, axis=0):
 
     For big data, fftconvolve() can easily eat up all your memory, for
     example::
-
+    
+    >>> # assume axis=0 is the axis along which to convolve
     >>> arr = ones((1e5,200,3)) 
     >>> kern = scipy.signal.hann(101)
     >>> ret = scipy.signal.fftconvolve(arr, kern[:,None,None])
@@ -569,16 +628,38 @@ def smooth(data, kern, axis=0):
     dstart = num.slicetake(data, sl=slice(M,0,-1), axis=axis)
     dend = num.slicetake(data, sl=slice(-2,-(M+1),-1), axis=axis)
     sig = np.concatenate((dstart, data, dend), axis=axis)
-    ret = fftconvolve(sig, kern/float(kern.sum()), 'valid')
+    kk = kern/float(kern.sum()) if norm else kern
+    ret = fftconvolve(sig, kk, 'valid')
     del sig
     if M % 2 == 0:
         sl = slice(M/2,-(M/2))
     else:        
         sl = slice(M/2+1,-(M/2))
     ret = num.slicetake(ret, sl=sl, axis=axis)        
-    assert ret.shape == data.shape, ("ups, ret.shape != data.shape")
+    assert ret.shape == data.shape, ("ups, ret.shape (%s)!= data.shape (%s)" \
+                                      %(ret.shape, data.shape))
     return ret
 
+
+def scale(x, copy=True):
+    """Scale `x` to unity.
+
+    Subtract min and divide by (max-min).
+
+    Parameters
+    ----------
+    x : array_like
+    copy : bool
+        copy `x` before scaling
+
+    Returns
+    -------
+    x_scaled
+    """
+    xx = x.copy() if copy else x
+    xx = xx - xx.min()
+    xx /= xx.max()
+    return xx
 
 
 class FIRFilter(object):
