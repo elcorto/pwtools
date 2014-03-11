@@ -2329,6 +2329,7 @@ class Structure(UnitsHandler):
         # not as input, only derived from input attrs            
         self.derived_attr_lst = [\
             'mass',
+            'mass_unique',
             'natoms',
             'nspecies',
             'nstep',
@@ -2782,6 +2783,12 @@ class Structure(UnitsHandler):
         else:
             return None
     
+    def get_mass_unique(self):
+        if self.check_set_attr('znucl_unique'):
+            return np.array([atomic_data.masses[z] for z in self.znucl_unique])
+        else:
+            return None
+
     def get_ase_atoms(self, **kwds):
         """Return ASE Atoms object. 
         
