@@ -516,16 +516,14 @@ def find_peaks(y, x=None, k=3, spread=2, ymin=None):
     return idx0, pos0
 
 
-def smooth(data, kern, axis=0, norm=True):
+def smooth(data, kern, axis=0, edge='m', norm=True):
     """Smooth `data` by convolution with a kernel `kern`. 
     
     Uses scipy.signal.fftconvolve(). 
     
-    Note that with `norm=True` (default), `kern` is normalized before
-    convolution, so the symmetric property of the convolution conv(data,kern)
-    == conv(kern,data) is lost in that case.
-
-    Also, len(kern) < len(data) aling `axis` is required.
+    Note that due to edge effect handling (padding) and kernal normalization,
+    the convolution identity convolve(data,kern) == convolve(kern,data) doesn't
+    apply here. We always return an array of ``data.shape``.
 
     Parameters
     ----------
@@ -539,13 +537,26 @@ def smooth(data, kern, axis=0, norm=True):
         Axis along which to do the smoothing. That is actually not needed for
         the convolution ``fftconvolve(data, kern)`` but is used for padding the
         data along `axis` to handle edge effects before convolution.
+    edge : str
+        Method for edge effect handling.
+            | 'm' : pad with mirror signal
+            | 'c' : pad with constant values (i.e. ``data[0]`` and
+            |       ``data[-1]`` in the 1d case)
     norm : bool
         Normalize kernel. Default is True. This assures that the smoothed
-        signal lies within the data.
+        signal lies within the data. Note that this is not True for kernels
+        with very big spread (i.e. ``hann(len(data)*10)`` or ``gaussian(20,
+        std=len(data)*10)``. Then the kernel is effectively a constant.
+    
+    Returns
+    -------
+    ret : data.shape
+        Convolved signal.
 
     Examples
     --------
     >>> from pwtools.signal import welch
+    >>> from numpy.random import rand
     >>> x = linspace(0,2*pi,500); a=cos(x)+rand(500) 
     >>> plot(a, color='0.7')
     >>> k=scipy.signal.hann(21)
@@ -554,18 +565,39 @@ def smooth(data, kern, axis=0, norm=True):
     >>> plot(signal.smooth(a,k), 'g', label='gauss')
     >>> k=welch(21)
     >>> plot(signal.smooth(a,k), 'y', label='welch')
+    >>> legend()
     >>> # odd kernel [0,1,0] reproduces data exactly, i.e. convolution with
     >>> # delta peak
-    >>> figure()
+    >>> figure(); title('smooth with delta [0,1,0]')
     >>> x=linspace(0,2*pi,15); k=scipy.signal.hann(3)
     >>> plot(cos(x))
     >>> plot(signal.smooth(cos(x),k), 'r')
+    >>> legend()
+    >>> # edge effects with normal convolution
+    >>> figure(); title('edge effects')
+    >>> x=rand(20)+10; k=scipy.signal.hann(11); 
+    >>> plot(x); plot(signal.smooth(x,k),label="smooth");
+    >>> plot(scipy.signal.convolve(x,k/k.sum(),'same'), label='convolve')
+    >>> legend()
+    >>> # edge effect methods
+    >>> figure(); title('edge effect methods')
+    >>> x=rand(20)+10; k=scipy.signal.hann(20); 
+    >>> plot(x); plot(signal.smooth(x,k,edge='m'),label="edge='m'");
+    >>> plot(signal.smooth(x,k,edge='c'),label="edge='c'");
+    >>> legend()
     >>> # smooth a trajectory of atomic coordinates
-    >>> figure()
+    >>> figure(); title('trajectory')
     >>> x = linspace(0,2*pi,500)
-    >>> a = rand(500,20,3) + cos(x)[:,None,None] # (nstep, natoms, 3)
+    >>> a = rand(500,2,3) # (nstep, natoms, 3)
+    >>> a[:,0,:] += cos(x)[:,None]
+    >>> a[:,1,:] += sin(x)[:,None]
     >>> k=scipy.signal.hann(21)[:,None,None]
-    >>> plot(a[:,0,0], color='0.7'); plot(signal.smooth(a,k)[:,0,0],'r')
+    >>> y = signal.smooth(a,k)
+    >>> plot(a[:,0,0], color='0.7'); plot(y[:,0,0],'b',
+    ...                                   label='atom1 x')
+    >>> plot(a[:,1,0], color='0.7'); plot(y[:,1,0],'r',
+    ...                                   label='atom2 x')
+    >>> legend()
 
     References
     ----------
@@ -584,18 +616,34 @@ def smooth(data, kern, axis=0, norm=True):
     Even kernels result in shifted signals, odd kernels are better.
     
     Usual kernels (window functions) are created by e.g.
-    ``scipy.signal.hann(width)``. For ``kern=scipy.signal.gaussian(width,
-    std)``, two values are needed, namely `width` and `std`, where  `width`
+    ``scipy.signal.hann(M)``. For ``kern=scipy.signal.gaussian(M,
+    std)``, two values are needed, namely `M` and `std`, where  `M`
     determines the number of points calculated for the convolution kernel, as
     in the other cases. But what is actually important is `std`, which
     determines the "used width" of the gaussian. Say we use len(data)=100,
     ``kern=hann(50)``. That would be a massively wide window and we would
     smooth away all details. OTOH, using ``gaussian(50,3)`` would generate a
-    kernel of the same with (i.e. data points), but the gauss peak which is
+    kernel with the same number `M` of data points, but the gauss peak which is
     effectively used for convolution is much smaller. For ``gaussian()``,
-    `width` should be bigger then `std`. The convolved signal will converge
-    with increasing `width`. Good values are `width=6*std` and bigger. You may
-    want to check that for your signals.
+    `M` should be bigger then `std`. The convolved signal will converge
+    with increasing `M`. Good values are `M=6*std` and bigger. For
+    :func:`lorentz`, much wider kernels are needed such as `M=100*std` b/c
+    of the long tails of the Lorentz function. Testing is mandatory!
+    
+    Edge effects:
+
+    We use padding of the signal with ``M=len(kern)`` values at both ends such
+    that the convolution with `kern` doesn't zero the `data` at the signal
+    edges. We have two methods. `edge='m'`: padd with the signal mirrored at 0
+    and -1 or `edge='c'`: use the constant values ``data[0]`` and ``data[-1]``.
+    Many more of these variants may be thought of. The choice of how to extend
+    the data essentially involves an assumption about how the signal *would*
+    continue, which is signal-dependent. In practice, we usually have ``M <<
+    N`` (e.g. ``scipy.signal.hann(M)``) or ``std << N``
+    (``scipy.signal.gaussian(M, std``). Then, both methods are identical in the
+    middle and show only very small differences at the edges. Essentially, edge
+    effect handling shall only ensure that the smoothed signal doesn't go to
+    zero and that must be independent of the method, which is the case.
 
     Memory:
 
@@ -622,19 +670,67 @@ def smooth(data, kern, axis=0, norm=True):
     The size of the chunk over which you explicitely loop depends on the data
     of course.
     """
+    # edge = 'm'
+    # ----------
+    # 
+    # Add mirror of the signal left and right to handle edge effects, up to
+    # signal length N on both ends. If M > N then fill padding regions up with
+    # zeros until we have sig = [(M,), (N,), (M,)]. fftconvolve(..., 'valid')
+    # always returns only the signal length where sig and kern overlap
+    # completely. Therefore, data at the far end doesn't influence the edge and
+    # we can safely put zeros (or anything else) there. The returned length is
+    # always N+M+1. 
+    #
+    # example (M < N), add M=3 data parts left and right
+    # npad   = 3
+    # data   =                 [1,2,3,4,5,6]
+    # dleft  =           [4,3,2]
+    # dright =                             [5,4,3]
+    # sig    =           [4,3,2,1,2,3,4,5,6,5,4,3]
+    # If M = 8 > N, then:
+    # dleft  =       [6,5,4,3,2]
+    # dright =                             [5,4,3,2,1]
+    # sig    = [0,0,0,6,5,4,3,2,1,2,3,4,5,6,5,4,3,2,1,0,0,0]
+    #
+    # edge = 'c'
+    # ----------
+    # The same, but all padded values are the first (left) and last (right)
+    # data value.
     N = data.shape[axis]
     M = kern.shape[axis]
-    assert M < N, "kernel must be shorter than signal"
-    dstart = num.slicetake(data, sl=slice(M,0,-1), axis=axis)
-    dend = num.slicetake(data, sl=slice(-2,-(M+1),-1), axis=axis)
-    sig = np.concatenate((dstart, data, dend), axis=axis)
+    if edge == 'm':
+        npad = min(M,N)
+        sleft = slice(npad,0,-1)        
+        sright = slice(-2,-(npad+2),-1) 
+        dleft = num.slicetake(data, sl=sleft, axis=axis)
+        dright = num.slicetake(data, sl=sright, axis=axis)
+        assert dleft.shape == dright.shape
+        K = dleft.shape[axis]
+        if K < M:
+            dleft  = pad_zeros(dleft,  axis=axis, where='start', nadd=M-K)
+            dright = pad_zeros(dright, axis=axis, where='end',   nadd=M-K)
+    elif edge == 'c':
+        sl = [slice(None)]*data.ndim
+        sl[axis] = None
+        dleft = np.repeat(num.slicetake(data, sl=0, axis=axis)[sl], M, axis=axis)
+        dright = np.repeat(num.slicetake(data, sl=-1, axis=axis)[sl], M, axis=axis)
+        assert dleft.shape == dright.shape
+        # 1d special case: (M,1) -> (M,)
+        if data.ndim == 1 and dleft.ndim == 2 and dleft.shape[1] == 1:
+            dleft = dleft[:,0]
+            dright = dright[:,0]
+    else:
+        raise StandardError("unknown value for edge")
+    sig = np.concatenate((dleft, data, dright), axis=axis)
     kk = kern/float(kern.sum()) if norm else kern
     ret = fftconvolve(sig, kk, 'valid')
+    assert ret.shape[axis] == N+M+1, "unexpected convolve result shape"
     del sig
     if M % 2 == 0:
-        sl = slice(M/2,-(M/2))
+        ##sl = slice(M/2+1,-(M/2)) # even kernel, shift result to left
+        sl = slice(M/2,-(M/2)-1) # even kernel, shift result to right
     else:        
-        sl = slice(M/2+1,-(M/2))
+        sl = slice(M/2+1,-(M/2)-1)
     ret = num.slicetake(ret, sl=sl, axis=axis)        
     assert ret.shape == data.shape, ("ups, ret.shape (%s)!= data.shape (%s)" \
                                       %(ret.shape, data.shape))
