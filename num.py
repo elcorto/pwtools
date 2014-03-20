@@ -7,9 +7,9 @@ import numpy as np
 from math import sqrt, sin, cos, radians
 import scipy.optimize as optimize
 from scipy.interpolate import bisplrep, \
-    bisplev, splev, splrep
+    bisplev, splev, splrep, NearestNDInterpolator, LinearNDInterpolator
 from scipy.integrate import simps, trapz
-from pwtools import _flib   
+from pwtools import _flib
 
 # Hack for older scipy versions.
 try: 
@@ -685,8 +685,17 @@ def sum(arr, axis=None, keepdims=False, **kwds):
 class Interpol2D(object):
     """Common 2D interpolator API. 
     
+    The API is the same as in ``scipy.interpolate``, e.g.
+
+    >>> inter = scipy.interpolate.SomeInterpolatorClass(points, values)
+    >>> new_values = inter(new_points)
+
     This is for easy testing of multiple interpolators on a surface z = f(x,y),
-    which is given as an unordered set of points."""
+    which is given as an unordered set of points.
+    
+    Except for 'bispl', all interpolators do actually work in ND as well, as
+    does :meth:`get_min`.
+    """
     def __init__(self, points=None, values=None, xx=None, yy=None,  dd=None,
                  what='rbf_multi', **initkwds):
         """
@@ -699,10 +708,12 @@ class Interpol2D(object):
         dd : pwtools.mpl.Data2D instance
         what : str, optional
             which interpolator to use
-            'rbf_multi' : RBFN w/ multiquadric rbf
+            'rbf_multi' : RBFN w/ multiquadric rbf, see :class:`~pwtools.rbf.RBFInt`
             'rbf_gauss' : RBFN w/ gaussian rbf
             'ct'        : scipy.interpolate.CloughTocher2DInterpolator
-            'bispl'     : scipy.interpolate.bispl{rep,ev}    
+            'linear'    : scipy.interpolate.LinearNDInterpolator
+            'nearest'   : scipy.interpolate.NearestNDInterpolator
+            'bispl'     : scipy.interpolate.bispl{rep,ev} 
         **initkwds : keywords passed on to the interpolator's constructor             
         
         Notes
@@ -749,10 +760,12 @@ class Interpol2D(object):
             self.values = values
         else:
             self.xx, self.yy, self.values, self.points = dd.xx, dd.yy, dd.zz, dd.XY
-
+        
+        # need to import here b/c of circular dependency rbf.py <-> num.py
         from pwtools import rbf
         if what == 'rbf_multi':
-            self.inter = rbf.RBFInt(self.points, self.values, rbf=rbf.RBFMultiquadric())
+            self.inter = rbf.RBFInt(self.points, self.values, 
+                                    rbf=rbf.RBFMultiquadric())
             self.inter.train('linalg', **initkwds)
             self.call = self.inter
         elif what == 'rbf_gauss':
@@ -765,8 +778,18 @@ class Interpol2D(object):
                 raise ImportError("could not import "
                     "scipy.interpolate.CloughTocher2DInterpolator")
             else:                    
-                self.inter = CloughTocher2DInterpolator(self.points, self.values, **initkwds)
+                self.inter = CloughTocher2DInterpolator(self.points, 
+                                                        self.values, 
+                                                        **initkwds)
                 self.call = self.inter
+        elif what == 'nearest':
+            self.inter = NearestNDInterpolator(self.points, self.values,
+                                               **initkwds)
+            self.call = self.inter
+        elif what == 'linear':
+            self.inter = LinearNDInterpolator(self.points, self.values,
+                                               **initkwds)
+            self.call = self.inter
         elif what == 'bispl':
             nx = min(len(np.unique(self.xx)), int(sqrt(len(self.xx))))
             ny = min(len(np.unique(self.yy)), int(sqrt(len(self.yy))))

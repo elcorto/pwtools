@@ -21,6 +21,14 @@ def test_interpol2d():
     np.allclose(inter([[-3,-4],[0,0]]), tgt)
     np.allclose(inter.get_min(), 5.0)
     
+    inter = num.Interpol2D(dd=dd, what='linear')
+    np.allclose(inter([[-3,-4],[0,0]]), tgt)
+    np.allclose(inter.get_min(), 5.0)
+    
+    inter = num.Interpol2D(dd=dd, what='nearest')
+    np.allclose(inter([[-3,-4],[0,0]]), tgt)
+    np.allclose(inter.get_min(), 5.0)
+    
     try:
         from scipy.interpolate import CloughTocher2DInterpolator
         inter = num.Interpol2D(dd=dd, what='ct')
