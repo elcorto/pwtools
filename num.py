@@ -4,7 +4,7 @@ import os, copy
 import types
 import itertools
 import numpy as np
-from math import sqrt, sin, cos, radians
+from math import sqrt, sin, cos, radians, pi
 import scipy.optimize as optimize
 from scipy.interpolate import bisplrep, \
     bisplev, splev, splrep, NearestNDInterpolator, LinearNDInterpolator
@@ -1745,3 +1745,51 @@ def meshgridt(x, y):
     return X.T, Y.T
 
 
+def euler_matrix(phi, theta, psi, deg=False):
+    r"""Euler's rotation matrix.
+
+    We use the x-convention, as in [1]_.
+
+    .. math::
+        (\phi, \theta, \psi)        \\
+        A = B\,C\,D                 \\ 
+        D: \phi = 0,...,2\,\pi      \\
+        C: \theta = 0,...,\pi       \\
+        B: \psi = 0,...,2\,\pi      \\
+    
+    Parameters
+    ----------
+    phi, theta, psi : float
+        angles
+    deg : bool
+        angles in degree (True) or radians (False, default)
+    
+    References
+    ----------
+    [1] http://mathworld.wolfram.com/EulerAngles.html
+    """
+    if deg:
+        phi = radians(phi)
+        theta = radians(theta)
+        psi = radians(psi)
+    assert abs(phi) <= 2*pi
+    assert abs(theta) <= pi
+    assert abs(psi) <= 2*pi
+    sin_a = sin(phi)
+    sin_b = sin(theta)
+    sin_c = sin(psi)
+    cos_a = cos(phi)
+    cos_b = cos(theta)
+    cos_c = cos(psi)
+    D = np.array([[ cos_a,  sin_a,      0],
+                  [-sin_a,  cos_a,      0],
+                  [     0,      0,      1]])*1.0
+
+    C = np.array([[     1,      0,      0],
+                  [     0,  cos_b,  sin_b],
+                  [     0, -sin_b,  cos_b]])*1.0
+    
+    B = np.array([[ cos_c,  sin_c,      0],
+                  [-sin_c,  cos_c,      0],
+                  [     0,      0,      1]])*1.0
+    return np.dot(B, np.dot(C, D))
