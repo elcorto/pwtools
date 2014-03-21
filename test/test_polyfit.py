@@ -91,6 +91,14 @@ def test_polyfit():
         f = num.PolyFit(points, zz, **kwds)
         assert np.allclose(zz, f(points),atol=1e-3)
 
+def test_compare_numpy():
+    x = np.sort(np.random.rand(10))
+    y = np.random.rand(10)
+    yy1 = np.polyval(np.polyfit(x, y, 3), x)
+    for scale in [True,False]:
+        yy2 = num.PolyFit1D(x, y, 3, scale=scale)(x)
+        assert np.allclose(yy1, yy2)
+
 def test_inner_points_mask():
     # ndim = dimension of the domain, works for > 3 of course, but this is
     # just a test. ndim > 1 uses qhull. ndim==1 requires ordered points.
