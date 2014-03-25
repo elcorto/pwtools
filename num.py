@@ -709,6 +709,7 @@ class Interpol2D(object):
         what : str, optional
             which interpolator to use
             'rbf_multi' : RBFN w/ multiquadric rbf, see :class:`~pwtools.rbf.RBFInt`
+            'rbf_inv_multi' : RBFN w/ inverse multiquadric rbf
             'rbf_gauss' : RBFN w/ gaussian rbf
             'ct'        : scipy.interpolate.CloughTocher2DInterpolator
             'linear'    : scipy.interpolate.LinearNDInterpolator
@@ -766,6 +767,11 @@ class Interpol2D(object):
         if what == 'rbf_multi':
             self.inter = rbf.RBFInt(self.points, self.values, 
                                     rbf=rbf.RBFMultiquadric())
+            self.inter.train('linalg', **initkwds)
+            self.call = self.inter
+        if what == 'rbf_inv_multi':
+            self.inter = rbf.RBFInt(self.points, self.values, 
+                                    rbf=rbf.RBFInverseMultiquadric())
             self.inter.train('linalg', **initkwds)
             self.call = self.inter
         elif what == 'rbf_gauss':

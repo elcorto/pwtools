@@ -13,6 +13,10 @@ def test_interpol2d():
     np.allclose(inter([[-3,-4],[0,0]]), tgt)
     np.allclose(inter.get_min(), 5.0)
     
+    inter = num.Interpol2D(dd=dd, what='rbf_inv_multi') 
+    np.allclose(inter([[-3,-4],[0,0]]), tgt)
+    np.allclose(inter.get_min(), 5.0)
+    
     inter = num.Interpol2D(dd=dd, what='rbf_gauss')
     np.allclose(inter([[-3,-4],[0,0]]), tgt)
     np.allclose(inter.get_min(), 5.0)
