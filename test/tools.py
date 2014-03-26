@@ -105,7 +105,7 @@ class AllTypesFactory(object):
         """
         self.comp_map = comp_map
     
-    def __call__(self, d1, d2, strict=False):
+    def __call__(self, d1, d2, strict=False, **kwds):
         """
         Parameters
         ----------
@@ -125,7 +125,7 @@ class AllTypesFactory(object):
             if d1_t == typ:
                 msg("AllTypesFactory: type=%s, comp_func=%s" \
                       %(str(typ), str(comp_func)))
-                return comp_func(d1, d2)
+                return comp_func(d1, d2, **kwds)
         if self.comp_map.has_key('default'):
             comp_func = self.comp_map['default']
         else:
@@ -133,7 +133,7 @@ class AllTypesFactory(object):
                 "cannot process type=%s" %(d1_t))
         msg("AllTypesFactory: type=default, comp_func=%s" \
               %str(comp_func))
-        return comp_func(d1, d2)          
+        return comp_func(d1, d2, **kwds)          
 
 
 class DictWithAllTypesFactory(object):
@@ -142,7 +142,7 @@ class DictWithAllTypesFactory(object):
     def __init__(self, comp_func=None):
         self.comp_func = comp_func
     
-    def __call__(self, d1, d2, keys=None, strict=False, attr_lst=None):
+    def __call__(self, d1, d2, keys=None, strict=False, attr_lst=None, **kwds):
         """
         Parameters
         ----------
@@ -184,7 +184,7 @@ class DictWithAllTypesFactory(object):
             else:
                 msg("  DictWithAllTypesFactory: case: something else, "
                       "comp_func=%s" %str(self.comp_func))
-                ret = ret and self.comp_func(d1[key], d2[key])
+                ret = ret and self.comp_func(d1[key], d2[key], **kwds)
         return ret
 
 
