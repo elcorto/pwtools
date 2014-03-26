@@ -711,14 +711,18 @@ class Interpol2D(object):
             'rbf_multi' : RBFN w/ multiquadric rbf, see :class:`~pwtools.rbf.RBFInt`
             'rbf_inv_multi' : RBFN w/ inverse multiquadric rbf
             'rbf_gauss' : RBFN w/ gaussian rbf
+            'bispl'     : scipy.interpolate.bispl{rep,ev} 
             'ct'        : scipy.interpolate.CloughTocher2DInterpolator
             'linear'    : scipy.interpolate.LinearNDInterpolator
             'nearest'   : scipy.interpolate.NearestNDInterpolator
-            'bispl'     : scipy.interpolate.bispl{rep,ev} 
         **initkwds : keywords passed on to the interpolator's constructor             
         
         Notes
         -----
+        The methods 'ct', 'linear' and of course 'nearest' can be inaccurate
+        (see also ``test/test_interpol.py``). Use only for plotting, not for
+        data evaluation, i.e. accurate minimas etc.
+
         Possible keywords (examples):
         
         rbf :
@@ -829,7 +833,7 @@ class Interpol2D(object):
             points = points[None,:]
         return self.call(points, **callkwds)
     
-    def get_min(self, x0=None):
+    def get_min(self, x0=None, **kwds):
         """Return [x,y] where z(x,y) = min(z) by minimizing z(x,y) w/
         scipy.optimize.fmin().
         
@@ -843,11 +847,13 @@ class Interpol2D(object):
         -------
         [xmin, ymin]: 1d array (2,)
         """
+        _kwds = dict(disp=1, xtol=1e-8, ftol=1e-8, 
+                     maxfun=1e4, maxiter=1e4)
+        _kwds.update(kwds)                            
         if x0 is None:
             idx0 = self.values.argmin()
             x0 = [self.xx[idx0], self.yy[idx0]]
-        xopt = optimize.fmin(self, x0, disp=1, xtol=1e-8, ftol=1e-8, 
-                    maxfun=1e4, maxiter=1e4)
+        xopt = optimize.fmin(self, x0, **_kwds)
         return xopt                        
 
 def fempty(shape, dtype=np.float):
