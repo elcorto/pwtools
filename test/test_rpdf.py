@@ -139,9 +139,9 @@ def test_rpdf():
                                             )
                 ret.append(tmp)
         
-            np.allclose(ret[0][:,0], ret[1][:,0])
-            np.allclose(ret[0][:,1], ret[1][:,1])
-            np.allclose(ret[0][:,2], ret[1][:,2])
+            assert np.allclose(ret[0][:,0], ret[1][:,0])
+            assert np.allclose(ret[0][:,1], ret[1][:,1])
+            assert np.allclose(ret[0][:,2], ret[1][:,2])
         
         # API call_vmd_measure_gofr()
         trajfn = pj(testdir, 'vmd_xsf_call_vmd_measure_gofr')
@@ -157,17 +157,17 @@ def test_rpdf():
         rmax = 10
         vmd = crys.vmd_measure_gofr(traj, dr=0.1, sel=['all', 'all'], rmax=10)
         pwt = crys.rpdf(traj, dr=0.1, amask=None, rmax=10)
-        np.allclose(vmd[:-1,0], pwt[:,0])  # rad
-        ##np.allclose(vmd[:-1,1], pwt[:,1]) # hist
-        np.allclose(vmd[:-1,2], pwt[:,2])  # num_int
+        assert np.allclose(vmd[:-1,0], pwt[:,0])  # rad
+        ##assert np.allclose(vmd[:-1,1], pwt[:,1]) # hist
+        assert np.allclose(vmd[:-1,2], pwt[:,2])  # num_int
         
         # 2 selections, all ok
         sy = np.array(traj.symbols)
         vmd = crys.vmd_measure_gofr(traj, dr=0.1, sel=['name O', 'name H'], rmax=10)
         pwt = crys.rpdf(traj, dr=0.1, amask=[sy=='O', sy=='H'], rmax=10)
-        np.allclose(vmd[:-1,0], pwt[:,0])  # rad
-        np.allclose(vmd[:-1,1], pwt[:,1])  # hist
-        np.allclose(vmd[:-1,2], pwt[:,2])  # num_int
+        assert np.allclose(vmd[:-1,0], pwt[:,0])  # rad
+        assert np.allclose(vmd[:-1,1], pwt[:,1])  # hist
+        assert np.allclose(vmd[:-1,2], pwt[:,2])  # num_int
         
         if doplot:
             plt.show()
