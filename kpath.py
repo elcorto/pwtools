@@ -56,43 +56,37 @@ def get_path_norm(ks):
     return path_norm
 
 
-class SpecialPoint(object):
-    def __init__(self, arr, symbol, path_norm=None):
-        # (3,) : the k-point
-        self.arr = arr
-        # symbol, e.g. 'Gamma'
-        self.symbol = symbol
-        # not used ...
-        ##self.path_norm = path_norm
-
-
 class SpecialPointsPath(object):
-    def __init__(self, sp_lst=None, ks=None, symbols=None):
-        # List of SpecialPoint instances.
-        self.sp_lst = sp_lst
-        
-        if self.sp_lst is not None:
-            # Array of k-points. (nks, 3)
-            self.ks = np.array([sp.arr for sp in self.sp_lst])
-            # list (nks,) with a symbol for each special point
-            self.symbols = [sp.symbol for sp in self.sp_lst]
-        else:
-            assert None not in [ks,symbols], "ks and/or symbols is None"
-            assert len(ks) == len(symbols), ("ks and symbols have different \
-                                            lengths")
-            self.ks = ks
-            self.symbols = symbols
+    """Sequence of special points. Calculate their path norm."""
+    def __init__(self, ks=None, ks_frac=None, symbols=None):
+        """
+        Parameters
+        ----------
+        ks : (nks,3)
+            cartesian k-points
+        ks_frac : (nks,3), optional
+            fractional k-points
+        symbols : sequence, optional    
+            special point symbols for ``ks[i]``, ignored of `sp_lst` is given,
+            then ``sp_lst[i].symbol`` is used
+        """
+        assert [ks, ks_frac] != [None]*2, ("use either ks or ks_frac")
+        self.ks = ks
+        self.ks_frac = ks_frac
+        self.symbols = symbols
         # 1d array (nks,) of cumulative norms
-        self.path_norm = get_path_norm(self.ks)
+        self.path_norm = get_path_norm(self.ks) 
 
 
-def plot_dis(path_norm, freqs, special_points_path=None, **kwargs):
-    """Plot dispersion. See bin/plot_dispersion.py for a usage example. This
-    lives here (and not in pwscf.py) b/c it is not PWscf-specific. It can be
-    used for any dispersion data (band structure).
+def plot_dis(path_norm, freqs, special_points_path=None, filename=None, **kwargs):
+    """Plot dispersion. 
     
-    See pwscf.read_matdyn_freq() for how to get `freqs` in the case of phonon
-    dispersions.
+    See ``bin/plot_dispersion.py`` for a usage example. This lives here (and not in
+    :mod:`~pwtools.pwscf`) b/c it is not PWscf-specific. It can be used for any
+    dispersion data (band structure).
+    
+    See :func:`~pwtools.pwscf.read_matdyn_freq` for how to get `freqs` in the
+    case of phonon dispersions.
 
     Parameters
     ----------
@@ -102,20 +96,30 @@ def plot_dis(path_norm, freqs, special_points_path=None, **kwargs):
         `nbnd` frequencies for each band at each k-point
     special_points_path : optional, a SpecialPointsPath instance,
         used for pretty-printing the x-axis (set special point labels)
+    filename : save to file        
+    **kwargs : keywords
+        passed to plot()
     """
     import matplotlib.pyplot as plt
     # Plot columns of `freq` against q points (path_norm)
     plt.plot(path_norm, freqs, **kwargs)
     if special_points_path is not None:
         yl = plt.ylim()
-        ks, nrm, symbols = special_points_path.ks, \
-                         special_points_path.path_norm, \
-                         special_points_path.symbols
+        ks, ks_frac, nrm, symbols = \
+            special_points_path.ks, \
+            special_points_path.ks_frac, \
+            special_points_path.path_norm, \
+            special_points_path.symbols
         plt.vlines(nrm, yl[0], yl[1])
         fmtfunc = lambda x: "%.2g" %x
+        ks_plot = ks if ks_frac is None else ks_frac
         labels = ['%s\n[%s]' %(sym, common.seq2str(kk, func=fmtfunc,sep=','))\
-                  for sym,kk in zip(symbols, ks)]
+                  for sym,kk in zip(symbols, ks_plot)]
         print nrm
         print labels
         plt.xticks(nrm, labels)
+        plt.xlim(path_norm[0], path_norm[-1])
+        plt.ylabel("frequency (cm$^{-1}$)")
+        if filename is not None:
+            plt.savefig(filename)
         plt.show()

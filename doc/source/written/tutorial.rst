@@ -77,6 +77,7 @@ function and with edge effects handling: :func:`pwtools.signal.smooth`. The same
 can be applied to a Trajectory, which is just a "time series" of Structures.
 See :func:`pwtools.crys.smooth`.
 
-Parameter studies
------------------
-See :ref:`param_study_example`.
+More stuff
+----------
+* :ref:`param_study_example`
+* :ref:`dispersion_example`

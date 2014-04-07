@@ -432,7 +432,7 @@ def read_dynmat_out(*args, **kwds):
 def read_matdyn_freq(filename):
     """Parse frequency file produced by QE's matdyn.x ("flfrq" in matdyn.x
     input, usually "matdyn.freq" or so) when calculating a phonon dispersion on
-    a grid (ldisp=.true., used for phonon dos)  or a pre-defined k-path in the
+    a grid (ldisp=.true., used for phonon dos) or a pre-defined k-path in the
     BZ.
     
     Parameters
@@ -442,14 +442,50 @@ def read_matdyn_freq(filename):
     Returns
     -------
     kpoints : array (nks, 3)
-        Array with `nks` k-points.
+        Array with `nks` k-points. AFAIK the unit is always ``2*pi/alat`` with
+        ``alat = celldm(1)``.
     freqs : array (nks, nbnd)
         Array with `nbnd` energies/frequencies at each of the `nks` k-points.
         For phonon DOS, nbnd == 3*natoms.
+    
+    Notes
+    -----
+    `matdyn.in`::
+
+        &input
+            asr='simple',  
+            amass(1)=26.981538,
+            amass(2)=14.00674,
+            flfrc='fc',
+            flfrq='matdyn.freq.disp'
+        /
+        101                                | nks
+        0.000000    0.000000    0.000000   |
+        0.037500    0.037500    0.000000   | List of nks = 101 k-points
+        ....                               |
+
+    `filename` has the form::
+
+        <header>
+        <k-point, (3,)>
+        <frequencies,(nbnd,)
+        <k-point, (3,)>
+        <frequencies,(nbnd,)
+        ...
+    
+    for example::
+
+        &plot nbnd=   6, nks= 101 /
+                  0.000000  0.000000  0.000000
+          0.0000    0.0000    0.0000  456.2385  456.2385  871.5931
+                  0.037500  0.037500  0.000000
+         23.8811   37.3033   54.3776  455.7569  457.2338  869.8832
+         .....
 
     See Also
     --------
-    bin/plot_dispersion.py, :func:`parse_dis`, :mod:`pwtools.kpath`
+    bin/plot_dispersion.py, :func:`pwtools.kpath.plot_dis`,
+    :func:`pwtools.kpath.get_path_norm`
     """
     lines = file_readlines(filename)
     # Read number of bands (nbnd) and k-points (nks). OK, Fortran's namelists
@@ -472,107 +508,6 @@ def read_matdyn_freq(filename):
         kpoints[ii,:] = items[ii*step:(ii*step+3)]
         freqs[ii,:] = items[(ii*step+3):(ii*step+step)]
     return kpoints, freqs
-
-
-# XXX do we really need this function? 
-# XXX the only PWscf-specific thing is that we use read_matdyn_freq() inside.
-def parse_dis(fn_freq, fn_kpath_def=None):
-    """Parse frequency file produced by matdyn.x (flfrq, see
-    read_matdyn_freq()) and, optionally a k-path definition file.
-    
-    This is a helper for bin/plot_dispersion.py. It lives here b/c it is
-    PWscf-specific.
-
-    Parameters
-    ----------
-    fn_freq : name of the frequency file
-    fn_kpath_def : optional (only for plotting later), special points definition
-        file, see notes below
-    
-    Returns
-    -------
-    path_norm, freqs, special_points_path
-    path_norm : array (nks,), sequence of cumulative norms of the difference
-        vectors which connect each two adjacent k-points
-    freqs : array (nks, nbnd), array with `nbnd` frequencies for each k-point,
-        nbnd should be = 3*natom (natom = atoms in the unit cell)
-    special_points_path : SpecialPointsPath instance if `fn_kpath_def` != None,
-        else None
-
-    Notes
-    -----
-    matdyn.x must have been instructed to calculate a phonon dispersion along a
-    predefined path in the BZ. e.g. natom=2, nbnd=6, 101 k-points on path
-        
-    `matdyn.in`::
-
-        &input
-            asr='simple',  
-            amass(1)=26.981538,
-            amass(2)=14.00674,
-            flfrc='fc',
-            flfrq='matdyn.freq.disp'
-        /
-        101                                | nks
-        0.000000    0.000000    0.000000   |
-        0.037500    0.037500    0.000000   | List of nks = 101 k-points
-        ....                               |
-
-    `fn_freq` has the form::
-
-        <header>
-        <k-point, (3,)>
-        <frequencies,(nbnd,)
-        <k-point, (3,)>
-        <frequencies,(nbnd,)
-        ...
-    
-    for example::
-
-        &plot nbnd=   6, nks= 101 /
-                  0.000000  0.000000  0.000000
-          0.0000    0.0000    0.0000  456.2385  456.2385  871.5931
-                  0.037500  0.037500  0.000000
-         23.8811   37.3033   54.3776  455.7569  457.2338  869.8832
-    
-    `fn_kpath_def`::
-
-        <coordinate of special point> #<name>
-        ...
-    
-    like so::
-
-        0    0    0     # $\Gamma$
-        0.75 0.75 0     # K
-        1 0.5 0         # W
-        1 0 0           # X
-        0 0 0           # $\Gamma$
-        .5 .5 .5        # L
-    
-    Note that you can put special matplotlib math text in this file. Everything
-    after `#' is treated as a Python raw string.
-
-    For correct plotting, the k-points defined in `fn_kpath_def` MUST of course
-    be on the exact same k-path as the k-points listed in `fn_freq`.
-    """
-    from pwtools.kpath import SpecialPointsPath, SpecialPoint, get_path_norm
-    ks, freqs = read_matdyn_freq(fn_freq)
-    # parse k-path definition file
-    if fn_kpath_def is not None:
-        special_points = []
-        fhk = open(fn_kpath_def)
-        for line in fhk:    
-            spl = line.strip().split()
-            special_points.append(
-                SpecialPoint(np.array(spl[:3], dtype=float), 
-                    r'%s' %spl[-1].replace('#', '')))
-        fhk.close()
-        special_points_path = SpecialPointsPath(sp_lst=special_points)
-    else:
-        special_points_path = None
-    # calculate path norms (= x-axis for plotting)
-    path_norm = get_path_norm(ks)
-    return path_norm, freqs, special_points_path
 
 
 def ibrav2cell(ibrav, celldm):
