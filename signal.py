@@ -140,8 +140,8 @@ def dft(a, method='loop'):
 
     if method == 'loop':
         fta = np.empty((N,), dtype=complex)
-        for k in nk:
-            fta[k] = np.sum(a*np.exp(-2.0*pi*1.0j*k*nk/float(N)))
+        for ik,k in enumerate(nk):
+            fta[ik] = np.sum(a*np.exp(-2.0*pi*1.0j*k*nk/float(N)))
     elif method == 'matmul':
         # `mat` is the matrix with elements W**(n*k) in [1], eq. 12.2.2
         nkmat = nk*nk[:,np.newaxis]

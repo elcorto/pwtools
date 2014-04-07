@@ -1497,7 +1497,7 @@ def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None,
     # assume fixed cell, 2d 
     cell = trajs[0].cell[0,...]
     volume = trajs[0].volume[0] 
-    nstep = float(clst[0].shape[0])
+    nstep = clst[0].shape[0]
     rmax_auto = rmax_smith(cell)
     if rmax == 'auto':
         rmax = rmax_auto
@@ -1565,8 +1565,8 @@ def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None,
         number_integral_sum += number_integral
     out = np.empty((len(rad), 3))
     out[:,0] = rad
-    out[:,1] = hist_sum / nstep
-    out[:,2] = number_integral_sum / nstep
+    out[:,1] = hist_sum / float(nstep)
+    out[:,2] = number_integral_sum / float(nstep)
     return out
 
 
