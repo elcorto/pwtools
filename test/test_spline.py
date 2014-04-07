@@ -7,7 +7,6 @@ def test_spline():
     y = np.sin(x)
     spl = Spline(x,y)
     assert (y - spl(x) < spl.eps).all()
-    assert (y - spl.splev(x) < spl.eps).all()
     assert (y - splev(x, spl.tck) < spl.eps).all()
     assert not spl.is_mono()
     np.testing.assert_array_almost_equal(spl(x,der=1), np.cos(x), decimal=4)

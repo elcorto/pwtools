@@ -98,4 +98,13 @@ flib.f90
   that in the wrapper pydos.fvacf() but it would be nice to have a consistent
   implementation.
 
+num.py
+------
+* Similar to the Fit1D base class, we could also define a FitND base class
+  which defines get_min() for the ND-case. Right now we have the same get_min()
+  implementation in PolyFit and Interpol2D. We could derive them from FitND. 
+* Interpol2D is actually InterpolND if we remove the 'bispl' method. So add
+  InterpolND and derive Interpol2D from that and add bispl only there. Uuuuhh :)
+
+
 # vim:comments=fb\:*

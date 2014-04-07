@@ -10,6 +10,8 @@ from scipy.interpolate import bisplrep, \
     bisplev, splev, splrep, NearestNDInterpolator, LinearNDInterpolator
 from scipy.integrate import simps, trapz
 from pwtools import _flib
+import warnings
+warnings.simplefilter('always')
 
 # Hack for older scipy versions.
 try: 
@@ -150,16 +152,7 @@ def deriv_spl(y, x=None, xnew=None, n=1, fullout=False, **splrep_kwargs):
     else:
         return yd
 
-# XXX should be deprecated in favor of using only Spline
-def _splroot(x, y, der=0):
-    # helper for find{min,root}
-    tck = splrep(x, y, k=3, s=0)
-    func = lambda xx: splev(xx, tck, der=der)
-    x0 = optimize.brentq(func, x[0], x[-1])
-    return np.array([x0, splev(x0, tck)])
 
-
-# XXX should be deprecated in favor of using only Spline(x,y).get_min()
 def findmin(x, y):
     """Find minimum of x-y curve by searching for the root of the 1st
     derivative of a spline thru x,y. `x` must be sorted min -> max and the
@@ -176,10 +169,12 @@ def findmin(x, y):
     -------
     array([x0, y(x0)])
     """
-    return _splroot(x, y, der=1)
+    warnings.warn("use Spline(x,y).get_min()", DeprecationWarning)
+    spl = Spline(x,y)
+    x0 = spl.get_min()
+    return np.array([x0, spl(x0)])
 
 
-# XXX should be deprecated in favor of using only Spline(x,y).get_root()
 def findroot(x, y):
     """Find root of x-y curve by searching for the root of a spline thru x,y.
     `x` must be sorted min -> max and the interval [x[0], x[-1]] must contain
@@ -196,10 +191,99 @@ def findroot(x, y):
     -------
     array([x0, y(x0)])
     """
-    return _splroot(x, y, der=0)
+    warnings.warn("use Spline(x,y).get_root()", DeprecationWarning)
+    spl = Spline(x,y)
+    x0 = spl.get_root()
+    return np.array([x0, spl(x0)])
 
 
-class Spline(object):
+class Fit1D(object):
+    """Base class for 1D data fit/interpolation classes (Spline, PolyFit1D). It
+    provides :meth:`get_min`, :meth:`get_root`, :meth:`is_mono`. 
+    
+    The assumed API is that the ``__call__`` method has a kwd `der` which
+    causes it to calculate derivatives, i.e. ``__call__(x, der=1)`` is the
+    first deriv."""
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+    
+    # XXX once the now deprecated module-level findroot() is gone, we can turn
+    # this into a new module-level findroot(), with another API however.
+    def _findroot(self, func, x0=None, xab=None, **kwds):
+        """Find root of `func` by Newton's method if `x0` is given or Brent's
+        method if `xab` is given. If neither is given, then
+        ``xab=[self.x[0],self.x[-1]]`` and Brent's method is used.
+
+        Parameters
+        ----------
+        func : callable, must accept a scalar and retun a scalar
+        x0 : float
+            start guess for Newton's secant method
+        xab : sequence of length 2
+            start bracket for Brent's method, root must lie in between
+        **kwds : 
+            passed to scipy root finder (newton() or brentq())
+
+        Returns
+        -------
+        xx : scalar
+            the root of func(x)
+        """
+        if x0 is not None:
+            xx = optimize.newton(func, x0, **kwds)
+        else:
+            if xab is None:
+                xab = [self.x[0], self.x[-1]]
+            xx = optimize.brentq(func, xab[0], xab[1], **kwds)
+        return xx    
+    
+    def is_mono(self):
+        """Return True if the curve described by the fit function f(x) is
+        monotonic."""
+        tmp = np.diff(np.sign(np.diff(self(self.x))))       
+        return (tmp == 0).all()
+
+    def get_min(self, x0=None, xab=None, **kwds):
+        """Return x where y(x) = min(y) by calculating the root of the
+        fit's 1st derivative (by calling ``self(x, der=1)``).
+        
+        Parameters
+        ----------
+        x0 or xab : 
+            see :meth:`_findroot`
+        **kwds : 
+            passed to :meth:`_findroot`
+        
+        Returns
+        -------
+        xx : scalar
+            min(y) = y(xx)
+        """
+        return self._findroot(lambda x: self(x, der=1), x0=x0, xab=xab, **kwds)
+    
+    def get_root(self, x0=None, xab=None, **kwds):
+        """Return x where y(x) = 0 by calculating the root of the fit function.
+
+        In :class:`Spline`, this is the same as ``Spline.invsplev(0.0, ...)``,
+        i.e. lookup x where y=0, which is exactly the root.
+        
+        Parameters
+        ----------
+        x0 or xab :
+            see :meth:`_findroot`
+        **kwds : 
+            passed to :meth:`_findroot`
+        
+        Returns
+        -------
+        xx : scalar
+            y(xx) = 0
+        """
+        return self._findroot(self, x0=x0, xab=xab, **kwds)
+    
+
+class Spline(Fit1D):
     """Like scipy.interpolate.UnivariateSpline, this is a wrapper around
     scipy.interpolate.splrep/splev with some nice features like y->x lookup and
     interpolation accuracy check etc. It basically simplifies setting up a
@@ -215,7 +299,6 @@ class Spline(object):
     >>> sp = Spline(x,y)
     >>> plot(x,y)
     >>> plot(x, sp(x))
-    >>> plot(x, sp.splev(x))      # the same
     >>> plot(x, splev(x, sp.tck)) # the same
     >>> plot(x, sp(x, der=1), label='1st derivative')
     >>> xx = sp.invsplev(0.5, xab=[0, pi/2])
@@ -238,58 +321,20 @@ class Spline(object):
             Whether to use `eps` to ckeck interpolation accuracy.
         **splrep_kwargs : keywords args to splrep(), default: k=3, s=0            
         """
+        super(Spline, self).__init__(x,y)
         self.arr_zero_dim_t = type(np.array(1.0))
-        self.x = x
-        self.y = y
         self.eps = eps
         assert (np.diff(self.x) >= 0.0).all(), ("x wronly ordered")
         self.splrep_kwargs = {'s':0, 'k':3}
         self.splrep_kwargs.update(splrep_kwargs)
         self.tck = splrep(self.x, self.y, **self.splrep_kwargs)
         if checkeps:
-            err = np.abs(self.splev(self.x) - self.y)
+            err = np.abs(self(self.x) - self.y)
             assert (err < self.eps).all(), \
                     ("spline not accurate to eps=%e, max(error)=%e, raise eps"\
                     %(self.eps, err.max()))
 
-    def __call__(self, *args, **kwargs):
-        return self.splev(*args, **kwargs)
-
-
-    # XXX can't we define a global findroot() which is used in PolyFit1D and
-    # Spline??
-    def _findroot(self, func, x0=None, xab=None):
-        """Find root of `func` by Newton's method if `x0` is given or Brent's
-        method if `xab` is given. If neither is given, then
-        ``xab=[self.x[0],self.x[-1]]`` and Brent's method is used.
-
-        Parameters
-        ----------
-        func : callable, must accept a scalar and retun a scalar
-        x0 : float
-            start guess for Newton's secant method
-        xab : sequence of length 2
-            start bracket for Brent's method, root must lie in between
-        
-        Returns
-        -------
-        xx : scalar
-            the root of func(x)
-        """
-        if x0 is not None:
-            xx = optimize.newton(func, x0)
-        else:
-            if xab is None:
-                xab = [self.x[0], self.x[-1]]
-            xx = optimize.brentq(func, xab[0], xab[1])
-        return xx    
-    
-    def is_mono(self):
-        """Return True if the curve described by the spline is monotonic."""
-        tmp = np.diff(np.sign(np.diff(self.splev(self.x))))       
-        return (tmp == 0).all()
-
-    def splev(self, x, *args, **kwargs):
+    def __call__(self, x, *args, **kwargs):
         ret = splev(x, self.tck, *args, **kwargs)
         # splev() retrns array(<number>) for scalar input, convert to scalar
         # float
@@ -297,6 +342,10 @@ class Spline(object):
             return float(ret)
         else:
             return ret
+    
+    def splev(self, x, *args, **kwds):
+        warnings.warn("use Spline(x,y)(new_x) instead of Spline.splev()", DeprecationWarning)
+        return self(x, *args, **kwds)
 
     def invsplev(self, y0, x0=None, xab=None):
         """Lookup x for a given y, i.e. "inverse spline evaluation", hence
@@ -335,43 +384,9 @@ class Spline(object):
         ymn, ymx = self.y.min(), self.y.max()
         assert (ymn <= y0 <= ymx), ("y0 (%e) outside y data range [%e, %e]"
                                     %(y0, ymn, ymx))
-        func = lambda x: self.splev(x) - y0
+        func = lambda x: self(x) - y0
         return self._findroot(func, x0=x0, xab=xab)
    
-    def get_min(self, x0=None, xab=None):
-        """Return x where y(x) = min(y) by calculating the root of the
-        spline's 1st derivative.
-        
-        Parameters
-        ----------
-        x0 or xab : 
-            see :meth:`invsplev`
-        
-        Returns
-        -------
-        xx : scalar
-            min(y) = y(xx)
-        """
-        return self._findroot(lambda x: self.splev(x, der=1), x0=x0, xab=xab)
-    
-    def get_root(self, x0=None, xab=None):
-        """Return x where y(x) = 0 by calculating the root of the spline.
-        This function is actually redundant b/c it can be done with
-        self.invsplev(0.0, ...), i.e. lookup x where y=0, which is exactly the
-        root. But we keep it for reference and convenience.
-        
-        Parameters
-        ----------
-        x0 or xab :
-            see :meth:`invsplev`
-        
-        Returns
-        -------
-        xx : scalar
-            y(xx) = 0
-        """
-        return self._findroot(self.splev, x0=x0, xab=xab)
-    
 
 def slicetake(a, sl, axis=None, copy=False):
     """The equivalent of numpy.take(a, ..., axis=<axis>), but accepts slice
@@ -1442,6 +1457,7 @@ class PolyFit(object):
     
     @staticmethod
     def _has_keys(dct, keys):
+        """True if at least one key in `keys` is in dct.keys()."""
         if type(keys) != type([]):
             keys = [keys]
         ret = False            
@@ -1457,6 +1473,7 @@ class PolyFit(object):
     
     @staticmethod
     def _fix_shape_call(points):
+        # (ndim,) -> (1,ndim) -> 1 point in ndim space
         if points.ndim == 1:
             return points[None,:]
         else:
@@ -1482,7 +1499,7 @@ class PolyFit(object):
         
         Returns
         -------
-        scalar
+        1d array (ndim,)
         """            
         _kwds = dict(disp=1, xtol=1e-12, ftol=1e-8, maxfun=1e4, maxiter=1e4)
         _kwds.update(kwds)
@@ -1493,7 +1510,9 @@ class PolyFit(object):
         return xopt                        
 
 
-class PolyFit1D(PolyFit):
+# Need to inherit first Fit1D such that Fit1D.get_min() is used instead of
+# PolyFit.get_min().
+class PolyFit1D(Fit1D, PolyFit):
     """1D special case version of PolyFit which handles 1d and scalar `points`
     Also `get_min()` uses the root of the poly's 1st derivative instead of
     fmin().
@@ -1521,10 +1540,14 @@ class PolyFit1D(PolyFit):
         ----------
         See PolyFit
         """
-        super(PolyFit1D, self).__init__(*args, **kwds)
+        # We need to exec PolyFit.__init__() here expliclity. Using super(...)
+        # would call Fit1D.__init__().
+        PolyFit.__init__(self, *args, **kwds)
         assert self.points.ndim == 2 and self.points.shape[1] == 1, \
             ("points has wrong shape: %s, expect (npoints,1)" \
             %str(self.points.shape))
+        # set self.x, self.y, need that in Fit1D._findroot()
+        Fit1D.__init__(self, self.points[:,0], self.values)
     
     @staticmethod
     def _fix_shape_init(points):
@@ -1538,37 +1561,11 @@ class PolyFit1D(PolyFit):
         elif  pp.ndim == 2:
             return pp
         else:
-            raise ValueError("wrong shape or dim")
+            raise ValueError("points has wrong shape or dim")
     
     _fix_shape_call = _fix_shape_init
     
-    # XXX can't we define a global findroot() which is used in PolyFit1D and
-    # Spline??
-    def _findroot(self, func, x0=None, xab=None, **kwds):
-        if x0 is not None:
-            xx = optimize.newton(func, x0, **kwds)
-        else:
-            if xab is None:
-                xab = [self.points[0,0], self.points[-1,0]]
-            xx = optimize.brentq(func, xab[0], xab[1], **kwds)
-        return xx    
     
-    def get_min(self, x0=None, xab=None, **kwds):
-        """Minimize fit by calculating the 1st derivative's root. Use Brent's
-        method by default.
-        
-        See :meth:`Spline.get_min`
-        
-        Parameters
-        ----------
-        x0 : float,optional
-            initial guess for Newton method
-        xab : length-2 list [xa,xb], optional
-            window for Brent method, if skipped then we use x[0] and x[-1]
-        """
-        return self._findroot(lambda x: self(x, der=1), x0=x0, xab=xab, 
-                              **kwds)
-                      
 def match_mask(arr, values, fullout=False, eps=None):
     """Bool array of ``len(arr)`` which is True if ``arr[i] == values[j],
     j=0..len(values)``. 
