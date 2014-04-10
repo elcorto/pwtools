@@ -791,7 +791,7 @@ class PwSCFOutputFile(StructureFileParser):
         value."""
         verbose("getting start cell parameters")
         if self.check_set_attr('alat'):
-            cmd = "egrep -A3 'crystal.*axes.*units.*(a_0|alat)' %s | tail -n3 | \
+            cmd = "egrep -m1 -A3 'crystal.*axes.*units.*(a_0|alat)' %s | tail -n3 | \
                    awk '{print $4\" \"$5\" \"$6}'" %(self.filename)
             ret = arr2d_from_txt(com.backtick(cmd))
             return ret * self.alat if ret is not None else ret
