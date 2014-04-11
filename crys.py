@@ -3113,7 +3113,7 @@ def smooth(traj, kern, method=1):
 
     Each array in `traj.attrs_nstep` is smoothed by convolution with `kern`
     along `timeaxis`, i.e. coords, coords_frac, etot, ... The kernel is only
-    required to be an1d array and is automatically broadcast to the shape of
+    required to be a 1d array and is automatically broadcast to the shape of
     each array. A similar feature can be found in VMD -> Representations ->
     Trajectory.
 
@@ -3121,13 +3121,14 @@ def smooth(traj, kern, method=1):
     ----------
     traj : Trajectory
     kern : 1d array
-        Convolution kernel (smoothing window, see signal.smooth()).
+        Convolution kernel (smoothing window, see :func:`~pwtools.signal.smooth`).
     method : int
-        Choose how to do the convolution.
-        1 : loops over 1d convolutions, easy on memory, sometimes faster
-            than method=2 (default)
-        2 : up to 3d kernel by broadcasting, can be very memory hungry for
-            big `traj` (i.e. 1e5 timesteps, 128 atoms)
+        Choose how to do the convolution:
+
+            | 1 : loops over 1d convolutions, easy on memory, sometimes faster
+                  than method=2 (default)
+            | 2 : up to 3d kernel by broadcasting, can be very memory hungry for
+                  big `traj` (i.e. 1e5 timesteps, 128 atoms)
     
     Returns
     -------

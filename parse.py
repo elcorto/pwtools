@@ -23,6 +23,7 @@ All parsing classes::
     Pw*OutputFile
     Cpmd*OutputFile
     Cp2k*OutputFile
+    Lammps*OutputFile
 
 are derived from FlexibleGetters -> UnitsHandler ->  {Structure,Trajectory}FileParser
 
@@ -609,10 +610,10 @@ class PwSCFOutputFile(StructureFileParser):
          lattice parameter (a_0)   =       5.8789  a.u.
     
     You can parse that value with ``get_alat(use_alat=True)``. We do that by
-    default (``use_alat=True``) b/c this is what most people will expect if
-    they just call the parser on some file. Then, we multiply all relevent
-    quantities with dimension length with the alat value from pw.out
-    automatically.
+    default: ``PwSCFOutputFile(filename, use_alat=True)`` b/c this is what most
+    people will expect if they just call the parser on some file. Then, we
+    multiply all relevent quantities with dimension length with the alat value
+    from pw.out automatically.
 
     If ``use_alat=False``, we use ``alat=1.0``, i.e. all length quantities
     which are "in alat units" are returned exactly as found in the file, which
@@ -620,14 +621,16 @@ class PwSCFOutputFile(StructureFileParser):
     when we pass things to Structure / Trajectory using self.units. 
 
     If you need/want to use another alat (i.e. a value with more precision), 
-    then you need to explicitely provide that value and use ``use_alat=False``::
+    then you need to explicitly provide that value and use ``use_alat=False``::
 
-    >>> alat = 1.23456789 # Bohr
-    >>> pp = PwSCFOutputFile(..., use_alat=False, units={'length': alat*Bohr/Ang})
+    >>> alat = 1.23456789 # high precision value in Bohr
+    >>> pp = PwSCFOutputFile('pw.out', use_alat=False, units={'length': alat*Bohr/Ang})
     >>> st = pp.get_struct()
 
-    That will overwrite ``default_units['length'] = Bohr/Ang``, which is used to
-    convert all PWscf length [Bohr] to [Ang] when passing things to Trajectory. 
+    ``use_alat=False`` will prevent parsing the low precision value from
+    'pw.out'. The option ``units=...`` will overwrite ``default_units['length']
+    = Bohr/Ang``, which is used to convert all PWscf length [Bohr] to [Ang]
+    when passing things to Trajectory. 
 
     In either case, all quantities with a length unit or derived from such a
     quantitiy, e.g.
@@ -647,7 +650,7 @@ class PwSCFOutputFile(StructureFileParser):
     from a file (multiply by alat if use_alat=True, etc) *before* they are
     passed over to Structure / Trajectory  b/c otherwise the numbers would be
     pretty useless, unless you use `units` explicitely. To get an object with
-    pwtools standard units (eV, Angstrom, ...), use get_struct().
+    pwtools standard units (eV, Angstrom, ...), use :meth:`get_struct`.
 
     Notes
     -----
@@ -883,15 +886,34 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
     """Parse pw.x MD-like output. 
     
     Tested so far: md, relax, vc-relax. For vc-md, see PwVCMDOutputFile. 
+    
+    Notes
+    -----
+    Units: Notes on units for PwSCFOutputFile, esp. alat, apply here as well.
+    Additionally, the ATOMIC_POSITIONS and CELL_PARAMETERS blocks can have an
+    optional unit, which we account for. See get_cell(), get_coords() and
+    methods called in there. 
 
-    Notes on units for PwSCFOutputFile, esp. alat, apply here as well.
+        | ATOMIC_POSITIONS <empty> | bohr | angstrom | alat | crystal
+        | CELL_PARAMETERS <empty> | (alat=...) | bohr | angstrom | alat
+    
+    In each case, the quantity is multiplied by alat if applicable and
+    converted to Bohr, which is PWscf's default length, and later to Ang by
+    default (or whatever self.units['length'] does).
+    
+    Initial SCF run: A special "feature" of pwscf is that SCF coords+cell
+    output is printed differently from MD-like output (where we have
+    ATOMIC_POSITIONS and CELL_PARAMETERS blocks). Since this parser uses only
+    the latter, the first etot+coords+cell+stress+... is skipped, i.e. the
+    complete iteration=0 = initial SCF run. Therefore, if you use
+    ``tr=io.read_pw_md('pw.out')``, ``tr[0]`` is actually NOT your start input
+    structure! It is the first structure of the MD/relax. This may be a problem
+    if you need to accurately calculate differences between initial and final
+    relax structs, for instance. Then use::
 
-    Additionally: ATOMIC_POSITIONS and CELL_PARAMETERS can have an optional
-    "unit": [None (empty string ''), 'bohr', 'angstrom', 'alat']. In each case,
-    the quantity is converted to Bohr, which is PWscf's default length, and
-    later to Ang if default_units['length'] = Bohr / Ang. In case of 'alat', it
-    is assumed that get_alat() returns alat in Bohr. Anything else is up to
-    `units` + use_alat=False .
+    >>> st = io.read_pw_scf('pw.out') # parse initial SCF output only: step=0
+    >>> tr_md = io.read_pw_md('pw.out') # parse MD-like output: step=1...end
+    >>> tr = crys.concatenate((st, tr_md))
     """
     def __init__(self, filename=None, use_alat=True, **kwds):
         # update default_units *before* calling base class' __init__, where
@@ -920,14 +942,19 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
     def _get_block_header_unit(self, key):
         """Parse things like 
             
-            ATOMIC_POSITIONS          -> None
-            ATOMIC_POSITIONS unit     -> unit
-            ATOMIC_POSITIONS (unit)   -> unit
-            ATOMIC_POSITIONS {unit}   -> unit
-        
+            ATOMIC_POSITIONS            -> None
+            ATOMIC_POSITIONS unit       -> unit
+            ATOMIC_POSITIONS (unit)     -> unit
+            ATOMIC_POSITIONS {unit}     -> unit
+            CELL_PARAMETERS (alat=1.23) -> alat
+
         Parameters
         ----------
         key : str (e.g. 'ATOMIC_POSITIONS')
+
+        Returns
+        -------
+        str : unit
         """
         assert key not in ['', None], "got illegal string"
         cmd = 'grep -m1 %s %s' %(key, self.filename)
@@ -1056,8 +1083,7 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
     
     def get_cell(self):
         """Cell [Bohr]. Return 3d array from CELL_PARAMETERS or 2d array
-        self._cell_2d . If coords_unit='alat', then [Bohr] if
-        self.alat or self._cell_step_unit in [Bohr]."""
+        self._cell_2d. Beware: complicated units logic ahead!"""
         if self.check_set_attr_lst(['_cell', 'cell_unit']):
             if self.cell_unit in ['bohr', None]:
                 return self._cell
