@@ -39,28 +39,22 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.coverage',
               ]
 
 #-----------------------------------------------------------------------------
-# graphs
-#-----------------------------------------------------------------------------
-
-##extensions += ['sphinx.ext.inheritance_diagram']
-##inheritance_graph_attrs = dict(rankdir="UD", #size='"6.0, 8.0"',
-##                               ratio='compress')
-
-#-----------------------------------------------------------------------------
 # auto stuff
 #-----------------------------------------------------------------------------
 
-# Both the class' and the __init__ method's docstring are concatenated and
-# inserted.
-##autoclass_content = 'both'
-
-autodoc_default_flags = ['members', 'show-inheritance', 'special-members',
+autodoc_default_flags = ['members', 
+                         'show-inheritance',
+                         'special-members',
                          'no-inherited-members']
-##autodoc_default_flags = ['members']
 
 autosummary_generate = True
 
 #-----------------------------------------------------------------------------
+# numpydoc
+#-----------------------------------------------------------------------------
+
+numpydoc_show_class_members = True
+numpydoc_class_members_toctree = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

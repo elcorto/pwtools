@@ -14,15 +14,18 @@ located in ``source/written/``.
 
 If you like to generate the optional API doc source ``*.rst`` files
 automagically before ``make html``, you need ``sphinx-autodoc.py`` [1]_ which
-is used as in ``generate-apidoc.sh`` to generate ``source/generated/*``:: 
+is used as in ``generate-apidoc.sh`` to generate ``source/generated/*``. You
+also need numpydoc. Then:: 
     
+    apt-get install python-numpydoc
     hg clone https://bitbucket.org/elcorto/sphinx-autodoc
     ./generate-apidoc.sh
     make html
     firefox build/html/index.html 
 
-``generate-apidoc.sh`` will use the checked out ``sphinx-autodoc``.
+``generate-apidoc.sh`` will use the checked out ``sphinx-autodoc.py``.
 Then, ``make html`` will run longer and produce many more warnings :)
+You may also want to check sphinx-autodoc's REDME file for more information.
 
 .. [1] https://bitbucket.org/elcorto/sphinx-autodoc
 
