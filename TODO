@@ -106,5 +106,9 @@ num.py
 * Interpol2D is actually InterpolND if we remove the 'bispl' method. So add
   InterpolND and derive Interpol2D from that and add bispl only there. Uuuuhh :)
 
+doc/
+----
+* Instruct sphinx to generate a complete module index, such that all of them
+  can be hyper-linked.
 
 # vim:comments=fb\:*

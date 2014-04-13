@@ -6,9 +6,9 @@ Documentation
    features
    install
    fextensions
-   units
+   parsing
+   tutorial
    phonon_dos
    coord_trans
    pwscf
-   tutorial
    refs

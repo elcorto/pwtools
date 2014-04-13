@@ -1,6 +1,7 @@
 .. [qe] http://www.quantum-espresso.org
 .. [cpmd] http://www.cpmd.org
 .. [cp2k] http://cp2k.org   
+.. [lammps] lammps.sandia.gov   
 .. [ase] https://wiki.fysik.dtu.dk/ase
 .. [mttk] Glenn J. Martyna and Mark E. Tuckerman and Douglas J. Tobias and Michael
     L. Klein, "Explicit reversible integrators for extended systems

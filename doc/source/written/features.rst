@@ -15,8 +15,8 @@ Features
 * velocity autocorrelation function and phonon DOS from MD trajectories
   (:mod:`~pwtools.pydos`)
 
-* parsing of PWscf [qe]_, CPMD [cpmd]_ and CP2K [cp2k]_ output into Python
-  objects for easy access (:mod:`~pwtools.parse`)
+* parsing of PWscf [qe]_, CPMD [cpmd]_, CP2K [cp2k]_ and LAMMPS [lammps]_
+  output into Python objects for easy access (:mod:`~pwtools.parse`)
 
 * structure io: read cif, cml, pdb, write axsf, cif, xyz  (:mod:`~pwtools.io`)
 
@@ -45,18 +45,21 @@ Features
 
 The very nice ASE [ase]_ project is in some way related. It also stores atomic
 structure data in Python objects for further manipulation. If needed, one can
-convert a :class:`~pwtools.crys.Structure` to an ASE Atoms object, for instance
-in order to use the very good spglib [spglib]_ symmetry analyis tool. The
-design goal of ASE is different from pwtools. It provides interfaces to a large
-pile of ab initio codes ("calculators"). MD and structure optimization in ASE
-is coded in Python, using only the calculator's SCF engine in every step to get
-energy and forces. I'm not sure if it provides wave function extrapolation for
-Born-Oppenheimer MD [*]. Phonon calculations based on density functional
-perturbation theory like PWscf/PH or Abinit are not implemented (maybe in
-GPAW?). However, the supercell method can be used with the related [phonopy]_
-package. The focus of the pwtools package is to be a handy pre- and
+convert a :class:`~pwtools.crys.Structure` to an ASE Atoms object. The design
+goal of ASE is, however, different from pwtools. ASE provides interfaces to a
+large pile of ab initio codes ("calculators"). MD and structure optimization in
+ASE is coded in Python, using only the calculator's SCF engine in every step to
+get energy and forces. This is a very good idea, but only structure
+optimization is really developed and tested, as it seems. MD not so much.
+Better use a special MD code here. I'm not sure if ASE provides wave function
+extrapolation for Born-Oppenheimer MD [*]. Phonon calculations based on density
+functional perturbation theory like PWscf/PH or Abinit are not implemented
+(maybe in GPAW?). However, the supercell method can be used with the related
+[phonopy]_ package. The focus of the pwtools package is to be a handy pre- and
 postprocessor providing pythonic access to all input and output quantities of
-the used ab initio codes.
+the used ab initio codes. Regarding visualization, ASE has some kind of GUI. We
+have :mod:`~pwtools.visualize`, which is best used in an interactive Ipython
+session.
 
 In fact, appart from :mod:`~pwtools.parse`, which implements parsers for ab
 initio code output and :mod:`~pwtools.pwscf`, all other parts of the package

@@ -15,6 +15,7 @@ No problem, use :func:`~pwtools.crys.atoms2struct` and
 For basic ASE compatibility, you may get away with
 :meth:`~pwtools.crys.Structure.get_fake_ase_atoms`. That creates an object
 which behaves like ``ase.Atoms`` without the need to have ASE installed. 
+This is used in :mod:`pwtools.symmetry`, for example.
 
 Find Monkhorst-Pack k-grid sampling for a given unit cell
 ---------------------------------------------------------
@@ -70,12 +71,17 @@ want to know the space group of the final optimized structure, namely
 
 Easy, eh?
 
-Smoothing a signal
-------------------
+Smoothing a signal or a Trajectory
+----------------------------------
 Smoothing a signal (usually called "time series") by convolution with another
 function and with edge effects handling: :func:`pwtools.signal.smooth`. The same 
 can be applied to a Trajectory, which is just a "time series" of Structures.
-See :func:`pwtools.crys.smooth`.
+See :func:`pwtools.crys.smooth`::
+    
+    >>> a = rand(10000)
+    >>> a_smooth = signal.smooth(a, scipy.signal.hann(151))
+    >>> tr = Trajectory(...)
+    >>> tr_smooth = crys.smooth(tr, scipy.signal.hann(151))
 
 More stuff
 ----------
