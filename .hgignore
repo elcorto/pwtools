@@ -7,3 +7,5 @@ syntax: glob
 build
 doc/build
 doc/source/generated
+*.swp
+*.swo
