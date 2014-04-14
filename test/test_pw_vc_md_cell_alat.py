@@ -16,22 +16,25 @@ def test_pw_vc_md_cell_alat():
             this_cell = cell_single+0.02*ii + ialat
             cell[ialat*5 + ii,...] = this_cell
             cell_no_unit[ialat*5 + ii,...] = this_cell/alat
-
-    pp = parse.PwVCMDOutputFile('files/pw.vc-md.cell.out')
+    
+    # need not test PwVCMDOutputFile since get_cell is derived from
+    # PwMDOutputFile
+    parser = parse.PwMDOutputFile
+    pp = parser('files/pw.vc-md.cell.out')
     assert np.allclose(pp.get_cell(), cell)
     assert pp.get_cell_unit() == 'alat'
-    assert np.allclose(pp._get_cell_step_unit(), np.array([2.0]*5 + [4.0]*5))
+    assert np.allclose(pp._get_cell_step_unit_factor(), np.array([2.0]*5 + [4.0]*5))
 
-    pp = parse.PwMDOutputFile('files/pw.constant_cell.txt')
-    assert pp._get_cell_step_unit() is None
+    pp = parser('files/pw.constant_cell.txt')
+    assert pp._get_cell_step_unit_factor() is None
 
-    pp = parse.PwVCMDOutputFile('files/pw.constant_cell.txt')
-    assert pp._get_cell_step_unit() is None
+    pp = parser('files/pw.constant_cell.txt')
+    assert pp._get_cell_step_unit_factor() is None
 
     # respect use_alat=False, then self.alat=1.0
-    pp = parse.PwVCMDOutputFile('files/pw.vc-md.cell.out', use_alat=False)
+    pp = parser('files/pw.vc-md.cell.out', use_alat=False)
     assert np.allclose(pp.get_cell(), cell_no_unit)
     # We found 'CELL_PARAMETERS.*alat' but don't use it.
     assert pp.get_cell_unit() == 'alat'
-    assert pp._get_cell_step_unit() is None
+    assert pp._get_cell_step_unit_factor() is None
 
