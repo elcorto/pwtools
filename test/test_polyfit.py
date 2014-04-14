@@ -30,7 +30,7 @@ def test_polyfit():
         assert np.allclose(-1.0, f(f.get_min()))
         assert np.allclose(-1.0, f(f.get_min(xtol=1e-10)))                         
         assert np.allclose(-1.0, f(f.get_min(x0=1.0, tol=1e-10)))                  
-        assert np.allclose(-1.0, f(f.get_min(xab=[-1,1], xtol=1e-10, rtol=1e-16))) 
+        assert np.allclose(-1.0, f(f.get_min(xab=[-1,1], xtol=1e-10, rtol=1e-14))) 
         
         # API: PolyFit1D __call__ arg: scalar, 1d, 2d
         for xs in [2.0, np.array([2.0]), np.array([[2.0]])]:
