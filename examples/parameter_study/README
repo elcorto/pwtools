@@ -1,1 +1,21 @@
-Run the example (input.py), clean the directory (clean.sh).
+Examples for using pwtools.batch for parameter studies (create input, run
+calculations, analyze results).
+
+A parameter study can be anything. For example, typical DFT-related tasks are
+    * E(V) curve (vary V or target pressure)
+    * convergence study of cutoff, k-points, ... any other code parameter
+    * vary the q-grid density in phonon calculations  
+    * vary lattice parameters on a grid
+    * ... anything where you vary one or more parameters and do a calculation
+      for each parameter set  
+
+10local_lammps_ev
+    Calculate an E(V) curve of rocksalt AlN using LAMMPS (apt-get install
+    lammps) using a Tersoff interatomic potential. 
+
+20cluster_pwscf_convergence
+    Plane wave cutoff convergence study using PWscf on a cluster.
+
+30two_hosts_extend
+    Complex example showing more features: extend study (add calculations
+    later), generate input for many hosts at once.

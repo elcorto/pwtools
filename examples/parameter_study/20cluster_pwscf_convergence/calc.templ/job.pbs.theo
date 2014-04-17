@@ -1,0 +1,18 @@
+#PBS -q crunch
+#PBS -l nodes=1:fast:ppn=8
+#PBS -j oe
+#PBS -N XXXCALC_NAME
+
+module load espresso/5.0.3
+
+cd $PBS_O_WORKDIR
+echo "workdir: $(pwd)"
+echo "host: $(hostname)"
+cat $PBS_NODEFILE
+here=$(pwd)
+
+# same as outdir in pw.in
+scratch="XXXSCRATCH/XXXSTUDY_NAME/XXXIDX"
+mkdir -pv $scratch
+mpirun -np 8 pw.x < pw.in > pw.out
+rm -rv $scratch

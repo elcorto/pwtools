@@ -1,0 +1,34 @@
+&control
+    calculation = 'scf'
+    restart_mode='from_scratch',
+    prefix='XXXCALC_NAME'
+    tstress = .true.
+    tprnfor = .true.
+    pseudo_dir = '../pseudo/',
+    outdir='XXXSCRATCH/XXXSTUDY_NAME/XXXIDX'
+    wf_collect = .true.
+    forc_conv_thr = 1e-4
+    etot_conv_thr = 1e-5
+/
+&system
+    ibrav = 0,
+    nat = XXXNATOMS, 
+    ntyp = 2,
+    ecutwfc = XXXECUTWFC,
+    ecutrho = XXXECUTRHO,
+/
+&electrons
+    diagonalization='david'
+    mixing_mode = 'plain'
+    mixing_beta = 0.7
+    conv_thr =  1.0d-6
+/
+CELL_PARAMETERS angstrom
+XXXCELL
+ATOMIC_SPECIES
+    Al 26.981538  Al.pbe-n-kjpaw_psl.0.1.UPF
+    N 14.00674    N.pbe-n-kjpaw_psl.0.1.UPF
+ATOMIC_POSITIONS crystal
+XXXATPOS
+K_POINTS automatic
+    4 4 4 0 0 0

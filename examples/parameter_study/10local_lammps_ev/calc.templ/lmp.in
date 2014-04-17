@@ -1,0 +1,51 @@
+#
+# In order to simulate a fully flexible triclinic cell, use
+#   fix .. npt .. tri .. scaleyz no scalexz no scalexy no
+
+# units metal:
+# 
+#     mass = grams/mole
+#     distance = Angstroms
+#     time = picoseconds
+#     energy = eV
+#     velocity = Angstroms/picosecond
+#     force = eV/Angstrom
+#     torque = eV
+#     temperature = degrees K
+#     pressure = bars
+#     dynamic viscosity = Poise
+#     charge = multiple of electron charge (+1.0 is a proton)
+#     dipole = charge*Angstroms
+#     electric field = volts/Angstrom
+#     density = gram/cm^dim 
+
+clear
+units metal 
+boundary p p p 
+atom_style atomic
+
+# lmp.struct written by pwtools
+read_data lmp.struct
+
+### interactions 
+pair_style tersoff 
+pair_coeff * * ../potentials/AlN.tersoff Al N
+
+### IO
+dump dump_txt all custom 100 lmp.out.dump id type xu yu zu fx fy fz
+dump_modify dump_txt sort id 
+
+thermo_style custom step temp vol cella cellb cellc cellalpha cellbeta cellgamma &
+                    pe pxx pyy pzz pxy pxz pyz
+thermo_modify flush yes
+thermo 100
+
+min_modify dmax 0.2
+
+# keep angles constant, vary only a,b,c
+variable scale string yes
+
+fix box all box/relax aniso XXXTARGET_PRESS nreset 50 &
+            scaleyz ${scale} scalexz ${scale} scalexy ${scale}
+minimize 1e-8 1e-8 50000 10000 
+

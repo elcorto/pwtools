@@ -1,0 +1,29 @@
+Example session for using pwtools.batch. The example is self-contained. Just
+run it and inspect the created files. Only the files in calc.templ/ and pseudo
+potential files are needed.
+
+The example calculations are very small and should run only some seconds.
+
+Run the example, clean the directory (clean.sh).
+
+The work flow would be:
+
+1) 10input.py 
+
+2) run calculations
+    local:
+        * go to calc_local
+        * execute run.sh -> submitt all jobs
+    cluster:      
+        * copy calc_theo to the cluster
+            rsync -auvz calc_theo theo:path/to/calculation/
+        * ssh to cluster, go to path/to/calculation/calc_theo
+        * execute run.sh -> submitt all jobs
+        * copy calc_theo back from cluster
+            rsync -auvz theo:path/to/calculation/calc_theo ./
+
+3) 20parse.py
+
+4) 30gather.py
+
+5) 40eval.sh, 50eval.py

@@ -6,6 +6,7 @@ Documentation
    features
    install
    fextensions
+   param_study
    parsing
    tutorial
    phonon_dos

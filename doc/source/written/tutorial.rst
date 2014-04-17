@@ -85,5 +85,4 @@ See :func:`pwtools.crys.smooth`::
 
 More stuff
 ----------
-* :ref:`param_study_example`
 * :ref:`dispersion_example`
