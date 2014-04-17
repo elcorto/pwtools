@@ -108,7 +108,9 @@ num.py
 
 doc/
 ----
-* Instruct sphinx to generate a complete module index, such that all of them
-  can be hyper-linked.
+* Find out why sphinx doesn't link the generated API-doc in
+  generated/api/ when we use ":mod:`~pwtools.batch`, for instance. This only
+  works if the module is listed in generated/doc, which we currently do not use
+  (see generate-apidoc.sh).
 
 # vim:comments=fb\:*

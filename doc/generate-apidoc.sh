@@ -16,3 +16,7 @@ rm -rfv build/ source/generated/
 echo "using: $autodoc"
 $autodoc -s source -a generated/api -d generated/doc -w written \
          -X 'test\.test_|changelog' pwtools
+
+# HACK: currently sphinx-autodoc.py doesn't provide a way to switch writing
+# this dir off, so we delete it
+rm -rf source/generated/doc

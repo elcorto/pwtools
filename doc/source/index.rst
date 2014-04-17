@@ -16,4 +16,5 @@ targeted to Quantum Espresso, CPMD, CP2K and LAMMPS.
    :maxdepth: 1
 
    generated/api/index
-   generated/doc/index
+.. hack: this is currently deleted in generate-apidoc.sh
+..   generated/doc/index
