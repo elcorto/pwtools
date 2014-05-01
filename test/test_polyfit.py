@@ -106,4 +106,17 @@ def test_inner_points_mask():
         a = np.array([x for x in product([0,1,2,3],repeat=ndim)])
         ai = a[num.inner_points_mask(a)]
         assert (ai == np.array([x for x in product([1,2],repeat=ndim)])).all()
-    
+
+def test_scale_get_min():
+    # two local minima separated by a max at ~6.5
+    x = np.linspace(2,10,50) 
+    y = np.cos(x)+x*.2
+    xlo = 2.94080857
+    xhi = 9.2237442
+    for scale in [True, False]:
+        f = num.PolyFit(x[:,None], y, deg=9, scale=scale)
+        assert np.allclose(f.get_min(x0=4), np.array([xlo]))
+        assert np.allclose(f.get_min(x0=8), np.array([xhi]))
+        f = num.PolyFit1D(x, y, deg=9, scale=scale)
+        assert np.allclose(f.get_min(x0=4), xlo)
+        assert np.allclose(f.get_min(x0=8), xhi)       

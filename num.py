@@ -1280,7 +1280,7 @@ def polyval(fit, points, der=0, avg=False):
         dcoeffs = np.polyder(fit['coeffs'][::-1], m=der)
         return np.polyval(dcoeffs, (points[:,0] - pmin[0,0]) / pscale[0,0]) / \
             pscale[0,0]**der * vscale
-    else:        
+    else:
         vand = vander((points - pmin) / pscale, fit['deg'])
         if avg:
             return np.dot(vand, fit['coeffs']) * vscale
@@ -1418,12 +1418,35 @@ def avgpolyval(fit, points, der=0, weight_type=1):
 
 
 class PolyFit(object):
-    """High level interface to [avg]poly{fit,val}, similar to Spline and
-    Interpol2D.
+    """High level interface to [avg]poly{fit,val}, similar to :class:`Spline`
+    and :meth:`Interpol2D`.
 
-    Arguments and keywords to ``__init__`` are the same as for [avg]polyfit().
-    Keywords to ``__call__`` are same as for [avg]polyval().
+    Arguments and keywords to :meth:`__init__` are the same as for
+    :func:`polyfit` or :func:`avgpolyfit`. Keywords to :meth:`__call__` are
+    same as for  :func:`polyval` or :func:`avgpolyval`.
 
+    If one of 'degrange', 'degmin', 'degmax', 'levels' is given, then
+    :func:`avgpolyfit` is used. If `deg` is used, then :func:`polyfit` is used.
+
+    Parameters
+    ----------
+    points : nd array (npoints,ndim)
+        `npoints` points in `ndim`-space, to be fitted by a `ndim` polynomial
+        f(x0,x1,...,x{ndim-1}).
+    values : 1d array        
+    deg : int
+        Degree of the poly (e.g. 3 for cubic).
+    levels : int
+        Fit this many polys and remove endpoints from `points` for levels >= 1.
+    degmin, degmax : int
+        min and max degree
+    degrange : sequence
+        range of poly degrees, use either this or `degmin` + `degmax`
+    scale: bool, optional
+        Scale `points` and `values` to unity internally before fitting.
+    
+    Notes
+    -----
     | __init__: `points` must be (npoints,ndim) even if ndim=1.
     | __call__: `points` can be (ndim,) instead of (1,ndim), need this if called in
                 fmin()
