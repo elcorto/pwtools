@@ -1,8 +1,9 @@
 import numpy as np
 from pwtools.parse import PwSCFOutputFile
-from pwtools import common
+from pwtools import common, io
 from pwtools.constants import Ang, Bohr
-from pwtools.test.tools import aaae, aae, assert_attrs_not_none, ade, adae
+from pwtools.test.tools import aaae, assert_attrs_not_none, adae, \
+    unpack_compressed   
 
 def test_pw_scf_out():
     
@@ -82,3 +83,12 @@ def test_pw_scf_out():
     assert alat == pp3.get_alat() # self.use_alat=True default
     
     common.system('gzip %s' %filename)
+
+def test_pw_scf_no_forces_stress():
+    fn = unpack_compressed('files/pw.scf_no_forces_stress.out.gz')
+    pp = PwSCFOutputFile(fn)
+    assert pp.get_forces() is None
+    assert pp.get_stress() is None
+    st = io.read_pw_scf(fn)
+    assert st.stress is None
+    assert st.forces is None

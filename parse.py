@@ -722,12 +722,15 @@ class PwSCFOutputFile(StructureFileParser):
         key = 'P='
         cmd = "grep -c %s %s" %(key, self.filename)
         nstep = nstep_from_txt(com.backtick(cmd))
-        cmd = "grep -A3 '%s' %s | grep -v -e %s -e '--'| \
-              awk '{print $4\"  \"$5\"  \"$6}'" \
-              %(key, self.filename, key)
-        return traj_from_txt(com.backtick(cmd), 
-                             shape=(nstep,3,3),
-                             axis=self.timeaxis)              
+        if nstep > 0:
+            cmd = "grep -A3 '%s' %s | grep -v -e %s -e '--'| \
+                  awk '{print $4\"  \"$5\"  \"$6}'" \
+                  %(key, self.filename, key)
+            return traj_from_txt(com.backtick(cmd), 
+                                 shape=(nstep,3,3),
+                                 axis=self.timeaxis)              
+        else:
+            return None
 
     def _get_etot_raw(self):
         verbose("getting _etot_raw")
@@ -736,28 +739,32 @@ class PwSCFOutputFile(StructureFileParser):
     
     def _get_forces_raw(self):
         verbose("getting _forces_raw")
-        self.try_set_attr('natoms')
-        natoms = self.natoms
-        # nstep: get it from outfile b/c the value in any input file will be
-        # wrong if the output file is a concatenation of multiple smaller files
-        key = r'Forces\s+acting\s+on\s+atoms.*$'
-        cmd = r"egrep -c '%s' %s" %(key.replace(r'\s', r'[ ]'), self.filename)
-        nstep = nstep_from_txt(com.backtick(cmd))
-        # Need to split traj_from_txt() up into loadtxt() + arr2d_to_3d() b/c
-        # we need to get `nlines` first without an additional "grep ... | wc
-        # -l".
-        cmd = "grep 'atom.*type.*force' %s \
-            | awk '{print $7\" \"$8\" \"$9}'" %self.filename
-        arr2d = np.loadtxt(StringIO(com.backtick(cmd)))
-        nlines = arr2d.shape[0]
-        # nlines_block = number of force lines per step = N*natoms
-        nlines_block = nlines / nstep
-        assert nlines_block % natoms  == 0, ("nlines_block forces doesn't "
-            "match natoms")
-        return arrayio.arr2d_to_3d(arr2d,
-                                   shape=(nstep,nlines_block,3), 
-                                   axis=self.timeaxis)     
-    
+        if self.check_set_attr('natoms'):
+            # nstep: get it from outfile b/c the value in any input file will be
+            # wrong if the output file is a concatenation of multiple smaller files
+            key = r'Forces\s+acting\s+on\s+atoms.*$'
+            cmd = r"egrep -c '%s' %s" %(key.replace(r'\s', r'[ ]'), self.filename)
+            nstep = nstep_from_txt(com.backtick(cmd))
+            if nstep > 0:
+                # Need to split traj_from_txt() up into loadtxt() + arr2d_to_3d() b/c
+                # we need to get `nlines` first without an additional "grep -c
+                # ..."
+                cmd = "grep 'atom.*type.*force' %s \
+                    | awk '{print $7\" \"$8\" \"$9}'" %self.filename
+                arr2d = np.loadtxt(StringIO(com.backtick(cmd)))
+                nlines = arr2d.shape[0]
+                # nlines_block = number of force lines per step = N*natoms
+                nlines_block = nlines / nstep
+                assert nlines_block % self.natoms  == 0, ("nlines_block forces doesn't "
+                    "match natoms")
+                return arrayio.arr2d_to_3d(arr2d,
+                                           shape=(nstep,nlines_block,3), 
+                                           axis=self.timeaxis)     
+            else:
+                return None
+        else:
+            return None
+
     def _get_nstep_scf_raw(self):
         verbose("getting _nstep_scf_raw")
         cmd = r"grep 'convergence has been achieved in' %s | awk '{print $6}'" \
@@ -845,7 +852,7 @@ class PwSCFOutputFile(StructureFileParser):
             # Users can use self._forces_raw if they want and know what is
             # printed in which order in the output file.
             forces = self.raw_slice_get('forces', sl=0, axis=self.timeaxis)
-            return forces[:self.natoms,:]
+            return None if forces is None else forces[:self.natoms,:]
         else:
             return None
 
