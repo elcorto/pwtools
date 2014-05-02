@@ -988,14 +988,14 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
         else:
             return None
 
-    def _get_cell(self):
+    def _get_cell_3d(self):
         """Parse CELL_PARAMETERS block. 
         
         The block unit is ignored here. Only the content of the block is parsed
         (i.e. the CELL_PARAMETERS as they are in the file). See also
         ``_get_block_header_unit()`` and ``get_cell``.
         """
-        verbose("getting _cell")
+        verbose("getting _cell_3d")
         # nstep
         key = 'CELL_PARAMETERS'
         cmd = 'grep -c %s %s' %(key, self.filename)
@@ -1006,15 +1006,15 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
                              shape=(nstep,3,3),
                              axis=self.timeaxis)
     
-    def _get_cell_step_unit(self):
-        """Parse CELL_PARAMETERS unit printed at each time step.
+    def _get_cell_3d_factors(self):
+        """Parse CELL_PARAMETERS unit factor printed at each time step.
         
         ::
             CELL_PARAMETERS (alat= 22.75306514)
 
         Returns
         -------
-        unit : 1d array (nstep,) or None
+        alat_values : 1d array (nstep,) or None
             1d array with alat for each time step if 'CELL_PARAMETERS.*alat' is
             found; None if not found or if use_alat=False.
         
@@ -1084,22 +1084,42 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
     def get_cell(self):
         """Cell [Bohr]. Return 3d array from CELL_PARAMETERS or 2d array
         self._cell_2d. Beware: complicated units logic ahead!"""
-        if self.check_set_attr_lst(['_cell', 'cell_unit']):
-            if self.cell_unit in ['bohr', None]:
-                return self._cell
-            elif self.cell_unit == 'alat':
-                if self.check_set_attr('_cell_step_unit'):
-                    return self._cell * self._cell_step_unit[:,None,None]
-                elif self.check_set_attr('alat'):                    
-                    return self._cell * self.alat
+        # From the manual, regarding the unit of CELL_PARAMETERS in the input
+        # file:
+        # 
+        # bohr / angstrom: lattice vectors in bohr radii / angstrom.
+        # alat or nothing specified: if a lattice constant (celldm(1)
+        # or a) is present, lattice vectors are in units of the lattice
+        # constant; otherwise, in bohr radii or angstrom, as specified.
+        #
+        # .. yo!
+        
+        # MD-like case
+        if self.check_set_attr('_cell_3d'):
+            # CELL_PARAMETERS (alat=...) | bohr | angstrom | alat
+            if self.check_set_attr('cell_unit'):
+                if self.cell_unit == 'bohr':
+                    return self._cell_3d
+                elif self.cell_unit == 'alat':
+                    if self.check_set_attr('_cell_3d_factors'):
+                        return self._cell_3d * self._cell_3d_factors[:,None,None]
+                    elif self.check_set_attr('alat'):                    
+                        return self._cell_3d * self.alat
+                    else:
+                        return None
+                elif self.cell_unit == 'angstrom':
+                    return self._cell_3d * Angstrom / Bohr
                 else:
                     return None
-            elif self.cell_unit == 'angstrom':
-                return self._cell * Angstrom / Bohr
+            # CELL_PARAMETERS <empty> 
             else:
-                return None
-        elif self.check_set_attr('_cell_2d'):                
-                return self._cell_2d # Bohr
+                if self.check_set_attr('alat'):                    
+                    return self._cell_3d * self.alat
+                else:
+                    return None
+        # return start cell 2d, will be broadcast to 3d in Trajectory
+        elif self.check_set_attr('_cell_2d'):               
+            return self._cell_2d # Bohr
         else:
             return None
     
@@ -1154,6 +1174,7 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
 
 
 class PwVCMDOutputFile(PwMDOutputFile):
+    """Parse only calculation='vc-md'."""
     def __init__(self, *args, **kwds):
         PwMDOutputFile.__init__(self, *args, **kwds)
         self.set_attr_lst(self.attr_lst + ['econst'])

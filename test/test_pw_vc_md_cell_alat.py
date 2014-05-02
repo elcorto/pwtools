@@ -23,18 +23,15 @@ def test_pw_vc_md_cell_alat():
     pp = parser('files/pw.vc-md.cell.out')
     assert np.allclose(pp.get_cell(), cell)
     assert pp.get_cell_unit() == 'alat'
-    assert np.allclose(pp._get_cell_step_unit_factor(), np.array([2.0]*5 + [4.0]*5))
+    assert np.allclose(pp._get_cell_3d_factors(), np.array([2.0]*5 + [4.0]*5))
 
     pp = parser('files/pw.constant_cell.txt')
-    assert pp._get_cell_step_unit_factor() is None
-
-    pp = parser('files/pw.constant_cell.txt')
-    assert pp._get_cell_step_unit_factor() is None
+    assert pp._get_cell_3d_factors() is None
 
     # respect use_alat=False, then self.alat=1.0
     pp = parser('files/pw.vc-md.cell.out', use_alat=False)
     assert np.allclose(pp.get_cell(), cell_no_unit)
     # We found 'CELL_PARAMETERS.*alat' but don't use it.
     assert pp.get_cell_unit() == 'alat'
-    assert pp._get_cell_step_unit_factor() is None
+    assert pp._get_cell_3d_factors() is None
 
