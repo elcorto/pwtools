@@ -6,7 +6,7 @@ from pwtools.test.tools import assert_attrs_not_none
 from pwtools.test.testenv import testdir
 
 def test_pw_vc_relax_out():
-    filename = 'files/pw.vc-relax.out'
+    filename = 'files/pw.vc_relax.out'
     common.system('gunzip %s.gz' %filename)
     pp = PwMDOutputFile(filename=filename)
     pp.parse()
@@ -52,7 +52,7 @@ _cell = parse.traj_from_txt("""
 
 def test_return_3d_if_no_cell_unit():
     tmpdir = tempfile.mkdtemp(dir=testdir, prefix=__file__)
-    base = 'pw.vc-relax_no_cell_unit.out'
+    base = 'pw.vc_relax_no_cell_unit.out'
     filename = '{tdr}/{base}'.format(tdr=tmpdir, base=base)
     cmd = "mkdir -p {tdr}; cp files/{base}.gz {tdr}/; \
            gunzip {fn}.gz;".format(tdr=tmpdir,

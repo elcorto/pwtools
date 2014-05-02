@@ -12,7 +12,7 @@ from pwtools.test.testenv import testdir
 pj = os.path.join
 
 def test_pw_vc_relax_out():
-    filename = 'files/pw.vc-relax_cell_unit.out'
+    filename = 'files/pw.vc_relax_cell_unit.out'
     common.system('gunzip %s.gz' %filename)
     pp = PwMDOutputFile(filename=filename)
     pp.parse()

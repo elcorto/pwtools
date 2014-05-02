@@ -13,7 +13,7 @@ cell_2d_red_ref = parse.arr2d_from_txt("""
     """)
 
 def test_scf_cell():
-    filename = 'files/pw.vc-relax_coords_fixed.out'
+    filename = 'files/pw.vc_relax_coords_fixed.out'
     common.system('gunzip %s.gz' %filename)
     
     pp = parse.PwSCFOutputFile(filename, use_alat=False)
