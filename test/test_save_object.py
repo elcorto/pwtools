@@ -7,19 +7,13 @@ import numpy as np
 from pwtools.parse import PwMDOutputFile
 from pwtools import common, crys, io
 from testenv import testdir
+from pwtools.test import tools
 from pwtools.test.tools import ade
 
 rand = np.random.rand
 
 def test_save_object():
-    tmpdir = tempfile.mkdtemp(dir=testdir, prefix=__file__)
-    base = 'pw.md.out'
-    filename = '{tdr}/{base}'.format(tdr=tmpdir, base=base)
-    cmd = "mkdir -p {tdr}; cp files/{base}.gz {tdr}/; \
-           gunzip {fn}.gz;".format(tdr=tmpdir,
-                                   base=base, fn=filename)
-    common.system(cmd, wait=True)
-    assert os.path.exists(filename)
+    filename = tools.unpack_compressed('files/pw.md.out.gz', prefix=__file__)
     dumpfile = os.path.join(testdir, 'pw.md.pk')
 
     c = PwMDOutputFile(filename=filename)

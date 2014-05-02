@@ -4,18 +4,11 @@ from pwtools.parse import PwMDOutputFile
 from pwtools import common
 from pwtools.constants import Bohr, Ang
 from pwtools.test.tools import assert_attrs_not_none, adae
+from pwtools.test import tools
 from pwtools.test.testenv import testdir
 
 def test_pw_md_out():
-    tmpdir = tempfile.mkdtemp(dir=testdir, prefix=__file__)
-    base = 'pw.md.out'
-    filename = '{tdr}/{base}'.format(tdr=tmpdir, base=base)
-    cmd = "mkdir -p {tdr}; cp files/{base}.gz {tdr}/; \
-           gunzip {fn}.gz;".format(tdr=tmpdir,
-                                   base=base, fn=filename)
-    common.system(cmd, wait=True)
-    assert os.path.exists(filename)
-    
+    filename = tools.unpack_compressed('files/pw.md.out.gz', prefix=__file__)
     alat = 5.9098 # Bohr
     pp1 = PwMDOutputFile(filename=filename, use_alat=True)
     pp1.parse()

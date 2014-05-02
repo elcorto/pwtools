@@ -6,17 +6,10 @@ from pwtools import pydos as pd
 from pwtools.crys import coord_trans
 from pwtools.test.tools import aae
 from pwtools.test.testenv import testdir
+from pwtools.test import tools
 
 def test_pdos():
-    tmpdir = tempfile.mkdtemp(dir=testdir, prefix=__file__)
-    base = 'pw.md.out'
-    filename = '{tdr}/{base}'.format(tdr=tmpdir, base=base)
-    cmd = "mkdir -p {tdr}; cp files/{base}.gz {tdr}/; \
-           gunzip {fn}.gz;".format(tdr=tmpdir,
-                                   base=base, fn=filename)
-    common.system(cmd, wait=True)
-    assert os.path.exists(filename)
-    
+    filename = tools.unpack_compressed('files/pw.md.out.gz', prefix=__file__)
     pp = parse.PwMDOutputFile(filename=filename)
     traj = pp.get_traj()
 

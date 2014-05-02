@@ -34,9 +34,10 @@ How to change pre-defined comparison functions
 Easy, eh? :)
 """
 
-import warnings, copy, tempfile
+import warnings, copy, tempfile, os
 import numpy as np
-from pwtools import num
+from pwtools import num, common
+from pwtools.test.testenv import testdir
 warnings.simplefilter('always')
 
 
@@ -271,3 +272,48 @@ aaae = assert_array_almost_equal
 aae = assert_array_equal
 
 
+def unpack_compressed(src, prefix='tmp', unpack_cmd='gunzip', testdir=testdir,
+                      ext=None):
+    """Convenience function to uncompress files/some_file.out.gz into a random
+    location. Return the filename "path/to/random_location/some_file.out"
+    without ".gz", which can be used in subsequent commands.
+    
+    Works only for simple unpack commands like
+        gunzip path/to/random_location/some_file.out.gz
+        tar -xzf path/to/random_location/some_file.out.tgz
+    
+    For more complicated things, copy the commands below and adapt.
+
+    Parameters
+    ----------
+    src : str
+        path to the compressed file, i.e. files/some_file.out.gz
+    prefix : str, optional
+        prefix for mkdtemp(), usually __file__ of the test script
+        to identify which test script created the random dir
+    unpack_cmd : str, optional
+        command for unpacking 
+    testdir : str, optional
+        'path/to' in the example above, usually
+        ``pwtools.test.testenv.testdir``
+    ext : str, optional
+        file extension of compressed file ('gz', 'tgz', 'tar.gz'), if None then
+        it will be guessed from `src`
+    """
+    # 'path/to/random_location'
+    tmpdir = tempfile.mkdtemp(dir=testdir, prefix=prefix)
+    # 'gz'
+    ext = src.split('.')[-1] if ext is None else ext
+    # 'some_file.out'
+    base = os.path.basename(src).replace('.'+ext, '')
+    # path/to/random_location/some_file.out
+    filename = '{tmpdir}/{base}'.format(tmpdir=tmpdir, base=base)
+    cmd = "mkdir -p {tmpdir}; cp {src} {tmpdir}/; \
+           {unpack_cmd} {filename}.{ext};".format(tmpdir=tmpdir,
+                                                  src=src,  
+                                                  filename=filename, 
+                                                  ext=ext,
+                                                  unpack_cmd=unpack_cmd)
+    common.system(cmd, wait=True)
+    assert os.path.exists(filename), "unpack failed: '%s' not found" %filename
+    return filename

@@ -1,9 +1,8 @@
-import tempfile
 import numpy as np
 from pwtools.parse import PwMDOutputFile
 from pwtools import common, parse
 from pwtools.test.tools import assert_attrs_not_none 
-from pwtools.test.testenv import testdir
+from pwtools.test import tools
 
 def test_pw_vc_relax_out():
     filename = 'files/pw.vc_relax.out'
@@ -51,13 +50,8 @@ _cell = parse.traj_from_txt("""
 """, shape=(6,3,3))
 
 def test_return_3d_if_no_cell_unit():
-    tmpdir = tempfile.mkdtemp(dir=testdir, prefix=__file__)
-    base = 'pw.vc_relax_no_cell_unit.out'
-    filename = '{tdr}/{base}'.format(tdr=tmpdir, base=base)
-    cmd = "mkdir -p {tdr}; cp files/{base}.gz {tdr}/; \
-           gunzip {fn}.gz;".format(tdr=tmpdir,
-                                   base=base, fn=filename)
-    common.system(cmd, wait=True)
+    filename = tools.unpack_compressed('files/pw.vc_relax_no_cell_unit.out.gz',
+                                       prefix=__file__)
     pp = PwMDOutputFile(filename=filename)
     pp.parse()
     assert np.allclose(pp.cell, _cell*pp.get_alat())
