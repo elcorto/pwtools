@@ -784,22 +784,18 @@ class PwSCFOutputFile(StructureFileParser):
         return {'coords': coords, 'symbols': symbols}
     
     def _get_cell_2d(self):
-        """Start cell [Bohr] if self.alat in [Bohr].
+        """Start 2d cell in alat units.
         
-        Grep start cell from pw.out, multiply by alat.
+        Grep start cell from pw.out. Multiplication by alat in
+        :meth:`get_cell`.
         
         The cell in pw.out is always in alat units (divided by alat) but
         printed with much less precision compared to the input file. If you
         need this information for further calculations, use the input file
         value."""
-        verbose("getting start cell parameters")
-        if self.check_set_attr('alat'):
-            cmd = "egrep -m1 -A3 'crystal.*axes.*units.*(a_0|alat)' %s | tail -n3 | \
-                   awk '{print $4\" \"$5\" \"$6}'" %(self.filename)
-            ret = arr2d_from_txt(com.backtick(cmd))
-            return ret * self.alat if ret is not None else ret
-        else:
-            return None
+        cmd = "egrep -m1 -A3 'crystal.*axes.*units.*(a_0|alat)' %s | tail -n3 | \
+               awk '{print $4\" \"$5\" \"$6}'" %(self.filename)
+        return arr2d_from_txt(com.backtick(cmd))
     
     def get_alat(self, use_alat=None):
         """Lattice parameter "alat" [Bohr]. If use_alat or self.use_alat is
@@ -857,9 +853,13 @@ class PwSCFOutputFile(StructureFileParser):
         return self.raw_slice_get('nstep_scf', sl=0, axis=0)
     
     def get_cell(self):
-        """Start cell [Bohr]."""
-        if self.check_set_attr('_cell_2d'):
-            return self._cell_2d
+        """Start cell [Bohr].
+        
+        Apply self.alat unit to _cell_2d."""
+        if self.check_set_attr_lst(['_cell_2d', 'alat']):
+            return self._cell_2d * self.alat
+        else:
+            return None
 
     def get_natoms(self):
         verbose("getting natoms")
@@ -1118,11 +1118,11 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
                 else:
                     return None
         # return start cell 2d, will be broadcast to 3d in Trajectory
-        elif self.check_set_attr('_cell_2d'):               
-            return self._cell_2d # Bohr
+        elif self.check_set_attr_lst(['_cell_2d', 'alat']):
+            return self._cell_2d * self.alat
         else:
             return None
-    
+
     def get_coords_frac(self):
         """Fractional coords."""
         if self.check_set_attr_lst(['_coords', 'coords_unit']):
