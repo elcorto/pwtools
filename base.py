@@ -289,8 +289,7 @@ class FlexibleGetters(object):
           else return None
         """
         raw_attr_name = '_%s_raw' %attr_name
-        self.try_set_attr(raw_attr_name)
-        if self.is_set_attr(raw_attr_name):
+        if self.check_set_attr(raw_attr_name):
             arr = getattr(self, raw_attr_name)
             ret = num.slicetake(arr, sl, axis) 
             # slicetake always returns an array, return scalar if ret =
