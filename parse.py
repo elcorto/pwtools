@@ -2469,8 +2469,8 @@ class LammpsDcdMDOutputFile(LammpsTextMDOutputFile):
       :func:`~pwtools.io.read_lammps_md_txt()` must be identical up to
       numerical noise (about 1e-6 for default lammps text printing precision).
     """
-    def __init__(self, filename, **kwds):
-        super(LammpsDcdMDOutputFile, self).__init__(filename, **kwds)
+    def __init__(self, *args, **kwds):
+        super(LammpsDcdMDOutputFile, self).__init__(*args, **kwds)
         self.attr_lst = [\
             'cryst_const',
             'coords',

@@ -11,6 +11,8 @@ parsers = [parse.CifFile,
            parse.CpmdMDOutputFile,
            parse.Cp2kSCFOutputFile,
            parse.Cp2kMDOutputFile,
+           parse.LammpsTextMDOutputFile,
+           parse.LammpsDcdMDOutputFile,
          ]
 
 def test_parser_units():

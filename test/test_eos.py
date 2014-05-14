@@ -13,6 +13,7 @@
 # Note: Ref data generated w/ old units Ry, Bohr, we convert to eV, Ang here
 
 import numpy as np
+import warnings
 from pwtools.eos import ElkEOSFit
 from pwtools import common
 from pwtools.constants import Ry, Ha, Bohr, Ang, eV
@@ -25,7 +26,7 @@ def test_eos():
     exe = 'eos.x'
     app = common.backtick("which %s" %exe)
     if app == '':
-        print("warning: cannot find '%s' on PATH, skipping test" %exe)
+        warnings.warn("warning: cannot find '%s' on PATH, skipping test" %exe)
     else:
         # EV input data [Bohr^3, Ry] -> [Ang^3, eV]
         data = np.loadtxt("files/ev/evdata.txt")

@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import warnings
 from pwtools import io
 from pwtools.test import tools
 from testenv import testdir
@@ -30,4 +31,4 @@ def test_h5():
                 key = '/'+kk if not kk.startswith('/') else kk
                 tools.assert_all_types_equal(dct[kk], read_dct[key])
     except ImportError:
-        print "skipping test_h5, no h5py importable"
+        warnings.warn("skipping test_h5, no h5py importable")
