@@ -131,13 +131,6 @@ except ImportError:
     warnings.warn("Cannot import CifFile from the PyCifRW package. " 
     "Parsing Cif files will not work.")
 
-# XML parser
-try:
-    from BeautifulSoup import BeautifulStoneSoup
-except ImportError:
-    warnings.warn("Cannot import BeautifulSoup. " 
-    "Parsing XML/HTML/CML files will not work.")
-
 from pwtools import common, constants, regex, crys, atomic_data, num, \
     arrayio, _dcd
 from pwtools.verbose import verbose
@@ -532,57 +525,6 @@ class PDBFile(StructureFileParser):
         match = re.search(pat, self.txt)
         return np.array(match.group(1).split()).astype(float)
 
-
-class CMLFile(StructureFileParser):
-    """Parse Chemical Markup Language files (XML-ish format). This file format
-    is used by avogadro."""
-    def __init__(self, filename=None, *args, **kwds):
-        StructureFileParser.__init__(self, filename=filename, *args, **kwds)
-        # only the ones for which we have getters
-        self.attr_lst = [\
-            'coords_frac',
-            'symbols',
-            'cryst_const',
-            ]
-        self.init_attr_lst()      
-    
-    def _get_soup(self):
-        return BeautifulStoneSoup(open(self.filename).read())        
-
-    def _get_atomarray(self):
-        self.try_set_attr('_soup')
-        # ret: list of Tag objects:
-        # <atomarray>
-        #    <atom id="a1" ...>
-        #    <atom id="a2" ...>
-        #    ...
-        # </atomarray>
-        # ==>
-        # [<atom id="a1" ...>, <atom id="a2" ...>, ...]
-        return self._soup.find('atomarray').findAll('atom')
-    
-    def get_coords_frac(self):
-        self.try_set_attr('_atomarray')
-        return np.array([[float(entry.get('xfract')), 
-                          float(entry.get('yfract')),
-                          float(entry.get('zfract'))] \
-                          for entry in self._atomarray])
-    
-    def get_symbols(self):
-        self.try_set_attr('_atomarray')
-        return [str(entry.get('elementtype')) for entry in self._atomarray]
-    
-    def get_cryst_const(self):
-        self.try_set_attr('_soup')
-        crystal = self._soup.find('crystal')            
-        return np.array([crystal.find('scalar', title="a").string,
-                         crystal.find('scalar', title="b").string,
-                         crystal.find('scalar', title="c").string,
-                         crystal.find('scalar', title="alpha").string,
-                         crystal.find('scalar', title="beta").string,
-                         crystal.find('scalar', title="gamma").string]\
-                         ).astype(float)
-    
 
 class PwSCFOutputFile(StructureFileParser):
     """Parse a pw.x SCF output file (calculation='scf').

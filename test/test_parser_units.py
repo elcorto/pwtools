@@ -2,7 +2,6 @@ from pwtools import parse
 from pwtools.crys import UnitsHandler
 
 parsers = [parse.CifFile,
-           parse.CMLFile,
            parse.PDBFile,
            parse.PwSCFOutputFile,
            parse.PwMDOutputFile,

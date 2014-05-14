@@ -21,7 +21,7 @@ Add-on packages / other required tools
 On Debian:: 
 
     aptitude install python-numpy python-scipy python-nose python-dev python-h5py gfortran \
-                     python-beautifulsoup python-matplotlib liblapack-dev
+                     python-matplotlib liblapack-dev
 
 Must have:    
 
@@ -36,7 +36,6 @@ Must have:
 
 Almost must have:
   
-* BeautifulSoup [beautifulsoup]_: XML parser (for .cml files)
 * PyCifRW [pycifrw_orig]_: For Cif files. 
   With Python 2.6, you may get a DeprecationWarning regarding the sets module
   when the CifFile module from the pycifrw package is imported. There is a
@@ -52,10 +51,10 @@ Almost must have:
 
 Effects of missig dependencies:
 
-* BeautifulSoup and PyCifRW: You will get import warnings, some parsing
-  classes and IO functions will not work (Cif and CML parsing currently) and some
-  tests will fail. If you don't need that functionality, uncomment the warnings
-  and import statements at the top of :mod:`~pwtools.parse` and :mod:`~pwtools.io`.
+* PyCifRW: You will get import warnings, some parsing
+  classes and IO functions will not work (Cif files) and some tests will fail.
+  If you don't need that functionality, uncomment the warnings and import
+  statements at the top of :mod:`~pwtools.parse` and :mod:`~pwtools.io`.
 * eos: :mod:`pwtools.eos.ElkEOSFit` and related tests won't work.
 * spglib: some symmetry finding functions in :mod:`~pwtools.symmetry` won't
   work
