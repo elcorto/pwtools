@@ -551,7 +551,12 @@ def scell_mask(dim1, dim2, dim3):
 def scell(struct, dims, method=1):
     """Build supercell based on `dims`. It scales the unit cell to the dims of
     the super cell and returns crystal atomic positions w.r.t. this cell.
-    
+
+    The structure is repeated as in np.repeat():
+        | original: symbols=[A,B,C,D]
+        | 2x1x1:    symbols=[A,A,B,B,C,C,D,D]
+        | axbxc:    symbols=[(a*b*c) x A, (a*b*c) x B, ...]
+
     Parameters
     ----------
     struct : Structure
@@ -559,10 +564,10 @@ def scell(struct, dims, method=1):
     method : int, optional
         Switch between numpy-ish (1) or loop (2) implementation. (2) should
         always produce correct results but is sublty slower.
-
+    
     Returns
     -------
-    Structure
+    scell : Structure
     """
     assert_cond(struct.cell.shape == (3,3), "cell must be (3,3) array")
     mask = scell_mask(*tuple(dims))
