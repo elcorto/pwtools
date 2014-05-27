@@ -263,7 +263,8 @@ def cc2cell3d(cryst_const, axis=0):
 def recip_cell(cell):
     """Reciprocal lattice vectors ``{a,b,c}* = 2*pi / V * {b,c,a} x {c,a,b}``.
     
-    The reciprocal volume is ``(2*pi)**3/V``.
+    The reciprocal volume is ``(2*pi)**3/V``. The length unit of the reciprocal
+    vectors is 1/(length unit of `cell`), e.g. 1/Angstrom.
 
     Parameters
     ----------
@@ -277,7 +278,7 @@ def recip_cell(cell):
     Examples
     --------
     >>> # the length of recip. cell vectors for a cubic cell of 1 Ang side
-    >>> # length is 2*pi
+    >>> # length is 2*pi -> reciprocal length unit is 1/Ang
     >>> crys.recip_cell(identity(3))/2/pi
     array([[ 1.,  0.,  0.],
            [ 0.,  1.,  0.],
