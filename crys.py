@@ -1,7 +1,7 @@
 # Crystal and unit-cell related tools, MD analysis, container classes
 
 from math import acos, pi, sin, cos, sqrt
-import textwrap, time, os, tempfile, types, copy
+import textwrap, time, os, tempfile, types, copy, itertools
 
 import numpy as np
 from scipy.linalg import inv
@@ -492,18 +492,24 @@ def celldm2cc(celldm, fac=1.0):
 # super cell building
 #-----------------------------------------------------------------------------
 
-def scell_mask(dim1, dim2, dim3):
-    """Build a mask for the creation of a dim1 x dim2 x dim3 supercell (for 3d
-    coordinates).  Return all possible permutations with repitition of the
-    integers n1, n2, n3, and n1, n2, n3 = 0, ..., dim1-1, dim2-1, dim3-1 .
+def scell_mask(nx, ny, nz, direc=1):
+    """Build a mask for the creation of a nx x ny x nz supercell (for 3d
+    coordinates).  
+    
+    Return all possible permutations with repitition of the integers ix, iy, iz
+    = 0, ..., nx-1, ny-1, nz-1 . Dimensions can also be negative, in
+    which case i = 0,-1,...,-n+1 . Parameter `direc` reverses the ordering.
 
     Parameters
     ----------
-    dim1, dim2, dim3 : int
+    nx, ny, nz : int
+    direc : int 
+        1 or -1, order mask 0,...,n-1 (cells placed "center to edge") or
+        reverse n-1,...,0 ("egde to center")
 
     Returns
     -------
-    mask : 2d array, shape (dim1*dim2*dim3, 3)
+    mask : 2d array, shape (nx*ny*nz, 3)
 
     Examples
     --------
@@ -523,141 +529,130 @@ def scell_mask(dim1, dim2, dim3):
            [ 0.,  1.,  0.],
            [ 1.,  0.,  0.],
            [ 1.,  1.,  0.]])
-    
-    Notes
-    -----
-    If dim1 == dim2 == dim3 == n, then we have a permutation with repetition
-    (german: Variation mit Wiederholung):  select r elements out of n with
-    rep. In gerneral, n >= r or n < r possible. There are always n**r
-    possibilities.
-    Here r = 3 always (select x,y,z direction).
-    
-    all 3-tuples out of {0,1}   -> n**r = 2**3 = 8::
-        n=2 : {0,1}   <=> 2x2x2 supercell: 
-    
-    all 3-tuples out of {0,1,2} -> n**r = 3**3 = 27::
-        n=3 : {0,1,2} <=> 3x3x3 supercell:
-    
-    Computationally, we need `r` nested loops (or recursion of depth 3), one
-    per dim.  
+    >>> # direction reversed
+    >>> scell_mask(2,2,1,direc=-1)
+    array([[ 1.,  1.,  0.],
+           [ 1.,  0.,  0.],
+           [ 0.,  1.,  0.],
+           [ 0.,  0.,  0.]])
     """
-    b = [] 
-    for n1 in range(dim1):
-        for n2 in range(dim2):
-            for n3 in range(dim3):
-                b.append([n1,n2,n3])
-    return np.array(b, dtype=float)
+    if direc == 1:
+        mkrange = lambda x: range(0,x) if x >= 0 else range(0,x,-1)
+    elif direc == -1:
+        mkrange = lambda x: range(x-1,-1,-1) if x >= 0 else range(x+1,1)
+    return np.array([k for k in itertools.product(mkrange(nx), mkrange(ny),
+                                                  mkrange(nz))], 
+                     dtype=float)
 
 
-def scell(struct, dims, method=1):
-    """Build supercell based on `dims`. It scales the unit cell to the dims of
-    the super cell and returns crystal atomic positions w.r.t. this cell.
+def scell(obj, dims, method=1, **kwds):
+    """Build supercell based on `dims`. 
 
-    The structure is repeated as in np.repeat():
-        | original: symbols=[A,B,C,D]
-        | 2x1x1:    symbols=[A,A,B,B,C,C,D,D]
-        | axbxc:    symbols=[(a*b*c) x A, (a*b*c) x B, ...]
+    Uses coords_frac and cell.
 
     Parameters
     ----------
-    struct : Structure
+    obj : Structure or Trajectory
     dims : tuple (nx, ny, nz) for a N = nx * ny * nz supercell
     method : int, optional
         Switch between numpy-ish (1) or loop (2) implementation. (2) should
-        always produce correct results but is sublty slower.
+        always produce correct results but is sublty slower. Only for
+        Structure.
+    **kwds : see :func:`scell_mask`
     
+    Notes
+    -----
+    The mask for the supercell is created by :func:`scell_mask` and applied to
+    each atom in `obj` one after another, i.e. each atom is repeated nx*ny*nz
+    times according to the mask pattern, independently of how the pattern looks
+    like (e.g. the `direc` parameter in :func:`scell_mask`). So, just as rows
+    in np.repeat(), we have:
+        | original:     symbols=[A,B,C,D]
+        | 2 x 1 x 1:    symbols=[A,A,B,B,C,C,D,D]
+        | nx x ny x nz: symbols=[(nx*ny*nz) x A, (nx*ny*nz) x B, ...]
+    
+
     Returns
     -------
     scell : Structure
     """
-    assert_cond(struct.cell.shape == (3,3), "cell must be (3,3) array")
-    mask = scell_mask(*tuple(dims))
-    # Place each atom N = dim1*dim2*dim3 times in the
-    # supercell, i.e. copy unit cell N times. Actually, N-1, since
-    # n1=n2=n3=0 is the unit cell itself.
+    # Place each atom N = nx*ny*nz times in the supercell, i.e. copy unit cell
+    # N times. Actually, N-1, since ix=iy=iz=0 is the unit cell itself.
     #
-    # mask[j,:] = [n1, n2, n3], ni = integers (floats actually, but
-    #   mod(ni, floor(ni)) == 0.0)
+    # Let k = {x,y,z}.
+    #
+    # mask[j,:] = [ix, iy, iz], ik = integers (floats actually, but
+    #   mod(ik, floor(ik)) == 0.0)
     #
     # original cell:
-    # coords[i,:] = position vect of atom i in the unit cell in *crystal*
+    # coords_frac[i,:] = position vect of atom i in the unit cell in *crystal*
     #   coords!!
     # 
     # super cell:
-    # sc_coords[i,:] = coords[i,:] + [n1, n2, n3]
-    #   for all permutations (see scell_mask()) of n1, n2, n3.
-    #   ni = 0, ..., dim_i - 1, i = 1,2,3
+    # sc_coords_frac[i,:] = coords_frac[i,:] + [ix, iy, iz]
+    #   for all permutations (see scell_mask()) of ix, iy, iz.
+    #   ik = 0, ..., nk - 1
     #
-    # sc_coords : crystal coords w.r.t the *old* cell, i.e. the entries are in
+    # sc_coords_frac : crystal coords w.r.t the *old* cell, i.e. the entries are in
     # [0,(max(dims))], not [0,1], is scaled below
     #
+    if not kwds.has_key('direc'):
+        kwds['direc'] = 1
+    mask = scell_mask(*tuple(dims), **kwds)
     nmask = mask.shape[0]
-    if method == 1:   
-        sc_symbols = np.array(struct.symbols).repeat(nmask).tolist() if (struct.symbols \
+    if obj.is_struct:        
+        sc_cell = obj.cell * np.asarray(dims)[:,None]
+        container = Structure
+    elif obj.is_traj:
+        # (nstep,3,3) * (1,3,1) -> (nstep, 3,3)                      
+        sc_cell = obj.cell * np.asarray(dims)[None,:,None]
+        container = Trajectory
+    else:
+        raise StandardError("unknown input type")
+    if method == 1:
+        sc_symbols = np.array(obj.symbols).repeat(nmask).tolist() if (obj.symbols \
                      is not None) else None
-        # (natoms, 1, 3) + (1, nmask, 3) -> (natoms, nmask, 3)
-        sc_coords_frac = (struct.coords_frac[:,None] \
-                          + mask[None,:]).reshape(struct.natoms*nmask,3)
-    elif method == 2:        
-        sc_symbols = []
-        sc_coords_frac = np.empty((nmask*struct.natoms, 3), dtype=float)
-        k = 0
-        for iatom in range(struct.natoms):
-            for j in range(nmask):
-                if struct.symbols is not None:
-                    sc_symbols.append(struct.symbols[iatom])  
-                sc_coords_frac[k,:] = struct.coords_frac[iatom,:] + mask[j,:]
-                k += 1
+        if obj.is_struct:
+            # (natoms, 1, 3) + (1, nmask, 3) -> (natoms, nmask, 3)
+            sc_coords_frac = (obj.coords_frac[:,None,:] \
+                              + mask[None,...]).reshape(obj.natoms*nmask,3)
+        elif obj.is_traj:
+            # cool, eh?
+            # (nstep, natoms, 1, 3) + (1, 1, nmask, 3) -> (nstep, natoms, nmask, 3)
+            sc_coords_frac = (obj.coords_frac[...,None,:] \
+                              + mask[None,None,...]).reshape(obj.nstep,obj.natoms*nmask,3)
+        else:
+            raise StandardError("huh!?")
+    # explicit loop version for testing, this is the reference implementation,
+    # only for Structure
+    elif method == 2:
+        if obj.is_struct:
+            sc_symbols = []
+            sc_coords_frac = np.empty((nmask*obj.natoms, 3), dtype=float)
+            k = 0
+            for iatom in range(obj.natoms):
+                for j in range(nmask):
+                    if obj.symbols is not None:
+                        sc_symbols.append(obj.symbols[iatom])  
+                    sc_coords_frac[k,:] = obj.coords_frac[iatom,:] + mask[j,:]
+                    k += 1
+        else:
+            raise StandardError("method=2 only implemented for Structure")
     else:
         raise StandardError("unknown method: %s" %repr(method))
-    # scale cell acording to super cell dims
-    sc_cell = struct.cell * np.asarray(dims)[:,None]
-    # Rescale crystal coords_frac to new bigger cell (coord_trans
-    # actually) -> all values in [0,1] again
-    sc_coords_frac[:,0] /= dims[0]
-    sc_coords_frac[:,1] /= dims[1]
-    sc_coords_frac[:,2] /= dims[2]
-    return Structure(coords_frac=sc_coords_frac,
+    sc_coords_frac[...,0] /= dims[0]
+    sc_coords_frac[...,1] /= dims[1]
+    sc_coords_frac[...,2] /= dims[2]
+    return container(coords_frac=sc_coords_frac,
                      cell=sc_cell,
                      symbols=sc_symbols)
 
-@crys_add_doc
-def scell3d(traj, dims):
-    """Build supercell of a trajectory (i.e. not just a single structure) based
-    on `dims`. It scales the unit cell to the dims of the super cell and
-    returns crystal atomic positions w.r.t. this cell.
 
-    This is a special-case version of scell() for trajectories, where at least
-    ``traj.coords_frac`` must be a 3d array.
-    
-    Parameters
-    ----------
-    traj : Trajectory
-    dims : tuple (nx, ny, nz) for a N = nx * ny * nz supercell
-
-    Returns
-    -------
-    Trajectory
-    """
-    mask = scell_mask(*tuple(dims))
-    nmask = mask.shape[0]
-    sc_symbols = np.array(traj.symbols).repeat(nmask).tolist() if (traj.symbols \
-                 is not None) else None
-    
-    # cool, eh?
-    # (nstep, natoms, 1, 3) + (1, 1, nmask, 3) -> (nstep, natoms, nmask, 3)
-    sc_coords_frac = (traj.coords_frac[...,None,:] \
-                      + mask[None,None,...]).reshape(traj.nstep,traj.natoms*nmask,3)
-    
-    # (nstep,3,3) * (1,3,1) -> (nstep, 3,3)                      
-    sc_cell = traj.cell * np.asarray(dims)[None,:,None]
-    sc_coords_frac[:,:,0] /= dims[0]
-    sc_coords_frac[:,:,1] /= dims[1]
-    sc_coords_frac[:,:,2] /= dims[2]
-    return Trajectory(coords_frac=sc_coords_frac,
-                      cell=sc_cell,
-                      symbols=sc_symbols)
-
+def scell3d(traj, dims, **kwds):
+    """Supercell for Trajectory. Deprecated. Use :func:`scell` instead."""
+    warnings.warn("scell3d() is deprecated, use scell() for Trajectory as well",
+                  DeprecationWarning)
+    return scell(traj, dims, **kwds)
 
 #-----------------------------------------------------------------------------
 # atomic coords processing / evaluation, MD analysis

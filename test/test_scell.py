@@ -1,8 +1,11 @@
 import numpy as np
+import itertools
 from pwtools import crys, common, atomic_data, num
 from pwtools.crys import Structure, Trajectory
-from pwtools.test.tools import adae
+from pwtools.test import tools
 rand = np.random.rand
+
+syms = itertools.cycle(atomic_data.symbols[1:])
 
 def test_scell():
     cell = np.identity(3)
@@ -123,19 +126,18 @@ def test_scell():
                               symbols=None), (2,2,2))
     assert sc.symbols is None
     
-    # scell3d
+    # Trajectory
     natoms = 4
     nstep = 100
-    syms = iter(atomic_data.pt.keys())
     symbols = [syms.next() for ii in range(natoms)]
     # cell 2d
     coords_frac = rand(nstep,natoms,3)
     cell = rand(3,3)
     dims = (2,3,4)
     nmask = np.prod(dims)
-    sc = crys.scell3d(Trajectory(coords_frac=coords_frac,
-                                 cell=cell,
-                                 symbols=symbols), 
+    sc = crys.scell(Trajectory(coords_frac=coords_frac,
+                               cell=cell,
+                               symbols=symbols), 
                       dims=dims)
     assert sc.coords_frac.shape == (nstep, nmask*natoms, 3)
     assert sc.symbols == common.flatten([[sym]*nmask for sym in symbols])
@@ -146,9 +148,9 @@ def test_scell():
                                                           axis=0))
     # cell 3d
     cell = rand(nstep,3,3)
-    sc = crys.scell3d(Trajectory(coords_frac=coords_frac,
-                                 cell=cell,
-                                 symbols=symbols), 
+    sc = crys.scell(Trajectory(coords_frac=coords_frac,
+                               cell=cell,
+                               symbols=symbols), 
                       dims=dims)
     assert sc.coords_frac.shape == (nstep, nmask*natoms, 3)
     coords_frac2 = np.array([crys.scell(Structure(coords_frac=coords_frac[ii,...,], 
@@ -174,4 +176,42 @@ def test_scell():
     sc2 = crys.scell(struct, dims=dims, method=2)
     d1 = dict([(key, getattr(sc1, key)) for key in sc1.attr_lst])
     d2 = dict([(key, getattr(sc2, key)) for key in sc2.attr_lst])
-    adae(d1, d2)
+    tools.assert_dict_with_all_types_almost_equal(d1, d2)
+
+
+def test_direc_and_neg_dims():
+    for dims in [(2,3,4), (-2,-3,-4), (-2,3,4), (2,-3,4), (2,3,-4)]:
+        m1 = crys.scell_mask(*dims, direc=1)[::-1,:]
+        m2 = crys.scell_mask(*dims, direc=-1)
+        assert (m1==m2).all()
+    
+    for direc in [1,-1]:
+        ref = crys.scell_mask( 2, 3, 4, direc=direc)
+        assert ((ref + crys.scell_mask(-2,-3,-4, direc=direc)) == 0.0).all()
+        
+        now = crys.scell_mask(-2, 3, 4, direc=direc)
+        assert ((ref[:,0] + now[:,0]) == 0.0).all()
+        assert (ref[:,1:] == now[:,1:]).all()
+        
+        now = crys.scell_mask(2, -3, 4, direc=direc)
+        assert ((ref[:,1] + now[:,1]) == 0.0).all()
+        assert (ref[:,(0,2)] == now[:,(0,2)]).all()
+
+        now = crys.scell_mask(2, 3, -4, direc=direc)
+        assert ((ref[:,2] + now[:,2]) == 0.0).all()
+        assert (ref[:,:2] == now[:,:2]).all()
+
+    natoms = 20
+    coords_frac = rand(natoms,3)
+    cell = rand(3,3)
+    dims = (2,3,4)
+    symbols = [syms.next() for ii in range(natoms)]
+    struct = Structure(coords_frac=coords_frac,
+                       cell=cell,
+                       symbols=symbols)
+    # coords are offset by a constant shift if all dims and direc are < 0
+    s1 = crys.scell(struct, (2,3,4), direc=1)
+    s2 = crys.scell(struct, (-2,-3,-4), direc=-1)
+    d = s1.coords - s2.coords
+    assert np.abs(d - d[0,:][None,:]).sum() < 1e-12
+
