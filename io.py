@@ -13,6 +13,7 @@ from pwtools import parse, atomic_data, lammps
 from pwtools import crys
 from pwtools import common
 from pwtools import pwscf
+warnings.simplefilter('always')
 
 
 # Cif parser
@@ -246,28 +247,44 @@ def write_lammps(filename, struct, symbolsbasename='lmp.struct.symbols'):
     common.file_write(filename, lammps.struct_str(struct))
 
 
-def write_h5(fn, dct):
+def write_h5(fn, dct, **kwds):
     """Write dictionary with arrays (or whatever HDF5 handles) to h5 file.
     
     Dict keys are supposed to be HDF group + dataset names like `/a/b/c/dset`.
     The leading slash can be skipped.
-
+    
     Parameters
     ----------
     fn : str
-        filename
+        filename (e.g. 'foo.h5', 'bar.hdf')
     dct : dict
+    **kwds : 
+        keywords to ``h5py.File`` (e.g. ``mode='w'``)
+    
+    Notes
+    -----
+    The file opening mode is the ``h5py.File`` default value, which is
+    ``mode='a'``, i.e. read+append mode. In this mode, existing keys cannot be
+    reused (overwritten), only new ones can be appended. The file is created if
+    nonexistent. To overwrite, use ``mode='w'``, but this is the same as
+    deleting the file and writing a new one! If you want to overwrite some or
+    all existing keys and add new ones, use smth like::
+
+    >>> old = read_h5('file.h5')
+    >>> old.update({'/old/key': new_value, '/new/key': some_more_data})
+    >>> write_h5('file.h5', old, mode='w')
     """
-    fh = h5py.File(fn, mode='w')
+    fh = h5py.File(fn, **kwds)
     for key,val in dct.iteritems():
         fh[key] = val
     fh.close()
 
 
-def read_h5(fn, group='/', rel=False):
+def read_h5(fn):
     """Read h5 file into dict.
     
-    Dict keys are the group + dataset names, e.g. '/a/b/c/dset'.
+    Dict keys are the group + dataset names, e.g. '/a/b/c/dset'. All keys start
+    with a leading slash even if written without (see :func:`write_h5`).
 
     Parameters
     ----------
@@ -289,7 +306,12 @@ def read_h5(fn, group='/', rel=False):
     fh.close()
     return dct
 
-load_h5 = read_h5
+
+def load_h5(*args, **kwds):
+    """Alias for :func:`read_h5`. Deprecated."""
+    warnings.warn("load_h5() is deprcated, use read_h5() instead",
+                   DeprecationWarning)
+    return read_h5(*args, **kwds)
 
 
 class ReadFactory(object):
