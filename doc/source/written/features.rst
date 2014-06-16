@@ -18,7 +18,7 @@ Features
 * parsing of PWscf [qe]_, CPMD [cpmd]_, CP2K [cp2k]_ and LAMMPS [lammps]_
   output into Python objects for easy access (:mod:`~pwtools.parse`)
 
-* structure io: read cif, cml, pdb, write axsf, cif, xyz  (:mod:`~pwtools.io`)
+* structure io: read cif, pdb, write axsf, cif, xyz  (:mod:`~pwtools.io`)
 
 * pythonic interface to external molecular viewers for interactive use:
   xcrysden, avogadro, jmol, vmd (:mod:`~pwtools.visualize`)
@@ -34,14 +34,13 @@ Features
 * unit cell related tools: super cell building, coordinate transformation,
   k-grid tools, ... (:mod:`~pwtools.crys`)
 
-* funcions and classes to extend numpy/scipy (:mod:`~pwtools.num`)
+* functions and classes to extend numpy/scipy (:mod:`~pwtools.num`)
 
 * basic signal processing / fft related tools (:mod:`~pwtools.signal`)
 
 * radial basis function interpolation (:mod:`~pwtools.rbf`)
 
 * tools to handle matplotlib plots in scripts (:mod:`~pwtools.mpl`)
-
 
 The very nice ASE [ase]_ project is in some way related. It also stores atomic
 structure data in Python objects for further manipulation. If needed, one can
@@ -57,13 +56,19 @@ functional perturbation theory like PWscf/PH or Abinit are not implemented
 (maybe in GPAW?). However, the supercell method can be used with the related
 [phonopy]_ package. The focus of the pwtools package is to be a handy pre- and
 postprocessor providing pythonic access to all input and output quantities of
-the used ab initio codes. Regarding visualization, ASE has some kind of GUI. We
-have :mod:`~pwtools.visualize`, which is best used in an interactive Ipython
+the used ab initio codes. In ASE, the calculator abtracts the backend code's
+input away. With pwtools, you need to know the input file syntax of your
+backend code. Once you know that, you use only template files to set up
+calculations. Regarding visualization, ASE has some kind of GUI. We have
+:mod:`~pwtools.visualize`, which is best used in an interactive Ipython
 session.
 
 In fact, appart from :mod:`~pwtools.parse`, which implements parsers for ab
 initio code output and :mod:`~pwtools.pwscf`, all other parts of the package
-are completely independent from any external code's output. 
+are completely independent from any external simulation code's output.
+Especially the parameter study tools in :mod:`~pwtools.batch` can be used for
+any kind of (computational) study, since only user-supplied template files are
+used. 
 
 [*] Last time I checked, I stumbled over a `mailing list thread`_ where they said
 that in LCAO mode, the density would be re-used between steps.

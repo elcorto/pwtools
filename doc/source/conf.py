@@ -48,10 +48,10 @@ numpydoc_class_members_toctree = True
 # auto stuff
 #-----------------------------------------------------------------------------
 
-##autodoc_default_flags = ['members', 
-##                         'show-inheritance',
-##                         'special-members',
-##                         'no-inherited-members']
+autodoc_default_flags = ['members',             # doc of each method on class page
+                         'show-inheritance',
+                         'special-members',     # show __init__
+                        ]
 
 autosummary_generate = True
 
@@ -118,7 +118,7 @@ exclude_patterns = []
 pygments_style = 'sphinx'
 
 # A list of ignored prefixes for module index sorting.
-#modindex_common_prefix = []
+modindex_common_prefix = ['pwtools.']
 
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
@@ -179,8 +179,10 @@ html_static_path = ['_static']
 # template names.
 #html_additional_pages = {}
 
-# If false, no module index is generated.
-#html_domain_indices = True
+# If false, no module index is generated. Use explicitly py-modindex, else we
+# have two links, one to py-modindex.html and np-modindex.html created by
+# numpydoc.
+html_domain_indices = ['py-modindex']
 
 # If false, no index is generated.
 #html_use_index = True

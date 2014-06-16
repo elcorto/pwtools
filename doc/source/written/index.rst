@@ -1,11 +1,9 @@
-Documentation
--------------
+.. Written documentation.
 
 .. toctree::
 
    features
    install
-   fextensions
    param_study
    parsing
    tutorial

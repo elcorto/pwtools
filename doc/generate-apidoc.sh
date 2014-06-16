@@ -14,9 +14,5 @@ rm -rfv build/ source/generated/
 
 # generate API doc rst files
 echo "using: $autodoc"
-$autodoc -s source -a generated/api -d generated/doc -w written \
+$autodoc -s source -a generated/api \
          -X 'test\.test_|changelog' pwtools
-
-# HACK: currently sphinx-autodoc.py doesn't provide a way to switch writing
-# this dir off, so we delete it
-rm -rf source/generated/doc
