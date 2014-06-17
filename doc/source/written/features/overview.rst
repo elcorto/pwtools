@@ -1,6 +1,4 @@
-.. _features:
-
-Features
+Overview
 ========
 
 * container classes for single unit cells (:class:`~pwtools.crys.Structure`)
@@ -73,4 +71,4 @@ used.
 [*] Last time I checked, I stumbled over a `mailing list thread`_ where they said
 that in LCAO mode, the density would be re-used between steps.
 
-.. _`mailing list thread`: https://listserv.fysik.dtu.dk/pipermail/gpaw-users/2013-April/002044.html   
+.. _`mailing list thread`: https://listserv.fysik.dtu.dk/pipermail/gpaw-users/2013-April/002044.html  

@@ -7,9 +7,10 @@ targeted to Quantum Espresso, CPMD, CP2K and LAMMPS.
 
 Documentation
 -------------
-See doc/ for doumentation and extended install notes (e.g. dependencies on
-other python packages). A semi-recent html version of the documentation is at
-http://elcorto.bitbucket.org/pwtools
+`Have a look here <http://elcorto.bitbucket.org/pwtools>`_ for API
+documentation, extended install notes (e.g. dependencies on other python
+packages) and much more. This is built from the rst files in the ``doc/``
+directory, which you may also read directly, of course.
 
 By far the most documentation is contained in the source doc strings. Therefore
 it is most helpful to look at the `API reference doc`_ and/or simply:
@@ -32,11 +33,5 @@ somewhere and run ``make`` to compile extensions::
     # ~/.bashrc or ~/.profile
     export PATH=$HOME/python/pwtools/bin:$PATH
     export PYTHONPATH=$PYTHONPATH:$HOME/python
-
-Contact
--------
-Read the text version of this file.
-
-.. and look into the file ./.em.png
 
 .. _API reference doc: http://elcorto.bitbucket.org/pwtools/generated/api/index.html

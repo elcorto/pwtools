@@ -1,13 +1,9 @@
 .. Written documentation.
 
 .. toctree::
-
-   features
+    
+   features/index
    install
-   param_study
-   parsing
    tutorial
-   phonon_dos
-   coord_trans
-   pwscf
+   background/index
    refs

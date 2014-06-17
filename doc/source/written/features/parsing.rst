@@ -144,7 +144,7 @@ energy      Ry          Ha              Ha                 eV
 forces      Ry/Bohr     Ha/Bohr         Ha/Bohr            eV/Angstrom
 stress      kbar        kbar            bar[MD], GPa[SCF]  bar
 temperature K           K               K                  K 
-velocity    **          Bohr/thart (?)  Bohr/thart         Angstrom/ps 
+velocity    -           Bohr/thart (?)  Bohr/thart         Angstrom/ps 
 time        tryd        thart           thart              ps
 =========== =========   =============== ================== ====================
 
