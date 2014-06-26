@@ -3,7 +3,8 @@ from itertools import product
 from pwtools.thermo import Gibbs
 from pwtools.mpl import plt
 from pwtools.signal import gauss
-from pwtools import num, crys
+from pwtools import num, crys, io
+from pwtools.test import tools
 
 def test_gibbs():
     # number of varied axis points
@@ -39,6 +40,10 @@ def test_gibbs():
                   volfunc_ax=volfunc_ax, case=case, dosarea=None)
     gibbs.set_fitfunc('C', lambda x,y: num.Spline(x,y,s=None,k=5, eps=1e-5))
     g = gibbs.calc_G(calc_all=True)
+    gref = io.read_h5('files/gibbs_2d.h5')
+    # keys: gref has None keys filtered out
+    tools.assert_dict_with_all_types_almost_equal(gref, g, keys=gref.keys(),
+                                                  atol=1e-12, rtol=0.0)
 
 
     # 1d case
@@ -56,5 +61,9 @@ def test_gibbs():
                   volfunc_ax=volfunc_ax, case=case, dosarea=None)
     gibbs.set_fitfunc('C', lambda x,y: num.Spline(x,y,s=None,k=5, eps=1e-5))
     g = gibbs.calc_G(calc_all=True)
+    gref = io.read_h5('files/gibbs_1d.h5')
+    # keys: gref has None keys filtered out
+    tools.assert_dict_with_all_types_almost_equal(gref, g, keys=gref.keys(),
+                                                  atol=1e-12, rtol=0.0)
 
 

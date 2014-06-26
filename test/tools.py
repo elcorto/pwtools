@@ -3,15 +3,15 @@ compare nested dictionaries containing numpy arrays etc.
 
 The following functions are defined:
 
-:func:`array_equal`
-:func:`all_types_no_dict_equal`
-:func:`dict_with_all_types_equal`
-:func:`all_types_equal`
-
-:func:`array_almost_equal`
-:func:`all_types_no_dict_almost_equal`
-:func:`dict_with_all_types_almost_equal`
-:func:`all_types_almost_equal`
+    | :func:`array_equal`
+    | :func:`all_types_no_dict_equal`
+    | :func:`dict_with_all_types_equal`
+    | :func:`all_types_equal`
+    | 
+    | :func:`array_almost_equal`
+    | :func:`all_types_no_dict_almost_equal`
+    | :func:`dict_with_all_types_almost_equal`
+    | :func:`all_types_almost_equal`
 
 For each, we also have a corresponding ``assert_*`` function.
 
@@ -24,12 +24,13 @@ How to change pre-defined comparison functions
 ----------------------------------------------
 ::
 
->>> import pwtools.test.tools as tt
-# Update comparison functions's comp_map dictionary
->>> tt.all_types_almost_equal.comp_map[tt.arr_t] = \
-... lambda x,y: tt.true_or_false(np.allclose(x,y,atol=0.1,rtol=0.1))
->>> tt.assert_all_types_almost_equal.comp_func.comp_map[tt.arr_t] = \
-... lambda x,y: tt.true_or_false(np.allclose(x,y,atol=0.1,rtol=0.1))
+    >>> import pwtools.test.tools as tt
+    >>> # Update comparison functions's comp_map dictionary
+    >>> tt.all_types_almost_equal.comp_map[tt.arr_t] =
+    ... lambda x,y: tt.true_or_false(np.allclose(x,y,atol=0.1,rtol=0.1))
+    >>> tt.assert_all_types_almost_equal.comp_func.comp_map[tt.arr_t] =
+    ... lambda x,y: tt.true_or_false(np.allclose(x,y,atol=0.1,rtol=0.1))
+
 
 Easy, eh? :)
 """
@@ -40,13 +41,19 @@ from pwtools import num, common
 from pwtools.test.testenv import testdir
 warnings.simplefilter('always')
 
-
+#-----------------------------------------------------------------------------
 # define types, could probably also use the types module
+#-----------------------------------------------------------------------------
+
 arr_t = type(np.array([1.0]))
 dict_t = type({'1': 1})
 float_t = type(1.0)
 int_t = type(1)
 
+
+#-----------------------------------------------------------------------------
+# helper functions
+#-----------------------------------------------------------------------------
 
 def msg(txt):
     """Uncomment for debugging if tests fail."""
@@ -59,6 +66,8 @@ def err(txt):
 
 
 def true_or_false(cond):
+    """Wrapper for a fucntion which returns bool. Should be used to build all
+    comp funcs."""
     if cond:
         print ".. ok"
         return True
@@ -66,24 +75,9 @@ def true_or_false(cond):
         print ".. uuhhhh, FAIL!"
         return False
 
-
-# Basic comparison functions.
-#
-def default_equal(a, b):
-    return true_or_false(a == b)
-
-
-def array_equal(a,b):
-    return true_or_false((a==b).all() and a.ndim == b.ndim)
-
-
-def array_almost_equal(a, b, **kwds):
-    return true_or_false(np.allclose(a, b, **kwds) and a.ndim == b.ndim)
-
-
-def float_almost_equal(a, b, **kwds):
-    return true_or_false(np.allclose(a, b, **kwds))
-
+#-----------------------------------------------------------------------------
+# Factory classes to build more complex comp funcs.
+#-----------------------------------------------------------------------------
 
 class AllTypesFactory(object):
     """Factory for creating functions which compare "any" type. 
@@ -114,6 +108,10 @@ class AllTypesFactory(object):
             Things to compare.
         strict : bool
             Force equal types. Then 1.0 and 1 are not equal.
+        kwds :
+            keywords passed directly to comp func, only useful if you know that
+            the used comp func(s) will accept these, else you need to re-define
+            the comp func
         """
         d1_t = type(d1)
         d2_t = type(d2)
@@ -153,6 +151,10 @@ class DictWithAllTypesFactory(object):
             entries.
         strict : bool
             Force equal types in each dict value. Then 1.0 and 1 are not equal.
+        kwds :
+            keywords passed directly to comp func, only useful if you know that
+            the used comp func(s) will accept these, else you need to re-define
+            the comp func
         """
         if attr_lst is not None:
             warnings.warn("'attr_lst' keyword deprecated. Use 'keys' instead.",
@@ -189,32 +191,6 @@ class DictWithAllTypesFactory(object):
         return ret
 
 
-def assert_attrs_not_none(pp, attr_lst=None, none_attrs=[]):
-    """Assert that ``pp.<attr>`` is not None for all attribute names (strings)
-    in ``attr_lst``.
-
-    Parameters
-    ----------
-    pp : something to run getattr() on, may have the attribute "attr_lst"
-    attr_lst : sequence of strings, optional
-        Attribute names to test. If None then we try ``pp.attr_lst`` if it
-        exists.
-    none_attrs : sequence of strings, optional
-        attr names which are allowed to be None
-    """
-    if attr_lst is None:
-        if hasattr(pp, 'attr_lst'):
-            attr_lst = pp.attr_lst
-        else:
-            raise StandardError("no attr_lst from input or test object 'pp'")
-    for name in attr_lst:
-        msg("assert_attrs_not_none: testing: %s" %name)
-        attr = getattr(pp, name)
-        if name not in none_attrs:
-            assert attr is not None, "FAILED: obj: %s attr: %s is None" \
-                %(str(pp), name)
-
-
 class AssertFactory(object):
     """Factory for comparison functions which simply do ``assert
     comp_func(*args, **kwds)``."""
@@ -225,7 +201,29 @@ class AssertFactory(object):
         assert self.comp_func(*args, **kwds)
 
 
+#-----------------------------------------------------------------------------
+# Basic comparison functions.
+#-----------------------------------------------------------------------------
+
+def default_equal(a, b):
+    return true_or_false(a == b)
+
+
+def array_equal(a,b):
+    return true_or_false((a==b).all() and a.ndim == b.ndim)
+
+
+def array_almost_equal(a, b, **kwds):
+    return true_or_false(np.allclose(a, b, **kwds) and a.ndim == b.ndim)
+
+
+def float_almost_equal(a, b, **kwds):
+    return true_or_false(np.allclose(a, b, **kwds))
+
+#-----------------------------------------------------------------------------
 # comp maps for AllTypesFactory, without dicts
+#-----------------------------------------------------------------------------
+
 comp_map_no_dict_equal = {\
     arr_t: array_equal,
     'default': default_equal,
@@ -237,6 +235,10 @@ comp_map_no_dict_almost_equal = {\
     float_t: float_almost_equal,
     'default': default_equal,
     }
+
+#-----------------------------------------------------------------------------
+# Comparison functions bases on factory classes.
+#-----------------------------------------------------------------------------
 
 # compare all types, but no dicts
 all_types_no_dict_equal = AllTypesFactory(comp_map=comp_map_no_dict_equal)
@@ -270,6 +272,32 @@ adae = assert_dict_with_all_types_almost_equal
 ade = assert_dict_with_all_types_equal
 aaae = assert_array_almost_equal
 aae = assert_array_equal
+
+
+def assert_attrs_not_none(pp, attr_lst=None, none_attrs=[]):
+    """Assert that ``pp.<attr>`` is not None for all attribute names (strings)
+    in ``attr_lst``.
+
+    Parameters
+    ----------
+    pp : something to run getattr() on, may have the attribute "attr_lst"
+    attr_lst : sequence of strings, optional
+        Attribute names to test. If None then we try ``pp.attr_lst`` if it
+        exists.
+    none_attrs : sequence of strings, optional
+        attr names which are allowed to be None
+    """
+    if attr_lst is None:
+        if hasattr(pp, 'attr_lst'):
+            attr_lst = pp.attr_lst
+        else:
+            raise StandardError("no attr_lst from input or test object 'pp'")
+    for name in attr_lst:
+        msg("assert_attrs_not_none: testing: %s" %name)
+        attr = getattr(pp, name)
+        if name not in none_attrs:
+            assert attr is not None, "FAILED: obj: %s attr: %s is None" \
+                %(str(pp), name)
 
 
 def unpack_compressed(src, prefix='tmp', unpack_cmd='gunzip', testdir=testdir,
