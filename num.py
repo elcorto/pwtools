@@ -862,8 +862,7 @@ class Interpol2D(object):
         -------
         [xmin, ymin]: 1d array (2,)
         """
-        _kwds = dict(disp=1, xtol=1e-8, ftol=1e-8, 
-                     maxfun=1e4, maxiter=1e4)
+        _kwds = dict(disp=0, xtol=1e-12, ftol=1e-8, maxfun=1e4, maxiter=1e4)
         _kwds.update(kwds)                            
         if x0 is None:
             idx0 = self.values.argmin()
@@ -1524,7 +1523,7 @@ class PolyFit(object):
         -------
         1d array (ndim,)
         """            
-        _kwds = dict(disp=1, xtol=1e-12, ftol=1e-8, maxfun=1e4, maxiter=1e4)
+        _kwds = dict(disp=0, xtol=1e-12, ftol=1e-8, maxfun=1e4, maxiter=1e4)
         _kwds.update(kwds)
         if x0 is None:
             idx = self.values.argmin()
