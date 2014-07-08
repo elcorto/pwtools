@@ -1,9 +1,12 @@
+#!/usr/bin/env python
+
 import numpy as np
 from itertools import product
+from socket import gethostname
 from pwtools.thermo import Gibbs
 from pwtools.mpl import plt
 from pwtools.signal import gauss
-from pwtools import num, crys, io
+from pwtools import num, crys, io, common
 
 def filt_dct(dct):
     """Filter None values from dict."""
@@ -15,8 +18,9 @@ def filt_dct(dct):
 nax = 6
 # phonon freq axis
 freq = np.linspace(0,1000,300) # cm^-1
-# use log-scale T axis to resolve details at T=0
-T = np.logspace(np.log10(5),np.log10(2000),50)
+# use linear T axis to avoid numerical noise in derivatives (alpha_V, ...) at low
+# T, which we would see when using a log scale
+T = np.linspace(5, 2000, 50)
 P = np.linspace(0,5,2)
 
 # 2d case
@@ -44,7 +48,8 @@ gibbs = Gibbs(T=T, P=P, etot=etot, phdos=phdos, axes_flat=axes_flat,
               volfunc_ax=volfunc_ax, case=case, dosarea=None)
 gibbs.set_fitfunc('C', lambda x,y: num.Spline(x,y,s=None,k=5, eps=1e-5))
 g = gibbs.calc_G(calc_all=True)
-io.write_h5('../files/gibbs_2d.h5', filt_dct(g), mode='w')
+common.makedirs('../files/gibbs/2d')
+io.write_h5('../files/gibbs/2d/%s.h5' %gethostname(), filt_dct(g), mode='w')
 
 
 # 1d case
@@ -62,6 +67,5 @@ gibbs = Gibbs(T=T, P=P, etot=etot, phdos=phdos, axes_flat=axes_flat,
               volfunc_ax=volfunc_ax, case=case, dosarea=None)
 gibbs.set_fitfunc('C', lambda x,y: num.Spline(x,y,s=None,k=5, eps=1e-5))
 g = gibbs.calc_G(calc_all=True)
-io.write_h5('../files/gibbs_1d.h5', filt_dct(g), mode='w')
-
-
+common.makedirs('../files/gibbs/1d')
+io.write_h5('../files/gibbs/1d/%s.h5' %gethostname(), filt_dct(g), mode='w')
