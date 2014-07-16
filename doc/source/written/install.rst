@@ -10,7 +10,18 @@ somewhere and run ``make`` to compile extensions::
     $ make
     # ~/.bashrc or ~/.profile
     export PATH=$HOME/python/pwtools/bin:$PATH
-    export PYTHONPATH=$PYTHONPATH:$HOME/python
+    if [ -n "$PYTHONPATH" ]; then 
+        export PYTHONPATH=$HOME/python:$PYTHONPATH
+    else
+        export PYTHONPATH=$HOME/python
+    fi
+
+Make sure that ``PYTHONPATH`` doesn't start with ``:`` and that you don't have
+``::`` in it. Otherwise, other modules may try to import ``pwtools/io.py``
+instead of the std lib's ``io``. For example `Mercurial
+<http://mercurial.selenic.com>`_ imports ``tempfile``, which imports
+``io``.
+
 
 Add-on packages / other required tools
 --------------------------------------

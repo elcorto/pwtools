@@ -32,6 +32,10 @@ somewhere and run ``make`` to compile extensions::
     $ make
     # ~/.bashrc or ~/.profile
     export PATH=$HOME/python/pwtools/bin:$PATH
-    export PYTHONPATH=$PYTHONPATH:$HOME/python
+    if [ -n "$PYTHONPATH" ]; then 
+        export PYTHONPATH=$HOME/python:$PYTHONPATH
+    else
+        export PYTHONPATH=$HOME/python
+    fi
 
 .. _API reference doc: http://elcorto.bitbucket.org/pwtools/generated/api/index.html
