@@ -693,7 +693,7 @@ class PwSCFOutputFile(StructureFileParser):
                 # ..."
                 cmd = "grep 'atom.*type.*force' %s \
                     | awk '{print $7\" \"$8\" \"$9}'" %self.filename
-                arr2d = np.loadtxt(StringIO(com.backtick(cmd)))
+                arr2d = arr2d_from_txt(com.backtick(cmd))
                 nlines = arr2d.shape[0]
                 # nlines_block = number of force lines per step = N*natoms
                 nlines_block = nlines / nstep

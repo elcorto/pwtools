@@ -3,7 +3,8 @@ from pwtools.parse import PwSCFOutputFile
 from pwtools import common, io
 from pwtools.constants import Ang, Bohr
 from pwtools.test.tools import aaae, assert_attrs_not_none, adae, \
-    unpack_compressed   
+    unpack_compressed 
+from pwtools.test import tools    
 
 def test_pw_scf_out():
     
@@ -92,3 +93,24 @@ def test_pw_scf_no_forces_stress():
     st = io.read_pw_scf(fn)
     assert st.stress is None
     assert st.forces is None
+
+def test_pw_scf_one_atom():
+    fn = unpack_compressed('files/pw.scf_one_atom.out.gz')
+    pp = PwSCFOutputFile(fn)
+    pp.parse()
+    not_none = [\
+        'coords',
+        'symbols',
+        'stress',
+        'etot',
+        'forces',
+        'nstep_scf',
+        'cell',
+        'natoms',
+        'nkpoints',
+    ]
+    tools.assert_attrs_not_none(pp, attr_lst=not_none)
+    assert pp.forces.shape == (1,3)
+    assert pp.coords.shape == (1,3)
+    assert pp.stress.shape == (3,3)
+    assert pp.cell.shape == (3,3)
