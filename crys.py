@@ -2413,22 +2413,21 @@ class Structure(UnitsHandler):
                 assert kwds[name].ndim == 3, "input '%s' is not 3d" %name 
             setattr(self, name, kwds[name])
 
-
         # calculate all missing attrs if requested, their units are based on
         # the ones set above
         if self.set_all_auto:
             self.set_all()
-
+    
     def set_all(self):
-        """Apply units and populate object (i.e. call all getters)."""
-        # Extend cell and cryst_const to nstep length if needed. They won't
-        # have the timeaxis if they don't have that on input and if
-        # set_all_auto=False.
+        """Extend arrays, apply units, call all getters."""
+        self._extend_arrays_apply_units()
+        super(Structure, self).set_all()
+   
+    def _extend_arrays_apply_units(self):
         self.apply_units()
         if self.is_traj:
             self._extend()
-        super(Structure, self).set_all()
-   
+
     def _extend(self):
         if self.check_set_attr('nstep'):
             if self.is_set_attr('cell'):

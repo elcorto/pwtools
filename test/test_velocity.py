@@ -12,7 +12,7 @@ def test_velocity_traj():
     tr = io.read_cp2k_md(fn)
     # read from data file
     v1 = tr.velocity.copy()
-    # If tr.velocity != None, then get_velocity() doesn't calculateb it. The,
+    # If tr.velocity != None, then get_velocity() doesn't calculate it. Then,
     # it simply returns tr.velocity, which is what we of course usually want.
     tr.velocity = None
     # calculate from coords + time step, b/c of central diffs, only steps 1:-1
@@ -25,8 +25,7 @@ def test_velocity_traj():
     print ">>>> np.abs(v1-v2).max()", np.abs(v1-v2).max()
     print ">>>> np.abs(v1-v2).min()", np.abs(v1-v2).min()
     assert np.allclose(v1[1:-1,...], v2[1:-1,...], atol=1e-4)
-
-
+    
     ##from pwtools import mpl
     ##fig,ax = mpl.fig_ax()
     ##ax.plot(v1[1:-1,:,0], 'b')

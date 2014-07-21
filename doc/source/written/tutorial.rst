@@ -46,6 +46,40 @@ Lets take cp2k as an example (assuming an interactive Ipython session)::
     >>> # x-coord of all atoms over time
     >>> plot(tr.coords[...,0])
 
+.. _avoid_auto_calc:
+Avoid auto-calculation for big MD data
+--------------------------------------
+If you have really big MD data (say several GB), then the :ref:`auto-calculation of
+missing properties <container_classes>` might take long and/or fill
+up all memory. To avoid that, call the parser explicitly and say
+``auto_calc=False`` when creating the :class:`~pwtools.crys.Trajectory`,
+which will deactivate auto-calculation. It will only do unit conversion to eV,
+Ang, etc. [you can of course also access the parser's attributes directly, e.g.
+``pp.coords`` in the unit of the MD code (e.g. Bohr) instead of ``tr.coords``
+in Ang].
+
+This is an example for parsing LAMMPS dcd binary data (``log.lammps`` is the
+logfile and the default binary file is ``lmp.out.dcd``).
+
+    >>> pp = parse.LammpsDcdMDOutputFile('log.lammps')
+    >>> tr = pp.get_traj(auto_calc=False) # default is auto_calc=True
+
+In order to maximally reduce data, you can tell the parser to parse only
+certain things::
+    
+    >>> pp.set_attr_lst(['etot', 'coords', 'temperature'])
+    >>> tr = pp.get_traj(auto_calc=False)
+
+You may also use ``auto_calc=True`` here any see what will be
+auto-calculated from this minimal input data.
+
+Of course you need to know what can be found in the MD data (e.g. if the MD
+code writes no fractional coords, then parsing ``coords_frac`` won't work).
+
+To find out what can be parsed, also check which ``get_*()`` methods the parser
+implements (mind also base classes, best is to use Tab completion in ipython:
+``>>> pp.get_<tab>`` or have a look at the API documentation).
+
 Binary IO
 ---------
 You can save a :class:`~pwtools.crys.Structure` or

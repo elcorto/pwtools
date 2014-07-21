@@ -281,22 +281,37 @@ class StructureFileParser(UnitsHandler):
     def parse(self):
         self.set_all()
         self.parse_called = True
+    
+    def get_cont(self, auto_calc=True):
+        """Populate and return a Container object.
+        
+        Parameters
+        ----------
+        auto_calc : bool
+            Auto-calculation of missing attributes in Container after passing
+            parsed data by calling ``set_all()``.
 
-    def get_cont(self):
-        """Populate and return a Container object."""
+            | True:  call ``Container.set_all()`` =
+            |           ``Container._extend_arrays_apply_units()`` + 
+            |           ``FlexibleGetters.set_all()``
+            | False: call only ``Container._extend_arrays_apply_units()``
+        """
         if not self.parse_called:
             self.parse()
         for attr_name in self.cont.attr_lst:
             setattr(self.cont, attr_name, getattr(self, attr_name))
-        # we assume that cont.set_all() calls apply_units()
-        self.cont.set_all()
+        if auto_calc:
+            self.cont.set_all()
+        else:            
+            self.cont._extend_arrays_apply_units()
+        assert self.cont.units_applied, "Container units not applied"            
         return self.cont
    
     def apply_units(self):
         raise NotImplementedError("don't use that in parsers")
     
-    def get_struct(self):
-        return self.get_cont()
+    def get_struct(self, **kwds):
+        return self.get_cont(**kwds)
 
 
 class TrajectoryFileParser(StructureFileParser):
@@ -306,11 +321,11 @@ class TrajectoryFileParser(StructureFileParser):
     # instantiate the object
     timeaxis = Container.timeaxis
     
-    def get_struct(self):
+    def get_struct(self, **kwds):
         raise NotImplementedError("use get_traj()")
 
-    def get_traj(self):
-        return self.get_cont()
+    def get_traj(self, **kwds):
+        return self.get_cont(**kwds)
 
 
 class CifFile(StructureFileParser):
