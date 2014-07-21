@@ -150,3 +150,13 @@ def test_gibbs():
                                                       keys=gref.keys(),
                                                       atol=1e-14, rtol=1e-14)
     
+    # test enthalpy stuff for 1d case
+    # E(V) 
+    ev = num.PolyFit1D(g['/ax0/V'], g['/ax0/Etot'], deg=5)
+    # P(V)
+    pv = lambda v: -ev(v, der=1)*constants.eV_by_Ang3_to_GPa
+    assert np.allclose(g['/P/P'], pv(g['/#opt/P/V']))
+    assert np.allclose(g['/#opt/P/H'], 
+                       ev(g['/#opt/P/V']) + g['/P/P']*g['/#opt/P/V'] / \
+                       constants.eV_by_Ang3_to_GPa)
+
