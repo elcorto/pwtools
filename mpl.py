@@ -2,6 +2,27 @@
 # 
 # Plotting stuff for matplotlib: layouts, predefined markers etc.
 
+"""
+Example for changing axis color (pure matplotlib, just as reference)
+---------------------------------------------------------------------
+From http://stackoverflow.com/questions/4761623/changing-the-color-of-the-axis-ticks-and-labels-for-a-plot-in-matplotlib
+
+>>> import matplotlib.pyplot as plt
+>>> fig = plt.figure()
+>>> ax = fig.add_subplot(111)
+
+>>> ax.plot(range(10))
+>>> ax.set_xlabel('X-axis')
+>>> ax.set_ylabel('Y-axis')
+
+>>> ax.spines['bottom'].set_color('red')
+>>> ax.spines['top'].set_color('red')
+>>> ax.xaxis.label.set_color('red')
+>>> ax.tick_params(axis='x', colors='red')
+
+>>> plt.show()
+"""
+
 import itertools
 from pwtools import common, num
 import warnings
