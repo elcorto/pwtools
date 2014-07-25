@@ -328,6 +328,7 @@ class Data2D(object):
         generated like in the nested loop above. For otherwise ordered `xx`,
         `yy` this will fail. 
         """
+        self.attr_lst = ['x', 'y', 'xx', 'yy', 'zz', 'X', 'Y', 'Z', 'XY']
         self.x = x
         self.y = y
         self.xx = xx
@@ -337,7 +338,7 @@ class Data2D(object):
         self.Y = Y
         self.Z = Z
         self.XY = XY
-        self.update()
+        self._update()
     
     @staticmethod
     def _unique(x):
@@ -351,7 +352,7 @@ class Data2D(object):
         # array([ 1,  3, -3, -7, -8])
         return x[np.sort(np.unique(x, return_index=True)[1])]
 
-    def update(self):
+    def _update(self):
         if [self.x,self.y] != [None]*2:
             self.X,self.Y = num.meshgridt(self.x, self.y)
             self.xx = self.X.flatten()
@@ -385,6 +386,26 @@ class Data2D(object):
                 self.Z = self.zz.reshape(len(self.x), len(self.y))
         else:
             self.zz = self.Z.flatten()
+
+    def update(self, **kwds):
+        """Update object with new or more input data. Input args are the same
+        as in the constructor, i.e. `x`, `y`, `xx`, ..."""
+        for key,val in kwds.iteritems():
+            assert key in self.attr_lst, ("'%s' not allowed" %key)
+            setattr(self, key, val)
+        self._update()
+    
+    def copy(self):
+        """Copy object. numpy arrays are real copies, not views."""
+        kwds = {}
+        for name in self.attr_lst:
+            attr = getattr(self, name)
+            if attr is not None:
+                kwds[name] = attr.copy()
+            else:                
+                kwds[name] = None
+        return Data2D(**kwds)
+
 
 # backwd compat
 Data3D = Data2D
