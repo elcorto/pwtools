@@ -1,6 +1,7 @@
 import numpy as np
 from pwtools import mpl
 from pwtools.test import tools
+rand = np.random.rand
 
 def assert_equal(d1, d2, keys=None):
     if keys is None:
@@ -28,3 +29,23 @@ def test_data2d():
     # Z data is optional
     d2 = mpl.Data2D(XY=d1.XY)
     assert_equal(d1, d2, keys=['x','y','xx','yy','X','Y','XY'])      
+
+
+def test_data2d_unique_order():
+    for x,y in [(np.array([1,2,3,4,5,6]), np.array([1,3,-3,-7,-8])),
+                (rand(12), rand(222))]:
+
+        d1 = mpl.Data2D(x=x, y=y)
+        d2 = mpl.Data2D(xx=d1.xx, yy=d1.yy)
+        
+        # test Data2D._unique() 
+        #
+        # with np.unique()
+        #   d1.y = array([1,  3,  -3, -7, -8])
+        #   d2.y = np.unique(d1.yy)
+        #        = array([-8, -7, -3,  1,  3])
+        # instead of
+        #   d2.y = Data2D._unique(d1.yy)
+        #        = array([1,  3,  -3, -7, -8])
+        #        = d1.y
+        assert_equal(d1, d2)    

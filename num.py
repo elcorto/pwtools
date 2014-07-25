@@ -1824,3 +1824,4 @@ def euler_matrix(phi, theta, psi, deg=False):
                   [-sin_c,  cos_c,      0],
                   [     0,      0,      1]])*1.0
     return np.dot(B, np.dot(C, D))
+

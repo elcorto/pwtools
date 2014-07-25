@@ -338,6 +338,18 @@ class Data2D(object):
         self.Z = Z
         self.XY = XY
         self.update()
+    
+    @staticmethod
+    def _unique(x):
+        # numpy.unique(x) with preserved order
+        # http://stackoverflow.com/questions/15637336/numpy-unique-with-order-preserved
+        #
+        # >>> y=array([1,3,-3,-7,-8])
+        # >>> unique(y)
+        # array([-8, -7, -3,  1,  3])
+        # >>> mpl.Data2D._unique(y)
+        # array([ 1,  3, -3, -7, -8])
+        return x[np.sort(np.unique(x, return_index=True)[1])]
 
     def update(self):
         if [self.x,self.y] != [None]*2:
@@ -352,15 +364,15 @@ class Data2D(object):
             self.yy = self.Y.flatten()
             self.XY = np.array([self.xx, self.yy]).T
         elif [self.xx,self.yy] != [None]*2: 
-            self.x = np.unique(self.xx)
-            self.y = np.unique(self.yy)
+            self.x = self._unique(self.xx)
+            self.y = self._unique(self.yy)
             self.X,self.Y = num.meshgridt(self.x, self.y)
             self.XY = np.array([self.xx, self.yy]).T
         elif self.XY is not None:
             self.xx = self.XY[:,0]
             self.yy = self.XY[:,1]
-            self.x = np.unique(self.xx)
-            self.y = np.unique(self.yy)
+            self.x = self._unique(self.xx)
+            self.y = self._unique(self.yy)
             self.X,self.Y = num.meshgridt(self.x, self.y)
         else:
             raise StandardError("cannot determine x and y from input")
