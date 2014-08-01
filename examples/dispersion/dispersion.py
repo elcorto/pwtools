@@ -17,7 +17,7 @@ and these files:
 """
 
 import numpy as np
-from pwtools import kpath, common, pwscf, io, crys
+from pwtools import kpath, common, pwscf, io, crys, mpl
 
 sp_symbols = ['$\Gamma$', 
               'M',
@@ -80,11 +80,16 @@ sp = kpath.SpecialPointsPath(ks=sp_points, ks_frac=sp_points_frac,
 
 # QE 4.x, 5.x
 ks, freqs = pwscf.read_matdyn_freq(matdyn_freq_fn)
-kpath.plot_dis(kpath.get_path_norm(ks_path), freqs, sp, marker='', ls='-', color='k') 
+fig,ax = kpath.plot_dis(kpath.get_path_norm(ks_path), freqs, sp, marker='', ls='-', color='k') 
 
 # QE 5.x
 ##d = np.loadtxt(matdyn_freq_fn + '.gp')
-##kpath.plot_dis(d[:,0], d[:,1:], sp, marker='', ls='-', color='k') 
+##fig,ax = kpath.plot_dis(d[:,0], d[:,1:], sp, marker='', ls='-', color='k') 
+
+# if needed
+#ax.set_ylim(...)
+
+mpl.plt.show()
 
 # Band jumps at Gamma
 # -------------------

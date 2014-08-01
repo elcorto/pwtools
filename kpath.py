@@ -1,5 +1,5 @@
 import numpy as np
-from pwtools import num, pwscf, common
+from pwtools import num, pwscf, common, mpl
 
 def kpath(vecs, N=10):    
     """Simple k-path. Given a set of K vectors (special points in the BZ),
@@ -27,10 +27,9 @@ def kpath(vecs, N=10):
     matter, you will always get N points between them. For a smooth dispersion
     plot, you need N=20 or more.
     """
-    nvecs = vecs.shape[0]
-    nnew = (nvecs-1)*N+1
-    new_vecs = np.empty((nnew, vecs.shape[1]), dtype=float)
-    for i in range(1, nvecs):
+    K = vecs.shape[0]
+    new_vecs = np.empty(((K-1)*N+1, vecs.shape[1]), dtype=float)
+    for i in range(1, K):
         new_vecs[(i-1)*N:i*N, :] = num.vlinspace(vecs[i-1,:], vecs[i,:], N,
                                                  endpoint=False)
 
@@ -39,13 +38,14 @@ def kpath(vecs, N=10):
 
 
 def get_path_norm(ks):
-    """Like in QE's plotband.f90, path_norm = kx there. Return a sequence of
+    """Like in QE's ``plotband.f90``, path_norm = kx there. Return a sequence of
     cumulative norms of the difference vectors which connect each two adjacent
     k-points.
 
     Parameters
     ----------
-    ks : array (nks, 3), array with `nks` k-points on the path
+    ks : array (nks, 3) 
+        array with `nks` k-points on the path
     """
     dnorms = np.empty(ks.shape[0], dtype=float)
     dnorms[0] = np.linalg.norm(ks[0,:])
@@ -57,7 +57,8 @@ def get_path_norm(ks):
 
 
 class SpecialPointsPath(object):
-    """Sequence of special points. Calculate their path norm."""
+    r"""Sequence of special points. Calculate their path norm and store symbols
+    such as "K" or "$\\Gamma$"."""
     def __init__(self, ks=None, ks_frac=None, symbols=None):
         """
         Parameters
@@ -65,10 +66,10 @@ class SpecialPointsPath(object):
         ks : (nks,3)
             cartesian k-points
         ks_frac : (nks,3), optional
-            fractional k-points
-        symbols : sequence, optional    
-            special point symbols for ``ks[i]``, ignored of `sp_lst` is given,
-            then ``sp_lst[i].symbol`` is used
+            fractional k-points, used only in :func:`plot_dis`, not for path
+            norm calculation
+        symbols : sequence of strings (nks,), optional    
+            special point symbol each point in `ks`
         """
         assert [ks, ks_frac] != [None]*2, ("use either ks or ks_frac")
         self.ks = ks
@@ -78,7 +79,8 @@ class SpecialPointsPath(object):
         self.path_norm = get_path_norm(self.ks) 
 
 
-def plot_dis(path_norm, freqs, special_points_path=None, filename=None, **kwargs):
+def plot_dis(path_norm, freqs, special_points_path=None,
+             ax=None, **kwargs):
     """Plot dispersion. 
     
     See ``bin/plot_dispersion.py`` for a usage example. This lives here (and not in
@@ -87,39 +89,58 @@ def plot_dis(path_norm, freqs, special_points_path=None, filename=None, **kwargs
     
     See :func:`~pwtools.pwscf.read_matdyn_freq` for how to get `freqs` in the
     case of phonon dispersions.
-
+    
     Parameters
     ----------
     path_norm : array (nks,)
-        x-axis with cumulative norms of points along the k-path
+        x-axis with cumulative norms of points along the k-path, see
+        :func:`get_path_norm`
     freqs : array (nks, nbnd)
         `nbnd` frequencies for each band at each k-point
-    special_points_path : optional, a SpecialPointsPath instance,
+    special_points_path : optional, :class:`SpecialPointsPath` instance
         used for pretty-printing the x-axis (set special point labels)
-    filename : save to file        
+    ax : matplotlib AxesSubplot (e.g. from ``fig,ax=pwtools.mpl.fig_ax()``)
     **kwargs : keywords
         passed to plot()
+    
+    Examples
+    --------
+    >>> spp = kpath.SpecialPointsPath(ks=np.array([[0,0,0], [.5,0,0], [.7,0,0]]),
+                                      symbols=['A', 'B', 'C'])
+    >>> path_norm = np.linspace(0,1,100)
+    >>> freqs = np.random.rand(100,5) 
+    >>> # create fig,ax inside
+    >>> fig1,ax1 = kpath.plot_dis(path_norm, freqs, spp)
+    >>> # pass ax from outside, returns fig2,ax2 but we don't use that b/c ax2
+    >>> # is in-place modified
+    >>> fig2,ax2 = mpl.fig_ax()
+    >>> kpath.plot_dis(path_norm, freqs, spp, ax=ax2)
+
+    See Also
+    --------
+    :func:`get_path_norm`
+    :ref:`dispersion_example`
     """
-    import matplotlib.pyplot as plt
+    if ax is None:
+        fig,ax = mpl.fig_ax()
+    else:
+        fig = ax.get_figure()
     # Plot columns of `freq` against q points (path_norm)
-    plt.plot(path_norm, freqs, **kwargs)
+    ax.plot(path_norm, freqs, **kwargs)
     if special_points_path is not None:
-        yl = plt.ylim()
+        yl = ax.get_ylim()
         ks, ks_frac, nrm, symbols = \
             special_points_path.ks, \
             special_points_path.ks_frac, \
             special_points_path.path_norm, \
             special_points_path.symbols
-        plt.vlines(nrm, yl[0], yl[1])
+        ax.vlines(nrm, yl[0], yl[1])
         fmtfunc = lambda x: "%.2g" %x
         ks_plot = ks if ks_frac is None else ks_frac
         labels = ['%s\n[%s]' %(sym, common.seq2str(kk, func=fmtfunc,sep=','))\
                   for sym,kk in zip(symbols, ks_plot)]
-        print nrm
-        print labels
-        plt.xticks(nrm, labels)
-        plt.xlim(path_norm[0], path_norm[-1])
-        plt.ylabel("frequency (cm$^{-1}$)")
-        if filename is not None:
-            plt.savefig(filename)
-        plt.show()
+        ax.set_xticks(nrm)
+        ax.set_xticklabels(labels)
+        ax.set_xlim(path_norm[0], path_norm[-1])
+        ax.set_ylabel("frequency (cm$^{-1}$)")
+    return fig,ax        
