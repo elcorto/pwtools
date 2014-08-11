@@ -492,7 +492,7 @@ def find_peaks(y, x=None, k=3, spread=2, ymin=None):
     >>> spl=num.Spline(x,y)
     >>> plot(x,y)
     >>> for x0 in pos0:
-    ...     plot([x0], [spl(x0)], 'ro')
+    ...    plot([x0], [spl(x0)], 'ro')
     """
     ymin = y.min() if ymin is None else ymin
     idx0 = []

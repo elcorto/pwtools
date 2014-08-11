@@ -177,25 +177,35 @@ def test_znucl():
 def test_mix():
     symbols = ['H']*3 + ['Au']*7
     natoms = len(symbols)
-    st1 = Structure(coords_frac=rand(natoms,3),
+    st1nf = Structure(coords_frac=rand(natoms,3),
                     symbols=symbols,
                     cell=rand(3,3))
-    st2 = Structure(coords_frac=rand(natoms,3),
+    st2nf = Structure(coords_frac=rand(natoms,3),
                     symbols=symbols,
                     cell=rand(3,3))
-
-    tr = crys.mix(st1, st2, alpha=np.linspace(0,1,20))
-    assert tr.nstep == 20
-    assert tr.coords_frac.shape == (20, st1.natoms, 3)
-    
-    for idx,st in [(0,st1), (-1, st2)]:
-        tools.assert_dict_with_all_types_almost_equal(st.__dict__,
-                                                      tr[idx].__dict__,
-                                                      keys=st1.attr_lst)
-    for x in [0.5, 0.9]:
-        tr = crys.mix(st1, st2, alpha=np.array([x]))
-        assert tr.nstep == 1
-        tools.assert_all_types_almost_equal(tr[0].coords, (1-x)*st1.coords + x*st2.coords)
-        tools.assert_all_types_almost_equal(tr[0].cell, (1-x)*st1.cell + x*st2.cell)
+    st1f = Structure(coords_frac=rand(natoms,3),
+                    symbols=symbols,
+                    cell=rand(3,3),
+                    forces=rand(natoms,3))
+    st2f = Structure(coords_frac=rand(natoms,3),
+                    symbols=symbols,
+                    cell=rand(3,3),
+                    forces=rand(natoms,3))
+    for st1,st2 in [(st1f, st2f), (st1nf, st2nf)]:
+        tr = crys.mix(st1, st2, alpha=np.linspace(0,1,20))
+        assert tr.nstep == 20
+        assert tr.coords_frac.shape == (20, st1.natoms, 3)
+        
+        for idx,st in [(0,st1), (-1, st2)]:
+            tools.assert_dict_with_all_types_almost_equal(st.__dict__,
+                                                          tr[idx].__dict__,
+                                                          keys=st1.attr_lst)
+        for x in [0.5, 0.9]:
+            tr = crys.mix(st1, st2, alpha=np.array([x]))
+            assert tr.nstep == 1
+            tools.assert_all_types_almost_equal(tr[0].coords, (1-x)*st1.coords + x*st2.coords)
+            tools.assert_all_types_almost_equal(tr[0].cell, (1-x)*st1.cell + x*st2.cell)
+            if tr.forces is not None:
+                tools.assert_all_types_almost_equal(tr[0].forces, (1-x)*st1.forces + x*st2.forces)
 
 

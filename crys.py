@@ -3198,7 +3198,7 @@ def mix(st1, st2, alpha):
     `alpha`. Returns a :class:`Trajectory`.
     
     Mix two structures as (1-alpha)*st1 + alpha*st2. `coords` and `cell` are
-    used.
+    used, as well as `forces` if present.
 
     Parameters
     ----------
@@ -3224,7 +3224,15 @@ def mix(st1, st2, alpha):
     rr = alpha[:,None,None]
     coords = rr * st2.coords[None,:,:] + (1.0 - rr) * st1.coords[None,:,:]
     cell = rr * st2.cell[None,:,:] + (1.0 - rr) * st1.cell[None,:,:]
-    return Trajectory(coords=coords, cell=cell, symbols=st1.symbols)
+    if (st1.forces is not None) and (st2.forces is not None):
+        forces = rr * st2.forces[None,:,:] + (1.0 - rr) * st1.forces[None,:,:]
+        return Trajectory(coords=coords, cell=cell, symbols=st1.symbols,
+                          forces=forces)
+    else:
+        # cannot use forces=None here, Structure.__init__ complains that it
+        # is None ... this is by design but seems stupid -> change input
+        # checking logic there
+        return Trajectory(coords=coords, cell=cell, symbols=st1.symbols)
 
 
 def align_cart(obj, x=None, y=None, vecs=None, indices=None, cart=None,
