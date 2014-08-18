@@ -712,7 +712,7 @@ class Interpol2D(object):
     does :meth:`get_min`.
     """
     def __init__(self, points=None, values=None, xx=None, yy=None,  dd=None,
-                 what='rbf_multi', **initkwds):
+                 what='rbf_inv_multi', **initkwds):
         """
         Parameters
         ----------
@@ -741,13 +741,13 @@ class Interpol2D(object):
         Possible keywords (examples):
         
         rbf :
-            param='est'
-            param=0.05
+            param = 'est' (default)
+            param = 0.05
         ct :
-            tol = 1e-6
+            tol = 1e-6 (default)
         bispl :
             s = 1e-4 
-            kx=3,ky=3 (default actually)
+            kx = 3, ky = 3 (default)
             nxest, nyest
         
         Examples
@@ -788,7 +788,7 @@ class Interpol2D(object):
                                     rbf=rbf.RBFMultiquadric())
             self.inter.train('linalg', **initkwds)
             self.call = self.inter
-        if what == 'rbf_inv_multi':
+        elif what == 'rbf_inv_multi':
             self.inter = rbf.RBFInt(self.points, self.values, 
                                     rbf=rbf.RBFInverseMultiquadric())
             self.inter.train('linalg', **initkwds)
@@ -827,7 +827,9 @@ class Interpol2D(object):
                     ii in range(points.shape[0])]
                 return np.array(ret)
             self.inter = _call
-            self.call = _call                
+            self.call = _call
+        else:
+            raise StandardError("unknown interpolator type: %s" %what)
    
     def __call__(self, points, **callkwds):
         """
