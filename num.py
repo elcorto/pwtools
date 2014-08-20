@@ -199,7 +199,7 @@ def findroot(x, y):
 
 class Fit1D(object):
     """Base class for 1D data fit/interpolation classes (Spline, PolyFit1D). It
-    provides :meth:`get_min`, :meth:`get_root`, :meth:`is_mono`. 
+    provides :meth:`get_min`, ::meth:`get_max`, meth:`get_root`, :meth:`is_mono`. 
     
     The assumed API is that the ``__call__`` method has a kwd `der` which
     causes it to calculate derivatives, i.e. ``__call__(x, der=1)`` is the
@@ -262,6 +262,11 @@ class Fit1D(object):
         """
         return self._findroot(lambda x: self(x, der=1), x0=x0, xab=xab, **kwds)
     
+    def get_max(self, x0=None, xab=None, **kwds):
+        """Convenience method. Same as :meth:`get_min`, just for local maxima,
+        simply using ``-self(x, der=1)``."""
+        return self._findroot(lambda x: -self(x, der=1), x0=x0, xab=xab, **kwds)
+
     def get_root(self, x0=None, xab=None, **kwds):
         """Return x where y(x) = 0 by calculating the root of the fit function.
 

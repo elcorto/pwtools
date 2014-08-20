@@ -35,8 +35,9 @@ def test_spline():
     
     # root    
     np.testing.assert_almost_equal(spl.invsplev(0.0), spl.get_root())
-    
-    # min
+
+def test_min_max():
+    # min: num.Fit1D.get_min()
     x = np.linspace(-10,10,100) 
     y = (x-5)**2.0 + 1.0
     spl = Spline(x,y)
@@ -45,7 +46,17 @@ def test_spline():
     np.testing.assert_almost_equal(xmin, 5.0)
     np.testing.assert_almost_equal(ymin, 1.0)
 
-    # API
+    # max: num.Fit1D.get_max()
+    y = -(x-5)**2.0 + 1.0
+    spl = Spline(x,y)
+    xmax = spl.get_max()
+    ymax = spl(xmin)
+    np.testing.assert_almost_equal(xmax, 5.0)
+    np.testing.assert_almost_equal(ymax, 1.0)
+
+def test_api():
+    x = np.linspace(-10,10,100) 
+    y = (x-5)**2.0 + 1.0
     spl = Spline(x,y,k=2,s=0.1,eps=0.11)
     for kw in ['k', 's']:
         assert kw in spl.splrep_kwargs.keys()
