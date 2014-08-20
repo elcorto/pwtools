@@ -615,7 +615,6 @@ class Gibbs(object):
                 ret[self.axes_prefix + '/T/Svib'][idx,:] = svib
                 ret[self.axes_prefix + '/T/Evib'][idx,:] = evib
                 ret[self.axes_prefix + '/T/Cv'][idx,:] = cv
-                ret[self.axes_prefix + '/T/Evib'][idx,:] = evib
         ret.update(self.ret)        
         return ret
     
