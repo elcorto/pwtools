@@ -70,7 +70,7 @@ certain things::
     >>> pp.set_attr_lst(['etot', 'coords', 'temperature'])
     >>> tr = pp.get_traj(auto_calc=False)
 
-You may also use ``auto_calc=True`` here any see what will be
+You may also use ``auto_calc=True`` here and see what will be
 auto-calculated from this minimal input data.
 
 Of course you need to know what can be found in the MD data (e.g. if the MD

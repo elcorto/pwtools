@@ -24,7 +24,7 @@ Overview
 * interface to external EOS fitting tools (:mod:`~pwtools.eos`)
 
 * thermodynamic properties in the quasi-harmonic approximation from phonon
-  density of states (:mod:`~pwtools.thermo`) 
+  density of states, QHA implementation (:mod:`~pwtools.thermo`) 
 
 * MD analyis: radial pair distribution function (own implementation and VMD
   [vmd]_ interface), RMS, RMSD (:mod:`~pwtools.crys`)
@@ -32,7 +32,8 @@ Overview
 * unit cell related tools: super cell building, coordinate transformation,
   k-grid tools, ... (:mod:`~pwtools.crys`)
 
-* functions and classes to extend numpy/scipy (:mod:`~pwtools.num`)
+* functions and classes to extend numpy/scipy, e.g. N-dim polynomial fitting! 
+  (:mod:`~pwtools.num`)
 
 * basic signal processing / fft related tools (:mod:`~pwtools.signal`)
 

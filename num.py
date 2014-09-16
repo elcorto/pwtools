@@ -731,13 +731,14 @@ class Interpol2D(object):
         dd : pwtools.mpl.Data2D instance
         what : str, optional
             which interpolator to use
-            'rbf_multi' : RBFN w/ multiquadric rbf, see :class:`~pwtools.rbf.RBFInt`
-            'rbf_inv_multi' : RBFN w/ inverse multiquadric rbf
-            'rbf_gauss' : RBFN w/ gaussian rbf
-            'bispl'     : scipy.interpolate.bispl{rep,ev} 
-            'ct'        : scipy.interpolate.CloughTocher2DInterpolator
-            'linear'    : scipy.interpolate.LinearNDInterpolator
-            'nearest'   : scipy.interpolate.NearestNDInterpolator
+
+            | 'rbf_multi' : RBFN w/ multiquadric rbf, see :class:`~pwtools.rbf.RBFInt`
+            | 'rbf_inv_multi' : RBFN w/ inverse multiquadric rbf
+            | 'rbf_gauss' : RBFN w/ gaussian rbf
+            | 'bispl'     : scipy.interpolate.bispl{rep,ev} 
+            | 'ct'        : scipy.interpolate.CloughTocher2DInterpolator
+            | 'linear'    : scipy.interpolate.LinearNDInterpolator
+            | 'nearest'   : scipy.interpolate.NearestNDInterpolator
         **initkwds : keywords passed on to the interpolator's constructor             
         
         Notes
