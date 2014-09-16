@@ -3,6 +3,7 @@
 # After scipy.signal: Some general "signal procressing" tools (FFT,
 # correlation). Mostly textbook and reference implementations and utilities.
 
+from itertools import product, izip
 import numpy as np
 from scipy.fftpack import fft, ifft
 from scipy.signal import fftconvolve, gaussian, kaiserord, firwin, lfilter, freqz
@@ -152,23 +153,56 @@ def dft(a, method='loop'):
     return fta            
 
 
-def dft_axis(arr, axis=-1):
-    """Same as scipy.fftpack.fft(arr, axis=axis), but *much* slower."""
-    return np.apply_along_axis(dft, axis, arr)
- 
-
 def ezfft(y, dt=1.0):
-    """
+    """Simple FFT function for interactive use.
+
+    Parameters
+    ----------
+    y : 1d array to fft
+    dt : float
+        time step
+    
+    Returns
+    -------
+    faxis, fft(y)
+
     Examples
     --------
-    >>> t=linspace(0,1,200) 
-    >>> x=sin(2*pi*10*t) 
-    >>> f,d=signal.ezfft(x, t[1]-t[0])
+    >>> t = linspace(0,1,200) 
+    >>> x = sin(2*pi*10*t) + sin(2*pi*20*t)
+    >>> f,d = signal.ezfft(x, dt=t[1]-t[0])
     >>> plot(f,abs(d))
     """
+    assert y.ndim == 1
     faxis = np.fft.fftfreq(len(y), dt)
     split_idx = len(faxis)/2
     return faxis[:split_idx], fft(y)[:split_idx]
+
+
+def fft_1d_loop(arr, axis=-1):
+    """Like scipy.fft.pack.fft and numpy.fft.fft, perform fft along an axis.
+    Here do this by looping over remaining axes and perform 1D FFTs.
+    
+    This was implemented as a low-memory version like
+    :func:`~pwtools.crys.smooth` to be used in :func:`~pwtools.pydos.pdos`,
+    which fills up the memory for big MD data. But actually it has the same
+    memory footprint as the plain scipy fft routine. Keep it here anyway as a
+    nice reference for how to loop over remaining axes in the ndarray case.
+    """
+    if axis < 0:
+        axis = arr.ndim - 1
+    axes = [ax for ax in range(arr.ndim) if ax != axis]
+    # tuple here is 3x faster than generator expression
+    #   idxs = (range(arr.shape[ax]) for ax in axes)  
+    idxs = tuple(range(arr.shape[ax]) for ax in axes)
+    out = np.empty(arr.shape, dtype=complex)
+    for idx_tup in product(*idxs):
+        sl = [slice(None)] * arr.ndim
+        for idx,ax in izip(idx_tup, axes):
+            sl[ax] = idx
+        out[sl] = fft(arr[sl])
+    return out        
+
 
 
 def pad_zeros(arr, axis=0, where='end', nadd=None, upto=None, tonext=None,

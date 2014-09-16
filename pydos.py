@@ -290,7 +290,7 @@ def pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
         # First split the array, then multiply by `mass` and average. If
         # full_out, then we need full_fft_vel below, so copy before slicing.
         arr = full_fft_vel.copy() if full_out else full_fft_vel
-        fft_vel = num.slicetake(arr, slice(0, split_idx), axis=axis)
+        fft_vel = num.slicetake(arr, slice(0, split_idx), axis=axis, copy=False)
         if mass is not None:
             fft_vel *= mass_bc
         # average remaining axes, summing is enough b/c normalization is done below

@@ -61,3 +61,6 @@ def test_pdos():
     # If `tonext` is used, full fft array lengths must be a power of two.
     assert len(ffd) >= 2*V.shape[timeaxis] - 1
     assert np.log2(len(ffd)) % 1.0 == 0.0
+
+
+

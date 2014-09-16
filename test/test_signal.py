@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.signal import hanning, gaussian
-from pwtools.signal import gauss, find_peaks, smooth
+from pwtools.signal import gauss, find_peaks, smooth, fft_1d_loop
+from scipy.fftpack import fft
 from pwtools import num
 rand = np.random.rand
 
@@ -70,4 +71,12 @@ def test_find_peaks():
     idx0, pos0 = find_peaks(y,x, ymin=0.4)
     assert idx0 == [60, 90, 179] 
     assert np.allclose(pos0, np.array([2,3,6.]), atol=1e-3)
+
+
+def test_fft_1d_loop():
+    a = rand(10,20,30,40)
+    for axis in [0,1,2,3]:
+        assert (fft(a, axis=axis) == fft_1d_loop(a, axis=axis)).all()
+    a = rand(10)
+    assert (fft(a) == fft_1d_loop(a)).all()
 
