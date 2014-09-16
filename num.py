@@ -7,7 +7,7 @@ import numpy as np
 from math import sqrt, sin, cos, radians, pi
 import scipy.optimize as optimize
 from scipy.interpolate import bisplrep, \
-    bisplev, splev, splrep, NearestNDInterpolator, LinearNDInterpolator
+    bisplev, splev, splrep
 from scipy.integrate import simps, trapz
 from pwtools import _flib
 import warnings
@@ -15,13 +15,16 @@ warnings.simplefilter('always')
 
 # Hack for older scipy versions.
 try: 
-    from scipy.interpolate import CloughTocher2DInterpolator
+    from scipy.interpolate import CloughTocher2DInterpolator, \
+        NearestNDInterpolator, LinearNDInterpolator
 except ImportError:
     # Don't throw a warning here b/c (1) this module is imported often and that
     # would annoy anyone to no end and (2) this interpolator isn't used much,
     # only for experimentation. It's enough to fail inside Interpol2D() if
     # needed.
     CloughTocher2DInterpolator = None
+    NearestNDInterpolator = None
+    LinearNDInterpolator = None
 
 # constants
 EPS = np.finfo(float).eps
@@ -803,7 +806,6 @@ class Interpol2D(object):
             self.inter.train('linalg', **initkwds)
             self.call = self.inter
         elif what == 'ct':
-            # Fail only when 'ct' is used. Don't do imports here, may be slow.
             if CloughTocher2DInterpolator is None:
                 raise ImportError("could not import "
                     "scipy.interpolate.CloughTocher2DInterpolator")
@@ -813,13 +815,21 @@ class Interpol2D(object):
                                                         **initkwds)
                 self.call = self.inter
         elif what == 'nearest':
-            self.inter = NearestNDInterpolator(self.points, self.values,
+            if NearestNDInterpolator is None:
+                raise ImportError("could not import "
+                    "scipy.interpolate.NearestNDInterpolator")
+            else:                    
+                self.inter = NearestNDInterpolator(self.points, self.values,
                                                **initkwds)
-            self.call = self.inter
+                self.call = self.inter
         elif what == 'linear':
-            self.inter = LinearNDInterpolator(self.points, self.values,
-                                               **initkwds)
-            self.call = self.inter
+            if LinearNDInterpolator is None:
+                raise ImportError("could not import "
+                    "scipy.interpolate.LinearNDInterpolator")
+            else:                    
+                self.inter = LinearNDInterpolator(self.points, self.values,
+                                                   **initkwds)
+                self.call = self.inter
         elif what == 'bispl':
             nx = min(len(np.unique(self.xx)), int(sqrt(len(self.xx))))
             ny = min(len(np.unique(self.yy)), int(sqrt(len(self.yy))))
