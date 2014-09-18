@@ -609,7 +609,8 @@ class ParameterStudy(object):
         sqldb.finish()
 
 
-def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s", mode='last', orig=False):
+def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s", mode='last', orig=False,
+               absdiff=False):
     """Convergence table. Assume that quantity `xx` was varied, resulting in
     `yy` values. Return a string (table) listing::
 
@@ -630,6 +631,8 @@ def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s", mode='last', orig=False):
         the last ``y[-1] - y[i]``.
     orig : bool
         Print original `yy` data as well.
+    absdiff : bool
+        absolute values of differences 
 
     Examples
     --------
@@ -669,6 +672,8 @@ def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s", mode='last', orig=False):
             dyy[:,iy] = yy[-1,iy] - yy[:,iy]
         else:
             raise StandardError("unknown mode")
+    if absdiff:
+        dyy = np.abs(dyy)
     if orig:            
         fmtstr = ("%s"*(2*ny+1) + "\n") %((sfmt,) + (ffmt,)*2*ny)
     else:
