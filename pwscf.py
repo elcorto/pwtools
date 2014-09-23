@@ -153,6 +153,11 @@ def kpoints_str_pwin_full(lst, shift=[0,0,0], gamma=True):
 kpointstr_pwin2 = kpoints_str_pwin_full
 
 
+def bool2str(x):
+    """Return Fortran bool string for bool input."""
+    return '.true.' if x else '.false.'
+
+
 def read_matdyn_modes(filename, natoms=None):
     """Parse modes file produced by QE's matdyn.x.
     
