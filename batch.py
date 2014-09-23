@@ -728,17 +728,38 @@ def default_repl_keys():
     shutil.rmtree(calc_root)
     return ret
 
+
 class Case(object):
     """General purpose container class, supporting only keywords in the
-    constructor.
+    constructor. This is essentially the same as a dictionary, just with
+    another syntax for attribute access, i.e. ``case.foo`` instead of
+    ``case['foo']``.
+    
+    Sometimes you want to do more than storing values. Then, you need to
+    subclass Case and do stuff in ``__init__``. But don't call
+    ``Case.__init__`` as in ::
+
+        class MyCase(Case):
+            def __init__(self, *args, **kwds):
+                super(Case, self).__init__(*args, **kwds)
+                    self.z = self.x + self.y
+    
+    Instead, define a method called ``init``, which is automatically called if
+    it exists. ::
+        
+        class MyCase(Case):
+            def init(self):
+                self.z = self.x + self.y
     
     Examples
     --------
-    >>> case1 = Case(foo=1, bar=2)
-    >>> case2 = Case(foo=11, bar=22)
-    >>> for case in [case1, case2]: print case.foo, case.bar
+    >>> case1 = Case(x=1, y=2)
+    >>> case2 = Case(x=11, y=22)
+    >>> for case in [case1, case2]: print case.x, case.y
     """
     def __init__(self, **kwds):
         for k,v in kwds.iteritems():
             setattr(self, k, v)
-
+        
+        if hasattr(self, 'init') and callable(self.init):
+            eval('self.init()')
