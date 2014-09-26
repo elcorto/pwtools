@@ -323,6 +323,7 @@ def lorentz(M, std=1.0, sym=True):
 
         L(x) = \\frac{\Gamma}{(x-x_0)^2 + \Gamma^2}
     
+    Here :math:`x_0 = 0` and `std` = :math:`\Gamma`.
     Some definitions use :math:`1/2\,\Gamma` instead of :math:`\Gamma`, but
     without 1/2 we get comparable peak width to Gaussians when using this
     window in convolutions, thus ``scipy.signal.gaussian(M, std=5)`` is similar
@@ -333,7 +334,7 @@ def lorentz(M, std=1.0, sym=True):
     M : int
         number of points
     std : float 
-        spread parameter
+        spread parameter :math:`\Gamma`
     sym : bool
     
     Returns
@@ -579,8 +580,8 @@ def smooth(data, kern, axis=0, edge='m', norm=True):
     norm : bool
         Normalize kernel. Default is True. This assures that the smoothed
         signal lies within the data. Note that this is not True for kernels
-        with very big spread (i.e. ``hann(len(data)*10)`` or ``gaussian(20,
-        std=len(data)*10)``. Then the kernel is effectively a constant.
+        with very big spread (i.e. ``hann(N*10)`` or ``gaussian(N/2,
+        std=N*10)``. Then the kernel is effectively a constant.
     
     Returns
     -------
@@ -648,14 +649,15 @@ def smooth(data, kern, axis=0, edge='m', norm=True):
     Kernels:
 
     Even kernels result in shifted signals, odd kernels are better.
+    However, for N >> M, it doesn't make a difference really.
     
     Usual kernels (window functions) are created by e.g.
     ``scipy.signal.hann(M)``. For ``kern=scipy.signal.gaussian(M,
     std)``, two values are needed, namely `M` and `std`, where  `M`
     determines the number of points calculated for the convolution kernel, as
     in the other cases. But what is actually important is `std`, which
-    determines the "used width" of the gaussian. Say we use len(data)=100,
-    ``kern=hann(50)``. That would be a massively wide window and we would
+    determines the "used width" of the gaussian. Say we use N=100
+    and M=50. That would be a massively wide window and we would
     smooth away all details. OTOH, using ``gaussian(50,3)`` would generate a
     kernel with the same number `M` of data points, but the gauss peak which is
     effectively used for convolution is much smaller. For ``gaussian()``,
@@ -769,6 +771,21 @@ def smooth(data, kern, axis=0, edge='m', norm=True):
     assert ret.shape == data.shape, ("ups, ret.shape (%s)!= data.shape (%s)" \
                                       %(ret.shape, data.shape))
     return ret
+
+
+def odd(n, add=1):
+    """Return next odd integer to `n`.
+
+    Can be used to construt odd smoothing kernels in :func:`smooth`.
+
+    Parameters
+    ----------
+    n : int
+    add : int
+        number to add if `n` is even, +1 or -1
+    """
+    assert add in [-1, 1], "add must be -1 or 1"
+    return n if n % 2 == 1 else n + add
 
 
 def scale(x, copy=True):

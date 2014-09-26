@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.signal import hanning, gaussian
 from pwtools.signal import gauss, find_peaks, smooth, fft_1d_loop
+from pwtools import signal
 from scipy.fftpack import fft
 from pwtools import num
 rand = np.random.rand
@@ -79,4 +80,10 @@ def test_fft_1d_loop():
         assert (fft(a, axis=axis) == fft_1d_loop(a, axis=axis)).all()
     a = rand(10)
     assert (fft(a) == fft_1d_loop(a)).all()
+
+
+def test_odd():
+    assert signal.odd(3) == 3
+    assert signal.odd(2) == 3
+    assert signal.odd(6, add=-1) == 5
 
