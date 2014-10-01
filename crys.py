@@ -794,7 +794,7 @@ def pbc_wrap_coords(coords_frac, copy=True, mask=[True]*3, xyz_axis=-1):
         if mask[i]:
             sl = [slice(None)]*ndim
             sl[xyz_axis] = i
-            tmp[sl] %= 1.0
+            tmp[sl] = np.remainder(tmp[sl], 1.0)
     return tmp        
 
 
