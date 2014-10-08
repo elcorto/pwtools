@@ -439,6 +439,15 @@ def read_matdyn_freq(filename):
     input, usually "matdyn.freq" or so) when calculating a phonon dispersion on
     a grid (ldisp=.true., used for phonon dos) or a pre-defined k-path in the
     BZ.
+
+    In QE 5.x, a file with suffix ".gp" (e.g. "matdyn.freq.gp") is now written,
+    where::
+    >>> import numpy as np
+    >>> from pwtools import kpath, pwscf
+    >>> d = np.loadtxt("matdyn.freq.gp")
+    >>> kpoints,freqs = pwscf.read_matdyn_freq("matdyn.freq")
+    >>> allclose(d[:,0], kpath.get_path_norm(kpoints))
+    >>> allclose(d[:,1:], freqs)
     
     Parameters
     ----------

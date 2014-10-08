@@ -1,6 +1,6 @@
 import numpy as np
-from pwtools import pwscf, parse
-from pwtools.test.tools import aae, aaae
+from pwtools import pwscf, parse, kpath
+from pwtools.test.tools import aae, aaae, unpack_compressed
 
 # matdyn.freq
 kpoints_ref = \
@@ -177,4 +177,15 @@ def test_read_dynmat():
     assert np.allclose(dct['ir'], ir_ref)
     assert dct['raman'] is None
     assert dct['depol'] is None
+
+
+def test_read_matdyn_freq_disp():
+    # Parse matdyn frequency file. In QE 5.x the path_norm and band structure
+    # is also directly written to a file with suffix ".gp", i.e.
+    # "matdyn.freq.disp.gp"
+    fn = unpack_compressed('files/qe_matdyn_disp/matdyn.freq.disp.gz')
+    kk, ff = pwscf.read_matdyn_freq(fn)
+    d = np.loadtxt('files/qe_matdyn_disp/matdyn.freq.disp.gp.gz')
+    assert np.allclose(kpath.get_path_norm(kk), d[:,0])
+    assert np.allclose(ff, d[:,1:])
 
