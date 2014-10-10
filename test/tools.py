@@ -300,17 +300,19 @@ def assert_attrs_not_none(pp, attr_lst=None, none_attrs=[]):
                 %(str(pp), name)
 
 
-def unpack_compressed(src, prefix='tmp', unpack_cmd='gunzip', testdir=testdir,
-                      ext=None):
+def unpack_compressed(src, prefix='tmp', testdir=testdir, ext=None):
     """Convenience function to uncompress files/some_file.out.gz into a random
     location. Return the filename "path/to/random_location/some_file.out"
     without ".gz", which can be used in subsequent commands.
     
-    Works only for simple unpack commands like
+    Supported file types: gz, tgz, tar.gz
         gunzip path/to/random_location/some_file.out.gz
-        tar -xzf path/to/random_location/some_file.out.tgz
+        tar -C path/to/random_location -xzf path/to/random_location/some_file.out.tgz
     
-    For more complicated things, copy the commands below and adapt.
+    Other compress formats may be implemented as needed.
+    
+    Can also be used for slightly more complex unpack business, see for
+    example test_cpmd_md.py. 
 
     Parameters
     ----------
@@ -319,8 +321,6 @@ def unpack_compressed(src, prefix='tmp', unpack_cmd='gunzip', testdir=testdir,
     prefix : str, optional
         prefix for mkdtemp(), usually __file__ of the test script
         to identify which test script created the random dir
-    unpack_cmd : str, optional
-        command for unpacking 
     testdir : str, optional
         'path/to' in the example above, usually
         ``pwtools.test.testenv.testdir``
@@ -329,19 +329,19 @@ def unpack_compressed(src, prefix='tmp', unpack_cmd='gunzip', testdir=testdir,
         it will be guessed from `src`
     """
     # 'path/to/random_location'
-    tmpdir = tempfile.mkdtemp(dir=testdir, prefix=prefix)
+    workdir = tempfile.mkdtemp(dir=testdir, prefix=prefix)
     # 'gz'
     ext = src.split('.')[-1] if ext is None else ext
     # 'some_file.out'
     base = os.path.basename(src).replace('.'+ext, '')
     # path/to/random_location/some_file.out
-    filename = '{tmpdir}/{base}'.format(tmpdir=tmpdir, base=base)
-    cmd = "mkdir -p {tmpdir}; cp {src} {tmpdir}/; \
-           {unpack_cmd} {filename}.{ext};".format(tmpdir=tmpdir,
-                                                  src=src,  
-                                                  filename=filename, 
-                                                  ext=ext,
-                                                  unpack_cmd=unpack_cmd)
-    common.system(cmd, wait=True)
+    filename = '{workdir}/{base}'.format(workdir=workdir, base=base)
+    cmd = "mkdir -p {workdir}; cp {src} {workdir}/; "
+    if ext == 'gz':
+        cmd += "gunzip {filename}.{ext};"
+    elif ext in ['tgz', 'tar.gz']:
+        cmd += "tar -C {workdir} -xzf {filename}.{ext};"
+    cmd = cmd.format(workdir=workdir, src=src, filename=filename, ext=ext)
+    print common.backtick(cmd)
     assert os.path.exists(filename), "unpack failed: '%s' not found" %filename
     return filename

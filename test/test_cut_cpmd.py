@@ -1,19 +1,15 @@
 import os.path
 from pwtools.parse import CpmdMDOutputFile
 from pwtools import common
-from testenv import testdir
+from pwtools.test.tools import unpack_compressed
 
 def run(dr, none_attrs=[]):
-    # dr       = 'files/cpmd/md_bo'
-    # basedr   = 'files/cpmd'
-    # archive  = 'files/cpmd/md_bo.tgz'
-    if dr.strip().endswith('/'):
-        dr = dr.strip()[:-1]
-    basedr = os.path.dirname(dr)
-    common.system('tar -C %s -xzf %s.tgz' %(basedr, dr))
-    common.system('../bin/cut-cpmd.sh %s 20 > %s/cut-cpmd.log' %(dr, testdir))
-    common.system('rm -r %s' %dr)
+    dr = dr[:-1] if dr.endswith('/') else dr
+    archive = dr + '.tgz'
+    workdir = unpack_compressed(archive)
+    common.system('../bin/cut-cpmd.sh %s 20 > %s/cut-cpmd.log' %(workdir,
+        workdir))
 
 def test_cut_cpmd():
-    run(dr='files/cpmd/md_cp_pr/')
+    run(dr='files/cpmd/md_cp_pr')
 

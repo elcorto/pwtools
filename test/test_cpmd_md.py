@@ -1,22 +1,22 @@
 import os.path
 from pwtools.parse import CpmdMDOutputFile
 from pwtools import common, verbose
-from pwtools.test.tools import assert_attrs_not_none
+from pwtools.test.tools import assert_attrs_not_none, unpack_compressed
 verbose.VERBOSE = True
+pj = os.path.join
 
 def run(filename, none_attrs=[]):
     # filename = 'files/cpmd/md_bo/cpmd.bo.out'
-    # dr       = 'files/cpmd/md_bo'
-    # basedr   = 'files/cpmd'
+    # basename = 'cpmd.bo.out'
     # archive  = 'files/cpmd/md_bo.tgz'
     bar = '='*78
     print bar
     print "@@testing: %s" %filename
     print bar
-    dr = os.path.dirname(filename)
-    basedr = os.path.dirname(dr)
-    common.system('tar -C %s -xzf %s.tgz' %(basedr, dr))
-    pp = CpmdMDOutputFile(filename=filename)
+    basename = os.path.basename(filename)
+    archive = os.path.dirname(filename) + '.tgz'
+    workdir = unpack_compressed(archive)
+    pp = CpmdMDOutputFile(filename=pj(workdir, basename))
     pp.parse()
     assert_attrs_not_none(pp, none_attrs=none_attrs)
     traj = pp.get_traj()
@@ -34,7 +34,6 @@ def run(filename, none_attrs=[]):
             assert attr is not None, "FAILED - None: %s" %attr_name
             if attr_name in attrs3d:
                 assert attr.ndim == 3, "FAILED - not 3d: %s" %attr_name
-    common.system('rm -r %s' %dr)
 
 def test_cpmd_md():
     # For BO-MD w/ ODIIS optimizer, ekin_elec = [0,0,...,0] but not None.
