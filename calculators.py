@@ -1,7 +1,12 @@
 import os, types
 import numpy as np
-from ase.calculators.calculator import FileIOCalculator, kpts2mp
 from pwtools import parse, common, pwscf, crys, io, constants
+
+# silently fail if ase is missing b/c it is not a dependency
+try:
+    from ase.calculators.calculator import FileIOCalculator, kpts2mp
+except ImportError:
+    pass
 
 
 class PwtoolsQE(FileIOCalculator):

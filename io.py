@@ -4,7 +4,7 @@ import warnings, os
 try:
     import h5py
 except ImportError:
-    warnings.warn("Cannot import h5py.") 
+    pass
 
 import numpy as np
 from pwtools.common import frepr, cpickle_load
@@ -15,13 +15,10 @@ from pwtools import common
 from pwtools import pwscf
 warnings.simplefilter('always')
 
-
-# Cif parser
 try:
     import CifFile as pycifrw_CifFile
 except ImportError:
-    warnings.warn("Cannot import CifFile from the PyCifRW package. " 
-    "Parsing Cif files will not work.")
+    pass
 
 def wien_sgroup_input(struct, lat_symbol='P'):
     """Generate input for WIEN2K's ``sgroup`` symmetry analysis tool.

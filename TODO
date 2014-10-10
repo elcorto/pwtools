@@ -135,11 +135,4 @@ eos.py
   test script so far. AFAIR, one needed to do some hacks with the start guess
   and data scaling was problematic somehow.
 
-doc/
-----
-* Find out why sphinx doesn't link the generated API-doc in
-  generated/api/ when we use ":mod:`~pwtools.batch`, for instance. This only
-  works if the module is listed in generated/doc, which we currently do not use
-  (see generate-apidoc.sh).
-
 # vim:comments=fb\:*

@@ -124,12 +124,11 @@ import warnings
 
 import numpy as np
 
-# Cif parser
+# fail if missing, functionas which use that will fail later
 try:
     import CifFile as pycifrw_CifFile
 except ImportError:
-    warnings.warn("Cannot import CifFile from the PyCifRW package. " 
-    "Parsing Cif files will not work.")
+    pass
 
 from pwtools import common, constants, regex, crys, atomic_data, num, \
     arrayio, _dcd

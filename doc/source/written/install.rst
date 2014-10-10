@@ -44,28 +44,17 @@ Must have:
 
 Almost must have:
   
-* PyCifRW [pycifrw_orig]_: For Cif files. 
-  With Python 2.6, you may get a DeprecationWarning regarding the sets module
-  when the CifFile module from the pycifrw package is imported. There is a
-  patched version from [pwextern-free]_, which deals with that.
-  Note that recent versions of PyCifRW may already include that fix, so first
-  try that. Hint: google for "pycifrw" :)
+* PyCifRW [pycifrw_orig]_: For Cif files in  :class:`~pwtools.parse.CifFile`,
+  :func:`~pwtools.io.read_cif` and :func:`~pwtools.io.write_cif`. You may get a
+  DeprecationWarning regarding the ``sets`` module. There is a patched version
+  from [pwextern-free]_, which deals with that.
 * eos (for :mod:`~pwtools.eos`): The tool "eos" from the Elk code [elk]_ must
   be on your path. Note that the executable is assumed to be named "eos.x"
   instead of the default name "eos". See :class:`pwtools.eos.ElkEOSFit` for
   usage. Can be installed directly from Elk or also [pwextern-free]_.
 * h5py: only for some functions in :mod:`~pwtools.io` currently
-* pyspglib [spglib]_: used in :mod:`~pwtools.symmetry`
-
-Effects of missig dependencies:
-
-* PyCifRW: You will get import warnings, some parsing
-  classes and IO functions will not work (Cif files) and some tests will fail.
-  If you don't need that functionality, uncomment the warnings and import
-  statements at the top of :mod:`~pwtools.parse` and :mod:`~pwtools.io`.
-* eos: :mod:`pwtools.eos.ElkEOSFit` and related tests won't work.
-* spglib: some symmetry finding functions in :mod:`~pwtools.symmetry` won't
-  work
+* pyspglib [spglib]_: used in :mod:`~pwtools.symmetry`, also shipped with
+  [pwextern-free]_.
 
 Suggested:
 
@@ -73,6 +62,7 @@ Suggested:
 * VMD [vmd]_ (``examples/rpdf/``, :func:`~pwtools.crys.call_vmd_measure_gofr`,
   :func:`~pwtools.visualize.view_vmd_axsf`,
   :func:`~pwtools.visualize.view_vmd_xyz`), must register before download
+* ase [ase]_: :mod:`~pwtools.calculators`
 
 Optional:
 
@@ -80,7 +70,17 @@ Optional:
   ``examples/``). Need to register before download.
 
 The "pwextern-free" package [pwextern-free]_ over at bitbucket.org contains
-add-on tools which we don't want / can ship directly with pwtools.
+add-on tools which we don't want / can ship directly with pwtools, such as eos,
+PyCifRW and pyspglib, together with an install script.
+
+All imports of optional Python modules will silently fail such that the code
+can be used anywhere without errors or annoying warnings. The code parts which
+use the dependencies will then fail only if used. And of course the related
+tests will fail. That is no problem if you don't need the corresponding
+functionality.
+
+You can use ``test/check_dependencies.py`` to find out what your system has
+installed.
 
 Running tests
 -------------
