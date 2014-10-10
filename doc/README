@@ -25,7 +25,7 @@ also need numpydoc. Then::
 
 ``generate-apidoc.sh`` will use the checked out ``sphinx-autodoc.py``.
 Then, ``make html`` will run longer and produce many more warnings :)
-You may also want to check sphinx-autodoc's REDME file for more information.
+You may also want to check sphinx-autodoc's README file for more information.
 
 .. [1] https://bitbucket.org/elcorto/sphinx-autodoc
 

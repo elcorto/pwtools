@@ -40,4 +40,4 @@ calc.write_input(sleep=0, backup=False, mode='w')
 if not os.path.exists('calc'):
     os.symlink('calc_theo', 'calc')
 
-common.system("cp -r pseudo calc_theo/; gunzip calc_theo/pseudo/*")
+common.system("cp -r ../../../test/files/qe_pseudos calc_theo/pseudo; gunzip calc_theo/pseudo/*")

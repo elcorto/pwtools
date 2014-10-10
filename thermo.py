@@ -369,7 +369,7 @@ class Gibbs(object):
     >>> gibbs.set_fitfunc('1d-G', fit_1d_G)
     >>> g = gibbs.calc_G(calc_all=True)
     >>> # 1d case
-    >>> V = g['/ax0/V']; G=g['/T/P/ax0/G'], T=g['/T/T']
+    >>> V = g['/ax0/V']; G=g['/T/P/ax0/G']; T=g['/T/T']
     >>> # plot G(V) for all T and P=20 GPa
     >>> plot(V, G[:,-1,:].T)
     >>> # Cp(T) for all P
