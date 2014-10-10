@@ -32,7 +32,9 @@ def get_atoms_with_calc(pseudo_dir):
                      pseudo_dir=pseudo_dir,
                      calc_name='my_calc', 
                      outdir=pj(testdir, prefix, 'scratch'), 
-                     command='pw.x < pw.in > pw.out 2>&1') 
+                     command='pw.x < pw.in > pw.out 2>&1',
+                     backup=True,
+                     ) 
 
     at.set_calculator(calc)
     return at        
@@ -77,3 +79,7 @@ def test_calculator():
              0.          2.01837531  2.01837531
             -2.01837531  2.01837531  0""")
         assert np.allclose(cell, at.get_cell())
+
+        # at least 1 backup files must exist: pw.*.0 is the SCF run, backed up
+        # in the first iter of the vc-relax
+        assert os.path.exists(at.calc.pwin + '.0')

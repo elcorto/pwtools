@@ -104,10 +104,15 @@ K_POINTS automatic
                  outdir=None, pseudo_dir=None, ecutwfc=80.0,
                  ecutrho=None,diagonalization='david', mixing_mode='plain',
                  mixing_beta=0.3, electron_maxstep=500, conv_thr=1e-10,
-                 pp=None, calc_name='pwscf', **kwargs):
+                 pp=None, calc_name='pwscf', backup=False, **kwargs):
         """
         Parameters
         ----------
+        label : str
+            Basename of input and output files (e.g. 'pw') or a path to the
+            calculation dir *including* the basename ('/path/to/pw', where
+            directory='/path/to' and prefix='pw'). In ``self.command``,
+            '<prefix>.in' and '<prefix>.out' are used.
         kpts : ASE k-points description
             Examples: ``3.5``, ``[6,6,4]``.
             If a float ``x`` is used, then it is the inverse of the
@@ -116,14 +121,19 @@ K_POINTS automatic
         calc_name : str
             'prefix' in PWscf
         pp : str or sequence 
-            Definition of the pseudopotential and thus `xc`, such as
-            'pbe-n-kjpaw_psl.0.1.UPF'. If a string, then ``<symbol>.<pp>`` is
-            used for all atom symbols. Needs a file of that name in
-            `pseudo_dir`. If a list, e.g. ``['Al.PBE.fhi.UPF',
-            'N.PBE.fhi.UPF']``, then this is used for each atom type.
+            Definition of the pseudopotential file and thus `xc`. If `pp` is a
+            string (e.g. 'pbe-n-kjpaw_psl.0.1.UPF'), then the atom symbols are
+            used to build the PP file name
+            ``'<atom_symbol>.pbe-n-kjpaw_psl.0.1.UPF'`` for each atom type. Needs
+            a file of that name in `pseudo_dir`. If `pp` is a list, e.g.
+            ``['Al.pbe-n-kjpaw_psl.0.1.UPF', 'N.pbe-n-kjpaw_psl.0.1.UPF']``,
+            then this is used for each atom type.
         outdir, pseudo_dir, ecutwfc, ecutrho, diagonalization, mixing_mode,
         mixing_beta, electron_maxstep, conv_thr : as in PWscf, see
             http://www.quantum-espresso.org/wp-content/uploads/Doc/INPUT_PW.html
+        backup : bool
+            make backup of old pw.in and pw.out if found, uses
+            :func:`~pwtools.common.backup`
         """
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, **kwargs)
@@ -147,6 +157,7 @@ K_POINTS automatic
         self.conv_thr = conv_thr    # Ry ?
         self.electron_maxstep = electron_maxstep
         self.mixing_beta = mixing_beta
+        self.backup = backup
 
         # hard-coded <label>.(in|out) == <directory>/<prefix>.(in|out)
         self.pwin = os.path.join(self.directory, self.prefix + '.in')
@@ -187,6 +198,10 @@ K_POINTS automatic
                 'conv_thr', 'mixing_beta', 'diagonalization', 'electron_maxstep']
         txt = self.pwin_templ.format(**dict((key, getattr(self, key)) for key \
                                              in keys))
+        if self.backup:
+            for fn in [self.pwin, self.pwout]:
+                if os.path.exists(fn):
+                    common.backup(fn)
         common.file_write(self.pwin, txt)
     
     def read_results(self):
