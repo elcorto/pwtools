@@ -45,6 +45,10 @@ def run(tgz, skip=[], atol_map={}):
         x2 = getattr(tr2, name)
         print name
         tools.assert_all_types_almost_equal(x1, x2) 
+    # stress
+    assert (tr1.stress[:,0,1] == tr1.stress[:,1,0]).all()
+    assert (tr1.stress[:,0,2] == tr1.stress[:,2,0]).all()
+    assert (tr1.stress[:,1,2] == tr1.stress[:,2,1]).all()
 
 def test_parse_nvt():
     run('files/lammps/md-nvt.tgz', 

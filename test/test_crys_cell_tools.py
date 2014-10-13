@@ -55,6 +55,7 @@ def test_cell_tools():
     aaae(vol_cell, vol_cc)
     aaae(crys.cell2cc3d(crys.cc2cell3d(cc)), cc)
 
+
 def test_recip_cell():
     # reciprocal cell
     cell = rand(3,3)
@@ -79,4 +80,40 @@ def test_kgrid():
     # big cell, assert Gamma = [1,1,1] or better
     size = crys.kgrid(cell*100, h=0.23, minpoints=2)
     assert (np.array(size) == np.array([2,2,2])).all()
+
+
+def test_voigt():
+    a = rand(3,3) 
+    # symmetric tensor
+    s = np.dot(a,a.T)
+    v = crys.tensor2voigt(s)
+    assert (crys.voigt2tensor(v) == s).all()
+    assert v[0] == s[0,0]
+    assert v[1] == s[1,1]
+    assert v[2] == s[2,2]
+    assert v[3] == s[1,2] == s[2,1]
+    assert v[4] == s[0,2] == s[2,0]
+    assert v[5] == s[0,1] == s[1,0]
     
+    nstep = 10
+    a = rand(nstep,3,3) 
+    s = np.array([np.dot(a[i,...],a[i,...].T) for i in range(nstep)])
+    v = crys.tensor2voigt3d(s)
+    assert (v[:,0] == s[:,0,0]).all()
+    assert (v[:,1] == s[:,1,1]).all()
+    assert (v[:,2] == s[:,2,2]).all()
+    assert (v[:,3] == s[:,1,2]).all()
+    assert (v[:,4] == s[:,0,2]).all()
+    assert (v[:,5] == s[:,0,1]).all()
+    assert (v[:,3] == s[:,2,1]).all()
+    assert (v[:,4] == s[:,2,0]).all()
+    assert (v[:,5] == s[:,1,0]).all()
+
+    assert (crys.voigt2tensor3d(v) == s).all()
+    assert (crys.tensor2voigt3d(s) == \
+            np.array([crys.tensor2voigt(s[i,...]) for i in \
+            range(nstep)])).all()
+    assert (crys.voigt2tensor3d(v) == \
+            np.array([crys.voigt2tensor(v[i,...]) for i in \
+            range(nstep)])).all()
+

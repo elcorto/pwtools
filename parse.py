@@ -2264,15 +2264,9 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
             for k in keys:
                 if not self._thermo_dct.has_key(k):
                     return None
-            nstep = self._thermo_dct['Pxx'].shape[0]
-            arr = np.zeros((nstep,3,3))
-            arr[:,0,0] = self._thermo_dct['Pxx']
-            arr[:,1,1] = self._thermo_dct['Pyy']
-            arr[:,2,2] = self._thermo_dct['Pzz']
-            arr[:,1,0] = self._thermo_dct['Pxy']
-            arr[:,2,0] = self._thermo_dct['Pxz']
-            arr[:,2,1] = self._thermo_dct['Pyz']
-            return arr
+            voigt = np.array([self._thermo_dct['P'+k] for k in ['xx', 'yy',
+                'zz', 'yz', 'xz', 'xy']]).T
+            return crys.voigt2tensor3d(voigt)                
         else:
             return None
     

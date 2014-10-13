@@ -2241,7 +2241,7 @@ class Structure(UnitsHandler):
     array([[  5.00000000e+00,   0.00000000e+00,   0.00000000e+00],
            [  3.06161700e-16,   5.00000000e+00,   0.00000000e+00],
            [  3.06161700e-16,   3.06161700e-16,   5.00000000e+00]])
-    >>> st.get_ase_atoms()
+    >>> st.get_ase_atoms(pbc=True)
     Atoms(symbols='NAl3N2Al', positions=..., cell=[[2.64588604295, 0.0, 0.0],
     [1.6201379367036871e-16, 2.64588604295, 0.0], [1.6201379367036871e-16,
     1.6201379367036871e-16, 2.64588604295]], pbc=[True, True, True])
@@ -3314,4 +3314,96 @@ def align_cart(obj, x=None, y=None, vecs=None, indices=None, cart=None,
                         )
     return obj_new                        
 
+
+def tensor2voigt(tensor):
+    """
+    Parameters
+    ----------
+    tensor : (3,3)
+
+    Returns
+    -------
+    voigt: [xx,yy,zz,yz,xz,xy]
+    """
+    assert tensor.shape == (3,3), "tensor must be (3,3)"
+    voigt = np.empty(6)
+    voigt[0] = tensor[0,0]
+    voigt[1] = tensor[1,1]
+    voigt[2] = tensor[2,2]
+    voigt[3] = tensor[1,2]
+    voigt[4] = tensor[0,2]
+    voigt[5] = tensor[0,1]
+    return voigt
+
+
+def voigt2tensor(voigt):
+    """
+    Parameters
+    ----------
+    voigt: [xx,yy,zz,yz,xz,xy]
+
+    Returns
+    -------
+    tensor : (3,3)
+    """
+    assert len(voigt) == 6, "voigt must be length 6 vector"
+    tensor = np.empty((3,3))
+    tensor[0,0]  = voigt[0] 
+    tensor[1,1]  = voigt[1] 
+    tensor[2,2]  = voigt[2] 
+    tensor[1,2]  = voigt[3] 
+    tensor[0,2]  = voigt[4] 
+    tensor[0,1]  = voigt[5]
+    tensor[2,1] = tensor[1,2]
+    tensor[2,0] = tensor[0,2]
+    tensor[1,0] = tensor[0,1]
+    return tensor
+
+def voigt2tensor3d(voigt):
+    """
+    Parameters
+    ----------
+    voigt: (nstep,6)
+
+    Returns
+    -------
+    tensor : (nstep,3,3)
+    """
+    nstep = voigt.shape[0]
+    assert voigt.ndim == 2, "voigt must be (nstep,6)"
+    assert voigt.shape[1] == 6, "voigt must be (nstep,6)"
+    tensor = np.empty((nstep,3,3))
+    tensor[:,0,0]  = voigt[:,0] 
+    tensor[:,1,1]  = voigt[:,1] 
+    tensor[:,2,2]  = voigt[:,2] 
+    tensor[:,1,2]  = voigt[:,3] 
+    tensor[:,0,2]  = voigt[:,4] 
+    tensor[:,0,1]  = voigt[:,5]
+    tensor[:,2,1] = tensor[:,1,2]
+    tensor[:,2,0] = tensor[:,0,2]
+    tensor[:,1,0] = tensor[:,0,1]
+    return tensor
+
+
+def tensor2voigt3d(tensor):
+    """
+    Parameters
+    ----------
+    tensor : (nstep,3,3)
+
+    Returns
+    -------
+    voigt: (nstep,6)
+    """
+    assert tensor.ndim == 3, "tensor must be (nstep,3,3)"
+    assert tensor.shape[1:] == (3,3), "tensor must be (nstep,3,3)"
+    nstep = tensor.shape[0]
+    voigt = np.empty((nstep,6))
+    voigt[:,0] = tensor[:,0,0]
+    voigt[:,1] = tensor[:,1,1]
+    voigt[:,2] = tensor[:,2,2]
+    voigt[:,3] = tensor[:,1,2]
+    voigt[:,4] = tensor[:,0,2]
+    voigt[:,5] = tensor[:,0,1]
+    return voigt
 
