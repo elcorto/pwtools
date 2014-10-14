@@ -8,9 +8,48 @@ try:
 except ImportError:
     pass
 
+def stress_pwtools2ase(pwstress):
+    """
+    Convert (3,3) stress tensor (GPa) to Voigt 6-vector for ASE (eV/Ang^3).
+    Note that ASE uses another sign convention (too small unit cell = negative
+    pressure instead of positive).
 
-class PwtoolsQE(FileIOCalculator):
-    """QE calculator, only Pwscf (pw.x).
+    Parameters
+    ----------
+    pwstress : (3,3)
+        symmetric stress tensor (GPa)
+    
+    Returns
+    -------
+    [Pxx, Pyy, Pzz, Pyz, Pxz, Pxy] in eV/Ang^3
+    """    
+    return -crys.tensor2voigt(pwstress) / constants.eV_by_Ang3_to_GPa
+
+
+class PwtoolsASEInterface(object):
+    def init_params_from_input(self, kwds):
+        """Set self.parameters = self.default_parameters and update with input
+        keyword arguments `kwds`. For each key in self.parameters, set
+        self.<key> = <value>."""
+        allowed_keys = self.default_parameters.keys()
+        input_keys = kwds.keys()
+        for k in input_keys:
+            if k not in allowed_keys:
+                raise StandardError("key '%s' not allowed, only: \n%s" %(k,
+                                    str(allowed_keys)))
+        self.parameters = self.default_parameters
+        self.parameters.update(kwds)
+        self.__dict__.update(self.parameters)
+
+    def fill_infile_templ(self):
+        """Replace all placeholders in self.infile. Use all keys in
+        self.infile_templ_keys as possible placeholders."""
+        return self.infile_templ.format(**dict((key, getattr(self, key)) for key \
+                                        in self.infile_templ_keys))
+
+
+class Pwscf(FileIOCalculator, PwtoolsASEInterface):
+    """Pwscf (pw.x) calculator.
 
     ATM, we don't write a ``ase.calculators.calculator.Parameters`` class
     (dict) and have no read() method so I guess that restarts don't work. Only
@@ -20,15 +59,15 @@ class PwtoolsQE(FileIOCalculator):
     --------
     Define a calculator object::
 
-        >>> calc=PwtoolsQE(label='/path/to/calculation/dir/pw',
-        ...                kpts=1/0.35, 
-        ...                ecutwfc=80,
-        ...                conv_thr=1e-8,
-        ...                pp='pbe-n-kjpaw_psl.0.1.UPF',
-        ...                pseudo_dir='/home/schmerler/soft/share/espresso/pseudo/espresso/',
-        ...                calc_name='my_calc', 
-        ...                outdir='/scratch/schmerler/', 
-        ...                command='mpirun -np 16 pw.x < pw.in > pw.out')
+        >>> calc=Pwscf(label='/path/to/calculation/dir/pw',
+        ...            kpts=1/0.35, 
+        ...            ecutwfc=80,
+        ...            conv_thr=1e-8,
+        ...            pp='pbe-n-kjpaw_psl.0.1.UPF',
+        ...            pseudo_dir='/home/schmerler/soft/share/espresso/pseudo/espresso/',
+        ...            calc_name='my_calc', 
+        ...            outdir='/scratch/schmerler/', 
+        ...            command='mpirun -np 16 pw.x < pw.in > pw.out')
         >>> at=crys.Structure(...).get_ase_atoms(pbc=True)
         >>> at.set_calculator(calc)
         >>> at.get_potential_energy()
@@ -50,15 +89,32 @@ class PwtoolsQE(FileIOCalculator):
     """
 
     default_parameters = dict(
-        xc=None,
-        smearing=None,
-        kpts=5.0,
+        restart=None,
+        ignore_bad_restart_file=False,
+        atoms=None,
+        backup=False, 
+        calc_name='pwscf', 
         charge=0.0,
+        conv_thr=1e-10,
+        diagonalization='david', 
+        ecutrho=None,
+        ecutwfc=80.0,
+        electron_maxstep=500, 
+        kpts=5.0,
+        label='pw',
+        mixing_beta=0.3, 
+        mixing_mode='plain',
+        outdir=None, 
+        pp=None, 
+        pseudo_dir=None, 
+        smearing=None,
+        xc=None,
+        command = "pw.x -input pw.in | tee pw.out",
         )
+    
     implemented_properties = ['energy', 'forces', 'stress']
-    command = "pw.x -input pw.in | tee pw.out"
 
-    pwin_templ = """
+    infile_templ = """
 &control
     calculation = 'scf'
     restart_mode = 'from_scratch',
@@ -97,17 +153,11 @@ ATOMIC_POSITIONS crystal
 K_POINTS automatic
 {kpoints} 0 0 0
     """
-    # TODO: Automatic collection of keywords, as in crys.Structure. Use a list
-    # of allowed ASE and QE keywords for that for check for non-supported ones.
-    def __init__(self, restart=None, ignore_bad_restart_file=False,
-                 xc=None, smearing=None, atoms=None, kpts=None, label='pw',
-                 outdir=None, pseudo_dir=None, ecutwfc=80.0,
-                 ecutrho=None,diagonalization='david', mixing_mode='plain',
-                 mixing_beta=0.3, electron_maxstep=500, conv_thr=1e-10,
-                 pp=None, calc_name='pwscf', backup=False, **kwargs):
+    def __init__(self, **kwds):
         """
         Parameters
         ----------
+        All parameters: ``self.parameters.keys()``
         label : str
             Basename of input and output files (e.g. 'pw') or a path to the
             calculation dir *including* the basename ('/path/to/pw', where
@@ -135,34 +185,24 @@ K_POINTS automatic
             make backup of old pw.in and pw.out if found, uses
             :func:`~pwtools.common.backup`
         """
-        FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
-                                  label, atoms, **kwargs)
+        self.init_params_from_input(kwds)
+        FileIOCalculator.__init__(self, **kwds)
         
         # ASE keywords
-        if smearing is not None:
+        if self.smearing is not None:
             raise NotImplementedError("smearing not implemented")
-        if xc is not None:
+        if self.xc is not None:
             raise StandardError("please use the `pp` keyword instead of `xc`")
-        self.kpts = kpts
         
-        # QE keywords
-        self.pp = pp
-        self.outdir = outdir    
-        self.pseudo_dir = pseudo_dir
-        self.calc_name = calc_name  # prefix
-        self.ecutwfc = ecutwfc      # Ry
-        self.ecutrho = 4.0*ecutwfc if ecutrho is None else ecutrho
-        self.diagonalization = diagonalization
-        self.mixing_mode = mixing_mode
-        self.conv_thr = conv_thr    # Ry ?
-        self.electron_maxstep = electron_maxstep
-        self.mixing_beta = mixing_beta
-        self.backup = backup
+        self.ecutrho = 4.0*self.ecutwfc if self.ecutrho is None else self.ecutrho
 
         # hard-coded <label>.(in|out) == <directory>/<prefix>.(in|out)
-        self.pwin = os.path.join(self.directory, self.prefix + '.in')
-        self.pwout = os.path.join(self.directory, self.prefix + '.out')
+        self.infile = os.path.join(self.directory, self.prefix + '.in')
+        self.outfile = os.path.join(self.directory, self.prefix + '.out')
         
+        self.infile_templ_keys = self.parameters.keys() + ['natoms', 'ntyp', 'atpos',
+            'atspec', 'cell', 'kpoints']
+
         assert self.pp is not None, "set pp"
         assert self.pseudo_dir is not None, "set pseudo_dir"
         assert self.outdir is not None, "set outdir"
@@ -193,28 +233,111 @@ K_POINTS automatic
         self.natoms = struct.natoms
         self.ntyp = struct.ntypat
         
-        keys = ['pseudo_dir', 'outdir', 'natoms', 'ecutwfc', 'ecutrho', 'atspec',
-                'cell', 'atpos', 'kpoints', 'ntyp', 'calc_name', 'mixing_mode',
-                'conv_thr', 'mixing_beta', 'diagonalization', 'electron_maxstep']
-        txt = self.pwin_templ.format(**dict((key, getattr(self, key)) for key \
-                                             in keys))
         if self.backup:
-            for fn in [self.pwin, self.pwout]:
+            for fn in [self.infile, self.outfile]:
                 if os.path.exists(fn):
                     common.backup(fn)
-        common.file_write(self.pwin, txt)
+        common.file_write(self.infile, self.fill_infile_templ())
     
     def read_results(self):
         self.results = {}
-        assert os.path.exists(self.pwout), "%s missing" %self.pwout
-        st = io.read_pw_scf(self.pwout)
+        assert os.path.exists(self.outfile), "%s missing" %self.outfile
+        st = io.read_pw_scf(self.outfile)
         self.results['energy'] = st.etot
         self.results['forces'] = st.forces
-        stress = np.empty(6)
-        stress[0] = st.stress[0,0]
-        stress[1] = st.stress[1,1]
-        stress[2] = st.stress[2,2]
-        stress[3] = st.stress[1,2]
-        stress[4] = st.stress[0,2]
-        stress[5] = st.stress[0,1]
-        self.results['stress'] = -stress / constants.eV_by_Ang3_to_GPa
+        self.results['stress'] = stress_pwtools2ase(st.stress)
+
+
+class Lammps(FileIOCalculator, PwtoolsASEInterface):
+    """
+    LAMMPS calculator.
+
+    Examples
+    --------
+    Define a calculator object::
+
+        >>> calc = Lammps(label='/path/to/calculation/dir/lmp',
+        ...               pair_style='tersoff',
+        ...               pair_coeff='* * /path/to/potential/dir/AlN.tersoff Al N',
+        ...               command='lammps < lmp.in > lmp.out 2>&1',
+        ...               ) 
+        >>> at=crys.Structure(...).get_ase_atoms(pbc=True)
+        >>> at.set_calculator(calc)
+        >>> at.get_potential_energy()
+    """
+       
+    default_parameters = dict(
+        restart=None,
+        ignore_bad_restart_file=False,
+        atoms=None,
+        label='lmp',
+        pair_coeff='* * ./AlN.tersoff Al N',
+        pair_style='tersoff',
+        backup=False,
+        command = "lammps < lmp.in > lmp.out", # also writes 'log.lammps'
+        )
+    implemented_properties = ['energy', 'forces', 'stress']
+
+    infile_templ = """
+clear
+units metal 
+boundary p p p 
+atom_style atomic
+
+# lmp.struct written by pwtools
+read_data {structfile}
+
+# interactions 
+pair_style {pair_style}
+pair_coeff {pair_coeff}
+
+# IO
+dump dump_txt all custom 1 {dumpfile} id type xu yu zu fx fy fz
+dump_modify dump_txt sort id 
+
+thermo_style custom step temp vol cella cellb cellc cellalpha cellbeta cellgamma &
+                    pe pxx pyy pzz pxy pxz pyz
+run 0    
+    """
+
+    def __init__(self, **kwds):
+        """
+        Parameters
+        ----------
+        All parameters: ``self.parameters.keys()``
+        """
+        
+        self.init_params_from_input(kwds)
+        FileIOCalculator.__init__(self, **kwds)
+        
+        self.infile_templ_keys = self.parameters.keys() + \
+            ['prefix', 'dumpfile', 'structfile']
+        self.infile = os.path.join(self.directory, self.prefix + '.in')
+        self.outfile = os.path.join(self.directory, self.prefix + '.out')
+        self.dumpfile = os.path.join(self.directory, self.prefix + '.out.dump')
+        self.structfile = os.path.join(self.directory, self.prefix + '.struct')
+        self.logfile = os.path.join(self.directory, 'log.lammps')
+
+        
+    def write_input(self, atoms, properties=None, system_changes=None):
+        FileIOCalculator.write_input(self, atoms, properties,
+                                     system_changes)
+        if self.backup:
+            for fn in [self.infile, self.outfile, self.dumpfile,
+                       self.structfile, self.logfile]:
+                if os.path.exists(fn):
+                    common.backup(fn)
+        common.file_write(self.infile, self.fill_infile_templ())
+        io.write_lammps(self.structfile, 
+                        crys.atoms2struct(atoms), 
+                        symbolsbasename=os.path.basename(self.structfile) + \
+                            '.symbols')
+    
+    def read_results(self):
+        self.results = {}
+        assert os.path.exists(self.outfile), "%s missing" %self.outfile
+        st = io.read_lammps_md_txt(self.outfile)[0]
+        self.results['energy'] = st.etot
+        self.results['forces'] = st.forces
+        self.results['stress'] = stress_pwtools2ase(st.stress)
+
