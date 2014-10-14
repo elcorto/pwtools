@@ -10,9 +10,10 @@ F2PY_FLAGS=--opt='-O3' \
 			--f90flags="$(F90FLAGS) $(OMP_F90_FLAGS)" \
 			--f77flags="$(F90FLAGS) $(OMP_F90_FLAGS)" \
 			$(F2PY_OMP_F90_FLAGS) \
-			-llapack \
+			$(LAPACK) \
 ##			-DF2PY_REPORT_ON_ARRAY_COPY=1 \
 
+LAPACK=-llapack
 OMP_F90_FLAGS=
 F2PY_OMP_F90_FLAGS=
 
@@ -29,17 +30,27 @@ gfortran: ARCH=-mmmx -msse2
 gfortran-omp: OMP_F90_FLAGS=-fopenmp -D__OPENMP
 gfortran-omp: F2PY_OMP_F90_FLAGS=-lgomp
 
+# MKL_LIB should be something like
+# 	/sw/global/compilers/intel/2013/composer_xe_2013.1.117/mkl/lib/intel64
+# i.e. the path to all the MKL libs	
+gfortran-mkl: LAPACK=-L$(MKL_LIB) -lmkl_gf_lp64  -lmkl_sequential -lmkl_core -lmkl_def
+ifort-mkl: LAPACK=-L$(MKL_LIB) -lmkl_intel_lp64  -lmkl_sequential -lmkl_core -lmkl_def
+
 # user targets (e.g. make gfortran)
 gfortran: libs
 ifort: libs
 gfortran-omp: gfortran
 ifort-omp: ifort
+gfortran-mkl: gfortran
+ifort-mkl: ifort
 
 help:
 	@echo "make gfortran            # gfortran, default"
 	@echo "make gfortran-omp        # gfortran + OpenMP"
+	@echo "make gfortran-mkl        # gfortran, MKL lapack, set MKL_LIB"
 	@echo "make ifort               # ifort"
 	@echo "make ifort-omp           # ifort + OpenMP"
+	@echo "make ifort-mkl           # ifort, MKL lapack, set MKL_LIB"
 
 # internal targets
 libs: _flib.so _dcd.so
@@ -50,8 +61,8 @@ libs: _flib.so _dcd.so
 # $? = flib.f90
 _%.so: %.f90
 	mkdir -pv build; cp -v $*.f90 build/; cd build; \
-	$(F2PY) -h $*.pyf $? -m _$* --overwrite-signature; \
-	$(F2PY) -c $*.pyf $? $(F2PY_FLAGS); \
+	CC=gcc CXX=g++ $(F2PY) -h $*.pyf $? -m _$* --overwrite-signature; \
+	CC=gcc CXX=g++ $(F2PY) -c $*.pyf $? $(F2PY_FLAGS); \
 	pwd; cp -v _$*.so ../ 
 
 clean:
