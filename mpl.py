@@ -446,19 +446,44 @@ def get_2d_testdata():
 # Typical matplotlib line/marker colors and marker styles. See help(plot).
 colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
 markers = ['o', 'v', '^', '<', '>', 's', 'p', '*', 'h', 'H', '+', 'x', 'D']
+linestyles = ['-', '--', ':', '-.']
+colors_markers = [x[0]+x[1] for x in itertools.product(colors,markers)]
+colors_linestyles = [x[0]+x[1] for x in itertools.product(colors,linestyles)]
+markers_colors = [x[0]+x[1] for x in itertools.product(markers,colors)]
+linestyles_colors = [x[0]+x[1] for x in itertools.product(linestyles,colors)]
 
-colors_markers = []
-for mark in markers:
-    for col in colors:
-        colors_markers.append(col+mark)
+# Iterators which raise StopIteration
+iter_colors = iter(colors)
+iter_markers = iter(markers)
+iter_linestyles = iter(linestyles)
+iter_colors_markers = iter(colors_markers)
+iter_colors_linestyles = iter(colors_linestyles)
+iter_markers_colors = iter(markers_colors)
+iter_linestyles_colors = iter(linestyles_colors)
 
 # Iterators which infinitely repeat each sequence. 
 cycle_colors = itertools.cycle(colors)
 cycle_markers = itertools.cycle(markers)
 cycle_colors_markers = itertools.cycle(colors_markers)
+cycle_colors_linestyles = itertools.cycle(colors_linestyles)
+cycle_markers_colors = itertools.cycle(markers_colors)
+cycle_linestyles_colors = itertools.cycle(linestyles_colors)
+
+# shortcuts
 cc = cycle_colors
 cm = cycle_markers
 ccm = cycle_colors_markers
+ccl = cycle_colors_linestyles
+cmc = cycle_markers_colors
+cls = cycle_linestyles_colors
+
+ic = iter_colors
+im = iter_markers
+icm = iter_colors_markers
+icl = iter_colors_linestyles
+imc = iter_markers_colors
+ilc = iter_linestyles_colors
+
 
 def smooth_color(idx, niter):
     """
