@@ -3,6 +3,7 @@ __all__ = [\
     'atomic_data',
     'base',
     'batch',
+    'calculators',
     'comb',
     'common',
     'constants',

@@ -26,11 +26,16 @@ def stress_pwtools2ase(pwstress):
     return -crys.tensor2voigt(pwstress) / constants.eV_by_Ang3_to_GPa
 
 
-class PwtoolsASEInterface(object):
+# Have an idea for an even more useless name for this class? Then send me a
+# mail. Or a patch! :)
+class CalculatorBase(object):
+    """Base class for creating calculators. 
+    
+    Provides methods to automatically dispatch constructor input keywords."""
     def init_params_from_input(self, kwds):
-        """Set self.parameters = self.default_parameters and update with input
+        """Set ``self.parameters = self.default_parameters`` and update with input
         keyword arguments `kwds`. For each key in self.parameters, set
-        self.<key> = <value>."""
+        ``self.<key> = <value>``."""
         allowed_keys = self.default_parameters.keys()
         input_keys = kwds.keys()
         for k in input_keys:
@@ -42,13 +47,13 @@ class PwtoolsASEInterface(object):
         self.__dict__.update(self.parameters)
 
     def fill_infile_templ(self):
-        """Replace all placeholders in self.infile. Use all keys in
-        self.infile_templ_keys as possible placeholders."""
+        """Replace all placeholders in ``self.infile_templ``. Use all keys in
+        ``self.infile_templ_keys`` as possible placeholders."""
         return self.infile_templ.format(**dict((key, getattr(self, key)) for key \
                                         in self.infile_templ_keys))
 
 
-class Pwscf(FileIOCalculator, PwtoolsASEInterface):
+class Pwscf(FileIOCalculator, CalculatorBase):
     """Pwscf (pw.x) calculator.
 
     ATM, we don't write a ``ase.calculators.calculator.Parameters`` class
@@ -248,7 +253,7 @@ K_POINTS automatic
         self.results['stress'] = stress_pwtools2ase(st.stress)
 
 
-class Lammps(FileIOCalculator, PwtoolsASEInterface):
+class Lammps(FileIOCalculator, CalculatorBase):
     """
     LAMMPS calculator.
 

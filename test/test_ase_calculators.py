@@ -69,6 +69,7 @@ def test_pwscf_calculator():
         at = get_atoms_with_calc_pwscf(pseudo_dir)
 
         print "scf"
+        # trigger calculation here
         forces = at.get_forces()
         etot = at.get_potential_energy()
         stress = at.get_stress(voigt=False) # 3x3
@@ -84,8 +85,7 @@ def test_pwscf_calculator():
         print "vc-relax"
         from ase.optimize import BFGS
         from ase.constraints import UnitCellFilter
-        ucf = UnitCellFilter(at)
-        opt = BFGS(ucf)
+        opt = BFGS(UnitCellFilter(at))
         cell = parse.arr2d_from_txt("""
             -1.97281509  0.          1.97281509
              0.          1.97281509  1.97281509
