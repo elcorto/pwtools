@@ -41,7 +41,7 @@ def test_save_object():
         dotest = True
         for name, string in known_fails.iteritems():
             if name == attr:
-                print "%s: KNOWNFAIL: %s: %s" %(name, string, attr)
+                print "known fail: %s: %s: %s" %(name, string, attr)
                 dotest = False
         if dotest:
             print "testing:", attr, type(c_val), type(c2_val)

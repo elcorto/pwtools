@@ -40,6 +40,7 @@ import numpy as np
 from pwtools import num, common
 from pwtools.test.testenv import testdir
 warnings.simplefilter('always')
+from nose.plugins.skip import SkipTest
 
 #-----------------------------------------------------------------------------
 # define types, could probably also use the types module
@@ -345,3 +346,6 @@ def unpack_compressed(src, prefix='tmp', testdir=testdir, ext=None):
     print common.backtick(cmd)
     assert os.path.exists(filename), "unpack failed: '%s' not found" %filename
     return filename
+
+def skip(msg):
+    raise SkipTest(msg)

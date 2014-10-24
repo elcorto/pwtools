@@ -1,4 +1,3 @@
-
 # If we work over ssh, we really want to run matplotlib in non-X mode by
 # telling it to use a non-X backend by ``matplotlib.use('Agg')``. This works if
 # we call this test alone::
@@ -26,13 +25,13 @@
 #   
 #   $ ./runtests.sh -e 'test_mpl'
 
-import warnings
+from pwtools.test import tools
 
 def test_mpl():
     try:
         from pwtools import mpl
-        import os
         try:
+            import os
             print os.environ['DISPLAY']
             fig,ax = mpl.fig_ax(dpi=15,num=20)
             assert fig.dpi == 15
@@ -46,8 +45,7 @@ def test_mpl():
             assert dct['test'].fig.dpi == 15
             assert dct['test'].fig.number == 20
         except KeyError:
-            warnings.warn("no DISPLAY environment variable, skipping test")
+            tools.skip("no DISPLAY environment variable, skipping test")
     except ImportError:
-        warnings.warn("couldn't import matplotlib, skipping test")
-        return
+        tools.skipping("couldn't import matplotlib, skipping test")
 

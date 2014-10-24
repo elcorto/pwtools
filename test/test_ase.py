@@ -1,4 +1,3 @@
-import warnings
 from pwtools import crys
 from pwtools.test import tools
 import numpy as np
@@ -29,4 +28,4 @@ def test_get_ase_atoms():
             at = crys.struct2atoms(st, pbc=pbc)
             assert (at.pbc == np.array([pbc]*3)).all()
     except ImportError:
-        warnings.warn("cannot import ase, skipping test get_ase_atoms()")
+        tools.skip("cannot import ase, skipping test get_ase_atoms()")

@@ -1,7 +1,8 @@
-import os, warnings, time
+import os, time
 import numpy as np
 from pwtools import io, constants, common, parse
 from pwtools.calculators import Pwscf, Lammps
+from pwtools.test.tools import skip
 from testenv import testdir
 pj = os.path.join
 
@@ -59,9 +60,9 @@ def get_atoms_with_calc_lammps():
 
 def test_pwscf_calculator():
     if not have_ase():
-        warnings.warn("no ASE found, skipping test")
+        skip("no ASE found, skipping test")
     elif not have_pwx():
-        warnings.warn("no pw.x found, skipping test")
+        skip("no pw.x found, skipping test")
     else:
         pseudo_dir = pj(testdir, prefix, 'pseudo')
         print common.backtick("mkdir -pv {p}; cp files/qe_pseudos/*.gz {p}/; \
@@ -105,9 +106,9 @@ def test_pwscf_calculator():
 
 def test_lammps_calculator():
     if not have_ase():
-        warnings.warn("no ASE found, skipping test")
+        skip("no ASE found, skipping test")
     elif not have_lmp():
-        warnings.warn("no lammps found, skipping test")
+        skip("no lammps found, skipping test")
     else:
         at = get_atoms_with_calc_lammps()
         at.rattle(stdev=0.001, seed=int(time.time()))

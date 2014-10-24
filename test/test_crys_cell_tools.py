@@ -31,11 +31,11 @@ def test_cell_tools():
     volume = abs(np.linalg.det(cell))
     np.testing.assert_almost_equal(volume, crys.volume_cc(cryst_const))
     np.testing.assert_almost_equal(volume, abs(crys.volume_cell(cell)))
-    # this will and must always fail for random cells
+    # this must always fail for random cells
     try:
         np.testing.assert_array_almost_equal(crys.cc2cell(crys.cell2cc(cell)), cell)
     except AssertionError:
-        print("KNOWNFAIL")
+        pass
     # Here, we convert cryst_const to a *different* cell which conforms to the
     # orientation convention, and back to cryst_const.
     np.testing.assert_array_almost_equal(crys.cell2cc(crys.cc2cell(cryst_const)),

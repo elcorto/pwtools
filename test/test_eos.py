@@ -13,10 +13,10 @@
 # Note: Ref data generated w/ old units Ry, Bohr, we convert to eV, Ang here
 
 import numpy as np
-import warnings
 from pwtools.eos import ElkEOSFit
 from pwtools import common
 from pwtools.constants import Ry, Ha, Bohr, Ang, eV
+from pwtools.test import tools
 from testenv import testdir
 
 Bohr3_to_Ang3 = (Bohr**3 / Ang**3)
@@ -24,9 +24,9 @@ Bohr3_to_Ang3 = (Bohr**3 / Ang**3)
 def test_eos():
     # This must be on your $PATH.
     exe = 'eos.x'
-    app = common.backtick("which %s" %exe)
+    app = common.backtick("which %s" %exe).strip()
     if app == '':
-        warnings.warn("warning: cannot find '%s' on PATH, skipping test" %exe)
+        tools.skip("cannot find '%s' on PATH, skipping test" %exe)
     else:
         # EV input data [Bohr^3, Ry] -> [Ang^3, eV]
         data = np.loadtxt("files/ev/evdata.txt")

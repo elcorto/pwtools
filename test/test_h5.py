@@ -1,6 +1,5 @@
 import os
 import numpy as np
-import warnings
 from pwtools import io
 from pwtools.test import tools
 from testenv import testdir
@@ -50,6 +49,5 @@ def test_h5():
         read_dct3 = io.read_h5(h5fn)
         assert np.sort(np.array(read_dct3.keys())).tolist() == ['/b', '/c']
 
-
     except ImportError:
-        warnings.warn("skipping test_h5, no h5py importable")
+        tools.skip("skipping test_h5, no h5py importable")

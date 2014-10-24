@@ -32,5 +32,5 @@ def test_rand_struct():
                               atom_maxtry=1)
     try:                              
         st = rs.get_random_struct(fail=True)
-    except rand.RandomStructureFail as ex:
-        print "KNOWNFAIL: catched exception: %s" %ex.msg
+    except rand.RandomStructureFail:
+        pass

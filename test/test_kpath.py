@@ -1,6 +1,7 @@
-import os, warnings
+import os
 import numpy as np
 from pwtools import kpath, mpl
+from pwtools.test import tools
 
 def test_kpath():
     # only API
@@ -38,5 +39,5 @@ def test_plot_dis():
         assert (ax3dos.get_lines()[0].get_xdata() == dos[:,1]).all()
         assert (ax3dos.get_lines()[0].get_ydata() == dos[:,0]).all()
     except KeyError:
-        warnings.warn("no DISPLAY environment variable, skipping test")
+        tools.skip("no DISPLAY environment variable, skipping test")
 

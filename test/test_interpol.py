@@ -1,6 +1,7 @@
 import tempfile
 import numpy as np
 from pwtools import mpl, num
+from pwtools.test import tools
 import cPickle as pickle
 from testenv import testdir
 
@@ -14,14 +15,18 @@ def dump(obj, testdir=testdir):
     pickle.dump(obj, fd, 2)
     fd.close()
 
-def test_interpol2d():
+def get_test_data():
     x = np.linspace(-5,5,20) 
     y = x 
     X,Y = np.meshgrid(x,y); X=X.T; Y=Y.T 
     Z = (X+3)**2+(Y+4)**2 + 5 
     dd = mpl.Data2D(X=X,Y=Y,Z=Z)
-    
     tgt = np.array([  5.0 ,  30])
+    return dd, tgt
+
+def test_interpol2d():
+    dd, tgt = get_test_data()
+
     inter = num.Interpol2D(dd=dd, what='rbf_multi') 
     assert np.allclose(inter([[-3,-4],[0,0]]), tgt)
     assert np.allclose(return_min(inter), 5.0)
@@ -64,18 +69,6 @@ def test_interpol2d():
     inter = num.Interpol2D(dd=dd, what='nearest')
     dump(inter)
     
-    try:
-        from scipy.interpolate import CloughTocher2DInterpolator
-        inter = num.Interpol2D(dd=dd, what='ct')
-        assert np.allclose(inter([[-3,-4],[0,0]]), tgt,
-            atol=1e-1)
-        assert np.allclose(return_min(inter), 5.0, atol=1e-1)
-        dump(inter)
-    except ImportError:
-        import warnings
-        warnings.warn("couldn't import "
-            "scipy.interpolate.CloughTocher2DInterpolator")
-   
     # API
     inter = num.Interpol2D(xx=dd.xx, yy=dd.yy, values=dd.zz, what='bispl')
     assert np.allclose(inter([[-3,-4],[0,0]]), tgt)
@@ -88,4 +81,17 @@ def test_interpol2d():
     inter = num.Interpol2D(dd.XY, dd.zz, what='bispl')
     assert np.allclose(inter([[-3,-4],[0,0]]), tgt)
     assert np.allclose(return_min(inter), 5.0)
+
+   
+def test_interpol2d_CloughTocher():
+    dd, tgt = get_test_data()
+    try:
+        from scipy.interpolate import CloughTocher2DInterpolator
+        inter = num.Interpol2D(dd=dd, what='ct')
+        assert np.allclose(inter([[-3,-4],[0,0]]), tgt,
+            atol=1e-1)
+        assert np.allclose(return_min(inter), 5.0, atol=1e-1)
+        dump(inter)
+    except ImportError:
+        tools.skip("couldn't import scipy.interpolate.CloughTocher2DInterpolator")
 

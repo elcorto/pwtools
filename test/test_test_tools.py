@@ -49,10 +49,8 @@ def test_tools():
     assert not tools.all_types_equal([1], [1,2])
     assert not tools.all_types_equal('a', 'b')
    
-    try:
-        tools.assert_all_types_equal(1.0, 1, strict=True)
-    except AssertionError:
-        print "KNOWNFAIL: different types not allowed"
+    # different types not allowed if strict=True
+    assert not tools.all_types_equal(1.0, 1, strict=True)
     
     # test keys=[...], i.e. ignore some keys in both dicts
     x2 = copy.deepcopy(x1)

@@ -19,12 +19,6 @@ def test_coord_trans():
     c_X2 = coord_trans(c_Y, old=Y, new=X)
     aaae(c_X, c_X2)
 
-    # X and must have the right shape: (4,4) here
-    try:
-        coord_trans(rand(20,4), old=X, new=Y)
-    except AssertionError:
-        print "KNOWNFAIL"
-
     # simple dot product must produce same cartesian results:
     # X . v_X = I . v_I = v_I
     X = np.identity(3)

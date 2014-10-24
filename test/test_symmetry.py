@@ -1,7 +1,6 @@
 from pwtools import symmetry, crys
 from pwtools.test import tools
 import numpy as np
-import warnings
 
 def test_symmetry():
     try: 
@@ -24,4 +23,4 @@ def test_symmetry():
                                                      'symbols',
                                                      'volume'])
     except ImportError:
-        warnings.warn("WARNING: skipping test_symmetry, spglib not found")
+        tools.skip("WARNING: skipping test_symmetry, spglib not found")

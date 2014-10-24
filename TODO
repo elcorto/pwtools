@@ -11,7 +11,7 @@ base.py
 
 parse.py
 --------
-* Many classes still call the base classes' __init__ explitely. We get unbound
+* Many classes still call the base classes' __init__ explicitly. We get unbound
   method errors in interactive Ipython sometimes if we reload modules. We need
   to use use super() instead. But that only calls *one* __init__, namely the
   one from the major base class::
@@ -22,8 +22,8 @@ parse.py
     c=C()
   
   In some classes, we call __init__'s of two base classes and cannot use
-  super() then? Is this bad design? Probably, since the MRO has clear rules
-  also for multi inheritance.
+  super() then? Is this bad design? Probably, since the MRO (method resolution
+  order) has clear rules also for multi inheritance. But who understands them?
 * Speed: We did some profiling using kernprof.py on Cp2kMDOutputFile, which
   uses np.fromstring(backtick(cmd)).reshape(...). We found that the Python
   overhead for this command compared to executing all the grep/sed/awk stuff in
@@ -44,8 +44,8 @@ crys.py
   that directly to histogram()! This would solve major problems with that
   fuction.
 * rpdf(): If we re-code the distance part in Fortran, add support for variable
-  cell trajectories, if the rpdf is defines for that. Makes surely no sense if
-  the cell changes drastically during an MD and we do the averave of the rpdf's 
+  cell trajectories, if the rpdf is defined for that. Makes surely no sense if
+  the cell changes drastically during an MD and we do the average of the rpdf's 
   over time? Also, rmax will change in each timestep! We'll then output only up
   to the smallest of all rmax values.
 * Maybe make crys.Structure / Trajectory do lazy evaluation by default 
@@ -59,22 +59,14 @@ crys.py
 
 pydos.py
 --------
-* let *_pdos() return one 2d arry with several columns, like crys.rpdf()
-
+* let *_pdos() return one 2d array with several columns, like crys.rpdf()
+* pydos is a very stupid name :)
+ 
 all
 ---
 * Drop verbose.py. Use the logging or warnings module.
 * rename all functions foo3d() -> foo_traj(). But not funcs which take 3d arrays
   directly. Only those which take a Trajectory as argument.
-
-tests
------
-* Handle known fails with nose.
-
-plotting dispersions
---------------------
-* Finish functions for parsing and plotting dispersions (pwscf.py, kpath.py).
-  Remove unused and redundant stuff.
 
 examples
 --------
@@ -106,17 +98,17 @@ num.py
 * Interpol2D is actually InterpolND if we remove the 'bispl' method. So add
   InterpolND and derive Interpol2D from that and add bispl only there. Uuuuhh :)
 
-eos.py
-------
-* Make the EOS fit classes have the same API as num.Spline: get_min(),
+eos.py, thermo.Gibbs
+--------------------
+* Make the EOS fit classes have the same API as num.Fit1D: get_min(),
   get_root(), __call__() accepts `der` kwd.
 * Rename get_min() [which returns a dict {v0, e0, p0, b0}] to smth like
-  get_eos_min(). Make get_min() behave like in num.Spline [or num.Fit1D, for
-  that matter] and maybe even derive from that. In get_min(), return v0 from the
-  fit istead of doing a minimization. The only difference should be that there
-  is an additional get_eos_min() and that the fit function contains some
-  physics. This would make it *much* easier to use these EOS fit classes in
-  thermo.Gibbs. Right now people use smth like
+  get_eos_min(). Make get_min() behave like in num.Fit1D and maybe even derive
+  from that. In get_min(), return v0 from the fit instead of doing a
+  minimization. The only difference should be that there is an additional
+  get_eos_min() and that the fit function contains some physics. This would
+  make it *much* easier to use these EOS fit classes in thermo.Gibbs. Right now
+  people use smth like
 
     >>> def fit_1d_G(x,y):
     ...     efit = eos.ElkEOSFit(energy=y, volume=x, verbose=False)
@@ -129,10 +121,23 @@ eos.py
   of the EOS fit anyway? ATM all our use cases used PolyFit1D b/c we have
   enough data points. But other people with big systems can only afford some
   E(V) points and then an EOS is better. Data scaling is mandatory before
-  fitting here, too!
+  fitting here, too! We also did not use eos.x for 1D QHA b/c the min position showed
+  small scatter. According to Thomas' tests, his Vinet class uses data scaling
+  (as we suggested, do it like we do in PolyFit) and so the scatter is gone.
+  The best would be if someone who really needs this would implement a proper Vinet
+  class + a test! ATM people use the default polys or Thomas' patch.
 * Add own implementation at least for the Vinet EOS. This ought to be much
-  faster than calling an external tool. There was a patch by Thomas G., but no
-  test script so far. AFAIR, one needed to do some hacks with the start guess
-  and data scaling was problematic somehow.
+  faster than calling an external tool. AFAIR, one needed to do some hacks with
+  the start guess and data scaling was problematic somehow.
+* Remove all call-external-fortnan-eos-fit-tool classes, which was not such a
+  good idea. Implementing this is really trivial and much easier in the end.
+  Only once generate test data with an external tool.
+  Have a look here:
+  http://pymatgen.org/_modules/pymatgen/io/abinitio/eos.html
+
+mpl.py
+------
+* Farm this out to the mplextra package. We already placed the set_plot_*
+  functions there.
 
 # vim:comments=fb\:*

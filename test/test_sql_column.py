@@ -1,4 +1,5 @@
 from pwtools.sql import sql_column
+from nose.tools import raises
 
 def test_sql_column():
     x = sql_column(key='foo', 
@@ -29,8 +30,8 @@ def test_sql_column():
         assert xx.sqltype == 'INTEGER'
     for xx in sql_column('foo', [1.0,2.0]):
         assert xx.sqltype == 'REAL'
-    try:    
-        for xx in sql_column('foo', [1,2.0]):
-            assert xx.sqltype == 'INTEGER'
-    except AssertionError:
-        print "KNOWNFAIL: mixed types"
+
+@raises(AssertionError)
+def test_sql_column_fail_for_mixed_types():
+    s = sql_column('foo', [1,2.0])
+        
