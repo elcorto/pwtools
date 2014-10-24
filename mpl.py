@@ -444,6 +444,15 @@ def get_2d_testdata():
 #----------------------------------------------------------------------------
 
 # Typical matplotlib line/marker colors and marker styles. See help(plot).
+# The naming is convention is foo_bar for 
+# 
+# lst_of_plot_styles = []
+# foo = ['b', 'r']
+# bar = ['-', '--']
+# for x in foo:
+#     for y in bar:
+#         lst_of_plot_styles.append(x+y)  
+#
 colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
 markers = ['o', 'v', '^', '<', '>', 's', 'p', '*', 'h', 'H', '+', 'x', 'D']
 linestyles = ['-', '--', ':', '-.']
@@ -475,7 +484,7 @@ cm = cycle_markers
 ccm = cycle_colors_markers
 ccl = cycle_colors_linestyles
 cmc = cycle_markers_colors
-cls = cycle_linestyles_colors
+clc = cycle_linestyles_colors
 
 ic = iter_colors
 im = iter_markers
