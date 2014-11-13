@@ -3,7 +3,10 @@
 # This module implements the functionallity to calculate the phonon density of
 # states (PDOS) from MD trajectories. For parsing output files into a format
 # which is used here, see parse.py and test/* for examples. For a theory
-# overview, see README and refs therein.
+# overview, see [1,2].
+#
+# [1] doc/source/written/background/phonon_dos.rst
+# [2] http://elcorto.bitbucket.org/pwtools/written/background/phonon_dos.html
 #
 # Other codes wich do that:
 # * tfreq from Tim Teatro
@@ -30,7 +33,9 @@ def pyvacf(vel, m=None, method=3):
     m : 1d array (natoms,)
         Atomic masses.
     method : int
-        Which method to use.
+        | 1 : 3 loops
+        | 2 : replace 1 inner loop
+        | 3 : replace 2 inner loops
     
     Returns
     -------
@@ -80,7 +85,9 @@ def fvacf(vel, m=None, method=2, nthreads=None):
     m : 1d array (natoms,)
         Atomic masses.
     method : int
-        Which method to use.
+        | 1 : loops
+        | 2 : vectorized loops
+
     nthreads : int ot None
         If int, then use this many OpenMP threads in the Fortran extension.
         Only useful if the extension was compiled with OpenMP support, of
@@ -327,14 +334,14 @@ def pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
 
 
 def vacf_pdos(vel, *args, **kwds):
-    """Wrapper for pdos(..., method='vacf', mirr=True, npad=None)"""
+    """Wrapper for ``pdos(..., method='vacf', mirr=True, npad=None)``"""
     if not kwds.has_key('mirr'):
         kwds['mirr'] = True
     return pdos(vel, *args, method='vacf', npad=None, **kwds)
 
 
 def direct_pdos(vel, *args, **kwds):
-    """Wrapper for pdos(..., method='direct', npad=1)"""
+    """Wrapper for ``pdos(..., method='direct', npad=1)``"""
     if not kwds.has_key('npad'):
         kwds['npad'] = 1
     if kwds.has_key('pad_tonext'):

@@ -1,12 +1,14 @@
 import numpy as np
 import os, tempfile
-from pwtools import parse, common, constants
-from pwtools import common
+from pwtools import parse, common, constants, common
 from pwtools import pydos as pd
-from pwtools.crys import coord_trans
+from pwtools.signal import pad_zeros, welch, mirror, acorr
+from scipy.signal import correlate
+from scipy.fftpack import fft,ifft
 from pwtools.test.tools import aae
 from pwtools.test.testenv import testdir
 from pwtools.test import tools
+rand = np.random.rand
 
 def test_pdos():
     filename = tools.unpack_compressed('files/pw.md.out.gz', prefix=__file__)
@@ -63,4 +65,27 @@ def test_pdos():
     assert np.log2(len(ffd)) % 1.0 == 0.0
 
 
+def test_pdos_1d():
+    pad=lambda x: pad_zeros(x, nadd=len(x)-1)
+    n=500; w=welch(n)
+    # 1 second signal
+    t=np.linspace(0,1,n); dt=t[1]-t[0]
+    # sum of sin()s with random freq and phase shift, 10 frequencies from
+    # f=0...100 Hz
+    v=np.array([np.sin(2*np.pi*f*t + rand()*2*np.pi) for f in rand(10)*100]).sum(0)
+    f=np.fft.fftfreq(2*n-1, dt)[:n]
+
+    c1=mirror(ifft(abs(fft(pad(v)))**2.0)[:n].real)
+    c2=correlate(v,v,'full')
+    c3=mirror(acorr(v,norm=False))
+    assert np.allclose(c1, c2)
+    assert np.allclose(c1, c3)
+
+    p1=(abs(fft(pad(v)))**2.0)[:n]
+    p2=(abs(fft(mirror(acorr(v,norm=False)))))[:n]
+    assert np.allclose(p1, p2)
+
+    p1=(abs(fft(pad(v*w)))**2.0)[:n]
+    p2=(abs(fft(mirror(acorr(v*w,norm=False)))))[:n]
+    assert np.allclose(p1, p2)
 

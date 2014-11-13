@@ -7,5 +7,6 @@ syntax: glob
 build
 doc/build
 doc/source/generated
+doc/source/written/background/pwtools.pydos.*.rst
 *.swp
 *.swo

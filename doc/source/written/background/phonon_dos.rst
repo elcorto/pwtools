@@ -17,14 +17,16 @@ If a == b, then this reduces to the special case of the Wiener-Khinchin theorem
   
   corr(a,a) = ifft(abs(fft(a))**2)
 
-where the power spectrum of `a` is simply ``PSD = fft(corr(a,a)) == abs(fft(a))**2``.
+where the power spectrum of `a` is simply:: 
+
+    fft(corr(a,a)) == abs(fft(a))**2
 
 Both theorems assume *periodic* data, i.e. `a` and `b` repeat after `nstep`
 points. To deal with non-periodic data, we use zero-padding with ``nstep-1``
-points at the end of `a`. Therefore, the correlated signal is ``2*nstep-1``
-points long and contains the correlations for positive and negative lags. Since
-the autocorrelation function is symmetric around lag=0, we return 0 ... +lag
-in :func:`pwtools.signal.acorr`. To compare that with
+points at the end of `a` before ``fft``. Therefore, the correlated signal is
+``2*nstep-1`` points long ("two-sided correlation") and contains the correlations for positive and
+negative lags. Since the autocorrelation function is symmetric around lag=0, we
+return 0 ... +lag in :func:`pwtools.signal.acorr`. To compare that with
 ``scipy.signal.correlate(a,a,'full')``, we need to mirror the result at lag=0
 again.
 
@@ -40,40 +42,45 @@ Two-sided correlation for -lag...0...+lag::
     >>> from scipy.signal import correlate
     >>> from scipy.fftpack import fft,ifft
     >>> pad=lambda x: pad_zeros(x, nadd=len(x)-1)
-    >>> n=50; v=rand(n); w=welch(n)
+    >>> n=500; w=welch(n)
+    >>> t=linspace(0,1,n); dt=t[1]-t[0]
+    >>> v=np.array([sin(2*pi*f*t + rand()*2*pi) for f in rand(10)*100]).sum(0)
+    >>> f=np.fft.fftfreq(2*n-1, dt)[:n]
+    >>> figure(); plot(t,v); title('signal')
 
     >>> c1=mirror(ifft(abs(fft(pad(v)))**2.0)[:n].real)
     >>> c2=correlate(v,v,'full')
     >>> c3=mirror(acorr(v,norm=False))
+    >>> figure(); plot(c1); plot(c2); plot(c3); title('corr')
 
 and the power spectra as ``fft(corr(v,v))``, now one-sided::
     
     >>> p1=(abs(fft(pad(v)))**2.0)[:n]
     >>> p2=(abs(fft(mirror(acorr(v,norm=False)))))[:n]
+    >>> figure(); plot(f,p1); plot(f,p2); title('spectrum')
 
 also with a Welch window::    
     
     >>> p1=(abs(fft(pad(v*w)))**2.0)[:n]
     >>> p2=(abs(fft(mirror(acorr(v*w,norm=False)))))[:n]
+    >>> figure(); plot(f,p1); plot(f,p2); title('spectrum welch')
 
-The zero-padding must be done always! It is done inside
+The zero-padding before ``fft`` is manadatory! It is also done inside
 :func:`scipy.signal.correlate()`.  
 
-Note that the two-sided correlation calculated like this is ``2*nstep-1`` long.
-
-The fft-based correlation is implemented, along with other methods, in
-:func:`pwtools.signal.acorr`.
+The 1D reference implementation is :func:`pwtools.signal.acorr`, which contains the 
+fft-based correlation (Wiener-Khinchin) along with other methods.
 
 Padding and smoothing
 ---------------------
 
 There is another code [tfreq]_ out there (appart from ``fourier.x`` from CPMD)
-which calculates the phonon DOS from MD data. But what he does is padding the
-`correlation` function, i.e. something like ``fft(pad(acorr(v)))``, which seems
-odd b/c the padding must be done on `v` as outlined above. Also, he uses
-smoothing (convolution with a gaussian, i.e. ``fft(smooth(pad(acorr(v))))``)
-after padding, which is less effective than using a Welch (or any other) window
-function. But I haven't tested the code, so ...
+which calculates the phonon DOS from MD data. What they do is padding the
+`correlation` function, i.e. something like ``fft(pad(acorr(v)))``, which is
+`not` the same as ``fft(mirror(acorr(v)))``. They also use smoothing (convolution
+with a gaussian, i.e. ``fft(smooth(pad(acorr(v))))``) after padding, which is
+less effective than using a Welch (or any other) window function. But we
+haven't tested the code, so all this may work just fine.
 
 For smoothing the spectrum using our implementation, either use more padding
 `of the time series` in the case ``p1=(abs(fft(pad(v)))**2.0)[:n]`` or smooth
@@ -83,29 +90,45 @@ the `spectrum` afterwards by using :func:`pwtools.signal.smooth`.
 Calculation of the phonon DOS from MD data in pwtools
 -----------------------------------------------------
 
+The main function is :func:`~pwtools.pydos.pdos`. The :mod:`~pwtools.pydos`
+module containes many helper and reference implementations which may be ignored.
+The module has
+
+.. automodule:: pwtools.pydos
+   :no-members:
+.. currentmodule:: pwtools.pydos
+.. autosummary::
+   :toctree:
+
+   pdos
+   vacf_pdos
+   direct_pdos
+   fvacf
+   pyvacf
+
 There are two ways of computing the phonon density of states (PDOS) from an MD
-trajectory (V is the 3d array of atomic velocities with shape (nstep,natoms,3),
+trajectory. ``v`` is the 3d array of atomic velocities with shape (nstep,natoms,3),
 i.e. ``Trajectory.velocity``, see :func:`~pwtools.crys.velocity_traj`. 
 
-(1) vacf way: FFT of the velocity autocorrelation function (vacf):
-    V -> VACF -> FFT(VACF) = PDOS, see :func:`~pwtools.pydos.vacf_pdos`
-(2) direct way: ``|FFT(V)**2|`` = PDOS, see :func:`~pwtools.pydos.direct_pdos`,
-    this is much faster and mathematically exactly the same, see
+* ``method='vacf'``: ``fft`` of the velocity autocorrelation function (``vacf``):
+    ``v`` -> ``vacf`` -> ``fft(vacf)`` = PDOS, see :func:`~pwtools.pydos.vacf_pdos`
+* ``method='direct'``:  ``abs(fft(v))**2`` = PDOS, see :func:`~pwtools.pydos.direct_pdos`,
+    This is much faster and mathematically exactly the same, see
     ``examples/examples/phonon_dos`` and ``test/test_pdos.py`` .
 
-Both methods are implemented but actually only method (2) is worth using.
-Method (1) still exists for historical reasons and as reference.
+Both methods are implemented but actually only method 'direct' is worth using.
+Method 'vacf' still exists for historical reasons and as reference.
 
 The actual implementation is in :func:`~pwtools.pydos.pdos` and the above two
 functions are convenience wrappers.
 
-* In method (1), if you mirror the VACF at t=0 before the FFT, then you get
+* In method 'vacf', if we mirror the ``vacf`` at t=0 before the ``fft``, then we get
   double frequency resolution. 
 
-* By default, direct_pdos() uses zero padding to get the same frequency
-  resolution as you would get with mirroring the signal in vacf_pdos().
-  Also, padding is necessary b/c of the arguments outlined above for the 1d
-  case.
+* By default, :func:`~pwtools.pydos.direct_pdos` uses zero-padding of ``v`` to
+  get the same frequency resolution as we would get with mirroring the signal
+  (``mirr=True``) :func:`~pwtools.pydos.vacf_pdos`. Also, padding is necessary
+  b/c of the arguments outlined above for the 1d case.
 
 * Both methods use Welch windowing by default to reduce "leakage" from
   neighboring peaks.
@@ -113,7 +136,7 @@ functions are convenience wrappers.
 * Both methods must produce exactly the same results (up to numerical noise).
 
 * The frequency axis of the PDOS is in Hz. It is "f", NOT the angular frequency 
-  2*pi*f. See also examples/pdos_methods.py .
+  2*pi*f. See also ``examples/pdos_methods.py``.
 
 * The difference to the 1d case: 
     * mass weighting: this affects only the relative peak `heights` in the
