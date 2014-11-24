@@ -38,15 +38,13 @@ def test_f2py_flib_openmp():
 
     rand = np.random.rand
 
-    nat=10 
-    nstep=500 
-    v=rand(nat, 3, nstep)
-    vnew = np.rollaxis(v, -1, 0)
-    assert vnew.shape == (nstep, nat, 3)
-    m=rand(nat) 
-    c=np.zeros((nstep,))
+    nat = 10 
+    nstep = 500 
+    vel = rand(nstep, nat, 3)
+    mass = rand(nat) 
+    cc = np.zeros((nstep,))
 
-    bar='-'*70
+    bar = '-'*70
 
     ret = omp_num_threads('check', err=True)
     if ret == 'err':
@@ -64,25 +62,25 @@ def test_f2py_flib_openmp():
     #-----------------------------------------------------------------------------
 
     print bar
-    print """testing _flib.vacf(v,m,c,1,1), no nthreads from Python -- extension
+    print """testing _flib.vacf(vel,mass,cc,1,1), no nthreads from Python -- extension
     called directly ... does NOT read os.environ, reacts only if OMP_NUM_THREADS
     has been set in the shell BEFORE this test script was called"""
     omp_num_threads('check')
-    c = _flib.vacf(v,m,c,1,1)
+    cc = _flib.vacf(vel,mass,cc,1,1)
     print bar + '\n'
 
     #-----------------------------------------------------------------------------
 
     print bar
     nthreads = 2
-    print "testing _flib.vacf(v,m,c,1,1,nthreads), setting nthreads = %i" %nthreads
-    c = _flib.vacf(v,m,c,1,1,nthreads)
+    print "testing _flib.vacf(vel,mass,cc,1,1,nthreads), setting nthreads = %i" %nthreads
+    cc = _flib.vacf(vel,mass,cc,1,1,nthreads)
     print bar + '\n'
 
     #-----------------------------------------------------------------------------
 
     print bar
-    print "testing _flib.vacf(v,m,c,1,1), no nthreads from Python, take two"
+    print "testing _flib.vacf(vel,mass,cc,1,1), no nthreads from Python, take two"
     print "*" * 70
     print """!!! POSSIBLE F2PY BUG !!! 
     After calling omp_set_num_threads() in the last test, OMP_NUM_THREADS is no
@@ -91,25 +89,25 @@ def test_f2py_flib_openmp():
     !!! POSSIBLE F2PY BUG !!!""" %nthreads
     print "*" * 70
     omp_num_threads('check')
-    c = _flib.vacf(v,m,c,1,1)
+    cc = _flib.vacf(vel,mass,cc,1,1)
     print bar + '\n'
 
     #-----------------------------------------------------------------------------
 
     print bar
     nthr = 2
-    print """testing pydos.fvacf(v, m=m, nthreads=%i) --
+    print """testing pydos.fvacf(vel, m=mass, nthreads=%i) --
     override any OMP_NUM_THREADS setting in the environment AND os.environ""" %nthreads
-    c = fvacf(vnew, m=m, nthreads=nthreads)
+    cc = fvacf(vel, m=mass, nthreads=nthreads)
     print bar + '\n'
 
     #-----------------------------------------------------------------------------
 
     print bar
-    print """testing pydos.fvacf(v, m=m, nthreads=None): no nthreads from Python -- It
+    print """testing pydos.fvacf(vel, m=mass, nthreads=None): no nthreads from Python -- It
     reads os.environ (workaround for f2py bug)."""
     omp_num_threads('check')
-    c = fvacf(vnew, m=m, nthreads=None)
+    cc = fvacf(vel, m=mass, nthreads=None)
     print bar + '\n'
 
     omp_num_threads('restore')

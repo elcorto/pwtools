@@ -51,21 +51,21 @@ def pyvacf(vel, m=None, method=3):
         # c(t) = <v(t0) v(t0 + t)> / <v(t0)**2> = C(t) / C(0)
         #
         # "displacements" `t'
-        for t in xrange(nstep):
+        for t in range(nstep):
             # time origins t0 == j
-            for j in xrange(nstep-t):
-                for i in xrange(natoms):
+            for j in range(nstep-t):
+                for i in range(natoms):
                     c[t] += np.dot(vel[j,i,:], vel[j+t,i,:]) * m[i]
     elif method == 2:    
         # replace 1 inner loop
-        for t in xrange(nstep):
-            for j in xrange(nstep-t):
+        for t in range(nstep):
+            for j in range(nstep-t):
                 # (natoms, 3) * (natoms, 1) -> (natoms, 3)
                 c[t] += (vel[j,...] * vel[j+t,...] * m[:,None]).sum()
     elif method == 3:    
         # replace 2 inner loops:
         # (xx, natoms, 3) * (1, natoms, 1) -> (xx, natoms, 3)
-        for t in xrange(nstep):
+        for t in range(nstep):
             c[t] = (vel[:(nstep-t),...] * vel[t:,...]*m[None,:,None]).sum()
     else:
         raise ValueError('unknown method: %s' %method)
@@ -153,11 +153,6 @@ def fvacf(vel, m=None, method=2, nthreads=None):
         use_m = 0
     else:
         use_m = 1
-    # XXX: (nstep, natoms, 3) -> (natoms, 3, nstep)
-    # Change shape of `vel` to legacy format used in _flib.vacf(). We really
-    # need to re-order the loops in flib.f90.
-    vel_f = np.rollaxis(vel, 0, 3)
-    assert vel_f.shape == (natoms, 3, nstep)
     verbose("calling _flib.vacf ...")
     if nthreads is None:
         # Possible f2py bug workaround: The f2py extension does not always set
@@ -167,11 +162,11 @@ def fvacf(vel, m=None, method=2, nthreads=None):
         key = 'OMP_NUM_THREADS'
         if os.environ.has_key(key):
             nthreads = int(os.environ[key])
-            c = _flib.vacf(vel_f, m, c, method, use_m, nthreads)
+            c = _flib.vacf(vel, m, c, method, use_m, nthreads)
         else:            
-            c = _flib.vacf(vel_f, m, c, method, use_m)
+            c = _flib.vacf(vel, m, c, method, use_m)
     else:        
-        c = _flib.vacf(vel_f, m, c, method, use_m, nthreads)
+        c = _flib.vacf(vel, m, c, method, use_m, nthreads)
     verbose("... ready")
     return c
 
