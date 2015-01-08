@@ -1,3 +1,4 @@
+"""Commonly used decorators."""
 
 import types
 import gzip
@@ -69,13 +70,6 @@ def open_and_close(func):
     return wrapper        
 
 
-def add_func_doc(func, doc_func=None):
-    """Add the docstring of the function object `doc_func` to func's doc
-    string."""
-    func.__doc__ += '\n\n' + textwrap.dedent(doc_func.__doc__)
-    return func
-
-
 def crys_add_doc(func):
     """Decorator to add common docstrings to functions with crystal/unit cell
     related functionallity."""
@@ -100,5 +94,35 @@ def crys_add_doc(func):
     # '3 grrr'
     func.__doc__ = func.__doc__ % dct 
     return func
+
+
+class lazyprop(object):
+    """Decorator for creating lazy evaluates properties.
+    The property should represent non-mutable data, as it replaces itself.
+    
+    kudos: Cyclone over at stackoverflow!
+    http://stackoverflow.com/questions/3012421/python-lazy-property-decorator
+    """
+    def __init__(self,fget):
+        self.fget = fget
+        self.func_name = fget.__name__
+
+    def __get__(self,obj,cls):
+        if obj is None:
+            return None
+        value = self.fget(obj)
+        setattr(obj,self.func_name,value)
+        return value
+
+# http://stackoverflow.com/questions/3012421/python-lazy-property-decorator
+##def lazyprop(fn):
+##    attr_name = '_lazy_' + fn.__name__
+##    @property
+##    def _lazyprop(self):
+##        if not hasattr(self, attr_name):
+##            setattr(self, attr_name, fn(self))
+##        return getattr(self, attr_name)
+##    return _lazyprop
+
 
 

@@ -2,7 +2,7 @@ import os.path
 from pwtools import common, num
 import cPickle
 
-# XXX Can all this be done using @property? If so, send me a patch!
+# Most of this class can probably be replaced by decorators.lazyprop .
 class FlexibleGetters(object):
     """The most basic base class -- the mothership! 
     
