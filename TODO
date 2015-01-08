@@ -1,13 +1,8 @@
 base.py
 -------
 * Re-think the whole implementation of FlexibleGetters. I think all of this can
-  be done using lazy evaluation, i.e. decorate getters in derived classed with
-  something like "@lazyproperty". Then the actual calculation is done only
-  once, if a attr is accessed (i.e. struct.cell). Currently we do that with
-  calls to check_set_attr() in each getter. Some ideas: 
-  http://stackoverflow.com/questions/3012421/python-lazy-property-decorator
-  Then, FlexibleGetters can be removed completely!
-  Instead of lazyproperty, ordinary properties might suffice.
+  be done using lazy evaluation. See decorator.lazyprop, which we currently use
+  in eos.EosFit only.
 
 parse.py
 --------
@@ -92,42 +87,12 @@ num.py
 * Interpol2D is actually InterpolND if we remove the 'bispl' method. So add
   InterpolND and derive Interpol2D from that and add bispl only there. Uuuuhh :)
 
-eos.py, thermo.Gibbs
---------------------
-* Make the EOS fit classes have the same API as num.Fit1D: get_min(),
-  get_root(), __call__() accepts `der` kwd.
-* Rename get_min() [which returns a dict {v0, e0, p0, b0}] to smth like
-  get_eos_min(). Make get_min() behave like in num.Fit1D and maybe even derive
-  from that. In get_min(), return v0 from the fit instead of doing a
-  minimization. The only difference should be that there is an additional
-  get_eos_min() and that the fit function contains some physics. This would
-  make it *much* easier to use these EOS fit classes in thermo.Gibbs. Right now
-  people use smth like
-
-    >>> def fit_1d_G(x,y):
-    ...     efit = eos.ElkEOSFit(energy=y, volume=x, verbose=False)
-    ...     efit.fit()
-    ...     return efit.spl_ev
-    >>> gibbs.set_fitfunc('1d-G', fit_1d_G)
-  
-  which uses a spline thru the fitted data points and then we use the Spline's
-  get_min(). But why not use the EOS's v0, b0, ... values, which are the result
-  of the EOS fit anyway? ATM all our use cases used PolyFit1D b/c we have
-  enough data points. But other people with big systems can only afford some
-  E(V) points and then an EOS is better. Data scaling is mandatory before
-  fitting here, too! We also did not use eos.x for 1D QHA b/c the min position showed
-  small scatter. According to Thomas' tests, his Vinet class uses data scaling
-  (as we suggested, do it like we do in PolyFit) and so the scatter is gone.
-  The best would be if someone who really needs this would implement a proper Vinet
-  class + a test! ATM people use the default polys or Thomas' patch.
-* Add own implementation at least for the Vinet EOS. This ought to be much
-  faster than calling an external tool. AFAIR, one needed to do some hacks with
-  the start guess and data scaling was problematic somehow.
+eos.py
+------
 * Remove all call-external-fortnan-eos-fit-tool classes, which was not such a
-  good idea. Implementing this is really trivial and much easier in the end.
-  Only once generate test data with an external tool.
-  Have a look here:
-  http://pymatgen.org/_modules/pymatgen/io/abinitio/eos.html
+  good idea. 
+* EosFit: Test data scaling when using it in thermo.Gibbs as fitfunc (as in
+  num.PolyFit).
 
 mpl.py
 ------

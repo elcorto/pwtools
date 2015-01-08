@@ -360,13 +360,9 @@ class Gibbs(object):
     >>> gibbs=Gibbs(axes_flat=..., etot=..., phdos=...,
     ...             T=linspace(5,2500,100), P=linspace(0,20,5), 
     ...             volfunc_ax=volfunc_ax)
-    >>> # EOS fit for G(V) -- return a Spline which has the needed API
-    >>> def fit_1d_G(x,y):
-    ...     efit = eos.ElkEOSFit(energy=y, volume=x, verbose=False)
-    ...     efit.fit()
-    ...     return efit.spl_ev
+    >>> # EOS fit for G(V), polynomial for heat capacity (default is Spline)
     >>> gibbs.set_fitfunc('C', lambda x,y: num.PolyFit1D(x,y,deg=5,scale=True))
-    >>> gibbs.set_fitfunc('1d-G', fit_1d_G)
+    >>> gibbs.set_fitfunc('1d-G', lambda x,y: eos.EosFit(x,y))
     >>> g = gibbs.calc_G(calc_all=True)
     >>> # 1d case
     >>> V = g['/ax0/V']; G=g['/T/P/ax0/G']; T=g['/T/T']

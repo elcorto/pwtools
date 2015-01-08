@@ -1,0 +1,35 @@
+/* [wxMaxima batch file version 1] [ DO NOT EDIT BY HAND! ]*/
+/* [ Created with wxMaxima version 13.04.2 ] */
+
+/* [wxMaxima: input   start ] */
+kill(all);
+eta0: (V/V0)**(1/3);
+/* with data scaling, not tested */
+/*eta0: ((V-Vmin)/(Vmax-Vmin)/V0)**(1/3);*/
+eta: eta0;
+E: E0 + 2*B0*V0/(B1-1)**2* (2 - (5 +3*B1*(eta-1)-3*eta)*exp(-3*(B1-1)*(eta-1)/2));
+/* with data scaling, not tested */
+/*expr: (E-Emin)/(Emax-Emin);*/
+expr: E;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+dif1: factor(diff(expr,V));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+dif2: factor(diff(expr, V, 2));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+remvalue(eta);
+ratsubst(eta, eta0, dif1);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+remvalue(eta);
+factor(ratsubst(eta, eta0, dif2));
+/* [wxMaxima: input   end   ] */
+
+/* Maxima can't load/batch files which end with a comment! */
+"Created with wxMaxima"$
