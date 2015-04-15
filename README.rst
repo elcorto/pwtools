@@ -1,15 +1,16 @@
 About
 -----
-The pwtools package. Copyright (C) 2014 Steve Schmerler 
+The pwtools package. Copyright (C) 2015 Steve Schmerler 
 
-pwtools is a package for pre- and postprocessing of atomic calculations, mostly
-targeted to Quantum Espresso, CPMD, CP2K and LAMMPS.
+pwtools is a package Python for pre- and postprocessing of atomic calculations,
+mostly targeted to Quantum Espresso, CPMD, CP2K and LAMMPS. It is almost, but
+not quite, entirely unlike ASE, with some tools extending numpy/scipy. It has a
+set of powerful parsers and data types for storing calculation data.
 
 Documentation
 -------------
-The ``doc/`` directory contains most documentation, and a nice HTML version is
-`here <http://elcorto.bitbucket.org/pwtools>`_. Quick start instructions can be
-found in the `tutorial
+`Here <http://elcorto.bitbucket.org/pwtools>`_ you find the html version of the
+files in ``doc/``. Quick start instructions can be found in the `tutorial
 <http://elcorto.bitbucket.org/pwtools/written/tutorial.html>`_. Have a look at
 the `API documentation
 <http://elcorto.bitbucket.org/pwtools/generated/api/index.html>`_ for a
