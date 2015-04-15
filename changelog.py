@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
-import sys, re, textwrap
-from pwtools import common
+import sys, re, textwrap, subprocess
 
 def usage():
     print textwrap.dedent("""
@@ -35,11 +34,26 @@ def usage():
         ENH = enhancement, addition of new features 
         BUG = bug fix 
         INT = internal refactoring w/o BEH or API change
+        DOC = documentation change
 
     If a commit message doesn't fit into that pattern, it will be
     ignored. If you want to saerch the history by yourself, then use  "hg log"
     directly.
     """)
+
+# slightly modified copy from common.py, avoid importing "from pwtools import
+# common" inside here b/c of python2.x relative import madness and package name
+# clash: common -> numpy -> io, i.e. local pwtools/io.py instead of std
+# lib's io ... ack!
+def backtick(call):
+    pp = subprocess.Popen(call, shell=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out,err = pp.communicate()
+    if err.strip() != '':
+        raise StandardError("Error calling command: '%s'\nError message "
+            "follows:\n%s" %(call, err))
+    return out            
+
 
 if __name__ == '__main__':
     dbar="="*79
@@ -51,10 +65,10 @@ if __name__ == '__main__':
         args = "-r 0:tip"
     else:    
         args = ' '.join(sys.argv[1:])
-    prefix_lst = ['ENH', 'BUG', 'API', 'BEH', 'INT']
+    prefix_lst = ['ENH', 'BUG', 'API', 'BEH', 'INT', 'DOC']
     rex = re.compile('^(' + '|'.join(prefix_lst) + ').*')
     cmd = r'hg log -v %s --template "{desc}\n"' %args
-    lines = common.backtick(cmd).splitlines()
+    lines = backtick(cmd).splitlines()
     for prefix in prefix_lst:
         print dbar
         go = False
