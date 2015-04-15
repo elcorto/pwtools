@@ -47,6 +47,7 @@ Lets take cp2k as an example (assuming an interactive Ipython session)::
     >>> plot(tr.coords[...,0])
 
 .. _avoid_auto_calc:
+
 Avoid auto-calculation for big MD data
 --------------------------------------
 If you have really big MD data (say several GB), then the :ref:`auto-calculation of

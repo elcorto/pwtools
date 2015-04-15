@@ -100,7 +100,8 @@ def fvacf(vel, m=None, method=2, nthreads=None):
 
     Notes
     -----
-    Fortran extension:
+    Fortran extension::
+
         $ python -c "import _flib; print _flib.vacf.__doc__"
         vacf - Function signature:
           c = vacf(v,m,c,method,use_m,[nthreads,natoms,nstep])

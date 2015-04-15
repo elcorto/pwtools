@@ -74,7 +74,7 @@ fft-based correlation (Wiener-Khinchin) along with other methods.
 Padding and smoothing
 ---------------------
 
-There is another code [tfreq]_ out there (appart from ``fourier.x`` from CPMD)
+There is `another code <tfreq_>`_ out there (appart from ``fourier.x`` from CPMD)
 which calculates the phonon DOS from MD data. What they do is padding the
 `correlation` function, i.e. something like ``fft(pad(acorr(v)))``, which is
 `not` the same as ``fft(mirror(acorr(v)))``. They also use smoothing (convolution
@@ -142,3 +142,6 @@ functions are convenience wrappers.
     * mass weighting: this affects only the relative peak `heights` in the
       PDOS, not the peak positions
     * averaging over `natoms` to get a 1d array (time series) 
+
+
+.. include:: ../refs.rst

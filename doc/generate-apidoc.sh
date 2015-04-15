@@ -16,3 +16,6 @@ rm -rfv build/ source/generated/
 echo "using: $autodoc"
 $autodoc -s source -a generated/api \
          -X 'test\.test_|changelog|test\.check_dep' pwtools
+
+# make heading the same level as in source/written/index.rst
+sed -i -re '/^API.*/,/[-]+/ s/-/=/g' source/generated/api/index.rst

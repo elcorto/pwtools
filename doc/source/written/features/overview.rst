@@ -1,3 +1,5 @@
+.. _overview:
+
 Overview
 ========
 
@@ -13,7 +15,7 @@ Overview
 * velocity autocorrelation function and phonon DOS from MD trajectories
   (:mod:`~pwtools.pydos`)
 
-* parsing of PWscf [qe]_, CPMD [cpmd]_, CP2K [cp2k]_ and LAMMPS [lammps]_
+* parsing of PWscf (QE_), CPMD_ , CP2K_ and LAMMPS_ 
   output into Python objects for easy access (:mod:`~pwtools.parse`)
 
 * structure io: read cif, pdb, write axsf, cif, xyz  (:mod:`~pwtools.io`)
@@ -26,14 +28,15 @@ Overview
 * thermodynamic properties in the quasi-harmonic approximation from phonon
   density of states, QHA implementation (:mod:`~pwtools.thermo`) 
 
-* MD analyis: radial pair distribution function (own implementation and VMD
-  [vmd]_ interface), RMS, RMSD (:mod:`~pwtools.crys`)
+* MD analyis: radial pair distribution function (own implementation and VMD_
+  interface), RMS, RMSD (:mod:`~pwtools.crys`)
 
 * unit cell related tools: super cell building, coordinate transformation,
   k-grid tools, ... (:mod:`~pwtools.crys`)
 
-* functions and classes to extend numpy/scipy, e.g. N-dim polynomial fitting! 
-  (:mod:`~pwtools.num`)
+* functions and classes to extend numpy/scipy, e.g. N-dim polynomial fitting
+  (!) and a number of convenient 1D classes (polynomial, spline) with a common
+  API (:mod:`~pwtools.num`)
 
 * basic signal processing / fft related tools (:mod:`~pwtools.signal`)
 
@@ -41,7 +44,9 @@ Overview
 
 * tools to handle matplotlib plots in scripts (:mod:`~pwtools.mpl`)
 
-The very nice ASE [ase]_ project is in some way related. It also stores atomic
+* QE and LAMMPS calculators for ASE (:mod:`~pwtools.calculators`)
+
+The very nice ASE_ project is in some way related. It also stores atomic
 structure data in Python objects for further manipulation. If needed, one can
 convert a :class:`~pwtools.crys.Structure` to an ASE Atoms object. The design
 goal of ASE is, however, different from pwtools. ASE provides interfaces to a
@@ -52,8 +57,8 @@ optimization is really developed and tested, as it seems. MD not so much.
 Better use a special MD code here. I'm not sure if ASE provides wave function
 extrapolation for Born-Oppenheimer MD [*]. Phonon calculations based on density
 functional perturbation theory like PWscf/PH or Abinit are not implemented
-(maybe in GPAW?). However, the supercell method can be used with the related
-[phonopy]_ package. The focus of the pwtools package is to be a handy pre- and
+(maybe in GPAW_?). However, the supercell method can be used with the related
+phonopy_ package. The focus of the pwtools package is to be a handy pre- and
 postprocessor providing pythonic access to all input and output quantities of
 the used ab initio codes. In ASE, the calculator abtracts the backend code's
 input away. With pwtools, you need to know the input file syntax of your
@@ -72,4 +77,6 @@ used.
 [*] Last time I checked, I stumbled over a `mailing list thread`_ where they said
 that in LCAO mode, the density would be re-used between steps.
 
-.. _`mailing list thread`: https://listserv.fysik.dtu.dk/pipermail/gpaw-users/2013-April/002044.html  
+.. _mailing list thread: https://listserv.fysik.dtu.dk/pipermail/gpaw-users/2013-April/002044.html  
+
+.. include:: ../refs.rst

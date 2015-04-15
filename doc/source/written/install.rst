@@ -33,9 +33,9 @@ On Debian::
 
 Must have:    
 
-* numpy
-* scipy
-* nose (for running tests in ``test/``)
+* `numpy <http://www.numpy.org>`_
+* `scipy <http://www.scipy.org>`_
+* `nose <https://nose.readthedocs.org>`_ (for running tests in ``test/``)
 * python headers (development files for compiling Fortran extension)  
 * Fortran compiler (e.g. gfortran will do fine)
 * Blas and Lapack (for ``flib.f90``)
@@ -44,34 +44,36 @@ Must have:
 
 Almost must have:
   
-* PyCifRW [pycifrw_orig]_: For Cif files in  :class:`~pwtools.parse.CifFile`,
+* `PyCifRW <pycifrw_orig_>`_: For Cif files in  :class:`~pwtools.parse.CifFile`,
   :func:`~pwtools.io.read_cif` and :func:`~pwtools.io.write_cif`. You may get a
   DeprecationWarning regarding the ``sets`` module. There is a patched version
-  from [pwextern-free]_, which deals with that.
-* eos (for :mod:`~pwtools.eos`): The tool "eos" from the Elk code [elk]_ must
-  be on your path. Note that the executable is assumed to be named "eos.x"
-  instead of the default name "eos". See :class:`pwtools.eos.ElkEOSFit` for
-  usage. Can be installed directly from Elk or also [pwextern-free]_.
+  from pwextern-free_, which deals with that.
 * h5py: only for some functions in :mod:`~pwtools.io` currently
-* pyspglib [spglib]_: used in :mod:`~pwtools.symmetry`, also shipped with
-  [pwextern-free]_.
+* `pyspglib <spglib_>`_: used in :mod:`~pwtools.symmetry`, also shipped with
+  pwextern-free_.
 
 Suggested:
 
 * matplotlib (``examples/``)
-* VMD [vmd]_ (``examples/rpdf/``, :func:`~pwtools.crys.call_vmd_measure_gofr`,
+* VMD_ (``examples/rpdf/``, :func:`~pwtools.crys.call_vmd_measure_gofr`,
   :func:`~pwtools.visualize.view_vmd_axsf`,
   :func:`~pwtools.visualize.view_vmd_xyz`), must register before download
-* ase [ase]_: :mod:`~pwtools.calculators`
+* ASE_: :mod:`~pwtools.calculators`
 
 Optional:
 
-* The ``fourier.x`` tool from the CPMD [cpmd]_ contrib sources (for
+* The ``fourier.x`` tool from the CPMD_ contrib sources (for
   ``examples/``). Need to register before download.
+* eos (for :mod:`~pwtools.eos`): The tool "eos" from the Elk_ code must
+  be on your path. Note that the executable is assumed to be named "eos.x"
+  instead of the default name "eos". See :class:`pwtools.eos.ElkEOSFit` for
+  usage. Can be installed directly from Elk or also pwextern-free_.
+ 
+.. note:: :class:`pwtools.eos.ElkEOSFit` is deprecated now.
 
-The "pwextern-free" package [pwextern-free]_ over at bitbucket.org contains
-add-on tools which we don't want / can ship directly with pwtools, such as eos,
-PyCifRW and pyspglib, together with an install script.
+The pwextern-free_ package contains add-on tools which we don't want / can ship
+directly with pwtools, such as eos, PyCifRW and pyspglib, together with an
+install script.
 
 All imports of optional Python modules will silently fail such that the code
 can be used anywhere without errors or annoying warnings. The code parts which
@@ -179,3 +181,6 @@ and::
 
     cd test 
     ./runtests.sh --nobuild 
+
+
+.. include:: refs.rst
