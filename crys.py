@@ -2873,7 +2873,6 @@ class Trajectory(Structure):
     ===========     ============    ================
     coords          (nstoms,3)      (nstep,natoms,3)
     coords_frac     (nstoms,3)      (nstep,natoms,3) 
-    cryst_const     (nstoms,3)      (nstep,natoms,3) 
     forces          (nstoms,3)      (nstep,natoms,3)     
     velocity        --              (nstep,natoms,3) 
     cryst_const     (6,)            (nstep,6)
@@ -2888,7 +2887,7 @@ class Trajectory(Structure):
     ===========     ============    ================
     
     Also, we have additional attrs which are only defined for
-    :class:`Trajectory` see `attrs_only_traj`: 
+    :class:`Trajectory`, see `attrs_only_traj`: 
     
     | nstep
     | timestep

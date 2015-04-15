@@ -10,7 +10,6 @@ __all__ = [\
     'crys',
     'decorators',
     'eos',
-    'ffnet',
     'io',
     'kpath',
     'mpl',

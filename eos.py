@@ -17,6 +17,7 @@ from pwtools.decorators import lazyprop
 from pwtools.num import Fit1D
 from scipy.optimize import leastsq
 
+
 def _vinet(V, params):
     """Vinet equation from PRB 70, 224107, from pymatgen."""
     E0, B0, B1, V0 = params['e0'], params['b0'], params['b1'], params['v0']
@@ -24,24 +25,25 @@ def _vinet(V, params):
     return E0 + 2.*B0*V0/(B1-1.)**2 \
            * (2. - (5. +3.*B1*(eta-1.)-3.*eta)*np.exp(-3.*(B1-1.)*(eta-1.)/2.))
 
+
 def _vinet_deriv1(V, params):
     """Vinet first derivative dE/dV."""
     # Thank you, Maxima!
     E0, B0, B1, V0 = params['e0'], params['b0'], params['b1'], params['v0']
     eta = (V/V0)**(1./3.)
-    k = 3.0/2.0
-    ex = np.exp(k*(-eta*B1 + B1 + eta - 1))
+    ex = np.exp(1.5*(-eta*B1 + B1 + eta - 1))
     return (3*eta -3) / eta**2.0 * B0 * ex
+
 
 def _vinet_deriv2(V, params):
     """Vinet second derivative d^2E/dV^2."""
     # Thank you, Maxima!
     E0, B0, B1, V0 = params['e0'], params['b0'], params['b1'], params['v0']
     eta = (V/V0)**(1./3.)
-    k = 3.0/2.0
-    ex = np.exp(k*(-eta*B1 + B1 + eta - 1))
+    ex = np.exp(1.5*(-eta*B1 + B1 + eta - 1))
     return -B0 * (3*eta**2.0*B1 - 3*eta*B1 - 3*eta**2.0 + 5*eta - 4) / \
             (2*eta**5 * V0) * ex
+
 
 class MaxDerivException(Exception):
     def __init__(self, msg=None):
@@ -54,28 +56,41 @@ class EVFunction(object):
     def __init__(self):
         self.param_order = ['e0', 'b0', 'b1', 'v0']
     
-    def evaluate(self, x, params):
-        """
+    def evaluate(self, volume, params):
+        """Evaluate function for x-axis `volume`.
+
         Parameters
         ----------
-        x : 1d array
-            volume
+        volume : scalar, 1d array
+            volume per atom [Ang^3]
         params : dict
-            {'e0', 'b0', 'b1', 'v0'} in eV, eV/Ang^3, ??, Ang^3
+            {'e0', 'b0', 'b1', 'v0'} in eV, eV/Ang^3, 1, Ang^3
         """    
         pass
     
-    def deriv(self, x, params, der=None):
+    def deriv(self, volume, params, der=None):
+        """Calculate derivative of E(V) of order `der`. ``der=1`` is the first
+        deriv etc.
+
+        Parameters
+        ----------
+        volume : scalar, 1d array
+            volume per atom [Ang^3]
+        params : dict
+            {'e0', 'b0', 'b1', 'v0'} in eV, eV/Ang^3, 1, Ang^3
+        der : int
+            derivative order
+        """    
         pass
     
     def get_min(self):
         pass
 
-    def __call__(self, x, params, der=0):
+    def __call__(self, volume, params, der=0):
         if der == 0:
-            return self.evaluate(x, params)
+            return self.evaluate(volume, params)
         else:
-            return self.deriv(x, params, der)
+            return self.deriv(volume, params, der)
     
     def lst2dct(self, lst):
         return dict([(k, lst[ii]) for ii,k in enumerate(self.param_order)])
@@ -84,19 +99,19 @@ class EVFunction(object):
         return [dct[k] for k in self.param_order]
     
 
-
 class Vinet(EVFunction):
-    def evaluate(self, x, params):
-        return _vinet(x, params)
+    def evaluate(self, volume, params):
+        return _vinet(volume, params)
     
-    def deriv(self, x, params, der=None):
+    def deriv(self, volume, params, der=None):
         if der == 1:
-            return _vinet_deriv1(x, params)
+            return _vinet_deriv1(volume, params)
         elif der == 2:
-            return _vinet_deriv2(x, params)
+            return _vinet_deriv2(volume, params)
         else:
             raise MaxDerivException("der %i not supported" %der)
     
+
 # Before using this a fitfunc in thermo.Gibbs, test it! You may need to
 # implement data scaling, as we do in num.PolyFit.
 class EosFit(Fit1D):
@@ -113,11 +128,12 @@ class EosFit(Fit1D):
     >>> vv = linspace(V.min(), V.max(), 200)
     >>> plot(vv, f(vv), 'r-')
     >>> v0 = f.params['v0']
+    >>> print "compare fit params and values obtained from methods:"
     >>> print "V0: %f Ang^3 (%f)" %(v0, f.get_min())
-    >>> print "B0: %f GPa (%f)" %(f.params['b0']*eV_by_Ang3_to_GPa, f.bulkmod(v0))
-    >>> print "B1: %f GPa"      %f.params['b1']
-    >>> print "E0: %f GPa (%f)" %(f.params['e0'], f(v0))
-    >>> print "P0: %f GPa"      %f.pressure(v0)
+    >>> print "B0: %f GPa   (%f)" %(f.params['b0']*eV_by_Ang3_to_GPa, f.bulkmod(v0))
+    >>> print "B1: %f           " %f.params['b1']
+    >>> print "E0: %f  eV   (%f)" %(f.params['e0'], f(v0))
+    >>> print "P0: %f GPa       " %f.pressure(v0)
     """
 
     def __init__(self, volume, energy, func=Vinet(), splpoints=500):
@@ -158,7 +174,8 @@ class EosFit(Fit1D):
         b1 = 4  # b1 is usually a small number like 4
         if not self.volume.min() < v0 and v0 < self.volume.max():
             raise StandardError('The minimum volume of a fitted parabola is not in the input volumes')
-         
+        
+        # need to use lst2dct and dct2lst here to keep the order of parameters 
         pp0_dct = dict(e0=e0, b0=b0, b1=b1, v0=v0)
         target = lambda pp, v: self.energy - self.func(v, self.func.lst2dct(pp))
         pp_opt, ierr = leastsq(target, 
@@ -167,6 +184,14 @@ class EosFit(Fit1D):
         self.params = self.func.lst2dct(pp_opt)
 
     def __call__(self, volume, der=0):
+        """
+        Parameters
+        ----------
+        volume : scalar, 1d array
+            volume per atom [Ang^3]
+        der : int
+            derivative order
+        """     
         try:    
             return self.func(volume, self.params, der=der)
         except MaxDerivException:
@@ -175,16 +200,33 @@ class EosFit(Fit1D):
     # Fit1D compat
     def get_min(self):
         """V0 [Ang^3]"""
-        ##return super(EosFit, self).get_min()
-        return self.params['v0']
+        if self.params.has_key('v0'):
+            return self.params['v0']
+        else:    
+            return super(EosFit, self).get_min()
     
     def pressure(self, volume):
-        """P(V) [GPa]"""
+        """P(V) [GPa]
+        
+        Parameters
+        ----------
+        volume : scalar, 1d array
+            volume per atom [Ang^3]
+        """     
         return -self(volume, der=1) * eV_by_Ang3_to_GPa
     
     def bulkmod(self, volume):
-        """B(V) [GPa]"""
-        return volume * self(volume, der=2) * eV_by_Ang3_to_GPa
+        """B(V) [GPa]
+
+        Parameters
+        ----------
+        volume : scalar, 1d array
+            volume per atom [Ang^3]
+        """        
+        if self.params.has_key('b0'):
+            return self.params['b0'] * eV_by_Ang3_to_GPa
+        else:
+            return volume * self(volume, der=2) * eV_by_Ang3_to_GPa
 
 
 class ExternEOS(FlexibleGetters):
