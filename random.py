@@ -263,3 +263,12 @@ class RandomStructure(object):
             return self._get_random_struct()
         else:            
             return self._get_random_struct_nofail()
+
+
+def random_struct(*args, **kwds):
+    """Shortcut for::
+    >>> rs = crys.RandomStructure(...)
+    >>> st = rs.get_random_struct()
+    """
+    rs = RandomStructure(*args, **kwds)
+    return rs.get_random_struct(fail=True)
