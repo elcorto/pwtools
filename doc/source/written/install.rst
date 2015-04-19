@@ -33,9 +33,9 @@ On Debian::
 
 Must have:    
 
-* `numpy <http://www.numpy.org>`_
-* `scipy <http://www.scipy.org>`_
-* `nose <https://nose.readthedocs.org>`_ (for running tests in ``test/``)
+* numpy_
+* scipy_
+* nose_ (for running tests in ``test/``)
 * python headers (development files for compiling Fortran extension)  
 * Fortran compiler (e.g. gfortran will do fine)
 * Blas and Lapack (for ``flib.f90``)
@@ -48,8 +48,8 @@ Almost must have:
   :func:`~pwtools.io.read_cif` and :func:`~pwtools.io.write_cif`. You may get a
   DeprecationWarning regarding the ``sets`` module. There is a patched version
   from pwextern-free_, which deals with that.
-* h5py: only for some functions in :mod:`~pwtools.io` currently
-* `pyspglib <spglib_>`_: used in :mod:`~pwtools.symmetry`, also shipped with
+* h5py_: only for some functions in :mod:`~pwtools.io` currently
+* `pyspglib <pyspglib_>`_: used in :mod:`~pwtools.symmetry`, also shipped with
   pwextern-free_.
 
 Suggested:
@@ -68,12 +68,17 @@ Optional:
   be on your path. Note that the executable is assumed to be named "eos.x"
   instead of the default name "eos". See :class:`pwtools.eos.ElkEOSFit` for
   usage. Can be installed directly from Elk or also pwextern-free_.
- 
-.. note:: :class:`pwtools.eos.ElkEOSFit` is deprecated now.
 
 The pwextern-free_ package contains add-on tools which we don't want / can ship
 directly with pwtools, such as eos, PyCifRW and pyspglib, together with an
 install script.
+
+.. note:: :class:`pwtools.eos.ElkEOSFit` is deprecated now, and so you don't
+   really need the Elk code's eos tool anymore. The other two things which come
+   with pwextern-free_ can be installed by::
+   
+    easy_install --prefix=$HOME/soft pycifrw 
+    easy_install --prefix=$HOME/soft pyspglib
 
 All imports of optional Python modules will silently fail such that the code
 can be used anywhere without errors or annoying warnings. The code parts which
@@ -103,8 +108,10 @@ Use the ``Makefile``::
     $ make help
     make gfortran            # gfortran, default
     make gfortran-omp        # gfortran + OpenMP
+    make gfortran-mkl        # gfortran, Intel MKL lapack, set MKL_LIB
     make ifort               # ifort
     make ifort-omp           # ifort + OpenMP
+    make ifort-mkl           # ifort, Intel MKL lapack, set MKL_LIB
 
 Generates ``*.so`` and ``*.pyf`` (f2py interface) files.
 

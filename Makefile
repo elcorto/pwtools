@@ -47,10 +47,10 @@ ifort-mkl: ifort
 help:
 	@echo "make gfortran            # gfortran, default"
 	@echo "make gfortran-omp        # gfortran + OpenMP"
-	@echo "make gfortran-mkl        # gfortran, MKL lapack, set MKL_LIB"
+	@echo "make gfortran-mkl        # gfortran, Intel MKL lapack, set MKL_LIB"
 	@echo "make ifort               # ifort"
 	@echo "make ifort-omp           # ifort + OpenMP"
-	@echo "make ifort-mkl           # ifort, MKL lapack, set MKL_LIB"
+	@echo "make ifort-mkl           # ifort, Intel MKL lapack, set MKL_LIB"
 
 # internal targets
 libs: _flib.so _dcd.so

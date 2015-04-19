@@ -10,4 +10,12 @@
 .. _phonopy: http://phonopy.sourceforge.net
 .. _tfreq: http://www.timteatro.net/2010/09/29/velocity-autocorrelation-and-vibrational-spectrum-calculation   
 .. _spglib: http://spglib.sourceforge.net/   
+.. _pyspglib: http://spglib.sourceforge.net/pyspglibForASE/
 .. _GPAW: https://wiki.fysik.dtu.dk/gpaw/   
+.. _numpy: http://www.numpy.org
+.. _scipy: http://www.scipy.org
+.. _nose: https://nose.readthedocs.org
+.. _h5py: http://www.h5py.org/
+.. _jmol: http://jmol.sourceforge.net/
+.. _avogadro: http://avogadro.cc
+.. _xcrysden: http://www.xcrysden.org/   

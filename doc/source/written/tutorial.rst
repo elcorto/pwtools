@@ -17,6 +17,72 @@ For basic ASE compatibility, you may get away with
 which behaves like ``ase.Atoms`` without the need to have ASE installed. 
 This is used in :mod:`pwtools.symmetry`, for example.
 
+Parse MD output, plot stuff
+---------------------------
+Lets take cp2k as an example (assuming an interactive Ipython session)::
+    
+    >>> from pwtools import io
+    >>> tr = io.read_cp2k_md('cp2k.out')
+    >>> plot(tr.etot)
+    >>> figure()
+    >>> # x-coord of all atoms over time
+    >>> plot(tr.coords[...,0])
+
+
+Parse SCF or relax output, plot stuff
+-------------------------------------
+Parse SCF and relax run from PWscf::
+    
+    >>> from pwtools import io, num
+    >>> st = io.read_pw_scf('pw.scf.out')
+    >>> # coords, forces, ...: shape = (natoms,3)
+    >>> print st.coords, st.etot
+    >>> tr = io.read_pw_md('pw.relax.out')
+    >>> plot(tr.etot)
+    >>> figure()
+    >>> # max force component during relaxation
+    >>> # tr.forces.shape = (nstep, natoms, 3)
+    >>> plot(np.max(np.abs(tr.forces), axis=0))
+
+
+Binary IO
+---------
+You can save a :class:`~pwtools.crys.Structure` or
+:class:`~pwtools.crys.Trajectory` object as binary file::
+    
+    >>> # save to binary pickle file
+    >>> tr.dump('traj.pk')
+
+and read it back in later using :func:`~pwtools.io.cpickle_load` ::
+    
+    >>> tr = io.cpickle_load('traj.pk')
+
+which is usually very fast.
+
+View a structure or trajectory
+------------------------------
+
+Supported viewers are xcrysden_, jmol_, avogadro_ and VMD_. Look at single
+structs or trajectories.
+
+::
+
+    >>> import os
+    >>> from pwtools import visualize, random, crys
+    >>> # random struct and traj
+    >>> st = random.random_struct(['Si']*50)
+    >>> tr = crys.concatenate([random.random_struct(['Si']*10) for i in \
+    ...                        range(5)])
+    >>> # vmd startup script
+    >>> vmd_script = os.path.dirname(visualize.__file__) + \
+                                     '/examples/vmd/nice_bonds.tcl'
+    >>> # bg=True: start in background such that all 3 viewers are opened at
+    >>> # once                               
+    >>> visualize.view_xcrysden(st, bg=True)
+    >>> visualize.view_jmol(st, bg=True)
+    >>> visualize.view_vmd_axsf(tr, options='-e %s' %vmd_script)
+
+
 Find Monkhorst-Pack k-grid sampling for a given unit cell
 ---------------------------------------------------------
 
@@ -35,16 +101,31 @@ OK, so use a :math:`2\times2\times3` MP grid. Instead of defining ``cell`` by
 hand, you could also build your structure, have it in a Structure object, say
 ``st`` and use ``st.cell`` instead.
 
-Parse MD code output, plot stuff
---------------------------------
-Lets take cp2k as an example (assuming an interactive Ipython session)::
     
-    >>> from pwtools import io
-    >>> tr = io.read_cp2k_md('cp2k.out')
-    >>> plot(tr.etot)
-    >>> figure()
-    >>> # x-coord of all atoms over time
-    >>> plot(tr.coords[...,0])
+Find spacegroup
+---------------
+Say you have a Trajectory ``tr``, which is the result of a relax calculation and you
+want to know the space group of the final optimized structure, namely
+``tr[-1]``::
+
+    >>> from pwtools import symmetry
+    >>> symmetry.get_spglib_spacegroup(tr[-1], symprec=1e-2)
+
+Easy, eh?
+
+
+Smoothing a signal or a Trajectory
+----------------------------------
+Smoothing a signal (usually called "time series") by convolution with another
+function and with edge effects handling: :func:`pwtools.signal.smooth`. The same 
+can be applied to a Trajectory, which is just a "time series" of Structures.
+See :func:`pwtools.crys.smooth`::
+    
+    >>> a = rand(10000)
+    >>> a_smooth = signal.smooth(a, scipy.signal.hann(151))
+    >>> tr = Trajectory(...)
+    >>> tr_smooth = crys.smooth(tr, scipy.signal.hann(151))
+
 
 .. _avoid_auto_calc:
 
@@ -81,43 +162,26 @@ To find out what can be parsed, also check which ``get_*()`` methods the parser
 implements (mind also base classes, best is to use Tab completion in ipython:
 ``>>> pp.get_<tab>`` or have a look at the API documentation).
 
-Binary IO
----------
-You can save a :class:`~pwtools.crys.Structure` or
-:class:`~pwtools.crys.Trajectory` object as binary file::
-    
-    >>> # save to binary pickle file
-    >>> tr.dump('traj.pk')
 
-and read it back in later using :func:`~pwtools.io.cpickle_load` ::
-    
-    >>> tr = io.cpickle_load('traj.pk')
+Interpolation and fitting
+-------------------------
 
-which is usually very fast.
+See 
 
-Find spacegroup
----------------
-Say you have a Trajectory ``tr``, which is the result of a relax calculation and you
-want to know the space group of the final optimized structure, namely
-``tr[-1]``::
+:class:`~pwtools.num.PolyFit`
+:class:`~pwtools.num.PolyFit1D`
+:class:`~pwtools.num.Spline`
+:class:`~pwtools.num.Interpol2D`
+:class:`~pwtools.num.meshgridt`
+:class:`~pwtools.rbf.RBFInt`
 
-    >>> from pwtools import symmetry
-    >>> symmetry.get_spglib_spacegroup(tr[-1], symprec=1e-2)
-
-Easy, eh?
-
-Smoothing a signal or a Trajectory
-----------------------------------
-Smoothing a signal (usually called "time series") by convolution with another
-function and with edge effects handling: :func:`pwtools.signal.smooth`. The same 
-can be applied to a Trajectory, which is just a "time series" of Structures.
-See :func:`pwtools.crys.smooth`::
-    
-    >>> a = rand(10000)
-    >>> a_smooth = signal.smooth(a, scipy.signal.hann(151))
-    >>> tr = Trajectory(...)
-    >>> tr_smooth = crys.smooth(tr, scipy.signal.hann(151))
+Work with SQLite databases 
+--------------------------
+See :class:`~pwtools.sql.SQLiteDB`.
 
 More stuff
 ----------
 * :ref:`dispersion_example`
+
+
+.. include:: refs.rst

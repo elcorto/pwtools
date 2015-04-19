@@ -201,8 +201,9 @@ def findroot(x, y):
 
 
 class Fit1D(object):
-    """Base class for 1D data fit/interpolation classes (Spline, PolyFit1D). It
-    provides :meth:`get_min`, ::meth:`get_max`, meth:`get_root`, :meth:`is_mono`. 
+    """Base class for 1D data fit/interpolation classes (:class:`Spline`,
+    :class:`PolyFit1D`). It provides :meth:`get_min`, ::meth:`get_max`,
+    meth:`get_root`, :meth:`is_mono`. 
     
     The assumed API is that the ``__call__`` method has a kwd `der` which
     causes it to calculate derivatives, i.e. ``__call__(x, der=1)`` is the
@@ -1553,9 +1554,9 @@ class PolyFit(object):
 # Need to inherit first Fit1D such that Fit1D.get_min() is used instead of
 # PolyFit.get_min().
 class PolyFit1D(Fit1D, PolyFit):
-    """1D special case version of PolyFit which handles 1d and scalar `points`
-    Also `get_min()` uses the root of the poly's 1st derivative instead of
-    fmin().
+    """1D special case version of :class:`PolyFit` which handles 1d and scalar
+    `points` Also :meth:`get_min()` uses the root of the poly's 1st derivative
+    instead of ``fmin()``.
 
     | __init__: points (npoints,1) or (npoints,)
     | __call__: points (npoints,1) or (npoints,) or scalar

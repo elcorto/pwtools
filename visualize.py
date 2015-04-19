@@ -3,7 +3,10 @@ Interfaces for molecular viewers
 ================================
 
 The viewers defined here are meant to be used for quick interactive structure
-and trajectory display.
+and trajectory display. All viewer functions are actually callable instances of
+:class:`ViewFactory`, and thus have the same call signature:
+
+.. automethod:: ViewFactory.__call__
 
 VMD
 ---

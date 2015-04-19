@@ -89,8 +89,6 @@ num.py
 
 eos.py
 ------
-* Remove all call-external-fortnan-eos-fit-tool classes, which was not such a
-  good idea. 
 * EosFit: Test data scaling when using it in thermo.Gibbs as fitfunc (as in
   num.PolyFit).
 
