@@ -173,7 +173,7 @@ def fvacf(vel, m=None, method=2, nthreads=None):
 
 
 def pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
-         axis=0, npad=None, tonext=False, mirr=False, method='direct'):
+         npad=None, tonext=False, mirr=False, method='direct'):
     """Phonon DOS by FFT of the VACF or direct FFT of atomic velocities.
     
     Integral area is normalized to `area`. It is possible (and recommended) to
@@ -257,7 +257,7 @@ def pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
     pwtools.signal.acorr
     """
     mass = m
-    # assume (nstep,natoms,3)
+    # assume vel.shape = (nstep,natoms,3)
     axis = 0
     assert vel.shape[-1] == 3
     if mass is not None:
@@ -313,7 +313,7 @@ def pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
             fft_vacf = fft(mirror(vacf))
         else:
             fft_vacf = fft(vacf)
-        full_faxis = np.fft.fftfreq(fft_vacf.shape[0], dt)
+        full_faxis = np.fft.fftfreq(fft_vacf.shape[axis], dt)
         full_pdos = np.abs(fft_vacf)
         split_idx = len(full_faxis)/2
         faxis = full_faxis[:split_idx]
