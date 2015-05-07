@@ -51,19 +51,22 @@ Two-sided correlation for -lag...0...+lag::
     >>> c1=mirror(ifft(abs(fft(pad(v)))**2.0)[:n].real)
     >>> c2=correlate(v,v,'full')
     >>> c3=mirror(acorr(v,norm=False))
-    >>> figure(); plot(c1); plot(c2); plot(c3); title('corr')
+    >>> figure(); plot(c1, label='fft'); plot(c2, label='scipy'); \
+    ... plot(c3, label='acorr'); title('corr'); legend()
 
 and the power spectra as ``fft(corr(v,v))``, now one-sided::
     
     >>> p1=(abs(fft(pad(v)))**2.0)[:n]
     >>> p2=(abs(fft(mirror(acorr(v,norm=False)))))[:n]
-    >>> figure(); plot(f,p1); plot(f,p2); title('spectrum')
+    >>> figure(); plot(f,p1, label='fft'); plot(f,p2, label='acorr'); \
+    ... title('spectrum'); legend()
 
 also with a Welch window::    
     
     >>> p1=(abs(fft(pad(v*w)))**2.0)[:n]
     >>> p2=(abs(fft(mirror(acorr(v*w,norm=False)))))[:n]
-    >>> figure(); plot(f,p1); plot(f,p2); title('spectrum welch')
+    >>> figure(); plot(f,p1, label='fft'); plot(f,p2, label='acorr'); \
+    ... title('spectrum welch'); legend()
 
 The zero-padding before ``fft`` is manadatory! It is also done inside
 :func:`scipy.signal.correlate()`.  
@@ -82,9 +85,10 @@ with a gaussian, i.e. ``fft(smooth(pad(acorr(v))))``) after padding, which is
 less effective than using a Welch (or any other) window function. But we
 haven't tested the code, so all this may work just fine.
 
-For smoothing the spectrum using our implementation, either use more padding
-`of the time series` in the case ``p1=(abs(fft(pad(v)))**2.0)[:n]`` or smooth
-the `spectrum` afterwards by using :func:`pwtools.signal.smooth`.
+For smoothing the spectrum (e.g. ``p1=(abs(fft(pad(v)))**2.0)[:n]``) using our
+implementation, use :func:`pwtools.signal.smooth`, i.e. ``smooth(p1)``. For
+increasing the interpolation, use more padding `of the time series`, for
+instance ``pad_zeros(v, nadd=(len(v)-1)*5)`` instead of `len(v)-1`.
 
 
 Calculation of the phonon DOS from MD data in pwtools

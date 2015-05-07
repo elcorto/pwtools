@@ -33,7 +33,7 @@ Parse SCF or relax output, plot stuff
 -------------------------------------
 Parse SCF and relax run from PWscf::
     
-    >>> from pwtools import io, num
+    >>> from pwtools import io
     >>> st = io.read_pw_scf('pw.scf.out')
     >>> # coords, forces, ...: shape = (natoms,3)
     >>> print st.coords, st.etot
