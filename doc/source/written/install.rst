@@ -40,7 +40,8 @@ Must have:
 * Fortran compiler (e.g. gfortran will do fine)
 * Blas and Lapack (for ``flib.f90``)
 * Unix tools: grep, sed, awk, tail, wc (for :mod:`~pwtools.parse`); gzip/gunzip (for
-  ``test/``)
+  ``test/``). If possible, install mawk, which is much faster than GNU awk. It
+  will be used automatically if found on your system.
 
 Almost must have:
   

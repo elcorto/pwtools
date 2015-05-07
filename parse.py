@@ -6,7 +6,7 @@ We need the following basic Unix tools installed:
 
 | grep/egrep
 | sed
-| awk
+| awk (better mawk)
 | tail
 | wc 
 | ...
@@ -139,6 +139,24 @@ from pwtools.crys import UnitsHandler
 com = common
 pj = os.path.join
 
+# mawk is _much_ faster than GNU awk, which is ususlly /usr/bin/awk on linux.
+# This test is pretty simple-minded but very fast. Maybe add more paths if
+# needed (e.g. /usr/local/bin') or use a more elaborate thing such as 
+#
+#   1) distutils.spawn.find_executable
+#   2) shutil.which # python 3.3
+#   3) try: 
+#          subprocess.call(...) # or subprocess.Popen(...)
+#      except OSError:
+#          ...
+# See
+# http://stackoverflow.com/questions/377017/test-if-executable-exists-in-python
+# http://stackoverflow.com/questions/11210104/check-if-a-program-exists-from-a-python-script
+if os.path.exists('/usr/bin/mawk'):
+    AWK = 'mawk'
+else:
+    AWK = 'awk'
+    
 
 #-----------------------------------------------------------------------------
 # General helpers
@@ -680,8 +698,8 @@ class PwSCFOutputFile(StructureFileParser):
         nstep = nstep_from_txt(com.backtick(cmd))
         if nstep > 0:
             cmd = "grep -A3 '%s' %s | grep -v -e %s -e '--'| \
-                  awk '{print $4\"  \"$5\"  \"$6}'" \
-                  %(key, self.filename, key)
+                  %s '{print $4\"  \"$5\"  \"$6}'" \
+                  %(key, self.filename, key, AWK)
             return traj_from_txt(com.backtick(cmd), 
                                  shape=(nstep,3,3),
                                  axis=self.timeaxis)              
@@ -690,7 +708,7 @@ class PwSCFOutputFile(StructureFileParser):
 
     def _get_etot_raw(self):
         verbose("getting _etot_raw")
-        cmd =  r"grep '^!' %s | awk '{print $5}'" %self.filename
+        cmd =  r"grep '^!' %s | %s '{print $5}'" %(self.filename, AWK)
         return arr1d_from_txt(com.backtick(cmd))
     
     def _get_forces_raw(self):
@@ -706,7 +724,7 @@ class PwSCFOutputFile(StructureFileParser):
                 # we need to get `nlines` first without an additional "grep -c
                 # ..."
                 cmd = "grep 'atom.*type.*force' %s \
-                    | awk '{print $7\" \"$8\" \"$9}'" %self.filename
+                    | %s '{print $7\" \"$8\" \"$9}'" %(self.filename, AWK)
                 arr2d = arr2d_from_txt(com.backtick(cmd))
                 nlines = arr2d.shape[0]
                 # nlines_block = number of force lines per step = N*natoms
@@ -723,8 +741,8 @@ class PwSCFOutputFile(StructureFileParser):
 
     def _get_nstep_scf_raw(self):
         verbose("getting _nstep_scf_raw")
-        cmd = r"grep 'convergence has been achieved in' %s | awk '{print $6}'" \
-            %self.filename
+        cmd = r"grep 'convergence has been achieved in' %s | %s '{print $6}'" \
+            %(self.filename, AWK)
         return arr1d_from_txt(com.backtick(cmd), dtype=int)
 
     def _get_coords_symbols(self):
@@ -741,8 +759,8 @@ class PwSCFOutputFile(StructureFileParser):
               %(natoms, self.filename, natoms)
         coords = arr2d_from_txt(com.backtick(cmd))
         cmd = r"egrep -m1 -A%i 'site.*atom.*positions.*units.*\)' %s | tail -n%i | \
-              awk '{print $2}'" \
-              %(natoms, self.filename, natoms)
+              %s '{print $2}'" \
+              %(natoms, self.filename, natoms, AWK)
         symbols = com.backtick(cmd).strip().split()
         return {'coords': coords, 'symbols': symbols}
     
@@ -757,7 +775,7 @@ class PwSCFOutputFile(StructureFileParser):
         need this information for further calculations, use the input file
         value."""
         cmd = "egrep -m1 -A3 'crystal.*axes.*units.*(a_0|alat)' %s | tail -n3 | \
-               awk '{print $4\" \"$5\" \"$6}'" %(self.filename)
+               %s '{print $4\" \"$5\" \"$6}'" %(self.filename, AWK)
         return arr2d_from_txt(com.backtick(cmd))
     
     def get_alat(self, use_alat=None):
@@ -943,8 +961,8 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
             nstep = nstep_from_txt(com.backtick(cmd))
             # coords
             cmd = "grep -A%i '%s' %s | grep -v -e %s -e '--' | \
-                  awk '{print $2\"  \"$3\"  \"$4}'" \
-                  %(natoms, key, self.filename, key)
+                  %s '{print $2\"  \"$3\"  \"$4}'" \
+                  %(natoms, key, self.filename, key, AWK)
             return traj_from_txt(com.backtick(cmd), 
                                  shape=(nstep,natoms,3),
                                  axis=self.timeaxis)
@@ -1099,7 +1117,8 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
     def get_ekin(self):
         """Ion kinetic energy [Ry]."""
         verbose("getting ekin")
-        cmd = r"grep 'kinetic energy' %s | awk '{print $5}'" %self.filename
+        cmd = r"grep 'kinetic energy' %s | %s '{print $5}'" %(self.filename,
+                                                              AWK)
         return arr1d_from_txt(com.backtick(cmd))
 
     def get_temperature(self):
@@ -1145,7 +1164,7 @@ class PwVCMDOutputFile(PwMDOutputFile):
     def _get_datadct(self):
         verbose("getting _datadct")
         cmd = "grep 'Ekin.*T.*Etot' %s \
-              | awk '{print $3\" \"$7\" \"$11}'"%self.filename
+              | %s '{print $3\" \"$7\" \"$11}'" %(self.filename, AWK)
         ret_str = com.backtick(cmd)
         if ret_str.strip() == '':
             return None
@@ -1243,8 +1262,8 @@ class CpmdSCFOutputFile(StructureFileParser):
         if self.is_set_attr('natoms'):
             cmd = "egrep -A%i 'ATOM[ ]+COORDINATES[ ]+GRADIENTS' %s \
                   | tail -n%i \
-                  | awk '{print $3\" \"$4\" \"$5\" \"$6\" \"$7\" \"$8}'" \
-                  %(self.natoms, self.filename, self.natoms)
+                  | %s '{print $3\" \"$4\" \"$5\" \"$6\" \"$7\" \"$8}'" \
+                  %(self.natoms, self.filename, self.natoms, AWK)
             return arr2d_from_txt(com.backtick(cmd))                  
         else:
             return None
@@ -1290,7 +1309,8 @@ class CpmdSCFOutputFile(StructureFileParser):
     def get_etot(self):
         """[Ha]"""
         verbose("getting etot")
-        cmd =  r"grep 'TOTAL ENERGY =' %s | tail -n1 | awk '{print $5}'" %self.filename
+        cmd =  r"grep 'TOTAL ENERGY =' %s | tail -n1 | %s '{print $5}'" \
+        %(self.filename, AWK)
         return float_from_txt(com.backtick(cmd))
     
     def get_coords_frac(self):
@@ -1338,7 +1358,7 @@ class CpmdSCFOutputFile(StructureFileParser):
     def get_nstep_scf(self):
         verbose("getting nstep_scf")
         cmd = r"grep -B2 'RESTART INFORMATION WRITTEN' %s | head -n1 \
-              | awk '{print $1}'" %self.filename
+              | %s '{print $1}'" %(self.filename, AWK)
         return int_from_txt(com.backtick(cmd))
    
     def get_scf_converged(self):
@@ -1606,7 +1626,7 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
         # 4-6: cell forces? ditch them for now ...
         fn = os.path.join(self.basedir, 'CELL')
         if os.path.exists(fn):
-            cmd = "head -n2 %s | tail -n1 | wc | awk '{print $2}'" %fn
+            cmd = "head -n2 %s | tail -n1 | wc | %s '{print $2}'" %(fn, AWK)
             ncols = int_from_txt(com.backtick(cmd))
             cmd = "grep -c 'CELL PARAMETERS' %s" %fn
             nstep = int_from_txt(com.backtick(cmd))
@@ -1869,8 +1889,8 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
         cmd = "grep -c 'i = .*E =' %s" %fn
         nstep = nstep_from_txt(com.backtick(cmd))
         natoms = int_from_txt(com.backtick("head -n1 %s" %fn))
-        cmd = "awk '!/i =.*E =|^[ ]+[0-9]+/ \
-            {print $2\" \"$3\" \"$4}' %s" %fn
+        cmd = "%s '!/i =.*E =|^[ ]+[0-9]+/ \
+            {print $2\" \"$3\" \"$4}' %s" %(AWK, fn)
         assert self.timeaxis == 0
         return np.fromstring(common.backtick(cmd), sep=' ').reshape(nstep,natoms,3)
 
@@ -1909,7 +1929,8 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
             coords = self._cp2k_xyz2arr(self._pos_file)
             if self.check_set_attr('natoms'):
                 cmd = r"grep -m1 -A%i 'i =' %s | \
-                    grep -v 'i ='| awk '{print $1}'" %(self.natoms,self._pos_file) 
+                    grep -v 'i ='| %s '{print $1}'" \
+                    %(self.natoms,self._pos_file, AWK) 
                 symbols = com.backtick(cmd).strip().split()
                 return {'coords': coords, 'symbols': symbols}
             else:
@@ -2020,7 +2041,7 @@ class Cp2kRelaxOutputFile(Cp2kMDOutputFile):
     
     def get_etot(self):
         if os.path.exists(self._pos_file):
-            cmd = r"awk '/i =.*E/ {print $6}' %s" %self._pos_file
+            cmd = r"%s '/i =.*E/ {print $6}' %s" %(AWK, self._pos_file)
             return arr1d_from_txt(com.backtick(cmd))
         else:
             return None
