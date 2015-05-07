@@ -190,7 +190,8 @@ CP2K
     &end subsys
 &end force_eval
 """
-kind_templ = """\
+kind_templ = \
+        """
         &kind {atom}
             basis_set XXXBASISSET_{atom}
             potential XXXPOTENTIAL_{atom}
