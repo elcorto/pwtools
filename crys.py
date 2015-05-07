@@ -1058,36 +1058,21 @@ def rmax_smith(cell):
 
 def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None, 
          dmask=None, pbc=True, norm_vmd=False, maxmem=2.0):
-    """Radial pair distribution (pair correlation) function.
+    """Radial pair distribution (pair correlation) function for Structures and
+    Trajectories. In case of trajectories, the time-averaged RPDF is returned.
     Can also handle non-orthorhombic unit cells (simulation boxes). 
     Only fixed-cell MD at the moment.
 
-    Notes
-    -----
-    rmax : The maximal `rmax` for which g(r) is correctly normalized is the
-    result of rmax_smith(cell), i.e. the radius if the biggest sphere which
-    fits entirely into the cell. This is simply L/2 for cubic boxes, for
-    instance. We do explicitely allow rmax > rmax_smith() for testing, but be
-    aware that g(r) and the number integral are *wrong* for rmax >
-    rmax_smith(). 
-    
-    Even though the number integral will always converge to the number of all
-    neighbors for r -> infinity, the integral value (the number of neigbors) is
-    correct only up to rmax_smith().
-
-    See examples/rpdf/ for educational evidence. For notes on how VMD does
-    this, see comments in the code below.
-
     Parameters
     ----------
-    trajs : Structure or Trajectory ot list of one or two such objects
-        The case len(trajs)==1 is the same as providing the
-        object directly (most common case). Internally we expand the input to
-        [trajs, trajs], i.e. the RPDF of the 2nd coord set w.r.t. to the first
-        is calculated -- the order matters! This is like selection 1 and 2 in
-        VMD, but nornmally you would use `amask` instead. The option to provide
-        a list of two Trajectory objects exists for cases where you don't want
-        to use `amask`, but create two different Trajectory objects outside.
+    trajs : Structure or Trajectory or list of one or two such objects
+        The case ``len(trajs)==1`` is the same as providing the object directly
+        (most common case). Internally we expand the input to ``[trajs,
+        trajs]``, i.e. the RPDF of the 2nd coord set w.r.t. to the first is
+        calculated -- the order matters! This is like selection 1 and 2 in VMD,
+        but nornmally you would use `amask` instead. The option to provide a
+        list of two Trajectory objects exists for cases where you don't want to
+        use `amask`, but create two different Trajectory objects outside.
     dr : float, optional
         Radius spacing. Must have the same unit as `cell`, e.g. Angstrom.
     rmax : {'auto', float}, optional
@@ -1097,16 +1082,15 @@ def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None,
         | 'auto' : the method of [Smith] is used to calculate the max. sphere
         |     raduis for any cell shape
         | float : set value yourself
-    amask : None, list of one or two bool 1d arrays, list of one or two
-        strings, optional
-        Atom mask. This is the complementary functionality to `sel` in
-        vmd_measure_gofr(). If len(amask)==1, then we expand to [amask, amask]
-        internally, which would calculate the RPDF between the same atom
-        selection. If two masks are given, then the first is applied to
-        trajs[0] and the second to trajs[1]. Use this to select only certain
-        atoms in each Trajectory. The default is to provide bool arrays. If you
-        provide strings, they are assumed to be atom names and we create a
-        bool array ``np.array(symbols) == amask[i]``.
+    amask : None, list of one or two bool 1d arrays, list of one or two strings 
+        Optional atom mask. This is the complementary functionality to
+        `sel` in :func:`vmd_measure_gofr`. If ``len(amask)==1``, then we expand
+        to ``[amask, amask]`` internally, which would calculate the RPDF
+        between the same atom selection. If two masks are given, then the first
+        is applied to ``trajs[0]`` and the second to ``trajs[1]``. Use this to
+        select only certain atoms in each Trajectory. The default is to provide
+        bool arrays. If you provide strings, they are assumed to be atom names
+        and we create a bool array ``np.array(symbols) == amask[i]``.
     tmask : None or slice object, optional
         Time mask. Slice for the time axis, e.g. to use only every 100th step,
         starting from step 2000 to the end, use ``tmask=slice(2000,None,100)``,
@@ -1121,13 +1105,13 @@ def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None,
         
         where ``{d}`` is a placeholder for the distance array (you really have to
         use ``{d}``). The placeholder is optional in some pattern. This is similar
-        to VMD's "within" (pbc=False) or "pbwithin" (pbc=True) syntax. 
+        to VMD's "within" (``pbc=False``) or "pbwithin" (``pbc=True``) syntax. 
     pbc : bool, optional
         apply minimum image convention to distances
     norm_vmd : bool, optional
-        Normalize g(r) like in VMD by counting duplicate atoms and normalize to
-        (natoms0 * natoms1 - duplicates) instead of (natoms0*natoms1). Affects
-        all-all correlations only. num_int is not affected. Use this only for
+        Normalize `g(r)` like in VMD by counting duplicate atoms and normalize to
+        ``natoms0 * natoms1 - duplicates`` instead of ``natoms0*natoms1``. Affects
+        all-all correlations only. `num_int` is not affected. Use this only for
         testing.
     maxmem : float, optional
         Maximal allowed memory to use, in GB.
@@ -1139,17 +1123,31 @@ def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None,
         radius (x-axis) with spacing `dr`, each value r[i] is the middle of a
         histogram bin 
     hist : 1d array, (len(rad),)
-        the function values g(r)
+        the function values `g(r)`
     num_int : 1d array, (len(rad),) 
         the (averaged) number integral ``number_density*hist*4*pi*r**2.0*dr``
     
     Notes
     -----
-    The selection mechanism with `amask` is in principle as capable as VMD's,
-    but relies completely on the user's ability to create bool arrays to filter
-    the atoms. In practice, anything more complicated than array(symbols)=='O'
-    ("name O" in VMD) is much more difficult than VMD's powerful selection
-    syntax.
+    `rmax` : The maximal `rmax` for which g(r) is correctly normalized is the
+    result of :func:`rmax_smith`, i.e. the radius if the biggest sphere which
+    fits entirely into the cell. This is simply L/2 for cubic boxes of side
+    length L and volume L**3, for instance. We do explicitely allow `rmax` >
+    `rmax_smith` for testing, but be aware that `g(r)` and the number integral
+    are *wrong* for `rmax` > `rmax_smith`. 
+    
+    Even though the number integral will always converge to the number of all
+    neighbors for r -> infinity, the integral value (the number of neigbors) is
+    correct only up to `rmax_smith`.
+
+    See ``examples/rpdf/`` for educational evidence. For notes on how VMD does
+    this, see comments in the code below.
+
+    selection : The selection mechanism with `amask` is in principle as capable
+    as VMD's, but relies completely on the user's ability to create bool arrays
+    to filter the atoms. In practice, anything more complicated than
+    ``array(symbols)=='O'`` ("name O" in VMD) is much more difficult than VMD's
+    powerful selection syntax.
 
     Curently, the atom distances are calculated by using numpy fancy indexing.
     That creates (big) arrays in memory. For data from long MDs, you may run
@@ -1161,24 +1159,24 @@ def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None,
 
     Examples
     --------
-    >>> # simple all-all RPDF
-    >>> d = rpdf(traj, dr=0.1)
+    >>> # simple all-all RPDF, time-averaged over all MD steps
+    >>> d = rpdf(traj)
+    
+    >>> # the same as rpdf(traj,...)
+    >>> d = rpdf([traj], ...)
+    >>> d = rpdf([traj, traj], ...)
 
     >>> # 2 selections: RPDF of all H's around all O's, average time step 3000 to
     >>> # end, take every 50th step
-    >>> traj = parse.CpmdMDOutputFile(...).get_traj() # or io.read_cpmd_md(...)
+    >>> traj = io.read_cp2k_md('cp2k.out')
     >>> d = rpdf(traj, dr=0.1, amask=['O', 'H'],tmask=np.s_[3000::50])
     >>> plot(d[:,0], d[:,1], label='g(r)')
     >>> twinx()
     >>> plot(d[:,0], d[:,2], label='number integral')
     
-    >>> # the same as rpdf(traj,...)
-    >>> d = rpdf([traj], ...)
-    >>> d = rpdf([traj, traj], ...)
-    
     >>> # use bool arrays for `amask`, need this for more complicated pattern
     >>> sy = np.array(traj.symbols)
-    >>> # VMD: sel1='name O', sel2='name H'
+    >>> # VMD: sel1='name O', sel2='name H', same as amask=['O', 'H']
     >>> d = rpdf(traj, dr=0.1, amask=[sy=='O', sy=='H'],tmask=np.s_[3000::50])
     >>> # VMD: sel1='name O', sel2='name H Cl', note that the bool arrays must
     >>> # be logically OR'ed (| operator) to get the ffect of "H and Cl"
@@ -1457,6 +1455,7 @@ def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None,
     # normalized g(r) for rmax_auto < r < rmax_vmd, which is however of little
     # use, if the num_int doesn't match.
     
+    dup_trajs = False
     if amask is None:
         amask = [slice(None)]
     if tmask is None:
@@ -1465,19 +1464,18 @@ def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None,
         trajs = [trajs]
     if len(trajs) == 1:
         trajs *= 2
+        dup_trajs = True
     if len(amask) == 1:
         amask *= 2
     trajs = map(struct2traj, trajs)
     assert len(trajs) == 2, "len(trajs) != 2"
     assert len(amask) == 2, "len(amask) != 2"
-    assert trajs[0].symbols == trajs[1].symbols, ("symbols differ")
-    assert trajs[0].coords_frac.ndim == trajs[1].coords_frac.ndim == 3, \
-        ("coords do not both have ndim=3")
-    assert trajs[0].nstep == trajs[1].nstep, ("nstep differs")        
-    # this maybe slow, we need a better and faster test to ensure fixed
-    # cell        
-    assert (trajs[0].cell == trajs[1].cell).all(), ("cells are not the same")
-    assert np.abs(trajs[0].cell - trajs[0].cell[0,...]).sum() == 0.0
+    if not dup_trajs:
+        assert trajs[0].symbols == trajs[1].symbols, ("symbols differ")
+        assert trajs[0].coords_frac.ndim == trajs[1].coords_frac.ndim == 3, \
+            ("coords do not both have ndim=3")
+        assert trajs[0].nstep == trajs[1].nstep, ("nstep differs")        
+        assert (trajs[0].cell == trajs[1].cell).all(), ("cells are not the same")
     # special case: amask is string: 'Ca' -> sy=='Ca' bool array
     sy = np.array(trajs[0].symbols)
     for ii in range(len(amask)):
@@ -1529,6 +1527,7 @@ def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None,
         dups = [len(np.nonzero(entry)[0]) for entry in msk]
     else:
         dups = np.zeros((nstep,))
+
     # Not needed b/c bins[-1] == rmax, but doesn't hurt. Plus, test_rpdf.py
     # would fail b/c old reference data calculated w/ that setting (difference
     # 1%, only the last point differs).
@@ -1547,23 +1546,13 @@ def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None,
     # Calculate hists for each time step and average them. This Python loop is
     # the bottleneck if we have many timesteps.
     for idx in range(int(nstep)):
-        dists = dists_all[idx,...]
-        norm_fac = norm_fac_pre / (natoms0 * natoms1 - dups[idx])
         # rad_hist == bins
-        hist, rad_hist = np.histogram(dists, bins=bins)
-        # works only if we don't set dists_all[dists_all >= rmax] = 0.0
-        ##hist[0] -= dups[idx]
+        hist, rad_hist = np.histogram(dists_all[idx,...], bins=bins)
         if bins[0] == 0.0:
             hist[0] = 0.0
+        norm_fac = norm_fac_pre / (natoms0 * natoms1 - dups[idx])
         hist_sum += hist * norm_fac
-        # The result is always the same b/c if norm_vmd=False, then
-        # dups[idx]=0.0 and the equation reduces to the exact same.
-        ##if norm_vmd:
-        ##    number_integral = np.cumsum(hist)*1.0 / natoms0
-        ##else:            
-        ##    number_integral = np.cumsum(1.0*natoms1/volume*hist*norm_fac*4*pi*rad**2.0 * dr)
-        number_integral = np.cumsum(hist)*1.0 / natoms0
-        number_integral_sum += number_integral
+        number_integral_sum += 1.0 * np.cumsum(hist) / natoms0
     out = np.empty((len(rad), 3))
     out[:,0] = rad
     out[:,1] = hist_sum / float(nstep)
@@ -1701,7 +1690,7 @@ def call_vmd_measure_gofr(trajfn, dr=None, rmax=None, sel=['all','all'],
     data = np.loadtxt(datafn)
     return data
 
-def vmd_measure_gofr(traj, dr, rmax='auto', sel=['all','all'], first=0,
+def vmd_measure_gofr(traj, dr=0.05, rmax='auto', sel=['all','all'], first=0,
                      last=-1, step=1, usepbc=1, 
                      slicefirst=True, verbose=False, tmpdir=None):
     """Call call_vmd_measure_gofr(), accept Structure / Trajectory as input.
