@@ -455,7 +455,7 @@ class PDBFile(StructureFileParser):
     """Very very simple pdb file parser. 
     
     Extract only ATOM/HETATM and CRYST1 (if present) records. If you want smth
-    serious, check biopython.
+    serious, check biopython or openbabel.
     
     Notes
     -----
