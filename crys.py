@@ -1242,8 +1242,8 @@ def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None,
     # The number integral is
     #
     #   I(r1,r2) = int(r=r1,r2) N/V*g(r)*4*pi*r**2*dr
-    #            = int(r=r1,r2) N/V*g(r)*V(r)
-    #            = int(r=r1,r2) 1/N*dn(r)
+    #            = int(r=r1,r2) N/V*g(r)*V(r)*dr
+    #            = int(r=r1,r2) 1/N*dn(r)*dr
     # 
     # This can be used to calculate coordination numbers, i.e. it counts the
     # average (that's why 1/N) number of atoms around an atom in a shell
@@ -1309,13 +1309,13 @@ def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None,
     # The integrals are:
     # 
     #  I_AB(r1,r2) = int(r=r1,r2) (B/V)*g_AB(r)*4*pi*r**2*dr
-    #                int(r=r1,r2) 1/A*dn_AB(r)
+    #                int(r=r1,r2) 1/A*dn_AB(r)*dr
     #  I_BA(r1,r2) = int(r=r1,r2) (A/V)*g_BA(r)*4*pi*r**2*dr
-    #                int(r=r1,r2) 1/B*dn_BA(r)
+    #                int(r=r1,r2) 1/B*dn_BA(r)*dr
     # 
     # Note the similarity to the one-atom case:
     #   
-    #  I(r1,r2)    = int(r=r1,r2) 1/N*dn(r)
+    #  I(r1,r2)    = int(r=r1,r2) 1/N*dn(r)*dr
     #
     # These integrals converge to the total number of *sourrounding*
     # atoms of the other type:
