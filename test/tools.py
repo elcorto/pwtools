@@ -211,11 +211,13 @@ def default_equal(a, b):
 
 
 def array_equal(a,b):
-    return true_or_false((a==b).all() and a.ndim == b.ndim)
+    return true_or_false((a==b).all() and a.ndim == b.ndim \
+                         and a.dtype==b.dtype)
 
 
 def array_almost_equal(a, b, **kwds):
-    return true_or_false(np.allclose(a, b, **kwds) and a.ndim == b.ndim)
+    return true_or_false(np.allclose(a, b, **kwds) and a.ndim == b.ndim \
+                        and a.dtype==b.dtype)
 
 
 def float_almost_equal(a, b, **kwds):
@@ -342,6 +344,8 @@ def unpack_compressed(src, prefix='tmp', testdir=testdir, ext=None):
         cmd += "gunzip {filename}.{ext};"
     elif ext in ['tgz', 'tar.gz']:
         cmd += "tar -C {workdir} -xzf {filename}.{ext};"
+    else:
+        raise StandardError("unsuported file format of file: {}".format(src))
     cmd = cmd.format(workdir=workdir, src=src, filename=filename, ext=ext)
     print common.backtick(cmd)
     assert os.path.exists(filename), "unpack failed: '%s' not found" %filename
