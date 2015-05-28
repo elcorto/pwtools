@@ -8,6 +8,7 @@ __all__ = [\
     'common',
     'constants',
     'crys',
+    'dcd',
     'decorators',
     'eos',
     'io',

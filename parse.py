@@ -251,19 +251,6 @@ def axis_lens(seq, axis=0):
             ret.append(0)
     return ret            
 
-# wrappers for _dcd functions with file-not-found error handling
-def read_dcd_header(filename):
-    if os.path.exists(filename):
-        return _dcd.read_dcd_header(filename)
-    else:
-        raise StandardError("file not found: {0}".format(filename))
-
-def read_dcd_data(filename, nstep, natoms):
-    if os.path.exists(filename):
-        return _dcd.read_dcd_data(filename, nstep, natoms)
-    else:
-        raise StandardError("file not found: {0}".format(filename))
-
 
 #-----------------------------------------------------------------------------
 # Parsers
@@ -1786,6 +1773,7 @@ class Cp2kSCFOutputFile(StructureFileParser):
             'stress',
             'symbols',
         ]
+        self.init_attr_lst()
     
     def _get_run_type(self):
         cmd = r"grep -m1 'GLOBAL.*Run type' {0} | sed \
@@ -1923,21 +1911,15 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
             sed -re 's/.*\](.*)/\1/'" %self.filename
         return float_from_txt(com.backtick(cmd))            
 
-    def _get_coords_symbols(self):
-        """Cartesian [Ang]"""
-        if os.path.exists(self._pos_file):
-            coords = self._cp2k_xyz2arr(self._pos_file)
-            if self.check_set_attr('natoms'):
+    def get_symbols(self):
+        for fn in [self._pos_file, self._frc_file, self._vel_file]:
+            if os.path.exists(fn) and self.check_set_attr('natoms'):
                 cmd = r"grep -m1 -A%i 'i =' %s | \
                     grep -v 'i ='| %s '{print $1}'" \
-                    %(self.natoms,self._pos_file, AWK) 
-                symbols = com.backtick(cmd).strip().split()
-                return {'coords': coords, 'symbols': symbols}
-            else:
-                return None
-        else:            
-            return None
-    
+                    %(self.natoms, fn, AWK) 
+                return com.backtick(cmd).strip().split()
+        return None
+
     def _get_forces_from_outfile(self):
         if self.check_set_attr('natoms'):
             cmd = r"grep -c 'ATOMIC FORCES in' %s" %self.filename
@@ -1954,17 +1936,11 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
 
     def get_coords(self):
         """Cartesian [Ang]"""
-        if self.check_set_attr('_coords_symbols'):
-            return self._coords_symbols['coords']
-        else:
+        if os.path.exists(self._pos_file):
+            return self._cp2k_xyz2arr(self._pos_file)
+        else:            
             return None
 
-    def get_symbols(self):
-        if self.check_set_attr('_coords_symbols'):
-            return self._coords_symbols['symbols']
-        else:
-            return None
-    
     def get_forces(self):
         """[Ha/Bohr]"""
         if os.path.exists(self._frc_file):
@@ -2075,6 +2051,82 @@ class Cp2kRelaxOutputFile(Cp2kMDOutputFile):
                 return cell
         else:
             return None
+
+
+class DcdOutputFile(object):
+    _dcd_flavor = -1 # invalid, set in derived class
+
+    def _get_dcd_file_info(self):
+        if os.path.exists(self.dcdfilename):
+            a, b, c = _dcd.get_dcd_file_info(self.dcdfilename, flavor=self._dcd_flavor)
+            return {'nstep': a, 'natoms': b, 'timestep': c}
+        else:
+            return None
+    
+    def _get_cryst_const_coords(self):
+        if self.check_set_attr_lst(['nstep', 'natoms']) and \
+           os.path.exists(self.dcdfilename):
+            a, b = _dcd.read_dcd_data(self.dcdfilename, self.nstep, self.natoms,
+                                      flavor=self._dcd_flavor)
+            return {'cryst_const': a, 'coords': b}
+        else:
+            return None
+    
+    def get_coords(self):
+        if self.check_set_attr('_cryst_const_coords'):
+            return self._cryst_const_coords['coords']
+        else:
+            return None
+
+    def get_cryst_const(self):
+        if self.check_set_attr('_cryst_const_coords'):
+            return self._cryst_const_coords['cryst_const']
+        else:
+            return None
+
+    def get_natoms(self):
+        if self.check_set_attr('_dcd_file_info'):
+            return self._dcd_file_info['natoms']
+        else:
+            return None
+
+    def get_nstep(self):
+        if self.check_set_attr('_dcd_file_info'):
+            return self._dcd_file_info['nstep']
+        else:
+            return None
+    
+    # Avoid reading PROJECT-1.cell (cp2k) or any other text output (lammps)
+    # with cell info even if it exists. We need to make sure that we read the
+    # unit cell from the dcd file. This is essential in cp2k when using
+    # dcd_aligned_cell.
+    def get_cell(self):
+        return None
+    
+    def get_volume(self):
+        return None
+
+
+class Cp2kDcdMDOutputFile(DcdOutputFile, Cp2kMDOutputFile):
+    def __init__(self, *args, **kwds):
+        super(Cp2kDcdMDOutputFile, self).__init__(*args, **kwds)
+        self.dcdfilename = common.pj(self.basedir, 'PROJECT-pos-1.dcd')
+        self._dcd_flavor = 2
+        self.attr_lst = [\
+            'cryst_const',
+            'coords',
+            'econst',
+            'ekin',
+            'etot',
+            'forces',
+            'natoms',
+            'stress',
+            'symbols',
+            'temperature',
+            'timestep',
+            'velocity',
+        ]
+        self.init_attr_lst()
 
 
 class LammpsTextMDOutputFile(TrajectoryFileParser):
@@ -2424,7 +2476,7 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
             return None
 
 
-class LammpsDcdMDOutputFile(LammpsTextMDOutputFile):
+class LammpsDcdMDOutputFile(DcdOutputFile, LammpsTextMDOutputFile):
     """Parse Lammps DCD binary output + ``log.lammps`` text output.
 
     Hardcodes files:
@@ -2455,44 +2507,5 @@ class LammpsDcdMDOutputFile(LammpsTextMDOutputFile):
             'volume',
         ]
         self.init_attr_lst()
+        self._dcd_flavor = 1
         self.dcdfilename = pj(self.basedir, 'lmp.out.dcd')
-
-    def _get_header(self):
-        if os.path.exists(self.dcdfilename):
-            a, b, c = read_dcd_header(self.dcdfilename)
-            return {'nstep': a, 'natoms': b, 'timestep': c}
-        else:
-            return None
-    
-    def _get_cryst_const_coords(self):
-        if self.check_set_attr_lst(['nstep', 'natoms']) and \
-           os.path.exists(self.dcdfilename):
-            a, b = read_dcd_data(self.dcdfilename, self.nstep, self.natoms)
-            return {'cryst_const': a, 'coords': b}
-        else:
-            return None
-    
-    def get_coords(self):
-        if self.check_set_attr('_cryst_const_coords'):
-            return self._cryst_const_coords['coords']
-        else:
-            return None
-
-    def get_cryst_const(self):
-        if self.check_set_attr('_cryst_const_coords'):
-            return self._cryst_const_coords['cryst_const']
-        else:
-            return None
-
-    def get_natoms(self):
-        if self.check_set_attr('_header'):
-            return self._header['natoms']
-        else:
-            return None
-
-    def get_nstep(self):
-        if self.check_set_attr('_header'):
-            return self._header['nstep']
-        else:
-            return None
-

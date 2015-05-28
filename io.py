@@ -369,6 +369,9 @@ read_cp2k_scf = ReadFactory(parser=parse.Cp2kSCFOutputFile,
 read_cp2k_md = ReadFactory(parser=parse.Cp2kMDOutputFile, 
                            struct_or_traj='traj', 
                            )
+read_cp2k_md_dcd = ReadFactory(parser=parse.Cp2kDcdMDOutputFile, 
+                               struct_or_traj='traj', 
+                               )
 read_cp2k_relax = ReadFactory(parser=parse.Cp2kRelaxOutputFile, 
                               struct_or_traj='traj', 
                               )
