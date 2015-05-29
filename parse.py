@@ -2054,11 +2054,16 @@ class Cp2kRelaxOutputFile(Cp2kMDOutputFile):
 
 
 class DcdOutputFile(object):
-    _dcd_flavor = -1 # invalid, set in derived class
+    # invalid, set in derived class
+    _dcd_convang = None
+    # safe setting, never read nstep from the header, may be set tu True for
+    # lammps -> faster reading, see dcd.py and dcd.f90 for why
+    _dcd_nstephdr = False
 
     def _get_dcd_file_info(self):
         if os.path.exists(self.dcdfilename):
-            a, b, c = _dcd.get_dcd_file_info(self.dcdfilename, flavor=self._dcd_flavor)
+            a, b, c = _dcd.get_dcd_file_info(self.dcdfilename, 
+                                             nstephdr=self._dcd_nstephdr)
             return {'nstep': a, 'natoms': b, 'timestep': c}
         else:
             return None
@@ -2067,7 +2072,7 @@ class DcdOutputFile(object):
         if self.check_set_attr_lst(['nstep', 'natoms']) and \
            os.path.exists(self.dcdfilename):
             a, b = _dcd.read_dcd_data(self.dcdfilename, self.nstep, self.natoms,
-                                      flavor=self._dcd_flavor)
+                                      convang=self._dcd_convang)
             return {'cryst_const': a, 'coords': b}
         else:
             return None
@@ -2111,7 +2116,8 @@ class Cp2kDcdMDOutputFile(DcdOutputFile, Cp2kMDOutputFile):
     def __init__(self, *args, **kwds):
         super(Cp2kDcdMDOutputFile, self).__init__(*args, **kwds)
         self.dcdfilename = common.pj(self.basedir, 'PROJECT-pos-1.dcd')
-        self._dcd_flavor = 2
+        self._dcd_nstephdr = False
+        self._dcd_convang = False
         self.attr_lst = [\
             'cryst_const',
             'coords',
@@ -2507,5 +2513,6 @@ class LammpsDcdMDOutputFile(DcdOutputFile, LammpsTextMDOutputFile):
             'volume',
         ]
         self.init_attr_lst()
-        self._dcd_flavor = 1
+        self._dcd_nstephdr = False
+        self._dcd_convang = True
         self.dcdfilename = pj(self.basedir, 'lmp.out.dcd')

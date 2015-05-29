@@ -16,13 +16,14 @@
 
 subroutine open_file(filename, unt)
     implicit none
-    character(len=1024) :: filename
+    character(len=1024), intent(in) :: filename
     integer, intent(out) :: unt
     integer :: iost
     open(unit=unt, file=trim(filename), status='old', form='unformatted', &
          action='read', iostat=iost)
     if (iost /= 0) then
-        write(*,*) "IO error ", iost, "with file: '", trim(filename), "'"
+        write(*,*) "open_file: error when opening file: '", trim(filename), &
+                   "' with iostat=", iost
         stop 1
     end if
 end subroutine open_file
@@ -43,7 +44,7 @@ subroutine read_dcd_header_from_unit(unt, nstep, natoms, timestep)
     !
     ! Notes
     ! -----
-    ! nstep = 0 in case of cp2k (flavor=2). 
+    ! nstep = 0 in case of cp2k style files 
     ! 
     ! lammps
     ! ^^^^^^
@@ -113,12 +114,11 @@ subroutine read_dcd_header_from_unit(unt, nstep, natoms, timestep)
     !
     implicit none 
     integer, intent(in) :: unt
-    integer, intent(out) :: nstep, natoms
-    real, intent(out) :: timestep
-    ! dummy header content
     integer :: istrt, nsvac, dummyi, natomnfreat, ntitle, i
     character(len=4) :: hdr
     character(len=80) :: remark1, remark2
+    integer, intent(out) :: nstep, natoms
+    real, intent(out) :: timestep
     
     read(unt) hdr, nstep, istrt, nsvac, (dummyi, i=1,5), natomnfreat, &
               timestep, (dummyi, i=1,10)
@@ -137,7 +137,7 @@ end subroutine read_dcd_header_from_unit
 
 
 subroutine read_dcd_data_from_unit(unt, cryst_const, coords, nstep, natoms, &
-                                   flavor)
+                                   convang)
     ! After reading the file to the end of the header, this routine reads out
     ! the data part.
     !
@@ -153,16 +153,16 @@ subroutine read_dcd_data_from_unit(unt, cryst_const, coords, nstep, natoms, &
     ! coords : real (nstep,natoms,3)
     !   dummy
     ! nstep,natoms : int
-    ! flavor : int
-    !   1 - lammps
-    !   2 - cp2k
+    ! convang : int
+    !   1 - convert angles from cosine to degree
     !
     ! Returns
     ! -------
     ! cryst_const, coords
     !
     implicit none
-    integer :: nstep, natoms, istep, iatom, k, unt, flavor
+    integer, intent(in) :: nstep, natoms, unt, convang
+    integer :: istep, iatom, k
     double precision :: cryst_const_dcd(6)
     double precision, parameter :: pi=acos(-1.0d0)
     real :: x(natoms), y(natoms), z(natoms)
@@ -187,11 +187,11 @@ subroutine read_dcd_data_from_unit(unt, cryst_const, coords, nstep, natoms, &
         cryst_const(istep,1) = cryst_const_dcd(1)
         cryst_const(istep,2) = cryst_const_dcd(3)
         cryst_const(istep,3) = cryst_const_dcd(6)
-        if (flavor == 1) then
+        if (convang == 1) then
             cryst_const(istep,4) = acos(cryst_const_dcd(5))*180.0d0/pi
             cryst_const(istep,5) = acos(cryst_const_dcd(4))*180.0d0/pi
             cryst_const(istep,6) = acos(cryst_const_dcd(2))*180.0d0/pi
-        else if (flavor == 2) then
+        else
             cryst_const(istep,4) = cryst_const_dcd(5)
             cryst_const(istep,5) = cryst_const_dcd(4)
             cryst_const(istep,6) = cryst_const_dcd(2)
@@ -205,7 +205,7 @@ subroutine read_dcd_data_from_unit(unt, cryst_const, coords, nstep, natoms, &
 end subroutine read_dcd_data_from_unit
 
 
-subroutine read_dcd_data(filename, cryst_const, coords, nstep, natoms, flavor)
+subroutine read_dcd_data(filename, cryst_const, coords, nstep, natoms, convang)
     ! To be wrapped by f2py and used from Python. Read data from DCD file. You
     ! need to call get_dcd_file_info() first to get nstep and natoms.
     !
@@ -214,9 +214,8 @@ subroutine read_dcd_data(filename, cryst_const, coords, nstep, natoms, flavor)
     ! filename : character
     ! nstep, natoms, timestep : int, int, real
     !   dummy input
-    ! flavor : int
-    !   1 - lammps
-    !   2 - cp2k
+    ! convang : int
+    !   1 - convert angles from cosine to degree
     !
     ! Returns
     ! -------
@@ -224,8 +223,8 @@ subroutine read_dcd_data(filename, cryst_const, coords, nstep, natoms, flavor)
     !
     ! Example
     ! -------
-    ! >>> nstep,natoms,timestep = _dcd.get_dcd_file_info(filename,flavor)
-    ! >>> cryst_const,coords = _dcd.read_dcd_data(filename,nstep,natoms,flavor)
+    ! >>> nstep,natoms,timestep = _dcd.get_dcd_file_info(filename,nstephdr)
+    ! >>> cryst_const,coords = _dcd.read_dcd_data(filename,nstep,natoms,convang)
     ! 
     ! Notes
     ! ------
@@ -233,28 +232,36 @@ subroutine read_dcd_data(filename, cryst_const, coords, nstep, natoms, flavor)
     ! read_dcd_data()) is complicated but I see no other way since we first
     ! need to obtain nstep,natoms and then allocate cryst_const+coords with
     ! them in read_dcd_data(). Maybe there is another way in Fortran, with
-    ! allocatable ans such? If so, send me a mail, or a patch!
+    ! allocatable and such? If so, send me a mail, or a patch!
     implicit none
-    character(len=1024) :: filename
-    integer :: dummy_nstep, nstep, natoms, iost, flavor, unt
+    character(len=1024), intent(in) :: filename
+    integer, intent(in) :: nstep, natoms, convang
+    integer :: dummy_nstep, dummy_natoms, iost, unt
+    real :: dummy_timestep
     double precision, intent(out):: cryst_const(nstep,6)
     real, intent(out) :: coords(nstep, natoms, 3)
-    real :: timestep
     
+    if ((.not. natoms > 0) .or. (.not. nstep > 0)) then
+        write(*,*) "read_dcd_data: error: nstep or natoms not > 0: ", &
+                   "nstep=", nstep, "natoms=", natoms
+        stop 1
+    end if     
     unt = 1
     call open_file(filename, unt)
     ! read header again only to advance in file to the data section
-    ! dummy_nstep: make sure we use `nstep` from input 
-    call read_dcd_header_from_unit(unt, dummy_nstep, natoms, timestep)
-    call read_dcd_data_from_unit(unt, cryst_const, coords, nstep, natoms, flavor)
+    ! dummy_*: make sure we use nstep and natoms from input
+    call read_dcd_header_from_unit(unt, dummy_nstep, dummy_natoms, &
+                                   dummy_timestep)
+    call read_dcd_data_from_unit(unt, cryst_const, coords, nstep, natoms, &
+                                 convang)
     close(unt)
 end subroutine read_dcd_data
 
 
-subroutine get_dcd_file_info(filename, nstep, natoms, timestep, flavor)
+subroutine get_dcd_file_info(filename, nstep, natoms, timestep, nstephdr)
     ! To be wrapped by f2py and used from Python. Read header (natoms,
-    ! timestep) from dcd file `filename`. Read nstep from header (flavor=1,
-    ! lammps) or find by walking thru the file once (flavor=2, cp2k, more
+    ! timestep) from dcd file `filename`. Read nstep from header (nstephdr=1,
+    ! lammps) or find by walking thru the file once (nstephdr=0, cp2k, more
     ! general, should always work, but may be slow for large files).
     !
     ! Parameters
@@ -262,9 +269,8 @@ subroutine get_dcd_file_info(filename, nstep, natoms, timestep, flavor)
     ! filename : character
     ! nstep, natoms, timestep : int, int, real
     !   dummy input
-    ! flavor : int
-    !   1 - lammps
-    !   2 - cp2k
+    ! nstephdr : int
+    !   read nstep from header instead of walking file
     !
     ! Returns
     ! -------
@@ -272,27 +278,28 @@ subroutine get_dcd_file_info(filename, nstep, natoms, timestep, flavor)
     !
     ! Example
     ! -------
-    ! >>> nstep,natoms,timestep = _dcd.get_dcd_file_info(filename, flavor)
+    ! >>> nstep,natoms,timestep = _dcd.get_dcd_file_info(filename, nstephdr)
 
     implicit none
-    character(len=1024) :: filename
-    integer, intent(out) :: nstep, natoms
-    real, intent(out) :: timestep
-    integer :: iatom, k, unt, flavor, iost
+    character(len=1024), intent(in) :: filename
+    integer, intent(in) :: nstephdr
+    integer :: iatom, k, unt, iost
     double precision :: cryst_const_dcd(6)
     real,allocatable :: x(:), y(:), z(:)
+    integer, intent(out) :: nstep, natoms
+    real, intent(out) :: timestep
     
     unt = 1
     call open_file(filename, unt)    
     
-    ! flavor = 1: lammps
+    ! nstephdr = 1: lammps
     !   nstep, natoms, timestep known by call to read_dcd_header_from_unit()
-    ! flavor = 2: cp2k
+    ! nstephdr = 0: cp2k
     !   natoms, timestep known by call to read_dcd_header_from_unit(),
     !   nstep = 0 in header, must walk thru data section in file until end 
     !   to find out, ugly but works
     call read_dcd_header_from_unit(unt, nstep, natoms, timestep)
-    if (flavor == 2) then
+    if (nstephdr == 0) then
         allocate(x(natoms), y(natoms), z(natoms))
         nstep = 0
         do
@@ -301,7 +308,8 @@ subroutine get_dcd_file_info(filename, nstep, natoms, timestep, flavor)
             if (iost < 0) then
                 exit
             else if (iost > 0) then
-                write(*,*) "read error"
+                write(*,*) "get_dcd_file_info: read error in file", &
+                           trim(filename)
                 deallocate(x,y,z)
                 stop 1
             end if        
@@ -313,4 +321,8 @@ subroutine get_dcd_file_info(filename, nstep, natoms, timestep, flavor)
         deallocate(x,y,z)
     end if
     close(unt)
+    if (.not. nstep > 0) then
+       write(*,*) "get_dcd_file_info: error: nstep is not > 0: nstep =", nstep
+       stop 1
+    end if    
 end subroutine get_dcd_file_info

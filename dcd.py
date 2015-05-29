@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import numpy as np
-import struct, re
 
 # DCD file header 
 #   (name, dtype, count)
@@ -26,23 +25,6 @@ HEADER_TYPES = [\
     ('natoms',  'i4',1  ),  # natoms
     ('blk2-1',  'i4',1  ),  # 4
     ] 
-
-rex = re.compile(r'([@=<>!|]*)([a-zA-Z])([0-9]+)')
-def fromfile_unpack(fd, dtype, count):
-    # np.fromfile, but using plain struct.unpack(), only for testing
-    ret = []
-    for i in range(count):
-        # '<f4': endi='<', typ='f', size='4'
-        endi,typ,size = rex.match(dtype).groups()
-        buf = fd.read(int(size))
-        if not buf:
-            break
-        if typ == 'S':
-            ret.append(buf)
-        else:  
-            dtype = endi + 'd8' if (typ=='f' and size=='8') else dtype
-            ret.append(struct.unpack(dtype, buf)[0])
-    return np.array(ret)
 
 
 def read_chunk(fd, types):
@@ -93,17 +75,17 @@ def read_dcd_header_py(fn):
     fd.close()
     return ret
 
-
-def read_dcd_data_py(fn, flavor=2):
+def read_dcd_data_py(fn, convang=False):
     """Read dcd file. Pure Python version.
 
     Parameters
     ----------
     fn : str
         filename
-    flavor : int
-        1 = lammps, 2 = cp2k 
-    
+    convang : bool
+        convert angles from cosine to degree (only useful for lammps style dcd
+        files)
+
     Returns
     -------
     ret : (cryst_const, coords)
@@ -111,12 +93,12 @@ def read_dcd_data_py(fn, flavor=2):
         |               Angstrom, degrees
         | coords : (nstep, natoms, 3) float32 array, cartesian coords Angstrom
     
-    Notes
-    -----
-    `flavor` : In this Python implementation, the `flavor` keyword influences
-    only the angle calculation, since lammps stores the cosine of the
-    angles, which we need to convert to degrees, while cp2k stores the
-    angles in degrees. See :func:`read_dcd_data_f` for the Fortran version.
+    Examples
+    --------
+    >>> # default settings read cp2k files
+    >>> cc,co = read_dcd_data_py('cp2k.dcd')
+    >>> cc,co = read_dcd_data_py('cp2k.dcd', convang=False)
+    >>> cc,co = read_dcd_data_py('lammps.dcd', convang=True)
     """
     # The list-append approach here is slow, very simple-minded and more or
     # less only a proof of concept. The Fortran version is 10x faster, even
@@ -126,10 +108,10 @@ def read_dcd_data_py(fn, flavor=2):
     #   chunk_size_nstep = 100
     #   coords = np.empty((chunk_size_nstep, natoms,3)
     #   cryst_const = np.empty((chunk_size_nstep, 6)
-    # and fill them in the loop and count nstep. If full, then alloocate more,
-    # copy or concatenate old array. At the end, return a *view* which is only
-    # nstep long. Can we do this in Fortran as well: allocate and grow arrays
-    # at runtime, return a view?
+    # and fill them in the loop and count nstep. If full, then allocate more,
+    # copy old array into new, deallocate old (or concatenate arrays). At the
+    # end, return a *view* which is only nstep long. Can we do this in Fortran
+    # as well: allocate and grow arrays at runtime, return a view?
     fd = open(fn, 'rb')
     natoms = read_chunk(fd, HEADER_TYPES)['natoms'][0]
     data_types = [\
@@ -170,25 +152,57 @@ def read_dcd_data_py(fn, flavor=2):
     coords = np.array(coords, dtype=np.float32)
     cryst_const = np.array(cryst_const, dtype=np.float64)
     # lammps
-    if flavor == 1:
+    if convang:
         cryst_const[:,3:] = np.arccos(cryst_const[:,3:])*180.0/np.pi
     return cryst_const, coords
 
 
-def read_dcd_data_f(fn, flavor=2):
-    """Read dcd file. Wrapper for the Fortran version in ``dcd.f90``. Otherwise
-    same API as :func:`read_dcd_data_py`.
+def read_dcd_data_f(fn, convang=False, nstephdr=False):
+    """Read dcd file. Wrapper for the Fortran version in ``dcd.f90``.  
+    
+    Parameters
+    ----------
+    fn : str
+        filename
+    convang : bool
+        See :func:`read_dcd_data_py`
+    nstephdr : bool
+        read nstep from header (lammps) instead of walking the file twice (more
+        safe but slower, works for all dcd flavors)
+    
+    Returns
+    -------
+    ret : See :func:`read_dcd_data_py`
 
-    Notes
-    -----
-    `flavor` : As in :func:`read_dcd_data_py`, it influences the angle
-    calculation (convet lammps cosines to degrees). Additionally, we know that
-    lammps (`flavor=1`) stores `nstep` in the header so we use that, while for
-    cp2k (`flavor=2`), we walk thru the file twice. Once for determining
-    `nstep` and allocating arrays, and a second time for reading. This means
-    that reading a cp2k file takes twice as long. Note that `flavor=2` also
-    works for lammps files, so this is more general, but slower.
+    Examples
+    --------
+    >>> # default settings read cp2k files
+    >>> cc,co = read_dcd_data_f('cp2k.dcd')
+    >>> cc,co = read_dcd_data_f('cp2k.dcd', convang=False, nstephdr=False)
+    >>> cc,co = read_dcd_data_f('lammps.dcd', convang=True, nstephdr=True)
+    >>> # more safe if you don't trust nstep from the header
+    >>> cc,co = read_dcd_data_f('lammps.dcd', convang=True, nstephdr=False)
     """
     from pwtools import _dcd
-    nstep, natoms, timestep = _dcd.get_dcd_file_info(fn, flavor)    
-    return _dcd.read_dcd_data(fn, nstep, natoms, flavor)
+    nstep, natoms, timestep = _dcd.get_dcd_file_info(fn, nstephdr)    
+    return _dcd.read_dcd_data(fn, nstep, natoms, convang)
+
+
+##import struct, re
+##rex = re.compile(r'([@=<>!|]*)([a-zA-Z])([0-9]+)')
+##def fromfile_unpack(fd, dtype, count):
+##    # np.fromfile, but using plain struct.unpack(), only for testing
+##    ret = []
+##    for i in range(count):
+##        # '<f4': endi='<', typ='f', size='4'
+##        endi,typ,size = rex.match(dtype).groups()
+##        buf = fd.read(int(size))
+##        if not buf:
+##            break
+##        if typ == 'S':
+##            ret.append(buf)
+##        else:  
+##            dtype = endi + 'd8' if (typ=='f' and size=='8') else dtype
+##            ret.append(struct.unpack(dtype, buf)[0])
+##    return np.array(ret)
+

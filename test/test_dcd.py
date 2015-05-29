@@ -78,9 +78,11 @@ def test_dcd():
     # cc = cryst_const
     # co = coords
     print ">>> comparing data"
-    for fn,flavor,nstep,natoms in [(fn_lmp,1,101,16), (fn_cp2k,2,16,57)]:
-        cc_py, co_py = dcd.read_dcd_data_py(fn, flavor=flavor)
-        cc_f, co_f = dcd.read_dcd_data_f(fn, flavor=flavor)
+    for fn,convang,nstephdr,nstep,natoms in [(fn_lmp,True,True,101,16), 
+                                             (fn_lmp,True,False,101,16),
+                                             (fn_cp2k,False,False,16,57)]:
+        cc_py, co_py = dcd.read_dcd_data_py(fn, convang=convang)
+        cc_f, co_f = dcd.read_dcd_data_f(fn, convang=convang, nstephdr=nstephdr)
         # cryst_const is float64 in dcd
         print ">>> ... cryst_const"
         tools.assert_array_equal(cc_py, cc_f)
@@ -90,4 +92,7 @@ def test_dcd():
         print ">>> ... shapes"
         assert cc_f.shape == (nstep,6)
         assert co_f.shape == (nstep,natoms,3)
-
+        # lmp angles are around 60, cp2k around 90 degree, cosines are between
+        # -1 and 1, make sure the angle conversion works
+        print ">>> ... angles"
+        assert (cc_py[:,3:] > 50).all()
