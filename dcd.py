@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import numpy as np
 
 # DCD file header 
