@@ -8,7 +8,7 @@ import numpy as np
 #   i4  = int32
 #   f4  = float32 (single precision)
 #   f8  = float64 (double precision)
-#   S80 = string of lenth 80 (80 chars)
+#   S80 = string of length 80 (80 chars)
 HEADER_TYPES = [\
     ('blk0-0',  'i4',1  ),  # 84 (start of first block, size=84 bytes)                    
     ('hdr',     'S4',1  ),  # 'CORD'
@@ -106,8 +106,8 @@ def read_dcd_data_py(fn, convang=False):
     # since it needs to determine nstep. Well well. One should do something
     # more clever such as allocating arrays like so:
     #   chunk_size_nstep = 100
-    #   coords = np.empty((chunk_size_nstep, natoms,3)
-    #   cryst_const = np.empty((chunk_size_nstep, 6)
+    #   coords = np.empty((chunk_size_nstep, natoms,3))
+    #   cryst_const = np.empty((chunk_size_nstep, 6))
     # and fill them in the loop and count nstep. If full, then allocate more,
     # copy old array into new, deallocate old (or concatenate arrays). At the
     # end, return a *view* which is only nstep long. Can we do this in Fortran
@@ -122,10 +122,10 @@ def read_dcd_data_py(fn, convang=False):
        ('x',                'f4',natoms),   # x
        ('blkx-1',           'i4',1),        # natoms*4
        ('blky-0',           'i4',1),        # natoms*4
-       ('y',                'f4',natoms),   # x
+       ('y',                'f4',natoms),   # y
        ('blky-1',           'i4',1),        # natoms*4
        ('blkz-0',           'i4',1),        # natoms*4
-       ('z',                'f4',natoms),   # y
+       ('z',                'f4',natoms),   # z
        ('blkz-1',           'i4',1),        # natoms*4
        ]
     cryst_const = []
