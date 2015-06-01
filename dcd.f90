@@ -236,7 +236,7 @@ subroutine read_dcd_data(filename, cryst_const, coords, nstep, natoms, convang)
     implicit none
     character(len=1024), intent(in) :: filename
     integer, intent(in) :: nstep, natoms, convang
-    integer :: dummy_nstep, dummy_natoms, iost, unt
+    integer :: dummy_nstep, dummy_natoms, unt
     real :: dummy_timestep
     double precision, intent(out):: cryst_const(nstep,6)
     real, intent(out) :: coords(nstep, natoms, 3)

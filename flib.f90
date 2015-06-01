@@ -552,7 +552,7 @@ end subroutine solve
 
 subroutine frac2cart(coords_frac, cell, natoms, coords)
     implicit none
-    integer :: ii, jj, natoms
+    integer :: ii, natoms
     double precision, intent(in) :: coords_frac(natoms, 3), cell(3,3)
     double precision, intent(out) :: coords(natoms, 3)
 
