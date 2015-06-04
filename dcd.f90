@@ -257,7 +257,10 @@ subroutine read_dcd_data(filename, cryst_const, coords, nstep, natoms, convang)
     close(unt)
 end subroutine read_dcd_data
 
-
+! XXX doing a real READ here in the loop is super-stuipd and slow! We should do
+! it like in dcd.read_dcd_data(): fd.tell + fd.seek. But why re-code things
+! which work nice and fast in Python? In fact, we don't need all this fortran
+! anymore!
 subroutine get_dcd_file_info(filename, nstep, natoms, timestep, nstephdr)
     ! To be wrapped by f2py and used from Python. Read header (natoms,
     ! timestep) from dcd file `filename`. Read nstep from header (nstephdr=1,

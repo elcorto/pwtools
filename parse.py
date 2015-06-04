@@ -131,7 +131,7 @@ except ImportError:
     pass
 
 from pwtools import common, constants, regex, crys, atomic_data, num, \
-    arrayio, _dcd
+    arrayio, dcd
 from pwtools.verbose import verbose
 from pwtools.base import FlexibleGetters
 from pwtools.constants import Ry, Ha, eV, Bohr, Angstrom, thart, Ang, fs, ps
@@ -2056,48 +2056,39 @@ class Cp2kRelaxOutputFile(Cp2kMDOutputFile):
 class DcdOutputFile(object):
     # invalid, set in derived class
     _dcd_convang = None
-    # safe setting, never read nstep from the header, may be set tu True for
-    # lammps -> faster reading, see dcd.py and dcd.f90 for why
-    _dcd_nstephdr = False
 
-    def _get_dcd_file_info(self):
+    def _get_dcd_data(self):
         if os.path.exists(self.dcdfilename):
-            a, b, c = _dcd.get_dcd_file_info(self.dcdfilename, 
-                                             nstephdr=self._dcd_nstephdr)
-            return {'nstep': a, 'natoms': b, 'timestep': c}
-        else:
-            return None
-    
-    def _get_cryst_const_coords(self):
-        if self.check_set_attr_lst(['nstep', 'natoms']) and \
-           os.path.exists(self.dcdfilename):
-            a, b = _dcd.read_dcd_data(self.dcdfilename, self.nstep, self.natoms,
-                                      convang=self._dcd_convang)
-            return {'cryst_const': a, 'coords': b}
+            cryst_const, coords = dcd.read_dcd_data(self.dcdfilename, convang=self._dcd_convang)
+            return {'cryst_const': cryst_const, 
+                    'coords': coords, 
+                    'nstep': cryst_const.shape[0], 
+                    'natoms': coords.shape[1],
+                    'timestep': dcd.read_dcd_header(self.dcdfilename)['timestep']}
         else:
             return None
     
     def get_coords(self):
-        if self.check_set_attr('_cryst_const_coords'):
-            return self._cryst_const_coords['coords']
+        if self.check_set_attr('_dcd_data'):
+            return self._dcd_data['coords']
         else:
             return None
 
     def get_cryst_const(self):
-        if self.check_set_attr('_cryst_const_coords'):
-            return self._cryst_const_coords['cryst_const']
+        if self.check_set_attr('_dcd_data'):
+            return self._dcd_data['cryst_const']
         else:
             return None
 
     def get_natoms(self):
-        if self.check_set_attr('_dcd_file_info'):
-            return self._dcd_file_info['natoms']
+        if self.check_set_attr('_dcd_data'):
+            return self._dcd_data['natoms']
         else:
             return None
 
     def get_nstep(self):
-        if self.check_set_attr('_dcd_file_info'):
-            return self._dcd_file_info['nstep']
+        if self.check_set_attr('_dcd_data'):
+            return self._dcd_data['nstep']
         else:
             return None
     
@@ -2116,7 +2107,6 @@ class Cp2kDcdMDOutputFile(DcdOutputFile, Cp2kMDOutputFile):
     def __init__(self, *args, **kwds):
         super(Cp2kDcdMDOutputFile, self).__init__(*args, **kwds)
         self.dcdfilename = common.pj(self.basedir, 'PROJECT-pos-1.dcd')
-        self._dcd_nstephdr = False
         self._dcd_convang = False
         self.attr_lst = [\
             'cryst_const',
@@ -2513,6 +2503,5 @@ class LammpsDcdMDOutputFile(DcdOutputFile, LammpsTextMDOutputFile):
             'volume',
         ]
         self.init_attr_lst()
-        self._dcd_nstephdr = False
         self._dcd_convang = True
         self.dcdfilename = pj(self.basedir, 'lmp.out.dcd')
