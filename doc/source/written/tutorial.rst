@@ -179,9 +179,10 @@ Work with SQLite databases
 --------------------------
 See :class:`~pwtools.sql.SQLiteDB`.
 
+
 More stuff
 ----------
 * :ref:`dispersion_example`
-
+* :ref:`cp2k_restart`
 
 .. include:: refs.rst
