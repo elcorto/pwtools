@@ -19,6 +19,7 @@ parsers are available:
     | :class:`~pwtools.parse.CpmdMDOutputFile`
     | :class:`~pwtools.parse.Cp2kSCFOutputFile`
     | :class:`~pwtools.parse.Cp2kMDOutputFile`
+    | :class:`~pwtools.parse.Cp2kDcdMDOutputFile`
     | :class:`~pwtools.parse.Cp2kRelaxOutputFile`
     | :class:`~pwtools.parse.LammpsTextMDOutputFile`
     | :class:`~pwtools.parse.LammpsDcdMDOutputFile`
@@ -38,7 +39,7 @@ The problem with using the parsers directly is that there are of course
 differences between the codes. For instance, each one uses different units
 (Bohr, Angstrom, Ry, Ha, eV, ...). Also, not all structure attributes are
 contained in the output of all codes. For example,
-:class:`~pwtools.parse.PwSCFOutputFile` will parse atomic coordinates into
+:class:`~pwtools.parse.PwSCFOutputFile` will parse Cartesian atomic coordinates into
 ``pp.coords`` and the unit cell into ``pp.cell``. However, often we need to use
 the fractional coordinates ``pp.coords_frac``. This quantity is not present in
 the PWscf output and thus ``pp.coords_frac`` will be None. However, we know
@@ -137,6 +138,7 @@ These return a :class:`~pwtools.crys.Trajectory`:
     | :func:`~pwtools.io.read_pw_vcmd`
     | :func:`~pwtools.io.read_cpmd_md`
     | :func:`~pwtools.io.read_cp2k_md`
+    | :func:`~pwtools.io.read_cp2k_md_dcd`
     | :func:`~pwtools.io.read_cp2k_relax`
     | :func:`~pwtools.io.read_lammps_md_txt`
     | :func:`~pwtools.io.read_lammps_md_dcd`

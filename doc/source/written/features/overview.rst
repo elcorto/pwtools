@@ -23,7 +23,8 @@ Overview
 * pythonic interface to external molecular viewers for interactive use:
   xcrysden, avogadro, jmol, vmd (:mod:`~pwtools.visualize`)
 
-* interface to external EOS fitting tools (:mod:`~pwtools.eos`)
+* interface to the Elk_ code's EOS fitting tool and own implementation (only Vinet
+  EOS) (:mod:`~pwtools.eos`)
 
 * thermodynamic properties in the quasi-harmonic approximation from phonon
   density of states, QHA implementation (:mod:`~pwtools.thermo`) 

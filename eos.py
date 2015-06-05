@@ -1,10 +1,11 @@
 """
-EOS fitting. Use the EosFit class.
+EOS fitting. Use :class:`EosFit` (only Vinet EOS for now).
 
-Also: Old interface class ElkEOSFit and the base class ExternEOS for calling
-extern EOS fitting applications. Compile the app to produce an executable, e.g.
-eos.x. Then use app='/path/to/eos.x' in the constructor. Has another API than
-EosFit, e.g. the get_min() method is different.
+Also: Old interface class :class:`ElkEOSFit` and the base class
+:class:`ExternEOS` for calling extern EOS fitting applications. Compile the app
+to produce an executable, e.g. ``eos.x``. Then use ``app='/path/to/eos.x'`` in
+the constructor. Has another API than :class:`EosFit`, e.g. the
+:meth:`EosFit.get_min` method is different from :meth:`ElkEOSFit.get_min`.
 """
 
 import os

@@ -152,14 +152,14 @@ class FlexibleGetters(object):
             setattr(self, attr, None)
 
     def dump(self, dump_filename, mkdir=True):
-        """Pickle (write to binary file) the whole object."""
+        """Write object to binary file using cPickle."""
         # Dumping with protocol "2" is supposed to be the fastest binary format
         # writing method. Probably, this is platform-specific.
         if mkdir:
             dr = os.path.dirname(dump_filename)
             if dr != '':
                 common.makedirs(dr)
-        cPickle.dump(self, open(dump_filename, 'wb'), 2)
+        cPickle.dump(self, open(dump_filename, 'wb'), protocol=2)
 
     def load(self, dump_filename):
         """Load pickled object.
