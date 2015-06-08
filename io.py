@@ -313,7 +313,7 @@ def load_h5(*args, **kwds):
 
 class ReadFactory(object):
     """Factory class to construct callables to parse files."""
-    def __init__(self, parser=None, struct_or_traj=None):
+    def __init__(self, parser=None, struct_or_traj=None, doc=''):
         """
         Parameters
         ----------
@@ -322,9 +322,31 @@ class ReadFactory(object):
             {'struct','traj'}
             Whether the callables should return parser.get_{struct,traj}()'s
             return value.
+        doc : str
+            docstring header 
         """
         self.parser = parser
         self.struct_or_traj = struct_or_traj
+        # Overwrite class docstring. That shows up in sphinx autodoc of the
+        # class instances (all read_* "functions"). The more natural thing is
+        # to tell sphinx to use the __call__.__doc__ since the instance is used
+        # as a callable. Now, they are treated as normal class instance, which
+        # is perfectly right from sphinx' point of view. We would need to add
+        # `doc` to __call__.__doc__, but how? Fancy decorator magic!
+        self.__doc__ = doc + """
+        
+        Parameters
+        ----------
+        filename : str
+            Name of the file to parse.
+        **kwds : keywords args
+            passed to the parser class (e.g. units=...)
+        
+        Returns
+        -------
+        ret : :class:`~pwtools.crys.Structure` (SCF runs) or \
+              :class:`~pwtools.crys.Trajectory` (MD-like runs)
+        """
     
     def __call__(self, filename, **kwds):
         """
@@ -342,45 +364,57 @@ class ReadFactory(object):
         else:
             raise StandardError("unknown struct_or_traj: %s" %struct_or_traj)
 
+
 read_cif = ReadFactory(parser=parse.CifFile, 
                        struct_or_traj='struct',
+                       doc="Read Cif files."
                        )
 read_pdb = ReadFactory(parser=parse.PDBFile, 
                        struct_or_traj='struct',
+                       doc="Read PDB files."
                        )
 read_pw_scf = ReadFactory(parser=parse.PwSCFOutputFile, 
                           struct_or_traj='struct', 
+                          doc="Read Pwscf SCF run ouput."
                           )
 read_pw_md = ReadFactory(parser=parse.PwMDOutputFile, 
                          struct_or_traj='traj', 
+                         doc="Read Pwscf md/relax/vc-relax run ouput."
                          )
 read_pw_vcmd = ReadFactory(parser=parse.PwVCMDOutputFile, 
                            struct_or_traj='traj', 
+                           doc="Read Pwscf vc-md run ouput."
                            )
 read_cpmd_scf = ReadFactory(parser=parse.CpmdSCFOutputFile,
                             struct_or_traj='struct', 
+                            doc="Read CPMD SCF (single point) run ouput."
                             )
 read_cpmd_md = ReadFactory(parser=parse.CpmdMDOutputFile, 
                            struct_or_traj='traj', 
+                           doc="Read CPMD MD (fixed and variable cell, BO and CP) run ouput."
                            )
 read_cp2k_scf = ReadFactory(parser=parse.Cp2kSCFOutputFile, 
                            struct_or_traj='struct', 
+                           doc="Read CP2K SCF (single point) run ouput."
                            )
 read_cp2k_md = ReadFactory(parser=parse.Cp2kMDOutputFile, 
                            struct_or_traj='traj', 
+                           doc="Read CP2K MD run ouput (all text)."
                            )
 read_cp2k_md_dcd = ReadFactory(parser=parse.Cp2kDcdMDOutputFile, 
                                struct_or_traj='traj', 
+                               doc="Read CP2K MD run ouput (coordinates in dcd binary format)."
                                )
 read_cp2k_relax = ReadFactory(parser=parse.Cp2kRelaxOutputFile, 
                               struct_or_traj='traj', 
+                              doc="Read CP2K relaxation run ouput (all text)."
                               )
 read_lammps_md_txt = ReadFactory(parser=parse.LammpsTextMDOutputFile, 
                                  struct_or_traj='traj', 
+                                 doc="Read LAMMPS MD run ouput (all text)."
                                  )
 read_lammps_md_dcd = ReadFactory(parser=parse.LammpsDcdMDOutputFile, 
                                  struct_or_traj='traj', 
+                                 doc="Read LAMMPS MD run ouput (coordinates in dcd format)."
                                  )
-
-
 

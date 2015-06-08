@@ -337,7 +337,7 @@ class CifFile(StructureFileParser):
 
     References
     ----------
-    .. [1] http://pycifrw.berlios.de/
+    .. [1] https://bitbucket.org/jamesrhester/pycifrw
     """        
     def __init__(self, filename=None, block=None, *args, **kwds):
         """        
@@ -2054,8 +2054,9 @@ class Cp2kRelaxOutputFile(Cp2kMDOutputFile):
 
 
 class DcdOutputFile(object):
-    # invalid, set in derived class
-    _dcd_convang = None
+    """Base class which implements dcd file reading. Used only for
+    inheritance."""
+    _dcd_convang = False
 
     def _get_dcd_data(self):
         if os.path.exists(self.dcdfilename):
@@ -2104,6 +2105,9 @@ class DcdOutputFile(object):
 
 
 class Cp2kDcdMDOutputFile(DcdOutputFile, Cp2kMDOutputFile):
+    """Same as :class:`Cp2kMDOutputFile` (all ``PROJECT*`` files are text),
+    only that the coordinates file is a dcd format binary file
+    ``PROJECT-pos-1.dcd``."""
     def __init__(self, *args, **kwds):
         super(Cp2kDcdMDOutputFile, self).__init__(*args, **kwds)
         self.dcdfilename = common.pj(self.basedir, 'PROJECT-pos-1.dcd')

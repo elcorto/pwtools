@@ -90,9 +90,9 @@ def read_dcd_data_ref(fn, convang=False):
     Examples
     --------
     >>> # default settings read cp2k files
-    >>> cc,co = read_dcd_data_py('cp2k.dcd')
-    >>> cc,co = read_dcd_data_py('cp2k.dcd', convang=False)
-    >>> cc,co = read_dcd_data_py('lammps.dcd', convang=True)
+    >>> cc,co = read_dcd_data_ref('cp2k.dcd')
+    >>> cc,co = read_dcd_data_ref('cp2k.dcd', convang=False)
+    >>> cc,co = read_dcd_data_ref('lammps.dcd', convang=True)
     """
     fd = open(fn, 'rb')
     natoms = np.fromfile(fd, HEADER_DTYPE, 1)[0]['natoms']
@@ -162,9 +162,9 @@ def read_dcd_data(fn, convang=False):
     Examples
     --------
     >>> # default settings read cp2k files
-    >>> cc,co = read_dcd_data_py('cp2k.dcd')
-    >>> cc,co = read_dcd_data_py('cp2k.dcd', convang=False)
-    >>> cc,co = read_dcd_data_py('lammps.dcd', convang=True)
+    >>> cc,co = read_dcd_data('cp2k.dcd')
+    >>> cc,co = read_dcd_data('cp2k.dcd', convang=False)
+    >>> cc,co = read_dcd_data('lammps.dcd', convang=True)
     """
     fd = open(fn, 'rb')
     natoms = np.fromfile(fd, HEADER_DTYPE, 1)[0]['natoms']
@@ -223,14 +223,14 @@ def read_dcd_data_f(fn, convang=False, nstephdr=False):
     fn : str
         filename
     convang : bool
-        See :func:`read_dcd_data_py`
+        See :func:`read_dcd_data`
     nstephdr : bool
         read nstep from header (lammps) instead of walking the file twice (more
         safe but slower, works for all dcd flavors)
     
     Returns
     -------
-    ret : See :func:`read_dcd_data_py`
+    ret : See :func:`read_dcd_data`
 
     Examples
     --------
