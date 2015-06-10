@@ -7,40 +7,9 @@ from pwtools.crys import Trajectory, Structure
 from pwtools import crys, constants
 from pwtools.test.tools import aaae, assert_all_types_equal,\
     assert_attrs_not_none, assert_dict_with_all_types_equal
+from pwtools.test.rand_container import get_rand_struct, get_rand_traj
 from pwtools import num
 rand = np.random.rand
-
-
-def get_rand_traj():
-    natoms = 10
-    nstep = 100
-    cell = rand(nstep,3,3)
-    stress = rand(nstep,3,3)
-    forces = rand(nstep,natoms,3)
-    etot=rand(nstep)
-    coords_frac = np.random.rand(nstep,natoms,3)
-    symbols = ['H']*natoms
-    tr = Trajectory(coords_frac=coords_frac,
-                    cell=cell,
-                    symbols=symbols,
-                    forces=forces,
-                    stress=stress,
-                    etot=etot,
-                    timestep=1.11,
-                    )
-    return tr
-
-
-def get_rand_struct():
-    natoms = 10
-    symbols = ['H']*natoms
-    st = Structure(coords_frac=rand(natoms,3),
-                   symbols=symbols,
-                   forces=rand(natoms,3),
-                   cell=rand(3,3),
-                   etot=3.14,
-                   stress=rand(3,3))
-    return st
 
 
 def remove_from_lst(lst, items):
@@ -60,9 +29,9 @@ def test_traj():
     cell = rand(nstep,3,3)
     stress = rand(nstep,3,3)
     forces = rand(nstep,natoms,3)
-    etot=rand(nstep)
+    etot = rand(nstep)
     cryst_const = crys.cell2cc3d(cell, axis=0)
-    coords_frac = np.random.rand(nstep,natoms,3)
+    coords_frac = rand(nstep,natoms,3)
     coords = crys.coord_trans3d(coords=coords_frac,
                                 old=cell,
                                 new=num.extend_array(np.identity(3),
@@ -368,7 +337,7 @@ def test_coords_trans():
     nstep = 100
     cell = rand(nstep,3,3)
     cryst_const = crys.cell2cc3d(cell, axis=0)
-    coords_frac = np.random.rand(nstep,natoms,3)
+    coords_frac = rand(nstep,natoms,3)
     coords = crys.coord_trans3d(coords=coords_frac,
                                 old=cell,
                                 new=num.extend_array(np.identity(3),

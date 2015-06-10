@@ -5,20 +5,10 @@ from pwtools.crys import Structure, Trajectory
 from pwtools import crys, constants
 from pwtools.test.tools import aaae, assert_all_types_equal
 from pwtools.test import tools
+from pwtools.test.rand_container import get_rand_struct
 rand = np.random.rand
 
 # We assume all lengths in Angstrom. Only importans for ASE comparison.
-
-def get_rand_struct():
-    natoms = 10
-    symbols = ['H']*natoms
-    st = Structure(coords_frac=rand(natoms,3),
-                   symbols=symbols,
-                   forces=rand(natoms,3),
-                   cell=rand(3,3),
-                   etot=3.14,
-                   stress=rand(3,3))
-    return st
 
 def test_struct():
     natoms = 10
