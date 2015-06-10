@@ -2085,6 +2085,19 @@ def nearest_neighbors_struct(struct, **kwds):
     return new_struct                           
 
 
+def center_on_atom(obj_in, idx=None, copy=True):
+    """Shift all coords in `obj` such that the atom with index `idx` is at the
+    center of the cell: [0.5,0.5,0.5] fractional coords.
+    """
+    assert idx is not None, ("provide atom index")
+    obj = obj_in.copy() if copy else obj_in
+    obj.coords = None
+    # [...,idx,:] works for (natoms,3) and (nstep,natoms,3) -- numpy rocks!
+    obj.coords_frac = obj.coords_frac - obj.coords_frac[...,idx,:][...,None,:] + 0.5
+    obj.set_all()    
+    return obj
+
+
 #-----------------------------------------------------------------------------
 # Container classes for crystal structures and trajectories.
 #-----------------------------------------------------------------------------
