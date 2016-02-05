@@ -1,12 +1,14 @@
 Installation
 ============
 
-There is no installation script (i.e. setup.py). Just copy the whole package
-somewhere and run ``make`` to compile extensions::
+There is no installation script (i.e. ``setup.py``). Just copy the whole
+package somewhere and run ``make`` to compile extensions
 
-    $ tar -xzf pwtools-x.y.z.tgz
-    $ mv pwtools-x.y.z $HOME/python/pwtools
-    $ cd $HOME/python/pwtools
+.. code-block:: shell
+
+    $ cd $HOME/python/
+    $ git clone https://github.com/elcorto/pwtools.git
+    $ cd pwtools
     $ make
     # ~/.bashrc or ~/.profile
     export PATH=$HOME/python/pwtools/bin:$PATH
@@ -26,12 +28,19 @@ instead of the std lib's ``io``. For example `Mercurial
 Add-on packages / other required tools
 --------------------------------------
 
-On Debian:: 
+Debian:
 
-    apt-get install python-numpy python-scipy python-nose python-dev python-h5py gfortran \
-                    python-matplotlib liblapack-dev
+.. code-block:: shell
 
-Must have:    
+    $ sudo apt-get install python-numpy python-scipy python-nose python-dev \
+                           python-h5py gfortran python-matplotlib \
+                           liblapack-dev
+    $ sudo apt-get install pip
+    $ pip install pycifrw 
+    $ pip install pyspglib
+
+Must have
+~~~~~~~~~
 
 * numpy_
 * scipy_
@@ -43,25 +52,29 @@ Must have:
   ``test/``). If possible, install mawk, which is much faster than GNU awk. It
   will be used automatically if found on your system.
 
-Almost must have:
+Almost must have
+~~~~~~~~~~~~~~~~
   
 * `PyCifRW <pycifrw_orig_>`_: For Cif files in  :class:`~pwtools.parse.CifFile`,
   :func:`~pwtools.io.read_cif` and :func:`~pwtools.io.write_cif`. You may get a
   DeprecationWarning regarding the ``sets`` module. There is a patched version
-  from pwextern-free_, which deals with that.
-* h5py_: only for some functions in :mod:`~pwtools.io` currently
+  from pwextern-free_, which deals with that. But check the `pip version 
+  <https://pypi.python.org/pypi/PyCifRW>`_ first.
 * `pyspglib <pyspglib_>`_: used in :mod:`~pwtools.symmetry`, also shipped with
-  pwextern-free_.
+  pwextern-free_. Again, check `pip <https://pypi.python.org/pypi/pyspglib>`_.
+* h5py_: for some functions in :mod:`~pwtools.io` currently
 
-Suggested:
+Suggested
+~~~~~~~~~
 
-* matplotlib (``examples/``)
+* matplotlib_ (``examples/``)
 * VMD_ (``examples/rpdf/``, :func:`~pwtools.crys.call_vmd_measure_gofr`,
   :func:`~pwtools.visualize.view_vmd_axsf`,
   :func:`~pwtools.visualize.view_vmd_xyz`), must register before download
 * ASE_: :mod:`~pwtools.calculators`
 
-Optional:
+Optional
+~~~~~~~~
 
 * The ``fourier.x`` tool from the CPMD_ contrib sources (for
   ``examples/``). Need to register before download.
@@ -78,8 +91,8 @@ install script.
    really need the Elk code's eos tool anymore. The other two things which come
    with pwextern-free_ can be installed by::
    
-    easy_install --prefix=$HOME/soft pycifrw 
-    easy_install --prefix=$HOME/soft pyspglib
+    pip install pycifrw 
+    pip install pyspglib
 
 All imports of optional Python modules will silently fail such that the code
 can be used anywhere without errors or annoying warnings. The code parts which
@@ -104,7 +117,9 @@ on, but not yet 3.x.
 Compiling Fortran extensions and OpenMP notes
 ---------------------------------------------
 
-Use the ``Makefile``::
+Use the ``Makefile``:
+
+.. code-block:: shell
 
     $ make help
     make gfortran            # gfortran, default
@@ -137,7 +152,9 @@ Also, numpy.distutils has default -03 for fcompiler. ``--f90flags="-02"`` does N
 override this. We get ``-O3 -O2`` and a compiler warning. We have to use f2py's
 ``--opt=`` flag.
 
-On some systems (Debian), you may have::
+On some systems (Debian), you may have:
+
+.. code-block:: shell
 
   /usr/bin/f2py -> f2py2.6
   /usr/bin/f2py2.5
@@ -152,11 +169,15 @@ pragmas in ``*.f90``. This works pretty good. If you wanna try, use
 ``make ifort-omp`` or ``make gfortran-omp``.
 
 If all went well, _flib.so should be linked to libgomp (or libiomp for ifort).
-Check with::
-	
+Check with:
+
+.. code-block:: shell
+
 	$ ldd _flib.so
 
-Setting the number of threads::  
+Setting the number of threads:
+
+.. code-block:: shell
 	
 	$ export OMP_NUM_THREADS=2
 	$ python -c "import numpy as np; from pwtools.pydos import fvacf; \
@@ -179,16 +200,20 @@ When developing OpenMP code, you may find that code doesn't produce correct
 results, even if it runs, if OpenMP is used incorrectly :) The test script
 ``test/runtests.sh`` calls `make gfortran-omp`, so if code is broken by OpenMP,
 all test using the Fortran extensions might fail. To run tests with other
-builds, use one  of::
+builds, use one  of
     
-    make gfortran
-    make ifort
-    make ifort-omp
+.. code-block:: shell
 
-and::
+    $ make gfortran
+    $ make ifort
+    $ make ifort-omp
 
-    cd test 
-    ./runtests.sh --nobuild 
+and
+
+.. code-block:: shell
+
+    $ cd test 
+    $ ./runtests.sh --nobuild 
 
 
 .. include:: refs.rst
