@@ -1,10 +1,13 @@
-#!/bin/bash
+#!/bin/sh
 
-# try to find local checkout of sphinx-autodoc, else assume that it is on PATH
-if [ -f sphinx-autodoc/sphinx-autodoc.py ]; then
-    autodoc=sphinx-autodoc/sphinx-autodoc.py
-else
+loc=sphinx-autodoc/sphinx-autodoc.py
+if which sphinx-autodoc.py; then 
     autodoc=sphinx-autodoc.py
+elif [ -f $loc ]; then
+    autodoc=$loc
+else
+    git clone https://github.com/elcorto/sphinx-autodoc
+    autodoc=$loc
 fi    
 
 # ensure a clean generated tree
