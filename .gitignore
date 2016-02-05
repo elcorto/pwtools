@@ -1,0 +1,10 @@
+build
+doc/build
+doc/source/generated
+doc/source/written/background/pwtools.pydos.*.rst
+doc/sphinx-autodoc
+*.swp
+*.swo
+*.pyf
+*.pyc
+*.so
