@@ -7,7 +7,7 @@
 from __future__ import absolute_import
 import signal
 
-import types, warnings
+import types
 import os
 import subprocess
 import shutil
@@ -16,6 +16,8 @@ import ConfigParser
 import cPickle
 import copy
 import numpy as np
+import warnings
+warnings.simplefilter('always')
 
 from pwtools.verbose import verbose
 from pwtools.num import EPS
@@ -706,6 +708,7 @@ def permit_sigpipe():
     """
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
+
 def backtick(call):
     """Convenient shell backtick replacement with gentle error handling.
 
@@ -727,8 +730,10 @@ def backtick(call):
 #-----------------------------------------------------------------------------
 
 def cpickle_load(filename):
-    """Load object written by ``cPickle.dump()``.
-    """
+    """Load object written by ``cPickle.dump()``. Deprecated, use
+    :func:`~pwtools.io.read_pickle` instead."""
+    warnings.warn("cpickle_load() is deprcated, use io.read_pickle() instead",
+                   DeprecationWarning)
     return cPickle.load(open(filename, 'rb'))
 
 #-----------------------------------------------------------------------------

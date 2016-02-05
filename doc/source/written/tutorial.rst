@@ -53,9 +53,9 @@ You can save a :class:`~pwtools.crys.Structure` or
     >>> # save to binary pickle file
     >>> tr.dump('traj.pk')
 
-and read it back in later using :func:`~pwtools.io.cpickle_load` ::
+and read it back in later using :func:`~pwtools.io.read_pickle` ::
     
-    >>> tr = io.cpickle_load('traj.pk')
+    >>> tr = io.read_pickle('traj.pk')
 
 which is usually very fast.
 

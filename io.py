@@ -6,6 +6,7 @@ try:
 except ImportError:
     pass
 
+import cPickle
 import numpy as np
 from pwtools.common import frepr, cpickle_load
 from pwtools.constants import Ha, eV
@@ -309,6 +310,12 @@ def load_h5(*args, **kwds):
     warnings.warn("load_h5() is deprcated, use read_h5() instead",
                    DeprecationWarning)
     return read_h5(*args, **kwds)
+
+
+def read_pickle(filename):
+    """Load object written by ``cPickle.dump()``, e.g. files written by
+    :meth:`~pwtools.base.FlexibleGetters.dump()`."""
+    return cPickle.load(open(filename, 'rb'))
 
 
 class ReadFactory(object):

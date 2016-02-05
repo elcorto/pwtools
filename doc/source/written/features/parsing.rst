@@ -97,7 +97,7 @@ By using the :meth:`~pwtools.base.FlexibleGetters.dump` method, you can store
 the object as binary file [using Python's cPickle module] for fast re-loading later::
 
     >>> st.dump('struck.pk')
-    >>> st_loaded = io.cpickle_load('struck.pk')
+    >>> st_loaded = io.read_pickle('struck.pk')
 
 A Trajectory object can be viewed a list of Structure instances [even though it
 is implemented differently due to efficiency: we use 3d numpy arrays], it

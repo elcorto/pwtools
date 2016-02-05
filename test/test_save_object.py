@@ -64,4 +64,4 @@ def test_save_mkdir():
     fn = os.path.join(path, 'grr.pk')
     st = crys.Structure(coords=rand(10,3), cell=rand(3,3), symbols=['H']*10)
     st.dump(fn, mkdir=True)
-    io.cpickle_load(fn)
+    io.read_pickle(fn)

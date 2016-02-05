@@ -225,7 +225,7 @@ def pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
     >>> freq,dos = pdos(tr.velocity, m=tr.mass, dt=tr.timestep*fs, 
     >>>                 method='direct', npad=1)
     >>> # frequency in [1/cm]
-    >>> plot(freq/rcm_to_Hz, d)
+    >>> plot(freq/rcm_to_Hz, dos)
     
     See Also
     --------

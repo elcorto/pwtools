@@ -1,6 +1,8 @@
 import os.path
 from pwtools import common, num
 import cPickle
+import warnings
+warnings.simplefilter('always')
 
 # Most of this class can probably be replaced by decorators.lazyprop .
 class FlexibleGetters(object):
@@ -152,7 +154,8 @@ class FlexibleGetters(object):
             setattr(self, attr, None)
 
     def dump(self, dump_filename, mkdir=True):
-        """Write object to binary file using cPickle."""
+        """Write object to binary file using cPickle. Read back
+         with :func:`~pwtools.io.read_pickle`."""
         # Dumping with protocol "2" is supposed to be the fastest binary format
         # writing method. Probably, this is platform-specific.
         if mkdir:
@@ -171,13 +174,15 @@ class FlexibleGetters(object):
         >>> x.parse()
         >>> x.dump('foo.pk')
         >>> # load: method 1 - recommended
-        >>> xx = common.cpickle_load('foo.pk')
+        >>> xx = io.read_pickle('foo.pk')
         >>> # or 
         >>> xx = cPickle.load(open('foo.pk'))
         >>> # load: method 2, not used / tested much
         >>> xx = FileParser()
         >>> xx.load('foo.pk')
         """
+        warnings.warn("FlexibleGetters.load() is deprcated, use io.read_pickle() instead",
+                       DeprecationWarning)
         # this does not work:
         #   self = cPickle.load(...)
         self.__dict__.update(cPickle.load(open(dump_filename, 'rb')).__dict__)
