@@ -28,7 +28,6 @@ __all__ = [\
     'thermo',
     'timer',
     'verbose',
-    'version',
     'visualize',
     ]
 
