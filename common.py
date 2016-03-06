@@ -340,8 +340,10 @@ def str_arr(arr, fmt='%.16e', delim=' '*4, zero_eps=None, eps=EPS):
 
 def makedirs(path):
     """Same as os.makedirs() but silently skips existing dirs."""
-    if not os.path.exists(path):
-        os.makedirs(path)
+    pp = './' if path.strip() == '' else path
+    if not os.path.exists(pp):
+        os.makedirs(pp)
+
 
 def get_filename(fh):
     """Try to get the `name` attribute from file-like objects. If it fails
