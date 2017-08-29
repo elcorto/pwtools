@@ -39,8 +39,8 @@ import warnings, copy, tempfile, os
 import numpy as np
 from pwtools import num, common
 from pwtools.test.testenv import testdir
-warnings.simplefilter('always')
 from nose.plugins.skip import SkipTest
+warnings.simplefilter('always')
 
 #-----------------------------------------------------------------------------
 # define types, could probably also use the types module
@@ -351,5 +351,27 @@ def unpack_compressed(src, prefix='tmp', testdir=testdir, ext=None):
     assert os.path.exists(filename), "unpack failed: '%s' not found" %filename
     return filename
 
+
 def skip(msg):
+    """Use inside a test function or class. This raises
+    nose.plugins.skip.SkipTest and makes the test be skipped. Doesn't work as a
+    decorator. If you need a decorator to temporarily disable a test function,
+    then use unitest.skip(). The latter works only on test *functions* ... or
+    so they say. For classes, only raising SkipTest will make nose really skip
+    it.
+
+    Examples
+    --------
+    
+    from pwtools.test.tools import skip
+    import unitest
+    
+    def test_foo():
+        if some_error_condition:
+            skip("skipping this test b/c of foo")
+    
+    @unitest.skip("disable test b/c we're all out of zonk!")
+    def test_bar():
+        assert baz == zonk
+    """
     raise SkipTest(msg)
