@@ -447,8 +447,7 @@ def acorr(v, method=7, norm=True):
         for t in xrange(nstep):
             c[t] = (v[:(nstep-t)] * v[t:]).sum()
     elif method == 4: 
-        # old_behavior : for numpy 1.4.x
-        c = np.correlate(v, v, mode='full', old_behavior=False)[nstep-1:]
+        c = np.correlate(v, v, mode='full')[nstep-1:]
     elif method == 5: 
         return _flib.acorr(v, c, 1, _norm)
     elif method == 6: 
