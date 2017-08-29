@@ -26,7 +26,7 @@ def test_write_mol():
     coords2d_frac = np.array([[0.5, 0.5, 0.5],
                               [1,1,1]])
     # fractional, 2 time steps: (2,2,3) = (nstep, natoms, 3)
-    coords3d_frac = np.array([coords2d_frac, coords2d_frac[...,None]*0.8])
+    coords3d_frac = np.array([coords2d_frac, coords2d_frac*0.8])
     # cartesian = coords3d_frac + cell2d (fixed cell). For varialbe cell cases
     # below, cell3d is used!
     coords3d_cart = crys.coord_trans(coords3d_frac, 
