@@ -14,11 +14,13 @@ def test_rand_struct():
     st = rs.get_random_struct(fail=True)
     st = rs.get_random_struct(fail=False)
     assert st.is_struct
-    assert not None in [st.coords, 
-                        st.coords_frac, 
-                        st.cell, 
-                        st.symbols,
-                        st.cryst_const]
+
+    for arr in [st.coords, 
+                st.coords_frac, 
+                st.cell, 
+                st.symbols,
+                st.cryst_const]:
+        assert arr is not None
     assert st.natoms == len(st.symbols) == 10
 
     # catch exception

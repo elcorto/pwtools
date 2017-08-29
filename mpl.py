@@ -374,18 +374,18 @@ class Data2D(object):
         return x[np.sort(np.unique(x, return_index=True)[1])]
 
     def _update(self):
-        if [self.x,self.y] != [None]*2:
+        if self.x is not None and self.y is not None:
             self.X,self.Y = num.meshgridt(self.x, self.y)
             self.xx = self.X.flatten()
             self.yy = self.Y.flatten()
             self.XY = np.array([self.xx, self.yy]).T
-        elif [self.X,self.Y] != [None]*2: 
+        elif self.X is not None and self.Y is not None:
             self.x = self.X[:,0]
             self.xx = self.X.flatten()
             self.y = self.Y[0,:]
             self.yy = self.Y.flatten()
             self.XY = np.array([self.xx, self.yy]).T
-        elif [self.xx,self.yy] != [None]*2: 
+        elif self.xx is not None and self.yy is not None:
             self.x = self._unique(self.xx)
             self.y = self._unique(self.yy)
             self.X,self.Y = num.meshgridt(self.x, self.y)

@@ -3284,7 +3284,7 @@ def align_cart(obj, x=None, y=None, vecs=None, indices=None, cart=None,
     >>> trnew = concatenate([align_cart(st, cart=...) for st in tr])
     """
     if cart is None:
-        if [x,y] == [None,None]:
+        if x is None and y is None:
             if indices is None:
                 v0 = vecs[0,:]    
                 v1 = vecs[1,:]

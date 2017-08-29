@@ -71,7 +71,7 @@ class SpecialPointsPath(object):
         symbols : sequence of strings (nks,), optional    
             special point symbol each point in `ks`
         """
-        assert [ks, ks_frac] != [None]*2, ("use either ks or ks_frac")
+        assert (ks is not None) and (ks_frac is not None), ("use either ks or ks_frac")
         self.ks = ks
         self.ks_frac = ks_frac
         self.symbols = symbols

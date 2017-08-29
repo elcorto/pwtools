@@ -777,7 +777,7 @@ class Interpol2D(object):
         array([  5.,  30.])
         """
         if dd is None:
-            if [xx, yy] == [None]*2:
+            if xx is None and yy is None:
                 self.xx = points[:,0]
                 self.yy = points[:,1]
                 self.points = points
