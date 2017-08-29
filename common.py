@@ -538,22 +538,23 @@ def backup(src, prefix='.'):
         name of file/dir to be copied
     prefix : str, optional
     """
-    if os.path.isfile(src):
-        copy = shutil.copy 
-    elif os.path.isdir(src):
-        copy = shutil.copytree
-    else:
-        raise StandardError("source '%s' is not file or dir" %src)
-    idx = 0
-    dst = src + '%s%s' %(prefix,idx)
-    while os.path.exists(dst):
-        idx += 1
+    if os.path.exists(src):
+        if os.path.isfile(src):
+            copy = shutil.copy 
+        elif os.path.isdir(src):
+            copy = shutil.copytree
+        else:
+            raise StandardError("source '%s' is not file or dir" %src)
+        idx = 0
         dst = src + '%s%s' %(prefix,idx)
-    # sanity check
-    if os.path.exists(dst):
-        raise StandardError("destination '%s' exists" %dst)
-    else:        
-        copy(src, dst)
+        while os.path.exists(dst):
+            idx += 1
+            dst = src + '%s%s' %(prefix,idx)
+        # sanity check
+        if os.path.exists(dst):
+            raise StandardError("destination '%s' exists" %dst)
+        else:        
+            copy(src, dst)
 
 #-----------------------------------------------------------------------------
 # Dictionary tricks

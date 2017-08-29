@@ -1,5 +1,4 @@
-import os
-import tempfile
+import os, tempfile, uuid
 from pwtools.common import backup, file_write, file_read
 from testenv import testdir
 pj = os.path.join
@@ -58,3 +57,7 @@ def test_backup():
     backup(name, prefix="-bak")
     assert os.path.exists(name + '-bak0')
 
+    # nonexisting src, should silently pass
+    filename = str(uuid.uuid4())
+    assert not os.path.exists(filename)
+    backup(filename)
