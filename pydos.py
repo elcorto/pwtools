@@ -124,8 +124,8 @@ def fvacf(vel, m=None, method=2, nthreads=None):
 
     See Also
     --------
-    _flib
-    vacf_pdos()
+    :mod:`pwtools._flib`
+    :func:`vacf_pdos`
     """
     # f2py copies and C-order vs. Fortran-order arrays
     # ------------------------------------------------
@@ -227,11 +227,6 @@ def pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
     >>> # frequency in [1/cm]
     >>> plot(freq/rcm_to_Hz, dos)
     
-    See Also
-    --------
-    :func:`direct_pdos`
-    :func:`vacf_pdos`
-
     Notes
     -----
     padding (only method='direct'): With `npad` we pad the velocities `vel`
@@ -253,8 +248,11 @@ def pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
 
     See Also
     --------
-    pwtools.signal.fftsample
-    pwtools.signal.acorr
+    :func:`pwtools.signal.fftsample`
+    :func:`pwtools.signal.acorr`
+    :func:`direct_pdos`
+    :func:`vacf_pdos`
+
     """
     mass = m
     # assume vel.shape = (nstep,natoms,3)

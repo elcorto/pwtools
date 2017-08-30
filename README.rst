@@ -36,6 +36,9 @@ See the `install notes`_. Basically, the dependencies are::
 	pycifrw
 	pyspglib
 
+.. FIXME as of v ersion 1.9.x, pyspglib is renamed to spglib, update dependency
+   list once we tested this
+
 There is no installation script (i.e. ``setup.py``). Just copy the whole
 package somewhere and run ``make`` to compile extensions
 
