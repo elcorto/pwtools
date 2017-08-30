@@ -147,22 +147,23 @@ class RBFInt(object):
 
         Examples
         --------
+        >>> from pwtools import mpl, rbf
         >>> # 1D example w/ derivatives. For 1d, we need to use X[:,None] b/c the
         >>> # input array containing training (X) and interpolation (XI) points must
         >>> # be 2d.
+        >>> fig,ax = mpl.fig_ax()
         >>> X=linspace(0,10,20)     # shape (M,), M=20 points
         >>> Y=sin(X)                # shape (M,)
         >>> rbfi=rbf.RBFInt(X[:,None],Y)    
         >>> rbfi.train()
         >>> XI=linspace(0,10,100)   # shape (M,), M=100 points
-        >>> plot(X,Y,'o', label='data')
-        >>> plot(XI, sin(XI), label='sin(x)')
-        >>> plot(XI, rbfi(XI[:,None]), label='rbf')
-        >>> plot(XI, cos(XI), label='cos(x)')
-        >>> plot(XI, rbfi(XI[:,None],der=1)[:,0], label='d(rbf)/dx')
-        >>> legend()
+        >>> ax.plot(X,Y,'o', label='data')
+        >>> ax.plot(XI, sin(XI), label='sin(x)')
+        >>> ax.plot(XI, rbfi(XI[:,None]), label='rbf')
+        >>> ax.plot(XI, cos(XI), label='cos(x)')
+        >>> ax.plot(XI, rbfi(XI[:,None],der=1)[:,0], label='d(rbf)/dx')
+        >>> ax.legend()
         >>> # 2D example
-        >>> from pwtools import mpl, rbf
         >>> x1=linspace(-3,3,10); x2=x1
         >>> X1,X2=np.meshgrid(x1,x2); X1,X2 = X1.T,X2.T
         >>> X = np.array([X1.flatten(), X2.flatten()]).T
@@ -173,13 +174,15 @@ class RBFInt(object):
         >>> rbfi=rbf.RBFInt(X,Y)
         >>> rbfi.train()
         >>> fig1,ax1 = mpl.fig_ax3d()
-        >>> ax1.scatter(X[:,0], X[:,1], Y)
-        >>> ax1.plot_wireframe(X1I, X2I, rbfi(XI).reshape(50,50))
+        >>> ax1.scatter(X[:,0], X[:,1], Y, label='data')
+        >>> ax1.plot_wireframe(X1I, X2I, rbfi(XI).reshape(50,50), label='rbf')
+        >>> ax1.legend()
         >>> fig2,ax2 = mpl.fig_ax3d()
+        >>> ax2.plot_wireframe(X1I, X2I, rbfi(XI).reshape(50,50), label='rbf')
         >>> ax2.plot_wireframe(X1I, X2I, rbfi(XI,der=1)[:,0].reshape(50,50),
-        ...                    color='b', label='d/dx')
+        ...                    color='b', label='rbf d/dx')
         >>> ax2.plot_wireframe(X1I, X2I, rbfi(XI,der=1)[:,1].reshape(50,50),
-        ...                    color='r', label='d/dy')
+        ...                    color='r', label='rbf d/dy')
         >>> ax2.legend()
         """
         self.X = X

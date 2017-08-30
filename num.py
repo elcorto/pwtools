@@ -162,7 +162,7 @@ def findmin(x, y):
     interval [x[0], x[-1]] must contain the minimum.
     
     This is intended for quick interactive work. For working with
-    pre-calculated splines, see Spline.
+    pre-calculated splines, see :class:`Spline`.
 
     Parameters
     ----------
@@ -184,7 +184,7 @@ def findroot(x, y):
     the root.
 
     This is intended for quick interactive work. For working with
-    pre-calculated splines, see Spline.
+    pre-calculated splines, see :class:`Spline`.
     
     Parameters
     ----------
@@ -303,9 +303,10 @@ class Spline(Fit1D):
     Examples
     --------
     >>> from scipy.interpolate import splev
+    >>> from pwtools import num
     >>> x = linspace(0,10,100)
     >>> y = sin(x)
-    >>> sp = Spline(x,y)
+    >>> sp = num.Spline(x,y)
     >>> plot(x,y)
     >>> plot(x, sp(x))
     >>> plot(x, splev(x, sp.tck)) # the same
@@ -314,8 +315,9 @@ class Spline(Fit1D):
     >>> print("at %f degrees, sin(x) = 0.5" %(xx/pi*180))
     >>> 
     >>> y = x**2 - 5
-    >>> sp = Spline(x,y)
+    >>> sp = num.Spline(x,y)
     >>> print("the root is at x=%f" %sp.invsplev(0.0))
+    >>> legend()
     """
     def __init__(self, x, y, eps=1e-10, checkeps=True, **splrep_kwargs):
         """
@@ -762,19 +764,24 @@ class Interpol2D(object):
         
         Examples
         --------
+        >>> from pwtools import num, mpl
         >>> x=linspace(-5,5,20) 
         >>> y=x 
         >>> X,Y=np.meshgrid(x,y); X=X.T; Y=Y.T 
         >>> Z=(X+3)**2+(Y+4)**2 + 5 
         >>> dd=mpl.Data2D(X=X,Y=Y,Z=Z)
-        >>> inter=num.Interpol2D(dd=dd, what='rbf_multi'); inter([[-3,-4],[0,0]])
-        array([  5.0000001 ,  29.99999975])
-        >>> inter=num.Interpol2D(dd=dd, what='rbf_gauss'); inter([[-3,-4],[0,0]])
-        array([  5.00000549,  29.99999717])
-        >>> inter=num.Interpol2D(dd=dd, what='ct'); inter([[-3,-4],[0,0]])
-        array([  4.99762256,  30.010856  ])
-        >>> inter=num.Interpol2D(dd=dd, what='bispl'); inter([[-3,-4],[0,0]])
-        array([  5.,  30.])
+        >>> fmt="what: {:15} target: [5,30] result: {}"
+        >>> for what in ['rbf_multi', 'rbf_inv_multi', 'rbf_gauss', 'ct', 'bispl', 
+		         'linear', 'nearest']:
+        ...     inter=num.Interpol2D(dd=dd, what=what)   
+        ...     print(fmt.format(what, inter([[-3,-4],[0,0]])))
+	what: rbf_multi       target: [5,30] result: [  4.99999972  29.99999988]
+	what: rbf_inv_multi   target: [5,30] result: [  4.99999661  29.9999993 ]
+	what: rbf_gauss       target: [5,30] result: [  4.99999783  29.99999569]
+	what: ct              target: [5,30] result: [  4.99762256  30.010856  ]
+	what: bispl           target: [5,30] result: [  5.  30.]
+	what: linear          target: [5,30] result: [  5.06925208  30.13850416]
+	what: nearest         target: [5,30] result: [  5.01385042  33.82271468]
         """
         if dd is None:
             if xx is None and yy is None:
@@ -852,7 +859,7 @@ class Interpol2D(object):
         """
         Parameters
         ----------
-        points: 2d (M,2) or 1d (N,)
+        points : 2d (M,2) or 1d (N,)
             M points in 2-dim space where to evalutae the interpolator
             (only one in 1d case)
         **callkwds : keywords passed to the interpolator's __call__ method            
