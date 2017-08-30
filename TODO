@@ -26,6 +26,17 @@ parse.py
   slowdown comes from stuff which we do in pure Python with the parsed arrays
   (esp. in Trajectory, I guess, which calls crys.*3d() a lot).
 
+* auto_calc kwd in StructureFileParser.get_cont(): make kwd of __init__ instead
+  and also pass thru from io.read_*() such that the API is more simple and
+  users can do:
+    
+    tr = io.read_foo(file, auto_calc=False)
+
+  instead of
+    
+    pp = parse.SomeParser(file)
+    tr = pp.get_traj(auto_calc=False)
+
 crys.py
 -------
 * All *3d() funcs use simple loops currently. This is slow. Find vectorized
@@ -97,4 +108,10 @@ mpl.py
 * Farm this out to the mplextra package. We already placed the set_plot_*
   functions there.
 
+tests
+-----
+* move test/rand_container.py to test/utils/ or to tools.py
+* move/merge test/tools.py with utils/, maybe place in utils/__init__.py ??
+  problem: utils/ is more a collection of scripts and data, not so much a
+  sub-package of pwtools.test
 # vim:comments=fb\:*
