@@ -148,7 +148,7 @@ def test_gibbs():
         tools.assert_dict_with_all_types_almost_equal(gref, 
                                                       g, 
                                                       keys=gref.keys(),
-                                                      atol=1e-14, rtol=1e-14)
+                                                      atol=1e-14, rtol=1e-8)
     
     # test enthalpy stuff for 1d case
     # E(V) 
