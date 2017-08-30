@@ -26,8 +26,7 @@ def test_save_object():
     print ">>> ... done"
 
     print ">>> loading ..."
-    c2 = PwMDOutputFile()
-    c2.load(dumpfile)
+    c2 = io.read_pickle(dumpfile)
     print ">>> ... done"
 
     print ">>> checking equalness of attrs in loaded object ..."
