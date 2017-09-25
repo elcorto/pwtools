@@ -2,7 +2,7 @@
 #
 # See doc/ for more information on building the extension modules.
 	    
-F2PY=f2py
+F2PY=f2py3
 F2PY_FLAGS=--opt='-O3' \
 			--f90exec=$(F90) \
 			--f77exec=$(F90) \
@@ -63,7 +63,7 @@ _%.so: %.f90
 	mkdir -pv build; cp -v $*.f90 build/; cd build; \
 	CC=gcc CXX=g++ $(F2PY) -h $*.pyf $? -m _$* --overwrite-signature; \
 	CC=gcc CXX=g++ $(F2PY) -c $*.pyf $? $(F2PY_FLAGS); \
-	pwd; cp -v _$*.so ../ 
+	pwd; cp -v _$**.so ../_$*.so 
 
 clean:
 	rm -rvf *.so build
