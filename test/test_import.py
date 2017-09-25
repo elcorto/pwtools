@@ -13,4 +13,4 @@ def test_absolute_signal():
     from pwtools.common import signal
     assert not hasattr(signal, 'fftsample')
     from pwtools import common
-    print common.backtick('ls')
+    print(common.backtick('ls'))

@@ -10,9 +10,9 @@ def run(filename, none_attrs=[]):
     # basename = 'cpmd.bo.out'
     # archive  = 'files/cpmd/md_bo.tgz'
     bar = '='*78
-    print bar
-    print "@@testing: %s" %filename
-    print bar
+    print(bar)
+    print("@@testing: %s" %filename)
+    print(bar)
     basename = os.path.basename(filename)
     archive = os.path.dirname(filename) + '.tgz'
     workdir = unpack_compressed(archive)
@@ -30,7 +30,7 @@ def run(filename, none_attrs=[]):
         attr = getattr(traj, attr_name)
         if attr_name not in none_attrs:
             if hasattr(attr, 'ndim'):
-                print "%s: ndim: %s, shape: %s" %(attr_name, attr.ndim, attr.shape)
+                print("%s: ndim: %s, shape: %s" %(attr_name, attr.ndim, attr.shape))
             assert attr is not None, "FAILED - None: %s" %attr_name
             if attr_name in attrs3d:
                 assert attr.ndim == 3, "FAILED - not 3d: %s" %attr_name

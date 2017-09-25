@@ -2,18 +2,14 @@
 #
 # File operations, common system utils and other handy tools.
 
-# Import std lib's signal module, not the one from pwtools. AFAIK, this is
-# needed for Python 2.4 ... 2.6. See PEP 328.
-from __future__ import absolute_import
 import signal
-
 import types
 import os
 import subprocess
 import shutil
 import re
-import ConfigParser
-import cPickle
+import configparser
+import pickle
 import copy
 import numpy as np
 import warnings
@@ -48,16 +44,16 @@ def assert_cond(cond, string=None):
 # Config file stuff
 #-----------------------------------------------------------------------------
 
-class PydosConfigParser(ConfigParser.SafeConfigParser):
+class PydosConfigParser(configparser.SafeConfigParser):
     """All values passed as `arg` to self.set(self, section, option, arg) are
     converted to a string with frepr(). get*() methods are the usual ones
     provided by the base class ConfigParser.SafeConfigParser: get(), getint(),
     getfloat(), getboolean(). Option keys are case-sensitive.
     """
     # make keys case-sensitive
-    ConfigParser.SafeConfigParser.optionxform = str
+    configparser.SafeConfigParser.optionxform = str
     def set(self, section, option, arg):
-        ConfigParser.SafeConfigParser.set(self, section, option, frepr(arg))
+        configparser.SafeConfigParser.set(self, section, option, frepr(arg))
 
 
 def add_to_config(config, info):
@@ -72,9 +68,9 @@ def add_to_config(config, info):
     -------
     modified config
     """
-    for sec, dct in info.iteritems():
+    for sec, dct in info.items():
         config.add_section(sec)
-        for key, val in dct.iteritems():
+        for key, val in dct.items():
             config.set(sec, key, val)
     return config
 
@@ -109,7 +105,7 @@ def toslice(val):
     >>> toslice('1:5')
     slice(1, 5, None)
     """
-    assert_cond(isinstance(val, types.StringType), "input must be string")
+    assert_cond(isinstance(val, bytes), "input must be string")
     # XXX This is fixed in numpy 1.5.1:
     #   https://github.com/numpy/numpy/commit/9089036b
     # np.s_ doesn't work for slices starting at end, like
@@ -122,7 +118,7 @@ def toslice(val):
     # slice(9223372036854775805, None, None)
     if val.strip().startswith('-'):
         if np.s_[-2:] != slice(-2, None, None): 
-            raise StandardError("Some minus slices (e.g -2:) not supported "
+            raise Exception("Some minus slices (e.g -2:) not supported "
                 "by your numpy (probably old version). Use "
                 "[<start>[:<step>]:<end>] as workaround.")
     # This eval() trick works but seems hackish. Better ideas, anyone?
@@ -146,20 +142,20 @@ def tobool(val):
     -----
     All string vals are case-insensitive.
     """
-    if isinstance(val, types.BooleanType):
+    if isinstance(val, bool):
         if val == True:
             return True
         else:
             return False
     got_str = False
     got_int = False
-    if isinstance(val, types.StringType):
+    if isinstance(val, bytes):
         got_str = True
         val = val.lower()
-    elif isinstance(val, types.IntType):
+    elif isinstance(val, int):
         got_int = True
     else:
-        raise StandardError, "input value must be string or integer"
+        raise Exception("input value must be string or integer")
     if (got_str and (val in ['.true.', 'true', 'on', 'yes', '1'])) \
         or (got_int and (val != 0)):
         ret = True
@@ -167,7 +163,7 @@ def tobool(val):
         or (got_int and (val == 0)):
         ret = False
     else:
-        raise StandardError("illegal input value '%s'" %frepr(val))
+        raise Exception("illegal input value '%s'" %frepr(val))
     return ret
 
 
@@ -188,7 +184,7 @@ def ffloat(st):
     -------
     float
     """
-    assert_cond(isinstance(st, types.StringType), "`st` must be string")
+    assert_cond(isinstance(st, bytes), "`st` must be string")
     st = st.lower()
     if not 'd' in st:
         return float(st)
@@ -235,9 +231,9 @@ def frepr(var, ffmt="%.16e"):
     >>> frepr('abc')
     'abc' 
     """
-    if isinstance(var, types.FloatType):
+    if isinstance(var, float):
         return ffmt %var
-    elif isinstance(var, types.StringType):
+    elif isinstance(var, bytes):
         return var
     else:
         return repr(var)
@@ -250,10 +246,11 @@ def seq2str(seq, func=str, sep=' '):
 
 def str2seq(st, func=int, sep=None):
     """ "1 2 3" -> [func('1'), func('2'), func('3')]"""
+    # XXX check usage of this, check if we need list() at all
     if sep is None:
-        return map(func, st.split())
+        return list(map(func, st.split()))
     else:
-        return map(func, st.split(sep))
+        return list(map(func, st.split(sep)))
 
 
 def str2tup(*args, **kwargs):
@@ -441,7 +438,7 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
     >>> txt % dct
     '1  3.1415926535897931e+00'
     """
-    if isinstance(txt, types.DictType):
+    if isinstance(txt, dict):
         raise ValueError("1st arg is a dict. You probably use the old syntax. "
                          "The new syntax in func(txt, dct) instead of "
                          "func(dct, txt)")
@@ -456,13 +453,13 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
     elif mode == 'txt':
         is_txt_mode = True
     else:
-        raise StandardError("mode must be 'txt' or 'dct'")
+        raise Exception("mode must be 'txt' or 'dct'")
     
     # This is a copy. Each txt.replace() returns an additional copy. We need
     # that if we loop over dct.iteritems() and sucessively replace averything.
     if is_txt_mode: 
         new_txt = txt
-    for key, val in dct.iteritems():
+    for key, val in dct.items():
         if is_dct_mode:
             # The key is '%(foo)s', but searching for '%(foo)' must suffice,
             # since we don't know the format string, in this case 's', in
@@ -475,8 +472,8 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
                 if conv:
                     val = frepr(val, ffmt="%.16e")
                 else:                    
-                    if not isinstance(val, types.StringType):
-                        raise StandardError("dict vals must be strings: "
+                    if not isinstance(val, bytes):
+                        raise Exception("dict vals must be strings: "
                                         "key: '%s', val: " %key + str(type(val)))
             if warn_mult_found:                    
                 cnt = txt.count(tst_key)
@@ -489,7 +486,7 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
                 print("template_replace: %s -> %s" %(key, val))
         else:
             if warn_not_found:
-                print "template_replace: key not found: %s" %tst_key
+                print("template_replace: key not found: %s" %tst_key)
     if is_dct_mode:
         new_txt = txt % dct
     return new_txt
@@ -544,7 +541,7 @@ def backup(src, prefix='.'):
         elif os.path.isdir(src):
             copy = shutil.copytree
         else:
-            raise StandardError("source '%s' is not file or dir" %src)
+            raise Exception("source '%s' is not file or dir" %src)
         idx = 0
         dst = src + '%s%s' %(prefix,idx)
         while os.path.exists(dst):
@@ -552,7 +549,7 @@ def backup(src, prefix='.'):
             dst = src + '%s%s' %(prefix,idx)
         # sanity check
         if os.path.exists(dst):
-            raise StandardError("destination '%s' exists" %dst)
+            raise Exception("destination '%s' exists" %dst)
         else:        
             copy(src, dst)
 
@@ -563,13 +560,13 @@ def backup(src, prefix='.'):
 def dict2str(dct):
     """Nicer than simply __repr__."""
     st = ""    
-    for key, val in dct.iteritems():
+    for key, val in dct.items():
         st += "%s: %s\n" %(key, repr(val))
     return st        
 
 # backward compat only
 def print_dct(dct):
-    print dict2str(dct)
+    print(dict2str(dct))
 
 def dict2class(dct, name='Dummy'):
     """
@@ -611,7 +608,7 @@ def is_seq(seq):
     ----------
     seq : (nested) sequence of arbitrary objects
     """ 
-    if isinstance(seq, types.StringTypes) or \
+    if isinstance(seq, str) or \
        isinstance(seq, types.FileType):
        return False
     else:        
@@ -724,7 +721,7 @@ def backtick(call):
         preexec_fn=permit_sigpipe)
     out,err = pp.communicate()
     if err.strip() != '':
-        raise StandardError("Error calling command: '%s'\nError message "
+        raise Exception("Error calling command: '%s'\nError message "
             "follows:\n%s" %(call, err))
     return out            
 
@@ -737,7 +734,7 @@ def cpickle_load(filename):
     :func:`~pwtools.io.read_pickle` instead."""
     warnings.warn("cpickle_load() is deprcated, use io.read_pickle() instead",
                    DeprecationWarning)
-    return cPickle.load(open(filename, 'rb'))
+    return pickle.load(open(filename, 'rb'))
 
 #-----------------------------------------------------------------------------
 # aliases

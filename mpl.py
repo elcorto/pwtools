@@ -140,10 +140,10 @@ class Plot(object):
             elif projection == '3d':        
                 func = fig_ax3d
             else:   
-                raise StandardError("unknown projection: %s" %projection)
+                raise Exception("unknown projection: %s" %projection)
             self.fig, self.ax = func(**kwds)
         elif [fig, ax].count(None) == 1:
-            raise StandardError("one of fig,ax is None")
+            raise Exception("one of fig,ax is None")
         else:            
             self.fig = fig
             self.ax = ax
@@ -397,7 +397,7 @@ class Data2D(object):
             self.y = self._unique(self.yy)
             self.X,self.Y = num.meshgridt(self.x, self.y)
         else:
-            raise StandardError("cannot determine x and y from input")
+            raise Exception("cannot determine x and y from input")
         # by now, we have all forms of x and y: x,y; xx,yy; X,Y; XY            
         self.nx = len(self.x)
         self.ny = len(self.y)
@@ -411,7 +411,7 @@ class Data2D(object):
     def update(self, **kwds):
         """Update object with new or more input data. Input args are the same
         as in the constructor, i.e. `x`, `y`, `xx`, ..."""
-        for key,val in kwds.iteritems():
+        for key,val in kwds.items():
             assert key in self.attr_lst, ("'%s' not allowed" %key)
             setattr(self, key, val)
         self._update()
@@ -588,7 +588,7 @@ def new_axis(fig, hostax, off=50, loc='bottom', ticks=None, wsadd=0.1,
     newax = new_axisline(loc=loc, offset=offset, axes=parax)
     # name axis lines: bottom2, bottom3, ...
     n=2
-    while parax.axis.has_key(loc + str(n)):
+    while loc + str(n) in parax.axis:
         n += 1
     parax.axis[loc + str(n)] = newax
     
@@ -647,7 +647,7 @@ if __name__ == '__main__':
     # Now use one of those iterators
     t = np.linspace(0, 2*np.pi, 100)
     for f in np.linspace(1,2, 14):
-        plt.plot(t, np.sin(2*np.pi*f*t)+10*f, ccm.next()+'-')        
+        plt.plot(t, np.sin(2*np.pi*f*t)+10*f, next(ccm)+'-')        
     
     #-------------------------------------------------------------------------
     # new axis lines, works with mpl 0.99 
@@ -675,7 +675,7 @@ if __name__ == '__main__':
                    top=(60, .15), 
                    bottom=(50, .15))
 
-    for n, val in enumerate(off_dct.iteritems()):
+    for n, val in enumerate(off_dct.items()):
         loc, off, wsadd = tuple(flatten(val))
         fig3, hostax, parax = new_axis(fig3, hostax=hostax, 
                                        loc=loc, off=off, label=loc, 

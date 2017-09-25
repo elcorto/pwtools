@@ -130,7 +130,7 @@ class HarmonicThermo(object):
         assert len(self.f) == len(self.dos), ("freq and dos don't have "
                                              "equal length")
         if self.verbose:
-            print "HarmonicThermo: number of dos points: %i" %len(self.f)
+            print("HarmonicThermo: number of dos points: %i" %len(self.f))
         
         if self.skipfreq:
             mask = self.f > self.eps
@@ -418,7 +418,7 @@ class Gibbs(object):
         self.kwds = dict(verbose=False, fixnan=False, skipfreq=True,
                          dosarea=None)
         self.kwds.update(kwds)                         
-        for k,v in self.kwds.iteritems():
+        for k,v in self.kwds.items():
             setattr(self, k, v)
         self.T = T
         self.P = P
@@ -443,7 +443,7 @@ class Gibbs(object):
                 self.case = '2d'
             self.axes_prefix = '/ax0-ax1'
         else:
-            raise StandardError("case 3d not implemented")
+            raise Exception("case 3d not implemented")
         self.ret = {}
         self.ret['/T/T'] = self.T
         self.ret['/P/P'] = self.P
@@ -469,7 +469,7 @@ class Gibbs(object):
             function with signature ``func(x,y)`` which returns a
             :class:`~pwtools.num.Spline`-like object, e.g. ``Spline(x,y,k=5)``
         """            
-        assert what in self.fitfunc.keys(), ("unknown key: '%s'" %what)
+        assert what in self.fitfunc, ("unknown key: '%s'" %what)
         self.fitfunc[what] = func
 
     @staticmethod
@@ -535,7 +535,7 @@ class Gibbs(object):
             if self.volfunc_ax is not None:
                 ret['/#opt%s/V' %prfx][tpsl] = self.volfunc_ax(xopt)
         else:
-            raise StandardError("unknown case: %s" %self.case)
+            raise Exception("unknown case: %s" %self.case)
     
     def _set_not_calc_none(self, ret, prfx='/T/P'):
         """We know that the stuff below was not calculated, so set them to
@@ -596,7 +596,7 @@ class Gibbs(object):
                     for name in names)
         for idx in range(self.npoints):
             if self.verbose:
-                print "calc_F: axes_flat idx = %i" %idx
+                print("calc_F: axes_flat idx = %i" %idx)
             ha = HarmonicThermo(freq=self.phdos[idx][:,0], 
                                 dos=self.phdos[idx][:,1],
                                 temp=self.T, 
@@ -636,7 +636,7 @@ class Gibbs(object):
                        for name in names))
             for pidx in range(self.nP):
                 if self.verbose:
-                    print "calc_H: pidx = %i" %(pidx)
+                    print("calc_H: pidx = %i" %(pidx))
                 gg = ret['/P' + self.axes_prefix + '/H'][pidx,:]
                 self._fit_opt_store(ret, gg, prfx='/P',
                                     tpidx=[pidx], ghsym='H')
@@ -686,7 +686,7 @@ class Gibbs(object):
             for tidx in range(self.nT):
                 for pidx in range(self.nP):
                     if self.verbose:
-                        print "calc_G: tidx = %i, pidx = %i" %(tidx,pidx)
+                        print("calc_G: tidx = %i, pidx = %i" %(tidx,pidx))
                     gg = ret['/T/P' + self.axes_prefix + '/G'][tidx,pidx,:]
                     self._fit_opt_store(ret, gg, prfx='/T/P',
                                         tpidx=[tidx,pidx], ghsym='G')
@@ -731,7 +731,7 @@ def debye_func(x, nstep=100, zero=1e-8):
     if x.ndim == 1:
         x = x[:,None]
     else:
-        raise StandardError("x is not 1d array")
+        raise Exception("x is not 1d array")
     tt = np.linspace(zero, 1.0, nstep)
     return 3.0 * trapz(tt**3.0 / (np.exp(tt*x) - 1.0), tt, axis=1)
 

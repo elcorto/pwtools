@@ -2,7 +2,7 @@ import os
 import numpy as np
 from pwtools.parse import CifFile
 from pwtools import io
-from testenv import testdir
+from .testenv import testdir
 
 def test_cif():
     for filename in ['files/cif_struct.cif', 'files/cif_cart_struct.cif']:

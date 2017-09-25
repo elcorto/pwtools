@@ -13,9 +13,9 @@ def assrt_aae(*args, **kwargs):
 
 def msg(txt):
     bar = '-'*79
-    print bar
-    print txt
-    print bar
+    print(bar)
+    print(txt)
+    print(bar)
 
 def pack(fns):
     for fn in fns:
@@ -51,7 +51,7 @@ def test_qha():
            'cv':   Store(arr1=ha.cv(),   arr2=fqha[:,3]),
            'svib': Store(arr1=ha.svib(), arr2=fqha[:,4]),
            }
-    for key, store in dct.iteritems():
+    for key, store in dct.items():
         assrt_aae(store.arr1, store.arr2, decimal=2)
     
     msg('Consistency')

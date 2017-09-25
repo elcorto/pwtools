@@ -114,4 +114,14 @@ tests
 * move/merge test/tools.py with utils/, maybe place in utils/__init__.py ??
   problem: utils/ is more a collection of scripts and data, not so much a
   sub-package of pwtools.test
+
+2to3
+----
+* check all replacements
+    range() -> list(range())
+    .*.keys() -> list(.*.keys())
+    map() -> list(map())
+    zip() -> list(zip())
+    print("foo %s" %x) -> print(("foo %s" %x))
+
 # vim:comments=fb\:*

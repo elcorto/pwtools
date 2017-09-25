@@ -169,7 +169,7 @@ def plot_dis(path_norm, freqs, special_points_path=None,
             elif show_coords == 'frac':
                 ks_plot = ks_frac
             else:
-                raise StandardError("show_coords = 'cart', 'frac' or "
+                raise Exception("show_coords = 'cart', 'frac' or "
                                     "None needed")
             labels = ['%s\n[%s]' %(sym, common.seq2str(kk, func=fmtfunc,sep=','))\
                       for sym,kk in zip(symbols, ks_plot)]

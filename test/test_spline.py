@@ -59,7 +59,7 @@ def test_api():
     y = (x-5)**2.0 + 1.0
     spl = Spline(x,y,k=2,s=0.1,eps=0.11)
     for kw in ['k', 's']:
-        assert kw in spl.splrep_kwargs.keys()
+        assert kw in list(spl.splrep_kwargs.keys())
     assert spl.splrep_kwargs['k'] == 2       
     assert spl.splrep_kwargs['s'] == 0.1
 

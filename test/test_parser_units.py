@@ -15,12 +15,12 @@ parsers = [parse.CifFile,
          ]
 
 def test_parser_units():
-    units = UnitsHandler().units_map.keys()
+    units = list(UnitsHandler().units_map.keys())
     for pa in parsers:
         pp = pa()
-        print "testing:", str(pp)
+        print("testing:", str(pp))
         for key in units:
-            if pp.default_units.has_key(key):
+            if key in pp.default_units:
                 # Check if default units go correctly into self.units.
                 assert pp.default_units[key] == pp.units[key], ("default unit "
                     "not passed on correct: key={0}, default={1}, "
@@ -29,16 +29,16 @@ def test_parser_units():
                 # Check if units passed by the user are correctly passed on.
                 dval = pp.default_units[key]
                 val = pp.units[key] 
-                print "  key, default, curent:", key, dval, val
+                print("  key, default, curent:", key, dval, val)
                 pp2 = pa(units={key: val*20})
                 dval2 = pp2.default_units[key]
                 val2 = pp2.units[key] 
-                print "  key, default, curent:", key, dval2, val2
+                print("  key, default, curent:", key, dval2, val2)
                 assert dval2 == dval
                 assert val2 == 20*val
             else:
-                if pp.units.has_key(key):
+                if key in pp.units:
                     val = pp.units[key]
-                    print "  key, current:", key, val
+                    print("  key, current:", key, val)
                     assert val == 1.0
 

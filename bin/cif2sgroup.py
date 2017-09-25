@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # 
 # cif2sgroup.py
 #
@@ -22,4 +22,4 @@ import sys
 from pwtools import io
 fn = sys.argv[1]
 struct = io.read_cif(fn)
-print io.wien_sgroup_input(struct, lat_symbol='P')
+print(io.wien_sgroup_input(struct, lat_symbol='P'))

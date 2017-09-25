@@ -1,6 +1,6 @@
 # Random structure generation.
 
-from __future__ import absolute_import
+
 
 from math import acos, pi, sin, cos, sqrt
 import numpy as np
@@ -179,7 +179,7 @@ class RandomStructure(object):
             return st
         except RandomStructureFail as err:
             if self.verbose:
-                print err.msg
+                print(err.msg)
             return None
     
     def _get_random_struct(self):
@@ -231,7 +231,7 @@ class RandomStructure(object):
         cnt = 0
         while st is None:
             if self.verbose:
-                print "  try: %i" %cnt
+                print("  try: %i" %cnt)
             st = self._try_random_struct()
             cnt += 1          
         return st             

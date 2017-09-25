@@ -6,7 +6,7 @@ try:
 except ImportError:
     pass
 
-import cPickle
+import pickle
 import numpy as np
 from pwtools.common import frepr, cpickle_load
 from pwtools.constants import Ha, eV
@@ -273,7 +273,7 @@ def write_h5(fn, dct, **kwds):
     >>> write_h5('file.h5', old, mode='w')
     """
     fh = h5py.File(fn, **kwds)
-    for key,val in dct.iteritems():
+    for key,val in dct.items():
         fh[key] = val
     fh.close()
 
@@ -315,7 +315,7 @@ def load_h5(*args, **kwds):
 def read_pickle(filename):
     """Load object written by ``cPickle.dump()``, e.g. files written by
     :meth:`~pwtools.base.FlexibleGetters.dump()`."""
-    return cPickle.load(open(filename, 'rb'))
+    return pickle.load(open(filename, 'rb'))
 
 
 class ReadFactory(object):
@@ -369,7 +369,7 @@ class ReadFactory(object):
         elif self.struct_or_traj == 'traj':
             return self.parser(filename, **kwds).get_traj()
         else:
-            raise StandardError("unknown struct_or_traj: %s" %struct_or_traj)
+            raise Exception("unknown struct_or_traj: %s" %struct_or_traj)
 
 
 read_cif = ReadFactory(parser=parse.CifFile, 

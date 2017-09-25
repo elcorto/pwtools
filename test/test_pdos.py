@@ -45,10 +45,10 @@ def test_pdos():
     assert np.allclose(dv, np.loadtxt('files/ref_test_pdos/dv.txt.gz'))
 
     df = fd[1] - fd[0]
-    print "Nyquist freq: %e" %(0.5/dt)
-    print "df: %e:" %df
-    print "timestep: %f fs = %f tryd" %(dt, dt * constants.fs / constants.tryd)
-    print "timestep pw.out: %f tryd" %(pp.timestep)
+    print("Nyquist freq: %e" %(0.5/dt))
+    print("df: %e:" %df)
+    print("timestep: %f fs = %f tryd" %(dt, dt * constants.fs / constants.tryd))
+    print("timestep pw.out: %f tryd" %(pp.timestep))
     
     # API
     fd, dd, ffd, fdd, si = pd.direct_pdos(V, m=mass, dt=dt, full_out=True)

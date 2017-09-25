@@ -21,7 +21,7 @@ from pwtools.crys import Structure
 # pyspglib was renamed spglib, etc etc
 
 def spglib2struct(tup):
-    raise StandardError("function not usable, fixme")
+    raise Exception("function not usable, fixme")
     """Transform returned tuple from various spglib functions to Structure.
 
     This applies to ``spglib.find_primitive()`` and probably some more. Their

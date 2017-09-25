@@ -9,7 +9,7 @@ class Foo(object):
     @lazyprop
     def prop(self):
         self.lazy_called = True
-        print "Hi there, I'm the lazy prop."
+        print("Hi there, I'm the lazy prop.")
         return 123
 
 def test_lazy():
@@ -18,7 +18,7 @@ def test_lazy():
     
     # calling hasattr(foo, 'prop') would already define foo.prop, so we need to
     # inspect __dict__ directly
-    assert not foo.__dict__.has_key('prop')
+    assert 'prop' not in foo.__dict__
     
     # The first "foo.prop" defines foo.prop by calling the getter foo.prop =
     # foo.prop() [actually something like setattr(foo, 'prop', foo.prop())].

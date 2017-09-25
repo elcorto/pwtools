@@ -146,8 +146,8 @@ def deriv_spl(y, x=None, xnew=None, n=1, fullout=False, **splrep_kwargs):
         x = np.arange(len(y))
     if xnew is None:
         xnew = x
-    for key, val in {'s':0, 'k':3}.iteritems():
-        if not splrep_kwargs.has_key(key):
+    for key, val in {'s':0, 'k':3}.items():
+        if key not in splrep_kwargs:
             splrep_kwargs[key] = val
     yd = splev(xnew, splrep(x, y, **splrep_kwargs), der=n)
     if fullout:
@@ -686,10 +686,10 @@ def sum(arr, axis=None, keepdims=False, **kwds):
         else:
             return arr
     
-    axis_is_int = isinstance(axis, types.IntType)
+    axis_is_int = isinstance(axis, int)
     if (axis is None):
         if keepdims:
-            raise StandardError("axis=None + keepdims=True makes no sense")
+            raise Exception("axis=None + keepdims=True makes no sense")
         else:
             return np.sum(arr, axis=axis, **kwds)
     elif axis_is_int and not keepdims:
@@ -697,11 +697,11 @@ def sum(arr, axis=None, keepdims=False, **kwds):
     else:
         if axis_is_int:
             tosum = [axis]
-        elif isinstance(axis, types.TupleType) or \
-            isinstance(axis, types.ListType):
+        elif isinstance(axis, tuple) or \
+            isinstance(axis, list):
             tosum = list(axis)
         else:
-            raise StandardError("illegal type for axis: %s" %str(type(axis)))
+            raise Exception("illegal type for axis: %s" %str(type(axis)))
         if keepdims:
             alldims = range(arr.ndim)
             tosum = [xx for xx in alldims if xx not in tosum]
@@ -793,7 +793,7 @@ class Interpol2D(object):
                 self.yy = yy
                 self.points = np.array([xx,yy]).T
             else:
-                raise StandardError("use points+values or xx+yy+values as input")
+                raise Exception("use points+values or xx+yy+values as input")
             self.values = values
         else:
             self.xx, self.yy, self.values, self.points = dd.xx, dd.yy, dd.zz, dd.XY
@@ -853,7 +853,7 @@ class Interpol2D(object):
             self.inter = _call
             self.call = _call
         else:
-            raise StandardError("unknown interpolator type: %s" %what)
+            raise Exception("unknown interpolator type: %s" %what)
    
     def __call__(self, points, **callkwds):
         """
@@ -1363,7 +1363,7 @@ def avgpolyfit(points, values, deg=None, degmin=None, degmax=None, levels=1,
             ("use deg, degmin+degmax or degrange")
         if deg is None:    
             assert degmin <= degmax, "degmin (%i) > degmax (%i)" %(degmin, degmax)
-            degs = range(degmin, degmax+1)
+            degs = list(range(degmin, degmax+1))
         else:
             degs = [deg]
     else:
@@ -1428,11 +1428,11 @@ def avgpolyval(fit, points, der=0, weight_type=1):
         err = errors / errors.min() * \
               (degrees + 1.0) / npoints
     else:
-        raise StandardError("unknown weight_type")
+        raise Exception("unknown weight_type")
     weights = np.exp(-err**2.0)
     weights = weights / weights.sum()
     ret = np.zeros((points.shape[0],), dtype=float)
-    for ft,wght in itertools.izip(fits, weights):
+    for ft,wght in zip(fits, weights):
         wft = copy.deepcopy(ft)
         wft['coeffs'] *= wght
         ret += polyval(wft, points, der=der, avg=True)
@@ -1510,7 +1510,7 @@ class PolyFit(object):
             keys = [keys]
         ret = False            
         for k in keys:
-            if dct.has_key(k):
+            if k in dct:
                 ret = True
                 break
         return ret                

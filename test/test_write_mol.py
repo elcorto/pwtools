@@ -8,10 +8,10 @@
 # testing.
 
 import os
-from cStringIO import StringIO
+from io import StringIO
 import numpy as np
 from pwtools import io, common, crys
-from testenv import testdir
+from .testenv import testdir
 from pwtools.crys import Structure, Trajectory
 from pwtools.constants import Ha, eV
 pj = os.path.join
@@ -68,9 +68,9 @@ def test_write_mol():
     t0 = np.concatenate((coords3d_cart[0,...], forces3d[0,...]), axis=-1)
     t1 = np.concatenate((coords3d_cart[1,...], forces3d[1,...]), axis=-1)
     arr2 = np.vstack((t0,t1))
-    print arr
-    print arr2
-    print "----------------"
+    print(arr)
+    print(arr2)
+    print("----------------")
     np.testing.assert_array_almost_equal(arr, arr2)
     
     # variable cell, forces3d, coords_frac
@@ -83,9 +83,9 @@ def test_write_mol():
     arr = np.loadtxt(StringIO(
             common.backtick("grep -A3 PRIMVEC %s | grep -v -e '--' -e 'PRIMVEC'" %axsf_fn)))
     arr2 = np.vstack((cell3d[0,...], cell3d[1,...]))           
-    print arr
-    print arr2
-    print "----------------"
+    print(arr)
+    print(arr2)
+    print("----------------")
     np.testing.assert_array_almost_equal(arr, arr2)
     arr = np.loadtxt(StringIO(
             common.backtick("sed -nre 's/^H(.*)/\\1/gp' %s" %axsf_fn)))
@@ -94,9 +94,9 @@ def test_write_mol():
     t1 = np.concatenate((np.dot(coords3d_frac[1,...], cell3d[1,...]), 
                          forces3d[1,...]), axis=-1)
     arr2 = np.vstack((t0,t1))
-    print arr
-    print arr2
-    print "----------------"
+    print(arr)
+    print(arr2)
+    print("----------------")
     np.testing.assert_array_almost_equal(arr, arr2)
     
     # single struct, coords_cart
@@ -109,16 +109,16 @@ def test_write_mol():
     arr = np.loadtxt(StringIO(
             common.backtick("grep -A3 PRIMVEC %s | grep -v -e '--' -e 'PRIMVEC'" %axsf_fn)))
     arr2 = cell2d           
-    print arr
-    print arr2
-    print "----------------"
+    print(arr)
+    print(arr2)
+    print("----------------")
     np.testing.assert_array_almost_equal(arr, arr2)
     arr = np.loadtxt(StringIO(
             common.backtick("sed -nre 's/^H(.*)/\\1/gp' %s" %axsf_fn)))
     arr2 = np.concatenate((coords2d_cart, forces2d), axis=1)
-    print arr
-    print arr2
-    print "----------------"
+    print(arr)
+    print(arr2)
+    print("----------------")
     np.testing.assert_array_almost_equal(arr, arr2)
     
 

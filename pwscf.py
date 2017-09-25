@@ -419,7 +419,7 @@ def read_dynmat_ir_raman(filename='dynmat.out', natoms=None,
         return arr
     else:
         dct = {}
-        for ii,name in cols.iteritems():
+        for ii,name in cols.items():
             if arr.shape[1] >= (ii+1):
                 dct[name] = arr[:,ii]
             else:
@@ -671,5 +671,5 @@ def ibrav2cell(ibrav, celldm):
                        cos_alpha**2.0-cos_beta**2.0-cos_gamma**2.0)/sin_gamma])
         cell = np.array([v1, v2, v3])
     else:
-        raise StandardError("illegal ibrav: %s" %ibrav)
+        raise Exception("illegal ibrav: %s" %ibrav)
     return cell        

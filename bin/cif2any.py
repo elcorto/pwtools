@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # 
 # Extract information from a .cif file and print them in a format suitable for
 # inclusion in a pwscf,abinit,cpmd input file.
@@ -67,7 +67,7 @@ don't need all that at the same time. Check pw.x's manual.
 #-------------------------------------------------------------------------------
 # PWSCF
 #-------------------------------------------------------------------------------
-print "\n"
+print("\n")
 out = """
 {bar}
 PWSCF
@@ -121,34 +121,34 @@ rules = {'bar': bar,
 for ii, cd in enumerate(celldm):
     rules['cd%i' %(ii+1,)] = cd
         
-print out.format(**rules)
+print(out.format(**rules))
 
 #-------------------------------------------------------------------------------
 # ABINIT
 #-------------------------------------------------------------------------------
-print "\n"
-print bar
-print "ABINIT"
-print bar
-print "natom %i" %struct.natoms    
-print "ntypat %i" %struct.ntypat
-print "typat %s" %seq2str(struct.typat)
-print "znucl %s" %seq2str(struct.znucl)
-print "acell %s" %str_arr(struct.cryst_const[:3])
-print "angdeg %s" %str_arr(struct.cryst_const[3:])
-print "xred\n%s" %str_arr(struct.coords_frac)
-print "pseudopotential order:\n%s" %"\n".join(["%s %i" %(sym, zz) for sym,zz in 
+print("\n")
+print(bar)
+print("ABINIT")
+print(bar)
+print("natom %i" %struct.natoms)    
+print("ntypat %i" %struct.ntypat)
+print("typat %s" %seq2str(struct.typat))
+print("znucl %s" %seq2str(struct.znucl))
+print("acell %s" %str_arr(struct.cryst_const[:3]))
+print("angdeg %s" %str_arr(struct.cryst_const[3:]))
+print("xred\n%s" %str_arr(struct.coords_frac))
+print("pseudopotential order:\n%s" %"\n".join(["%s %i" %(sym, zz) for sym,zz in 
                                                zip(struct.symbols_unique,
-                                                   struct.znucl)])
+                                                   struct.znucl)]))
 
 #-------------------------------------------------------------------------------
 # CPMD
 #-------------------------------------------------------------------------------
-print "\n"
-print bar
-print "CPMD"
-print bar
-print """\
+print("\n")
+print(bar)
+print("CPMD")
+print(bar)
+print("""\
 &SYSTEM
     SYMMETRY
         ???
@@ -158,14 +158,14 @@ print """\
     CELL ABSOLUTE DEGREE
 %s
 &END"""\
-    %("\n".join([" "*8 + "%.16e" %x for x in struct.cryst_const]),)
-print "\n&ATOMS"
-for sym, natoms in struct.nspecies.iteritems():
+    %("\n".join([" "*8 + "%.16e" %x for x in struct.cryst_const]),))
+print("\n&ATOMS")
+for sym, natoms in struct.nspecies.items():
     mask = np.array(struct.symbols) == sym
-    print "*%s.psp\n    LMAX=XXXLMAX_%s LOC=XXXLOC_%s" %((sym,) + (sym.upper(),)*2)
-    print "    %i" %natoms
-    print indent(str_arr(struct.coords_frac[mask,:]),4)    
-print "&END"
+    print("*%s.psp\n    LMAX=XXXLMAX_%s LOC=XXXLOC_%s" %((sym,) + (sym.upper(),)*2))
+    print("    %i" %natoms)
+    print(indent(str_arr(struct.coords_frac[mask,:]),4))    
+print("&END")
 
 
 #-------------------------------------------------------------------------------
@@ -204,7 +204,7 @@ txt = templ.format(abc=str_arr(struct.cryst_const[:3]*Bohr/Angstrom),
                    atpos_frac=indent(atpos_frac,12),
                    kinds=kinds,
                    bar=bar)
-print txt
+print(txt)
 
 #-------------------------------------------------------------------------------
 # general crystal information
@@ -241,4 +241,4 @@ rules = {'bar': bar,
          'kpoints': kpoints,
          }
 
-print out.format(**rules)
+print(out.format(**rules))

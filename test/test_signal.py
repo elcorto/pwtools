@@ -27,7 +27,7 @@ def test_smooth_1d():
             mn = 9.0
             mx = 11.0
             for M in range(18,27):
-                print "1d", edge, "N=%i, M=%i" %(N,M)
+                print("1d", edge, "N=%i, M=%i" %(N,M))
                 xsm = smooth(x, gaussian(M,2.0), edge=edge)
                 assert len(xsm) == N
                 # (N,1) case
@@ -49,7 +49,7 @@ def test_smooth_nd():
     for edge in ['m', 'c']:
         a = rand(20, 2, 3) + 10
         for M in [5, 20, 123]:
-            print "nd", edge, "M=%i" %M
+            print("nd", edge, "M=%i" %M)
             kern = gaussian(M, 2.0)
             asm = smooth(a, kern[:,None,None], axis=0, edge=edge)
             assert asm.shape == a.shape

@@ -17,7 +17,7 @@ import os, warnings
 import numpy as np
 from scipy.fftpack import fft
 from scipy.signal import convolve, gaussian
-import constants, _flib, num
+from pwtools import constants, _flib, num
 from pwtools.verbose import verbose
 from pwtools.signal import pad_zeros, welch, mirror
 
@@ -161,7 +161,7 @@ def fvacf(vel, m=None, method=2, nthreads=None):
         # OMP_NUM_THREADS here and set number of threads using the "nthreads"
         # arg.
         key = 'OMP_NUM_THREADS'
-        if os.environ.has_key(key):
+        if key in os.environ:
             nthreads = int(os.environ[key])
             c = _flib.vacf(vel, m, c, method, use_m, nthreads)
         else:            
@@ -326,16 +326,16 @@ def pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
 
 def vacf_pdos(vel, *args, **kwds):
     """Wrapper for ``pdos(..., method='vacf', mirr=True, npad=None)``"""
-    if not kwds.has_key('mirr'):
+    if 'mirr' not in kwds:
         kwds['mirr'] = True
     return pdos(vel, *args, method='vacf', npad=None, **kwds)
 
 
 def direct_pdos(vel, *args, **kwds):
     """Wrapper for ``pdos(..., method='direct', npad=1)``"""
-    if not kwds.has_key('npad'):
+    if 'npad' not in kwds:
         kwds['npad'] = 1
-    if kwds.has_key('pad_tonext'):
+    if 'pad_tonext' in kwds:
         warnings.simplefilter('always')
         warnings.warn("'pad_tonext' was renamed 'tonext'",
             DeprecationWarning)

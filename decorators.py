@@ -42,7 +42,7 @@ def open_and_close(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         largs = list(args)
-        if isinstance(largs[0], types.StringType):
+        if isinstance(largs[0], str):
             # Filename case.
             fn = largs[0]
             if fn.endswith('.gz'):
@@ -105,13 +105,13 @@ class lazyprop(object):
     """
     def __init__(self,fget):
         self.fget = fget
-        self.func_name = fget.__name__
+        self.__name__ = fget.__name__
 
     def __get__(self,obj,cls):
         if obj is None:
             return None
         value = self.fget(obj)
-        setattr(obj,self.func_name,value)
+        setattr(obj,self.__name__,value)
         return value
 
 # http://stackoverflow.com/questions/3012421/python-lazy-property-decorator

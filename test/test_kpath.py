@@ -16,7 +16,7 @@ def test_plot_dis():
     nfreq = 5
     freqs = np.random.rand(100, nfreq) 
     try:
-        print os.environ['DISPLAY']
+        print(os.environ['DISPLAY'])
         fig1,ax1,axdos1 = kpath.plot_dis(path_norm, freqs, spp,
                                          show_coords='cart')
         assert axdos1 is None

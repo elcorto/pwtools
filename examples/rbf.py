@@ -41,7 +41,7 @@ class SurfaceData(object):
         return None
 
     def __call__(self, *args, **kwargs):
-        if 'der' in kwargs.keys():
+        if 'der' in kwargs:
             der = kwargs['der']
             kwargs.pop('der')
             if der == 'x':
@@ -49,7 +49,7 @@ class SurfaceData(object):
             elif der == 'y':
                 return self.deriv_y(*args, **kwargs)
             else:
-                raise StandardError("der != 'x' or 'y'")
+                raise Exception("der != 'x' or 'y'")
         else:                
             return self.func(*args, **kwargs)
 
@@ -107,10 +107,10 @@ if __name__ == '__main__':
     Z = fu(X)
 
     rbfi = rbf.RBFInt(X, Z, X, rbf=rbf.RBFMultiquadric(), verbose=True)
-    print "train linalg single ..."
+    print("train linalg single ...")
     rbfi.train('linalg')
-    print "param:", rbfi.rbf.param
-    print "... ready train"
+    print("param:", rbfi.rbf.param)
+    print("... ready train")
     
 ##    print "train param ..."
 ##    rbfi = train_param(X, Z, pattern='rand', randskip=0.2)
@@ -144,8 +144,8 @@ if __name__ == '__main__':
     # x-derivs, only implemented for MexicanHat
     ZI_func = fu(dati.X, der='x')
     ZI_rbf = rbfi(dati.X, der=1)[:,0]
-    print ZI_func.shape
-    print ZI_rbf.shape
+    print(ZI_func.shape)
+    print(ZI_rbf.shape)
     ZG_func = ZI_func.reshape((dati.nx, dati.ny))
     ZG_rbf = ZI_rbf.reshape((dati.nx, dati.ny))
 

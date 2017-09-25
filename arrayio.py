@@ -2,7 +2,7 @@
 #
 # Array text file IO.
 
-from cStringIO import StringIO
+from io import StringIO
 import numpy as np
 
 from pwtools import common
@@ -57,7 +57,7 @@ def _read_header_config(fh, header_maxlines=HEADER_MAXLINES,
     # Read one more line to see if the header is bigger than header_maxlines.
     try:
         if fh.next().strip().startswith(header_comment):
-            raise StandardError("header seems to be > header_maxlines (%i)"
+            raise Exception("header seems to be > header_maxlines (%i)"
                 %header_maxlines)
     except StopIteration:
         pass

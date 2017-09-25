@@ -171,17 +171,17 @@ def cut_norm(full_y, dt, area=1.0):
 fourier_exe = common.fullpath('~/soft/bin/fourier.x')
 fourier_dir = '/tmp/fourier_test'
 use_fourier = os.path.exists(fourier_exe)
-print "temp dir: %s" %fourier_dir
-print "trying to find fourier.x: %s" %fourier_exe
+print("temp dir: %s" %fourier_dir)
+print("trying to find fourier.x: %s" %fourier_exe)
 if use_fourier:
-    print "ok, will use fourier.x"
+    print("ok, will use fourier.x")
     if os.path.exists(fourier_dir):
         shutil.rmtree(fourier_dir)
         os.makedirs(fourier_dir)
     else:
         os.makedirs(fourier_dir)
 else:
-    print "not found, will skip fourier.x"
+    print("not found, will skip fourier.x")
 
 # For the calculation of nstep and dt, we increase `fmax` to
 # fmax*fmax_extend_fac to lower dt. That way, the signal still contains

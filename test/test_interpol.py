@@ -2,8 +2,8 @@ import tempfile
 import numpy as np
 from pwtools import mpl, num
 from pwtools.test import tools
-import cPickle as pickle
-from testenv import testdir
+import pickle as pickle
+from .testenv import testdir
 
 def return_min(inter):
     # Return scalar minimum instead of array (5.0 instead of [5.0]).    

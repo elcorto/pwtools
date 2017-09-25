@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 # Load phonon DOS as calculated by QE's matdyn.x (e.g. matdyn.phdos):
 #   [f in cm^-1]  [dos]

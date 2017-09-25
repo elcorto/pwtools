@@ -5,6 +5,7 @@
 import numpy as np
 from pwtools.common import assert_cond as _assert
 from pwtools import common
+from functools import reduce
 
 def fac(n):
     """Factorial n!. Returns integer."""
@@ -250,10 +251,9 @@ def nested_loops(lists, ret_all=False, flatten=False):
     idxs = [0]*nlevels
     perm_idxs = []
     perms = []
-    # e.g. [2,1,0]
-    rev_rlevels = range(nlevels)[::-1]
     for i in range(nperms):         
-        for pos in rev_rlevels:
+        # e.g. [2,1,0]
+        for pos in range(nlevels)[::-1]:
             if idxs[pos] > mx_idxs[pos]:
                 idxs[pos] = 0
                 # pos - 1 never gets < 0 before all possible `nlevels`
@@ -307,7 +307,7 @@ def main():
     a = np.array([0,1,2])
     lst = permute(a)
     for aa in lst:
-        print aa
+        print(aa)
 
 # alias
 factorial = fac

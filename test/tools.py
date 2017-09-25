@@ -63,17 +63,17 @@ def msg(txt):
 
 
 def err(txt):
-    print('error: ' + txt)
+    print(('error: ' + txt))
 
 
 def true_or_false(cond):
     """Wrapper for a fucntion which returns bool. Should be used to build all
     comp funcs."""
     if cond:
-        print ".. ok"
+        print(".. ok")
         return True
     else:
-        print ".. uuhhhh, FAIL!"
+        print(".. uuhhhh, FAIL!")
         return False
 
 #-----------------------------------------------------------------------------
@@ -121,15 +121,15 @@ class AllTypesFactory(object):
                 err("AllTypesFactory: d1 (%s) and d2 (%s) are not the "
                       "same type" %(d1_t, d2_t))
                 return False       
-        for typ, comp_func in self.comp_map.iteritems():
+        for typ, comp_func in self.comp_map.items():
             if d1_t == typ:
                 msg("AllTypesFactory: type=%s, comp_func=%s" \
                       %(str(typ), str(comp_func)))
                 return comp_func(d1, d2, **kwds)
-        if self.comp_map.has_key('default'):
+        if 'default' in self.comp_map:
             comp_func = self.comp_map['default']
         else:
-            raise StandardError("no default comparison function defined, "
+            raise Exception("no default comparison function defined, "
                 "cannot process type=%s" %(d1_t))
         msg("AllTypesFactory: type=default, comp_func=%s" \
               %str(comp_func))
@@ -163,8 +163,8 @@ class DictWithAllTypesFactory(object):
             keys = attr_lst
         # Test equal keys only if user doesn't provide them.            
         if keys is None:            
-            d1_keys = d1.keys()    
-            d2_keys = d2.keys()
+            d1_keys = list(d1.keys())    
+            d2_keys = list(d2.keys())
             if len(d1_keys) != len(d2_keys):
                 err("DictWithAllTypesFactory: key list not equally long")
                 return False
@@ -294,7 +294,7 @@ def assert_attrs_not_none(pp, attr_lst=None, none_attrs=[]):
         if hasattr(pp, 'attr_lst'):
             attr_lst = pp.attr_lst
         else:
-            raise StandardError("no attr_lst from input or test object 'pp'")
+            raise Exception("no attr_lst from input or test object 'pp'")
     for name in attr_lst:
         msg("assert_attrs_not_none: testing: %s" %name)
         attr = getattr(pp, name)
@@ -345,9 +345,9 @@ def unpack_compressed(src, prefix='tmp', testdir=testdir, ext=None):
     elif ext in ['tgz', 'tar.gz']:
         cmd += "tar -C {workdir} -xzf {filename}.{ext};"
     else:
-        raise StandardError("unsuported file format of file: {}".format(src))
+        raise Exception("unsuported file format of file: {}".format(src))
     cmd = cmd.format(workdir=workdir, src=src, filename=filename, ext=ext)
-    print common.backtick(cmd)
+    print(common.backtick(cmd))
     assert os.path.exists(filename), "unpack failed: '%s' not found" %filename
     return filename
 

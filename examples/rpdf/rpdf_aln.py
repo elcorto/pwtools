@@ -37,14 +37,14 @@ class Struct(crys.Structure):
 
     def write_cif(self):
         fn = self._get_fn('.cif')
-        print("writing: %s" %fn)
+        print(("writing: %s" %fn))
         crys.write_cif(fn, self)
     
     def savetxt(self):
         self._assert_fnbase()
         fn_coords = self._get_fn('.coords.txt')
         fn_cell = self._get_fn('.cell.txt')
-        print("writing: %s, %s" %(fn_coords, fn_cell))
+        print(("writing: %s, %s" %(fn_coords, fn_cell)))
         np.savetxt(fn_coords, self.coords_frac)
         np.savetxt(fn_cell, self.cell)
                     
@@ -122,7 +122,7 @@ if __name__ == '__main__':
                            symbols=sc.symbols,
                            fnbase=name,
                            tgtdir=tgtdir)
-    print structs[name].cryst_const                            
+    print(structs[name].cryst_const)                            
 ##    structs[name].write_cif()
 ##    structs[name].write_axsf()
 ##    structs[name].savetxt()
@@ -153,7 +153,7 @@ if __name__ == '__main__':
                            symbols=sc.symbols,
                            fnbase=name,
                            tgtdir=tgtdir)
-    print structs[name].cryst_const                            
+    print(structs[name].cryst_const)                            
 ##    structs[name].write_cif()
 ##    structs[name].write_axsf()
 ##    structs[name].savetxt()
@@ -166,7 +166,7 @@ if __name__ == '__main__':
     # For all structs, calculate rmax=5 (= rmax_auto for aln_ibrav0_sc for a
     # 2x2x2 cell) and rmax = 20 as well as pbc=True, False. Plot for 1 struct.
     plots = {}
-    for struct in structs.itervalues():
+    for struct in structs.values():
         cc = iter(['b', 'r', 'g', 'm'])
         mm = iter(['v', '^', '+', 'x'])
         for rmax in [5, 20]:
@@ -182,8 +182,8 @@ if __name__ == '__main__':
                 pl.rad = out[:,0]
                 pl.hist = out[:,1]
                 pl.num_int = out[:,2]
-                pl.color = cc.next()                                                     
-                pl.marker = mm.next()                                                     
+                pl.color = next(cc)                                                     
+                pl.marker = next(mm)                                                     
                 pl.leg_label = "pbc=%s, rmax=%i, rmax_auto=%.1f" %(pbc, rmax,
                                                                    rmax_auto)
                 plots["%s-%i-%s" %(struct.fnbase, rmax, pbc)] = pl
@@ -237,8 +237,8 @@ if __name__ == '__main__':
     pl.rad = out[:,0]
     pl.hist = out[:,1]
     pl.num_int = out[:,2]
-    pl.color = cc.next()                                                     
-    pl.marker = mm.next()                                                     
+    pl.color = next(cc)                                                     
+    pl.marker = next(mm)                                                     
     pl.leg_label = "pbc=%s, rmax=%i, rmax_auto=%.1f, Al-N" %(pbc, rmax,
                                                              rmax_auto)
     plot_pl(pl)                                                   

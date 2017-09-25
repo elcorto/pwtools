@@ -13,7 +13,7 @@
 import os
 import numpy as np
 from pwtools import crys, parse, arrayio, io
-from testenv import testdir
+from .testenv import testdir
 from pwtools.test.tools import aae
 pj = os.path.join
 rand = np.random.rand
@@ -34,7 +34,7 @@ def load_old(fn):
 def test_rpdf():
     have_vmd = os.system('which vmd > /dev/null 2>&1') == 0
     for name in ['rand_3d', 'aln_ibrav0_sc', 'aln_ibrav2_sc']:
-        print("name: %s" %name)
+        print(("name: %s" %name))
         dd = 'files/rpdf'
         if name == 'rand_3d':
             # 2 Trajectory = 2 selections
@@ -61,10 +61,10 @@ def test_rpdf():
                    'num_int':   ret[:,2],
                    'rmax_auto': np.array(crys.rmax_smith(cell)),
                    }
-        for key, val in results.iteritems():
-            print("    key: %s" %key)
+        for key, val in results.items():
+            print(("    key: %s" %key))
             ref_fn = pj(dd, "result.%s.%s.txt" %(key, name))
-            print("    reference file: %s" %ref_fn)
+            print(("    reference file: %s" %ref_fn))
             ref = np.loadtxt(ref_fn)
             if doplot:
                 plt.figure()
@@ -76,7 +76,7 @@ def test_rpdf():
                 # decimal=3 b/c ref data created w/ older implementation,
                 # slight numerical noise
                 np.testing.assert_array_almost_equal(ref, val, decimal=3)
-                print("    key: %s ... ok" %key)
+                print(("    key: %s ... ok" %key))
         
         # API
         if name.startswith('aln_'):
@@ -115,7 +115,7 @@ def test_rpdf():
 
     if have_vmd:                        
         # slicefirst and API
-        print "vmd_measure_gofr: slicefirst ..."
+        print("vmd_measure_gofr: slicefirst ...")
         traj = crys.Trajectory(coords_frac=rand(100,20,3),
                                cell=np.identity(3)*20,
                                symbols=['O']*5+['H']*15)
@@ -123,8 +123,8 @@ def test_rpdf():
         for first,last,step in [(0,-1,1), (20, 80, 10)]:
             ret = []
             for sf in [True, False]:
-                print "first=%i, last=%i, step=%i, slicefirst=%s" %(first,
-                    last, step, sf)
+                print("first=%i, last=%i, step=%i, slicefirst=%s" %(first,
+                    last, step, sf))
                 tmp = crys.vmd_measure_gofr(traj, 
                                             dr=0.1,
                                             rmax='auto',

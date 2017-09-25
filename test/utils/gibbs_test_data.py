@@ -10,7 +10,7 @@ from pwtools import num, crys, io, common
 
 def filt_dct(dct):
     """Filter None values from dict."""
-    return dict((k,v) for k,v in dct.iteritems() \
+    return dict((k,v) for k,v in dct.items() \
                 if v is not None)
 
 

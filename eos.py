@@ -174,7 +174,7 @@ class EosFit(Fit1D):
         b0 = 2*a*v0
         b1 = 4  # b1 is usually a small number like 4
         if not self.volume.min() < v0 and v0 < self.volume.max():
-            raise StandardError('The minimum volume of a fitted parabola is not in the input volumes')
+            raise Exception('The minimum volume of a fitted parabola is not in the input volumes')
         
         # need to use lst2dct and dct2lst here to keep the order of parameters 
         pp0_dct = dict(e0=e0, b0=b0, b1=b1, v0=v0)
@@ -201,7 +201,7 @@ class EosFit(Fit1D):
     # Fit1D compat
     def get_min(self):
         """V0 [Ang^3]"""
-        if self.params.has_key('v0'):
+        if 'v0' in self.params:
             return self.params['v0']
         else:    
             return super(EosFit, self).get_min()
@@ -224,7 +224,7 @@ class EosFit(Fit1D):
         volume : scalar, 1d array
             volume per atom [Ang^3]
         """        
-        if self.params.has_key('b0'):
+        if 'b0' in self.params:
             return self.params['b0'] * eV_by_Ang3_to_GPa
         else:
             return volume * self(volume, der=2) * eV_by_Ang3_to_GPa
@@ -319,8 +319,8 @@ class ExternEOS(FlexibleGetters):
         if not os.path.exists(self.dir):
             os.makedirs(self.dir)
         if self.verbose:            
-            print("After calling the fit() method, find data from '%s' "
-                  "in %s/" %(self.app, self.dir))
+            print(("After calling the fit() method, find data from '%s' "
+                  "in %s/" %(self.app, self.dir)))
         self.infn = os.path.join(self.dir, 'eos.in')
     
     def _fit(self):
@@ -395,7 +395,7 @@ class ExternEOS(FlexibleGetters):
             vv = self.ev[:,0]
             return np.array([vv, vv * self.spl_ev(vv, der=2) * fac]).T
         else:
-            raise StandardError("unknown bv_method: '%s'" %bv_method)
+            raise Exception("unknown bv_method: '%s'" %bv_method)
     
     def get_min(self, behave='new'):
         """
@@ -428,7 +428,7 @@ class ExternEOS(FlexibleGetters):
         elif self.bv_method == 'ev':
             v0 = self.spl_ev.get_min()
         else:
-            raise StandardError("unknown bv_method: '%s'" %bv_method)
+            raise Exception("unknown bv_method: '%s'" %bv_method)
         p0 = self.spl_pv(v0)
         e0 = self.spl_ev(v0)
         b0 = self.spl_bv(v0)
@@ -442,7 +442,7 @@ class ExternEOS(FlexibleGetters):
             dct['b0'] = b0
             return dct
         else:
-            raise StandardError("unknown value for `behave`: %s" %str(behave))
+            raise Exception("unknown value for `behave`: %s" %str(behave))
     
     def _call(self, cmd):
         """
@@ -554,8 +554,8 @@ class ElkEOSFit(ExternEOS):
         common.file_write(self.infn, infn_txt)
         out = common.backtick('cd %s && %s' %(self.dir, self.app_basename))
         if self.verbose:
-            print out
-            print(open(os.path.join(self.dir,'PARAM.OUT')).read())
+            print(out)
+            print((open(os.path.join(self.dir,'PARAM.OUT')).read()))
         # Remove normalization on natoms. See .../eos/output.f90:
         # fitev: [volume [Bohr^3] / natoms, energy [Ha] / natoms]
         # fitpv: [volume [Bohr^3] / natoms, pressure [GPa]]

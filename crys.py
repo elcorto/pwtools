@@ -368,7 +368,7 @@ def grid_in_cell(cell, h=None, size=None, minpoints=1, even=False, fullout=False
             size[mask] = minpoints
         # only possible if minpoints=0        
         if (size == 0).any():
-            raise StandardError("at least one point count is zero, decrease `spacing`, "
+            raise Exception("at least one point count is zero, decrease `spacing`, "
                                  "size=%s" %str(size))
         if fullout:
             return size, norms * 1.0 / size
@@ -432,7 +432,7 @@ def kgrid(cell, **kwds):
     >>> kgrid(np.identity(3), h=pi, fullout=True)
     (array([2, 2, 2]), array([ 3.14159265,  3.14159265,  3.14159265]))
     """
-    if kwds.has_key('dk'):
+    if 'dk' in kwds:
         warnings.warn("`dk` is deprecated, use `h` instead",
                       DeprecationWarning)
         kwds['h'] = kwds['dk']
@@ -596,7 +596,7 @@ def scell(obj, dims, method=1, **kwds):
     # sc_coords_frac : crystal coords w.r.t the *old* cell, i.e. the entries are in
     # [0,(max(dims))], not [0,1], is scaled below
     #
-    if not kwds.has_key('direc'):
+    if 'direc' not in kwds:
         kwds['direc'] = 1
     mask = scell_mask(*tuple(dims), **kwds)
     nmask = mask.shape[0]
@@ -608,7 +608,7 @@ def scell(obj, dims, method=1, **kwds):
         sc_cell = obj.cell * np.asarray(dims)[None,:,None]
         container = Trajectory
     else:
-        raise StandardError("unknown input type")
+        raise Exception("unknown input type")
     if method == 1:
         sc_symbols = np.array(obj.symbols).repeat(nmask).tolist() if (obj.symbols \
                      is not None) else None
@@ -622,7 +622,7 @@ def scell(obj, dims, method=1, **kwds):
             sc_coords_frac = (obj.coords_frac[...,None,:] \
                               + mask[None,None,...]).reshape(obj.nstep,obj.natoms*nmask,3)
         else:
-            raise StandardError("huh!?")
+            raise Exception("huh!?")
     # explicit loop version for testing, this is the reference implementation,
     # only for Structure
     elif method == 2:
@@ -637,9 +637,9 @@ def scell(obj, dims, method=1, **kwds):
                     sc_coords_frac[k,:] = obj.coords_frac[iatom,:] + mask[j,:]
                     k += 1
         else:
-            raise StandardError("method=2 only implemented for Structure")
+            raise Exception("method=2 only implemented for Structure")
     else:
-        raise StandardError("unknown method: %s" %repr(method))
+        raise Exception("unknown method: %s" %repr(method))
     sc_coords_frac[...,0] /= dims[0]
     sc_coords_frac[...,1] /= dims[1]
     sc_coords_frac[...,2] /= dims[2]
@@ -1467,7 +1467,7 @@ def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None,
         dup_trajs = True
     if len(amask) == 1:
         amask *= 2
-    trajs = map(struct2traj, trajs)
+    trajs = list(map(struct2traj, trajs))
     assert len(trajs) == 2, "len(trajs) != 2"
     assert len(amask) == 2, "len(amask) != 2"
     if not dup_trajs:
@@ -1506,7 +1506,7 @@ def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None,
     norm_fac_pre = volume / volume_shells
     
     if nstep * natoms0 * natoms1 * 24.0 / 1e9 > maxmem:
-        raise StandardError("would use more than maxmem=%f GB of memory, "
+        raise Exception("would use more than maxmem=%f GB of memory, "
                             "try `tmask` to reduce time steps" %maxmem)
 
     # distances
@@ -1677,7 +1677,7 @@ def call_vmd_measure_gofr(trajfn, dr=None, rmax=None, sel=['all','all'],
     dct['usepbc'] = usepbc
     dct['datafn'] = datafn
     dct['time'] = time.asctime()
-    for key,val in dct.iteritems():
+    for key,val in dct.items():
         vmd_tcl = vmd_tcl.replace('XXX'+key.upper(), str(val))
     common.file_write(scriptfn, vmd_tcl)
     cmd = "vmd -dispdev none -eofexit -e %s " %scriptfn
@@ -1753,8 +1753,8 @@ def vmd_measure_gofr(traj, dr=0.05, rmax='auto', sel=['all','all'], first=0,
     cell = traj.cell[0,...]
     cc = traj.cryst_const[0,...]
     if np.abs(cc[3:] - 90.0).max() > 0.1:
-        print cell
-        raise StandardError("`cell` is not orthogonal, check angles")
+        print(cell)
+        raise Exception("`cell` is not orthogonal, check angles")
     rmax_auto = rmax_smith(cell)
     if rmax == 'auto':
         rmax = rmax_auto
@@ -2137,9 +2137,9 @@ class UnitsHandler(FlexibleGetters):
             elif cc.ndim == 2:
                 cc[:,:3] *= self.units['length']
             else:
-                raise StandardError("self.cryst_const has ndim != [1,2]")
+                raise Exception("self.cryst_const has ndim != [1,2]")
             self.cryst_const = cc
-        for unit, lst in self.units_map.iteritems():
+        for unit, lst in self.units_map.items():
             if self.units[unit] != 1.0:
                 for attr_name in lst:
                     if self.is_set_attr(attr_name):
@@ -2161,10 +2161,10 @@ class UnitsHandler(FlexibleGetters):
         units : dict, {'length': 5, 'energy': 30, ...}
         """
         if units is not None:
-            all_units = self.units_map.keys()
-            for key in units.keys():
+            all_units = list(self.units_map.keys())
+            for key in list(units.keys()):
                 if key not in all_units:
-                    raise StandardError("unknown unit: %s" %str(key))
+                    raise Exception("unknown unit: %s" %str(key))
             self.units.update(units)
 
 
@@ -2406,7 +2406,7 @@ class Structure(UnitsHandler):
         #   self.foo = foo
         #   self.bar = bar
         #   ...
-        for name in kwds.keys():
+        for name in list(kwds.keys()):
             assert name in self.input_attr_lst, \
                 "illegal input arg: '%s', allowed: %s" %(name, str(self.input_attr_lst))
             # cell can be 2d and will be treated by _extend() later
@@ -2496,7 +2496,7 @@ class Structure(UnitsHandler):
             if val is None:
                 setattr(obj, name, None)
             # dict.copy() is shallow, use deepcopy instead    
-            elif hasattr(val, 'copy') and not isinstance(val, types.DictType):
+            elif hasattr(val, 'copy') and not isinstance(val, dict):
                 setattr(obj, name, val.copy())
             else:
                 setattr(obj, name, copy.deepcopy(val))
@@ -2772,7 +2772,7 @@ class Structure(UnitsHandler):
         """Dict with number of atoms per species."""
         if self.check_set_attr_lst(['order', 'typat']):
             return dict([(sym, self.typat.count(idx)) for sym, idx in 
-                         self.order.iteritems()])
+                         self.order.items()])
         else:
             return None
     
@@ -2946,7 +2946,7 @@ class Trajectory(Structure):
                 obj.timestep *= timestep_fac
         return obj
     
-    def next(self):
+    def __next__(self):
         self._index += 1
         if self._index == self.nstep:
             self._index = -1
@@ -3149,7 +3149,7 @@ def smooth(traj, kern, method=1):
         kern3d = kern[:,None,None]
     else:
         # ... but is trivial to add
-        raise StandardError("timeaxis != 0 not implemented")
+        raise Exception("timeaxis != 0 not implemented")
     out = Trajectory(set_all_auto=False)
     for attr_name in traj.attrs_nstep:
         attr = getattr(traj, attr_name)
@@ -3171,7 +3171,7 @@ def smooth(traj, kern, method=1):
                         for kk in range(attr.shape[2]):
                             tmp[:,jj,kk] = signal.smooth(attr[:,jj,kk], kern)
                 else:
-                    raise StandardError("ndim != 1,2,3 not allowed")
+                    raise Exception("ndim != 1,2,3 not allowed")
                 setattr(out, attr_name, tmp)
             elif method == 2:
                 if attr.ndim == 1:
@@ -3181,11 +3181,11 @@ def smooth(traj, kern, method=1):
                 elif attr.ndim == 3:
                     krn = kern3d
                 else:
-                    raise StandardError("ndim != 1,2,3 not allowed")
+                    raise Exception("ndim != 1,2,3 not allowed")
                 setattr(out, attr_name, signal.smooth(attr, krn,
                                                       axis=traj.timeaxis))
             else:
-                raise StandardError("unknown method")
+                raise Exception("unknown method")
     # nstep and timestep are the same for the smoothed traj, so we can copy all
     # non-nstep attrs over
     for attr_name in set.difference(set(traj.attr_lst), 

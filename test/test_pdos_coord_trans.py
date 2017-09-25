@@ -36,7 +36,7 @@ def test_pdos_coord_trans():
                                   axis=-1)
 
     dos = {}
-    for key, val in coords.iteritems():
+    for key, val in coords.items():
         dos[key] = pdos(val)
 
     np.testing.assert_array_almost_equal(dos['cart'], dos['cart2'])

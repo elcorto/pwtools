@@ -1,6 +1,6 @@
 import os.path
 from pwtools import common, num
-import cPickle
+import pickle
 import warnings
 warnings.simplefilter('always')
 
@@ -132,9 +132,9 @@ class FlexibleGetters(object):
     def _debug_attrs(self):
         for attr in self.attr_lst:
             if getattr(self, attr) is None:
-                print "%s: None" %attr
+                print("%s: None" %attr)
             else:                
-                print "%s: ok" %attr
+                print("%s: ok" %attr)
 
     def set_all(self, attr_lst=None):
         """Call getter for each attr name in `attr_lst`."""
@@ -162,7 +162,7 @@ class FlexibleGetters(object):
             dr = os.path.dirname(dump_filename)
             if dr != '':
                 common.makedirs(dr)
-        cPickle.dump(self, open(dump_filename, 'wb'), protocol=2)
+        pickle.dump(self, open(dump_filename, 'wb'), protocol=2)
 
     def load(self, dump_filename):
         """Load pickled object.
@@ -185,7 +185,7 @@ class FlexibleGetters(object):
                        DeprecationWarning)
         # this does not work:
         #   self = cPickle.load(...)
-        self.__dict__.update(cPickle.load(open(dump_filename, 'rb')).__dict__)
+        self.__dict__.update(pickle.load(open(dump_filename, 'rb')).__dict__)
     
     def is_set_attr(self, attr):
         """Check if self has the attribute self.<attr> and if it is _not_ None.

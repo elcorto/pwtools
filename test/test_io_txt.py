@@ -1,15 +1,15 @@
 # Test array text input and output
 
-from StringIO import StringIO
+from io import StringIO
 from pwtools import arrayio, parse
 import os
 import numpy as np
-from testenv import testdir
+from .testenv import testdir
 pj = os.path.join
 rand = np.random.rand
 
 def write_read_check(fn, arr, axis=-1, shape=None):
-    print fn + ' ...'
+    print(fn + ' ...')
     arrayio.writetxt(fn, arr, axis=axis)
     a = arrayio.readtxt(fn, axis=axis, shape=shape)
     assert (a == arr).all()
@@ -75,7 +75,7 @@ def test_traj_from_txt():
     # general stuff for axis != 0, here for axis=0 we have written_shape==shape
     shape_2d_chunk = shape[:axis] + shape[(axis+1):]
     written_shape = (shape[axis],) + shape_2d_chunk
-    print "axis, written_shape:", axis, written_shape
+    print("axis, written_shape:", axis, written_shape)
     fn = pj(testdir, 'arr_test_traj_from_txt_axis%i.txt' %axis)
     arrayio.writetxt(fn, arr3d_orig, axis=axis, header=False)
     with open(fn) as fd:

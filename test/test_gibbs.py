@@ -71,11 +71,11 @@ from pwtools.test import tools
 def compare_dicts_with_arrays(a, b):
     """For each numpy array in `a` and `b`, print absolute and relative
     difference."""
-    for k in a.keys():
-        if b.has_key(k) and b[k] is not None:
+    for k in list(a.keys()):
+        if k in b and b[k] is not None:
             df = abs(a[k]-b[k]).max()
             fmt = "{:20}  {:8.3g}   {:8.3g}"
-            print fmt.format(k, df, df / abs(a[k]).max())
+            print(fmt.format(k, df, df / abs(a[k]).max()))
                 
 
 def test_gibbs():
@@ -116,11 +116,11 @@ def test_gibbs():
     for name in os.listdir(dr):
         fn = '%s/%s' %(dr, name)
         gref = io.read_h5(fn)
-        print "testing: %s" %fn
+        print("testing: %s" %fn)
         compare_dicts_with_arrays(gref, g) 
         tools.assert_dict_with_all_types_almost_equal(gref, 
                                                       g, 
-                                                      keys=gref.keys(),
+                                                      keys=list(gref.keys()),
                                                       atol=1e-8, rtol=1e-3)
 
     # 1d case
@@ -143,11 +143,11 @@ def test_gibbs():
     for name in os.listdir(dr):
         fn = '%s/%s' %(dr, name)
         gref = io.read_h5(fn)
-        print "testing: %s" %fn
+        print("testing: %s" %fn)
         compare_dicts_with_arrays(gref, g) 
         tools.assert_dict_with_all_types_almost_equal(gref, 
                                                       g, 
-                                                      keys=gref.keys(),
+                                                      keys=list(gref.keys()),
                                                       atol=1e-14, rtol=1e-8)
     
     # test enthalpy stuff for 1d case

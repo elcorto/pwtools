@@ -35,7 +35,7 @@ def test_struct():
     
     # Test if all getters work.
     for name in st.attr_lst:
-        print name
+        print(name)
         st.try_set_attr(name)
         assert getattr(st, name) is not None, "attr None: %s" %name
         assert eval('st.get_%s()'%name) is not None, "getter returns None: %s" %name
@@ -103,8 +103,8 @@ def test_struct():
     st2 = st.copy()
     for name in st.attr_lst:
         val = getattr(st,name)
-        if val is not None and not (isinstance(val, types.IntType) or \
-            isinstance(val, types.FloatType)):
+        if val is not None and not (isinstance(val, int) or \
+            isinstance(val, float)):
             val2 = getattr(st2,name)
             assert id(val2) != id(val)
             assert_all_types_equal(val2, val)
@@ -119,7 +119,7 @@ def test_get_traj():
     nstep = 5
     tr = st.get_traj(nstep)
     for name in st.attr_lst:
-        print name
+        print(name)
         attr = getattr(tr, name)
         if attr is not None:
             if name in tr.attrs_nstep:

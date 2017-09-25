@@ -68,7 +68,7 @@ class TagTimer(object):
         | ...
         """
         # Init a new array for a new tag.
-        if tag not in self.time_ar_dict.keys():
+        if tag not in self.time_ar_dict:
             # numpy arrays:
             #   Use array method copy(), otherwise, we would use the exact same
             #   array everytime, since 'a = numpy.array(...); b = a' only creates
@@ -102,7 +102,7 @@ class TagTimer(object):
         msg : string
             Extra string to be printed along with the time difference.
         """
-        if tag not in self.time_ar_dict.keys():
+        if tag not in self.time_ar_dict:
             raise ValueError("array for tag '%s' not jet initialized; " %tag\
                 + "you have to call t() first.")
         # hmm ... array is [None, None] .. shouldn't be
@@ -125,5 +125,5 @@ class TagTimer(object):
     def p(self, msg):
         """ Simply print `msg`. """
         if not self.silence:
-            print("--TagTimer--: %s" %msg)
+            print("--TagTimer--: {}".format(msg))
 

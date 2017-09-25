@@ -280,7 +280,7 @@ class RBFInt(object):
                 dist = X[:,None,...] - C[None,...]
                 Rsq = (dist**2.0).sum(axis=-1)
             else:
-                raise StandardError("unknown value for distmethod: %s"
+                raise Exception("unknown value for distmethod: %s"
                     %self.distmethod)
             return Rsq
         else:
@@ -451,7 +451,7 @@ class RBFInt(object):
                 D[zz,:] = 1.0 / self.rbf.param**2.0 * \
                     np.dot(((C - X[zz,:]) * G[zz,:][:,None]).T, ww / maxw) * maxw
         else:
-            raise StandardError("derivative for rbf type not implemented")
+            raise Exception("derivative for rbf type not implemented")
         return D                
 
     def __call__(self, *args, **kwargs):
@@ -476,9 +476,9 @@ class RBFInt(object):
         D : 2d array (L,N)
             1st partial derivatives.
         """
-        if 'der' in kwargs.keys():
+        if 'der' in list(kwargs.keys()):
             if kwargs['der'] != 1:
-                raise StandardError("only der=1 supported")
+                raise Exception("only der=1 supported")
             kwargs.pop('der')
             return self.deriv(*args, **kwargs)
         else:            
@@ -526,9 +526,9 @@ def train_param(X, Y, param0='est', pattern='rand', regstep=2,
         rbfi.train('linalg', param=p[0])
         d = Y - rbfi(X)
         err = math.sqrt(np.dot(d,d))
-        print('train_param: err=%e' %err)
+        print(('train_param: err=%e' %err))
         return err
-    idxs = range(npoints)
+    idxs = list(range(npoints))
     if shuffle:        
         np.random.shuffle(idxs)
     if pattern == 'reg':
@@ -539,7 +539,7 @@ def train_param(X, Y, param0='est', pattern='rand', regstep=2,
         Xtr = X[np.array(idxs)[msk],...]
         Ytr = Y[np.array(idxs)[msk]]
     else:
-        raise StandardError("unknown pattern")
+        raise Exception("unknown pattern")
     rbfi = RBFInt(Xtr, Ytr, rbf=rbf)
     rbfi.calc_dist_mat() # only for get_param .. fix later
     p0 = rbfi.get_param(param0) 

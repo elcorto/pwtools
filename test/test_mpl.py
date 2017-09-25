@@ -32,7 +32,7 @@ def test_mpl():
         from pwtools import mpl
         try:
             import os
-            print os.environ['DISPLAY']
+            print(os.environ['DISPLAY'])
             fig,ax = mpl.fig_ax(dpi=15,num=20)
             assert fig.dpi == 15
             assert fig.number == 20

@@ -2,7 +2,7 @@ import os
 from pwtools.batch import FileTemplate
 from pwtools.common import file_write, file_read
 from pwtools import sql
-from testenv import testdir
+from .testenv import testdir
 pj = os.path.join
 
 def test_placeholders():

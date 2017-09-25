@@ -37,13 +37,13 @@ def run(tgz, skip=[], atol_map={}):
     for name in tr1.attr_lst:
         if name in skip:
             continue
-        elif atol_map.has_key(name):
+        elif name in atol_map:
             set_atol(atol_map[name])
         else:
             set_atol()
         x1 = getattr(tr1, name)
         x2 = getattr(tr2, name)
-        print name
+        print(name)
         tools.assert_all_types_almost_equal(x1, x2) 
     # stress
     assert (tr1.stress[:,0,1] == tr1.stress[:,1,0]).all()

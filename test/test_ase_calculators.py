@@ -3,7 +3,7 @@ import numpy as np
 from pwtools import io, constants, common, parse
 from pwtools.calculators import Pwscf, Lammps
 from pwtools.test.tools import skip
-from testenv import testdir
+from .testenv import testdir
 pj = os.path.join
 
 prefix = 'ase_calculator'
@@ -65,11 +65,11 @@ def test_pwscf_calculator():
         skip("no pw.x found, skipping test")
     else:
         pseudo_dir = pj(testdir, prefix, 'pseudo')
-        print common.backtick("mkdir -pv {p}; cp files/qe_pseudos/*.gz {p}/; \
-            gunzip {p}/*".format(p=pseudo_dir))
+        print(common.backtick("mkdir -pv {p}; cp files/qe_pseudos/*.gz {p}/; \
+            gunzip {p}/*".format(p=pseudo_dir)))
         at = get_atoms_with_calc_pwscf(pseudo_dir)
 
-        print "scf"
+        print("scf")
         # trigger calculation here
         forces = at.get_forces()
         etot = at.get_potential_energy()
@@ -83,7 +83,7 @@ def test_pwscf_calculator():
         # files/ase/pw.scf.out.start is a norm-conserving LDA struct,
         # calculated with pz-vbc.UPF, so the PBE vc-relax will make the cell
         # a bit bigger
-        print "vc-relax"
+        print("vc-relax")
         from ase.optimize import BFGS
         from ase.constraints import UnitCellFilter
         opt = BFGS(UnitCellFilter(at))
@@ -113,10 +113,10 @@ def test_lammps_calculator():
         at = get_atoms_with_calc_lammps()
         at.rattle(stdev=0.001, seed=int(time.time()))
         common.makedirs(at.calc.directory)
-        print common.backtick("cp -v utils/lammps/AlN.tersoff {p}/".format(
-            p=at.calc.directory))
+        print(common.backtick("cp -v utils/lammps/AlN.tersoff {p}/".format(
+            p=at.calc.directory)))
 
-        print "scf"
+        print("scf")
         forces = at.get_forces()
         etot = at.get_potential_energy()
         stress = at.get_stress(voigt=False) # 3x3
@@ -127,7 +127,7 @@ def test_lammps_calculator():
         assert np.allclose(st.stress, -stress * constants.eV_by_Ang3_to_GPa,
                            atol=1e-10)
         
-        print "relax"
+        print("relax")
         from ase.optimize import BFGS
         opt = BFGS(at, maxstep=0.04)
         opt.run(fmax=0.001, steps=10)

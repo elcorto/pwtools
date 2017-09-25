@@ -57,9 +57,9 @@ if __name__ == '__main__':
     dct['all:all:0:-1'] = {'amask': amask, 'tmask': tmask}
 
     dr = 0.1
-    for key, val in dct.iteritems():
-        print "--- %s ---" %key
-        print "pwtools ..."
+    for key, val in dct.items():
+        print("--- %s ---" %key)
+        print("pwtools ...")
         out_pwt = \
             crys.rpdf(traj, 
                       dr=dr, 
@@ -73,7 +73,7 @@ if __name__ == '__main__':
             s1 = "name %s" %s1
         if s2 != 'all':
             s2 = "name %s" %s2
-        print "vmd ..."
+        print("vmd ...")
         out_vmd = \
             crys.vmd_measure_gofr(traj, 
                                   dr=dr, 
@@ -83,7 +83,7 @@ if __name__ == '__main__':
                                   last=last,
                                   tmpdir=tmpdir,
                                   )
-        print("rmax_auto: %f" %crys.rmax_smith(traj.cell[0,...]))
+        print(("rmax_auto: %f" %crys.rmax_smith(traj.cell[0,...])))
         plt.figure()
         plt.plot(out_pwt[:,0], out_pwt[:,1], 'b', label='pwtools')
         plt.plot(out_vmd[:,0], out_vmd[:,1], 'r', label='vmd')

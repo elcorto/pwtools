@@ -1,6 +1,6 @@
 import os, tempfile, uuid
 from pwtools.common import backup, file_write, file_read
-from testenv import testdir
+from .testenv import testdir
 pj = os.path.join
 
 def create_full_dir(dn):

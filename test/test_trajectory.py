@@ -18,7 +18,7 @@ def remove_from_lst(lst, items):
         while item in _lst:
             _lst.remove(item)
         if item in _lst:
-            raise StandardError("hmm, item %s still in lst" %item)
+            raise Exception("hmm, item %s still in lst" %item)
     return _lst
 
 
@@ -59,11 +59,11 @@ def test_traj():
                     )
     # Test if all getters work.
     for name in traj.attr_lst:
-        print "test if getters work:", name
+        print("test if getters work:", name)
         traj.try_set_attr(name)
         assert getattr(traj, name) is not None, "attr None: %s" %name
         assert eval('traj.get_%s()'%name) is not None, "getter returns None: %s" %name
-        print "test if getters work:", name, "... ok"
+        print("test if getters work:", name, "... ok")
     aaae(coords_frac, traj.coords_frac)
     aaae(coords, traj.coords)
     aaae(cryst_const, traj.cryst_const)
@@ -174,10 +174,10 @@ def test_traj():
     traj2 = traj.copy()
     for name in traj.attr_lst:
         val = getattr(traj,name)
-        if val is not None and not (isinstance(val, types.IntType) or \
-            isinstance(val, types.FloatType)):
+        if val is not None and not (isinstance(val, int) or \
+            isinstance(val, float)):
             val2 = getattr(traj2,name)
-            print "test copy:", name, type(val), type(val2)
+            print("test copy:", name, type(val), type(val2))
             assert id(val2) != id(val)
             assert_all_types_equal(val2, val)
     assert_dict_with_all_types_equal(traj.__dict__, traj2.__dict__,
@@ -200,9 +200,9 @@ def test_concatenate():
         if attr_name in none_attrs:
             assert getattr(tr_cat, attr_name) is None
         else:
-            print "test_concatenate: shape[0] == nstep:", attr_name
+            print("test_concatenate: shape[0] == nstep:", attr_name)
             assert getattr(tr_cat, attr_name).shape[0] == nstep
-            print "test_concatenate: shape[0] == nstep:", attr_name, "...ok"
+            print("test_concatenate: shape[0] == nstep:", attr_name, "...ok")
     
     # cat Trajectory
     tr = get_rand_traj()
@@ -244,7 +244,7 @@ def test_populated_attrs():
             self.attr_lst = ['a','b','c', 'd']
             for name in self.attr_lst:
                 setattr(self, name, None)
-            for k,v in kwds.iteritems():
+            for k,v in kwds.items():
                 setattr(self, k, v)
     
     x = Dummy(a=1,b=2,c=3,d=8)
@@ -377,7 +377,7 @@ def test_compress():
             attr_new = getattr(new, name)
             if (attr_old.dtype == float_dtype_old) and \
                 (attr_old.dtype.kind=='f'):
-                print name
+                print(name)
                 assert type(attr_new) == arr_t
                 assert attr_new.dtype == float_dtype_new
                 # for all non-integer attrs, there must be a small numerical

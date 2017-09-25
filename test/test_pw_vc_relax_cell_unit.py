@@ -47,7 +47,7 @@ def test_pw_vc_relax_out():
          'FOO (alat=  1.23)': 'alat',
          }
 
-    for txt,val in dct.iteritems():
+    for txt,val in dct.items():
         fn = pj(testdir, 'test_block_header_unit.txt')
         common.file_write(fn, txt)
         pp.filename = fn

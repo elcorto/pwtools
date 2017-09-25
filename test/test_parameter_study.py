@@ -2,7 +2,7 @@ import os
 import numpy as np
 from pwtools import comb, batch, common, sql
 from pwtools.test.tools import all_types_equal, assert_all_types_equal
-from testenv import testdir
+from .testenv import testdir
 pj = os.path.join
 
 def check_key_in_file(lines, key, file_target):
@@ -12,8 +12,8 @@ def check_key_in_file(lines, key, file_target):
     for ll in lines:
         if ll.strip().startswith(key):
             file_val_str = ll.split('=')[1].strip()
-            print("check_key_in_file: key={0}, "
-                  "file_val_str={1}, file_target={2}".format(key, file_val_str, file_target))
+            print(("check_key_in_file: key={0}, "
+                  "file_val_str={1}, file_target={2}".format(key, file_val_str, file_target)))
             # hack to convert string from file to correct type, failed
             # conversion raises ValueError
             ret = False
@@ -46,7 +46,7 @@ def check_generated(calc_root, machine_dct, params_lst, revision):
                 lines = common.file_readlines(fn)
                 # assemble all possible replacements in one list of SQLEntry
                 # instances, some things are redundantely checked twice ...
-                sql_lst = params_lst[idx] + machine.get_sql_record().values()
+                sql_lst = params_lst[idx] + list(machine.get_sql_record().values())
                 for db_key in db_colnames:
                     db_val = db.get_single("select %s from calc "
                                            "where idx==?" %db_key,
@@ -63,10 +63,10 @@ def check_generated(calc_root, machine_dct, params_lst, revision):
                         assert_all_types_equal(db_val, sqlentry.sqlval)
                     else:
                         db_val = 'NOT_DEFINED_IN_DB'
-                    print("check_generated: idx={0}, sqlentry.key={1}, "
+                    print(("check_generated: idx={0}, sqlentry.key={1}, "
                           "sqlentry.sqlval={2}, db_val={3}".format(idx, sqlentry.key, 
                                                                  sqlentry.sqlval,
-                                                                 db_val))
+                                                                 db_val)))
                     check_key_in_file(lines, sqlentry.key, sqlentry.sqlval)
     db.finish()
 

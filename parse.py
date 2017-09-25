@@ -117,8 +117,8 @@ with.
 
 import re, sys, os
 from math import acos, pi, sin, cos, sqrt
-from itertools import izip
-from cStringIO import StringIO
+
+from io import StringIO
 import types
 import warnings
 
@@ -400,8 +400,8 @@ class CifFile(StructureFileParser):
     
     def get_coords_frac(self):
         if self.check_set_attr('_cif_block'):
-            if self._cif_block.has_key('_atom_site_fract_x'):
-                arr = np.array([map(self.cif_str2float, [x,y,z]) for x,y,z in izip(
+            if '_atom_site_fract_x' in self._cif_block:
+                arr = np.array([list(map(self.cif_str2float, [x,y,z])) for x,y,z in zip(
                                     self._cif_block['_atom_site_fract_x'],
                                     self._cif_block['_atom_site_fract_y'],
                                     self._cif_block['_atom_site_fract_z'])])
@@ -413,8 +413,8 @@ class CifFile(StructureFileParser):
         
     def get_coords(self):
         if self.check_set_attr('_cif_block'):
-            if self._cif_block.has_key('_atom_site_Cartn_x'):
-                arr = np.array([map(self.cif_str2float, [x,y,z]) for x,y,z in izip(
+            if '_atom_site_Cartn_x' in self._cif_block:
+                arr = np.array([list(map(self.cif_str2float, [x,y,z])) for x,y,z in zip(
                                     self._cif_block['_atom_site_Cartn_x'],
                                     self._cif_block['_atom_site_Cartn_y'],
                                     self._cif_block['_atom_site_Cartn_z'])])
@@ -428,8 +428,8 @@ class CifFile(StructureFileParser):
         self.try_set_attr('_cif_block')
         try_lst = ['_atom_site_type_symbol', '_atom_site_label']
         for entry in try_lst:
-            if self._cif_block.has_key(entry):
-                return map(self.cif_clear_atom_symbol, self._cif_block[entry])
+            if entry in self._cif_block:
+                return list(map(self.cif_clear_atom_symbol, self._cif_block[entry]))
         return None                
     
     def get_cryst_const(self):
@@ -1536,13 +1536,13 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
         if os.path.exists(fn):
             arr = np.loadtxt(fn)
             ncols = arr.shape[-1]
-            if ncols not in self._energies_order.keys():
-                raise StandardError("only %s columns supported in "
-                    "ENERGIES file" %str(self._energies_order.keys()))
+            if ncols not in list(self._energies_order.keys()):
+                raise Exception("only %s columns supported in "
+                    "ENERGIES file" %str(list(self._energies_order.keys())))
             else:
                 order = self._energies_order[ncols]
             dct = {}
-            for key, idx in order.iteritems():
+            for key, idx in order.items():
                 dct[key] = arr[:,idx]
             del arr
             return dct
@@ -1642,7 +1642,7 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
         req = ['_energies_file', 'etot']
         self.try_set_attr_lst(req)
         if self.is_set_attr_lst(req):
-            if self._energies_file.has_key('eham'):
+            if 'eham' in self._energies_file:
                 return self._energies_file['eham'] 
             else:
                 return self.etot
@@ -1654,7 +1654,7 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
         """Fictitious electron kinetic energy [Ha]."""
         req = '_energies_file'
         self.try_set_attr(req)
-        if self.is_set_attr(req) and self._energies_file.has_key('ekinc'):
+        if self.is_set_attr(req) and 'ekinc' in self._energies_file:
             return self._energies_file['ekinc']
         else:
             return None
@@ -1677,7 +1677,7 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
         """
         req = '_energies_file'
         self.try_set_attr(req)
-        if self.is_set_attr(req) and self._energies_file.has_key('ekinh'):
+        if self.is_set_attr(req) and 'ekinh' in self._energies_file:
             return self._energies_file['ekinh']
         else:
             return None
@@ -2040,7 +2040,7 @@ class Cp2kRelaxOutputFile(Cp2kMDOutputFile):
                         return np.concatenate((cell, cell[-1,...][None,...]), 
                                                axis=0)
                     else:
-                        raise StandardError("cell and coords have a timestep "
+                        raise Exception("cell and coords have a timestep "
                             "offset != 1, dunno what to do "
                             "(offset={0}, coords: {1}, cell: {2})".format(offset,self.coords.shape, cell.shape))
                 else:
@@ -2249,7 +2249,7 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
    
     @staticmethod
     def _get_from_dct(dct, key):
-        if dct.has_key(key):
+        if key in dct:
             return dct[key]
         else:
             return None
@@ -2313,7 +2313,7 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
     def _lmp_dump2arr3d(self, dct, keys):
         if self.check_set_attr('natoms'):
             for k in keys:
-                if not dct.has_key(k):
+                if k not in dct:
                     return None
             nstep = dct[keys[0]].shape[0] / self.natoms
             arr = np.array([dct[keys[0]],
@@ -2335,7 +2335,7 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
         if self.check_set_attr('_thermo_dct'):
             keys = 'Pxx Pyy Pzz Pxy Pxz Pyz'.split()
             for k in keys:
-                if not self._thermo_dct.has_key(k):
+                if k not in self._thermo_dct:
                     return None
             voigt = np.array([self._thermo_dct['P'+k] for k in ['xx', 'yy',
                 'zz', 'yz', 'xz', 'xy']]).T
@@ -2375,7 +2375,7 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
         if self.check_set_attr('_thermo_dct'):
             keys = 'Cella Cellb Cellc CellAlpha CellBeta CellGamma'.split()
             for k in keys:
-                if not self._thermo_dct.has_key(k):
+                if k not in self._thermo_dct:
                     return None
             nstep = len(self._thermo_dct['Cella'])
             ret = np.empty((nstep,6))
@@ -2425,7 +2425,7 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
         if os.path.exists(self.symbolsfilename):
             return com.file_read(self.symbolsfilename).split()
         elif self.check_set_attr_lst(['_dump_dct','natoms']):
-            if self._dump_dct.has_key('type'):
+            if 'type' in self._dump_dct:
                 if self.order is None:
                    cmd = r"grep -m1 'dump_modify.*element' %s | sed -re \
                            's/.*ment (.*)/\1/'" %self.filename
@@ -2433,7 +2433,7 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
                               enumerate(com.backtick(cmd).split()))        
                 else:
                     # {'a':1,'b':2} -> {1:'a',2:'b'}
-                    revorder = dict((v,k) for k,v in self.order.iteritems())
+                    revorder = dict((v,k) for k,v in self.order.items())
                 return [revorder[int(ii)] for ii in self._dump_dct['type'][:self.natoms]]
             else:
                 return None

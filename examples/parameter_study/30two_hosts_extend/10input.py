@@ -143,9 +143,9 @@ calc.write_input(sleep=0, backup=True, mode='a')
 
 
 # Load written sqlite DB and print table.
-print common.backtick("sqlite3 -column -header calc.db \
-                       'select * from calc'")
+print(common.backtick("sqlite3 -column -header calc.db \
+                       'select * from calc'"))
 
 # Some example db query using Python.    
 db = sql.SQLiteDB('calc.db', table='calc')
-print db.get_dict("select idx,ecutwfc,pseudo from calc where ecutwfc <= 60")
+print(db.get_dict("select idx,ecutwfc,pseudo from calc where ecutwfc <= 60"))

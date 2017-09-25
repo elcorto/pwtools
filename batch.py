@@ -3,6 +3,7 @@ import numpy as np
 from pwtools import common
 from pwtools.sql import SQLEntry, SQLiteDB
 from pwtools.verbose import verbose
+import collections
 pj = os.path.join
 
 # backwd compat
@@ -53,7 +54,7 @@ class Machine(object):
         if self.template is not None:
             return self.template.basename
         else:
-            raise StandardError("cannot get job file name")
+            raise Exception("cannot get job file name")
 
     def get_sql_record(self):
         """Return a dict of SQLEntry instances. Each key is a attr name from
@@ -206,7 +207,7 @@ class FileTemplate(object):
             copy_only = True
         else:
             if self.keys is None:
-                _keys = dct.iterkeys()
+                _keys = dct.keys()
                 warn_not_found = False
             else:
                 _keys = self.keys
@@ -232,7 +233,7 @@ class FileTemplate(object):
                     # dct = sql_record, a list of SQLEntry's
                     rules[self.func(key)] = dct[key].fileval
                 else:
-                    raise StandardError("'mode' must be wrong")
+                    raise Exception("'mode' must be wrong")
             new_txt = common.template_replace(txt, 
                                               rules, 
                                               mode='txt',
@@ -535,7 +536,7 @@ class ParameterStudy(object):
                     max_idx = sqldb.execute("select max(idx) from %s" \
                     %self.db_table).fetchone()[0]
                 else:
-                    raise StandardError("database '%s': table '%s' has no "
+                    raise Exception("database '%s': table '%s' has no "
                           "column 'idx', don't know how to number calcs"
                           %(self.dbfn, self.db_table))
                 if sqldb.has_column('revision'):
@@ -566,7 +567,7 @@ class ParameterStudy(object):
                      'calc_name' : self.study_name + "_run%i" %idx,
                      }
                 extra_params = [SQLEntry(key=key, sqlval=val) for key,val in \
-                                extra_dct.iteritems()]
+                                extra_dct.items()]
                 # templates[:] to copy b/c they may be modified in Calculation
                 calc = Calculation(machine=machine,
                                    templates=self.templates[:], 
@@ -586,21 +587,21 @@ class ParameterStudy(object):
         # for incomplete parameters: collect header parts from all records and
         # make a set = unique entries
         raw_header = [(key, entry.sqltype.upper()) for record in sql_records \
-            for key, entry in record.iteritems()]
+            for key, entry in record.items()]
         header = list(set(raw_header))
         if have_new_db:
             sqldb.create_table(header)
         else:
             for record in sql_records:
-                for key, entry in record.iteritems():
+                for key, entry in record.items():
                     if not sqldb.has_column(key):
                         sqldb.add_column(key, entry.sqltype.upper())
         for record in sql_records:
             cmd = "insert into %s (%s) values (%s)"\
                 %(self.db_table,
-                  ",".join(record.keys()),
-                  ",".join(['?']*len(record.keys())))
-            sqldb.execute(cmd, tuple(entry.sqlval for entry in record.itervalues()))
+                  ",".join(list(record.keys())),
+                  ",".join(['?']*len(list(record.keys()))))
+            sqldb.execute(cmd, tuple(entry.sqlval for entry in record.values()))
         if excl and revision > 0 and sqldb.has_column('revision'):
             old_idx_lst = [str(x) for x, in sqldb.execute("select idx from calc where \
                                                           revision < ?", (revision,))]
@@ -671,7 +672,7 @@ def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s", mode='last', orig=False,
         elif mode == 'last':    
             dyy[:,iy] = yy[-1,iy] - yy[:,iy]
         else:
-            raise StandardError("unknown mode")
+            raise Exception("unknown mode")
     if absdiff:
         dyy = np.abs(dyy)
     if orig:            
@@ -713,7 +714,7 @@ def default_repl_keys():
     m = Machine(hostname='foo', 
                 template=FileTemplate(basename='foo.job',
                                       templ_dir=calc_root))
-    print ("writing test files to: %s, will be deleted" %calc_root)
+    print("writing test files to: %s, will be deleted" %calc_root)
     params_lst = [[SQLEntry(key='dummy', sqlval=1)]]
     study = ParameterStudy(machines=m, params_lst=params_lst,
                            calc_root=calc_root)
@@ -724,7 +725,7 @@ def default_repl_keys():
         db_keys.pop(db_keys.index(kk))
     db.finish()
     ret = {'ParameterStudy' : db_keys,
-           'Machine' : m.get_sql_record().keys()}
+           'Machine' : list(m.get_sql_record().keys())}
     shutil.rmtree(calc_root)
     return ret
 
@@ -758,8 +759,8 @@ class Case(object):
     >>> for case in [case1, case2]: print case.x, case.y
     """
     def __init__(self, **kwds):
-        for k,v in kwds.iteritems():
+        for k,v in kwds.items():
             setattr(self, k, v)
         
-        if hasattr(self, 'init') and callable(self.init):
+        if hasattr(self, 'init') and isinstance(self.init, collections.Callable):
             eval('self.init()')

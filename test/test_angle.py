@@ -7,7 +7,7 @@ def angles(struct, pbc=False, mask_val=999.0, deg=True):
     nang = struct.natoms*(struct.natoms-1)*(struct.natoms-2)
     norm = np.linalg.norm
     anglesijk = np.ones((struct.natoms,)*3, dtype=float)*mask_val
-    angleidx = np.array([x for x in permutations(range(struct.natoms),3)])
+    angleidx = np.array([x for x in permutations(list(range(struct.natoms)),3)])
     for ijk in angleidx:
         ii,jj,kk = ijk
         ci = struct.coords_frac[ii,:]
@@ -48,7 +48,7 @@ def test_angle():
             assert np.allclose(agf, agpy)
             assert aipy.shape[0] == nang
             assert len((agf != mask_val).nonzero()[0]) == nang
-            angleidx = np.array(zip(*(agf != mask_val).nonzero()))
+            angleidx = np.array(list(zip(*(agf != mask_val).nonzero())))
             assert (angleidx == aipy).all()       
             assert not np.isnan(agpy).any(), "python angle nan"
             assert not np.isnan(agf).any(), "fortran angle nan"

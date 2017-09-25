@@ -18,7 +18,7 @@ cols = [('etot', 'float'),          # eV
 db.add_columns(cols)
 
 for idx in idx_lst:
-    print idx
+    print(idx)
     struct = io.cpickle_load('results/%i/traj.pk' %idx)[-1]
     db.execute("update calc set etot=? where idx==?", (struct.etot, idx))
     db.execute("update calc set volume=? where idx==?", (struct.volume, idx))

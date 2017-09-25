@@ -129,7 +129,7 @@ def test_scell():
     # Trajectory
     natoms = 4
     nstep = 100
-    symbols = [syms.next() for ii in range(natoms)]
+    symbols = [next(syms) for ii in range(natoms)]
     # cell 2d
     coords_frac = rand(nstep,natoms,3)
     cell = rand(3,3)
@@ -168,7 +168,7 @@ def test_scell():
     coords_frac = rand(natoms,3)
     cell = rand(3,3)
     dims = (2,3,4)
-    symbols = [syms.next() for ii in range(natoms)]
+    symbols = [next(syms) for ii in range(natoms)]
     struct = Structure(coords_frac=coords_frac,
                        cell=cell,
                        symbols=symbols)
@@ -205,7 +205,7 @@ def test_direc_and_neg_dims():
     coords_frac = rand(natoms,3)
     cell = rand(3,3)
     dims = (2,3,4)
-    symbols = [syms.next() for ii in range(natoms)]
+    symbols = [next(syms) for ii in range(natoms)]
     struct = Structure(coords_frac=coords_frac,
                        cell=cell,
                        symbols=symbols)

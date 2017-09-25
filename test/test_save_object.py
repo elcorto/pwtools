@@ -6,7 +6,7 @@ import os, tempfile
 import numpy as np
 from pwtools.parse import PwMDOutputFile
 from pwtools import common, crys, io
-from testenv import testdir
+from .testenv import testdir
 from pwtools.test import tools
 from pwtools.test.tools import ade
 
@@ -17,33 +17,33 @@ def test_save_object():
     dumpfile = os.path.join(testdir, 'pw.md.pk')
 
     c = PwMDOutputFile(filename=filename)
-    print ">>> parsing ..."
+    print(">>> parsing ...")
     c.parse()
-    print ">>> ... done"
+    print(">>> ... done")
 
-    print ">>> saving %s ..." %dumpfile
+    print(">>> saving %s ..." %dumpfile)
     c.dump(dumpfile)
-    print ">>> ... done"
+    print(">>> ... done")
 
-    print ">>> loading ..."
+    print(">>> loading ...")
     c2 = io.read_pickle(dumpfile)
-    print ">>> ... done"
+    print(">>> ... done")
 
-    print ">>> checking equalness of attrs in loaded object ..."
+    print(">>> checking equalness of attrs in loaded object ...")
     known_fails = {'fd': 'closed/uninitialized file',
                    'cont': 'container object'}
     arr_t = type(np.array([1]))
     dict_t = type({})
-    for attr in c.__dict__.iterkeys():
+    for attr in c.__dict__.keys():
         c_val = getattr(c, attr)
         c2_val = getattr(c2, attr)
         dotest = True
-        for name, string in known_fails.iteritems():
+        for name, string in known_fails.items():
             if name == attr:
-                print "known fail: %s: %s: %s" %(name, string, attr)
+                print("known fail: %s: %s: %s" %(name, string, attr))
                 dotest = False
         if dotest:
-            print "testing:", attr, type(c_val), type(c2_val)
+            print("testing:", attr, type(c_val), type(c2_val))
             type_c = type(c_val)
             type_c2 = type(c2_val)
             assert type_c is type_c2, "attr: %s: types differ: %s, %s" \

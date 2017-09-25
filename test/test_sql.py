@@ -7,7 +7,7 @@ import numpy as np
 from pwtools.sql import SQLiteDB, SQLEntry
 from pwtools import sql
 from pwtools import common
-from testenv import testdir
+from .testenv import testdir
 pj = os.path.join
 
 def test_sql():
@@ -17,7 +17,7 @@ def test_sql():
     for pp in sys.path:
         exe = pj(pp, 'sqlite3')
         if os.path.isfile(exe):
-            print "found:", exe
+            print("found:", exe)
             have_sqlite3 = True
             break
         
@@ -104,10 +104,10 @@ def test_sql():
     db.execute("UPDATE %s SET baz=? where idx==2" %db.table, ('zz',))
     db.commit()
     if have_sqlite3:
-        print common.backtick("sqlite3 %s 'select * from calc'" %dbfn)
-    print db.execute("select baz from calc").fetchall()
+        print(common.backtick("sqlite3 %s 'select * from calc'" %dbfn))
+    print(db.execute("select baz from calc").fetchall())
     assert db.execute("select baz from calc").fetchall() == \
-        [(u'xx',), (u'yy',), (u'zz',)]
+        [('xx',), ('yy',), ('zz',)]
     
     # add even more cols with add_columns()
     add_header = [('bob', 'TEXT'), ('alice', 'BLOB')]
@@ -157,7 +157,7 @@ def test_sql_matrix():
 
 
 def test_attach_fill_column():
-    lists = zip(['a','b']*2, [1.0,2.0]*2)
+    lists = list(zip(['a','b']*2, [1.0,2.0]*2))
     colnames = ['foo','bar']
     dbfn = pj(testdir, 'test3.db')
     if os.path.exists(dbfn):
@@ -177,7 +177,7 @@ def test_attach_fill_column():
                     extend=True, start=5)
     assert db.get_max_rowid() == 6                     
     assert db.get_list1d('select baz from test3') == [1,2,3,4,5,6]
-    assert db.get_list1d("select foo from test3") == [u'a', u'b']*2 + [None]*2
+    assert db.get_list1d("select foo from test3") == ['a', 'b']*2 + [None]*2
     assert db.get_list1d("select bar from test3") ==  [1.0, 2.0]*2 + [None]*2
     # `extend` kwd not needed b/c table already has 6 rows
     db.attach_column('baz2', values=[1,2,3,4,5,6], 
@@ -208,13 +208,13 @@ def test_sql_entry():
     mapping = \
         [('NULL',     None),    
          ('INTEGER',  1),       
-         ('INTEGER',  long(1)), 
+         ('INTEGER',  int(1)), 
          ('REAL',     1.0),     
          ('TEXT',     'xx'),    
-         ('TEXT',     u'xx'),   
+         ('TEXT',     'xx'),   
          ('BLOB',     np.array([1,2,3]).data)]
     for sqltype, val in mapping:
-        print val, sqltype
+        print(val, sqltype)
         x = SQLEntry(sqlval=val)
         assert x.sqltype == sqltype
 
@@ -233,19 +233,19 @@ def _rand_db_filename():
     return dbfn
 
 def test_makedb():
-    lists = zip(['a','b'],[1.0,2.0])
+    lists = list(zip(['a','b'],[1.0,2.0]))
     colnames = ['foo', 'bar']
     dbfn = _rand_db_filename()
     table = dbfn.split('/')[-1].replace('.db','')
     sql.makedb(filename=dbfn, lists=lists, colnames=colnames, mode='w')
     db = sql.SQLiteDB(dbfn, table=table)
     dct =  db.get_dict("select * from %s" %table)
-    assert dct['foo'] == [u'a', u'b']
+    assert dct['foo'] == ['a', 'b']
     assert dct['bar'] == [1.0, 2.0]
     sql.makedb(filename=dbfn, lists=lists, colnames=colnames, mode='a')
     db = sql.SQLiteDB(dbfn, table=table)
     dct =  db.get_dict("select * from %s" %table)
-    assert dct['foo'] == [u'a', u'b']*2
+    assert dct['foo'] == ['a', 'b']*2
     assert dct['bar'] == [1.0, 2.0]*2
     
     # makedb, set table name, close=False, return open db 
@@ -254,16 +254,16 @@ def test_makedb():
     db = sql.makedb(dbfn, lists, colnames, mode='w',
                     table=table, close=False)    
     dct =  db.get_dict("select * from %s" %table)
-    assert dct['foo'] == [u'a', u'b']
+    assert dct['foo'] == ['a', 'b']
     assert dct['bar'] == [1.0, 2.0]
 
 
 def test_multi_table():
     fn1 = _rand_db_filename()
     fn2 = _rand_db_filename()
-    sql.makedb(filename=fn1, lists=zip([0,1],['a','b'],[1.0,2.0]),
+    sql.makedb(filename=fn1, lists=list(zip([0,1],['a','b'],[1.0,2.0])),
                colnames=['idx', 'c1', 'c2'], mode='w', table='tab1')
-    sql.makedb(filename=fn2, lists=zip([0,1,2],['c','d','e'],[3.0,4.0,5.0]),
+    sql.makedb(filename=fn2, lists=list(zip([0,1,2],['c','d','e'],[3.0,4.0,5.0])),
                colnames=['idx', 'c1', 'c2'], mode='w', table='tab1')
     # in memory db
     db = sql.SQLiteDB(':memory:')

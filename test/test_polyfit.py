@@ -19,7 +19,7 @@ def test_polyfit():
             {'degmin': 1, 'degmax': 5}]
     kwd_lst = make_kwd_lst(scale, levels, degs)        
     for kwds in kwd_lst:
-        print kwds
+        print(kwds)
         # 1D
         x = np.linspace(-5,5,100) 
         y = x**2.0 - 1.0
@@ -48,7 +48,7 @@ def test_polyfit():
         fit2 = num.avgpolyfit(x[:,None],y,deg=2)
         for f1,f2 in zip(fit1['fits'], fit2['fits']):
             assert_all_types_equal(f1, f2)
-        keys = fit1.keys()
+        keys = list(fit1.keys())
         keys.pop(keys.index('fits'))
         for key in keys:
             assert_all_types_equal(fit1[key], fit2[key])
@@ -68,7 +68,7 @@ def test_polyfit():
             {'degmin': 2, 'degmax': 5}]
     kwd_lst = make_kwd_lst(scale, levels, degs)        
     for kwds in kwd_lst:
-        print kwds
+        print(kwds)
         # 2D
         x = np.linspace(-5,6,20)
         y = np.linspace(-2,4,22)
@@ -78,7 +78,7 @@ def test_polyfit():
         zz = (xx-2)**2.0 + (yy-1)**4.0 - 1.0
         f = num.PolyFit(points, zz, **kwds)
         assert np.allclose(zz, f(points))
-        print f.get_min(xtol=1e-10, ftol=1e-10)
+        print(f.get_min(xtol=1e-10, ftol=1e-10))
         assert np.allclose(np.array([2.0, 1.0]), f.get_min(xtol=1e-10, ftol=1e-8), atol=1e-3)
         assert np.allclose(-1.0, f(f.get_min()))
 

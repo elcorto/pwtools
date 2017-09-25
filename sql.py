@@ -1,7 +1,7 @@
 import sqlite3, types
 import numpy as np
 from pwtools import common
-from itertools import izip
+
 import os
 
 
@@ -29,16 +29,15 @@ def find_sqltype(val):
         String with sql type which can be used to set up a sqlile table
     """        
     mapping = {\
-        types.NoneType:    'NULL',
-        types.IntType:     'INTEGER',
-        types.LongType:    'INTEGER',
-        types.FloatType:   'REAL',  # 'FLOAT' also works
-        types.StringTypes: 'TEXT',  # StringType + UnicodeType
-        types.BufferType:  'BLOB'}
-    for typ in mapping.keys():
+        type(None): 'NULL',
+        int:        'INTEGER',
+        float:      'REAL',  # 'FLOAT' also works
+        str:        'TEXT',  
+        memoryview: 'BLOB'}
+    for typ in mapping:
         if isinstance(val, typ):
             return mapping[typ]
-    raise StandardError("type '%s' unknown, cannot find mapping "
+    raise Exception("type '%s' unknown, cannot find mapping "
         "to sqlite3 type" %str(type(val)))
 
 
@@ -228,7 +227,7 @@ class SQLiteDB(object):
     def _get_table(self, table):
         if table is None:
             if self.table is None:
-                raise StandardError("table and self.table are None")
+                raise Exception("table and self.table are None")
             else:
                 return self.table
         else:
@@ -580,7 +579,7 @@ def sql_column(key, lst, sqltype=None, sqlval_func=lambda x: x, fileval_func=lam
                      sqltype=_sqltype, 
                      sqlval=sv, 
                      fileval=fv) for sv,fv in \
-                        izip(sqlval_lst, fileval_lst)]
+                        zip(sqlval_lst, fileval_lst)]
 
 
 def sql_matrix(lists, header=None, colnames=None, sqlval_funcs=None, fileval_funcs=None):
@@ -644,7 +643,7 @@ def sql_matrix(lists, header=None, colnames=None, sqlval_funcs=None, fileval_fun
     if header is None:
         assert colnames is not None, ("colnames is None")
         sqltypes = [find_sqltype(xx) for xx in lists[0]]
-        header = zip(colnames, sqltypes)
+        header = list(zip(colnames, sqltypes))
     ncols = len(header)
     ncols2 = len(lists[0])
     keys = [entry[0] for entry in header]
@@ -725,7 +724,7 @@ def makedb(filename, lists, colnames, table=None, mode='a', close=True, **kwds):
         if os.path.exists(filename):
             os.remove(filename)
     sqltypes = [find_sqltype(xx) for xx in lists[0]]
-    header = zip(colnames, sqltypes)
+    header = list(zip(colnames, sqltypes))
     db = SQLiteDB(filename, table=table)
     if not db.has_table(table):
         db.create_table(header)

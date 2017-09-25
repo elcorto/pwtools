@@ -7,6 +7,6 @@ from pwtools import sql, io
 db = sql.SQLiteDB('calc.db', table='calc')
 
 for idx in db.get_list1d("select idx from calc"):
-    print idx
+    print(idx)
     tr = io.read_lammps_md_txt('calc/%i/log.lammps' %idx)
     tr.dump('results/%i/traj.pk' %idx)

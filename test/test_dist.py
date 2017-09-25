@@ -10,7 +10,7 @@ def test_dist():
     d1 = num.distsq(X,Y)
     d2 = ((X[:,None,...] - Y[None,...])**2.0).sum(axis=-1)
     d3 = cdist(X,Y, metric='euclidean')**2.0
-    print "d1 - d2"
+    print("d1 - d2")
     aaae(d1,d2)
-    print "d1 - d3"
+    print("d1 - d3")
     aaae(d1,d3)

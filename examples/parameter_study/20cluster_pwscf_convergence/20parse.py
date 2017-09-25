@@ -7,6 +7,6 @@ from pwtools import sql, io
 db = sql.SQLiteDB('calc.db', table='calc')
 
 for idx in db.get_list1d("select idx from calc"):
-    print idx
+    print(idx)
     st = io.read_pw_scf('calc/%i/pw.out' %idx)
     st.dump('results/%i/struct.pk' %idx)

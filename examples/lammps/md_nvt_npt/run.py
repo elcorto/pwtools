@@ -55,7 +55,7 @@ if sys.argv[1] == 'npt':
 elif sys.argv[1] == 'nvt':    
     ens_txt = nvt_txt
 else:
-    raise StandardError("only nvt / npt allowed")
+    raise Exception("only nvt / npt allowed")
 
 # create structure file
 st = crys.Structure(coords_frac=np.array([[0.0]*3, [.5]*3]),
@@ -76,9 +76,9 @@ trdcd = io.read_lammps_md_dcd('log.lammps')
 # plotting
 plots = mpl.prepare_plots(['coords', 'coords_frac', 'velocity', 
                            'cryst_const', 'cell'])
-for name,pl in plots.iteritems():
+for name,pl in plots.items():
     trtxt = trtxt_orig.copy()
-    print name
+    print(name)
     xtxt = getattr(trtxt, name)
     setattr(trtxt, name, None)
     xcalc = eval('trtxt.get_%s()' %name)

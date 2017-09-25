@@ -3,7 +3,7 @@
 # After scipy.signal: Some general "signal procressing" tools (FFT,
 # correlation). Mostly textbook and reference implementations and utilities.
 
-from itertools import product, izip
+from itertools import product
 import numpy as np
 from scipy.fftpack import fft, ifft
 from scipy.signal import fftconvolve, gaussian, kaiserord, firwin, lfilter, freqz
@@ -198,7 +198,7 @@ def fft_1d_loop(arr, axis=-1):
     out = np.empty(arr.shape, dtype=complex)
     for idx_tup in product(*idxs):
         sl = [slice(None)] * arr.ndim
-        for idx,ax in izip(idx_tup, axes):
+        for idx,ax in zip(idx_tup, axes):
             sl[ax] = idx
         out[sl] = fft(arr[sl])
     return out        
@@ -294,7 +294,7 @@ def pad_zeros(arr, axis=0, where='end', nadd=None, upto=None, tonext=None,
     elif where == 'start':        
         return np.concatenate((np.zeros(add_shape, dtype=arr.dtype), arr), axis=axis)
     else:
-        raise StandardError("illegal `where` arg: %s" %where)
+        raise Exception("illegal `where` arg: %s" %where)
 
 
 def welch(M, sym=1):
@@ -465,16 +465,16 @@ def acorr(v, method=7, norm=True):
     c = np.zeros((nstep,), dtype=float)
     _norm = 1 if norm else 0
     if method == 1:
-        for t in xrange(nstep):    
-            for j in xrange(nstep-t):
+        for t in range(nstep):    
+            for j in range(nstep-t):
                 c[t] += v[j]*v[j+t] 
     elif method == 2:
         vv = np.concatenate((v, np.zeros((nstep,),dtype=float)))
-        for t in xrange(nstep):    
-            for j in xrange(nstep):
+        for t in range(nstep):    
+            for j in range(nstep):
                 c[t] += v[j]*vv[j+t] 
     elif method == 3: 
-        for t in xrange(nstep):
+        for t in range(nstep):
             c[t] = (v[:(nstep-t)] * v[t:]).sum()
     elif method == 4: 
         c = np.correlate(v, v, mode='full')[nstep-1:]
@@ -785,7 +785,7 @@ def smooth(data, kern, axis=0, edge='m', norm=True):
             dleft = dleft[:,0]
             dright = dright[:,0]
     else:
-        raise StandardError("unknown value for edge")
+        raise Exception("unknown value for edge")
     sig = np.concatenate((dleft, data, dright), axis=axis)
     kk = kern/float(kern.sum()) if norm else kern
     ret = fftconvolve(sig, kk, 'valid')
@@ -914,7 +914,7 @@ class FIRFilter(object):
             if N % 2 == 0:
                 N += 1
         else:
-            raise StandardError('unknown mode')
+            raise Exception('unknown mode')
         self.taps = firwin(numtaps=self.ntaps, cutoff=cutoff, window=self.window, nyq=nyq,
                            pass_zero=pass_zero, width=width)
         w,h = freqz(self.taps)

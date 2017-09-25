@@ -3,7 +3,7 @@ import numpy as np
 from pwtools import io, parse,common
 from pwtools.test.tools import assert_attrs_not_none
 from pwtools.constants import Bohr,Ang,Ha,eV
-from testenv import testdir
+from .testenv import testdir
 from pwtools.test.tools import unpack_compressed
 pj = common.pj
 
@@ -11,8 +11,8 @@ def test_cp2k_scf():
     attr_lst = parse.Cp2kSCFOutputFile().attr_lst
     for base in ['cp2k.scf.out.print_low', 'cp2k.scf.out.print_medium']:
         fn = 'files/cp2k/scf/%s' %base
-        print "testing: %s" %fn
-        print common.backtick("gunzip %s.gz" %fn)
+        print("testing: %s" %fn)
+        print(common.backtick("gunzip %s.gz" %fn))
         st = io.read_cp2k_scf(fn)
         assert_attrs_not_none(st, attr_lst=attr_lst)
 
@@ -25,8 +25,8 @@ def test_cp2k_md():
     for dr in ['files/cp2k/md/npt_f_print_low', 'files/cp2k/md/nvt_print_low']:
         base = os.path.dirname(dr) 
         fn = '%s/cp2k.out' %dr
-        print "testing: %s" %fn
-        print common.backtick('tar -C {0} -xzf {1}.tgz'.format(base,dr))
+        print("testing: %s" %fn)
+        print(common.backtick('tar -C {0} -xzf {1}.tgz'.format(base,dr)))
         tr = io.read_cp2k_md(fn)
         assert_attrs_not_none(tr, attr_lst=attr_lst)        
         pp = parse.Cp2kMDOutputFile(fn)
@@ -53,8 +53,8 @@ def test_cp2k_cell_opt():
     for dr in ['files/cp2k/cell_opt/cell_opt']:
         base = os.path.dirname(dr) 
         fn = '%s/cp2k.out' %dr
-        print "testing: %s" %fn
-        print common.backtick('tar -C {0} -xzf {1}.tgz'.format(base,dr))
+        print("testing: %s" %fn)
+        print(common.backtick('tar -C {0} -xzf {1}.tgz'.format(base,dr)))
         tr = io.read_cp2k_relax(fn)
         assert_attrs_not_none(tr, attr_lst=attr_lst, none_attrs=none_attrs)        
 

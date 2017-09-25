@@ -18,7 +18,7 @@ def test_deriv():
     x = np.linspace(0,10,100)
     y = np.sin(x)
     for n, func, decimal in [(1, np.cos, 4), (2, lambda x: -np.sin(x), 2)]:
-        print n, func
+        print(n, func)
         xd, yd = num.deriv_spl(y, n=n, fullout=True)
         assert [len(xd), len(yd)] == [len(x)]*2
         xd, yd = num.deriv_spl(y, x, n=n, fullout=True)

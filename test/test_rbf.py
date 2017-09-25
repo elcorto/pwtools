@@ -23,19 +23,19 @@ def test_rbf():
     X2 = X2.T
     Y = (np.sin(X1)+np.cos(X2)).flatten()
     X = np.array([X1.flatten(), X2.flatten()]).T
-    print X.shape, Y.shape
+    print(X.shape, Y.shape)
     rbfi = rbf.RBFInt(X,Y) 
     rbfi.train()
     tol = 1e-7
     err = rbfi(np.atleast_2d([0,0]))[0] - 1.0
-    print err
+    print(err)
     assert err < tol
     err = rbfi(np.atleast_2d([.5,.3]))[0] - (np.sin(0.5)+np.cos(0.3))
-    print err
+    print(err)
     assert err < tol
     # Big errors occur only at the domain boundary: -1, 1
     err = np.abs(Y - rbfi(X)).max()
-    print err
+    print(err)
     assert err < tol
     
     # Test train_param(). Note that in general, the `param` from param='est'
@@ -46,14 +46,14 @@ def test_rbf():
     rbfi = rbf.train_param(X,Y,pattern='rand', randskip=0.2, shuffle=False)
     tol = 1e-5
     err = rbfi(np.atleast_2d([0,0]))[0] - 1.0
-    print err
+    print(err)
     assert err < tol
     err = rbfi(np.atleast_2d([.5,.3]))[0] - (np.sin(0.5)+np.cos(0.3))
-    print err
+    print(err)
     assert err < tol
     # Big errors occur only at the domain boundary: -1, 1
     err = np.abs(Y - rbfi(X)).max()
-    print err
+    print(err)
     assert err < tol    
     
     # 1d example, deriv test

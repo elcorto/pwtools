@@ -36,11 +36,11 @@ class CalculatorBase(object):
         """Set ``self.parameters = self.default_parameters`` and update with input
         keyword arguments `kwds`. For each key in self.parameters, set
         ``self.<key> = <value>``."""
-        allowed_keys = self.default_parameters.keys()
-        input_keys = kwds.keys()
+        allowed_keys = list(self.default_parameters.keys())
+        input_keys = list(kwds.keys())
         for k in input_keys:
             if k not in allowed_keys:
-                raise StandardError("key '%s' not allowed, only: \n%s" %(k,
+                raise Exception("key '%s' not allowed, only: \n%s" %(k,
                                     str(allowed_keys)))
         self.parameters = self.default_parameters
         self.parameters.update(kwds)
@@ -197,7 +197,7 @@ K_POINTS automatic
         if self.smearing is not None:
             raise NotImplementedError("smearing not implemented")
         if self.xc is not None:
-            raise StandardError("please use the `pp` keyword instead of `xc`")
+            raise Exception("please use the `pp` keyword instead of `xc`")
         
         self.ecutrho = 4.0*self.ecutwfc if self.ecutrho is None else self.ecutrho
 
@@ -205,7 +205,7 @@ K_POINTS automatic
         self.infile = os.path.join(self.directory, self.prefix + '.in')
         self.outfile = os.path.join(self.directory, self.prefix + '.out')
         
-        self.infile_templ_keys = self.parameters.keys() + ['natoms', 'ntyp', 'atpos',
+        self.infile_templ_keys = list(self.parameters.keys()) + ['natoms', 'ntyp', 'atpos',
             'atspec', 'cell', 'kpoints']
 
         assert self.pp is not None, "set pp"
@@ -219,7 +219,7 @@ K_POINTS automatic
         struct = crys.atoms2struct(atoms)
         self.cell = common.str_arr(struct.cell)
         self.kpoints = pwscf.kpoints_str_pwin(kpts2mp(atoms, self.kpts))
-        if isinstance(self.pp, types.StringType):
+        if isinstance(self.pp, bytes):
             pseudos = ["%s.%s" %(sym, self.pp) for sym in struct.symbols_unique]
         else: 
             assert len(self.pp) == struct.ntypat
@@ -315,7 +315,7 @@ run 0
         self.init_params_from_input(kwds)
         FileIOCalculator.__init__(self, **kwds)
         
-        self.infile_templ_keys = self.parameters.keys() + \
+        self.infile_templ_keys = list(self.parameters.keys()) + \
             ['prefix', 'dumpfile', 'structfile']
         self.infile = os.path.join(self.directory, self.prefix + '.in')
         self.outfile = os.path.join(self.directory, self.prefix + '.out')

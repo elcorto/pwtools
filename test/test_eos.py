@@ -18,7 +18,7 @@ from pwtools.eos import ElkEOSFit, EosFit
 from pwtools import common, num
 from pwtools.constants import Ry, Ha, Bohr, Ang, eV, eV_by_Ang3_to_GPa
 from pwtools.test import tools
-from testenv import testdir
+from .testenv import testdir
 
 Bohr3_to_Ang3 = (Bohr**3 / Ang**3)
 
@@ -55,7 +55,7 @@ def test_eos():
     now['e0'] = eos.params['e0']
     now['b0'] = eos.params['b0'] * eV_by_Ang3_to_GPa
     now['p0'] = eos.pressure(eos.params['v0'])
-    for key,val in now.iteritems():
+    for key,val in now.items():
         msg = "EosFit: key=%s, ref=%e, val=%e" %(key, ref[key], val)
         assert np.allclose(val, ref[key], atol=1e-7), msg
 
@@ -69,7 +69,7 @@ def test_eos():
         eos_store = {}
         type_arr = type(np.array([1.0,2.0]))
         for bv_method in ['ev', 'pv']:
-            print "bv_method: %s" %bv_method
+            print("bv_method: %s" %bv_method)
             # natoms = 1, no normalization
             eos = ElkEOSFit(energy=energy,
                             volume=volume,
@@ -85,8 +85,8 @@ def test_eos():
             now.update(eos.get_min())
             
             # compare to reference
-            for key, val in ref.iteritems():
-                print "ElkEOSFit: testing:", key
+            for key, val in ref.items():
+                print("ElkEOSFit: testing:", key)
                 if type(val) == type_arr:
                     np.testing.assert_array_almost_equal(now[key], ref[key])
                 else:
@@ -109,7 +109,7 @@ def test_eos():
 
         # Other attrs for which we do not have external ref data. Test only
         # among the two bv_methods 'ev' and 'pv'.
-        print "bv"
+        print("bv")
         np.testing.assert_array_almost_equal(eos_store['ev'].bv, 
                                              eos_store['pv'].bv,
                                              decimal=2)

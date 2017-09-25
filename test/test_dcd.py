@@ -69,50 +69,50 @@ def test_dcd():
     hdr_lmp = dcd.read_dcd_header(fn_lmp)
     hdr_cp2k = dcd.read_dcd_header(fn_cp2k)
     
-    print ">>> comparing headers"
+    print(">>> comparing headers")
     for ref, dct in [(hdr_cp2k_ref, hdr_cp2k), (hdr_lmp_ref, hdr_lmp)]:
-        tools.assert_dict_with_all_types_equal(ref, dct, keys=ref.keys(),
+        tools.assert_dict_with_all_types_equal(ref, dct, keys=list(ref.keys()),
                                                strict=True)
     
     # compare data read by python (dcd.py) and fortran (dcd.f90, _dcd)
     # implementations
     # cc = cryst_const
     # co = coords
-    print ">>> comparing data"
+    print(">>> comparing data")
     for fn,convang,nstephdr,nstep,natoms in [(fn_lmp,True,True,101,16), 
                                              (fn_lmp,True,False,101,16),
                                              (fn_cp2k,False,False,16,57)]:
         cc_py, co_py = dcd.read_dcd_data(fn, convang=convang)
         cc_f, co_f = dcd.read_dcd_data_f(fn, convang=convang, nstephdr=nstephdr)
-        print ">>> ... cryst_const"
+        print(">>> ... cryst_const")
         tools.assert_array_equal(cc_py, cc_f)
-        print ">>> ... coords"
+        print(">>> ... coords")
         tools.assert_array_equal(co_py, co_f)
-        print ">>> ... shapes"
+        print(">>> ... shapes")
         assert cc_f.shape == (nstep,6)
         assert co_f.shape == (nstep,natoms,3)
         # lmp angles are around 60, cp2k around 90 degree, cosines are between
         # -1 and 1, make sure the angle conversion works
-        print ">>> ... angles"
+        print(">>> ... angles")
         assert (cc_py[:,3:] > 50).all()
 
     # compare slow and fast python versions
     # cc = cryst_const
     # co = coords
-    print ">>> comparing data"
+    print(">>> comparing data")
     for fn,convang,nstep,natoms in [(fn_lmp,True,101,16), 
                                     (fn_lmp,True,101,16),
                                     (fn_cp2k,False,16,57)]:
         cc_py_fast, co_py_fast = dcd.read_dcd_data(fn, convang=convang)
         cc_py_ref, co_py_ref = dcd.read_dcd_data_ref(fn, convang=convang)
-        print ">>> ... cryst_const"
+        print(">>> ... cryst_const")
         tools.assert_array_equal(cc_py_fast, cc_py_ref)
-        print ">>> ... coords"
+        print(">>> ... coords")
         tools.assert_array_equal(co_py_fast, co_py_ref)
-        print ">>> ... shapes"
+        print(">>> ... shapes")
         assert cc_py_ref.shape == (nstep,6)
         assert co_py_ref.shape == (nstep,natoms,3)
         # lmp angles are around 60, cp2k around 90 degree, cosines are between
         # -1 and 1, make sure the angle conversion works
-        print ">>> ... angles"
+        print(">>> ... angles")
         assert (cc_py_fast[:,3:] > 50).all()
