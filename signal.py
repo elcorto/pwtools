@@ -363,9 +363,36 @@ def mirror(arr, axis=0):
     The length of the returned array is 2*arr.shape[axis]-1 ."""
     return np.concatenate((arr[::-1],arr[1:]), axis=axis)
 
-
-# Generalization to correlation corr(v,w) should be straightforward.
-# Autocorrelation is then corr(v,v).
+# XXX
+# Check f2py wrapper of _flib.acorr(): The signature is:
+# 	In [13]: num._flib.acorr?
+# 	Type:           fortran
+# 	String form:    <fortran object>
+# 	Docstring:     
+# 	c = acorr(v,c,method,norm,[nstep])
+# 	
+# 	Wrapper for ``acorr``.
+# 	
+# 	Parameters
+# 	----------
+# 	v : input rank-1 array('d') with bounds (nstep)
+# 	c : input rank-1 array('d') with bounds (nstep)
+# 	method : input int
+# 	norm : input int
+# 	
+# 	Other Parameters
+# 	----------------
+# 	nstep : input int, optional
+# 	    Default: len(v)
+# 	
+# 	Returns
+# 	-------
+# 	c : rank-1 array('d') with bounds (nstep)
+# 
+# We need to pass in a result array 'c' which gets overwritten, but this also
+# gets returned. Check f2py docs for wrapping such that c generated on the
+# Fortran side.
+#
 def acorr(v, method=7, norm=True):
     """(Normalized) autocorrelation function (ACF) for 1d arrays:
     Without normalization
@@ -402,6 +429,9 @@ def acorr(v, method=7, norm=True):
     
     Notes
     -----
+    Generalization of this function to correlation corr(v,w) should be
+    straightforward. Autocorrelation is then corr(v,v).
+
     speed:
         methods 1 ...  are loosely ordered slow ... fast
     methods:
