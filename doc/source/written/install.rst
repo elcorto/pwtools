@@ -139,7 +139,7 @@ You need:
 * Lapack (Debian: liblapack3)
 
 The module is compiled with f2py (currently part of numpy, tested with numpy
-1.1.0 .. 1.7.x). 
+1.1.0 .. 1.13.3). 
 
 Compiler / f2py
 ^^^^^^^^^^^^^^^
@@ -156,9 +156,10 @@ On some systems (Debian), you may have:
 
 .. code-block:: shell
 
-  /usr/bin/f2py -> f2py2.6
-  /usr/bin/f2py2.5
-  /usr/bin/f2py2.6
+  /usr/bin/f2py -> f2py3
+  /usr/bin/f2py3 -> f2py3.6
+  /usr/bin/f2py3.6
+  /usr/bin/f2py2.7
 
 and such. But usually ``F2PY=f2py`` is fine.
 
