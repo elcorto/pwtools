@@ -112,7 +112,7 @@ echo "testdir='$testdir'" > testenv.py
 prnt "running tests ..."
 PYTHONPATH=$testdir:$PYTHONPATH \
 OMP_NUM_THREADS=3 \
-eval "nosetests $nose_opts" 2>&1 | tee -a $logfile
+eval "nosetests3 $nose_opts" 2>&1 | tee -a $logfile
 prnt "... ready"
 
 cat << eof
