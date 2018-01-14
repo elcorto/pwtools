@@ -83,6 +83,7 @@ prnt "copy package ..."
 rsync_excl=_rsync.excl
 cat > $rsync_excl << EOF
 .hg/
+.git/
 *.pyc
 *.pyo
 *.pyf
