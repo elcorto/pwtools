@@ -598,11 +598,8 @@ def is_seq(seq):
     """Test if `seq` is some kind of sequence, based on calling iter(seq), i.e.
     if the object is iterable.
 
-    Exclude cases which are iterable but that we still don't like: 
-        StringTypes = StringType + UnicodeType
-        FileType
-    UnicodeType is for lists of unicode strings [u'aaa', u'bbb']. In fact, we
-    wish to catch list, tuple, numpy array.
+    Exclude cases which are iterable but that we still don't like (string, file
+    object). In fact, we wish to catch list, tuple, numpy array.
     
     Parameters
     ----------
@@ -714,16 +711,16 @@ def backtick(call):
 
     Examples
     --------
-    >>> print backtick('ls -l')
+    >>> print(backtick('ls -l'))
     """
     pp = subprocess.Popen(call, shell=True,
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        preexec_fn=permit_sigpipe)
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            preexec_fn=permit_sigpipe)
     out,err = pp.communicate()
-    if err.strip() != '':
+    if err.strip() != b'':
         raise Exception("Error calling command: '%s'\nError message "
             "follows:\n%s" %(call, err))
-    return out            
+    return out.decode()
 
 #-----------------------------------------------------------------------------
 # pickle
