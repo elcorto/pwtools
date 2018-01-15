@@ -35,7 +35,7 @@ How to change pre-defined comparison functions
 Easy, eh? :)
 """
 
-import warnings, copy, tempfile, os
+import warnings, copy, tempfile, os, importlib
 import numpy as np
 from pwtools import num, common
 from pwtools.test.testenv import testdir
@@ -375,3 +375,25 @@ def skip(msg):
         assert baz == zonk
     """
     raise SkipTest(msg)
+
+
+def skip_if_pkg_missing(pkgs):
+    """Call skip() if package(s)/module(s) are not importable.
+
+    Parameters
+    ----------
+    pkgs : str or sequence
+        module/package name or sequence of names
+    """
+    def try_import(pkg):
+        try:
+            importlib.import_module(pkg)
+        except ImportError:
+            skip("skip test, package or module not found: {}".format(pkg))
+    if isinstance(pkgs, str):
+        try_import(pkgs)
+    elif common.is_seq(pkgs):
+        for pkg in pkgs:
+            try_import(pkg)
+    else:
+        raise Exception("input is no str or sequence: {}".format(pkgs))
