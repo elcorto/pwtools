@@ -283,7 +283,7 @@ def pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
     if method == 'direct': 
         full_fft_vel = np.abs(fft(vel2, axis=axis))**2.0
         full_faxis = np.fft.fftfreq(vel2.shape[axis], dt)
-        split_idx = len(full_faxis)/2
+        split_idx = len(full_faxis)//2
         faxis = full_faxis[:split_idx]
         # First split the array, then multiply by `mass` and average. If
         # full_out, then we need full_fft_vel below, so copy before slicing.
@@ -313,7 +313,7 @@ def pdos(vel, dt=1.0, m=None, full_out=False, area=1.0, window=True,
             fft_vacf = fft(vacf)
         full_faxis = np.fft.fftfreq(fft_vacf.shape[axis], dt)
         full_pdos = np.abs(fft_vacf)
-        split_idx = len(full_faxis)/2
+        split_idx = len(full_faxis)//2
         faxis = full_faxis[:split_idx]
         pdos = full_pdos[:split_idx]
         default_out = (faxis, num.norm_int(pdos, faxis, area=area))

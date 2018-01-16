@@ -518,7 +518,7 @@ def read_matdyn_freq(filename):
     # nasty trick: join all lines containing data into one 1d array: " ".join()
     # does "1 2\n3 4" -> "1 2\n 3 4" and split() splits at \n + whitespace.
     items = np.array(' '.join(lines[1:]).split(), dtype=float)
-    for ii in range(len(items) / step):
+    for ii in range(len(items) // step):
         kpoints[ii,:] = items[ii*step:(ii*step+3)]
         freqs[ii,:] = items[(ii*step+3):(ii*step+step)]
     return kpoints, freqs

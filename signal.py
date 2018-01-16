@@ -792,10 +792,10 @@ def smooth(data, kern, axis=0, edge='m', norm=True):
     assert ret.shape[axis] == N+M+1, "unexpected convolve result shape"
     del sig
     if M % 2 == 0:
-        ##sl = slice(M/2+1,-(M/2)) # even kernel, shift result to left
-        sl = slice(M/2,-(M/2)-1) # even kernel, shift result to right
+        ##sl = slice(M//2+1,-(M//2)) # even kernel, shift result to left
+        sl = slice(M//2,-(M//2)-1) # even kernel, shift result to right
     else:        
-        sl = slice(M/2+1,-(M/2)-1)
+        sl = slice(M//2+1,-(M//2)-1)
     ret = num.slicetake(ret, sl=sl, axis=axis)        
     assert ret.shape == data.shape, ("ups, ret.shape (%s)!= data.shape (%s)" \
                                       %(ret.shape, data.shape))

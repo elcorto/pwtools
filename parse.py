@@ -715,7 +715,7 @@ class PwSCFOutputFile(StructureFileParser):
                 arr2d = arr2d_from_txt(com.backtick(cmd))
                 nlines = arr2d.shape[0]
                 # nlines_block = number of force lines per step = N*natoms
-                nlines_block = nlines / nstep
+                nlines_block = nlines // nstep
                 assert nlines_block % self.natoms  == 0, ("nlines_block forces doesn't "
                     "match natoms")
                 return arrayio.arr2d_to_3d(arr2d,
@@ -2315,7 +2315,7 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
             for k in keys:
                 if k not in dct:
                     return None
-            nstep = dct[keys[0]].shape[0] / self.natoms
+            nstep = dct[keys[0]].shape[0] // self.natoms
             arr = np.array([dct[keys[0]],
                             dct[keys[1]],
                             dct[keys[2]]]).T.reshape((nstep,
