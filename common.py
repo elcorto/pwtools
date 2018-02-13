@@ -233,7 +233,7 @@ def frepr(var, ffmt="%.16e"):
     """
     if isinstance(var, float):
         return ffmt %var
-    elif isinstance(var, bytes):
+    elif isinstance(var, str):
         return var
     else:
         return repr(var)
@@ -387,7 +387,7 @@ def fullpathjoin(*args):
     return fullpath(os.path.join(*args))
 
 
-
+# XXX remove dict mode
 def template_replace(txt, dct, conv=False, warn_mult_found=True,
                      warn_not_found=True, disp=True, mode='dct'):
     """Replace placeholders dct.keys() with string values dct.values() in a
@@ -472,7 +472,7 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
                 if conv:
                     val = frepr(val, ffmt="%.16e")
                 else:                    
-                    if not isinstance(val, bytes):
+                    if not isinstance(val, str):
                         raise Exception("dict vals must be strings: "
                                         "key: '%s', val: " %key + str(type(val)))
             if warn_mult_found:                    
