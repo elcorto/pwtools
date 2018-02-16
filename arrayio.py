@@ -49,14 +49,14 @@ def _read_header_config(fh, header_maxlines=HEADER_MAXLINES,
     header = ''
     for i in range(header_maxlines):
         try:
-            line = fh.next().strip()
+            line = next(fh).strip()
         except StopIteration:
             break
         if line.startswith(header_comment):
             header += line.replace(header_comment, '').strip() + '\n'
     # Read one more line to see if the header is bigger than header_maxlines.
     try:
-        if fh.next().strip().startswith(header_comment):
+        if next(fh).strip().startswith(header_comment):
             raise Exception("header seems to be > header_maxlines (%i)"
                 %header_maxlines)
     except StopIteration:
@@ -182,7 +182,7 @@ def readtxt(fh, axis=None, shape=None, header_maxlines=HEADER_MAXLINES,
     header_lines = []
     for i in range(header_maxlines):
         try:
-            line = fh.next().strip()
+            line = next(fh).strip()
             if not line.startswith(header_comment) and line != '':
                 header_lines.append(line)
         except StopIteration:

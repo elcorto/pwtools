@@ -3,7 +3,6 @@
 # File operations, common system utils and other handy tools.
 
 import signal
-import types
 import os
 import subprocess
 import shutil
@@ -13,6 +12,7 @@ import pickle
 import copy
 import numpy as np
 import warnings
+import io
 warnings.simplefilter('always')
 
 from pwtools.verbose import verbose
@@ -606,7 +606,7 @@ def is_seq(seq):
     seq : (nested) sequence of arbitrary objects
     """ 
     if isinstance(seq, str) or \
-       isinstance(seq, types.FileType):
+       isinstance(seq, io.IOBase):
        return False
     else:        
         try:
