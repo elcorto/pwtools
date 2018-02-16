@@ -6,6 +6,7 @@ import numpy as np
 from pwtools.common import assert_cond as _assert
 from pwtools import common
 from functools import reduce
+import itertools
 
 def fac(n):
     """Factorial n!. Returns integer."""
@@ -24,6 +25,7 @@ def binom(n, k):
     return fac(n)/(fac(k)*fac(n-k))
 
 
+# XXX remove? seems unused
 def _swap(arr, i, j):
     """Swap arr[i] <-> arr[j]. Return i-j-swapped copy of `arr`.
     
@@ -44,7 +46,7 @@ def _swap(arr, i, j):
     aa[j] = tmp
     return aa
 
-
+# XXX remove? use itertools.permutations()??
 def ipermute(seq):
     """Calculate all N! permutations of sequence `seq` (return generator
     object). This function was written before itertools.permutations()
@@ -101,9 +103,11 @@ def ipermute(seq):
             p[i] = 0
             i += 1
 
+# XXX remove? use itertools.permutations()??
 def permute(*args, **kwargs):
     """See ipermute()."""
     return [x for x in ipermute(*args, **kwargs)]
+
 
 def unique2d(arr, what='row'):
     """Reduce 2d array `arr` to a 2d array with unique rows (or cols).
@@ -152,122 +156,54 @@ def unique2d(arr, what='row'):
         return np.asarray(uniq).T
 
 
-def nested_loops(lists, ret_all=False, flatten=False):
-    """Nonrecursive version of nested loops of arbitrary depth. Pure Python
-    version (no numpy).
+def _ensure_list(arg):
+    if common.is_seq(arg):
+        return [_ensure_list(xx) for xx in arg]
+    else:
+        return arg
+
+
+# XXX return iterator (py3)
+def nested_loops(lists, flatten=False):
+    """Nested loops, optional flattening.
     
     Parameters
     ----------
-    lists : list of lists 
+    lists : list of sequences
         The objects to permute. len(lists) == the depth (nesting levels) of the
         equivalent nested loops. Individual lists may contain a mix of
         different types/objects, e.g. [['a', 'b'], [Foo(), Bar(), Baz()],
         [1,2,3,4,5,6,7]].
-    ret_all : bool
-        True: return perms, perm_idxs
-        False: return perms
     flatten : bool
         Flatten each entry in returned list. 
-
+    
     Returns
     -------
-    perms : list of lists with permuted objects
-    perm_idxs : list of lists with indices of the permutation if ret_all=True
-
-    Notes
-    -----
-    In Python >= 2.6, this is almost the same as itertools.product() but was
-    written before that was in itertools.
-    
-    >>> [x for x in itertools.product([1,2],[33,44,55],[sin,cos])]
-    >>> nested_loops([[1,2],[33,44,55],[sin,cos]])
-    
-    Note that nested_loops() takes a list of lists, while itertools.product()
-    only the lists itself.
+    list : nested lists 
 
     Examples
     --------
-    >>> a=[1,2]; b=[3,4]; c=[5,6];
-    >>> perms=[]
-    >>> for aa in a:
-    ....:   for bb in b:
-    ....:       for cc in c:
-    ....:           perms.append([aa,bb,cc])
-    ....:             
-    >>> perms
-    [[1, 3, 5],
-     [1, 3, 6],
-     [1, 4, 5],
-     [1, 4, 6],
-     [2, 3, 5],
-     [2, 3, 6],
-     [2, 4, 5],
-     [2, 4, 6]]
-    >>> nested_loops([a,b,c], ret_all=True)
-    ([[1, 3, 5],
-      [1, 3, 6],
-      [1, 4, 5],
-      [1, 4, 6],
-      [2, 3, 5],
-      [2, 3, 6],
-      [2, 4, 5],
-      [2, 4, 6]],
-     [[0, 0, 0],
-      [0, 0, 1],
-      [0, 1, 0],
-      [0, 1, 1],
-      [1, 0, 0],
-      [1, 0, 1],
-      [1, 1, 0],
-      [1, 1, 1]])
-    >>> nested_loops([[1,2], ['a','b','c'], [sin, cos]])
-    [[1, 'a', <ufunc 'sin'>],
-     [1, 'a', <ufunc 'cos'>],
-     [1, 'b', <ufunc 'sin'>],
-     [1, 'b', <ufunc 'cos'>],
-     [1, 'c', <ufunc 'sin'>],
-     [1, 'c', <ufunc 'cos'>],
-     [2, 'a', <ufunc 'sin'>],
-     [2, 'a', <ufunc 'cos'>],
-     [2, 'b', <ufunc 'sin'>],
-     [2, 'b', <ufunc 'cos'>],
-     [2, 'c', <ufunc 'sin'>],
-     [2, 'c', <ufunc 'cos'>]]
+    >>> from pwtools import comb
+    >>> comb.nested_loops([[1,2],['a','b']])
+    [[1, 'a'], [1, 'b'], [2, 'a'], [2, 'b']]
+
     # If values of different lists should be varied together, use zip(). Note
     # that you get nested lists back. Use flatten=True to get flattened lists.
-    >>> nested_loops([zip([1,2], ['a', 'b']), [88, 99]])
-    [[(1, 'a'), 88], [(1, 'a'), 99], [(2, 'b'), 88], [(2, 'b'), 99]]
-    >>> nested_loops([zip([1,2], ['a', 'b']), [88, 99]], flatten=True)
-    [[1, 'a', 88], [1, 'a', 99], [2, 'b', 88], [2, 'b', 99]]
+    >>> comb.nested_loops([(1,2), zip(['a','b'],(np.sin,np.cos))])
+    [[1, ['a', <ufunc 'sin'>]],
+     [1, ['b', <ufunc 'cos'>]],
+     [2, ['a', <ufunc 'sin'>]],
+     [2, ['b', <ufunc 'cos'>]]]
+
+    >>> comb.nested_loops([(1,2), zip(['a','b'],(np.sin,np.cos))], flatten=True)
+    [[1, 'a', <ufunc 'sin'>],
+     [1, 'b', <ufunc 'cos'>],
+     [2, 'a', <ufunc 'sin'>],
+     [2, 'b', <ufunc 'cos'>]]
     """
-    lens = map(len, lists)
-    mx_idxs = [x - 1 for x in lens]
-    # nperms = numpy.prod(lens)
-    nperms = reduce(lambda x,y: x*y, lens)
-    # number of nesting levels
-    nlevels = len(lists)
-    # index into `lists`: lists[i][j] -> lists[i][idxs[i]], i.e.
-    # idxs[i] is the index into the ith list
-    idxs = [0]*nlevels
-    perm_idxs = []
-    perms = []
-    for i in range(nperms):         
-        # e.g. [2,1,0]
-        for pos in range(nlevels)[::-1]:
-            if idxs[pos] > mx_idxs[pos]:
-                idxs[pos] = 0
-                # pos - 1 never gets < 0 before all possible `nlevels`
-                # permutations are generated.
-                idxs[pos-1] += 1
-        # [:] to append a copy                
-        perm_idxs.append(idxs[:])
-        perms.append([lists[j][k] for j,k in enumerate(idxs)])
-        idxs[-1] += 1
-    perms = [common.flatten(xx) for xx in perms] if flatten else perms
-    if ret_all:
-        return perms, perm_idxs
-    else:
-        return perms
+    perms = itertools.product(*lists)
+    ret = [common.flatten(xx) for xx in perms] if flatten else perms
+    return _ensure_list(ret)
 
 
 def kron(a, b):
@@ -309,9 +245,11 @@ def main():
     for aa in lst:
         print(aa)
 
+# XXX remove
 # alias
 factorial = fac
 
+# XXX remove
 if __name__ == '__main__':
     import sys
     sys.exit(main())
