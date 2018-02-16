@@ -1,6 +1,6 @@
 About
 -----
-The pwtools package. Copyright (C) 2017 Steve Schmerler 
+The pwtools package.
 
 ``pwtools`` is a Python package for pre- and postprocessing of atomic
 calculations, mostly targeted to `Quantum Espresso`_, CPMD_, CP2K_ and
