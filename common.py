@@ -44,16 +44,16 @@ def assert_cond(cond, string=None):
 # Config file stuff
 #-----------------------------------------------------------------------------
 
-class PydosConfigParser(configparser.SafeConfigParser):
+class PydosConfigParser(configparser.ConfigParser):
     """All values passed as `arg` to self.set(self, section, option, arg) are
     converted to a string with frepr(). get*() methods are the usual ones
     provided by the base class ConfigParser.SafeConfigParser: get(), getint(),
     getfloat(), getboolean(). Option keys are case-sensitive.
     """
     # make keys case-sensitive
-    configparser.SafeConfigParser.optionxform = str
+    configparser.ConfigParser.optionxform = str
     def set(self, section, option, arg):
-        configparser.SafeConfigParser.set(self, section, option, frepr(arg))
+        configparser.ConfigParser.set(self, section, option, frepr(arg))
 
 
 def add_to_config(config, info):
