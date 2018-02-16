@@ -71,6 +71,7 @@ def _read_header_config(fh, header_maxlines=HEADER_MAXLINES,
 
 # the open_and_close decorator cannot be used here b/c it only opens
 # files in read mode, not for writing
+# XXX really? can't decorator take arguments as well
 def _write_header_config(fh, config, header_comment=HEADER_COMMENT,
                          header_maxlines=HEADER_MAXLINES):
     """Write ini-style config file from `config` prefixed with `header_comment` to
@@ -91,6 +92,7 @@ def _write_header_config(fh, config, header_comment=HEADER_COMMENT,
     ftmp.close()
 
 
+# XXX same here, what about an argument for the decorator
 def writetxt(fn, arr, axis=-1, maxdim=TXT_MAXDIM, header=True):
     """Write 1d, 2d or 3d arrays to txt file. 
     
