@@ -49,10 +49,10 @@ def atpos_str(symbols, coords, fmt="%.16e", zero_eps=None, eps=EPS, delim=4*' ')
     return txt        
 
 
-def atpos_str_fast(symbols, coords, work=None):
+def atpos_str_fast(symbols, coords):
     """Fast version of atpos_str() for usage in loops. We use a fixed string
-    dtype ``|S20`` to convert the array `coords` to string form. We also avoid
-    all assert's etc for speed.
+    dtype ``U32`` to convert the array `coords` to string form. We also avoid
+    all asserts for speed.
     
     Parameters
     ----------
@@ -60,25 +60,27 @@ def atpos_str_fast(symbols, coords, work=None):
         rows of coords
     coords : array (natoms, 3) with atomic coords, can also be (natoms, >3) to
         add constraints on atomic forces in PWscf
-    work : optional, array of shape (natoms, 4)
-        Pre-allocated work array. This can be the result of numpy.empty(). It
-        is used to temporarily store the string dtype array.
 
     Returns
     -------
     string
+
+    Notes
+    -----
+    The string dtype + flatten trick used here is the fastest way to convert a
+    numpy array to string. However the number of digits is limited to 32 chars.
+    We use 32 b/c
+
+    >>> array([pi]*2).astype('U')
+    array(['3.141592653589793', '3.141592653589793'], dtype='<U32')
+    
+    ``<`` means little endian and is based on the machine arch automatically.
+    
+    Needs about 1/3 of the time of :func:`atpos_str`.
     """
-    # The string dtype + flatten trick is the fastest way to convert a numpy
-    # array to string. However the number of digits is limited to 11 (at least
-    # on my 64 bit machine). Formatting like '%e' cannot be used. It is like a
-    # fixed digit form of '%f'. Needs about 2/3 of the time of atpos_str(), so
-    # the speedup is OK, but not very high. String operations are slow. The
-    # next thing would be Cython or so.
-    # work: Even allocations in a loop are fast, so using `work` brings next to
-    # nothing.
     nrows = coords.shape[0]
     ncols = coords.shape[1]
-    arr = np.empty((nrows, ncols+1), dtype='|S20') if work is None else work
+    arr = np.empty((nrows, ncols+1), dtype='U32')
     arr[:,0] = symbols
     arr[:,1:] = coords
     txt = ('  '.join(['%s']*(ncols+1)) + '\n')*nrows %tuple(arr.flatten())

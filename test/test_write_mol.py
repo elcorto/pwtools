@@ -42,12 +42,13 @@ def test_write_mol():
     # fixed cell, forces=0
     axsf_fn = pj(testdir, 'foo.axsf')
     io.write_axsf(axsf_fn, 
-                  Trajectory(units=units,coords_frac=coords3d_frac, 
+                  Trajectory(units=units,
+                             coords_frac=coords3d_frac, 
                              cell=cell2d,
                              symbols=symbols),
                  )                                    
     arr = np.loadtxt(StringIO(
-            common.backtick("grep -A3 PRIMVEC %s | egrep -v -e '--|PRIMVEC'" %axsf_fn)))
+            common.backtick("grep -A3 PRIMVEC %s | grep -vE -e '--|PRIMVEC'" %axsf_fn)))
     np.testing.assert_array_almost_equal(arr, np.concatenate((cell2d, cell2d), axis=0))
 
     arr = np.loadtxt(StringIO(
