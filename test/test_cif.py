@@ -3,8 +3,10 @@ import numpy as np
 from pwtools.parse import CifFile
 from pwtools import io
 from .testenv import testdir
+from pwtools.test import tools
 
 def test_cif():
+    tools.skip_if_pkg_missing('CifFile')
     for filename in ['files/cif_struct.cif', 'files/cif_cart_struct.cif']:
         p1 = CifFile(filename).get_struct()
         assert p1.cell is not None
