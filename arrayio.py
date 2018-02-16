@@ -3,11 +3,11 @@
 # Array text file IO.
 
 from io import StringIO
+from configparser import ConfigParser
 import numpy as np
 
 from pwtools import common
 from pwtools.decorators import open_and_close
-from pwtools.common import PydosConfigParser
 from pwtools.verbose import verbose
 
 # globals
@@ -20,7 +20,7 @@ TXT_MAXDIM = 3
 def _read_header_config(fh, header_maxlines=HEADER_MAXLINES, 
                         header_comment=HEADER_COMMENT):
     """Read a ini-style file from the header of a text file. Return a
-    PydosConfigParser object.
+    ConfigParser object.
 
     Parameters
     ----------
@@ -30,7 +30,7 @@ def _read_header_config(fh, header_maxlines=HEADER_MAXLINES,
     
     Returns
     -------
-    PydosConfigParser object
+    ConfigParser object
 
     Examples
     --------
@@ -42,7 +42,7 @@ def _read_header_config(fh, header_maxlines=HEADER_MAXLINES,
     2
     3
     >>> _get_header_config('foo.txt')
-    <pwtools.common.PydosConfigParser instance at 0x2c52320>
+    <pwtools.common.ConfigParser instance at 0x2c52320>
     """
     fn = common.get_filename(fh)
     verbose("[_read_header_config]: reading header from '%s'" %fn)
@@ -61,8 +61,8 @@ def _read_header_config(fh, header_maxlines=HEADER_MAXLINES,
                 %header_maxlines)
     except StopIteration:
         pass
-    c = PydosConfigParser()
-    c.readfp(StringIO(header))
+    c = ConfigParser()
+    c.read_file(StringIO(header))
     # If header_maxlines > header size, we read beyond the header into the data. That
     # causes havoc for all functions that read fh afterwards.
     fh.seek(0)
@@ -88,7 +88,7 @@ def _write_header_config(fh, config, header_comment=HEADER_COMMENT,
                 "header has more then header_maxlines (%i) lines" \
                 %header_maxlines)
     for line in lines:
-        fh.write(header_comment + ' ' + line)
+        fh.write((header_comment + ' ' + line).encode())
     ftmp.close()
 
 
@@ -111,13 +111,13 @@ def writetxt(fn, arr, axis=-1, maxdim=TXT_MAXDIM, header=True):
     """
     verbose("[writetxt] writing: %s" %fn)
     common.assert_cond(arr.ndim <= maxdim, 'no rank > %i arrays supported' %maxdim)
-    fh = open(fn, 'w+')
+    fh = open(fn, 'wb+')
     if header:
-        c = PydosConfigParser()
+        c = ConfigParser()
         sec = 'array'
         c.add_section(sec)
         c.set(sec, 'shape', common.seq2str(arr.shape))
-        c.set(sec, 'axis', axis)
+        c.set(sec, 'axis', str(axis))
         _write_header_config(fh, c)
     # 1d and 2d case
     if arr.ndim < maxdim:

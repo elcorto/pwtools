@@ -9,7 +9,7 @@ pj = os.path.join
 rand = np.random.rand
 
 def write_read_check(fn, arr, axis=-1, shape=None):
-    print(fn + ' ...')
+    print("fn={} axis={} shape={}".format(fn, axis, shape))
     arrayio.writetxt(fn, arr, axis=axis)
     a = arrayio.readtxt(fn, axis=axis, shape=shape)
     assert (a == arr).all()
@@ -46,10 +46,9 @@ def test_io_txt():
     shape = (3, 5)
     arr = np.arange(0, np.prod(shape)).reshape(shape)
     fn = pj(testdir, 'a2d_api.txt')
-    fh = open(fn, 'w')
-    fh.write('@@ some comment\n')
-    fh.write('@@ some comment\n')
-    fh.write('@@ some comment\n')
+    fh = open(fn, 'wb')
+    for ii in range(3):
+        fh.write('@@ some comment\n'.encode())
     np.savetxt(fh, arr)
     fh.close()
     a = arrayio.readtxt(fn, shape=shape, axis=-1, comments='@@')
@@ -87,7 +86,7 @@ def test_traj_from_txt():
         assert (arr3d_readtxt == arr3d_orig).all()    
     # now test traj_from_txt result 
     assert arr3d.shape == arr3d_orig.shape, \
-           ("axis={0}, shapes: read={1} written={2} orig={3}".format(axis,
+           ("axis={}, shapes: read={} written={} orig={}".format(axis,
                   arr3d.shape, written_shape, arr3d_orig.shape))
     assert (arr3d == arr3d_orig).all()
 
