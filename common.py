@@ -7,7 +7,6 @@ import os
 import subprocess
 import shutil
 import re
-import configparser
 import pickle
 import copy
 import numpy as np
@@ -44,24 +43,12 @@ def assert_cond(cond, string=None):
 # Config file stuff
 #-----------------------------------------------------------------------------
 
-class PydosConfigParser(configparser.ConfigParser):
-    """All values passed as `arg` to self.set(self, section, option, arg) are
-    converted to a string with frepr(). get*() methods are the usual ones
-    provided by the base class ConfigParser.SafeConfigParser: get(), getint(),
-    getfloat(), getboolean(). Option keys are case-sensitive.
-    """
-    # make keys case-sensitive
-    configparser.ConfigParser.optionxform = str
-    def set(self, section, option, arg):
-        configparser.ConfigParser.set(self, section, option, frepr(arg))
-
-
 def add_to_config(config, info):
     """Add sections and key-val paris in `info` to `config`.
     
     Parameters
     ----------
-    config : ConfigParser object
+    config : configparser.ConfigParser object
     info : dict of dicts, see io.writearr()
 
     Returns
