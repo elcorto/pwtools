@@ -336,7 +336,7 @@ def direct_pdos(vel, *args, **kwds):
     if 'npad' not in kwds:
         kwds['npad'] = 1
     if 'pad_tonext' in kwds:
-        warnings.simplefilter('always')
+##        warnings.simplefilter('always')
         warnings.warn("'pad_tonext' was renamed 'tonext'",
             DeprecationWarning)
         kwds['tonext'] = kwds['pad_tonext']

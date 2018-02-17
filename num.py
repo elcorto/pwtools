@@ -11,7 +11,7 @@ from scipy.interpolate import bisplrep, \
 from scipy.integrate import simps, trapz
 from pwtools import _flib
 import warnings
-warnings.simplefilter('always')
+##warnings.simplefilter('always')
 
 # Hack for older scipy versions.
 try: 

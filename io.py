@@ -14,7 +14,7 @@ from pwtools import parse, atomic_data, lammps
 from pwtools import crys
 from pwtools import common
 from pwtools import pwscf
-warnings.simplefilter('always')
+##warnings.simplefilter('always')
 
 try:
     import CifFile as pycifrw_CifFile

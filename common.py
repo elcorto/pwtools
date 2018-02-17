@@ -12,7 +12,7 @@ import copy
 import numpy as np
 import warnings
 import io
-warnings.simplefilter('always')
+##warnings.simplefilter('always')
 
 from pwtools.verbose import verbose
 from pwtools.num import EPS

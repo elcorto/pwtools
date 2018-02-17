@@ -40,7 +40,7 @@ import numpy as np
 from pwtools import num, common
 from pwtools.test.testenv import testdir
 from nose.plugins.skip import SkipTest
-warnings.simplefilter('always')
+##warnings.simplefilter('always')
 
 #-----------------------------------------------------------------------------
 # define types, could probably also use the types module

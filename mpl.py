@@ -722,7 +722,7 @@ if __name__ == '__main__':
 
 # deprecation warnings
 def meshgridt(*args, **kwds):
-    warnings.simplefilter('always')
+##    warnings.simplefilter('always')
     warnings.warn("mpl.meshgridt is deprecated, use num.meshgridt", 
                   DeprecationWarning)
     return num.meshgridt(*args, **kwds)

@@ -2,7 +2,7 @@ import os.path
 from pwtools import common, num
 import pickle
 import warnings
-warnings.simplefilter('always')
+##warnings.simplefilter('always')
 
 # Most of this class can probably be replaced by decorators.lazyprop .
 class FlexibleGetters(object):

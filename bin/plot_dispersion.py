@@ -48,7 +48,7 @@
 
 if __name__ == '__main__':
     import warnings
-    warnings.simplefilter('always')
+##    warnings.simplefilter('always')
     import matplotlib.pyplot as plt
     import sys
     from pwtools.pwscf import read_matdyn_freq

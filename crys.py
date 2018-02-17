@@ -13,7 +13,7 @@ from pwtools.base import FlexibleGetters
 from pwtools.constants import Bohr, Angstrom
 from pwtools.num import fempty, rms, rms3d, match_mask, norm
 import warnings
-warnings.simplefilter('always')
+##warnings.simplefilter('always')
 
 
 #-----------------------------------------------------------------------------
