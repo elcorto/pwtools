@@ -94,8 +94,8 @@ cat > $rsync_excl << EOF
 doc/
 EOF
 $build && echo "${scriptdir}/../*.so" >> $rsync_excl
-rsync -av $scriptdir/../ $tgtdir --exclude-from=$rsync_excl > $logfile 2>&1
-cd $tgtdir
+rsync -av $scriptdir/../../ $tgtdir --exclude-from=$rsync_excl > $logfile 2>&1
+cd $tgtdir/pwtools
 prnt "... ready"
 
 if $build; then
@@ -104,15 +104,7 @@ if $build; then
     prnt "... ready"
 fi 
 
-# We assume that the cwd and thus the package is named
-#   pwtools[optional_stuff]/
-# We need to check where we run from since possible test files on the command
-# line will have different names:
-#     /path/to/pwtools$ ./test/runtests.sh test/test_write_mol.py
-#     /path/to/pwtools/test$ ./runtests.sh test_write_mol.py
-if echo "$here" | grep -qE 'pwtools.*/test'; then
-    cd test/
-fi
+cd test/
 
 # HACK: communicate variable to test_*.py modules. All tests which write temp
 # files must import this module and write their files to "testdir":
