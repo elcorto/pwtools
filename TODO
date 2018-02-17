@@ -114,6 +114,8 @@ tests
 * move/merge test/tools.py with utils/, maybe place in utils/__init__.py ??
   problem: utils/ is more a collection of scripts and data, not so much a
   sub-package of pwtools.test
+* make all paths in all tests absolute (well, relative to __file__) such that
+  tests can be started from anywhere, not just pwtools/test/
 
 2to3
 ----
@@ -123,5 +125,9 @@ tests
     map() -> list(map())
     zip() -> list(zip())
     print("foo %s" %x) -> print(("foo %s" %x))
+
+low hanging fruits
+------------------
+* rename pydos -> dos
 
 # vim:comments=fb\:*

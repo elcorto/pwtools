@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 
 usage(){
-cat << EOF
+    cat << EOF
 Prepare package for testing and call nosetests.
 
 Usage
@@ -57,6 +57,9 @@ prnt(){
     echo "$@" | tee -a $logfile
 }    
 
+here=$(pwd)
+scriptdir=$(readlink -f $(dirname $0))
+
 # Simple cmd line parsing. Found no way to pass $@, which can contain
 # nosetests options + other (--nobuild), thru getopt(1) w/o it complaining
 # about invalid options.
@@ -78,20 +81,20 @@ testdir=/tmp/pwtools-test.$$
 tgtdir=$testdir/pwtools
 mkdir -pv $tgtdir
 logfile=$testdir/runtests.log
+rsync_excl=$testdir/_rsync.excl
 
 prnt "copy package ..."
-rsync_excl=_rsync.excl
 cat > $rsync_excl << EOF
 .hg/
 .git/
 *.pyc
 *.pyo
 *.pyf
+**/__pycache__
 doc/
 EOF
-$build && echo '*.so' >> $rsync_excl
-rsync -av ../ $tgtdir --exclude-from=$rsync_excl > $logfile 2>&1
-rm $rsync_excl
+$build && echo "${scriptdir}/../*.so" >> $rsync_excl
+rsync -av $scriptdir/../ $tgtdir --exclude-from=$rsync_excl > $logfile 2>&1
 cd $tgtdir
 prnt "... ready"
 
@@ -101,7 +104,15 @@ if $build; then
     prnt "... ready"
 fi 
 
-cd test/
+# We assume that the cwd and thus the package is named
+#   pwtools[optional_stuff]/
+# We need to check where we run from since possible test files on the command
+# line will have different names:
+#     /path/to/pwtools$ ./test/runtests.sh test/test_write_mol.py
+#     /path/to/pwtools/test$ ./runtests.sh test_write_mol.py
+if echo "$here" | grep -qE 'pwtools.*/test'; then
+    cd test/
+fi
 
 # HACK: communicate variable to test_*.py modules. All tests which write temp
 # files must import this module and write their files to "testdir":
@@ -111,9 +122,9 @@ cd test/
 echo "testdir='$testdir'" > testenv.py
 
 prnt "running tests ..."
-PYTHONPATH=$testdir:$PYTHONPATH \
-OMP_NUM_THREADS=3 \
-eval "nosetests3 $nose_opts" 2>&1 | tee -a $logfile
+eval "PYTHONPATH=$testdir:$PYTHONPATH \
+      OMP_NUM_THREADS=3 nosetests3 \
+      $nose_opts" 2>&1 | tee -a $logfile
 prnt "... ready"
 
 cat << eof
