@@ -63,7 +63,9 @@ _%.so: %.f90
 	mkdir -pv build; cp -v $*.f90 build/; cd build; \
 	CC=gcc CXX=g++ $(F2PY) -h $*.pyf $? -m _$* --overwrite-signature; \
 	CC=gcc CXX=g++ $(F2PY) -c $*.pyf $? $(F2PY_FLAGS); \
-	pwd; cp -v _$**.so ../_$*.so 
+	# Need that involved copy command since we need to
+	# 	cp _dcd.cpython-36m-x86_64-linux-gnu.so ../../pwtools/_dcd.so
+	cp -v _$**.so ../../pwtools/_$*.so
 
 clean:
 	rm -rvf *.so build

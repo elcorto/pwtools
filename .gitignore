@@ -8,3 +8,4 @@ doc/sphinx-autodoc
 *.pyf
 *.pyc
 *.so
+*.egg-info
