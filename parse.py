@@ -1,4 +1,4 @@
-"""
+r"""
 Parser classes for different file formats. Input- and output files.
 ===================================================================
  
@@ -130,8 +130,8 @@ try:
 except ImportError:
     pass
 
-from pwtools import common, constants, regex, crys, atomic_data, num, \
-    arrayio, dcd
+from pwtools import (common, constants, regex, crys, atomic_data, num, 
+    arrayio, dcd)
 from pwtools.verbose import verbose
 from pwtools.base import FlexibleGetters
 from pwtools.constants import Ry, Ha, eV, Bohr, Angstrom, thart, Ang, fs, ps
@@ -546,7 +546,7 @@ class PDBFile(StructureFileParser):
 
 
 class PwSCFOutputFile(StructureFileParser):
-    """Parse a pw.x SCF output file (calculation='scf').
+    r"""Parse a pw.x SCF output file (calculation='scf').
     
     Some getters (_get_<attr>_raw) work for MD-like output, too. Here in the
     SCF case, only the first item along the time axis is returned and should
@@ -1112,7 +1112,7 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
         """Temperature [K]"""
         verbose("getting temperature")
         cmd = r"egrep 'temperature[ ]*=' %s " %self.filename + \
-              "| sed -re 's/.*temp.*=\s*(" + regex.float_re + \
+              r"| sed -re 's/.*temp.*=\s*(" + regex.float_re + \
               r")\s*K/\1/'"
         return arr1d_from_txt(com.backtick(cmd))
     
@@ -1782,8 +1782,8 @@ class Cp2kSCFOutputFile(StructureFileParser):
 
     def _get_natoms_symbols_forces(self):
         cmd = r"sed -nre '1,/ATOMIC FORCES/d; " + \
-               "1,/Atom\s+Kind\s+Element/d; " + \
-               "/SUM OF ATOMIC FORCES/q;p' %s" %self.filename
+              r"1,/Atom\s+Kind\s+Element/d; " + \
+              r"/SUM OF ATOMIC FORCES/q;p' %s" %self.filename
         ret = com.backtick(cmd).strip()
         if ret != '':
             arr = np.array([x.split() for x in ret.splitlines()])

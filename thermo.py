@@ -715,7 +715,7 @@ class Gibbs(object):
 
 
 def debye_func(x, nstep=100, zero=1e-8):
-    """Debye function
+    r"""Debye function
 
     :math:`f(x) = 3 \int_0^1 t^3 / [\exp(t x) - 1] dt`
     
@@ -737,7 +737,7 @@ def debye_func(x, nstep=100, zero=1e-8):
 
 
 def einstein_func(x):
-    """Einstein function 
+    r"""Einstein function 
     
     :math:`f(x) = 1 / [ \exp(x) - 1 ]`
     

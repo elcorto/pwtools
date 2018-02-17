@@ -314,7 +314,7 @@ def welch(M, sym=1):
     return w
 
 def lorentz(M, std=1.0, sym=True):
-    """Lorentz window (same as Cauchy function). Function skeleton stolen from
+    r"""Lorentz window (same as Cauchy function). Function skeleton stolen from
     scipy.signal.gaussian().
     
     The Lorentz function is
