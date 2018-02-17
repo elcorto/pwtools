@@ -20,6 +20,13 @@ install_requires = []
 reqs = [('matplotlib', 'matplotlib', None, None),
         ('nose', 'nose', None, None),
         ('numpy', 'numpy', None, None),
+        ('scipy', 'scipy', None, None),
+        ('h5py', 'h5py', None, None),
+        ('ase', 'ase', None, None),
+        ('numpydoc', 'numpydoc', None, None),
+        ('PyCifRW', 'CifFile', None, None),
+##        ('pyspglib', 'pyspglib', None, None),
+##        ('spglib', 'spglib', None, None),
         ]
 
 for pip_name,import_name,op,ver in reqs:
@@ -49,5 +56,5 @@ setup(
     keywords='XXX',
     packages=find_packages(),
     install_requires=install_requires,
-    scripts=['{}/{}'.format(bindir, script) for script in os.listdir(bindir)]
+##    scripts=['{}/{}'.format(bindir, script) for script in os.listdir(bindir)]
 )
