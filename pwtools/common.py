@@ -652,7 +652,9 @@ def asseq(arg):
 #-----------------------------------------------------------------------------
 
 def system(call, wait=True):
-    """Fire up shell commamd line `call`. 
+    """Fire up shell commamd line `call`.
+
+    No exception is raised if the command fails.
     
     Parameters
     ----------
@@ -693,8 +695,14 @@ def permit_sigpipe():
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
 
+# XXX The error handling is not safe since we raise the exception only when
+# stderr is not empty w/o checking the retcode. This fails if we do
+# backtick('dhwjqdhwjwqdk 2>/dev/null'). This may have been a design decision
+# in order to deal with flaky shell commands. But we should never use that in
+# tests.
 def backtick(call):
-    """Convenient shell backtick replacement with gentle error handling.
+    """Convenient shell backtick replacement. Raise exception if stderr is not
+    empty.
 
     Examples
     --------

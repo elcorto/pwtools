@@ -1,11 +1,12 @@
 import os
 import numpy as np
+import subprocess as sp
 from pwtools.parse import CifFile
 from pwtools import io
 from .testenv import testdir
 from pwtools.test import tools
 
-def test_cif():
+def test_cif_parse():
     tools.skip_if_pkg_missing('CifFile')
     for filename in ['files/cif_struct.cif', 'files/cif_cart_struct.cif']:
         p1 = CifFile(filename).get_struct()
@@ -24,3 +25,20 @@ def test_cif():
         np.testing.assert_array_almost_equal(p1.cryst_const, p2.cryst_const)
         np.testing.assert_array_almost_equal(p1.cell, p2.cell)
         assert p1.symbols == p2.symbols
+
+
+def test_cif2any():
+    tools.skip_if_pkg_missing('CifFile')
+    exe = os.path.join(os.path.dirname(__file__), 
+                       '../../bin/cif2any.py')
+    cmd = '{e} files/cif_struct.cif > cif2any.log'.format(e=exe)
+    sp.run(cmd, check=True, shell=True)
+
+
+def test_cif2sgroup():
+    tools.skip_if_pkg_missing('CifFile')
+    exe = os.path.join(os.path.dirname(__file__), 
+                       '../../bin/cif2sgroup.py')
+    cmd = '{e} files/cif_struct.cif > cif2sgroup.log'.format(e=exe)
+    sp.run(cmd, check=True, shell=True)
+
