@@ -72,4 +72,9 @@ def test_tools():
     assert np.allclose(a,b) # True but should be False
     assert not tools.array_almost_equal(a,b) # ok
 
-
+    flt = 1.0
+    np_flt = np.array([1.0+1e-9])[0]
+    assert not tools.all_types_equal(flt, np_flt) 
+    assert not tools.all_types_equal(np_flt, flt) 
+    assert tools.all_types_almost_equal(flt, np_flt) 
+    assert tools.all_types_almost_equal(np_flt, flt) 

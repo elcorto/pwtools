@@ -49,7 +49,9 @@ from nose.plugins.skip import SkipTest
 arr_t = type(np.array([1.0]))
 dict_t = type({'1': 1})
 float_t = type(1.0)
+np_float_t = type(np.array([1.0])[0])
 int_t = type(1)
+np_int_t = type(np.array([1])[0])
 
 
 #-----------------------------------------------------------------------------
@@ -235,7 +237,9 @@ comp_map_no_dict_equal = {\
 comp_map_no_dict_almost_equal = {\
     arr_t: array_almost_equal,
     int_t: float_almost_equal,
+    np_int_t: float_almost_equal,
     float_t: float_almost_equal,
+    np_float_t: float_almost_equal,
     'default': default_equal,
     }
 
@@ -356,9 +360,8 @@ def skip(msg):
     """Use inside a test function or class. This raises
     nose.plugins.skip.SkipTest and makes the test be skipped. Doesn't work as a
     decorator. If you need a decorator to temporarily disable a test function,
-    then use unitest.skip(). The latter works only on test *functions* ... or
-    so they say. For classes, only raising SkipTest will make nose really skip
-    it.
+    then use unitest.skip(). The latter is supposed to work on test functions
+    and classes (probably unittest.TestCase and derivatives, untested). 
 
     Examples
     --------
@@ -370,8 +373,12 @@ def skip(msg):
         if some_error_condition:
             skip("skipping this test b/c of foo")
     
-    @unitest.skip("disable test b/c we're all out of zonk!")
     def test_bar():
+        skip("we're not at the bar, skip ordering beer")
+        normal_test_code_here()
+
+    @unitest.skip("disable test b/c we're all out of zonk!")
+    def test_baz():
         assert baz == zonk
     """
     raise SkipTest(msg)
