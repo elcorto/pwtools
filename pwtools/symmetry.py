@@ -1,27 +1,36 @@
+import numpy as np
+from pyspglib import spglib
+
 from pwtools import atomic_data
 from pwtools.crys import Structure
 
-# FIXME: apparently, newer versions of spglib do NOT return None when the input
-# structure is irreducible. Instead, they return (cell, coords_frac, znucl).
-# The cell may have another orientation. Therefore, if we want to check for
-# irreducibility, we need to check for equal natoms, spacegroup, as well as
-# cell volume, cryst_const (NOT nell) using np.allclose.
+# spglib versions:
 #
-# But the quesion is: do we use the "we return None if the stuct is
-# irreducible" behavior anywhere? If not, then fine, just fix the check below
-# and we are good.
-# 
-# versions
-# --------
-# $ pip search spglib                                                                                                                                           [NORMAL]
-# pyspglib (1.8.3.1)  - This is the pyspglib module.
-#   INSTALLED: 1.8.3.1 (latest)
-# spglib (1.9.9.44)   - This is the spglib module.
+#     $ pip3 search spglib
+#     pyspglib (1.8.3.1)  - This is the pyspglib module.
+#       INSTALLED: 1.8.3.1 (latest)
+#     spglib (1.10.3.14)  - This is the spglib module.
 #
-# pyspglib was renamed spglib, etc etc
+# The renamed version 1.10.x should have the same API, not tested yet.
+
+
+def is_same_struct(st1, st2):
+    # maybe add early stopping (return if the first test fails), start with
+    # cheap tests, finally do spacegroup; only if we call this function very
+    # often and speed becomes an issue
+    ret = True
+    same = ['symbols', 'natoms']
+    close = ['volume', 'cryst_const', 'coords_frac']
+    for attr in same:
+        ret = ret and getattr(st1, attr) == getattr(st2, attr)
+    for attr in close:
+        ret = ret and np.allclose(getattr(st1, attr),
+                                  getattr(st2, attr))
+    ret = ret and spglib_get_spacegroup(st1) == spglib_get_spacegroup(st2)
+    return ret
+
 
 def spglib2struct(tup):
-    raise Exception("function not usable, fixme")
     """Transform returned tuple from various spglib functions to Structure.
 
     This applies to ``spglib.find_primitive()`` and probably some more. Their
@@ -34,24 +43,23 @@ def spglib2struct(tup):
     ----------
     tup : tuple (3,)
         Return value from ``spglib.find_primitive()`` and maybe others.
-        If ``(None,)*3`` then we return None.
 
     Returns
     -------
-    Structure or None
+    Structure
     """
-    assert type(tup) == type((1,))
+    assert isinstance(tup, tuple)
     assert len(tup) == 3
-    if tup == (None,)*3:
-        return None
-    else:
-        symbols = [atomic_data.symbols[ii] for ii in tup[2]]
-        st = Structure(coords_frac=tup[1], cell=tup[0], symbols=symbols)
-        return st
+    symbols = [atomic_data.symbols[ii] for ii in tup[2]]
+    st = Structure(coords_frac=tup[1], cell=tup[0], symbols=symbols)
+    return st
 
 
 def spglib_get_primitive(struct, **kwds):
     """Find primitive structure for given Structure.
+
+    If `struct` is irreducible (is already a primitive cell), we return None,
+    else a Structure.
 
     Uses pyspglib.
 
@@ -68,21 +76,25 @@ def spglib_get_primitive(struct, **kwds):
 
     Notes
     -----
-    spglib returns (None,None,None) if no primitive cell can be found, i.e. the
-    given input Structure cannot be reduced, which can occur if (a) a given
-    Structure is already a primitive cell or (b) any other reason like a too
-    small value of `symprec`. Then,  we return None. See also
-    :func:`spglib2struct`.
+    spglib used to return (None,None,None) if no primitive cell can be found,
+    i.e. the given input Structure cannot be reduced, which can occur if (a) a
+    given Structure is already a primitive cell or (b) any other reason like a
+    too small value of `symprec`. Now ([py]spglib >= 1.8.x) it seems to always
+    return data and use func:`is_same_struct` to determine if the struct is
+    irreducible. In that case we return None in order to keep the API
+    unchanged.
 
     Also note that a primitive cell (e.g. with 2 atoms) can have a number of
     different realizations. Therefore, you may not always get the primitive
     cell which you would expect or get from other tools like Wien2K's sgroup.
     Only things like `natoms` and the spacegroup can be safely compared.
     """
-    # XXX why imports here??
-    from pyspglib import spglib
-    return spglib2struct(spglib.find_primitive(struct.get_fake_ase_atoms(),
-                                               **kwds))
+    candidate = spglib2struct(spglib.find_primitive(struct.get_fake_ase_atoms(),
+                                                    **kwds))
+    if is_same_struct(candidate, struct):
+        return None
+    else:
+        return candidate
 
 
 def spglib_get_spacegroup(struct, **kwds):
@@ -110,8 +122,6 @@ def spglib_get_spacegroup(struct, **kwds):
     The used function ``spglib.get_spacegroup()`` returns a string, which we
     split into `spg_num` and `spg_sym`.
     """
-    # XXX why imports here??
-    from pyspglib import spglib
     ret = spglib.get_spacegroup(struct.get_fake_ase_atoms(), **kwds)
     spl = ret.split()
     spg_sym = spl[0]
@@ -119,4 +129,6 @@ def spglib_get_spacegroup(struct, **kwds):
     spg_num = spg_num.replace('(','').replace(')','')
     spg_num = int(spg_num)
     return spg_num,spg_sym
+
+
 

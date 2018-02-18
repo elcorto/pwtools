@@ -25,7 +25,7 @@ reqs = [('matplotlib', 'matplotlib', None, None),
         ('ase', 'ase', None, None),
         ('numpydoc', 'numpydoc', None, None),
         ('PyCifRW', 'CifFile', None, None),
-##        ('pyspglib', 'pyspglib', None, None),
+        ('pyspglib', 'pyspglib', None, None),
 ##        ('spglib', 'spglib', None, None),
         ]
 

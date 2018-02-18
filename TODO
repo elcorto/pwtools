@@ -65,14 +65,15 @@ crys.py
 
 pydos.py
 --------
+* pydos is a very stupid name, rename to pdos.py 
 * let *_pdos() return one 2d array with several columns, like crys.rpdf()
-* pydos is a very stupid name :)
  
 all
 ---
 * Drop verbose.py. Use the logging or warnings module.
 * rename all functions foo3d() -> foo_traj(). But not funcs which take 3d arrays
   directly. Only those which take a Trajectory as argument.
+* remove all old (py27 version) deprecation warnings before adding new ones
 
 examples
 --------
@@ -128,9 +129,5 @@ tests
     map() -> list(map())
     zip() -> list(zip())
     print("foo %s" %x) -> print(("foo %s" %x))
-
-low hanging fruits
-------------------
-* rename pydos -> dos
 
 # vim:comments=fb\:*
