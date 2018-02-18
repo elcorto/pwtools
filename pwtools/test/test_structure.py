@@ -5,7 +5,7 @@ from pwtools.crys import Structure, Trajectory
 from pwtools import crys, constants
 from pwtools.test.tools import aaae, assert_all_types_equal
 from pwtools.test import tools
-from pwtools.test.rand_container import get_rand_struct
+from pwtools.test.utils.rand_container import get_rand_struct
 rand = np.random.rand
 
 # We assume all lengths in Angstrom. Only importans for ASE comparison.

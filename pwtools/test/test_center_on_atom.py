@@ -1,6 +1,6 @@
 import numpy as np
 from pwtools.crys import center_on_atom
-import pwtools.test.rand_container as rc
+import pwtools.test.utils.rand_container as rc
 
 def test():
     # Explicit code duplication even though we could use [...,0,:] which should

@@ -110,12 +110,15 @@ mpl.py
 
 tests
 -----
-* move test/rand_container.py to test/utils/ or to tools.py
 * move/merge test/tools.py with utils/, maybe place in utils/__init__.py ??
   problem: utils/ is more a collection of scripts and data, not so much a
   sub-package of pwtools.test
 * make all paths in all tests absolute (well, relative to __file__) such that
   tests can be started from anywhere, not just pwtools/test/
+* tools.py: make skip functions decorators instead of a function that we call
+  which then raises nose.plugins.skip.SkipTest, reassess why we use
+  nose.plugins.skip.SkipTest instead of the unittest.skip() decorators in the
+  first place
 
 2to3
 ----

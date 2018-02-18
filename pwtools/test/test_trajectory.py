@@ -7,7 +7,7 @@ from pwtools.crys import Trajectory, Structure
 from pwtools import crys, constants
 from pwtools.test.tools import aaae, assert_all_types_equal,\
     assert_attrs_not_none, assert_dict_with_all_types_equal
-from pwtools.test.rand_container import get_rand_struct, get_rand_traj
+from pwtools.test.utils.rand_container import get_rand_struct, get_rand_traj
 from pwtools import num
 rand = np.random.rand
 
