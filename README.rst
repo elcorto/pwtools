@@ -17,48 +17,19 @@ in the doc strings are in `the tests`_.
 
 Quick install
 -------------
-See the `install notes`_. Basically, the dependencies are::
+To build the extension modules and install all Python dependencies via pip in
+one go, use:: 
 
-	# apt
-	python-numpy
-	python-scipy
-	python-nose
-	python-dev
-	python-h5py 
-	python-matplotlib 
-	python-ase
-	python-numpydoc
-	python-sphinx
-	gfortran
-	liblapack-dev
+    $ pip3 install .
 
-	# pip
-	pycifrw
-	pyspglib
+or the setuptools "development install" (no copy of files)::
+    
+    $ pip3 install -e .
 
-.. FIXME as of v ersion 1.9.x, pyspglib is renamed to spglib, update dependency
-   list once we tested this
-
-There is no installation script (i.e. ``setup.py``). Just copy the whole
-package somewhere and run ``make`` to compile extensions
-
-.. code-block:: shell
-
-    $ cd $HOME/python/
-    $ git clone https://github.com/elcorto/pwtools.git
-    $ cd pwtools
-    $ make
-    # ~/.bashrc or ~/.profile
-    export PATH=$HOME/python/pwtools/bin:$PATH
-    if [ -n "$PYTHONPATH" ]; then 
-        export PYTHONPATH=$HOME/python:$PYTHONPATH
-    else
-        export PYTHONPATH=$HOME/python
-    fi
-
+See the `install notes`_ for details.
 
 .. ---------------------------------------------------------------------------
-   link tagrgets, see also doc/source/written/refs.rst
+   link targets, see also doc/source/written/refs.rst
    ---------------------------------------------------------------------------
 
 .. _QE: http://www.quantum-espresso.org

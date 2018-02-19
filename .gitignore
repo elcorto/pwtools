@@ -1,4 +1,5 @@
-build
+build/
+dist/
 doc/build
 doc/source/generated
 doc/source/written/background/pwtools.pydos.*.rst

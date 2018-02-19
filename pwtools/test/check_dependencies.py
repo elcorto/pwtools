@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os, importlib
 
@@ -12,12 +12,8 @@ def check_module(name):
 if __name__ == '__main__':
 
     print("required packages:")
-    for name in ['numpy', 'scipy']:
-        check_module(name)
-
-    print("optional packages:")
-    for name in ['ase', 'pyspglib', 'CifFile', 'h5py', 'nose',
-                 'matplotlib']:
+    for name in ['numpy', 'scipy', 'ase', 'pyspglib', 'CifFile', 'h5py',
+                 'nose', 'matplotlib']:
         check_module(name)
 
     print("optional executables:")

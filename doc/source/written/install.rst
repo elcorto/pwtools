@@ -1,123 +1,98 @@
 Installation
 ============
 
-There is no installation script (i.e. ``setup.py``). Just copy the whole
-package somewhere and run ``make`` to compile extensions
+To build the extension modules and install all Python dependencies via pip in
+one go, use:: 
+    
+    $ pip3 install .
 
-.. code-block:: shell
+or the setuptools "development install" (no copy of files)::
+    
+    $ pip3 install -e .
 
-    $ cd $HOME/python/
-    $ git clone https://github.com/elcorto/pwtools.git
-    $ cd pwtools
-    $ make
-    # ~/.bashrc or ~/.profile
-    export PATH=$HOME/python/pwtools/bin:$PATH
-    if [ -n "$PYTHONPATH" ]; then 
-        export PYTHONPATH=$HOME/python:$PYTHONPATH
-    else
-        export PYTHONPATH=$HOME/python
-    fi
+See the pip and setuptools documentation for all other funny ways to install a
+package (using pip or the traditional ``python3 setup.py install | develop``).
 
-Make sure that ``PYTHONPATH`` doesn't start with ``:`` and that you don't have
-``::`` in it. Otherwise, other modules may try to import ``pwtools/io.py``
-instead of the std lib's ``io``. For example `Mercurial
-<http://mercurial.selenic.com>`_ imports ``tempfile``, which imports
-``io``.
+If all dependencies are installed, you may also simply build the extensions and
+set ``PYTHONPATH``::
 
+    $ cd src && make && cd ..
+    $ [ -n "$PYTHONPATH" ] && pp=$(pwd):$PYTHONPATH || pp=$(pwd)
+    $ export PYTHONPATH=$pp
 
-Add-on packages / other required tools
---------------------------------------
+Dependencies
+------------
+::
 
-Debian:
+	# apt (Debian-ish systems)
+	python3-numpy
+	python3-scipy
+	python3-nose
+	python3-dev     # for compiling extensions
+	python3-h5py 
+	python3-matplotlib 
+	python3-ase
+	python3-numpydoc
+	python3-sphinx
+	gfortran        # or ifort, see src/Makefile
+	liblapack-dev
 
-.. code-block:: shell
-
-    $ sudo apt-get install python-numpy python-scipy python-nose python-dev \
-                           python-h5py gfortran python-matplotlib \
-                           liblapack-dev
-    $ sudo apt-get install pip
-    $ pip install pycifrw 
-    $ pip install pyspglib
-
-Must have
-~~~~~~~~~
-
-* numpy_
-* scipy_
-* nose_ (for running tests in ``test/``)
-* python headers (development files for compiling Fortran extension)  
-* Fortran compiler (e.g. gfortran will do fine)
-* Blas and Lapack (for ``flib.f90``)
-* Unix tools: grep, sed, awk, tail, wc (for :mod:`~pwtools.parse`); gzip/gunzip (for
-  ``test/``). If possible, install mawk, which is much faster than GNU awk. It
-  will be used automatically if found on your system.
-
-Almost must have
-~~~~~~~~~~~~~~~~
-  
-* `PyCifRW <pycifrw_orig_>`_: For Cif files in  :class:`~pwtools.parse.CifFile`,
-  :func:`~pwtools.io.read_cif` and :func:`~pwtools.io.write_cif`. You may get a
-  DeprecationWarning regarding the ``sets`` module. There is a patched version
-  from pwextern-free_, which deals with that. But check the `pip version 
-  <https://pypi.python.org/pypi/PyCifRW>`_ first.
-* `pyspglib <pyspglib_>`_: used in :mod:`~pwtools.symmetry`, also shipped with
-  pwextern-free_. Again, check `pip <https://pypi.python.org/pypi/pyspglib>`_.
-* h5py_: for some functions in :mod:`~pwtools.io` currently
-
-Suggested
-~~~~~~~~~
-
-* matplotlib_ (``examples/``)
-* VMD_ (``examples/rpdf/``, :func:`~pwtools.crys.call_vmd_measure_gofr`,
-  :func:`~pwtools.visualize.view_vmd_axsf`,
-  :func:`~pwtools.visualize.view_vmd_xyz`), must register before download
-* ASE_: :mod:`~pwtools.calculators`
-
-Optional
-~~~~~~~~
-
-* The ``fourier.x`` tool from the CPMD_ contrib sources (for
-  ``examples/``). Need to register before download.
-* eos (for :mod:`~pwtools.eos`): The tool "eos" from the Elk_ code must
-  be on your path. Note that the executable is assumed to be named "eos.x"
-  instead of the default name "eos". See :class:`pwtools.eos.ElkEOSFit` for
-  usage. Can be installed directly from Elk or also pwextern-free_.
-
-The pwextern-free_ package contains add-on tools which we don't want / can ship
-directly with pwtools, such as eos, PyCifRW and pyspglib, together with an
-install script.
-
-.. note:: :class:`pwtools.eos.ElkEOSFit` is deprecated now, and so you don't
-   really need the Elk code's eos tool anymore. The other two things which come
-   with pwextern-free_ can be installed by::
-   
-    pip install pycifrw 
-    pip install pyspglib
-
-All imports of optional Python modules will silently fail such that the code
-can be used anywhere without errors or annoying warnings. The code parts which
-use the dependencies will then fail only if used. And of course the related
-tests will fail. That is no problem if you don't need the corresponding
-functionality.
+	# pip
+	PyCifRW
+	pyspglib  # renamed to spglib after v1.8.x, not supported yet
 
 You can use ``test/check_dependencies.py`` to find out what your system has
 installed.
 
+With ``setup.py``, all Python dependencies are installed by pip, which might
+not be what you want when you are using a system package manager (e.g. apt).
+Then, install Debian packages beforehand. ``setup.py`` will detect and use them
+if version constraints are fulfilled.
+
+Optional dependencies
+^^^^^^^^^^^^^^^^^^^^^
+
+* VMD_ (``examples/rpdf/``, :func:`~pwtools.crys.call_vmd_measure_gofr`,
+  :func:`~pwtools.visualize.view_vmd_axsf`,
+  :func:`~pwtools.visualize.view_vmd_xyz`), must register before download
+
+* The ``fourier.x`` tool from the CPMD_ contrib sources (for
+  ``examples/``). Need to register before download.
+
+* eos (for :mod:`~pwtools.eos`): The tool "eos" from the Elk_ code must
+  be on your path. Note that the executable is assumed to be named ``eos.x``
+  instead of the default name "eos". See :class:`pwtools.eos.ElkEOSFit` for
+  usage. Can be installed directly from Elk or pwextern-free_.
+
+The pwextern-free_ package contains add-on tools which we don't want / can ship
+directly with pwtools, such as eos.
+
+.. note:: pwextern-free also contains very old versions of PyCifRW and
+   pyspglib, don't use those, use pip versions! Also, don't use the
+   install.sh script provided there. If needed, only compile eos.x and place it
+   somewhere in PATH.
+
+.. note:: :class:`pwtools.eos.ElkEOSFit` is deprecated now, and so you don't
+   really need the Elk code's eos tool anymore. It was used for generating
+   refernce EOS fit data once, which is stored in test/files/, but there is no
+   use of eos.x in pwtools anymore.
+   
 Running tests
 -------------
 
-See tests/README. Actually, all of these are good examples, too!
+See test/README. Actually, all of these are good examples, too!
 
 Python versions
 ---------------
 
-Developed mostly with Python 2.5..2.7. Should work with all versions from 2.4
-on, but not yet 3.x. 
+Only Python3, tested: Python 3.6
+
+The package was developed mostly with Python 2.5..2.7 and ported using 2to3.
 
 Compiling Fortran extensions and OpenMP notes
 ---------------------------------------------
 
-Use the ``Makefile``:
+Use ``src/Makefile``:
 
 .. code-block:: shell
 
@@ -133,13 +108,13 @@ Generates ``*.so`` and ``*.pyf`` (f2py interface) files.
 
 You need:
 
-* numpy
+* numpy for f2py
 * a Fortran compiler
 * Python headers (Debian/Ubuntu: python-dev)
 * Lapack (Debian: liblapack3)
 
 The module is compiled with f2py (currently part of numpy, tested with numpy
-1.1.0 .. 1.7.x). 
+1.1.0 .. 1.13.x). 
 
 Compiler / f2py
 ^^^^^^^^^^^^^^^
@@ -168,8 +143,8 @@ We managed to speed up the calculations by sprinkling some OpenMP
 pragmas in ``*.f90``. This works pretty good. If you wanna try, use 
 ``make ifort-omp`` or ``make gfortran-omp``.
 
-If all went well, _flib.so should be linked to libgomp (or libiomp for ifort).
-Check with:
+If all went well, ``_flib.so`` should be linked to ``libgomp`` (or ``libiomp``
+for ``ifort``). Check with:
 
 .. code-block:: shell
 
@@ -200,7 +175,7 @@ When developing OpenMP code, you may find that code doesn't produce correct
 results, even if it runs, if OpenMP is used incorrectly :) The test script
 ``test/runtests.sh`` calls `make gfortran-omp`, so if code is broken by OpenMP,
 all test using the Fortran extensions might fail. To run tests with other
-builds, use one  of
+builds, use one of
     
 .. code-block:: shell
 
