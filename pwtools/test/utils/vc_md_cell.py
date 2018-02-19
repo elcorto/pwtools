@@ -11,11 +11,12 @@
 import numpy as np
 from pwtools import common
 
-cell = np.arange(1,10).reshape((3,3))
+if __name__ == '__main__':
+    cell = np.arange(1,10).reshape((3,3))
 
-alat_lst = [2.0, 4.0]
-for ialat,alat in enumerate(alat_lst):
-    for ii in range(5):
-        cell_str = common.str_arr((cell + 0.02*ii + ialat)/alat)
-        print("CELL_PARAMETERS (alat= %.5f)\n%s" %(alat, cell_str))
-        
+    alat_lst = [2.0, 4.0]
+    for ialat,alat in enumerate(alat_lst):
+        for ii in range(5):
+            cell_str = common.str_arr((cell + 0.02*ii + ialat)/alat)
+            print("CELL_PARAMETERS (alat= %.5f)\n%s" %(alat, cell_str))
+            
