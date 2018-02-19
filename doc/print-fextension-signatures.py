@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Load Fortran extensions and print all function signatures.
@@ -11,11 +11,11 @@ def print_doc_attr(module):
     name = "module = " + module.__name__
     fn   = "file   = " + module.__file__
     bar = "="*79
-    print "%s\n%s\n%s\n%s" %(bar, name, fn, bar)
-    for key,val in module.__dict__.iteritems():
+    print("%s\n%s\n%s\n%s" %(bar, name, fn, bar))
+    for key,val in module.__dict__.items():
         if not key.startswith('__') and hasattr(val, '__doc__'):
             doc = getattr(val, '__doc__')
-            print doc
+            print(doc)
 
 from pwtools import _flib
 print_doc_attr(_flib)
