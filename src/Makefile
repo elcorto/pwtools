@@ -26,7 +26,7 @@ ifort-omp: F2PY_OMP_F90_FLAGS=-liomp5
 
 gfortran: F90=gfortran
 gfortran: F90FLAGS=-x f95-cpp-input -Wall
-gfortran: ARCH=-mmmx -msse2
+gfortran: ARCH=-march=native
 gfortran-omp: OMP_F90_FLAGS=-fopenmp -D__OPENMP
 gfortran-omp: F2PY_OMP_F90_FLAGS=-lgomp
 
