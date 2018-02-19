@@ -1,10 +1,9 @@
 .. Written documentation.
 
+==========
 Background
 ==========
 
-.. toctree::
-    
-   phonon_dos
-   coord_trans
-   pwscf
+.. include:: phonon_dos.rst
+.. include:: coord_trans.rst
+.. include:: pwscf.rst

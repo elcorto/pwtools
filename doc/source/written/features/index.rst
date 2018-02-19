@@ -1,9 +1,9 @@
 .. Written documentation.
 
+========
 Features
 ========
 
-.. toctree::
-    overview
-    param_study
-    parsing
+.. include:: overview.rst
+.. include:: param_study.rst
+.. include:: parsing.rst

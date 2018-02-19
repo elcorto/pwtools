@@ -20,7 +20,7 @@ storing calculation data. See the :ref:`feature overview <overview>` for more.
 .. Written docs.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    
    written/index 
 

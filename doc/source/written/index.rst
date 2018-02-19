@@ -1,8 +1,5 @@
 .. Written documentation.
 
-Documentation
-=============
-
 .. toctree::
     
    features/index
