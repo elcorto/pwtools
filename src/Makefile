@@ -53,19 +53,23 @@ help:
 	@echo "make ifort-mkl           # ifort, Intel MKL lapack, set MKL_LIB"
 
 # internal targets
-libs: _flib.so _dcd.so
+libs: _flib*.so _dcd*.so
 
 # http://www.cprogramming.com/tutorial/makefiles_continued.html
-# %  = flib
-# $* = flib
-# $? = flib.f90
-_%.so: %.f90
-	mkdir -pv build; cp -v $*.f90 build/; cd build; \
+# %   = flib
+# $*  = flib
+# $?  = flib.f90
+#
+# For names such as _flib.cpython-36m-x86_64-linux-gnu.so:
+# %*  = flib*
+# $** = flib*
+#
+# Need the last involved copy command since we need to
+# 	cp _flib.cpython-36m-x86_64-linux-gnu.so ../pwtools/_flib.so
+_%*.so: %.f90
 	CC=gcc CXX=g++ $(F2PY) -h $*.pyf $? -m _$* --overwrite-signature; \
 	CC=gcc CXX=g++ $(F2PY) -c $*.pyf $? $(F2PY_FLAGS); \
-	# Need that involved copy command since we need to
-	# 	cp _dcd.cpython-36m-x86_64-linux-gnu.so ../../pwtools/_dcd.so
-	cp -v _$**.so ../../pwtools/_$*.so
+	cp -v _$**.so ../pwtools/_$*.so
 
 clean:
-	rm -rvf *.so build
+	rm -rvf *.so *.pyf
