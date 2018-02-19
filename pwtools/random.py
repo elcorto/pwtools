@@ -1,7 +1,3 @@
-# Random structure generation.
-
-
-
 from math import acos, pi, sin, cos, sqrt
 import numpy as np
 from numpy.random import uniform
@@ -266,9 +262,7 @@ class RandomStructure(object):
 
 
 def random_struct(*args, **kwds):
-    """Shortcut for::
-    >>> rs = crys.RandomStructure(...)
-    >>> st = rs.get_random_struct()
+    """Shortcut for ``RandomStructure(*args, **kwds).get_random_struct()``.
     """
     rs = RandomStructure(*args, **kwds)
     return rs.get_random_struct(fail=True)

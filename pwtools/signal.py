@@ -1,7 +1,7 @@
-# signal.py
-#
-# After scipy.signal: Some general "signal procressing" tools (FFT,
-# correlation). Mostly textbook and reference implementations and utilities.
+"""
+Some general signal procressing tools (FFT, correlation). Mostly textbook and
+reference implementations plus some utilities.
+"""
 
 from itertools import product
 import numpy as np
@@ -394,7 +394,8 @@ def mirror(arr, axis=0):
 # Fortran side.
 #
 def acorr(v, method=7, norm=True):
-    """(Normalized) autocorrelation function (ACF) for 1d arrays:
+    """(Normalized) autocorrelation function (ACF) for 1d arrays.
+
     Without normalization
         c(t) = <v(0) v(t)>
     and with

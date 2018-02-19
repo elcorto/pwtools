@@ -1,20 +1,20 @@
-# mttk.py
-#
-# Fictitious masses for Nose-Hoover thermostat chains (NHCs) and barostat from
-# the MTTK paper [1].
-#
-# Atomic units: All fictitious masses have dimension [mass * length**2] = [kg *
-# m**2] and are converted to Hartree atomic units: mass[kg] / m0 (electron
-# mass), length[m] / a0 (Bohr). We are not totally sure, but we belief that
-# these are the units for qmass an bmass used in Abinit. As usual, this is not
-# really documented anywhere, but we rely of the documentation for "noseinert"
-# (ionmov 8), which states that "... the inertia factor WT of the Nose-Hoover
-# thermostat (when ionmov=8), in atomic units of weight*length^2, that is
-# (electron mass)*(Bohr)^2".
-#
-# [1] Glenn J. Martyna and Mark E. Tuckerman and Douglas J. Tobias and Michael
-#     L. Klein, "Explicit reversible integrators for extended systems
-#     dynamics", Mol. Phys. 87(5), pp. 1117, 1996
+"""
+Fictitious masses for Nose-Hoover thermostat chains (NHCs) and barostat from
+the MTTK paper [1]_.
+
+Atomic units: All fictitious masses have dimension [mass * length**2] = [kg *
+m**2] and are converted to Hartree atomic units: mass[kg] / m0 (electron
+mass), length[m] / a0 (Bohr). We are not totally sure, but we belief that
+these are the units for qmass an bmass used in Abinit. As usual, this is not
+really documented anywhere, but we rely of the documentation for "noseinert"
+(ionmov 8), which states that "... the inertia factor WT of the Nose-Hoover
+thermostat (when ionmov=8), in atomic units of weight*length^2, that is
+(electron mass)*(Bohr)^2".
+
+.. [1] Glenn J. Martyna and Mark E. Tuckerman and Douglas J. Tobias and Michael
+       L. Klein, "Explicit reversible integrators for extended systems
+       dynamics", Mol. Phys. 87(5), pp. 1117, 1996
+"""
 
 from pwtools.constants import kb, m0, a0
 

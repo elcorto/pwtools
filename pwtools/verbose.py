@@ -1,6 +1,4 @@
-# verbose.py
-#
-# Defines message printing stuff. Used in all other modules. Use the global var
+# Define message printing stuff. Used in all other modules. Use the global var
 # VERBOSE to turn chatty functions on/off.
 #
 # from pwtools import verbose, parse

@@ -15,6 +15,10 @@ from pwtools.crys import Structure
 
 
 def is_same_struct(st1, st2):
+    """Test if two :class:`~pwtools.crys.Structure` instances are the same.
+
+    Use ``numpy.allclose`` for float-type properties.
+    """
     # maybe add early stopping (return if the first test fails), start with
     # cheap tests, finally do spacegroup; only if we call this function very
     # often and speed becomes an issue
@@ -31,7 +35,8 @@ def is_same_struct(st1, st2):
 
 
 def spglib2struct(tup):
-    """Transform returned tuple from various spglib functions to Structure.
+    """Transform returned tuple from various spglib functions to
+    :class:`~pwtools.crys.Structure`.
 
     This applies to ``spglib.find_primitive()`` and probably some more. Their
     doc string says it returns an ``ase.Atoms`` object, but what it actually
@@ -46,7 +51,7 @@ def spglib2struct(tup):
 
     Returns
     -------
-    Structure
+    :class:`~pwtools.crys.Structure`
     """
     assert isinstance(tup, tuple)
     assert len(tup) == 3
@@ -56,7 +61,7 @@ def spglib2struct(tup):
 
 
 def spglib_get_primitive(struct, **kwds):
-    """Find primitive structure for given Structure.
+    """Find primitive structure for given :class:`~pwtools.crys.Structure`.
 
     If `struct` is irreducible (is already a primitive cell), we return None,
     else a Structure.
@@ -129,6 +134,3 @@ def spglib_get_spacegroup(struct, **kwds):
     spg_num = spg_num.replace('(','').replace(')','')
     spg_num = int(spg_num)
     return spg_num,spg_sym
-
-
-

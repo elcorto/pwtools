@@ -1,7 +1,5 @@
-# pwscf.py
-#
-# Some handy tools to construct strings for building pwscf input files.
-# Readers for QE postprocessing tool output (matdyn.x, dynmat.x).
+"""Some handy tools to construct strings for building pwscf input files.
+Readers for QE postprocessing tool output (matdyn.x, dynmat.x)."""
 
 import re, os, warnings
 import numpy as np

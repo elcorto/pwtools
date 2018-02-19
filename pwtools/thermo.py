@@ -1,6 +1,4 @@
-# thermo.py
-#
-# (Quasi)harmonic approximation. Thermal expansion tools.
+"""(Quasi)harmonic approximation. Thermal expansion tools."""
 
 import numpy as np
 from scipy.integrate import simps, trapz

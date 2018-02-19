@@ -1,7 +1,3 @@
-# mpl.py
-# 
-# Plotting stuff for matplotlib: layouts, predefined markers etc.
-
 """
 Example for changing axis color (pure matplotlib, just as reference)
 ---------------------------------------------------------------------
@@ -89,11 +85,13 @@ def plotlines3d(ax3d, x,y,z, *args, **kwargs):
     return ax3d        
 
 def fig_ax(**kwds):
+    """``fig,ax = fig_ax()``"""
     fig = plt.figure(**kwds)
     ax = fig.add_subplot(111)
     return fig, ax
 
 def fig_ax3d(**kwds):
+    """``fig,ax3d = fig_ax()``"""
     fig = plt.figure(**kwds)
     try: 
         ax = fig.add_subplot(111, projection='3d')
@@ -427,11 +425,17 @@ class Data2D(object):
                 kwds[name] = None
         return Data2D(**kwds)
 
-
+# XXX needed??
 # backwd compat
 Data3D = Data2D
 
 def get_2d_testdata():
+    """2D sin + cos data.
+
+    Returns
+    -------
+    ret : :class:`Data2D`
+    """
     x = np.linspace(-5,5,20)
     y = np.linspace(-5,5,20)
     X,Y = num.meshgridt(x,y)
@@ -495,7 +499,8 @@ ilc = iter_linestyles_colors
 
 
 def smooth_color(idx, niter):
-    """
+    """Helper for creating color transitions on loops.
+
     Examples
     --------
     # change color smoothly blue -> red

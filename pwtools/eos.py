@@ -54,6 +54,7 @@ class MaxDerivException(Exception):
 
 
 class EVFunction(object):
+    """Base class for E(V) models, such as the Vinet EOS."""
     def __init__(self):
         self.param_order = ['e0', 'b0', 'b1', 'v0']
     
@@ -101,6 +102,7 @@ class EVFunction(object):
     
 
 class Vinet(EVFunction):
+    """Vinet EOS model."""
     def evaluate(self, volume, params):
         return _vinet(volume, params)
     
@@ -165,6 +167,7 @@ class EosFit(Fit1D):
         return num.Spline(vv, self(vv, der=0), k=5, s=None)
     
     def fit(self):
+        """Fit E(V) model, fill ``self.params``."""
         # Quadratic fit to get an initial guess for the parameters. 
         # Thanks: https://github.com/materialsproject/pymatgen
         # -> pymatgen/io/abinitio/eos.py 

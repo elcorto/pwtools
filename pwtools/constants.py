@@ -1,93 +1,111 @@
-# vim:ts=4:sw=4:et
+"""
+Atomic units and constants
+==========================
 
-#-----------------------------------------------------------------------------
-# Atomic units and constants
-#-----------------------------------------------------------------------------
-#
-# All constants taken from CODATA: 
-#   http://physics.nist.gov/cuu/Constants/index.html
-#   
-# See also:  
-#   http://en.wikipedia.org/wiki/Atomic_units
-#   http://en.wikipedia.org/wiki/Natural_units
-#
-# hbar  = h/(2*pi)
-# h     = Planck constant          
-# m0    = electron mass            
-# e0    = (electron) unit charge  
-# mu0   = magnetic constant = 4*pi * 1e-7 (exact)
-# c0    = speed of light (exact)
-# eps0  = electric field constant (exact)
-#
-# Bohr radius (also "Bohr" as length unit):
-#   a0 = 4*pi*eps0*hbar**2/(m0*e0**2)
-# 
-# fine structure constant:
-#   alpha = e0**2 / (4*pi*eps0*hbar*c0)
-#
-# Hartree units:
-# --------------
-#
-# hbar = m0 = e0 = 1
-# 4*pi*eps0 = 1
-# 
-# length:
-#     a0      
-# energy:
-#     Eh = e0**2 / (4*pi**eps0*a0) = alpha**2*m0*c0**2
-# time: ("atomic time unit")
-#     th = hbar/Eh # J*s/J = s
-# 
-# =>
-# unit of mass   = m0 = 1
-# unit of charge = e0 = 1
-# 
-# Rydberg units: 
-# --------------
-#
-# hbar = 2*m0 = e0**2/2 = 1
-# 4*pi*eps0 = 1
-#    
-# =>
-# unit of mass   = 2*m0       = 1
-# unit of charge = e0/sqrt(2) = 1
-# 
-# In all Hartree-definitions, replace:
-#   e0**2 -> e0**2/2
-#   m0    -> 2*m0
-#
-# length:
-#     a0 (the same, b/c in a0 formula: m0*e0**2 -> 2*m0*e0**2/2)     
-# energy:
-#     Eryd = e0**2/2 / (4*pi**eps0*a0) = 1/4*alpha**2*2*m0*c0**2
-#            ^^^^^^^                     ^^^          ^^^^
-# time:
-#     tryd = hbar/Eryd
-# 
-# m0(Rydberg) = 1/2*m0(Hartree)
-# Eryd        = 1/2*Eh
-# tryd = hbar/Eryd = 2*th     
-#
-# Atomic mass unit
-# ----------------
-#
-# amu = 1/12 * mass of C-12 isotope, mass in periodic table * amu = mass [kg]
+All constants taken from CODATA: 
+  http://physics.nist.gov/cuu/Constants/index.html
+  
+See also:  
+  http://en.wikipedia.org/wiki/Atomic_units
+  http://en.wikipedia.org/wiki/Natural_units
 
+::
 
-#-----------------------------------------------------------------------------
-# Useful conversions
-#-----------------------------------------------------------------------------
-# 
-# pressure
-#
-# dyn / cm**2 = 0.1 Pa
-# 1 Mbar      = 100 GPa
-# 1 kbar      = 0.1 GPa
-#
-# energy/frequency
-#
-# 1 cm^-1     = 2.998e10 Hz = 0.02998 THz
+    hbar  = h/(2*pi)
+    h     = Planck constant          
+    m0    = electron mass            
+    e0    = (electron) unit charge  
+    mu0   = magnetic constant = 4*pi * 1e-7 (exact)
+    c0    = speed of light (exact)
+    eps0  = electric field constant (exact)
 
+Bohr radius (also "Bohr" as length unit)::
+
+  a0 = 4*pi*eps0*hbar**2/(m0*e0**2)
+
+fine structure constant::
+
+  alpha = e0**2 / (4*pi*eps0*hbar*c0)
+
+Hartree units
+-------------
+
+::
+
+    hbar = m0 = e0 = 1
+    4*pi*eps0 = 1
+
+length::
+
+    a0      
+
+energy::
+
+    Eh = e0**2 / (4*pi**eps0*a0) = alpha**2*m0*c0**2
+
+time ("atomic time unit")::
+
+    th = hbar/Eh # J*s/J = s
+
+::
+
+    unit of mass   = m0 = 1
+    unit of charge = e0 = 1
+
+Rydberg units 
+-------------
+
+::
+
+    hbar = 2*m0 = e0**2/2 = 1
+    4*pi*eps0 = 1
+   
+::
+
+    unit of mass   = 2*m0       = 1
+    unit of charge = e0/sqrt(2) = 1
+
+In all Hartree-definitions, replace::
+
+  e0**2 -> e0**2/2
+  m0    -> 2*m0
+
+length::
+
+    a0 (the same, b/c in a0 formula: m0*e0**2 -> 2*m0*e0**2/2)     
+
+energy::
+
+    Eryd = e0**2/2 / (4*pi**eps0*a0) = 1/4*alpha**2*2*m0*c0**2
+           ^^^^^^^                     ^^^          ^^^^
+time::
+
+    tryd = hbar/Eryd
+
+::
+
+    m0(Rydberg) = 1/2*m0(Hartree)
+    Eryd        = 1/2*Eh
+    tryd = hbar/Eryd = 2*th     
+
+Atomic mass unit
+----------------
+
+amu = 1/12 * mass of C-12 isotope, mass in periodic table * amu = mass [kg]
+
+Useful conversions
+------------------
+
+pressure::
+
+    dyn / cm**2 = 0.1 Pa
+    1 Mbar      = 100 GPa
+    1 kbar      = 0.1 GPa
+
+energy/frequency::
+
+    1 cm^-1     = 2.998e10 Hz = 0.02998 THz
+"""
 
 #-----------------------------------------------------------------------------
 # Constants in Si units

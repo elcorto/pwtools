@@ -1,73 +1,74 @@
-# Radial Basis Functions Neural Network for interpolation of n-dim data points.
-#
-# Refs:
-# [1] http://en.wikipedia.org/wiki/Artificial_neural_network#Radial_basis_function_.28RBF.29_network
-# [2] http://en.wikipedia.org/wiki/Radial_basis_function_network
-# [3] NR, 3rd ed., ch 3.7
-#
-# Training
-# --------
-# One guy from the Behler group said they train their NN w/ a Kalman filter.
-#
-# For our RBF network, we use the traditional approach and simply solve a
-# linear system for the weights. Calculating the distance matrix w/
-# scipy.spatial.distance.cdist() or num.distsq() is handled efficiently,
-# even for many points. But we get into trouble for many points (order 1e4) b/c
-# solving a big dense linear system (1e4 x 1e4) with plain numpy.linalg on a
-# single core is possible but painful (takes some minutes) -- the traditional
-# RBF problem. Maybe use numpy build against threaded MKL, or even scalapack?
-# For the latter, look at how GPAW does this.
-#
-# There are some other projects out there:
-# 
-# * scipy.interpolate.Rbf 
-#   Essentially the same as we do. We took some ideas from there.
-# * http://pypi.python.org/pypi/PyRadbas/0.1.0
-#   Seems to work with gaussians hardcoded. Not what we want.
-# * http://code.google.com/p/pyrbf/
-#   Seems pretty useful for large problems (many points), but not 
-#   documented very much.
-# 
-# rbf parameter
-# -------------
-# Each RBF has a single parameter (`param`), which can be tuned. This is
-# usually a measure for the "width" of the function.
-#
-# * What seems to work best is RBFMultiquadric + train('linalg') +
-#   param='est' (mean distance of all points), i.e. the "traditional" RBF
-#   approach. This is exactly what's done in scipy.interpolate.Rbf .
-#
-# * It seems that for very few data points (say 5x5 for x**2 + x**2), the
-#   default param='est' is too small, which results in wildly fluctuating
-#   interpolation, b/c there is no "support" in between the data points. We
-#   need to have wider RBFs. Usually, bigger (x10), sometimes much bigger
-#   (x100) params work.
-# 
-# * However, we also had a case where we found by accident that the square of a
-#   small param (param (from 'est') = 0.3, param**2 = 0.1) was actually much
-#   better than the one from param='est'.
-#
-# other traing algos
-# -------------------
-# * train_param(), i.e. optimizing the RBF's free parameter by repeated
-#   training, works extremely good, for all kinds of (random) training
-#   point pattern on all test problems, but not so much for real world 
-#   data, when points are slightly noisy.
-# * If you really use train_param(), then make sure to use train_param(...,
-#   ftol=1e-8, maxfun=...), i.e. pass fmin() keywords. The default fmin()
-#   convergence thresholds are pretty high.
-# * We really need a training which lets us specify some kind of smoothness.
-#   For perfect data, RBF works perfect. But for "almost" perfect data, we
-#   would like to do some kind of fit instead, like the "s" parameter to
-#   scipy.interpolate.bisplrep().
-#
-# input data
-# ----------
-# It usually helps if all data ranges (points X and values Y) are in the same
-# order of magnitude, e.g. all have a maximum close to unity or so. If, for
-# example, X and Y have very different scales (say X -0.1 .. 0.1 and Y
-# 0...1e4), you may get bad interpolation between points. This is b/c the RBFs
-# also live on more or less equal x-y scales.
+"""
+Radial Basis Functions Neural Network for interpolation of n-dim data points.
+
+Refs:
+
+.. [1] http://en.wikipedia.org/wiki/Radial_basis_function_network
+.. [2] Numerical Recipies, 3rd ed., ch 3.7
+
+Training
+--------
+For our RBF network, we use the traditional approach and simply solve a
+linear system for the weights. Calculating the distance matrix w/
+scipy.spatial.distance.cdist() or num.distsq() is handled efficiently,
+even for many points. But we get into trouble for many points (order 1e4) b/c
+solving a big dense linear system (1e4 x 1e4) with plain numpy.linalg on a
+single core is possible but painful (takes some minutes) -- the traditional
+RBF problem. Maybe use numpy build against threaded MKL, or even scalapack?
+For the latter, look at how GPAW does this.
+
+There are some other projects out there:
+
+* scipy.interpolate.Rbf 
+  Essentially the same as we do. We took some ideas from there.
+* http://pypi.python.org/pypi/PyRadbas/0.1.0
+  Seems to work with gaussians hardcoded. Not what we want.
+* http://code.google.com/p/pyrbf/
+  Seems pretty useful for large problems (many points), but not 
+  documented very much.
+
+rbf parameter
+-------------
+Each RBF has a single parameter (`param`), which can be tuned. This is
+usually a measure for the "width" of the function.
+
+* What seems to work best is RBFMultiquadric + train('linalg') +
+  param='est' (mean distance of all points), i.e. the "traditional" RBF
+  approach. This is exactly what's done in scipy.interpolate.Rbf .
+
+* It seems that for very few data points (say 5x5 for x**2 + x**2), the
+  default param='est' is too small, which results in wildly fluctuating
+  interpolation, b/c there is no "support" in between the data points. We
+  need to have wider RBFs. Usually, bigger (x10), sometimes much bigger
+  (x100) params work.
+
+* However, we also had a case where we found that the square of a
+  small param (param (from 'est') = 0.3, param**2 = 0.1) was actually much
+  better than the one from param='est'.
+
+other traing methods
+--------------------
+* :func:`train_param`, i.e. optimizing the RBF's free parameter by repeated
+  training, works extremely good, for all kinds of (random) training
+  point pattern on all test problems, but not so much for real world 
+  data, when points are slightly noisy.
+* If you really use train_param(), then make sure to use train_param(...,
+  ftol=1e-8, maxfun=...), i.e. pass fmin() keywords. The default fmin()
+  convergence thresholds are pretty high.
+* We'd like have a method which lets us specify some kind of smoothness.
+  For perfect data, RBF works perfect. But for "almost" perfect data, we
+  would like to do some kind of fit instead, like the "s" parameter to
+  scipy.interpolate.bisplrep(). But then, this wouldn't be interpolation
+  anymore.
+
+input data
+----------
+It usually helps if all data ranges (points X and values Y) are in the same
+order of magnitude, e.g. all have a maximum close to unity or so. If, for
+example, X and Y have very different scales (say X -0.1 .. 0.1 and Y
+0...1e4), you may get bad interpolation between points. This is b/c the RBFs
+also live on more or less equal x-y scales.
+"""
 
 import math
 import numpy as np
@@ -80,7 +81,7 @@ from pwtools import timer
 ##TT = timer.TagTimer()
 
 class RBFFunction(object):
-    """Represent a single radial basis function."""
+    """Radial basis function base class."""
     def __init__(self, param=None):
         """
         Parameters
@@ -111,14 +112,18 @@ class RBFFunction(object):
         pass
 
 class RBFGauss(RBFFunction):
+    r"""Gaussian RBF :math:`\exp\left(-\frac{r^2}{2\,p^2}\right)`
+    """
     def __call__(self, rsq, param=None):
         return np.exp(-0.5*rsq / self._get_param(param)**2.0)
 
 class RBFMultiquadric(RBFFunction):
+    r"""Multiquadric RBF :math:`\sqrt{r^2 + p^2}`"""
     def __call__(self, rsq, param=None):
         return np.sqrt(rsq + self._get_param(param)**2.0)
 
 class RBFInverseMultiquadric(RBFFunction):
+    r"""Inverse Multiquadric RBF :math:`\frac{1}{\sqrt{r^2 + p^2}}`"""
     def __call__(self, rsq, param=None):
         return (rsq + self._get_param(param)**2.0)**(-0.5)
 
@@ -485,13 +490,18 @@ class RBFInt(object):
             return self.interpolate(*args, **kwargs)
 
 
+# This function is very experimental and pretty untested. Also, I don't seem
+# to remember what the data skipping business is all about. It's not that we
+# do cross validation here.
 def train_param(X, Y, param0='est', pattern='rand', regstep=2,
                 randskip=0.2, shuffle=False, rbf=RBFMultiquadric(), **fmin_kwds):
-    """
-    This could be also implemented as another training method inside RBFInt.
-    Here, define a function which optimizes `param` by fmin using only a subset
+    """Try to optimize the RBF's `param` automatically.
+    
+    We try to optimizes `param` by fmin using only a subset
     of the training set, evaluating the full training set and measuring the
     interpolation error at the missing points.
+    
+    This could be also implemented as another training method inside RBFInt.
 
     Parameters
     ----------
@@ -518,6 +528,7 @@ def train_param(X, Y, param0='est', pattern='rand', regstep=2,
     Returns
     -------
     RBFInt instance
+    
     """
     npoints = X.shape[0]
     assert 0.0 < randskip < 1.0, ("use 0.0 < randskip < 1.0")                
@@ -551,4 +562,3 @@ def train_param(X, Y, param0='est', pattern='rand', regstep=2,
     # would expect that the true `param` would be param/2.
     rbfi.train('linalg', param=popt[0])
     return rbfi
-

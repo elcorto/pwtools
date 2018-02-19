@@ -1,6 +1,4 @@
-# arrayio.py
-#
-# Array text file IO.
+"""Array text file IO. Some tools to write and read MD-like 3D arrays."""
 
 from io import StringIO
 from configparser import ConfigParser

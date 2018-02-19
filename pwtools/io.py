@@ -1,4 +1,4 @@
-# High level Structure and Trajectory I/O. HDF5 convenience IO functions.
+"""High level Structure and Trajectory I/O. HDF5 convenience IO functions."""
 
 import warnings, os
 try:
@@ -313,7 +313,7 @@ def load_h5(*args, **kwds):
 
 
 def read_pickle(filename):
-    """Load object written by ``cPickle.dump()``, e.g. files written by
+    """Load object written by ``pickle.dump()``, e.g. files written by
     :meth:`~pwtools.base.FlexibleGetters.dump()`."""
     return pickle.load(open(filename, 'rb'))
 

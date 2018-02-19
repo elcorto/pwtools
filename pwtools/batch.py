@@ -10,10 +10,11 @@ pj = os.path.join
 from pwtools.sql import sql_column, sql_matrix
 
 class Machine(object):
-    """This is a container for machine-specific stuff. Most of the
-    machine-specific settings can (and should) be placed in the corresponding
-    job template file. But some settings need to be in sync between files like
-    the scratch dir, the $HOME etc.
+    """Container for machine-specific stuff. 
+    
+    Most of the machine-specific settings can (and should) be placed in the
+    corresponding job template file. But some settings need to be in sync
+    between files like the scratch dir, the $HOME etc.
     
     Useful to predefine commonly used machines.
     """
@@ -248,10 +249,11 @@ class FileTemplate(object):
 
 
 class Calculation(object):
-    """A single calculation, e.g. in dir calc_foo/0/. A Calculation is bound to
-    one Machine.
+    """Represent a single calculation.
     
-    This class is usually not used on it's own, but only by ParameterStudy.
+    The calculation data will be placed, e.g., in dir calc_foo/0/. A
+    Calculation is bound to one Machine. This class is usually not used on it's
+    own, but only by ParameterStudy.
 
     The dir where file templates live is defined in the FileTemplates (usually
     'calc.templ').
@@ -323,8 +325,8 @@ class Calculation(object):
 
 
 class ParameterStudy(object):
-    """Class to represent a parameter study, i.e. a number of Calculations,
-    based on template files.
+    """Class to represent a parameter study (a number of Calculations,
+    based on template files).
     
     The basic idea is to assemble all to-be-varied parameters in a script
     outside (`params_lst`) and pass these to this class along with a list of

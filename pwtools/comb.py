@@ -1,7 +1,3 @@
-# comb.py
-#
-# Some combinatorics stuff.
-
 import numpy as np
 from pwtools.common import assert_cond as _assert
 from pwtools import common

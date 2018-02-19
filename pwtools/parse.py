@@ -40,7 +40,7 @@ on it will also return None.
   for each <attr> in self.attr_lst, thus setting self.<attr> to a defined
   value: None if nothing was found in the file or not None else
 
-* All getters get_<attr>() will do their parsing action, possibly
+* All getters get_<attr>() will do their parsing, possibly
   looking for a file self.filename, regardless of the fact that the attribute
   self.<attr> may already be defined (e.g. if parse() has been called before).
 
@@ -48,15 +48,12 @@ on it will also return None.
   parse().
 
 * Use dump('foo.pk') only for temporary storage and fast re-reading. Use
-  pwtool.common.cpickle_load(foo.pk). See also the *FileParser.load() docstring.
-
-* Keep the original parsed output file around (self.filename), avoid
-  get_txt().
+  pwtool.io.read_pickle('foo.pk'). See also the *FileParser.load() docstring.
 
 * Use relative paths in <filename>.
 
 * If loading a dump()'ed pickle file from disk,
-      pp=common.cpickle_load(...)
+      pp=io.read_pickle(...)
   then use direct attr access
       pp.<attr>
   instead of 
@@ -91,7 +88,8 @@ Pro:
 Con:      
 
 * The object is full of (potentially big) arrays holding redundant
-  information. Thus, the dump()'ed file may be large. 
+  information. Thus, the dump()'ed file may be large. Use the compress()
+  method.
 * Parsing may be slow if each getter (of possibly many) is called.
 
 Using get_<attr>():
@@ -105,14 +103,6 @@ Con:
 * self.<attr> will NOT be set, since get_<attr>() only returns <attr> but
   doesn't set self.<attr> = self.get_<attr>(), so dump() would save an
   "empty" file.
-
-Note on get_txt():
-
-If a file parser calls get_txt(), then this has these effects: (1) It can
-slow down parsing for big files and (2) the saved binary file (by using
-dump()) will have at least the size of the text file. While the original file
-could then be deleted in theory, the dump()'ed file becomes unwieldly to work
-with.
 """
 
 import re, sys, os

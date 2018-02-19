@@ -1,5 +1,3 @@
-"""Commonly used decorators."""
-
 import types
 import gzip
 import textwrap

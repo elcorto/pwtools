@@ -24,7 +24,7 @@ parsers are available:
     | :class:`~pwtools.parse.LammpsTextMDOutputFile`
     | :class:`~pwtools.parse.LammpsDcdMDOutputFile`
 
-The parsers called ``*OutpoutFile`` are for parsing simulation code output. The
+The parsers called ``*OutputFile`` are for parsing simulation code output. The
 others parse structure files (cif and pdb).
 
 All parsers have a common API and can be used like ::
@@ -94,7 +94,8 @@ defined in the input and there is no ways to calculate it, of course, whereas a
 Structure returned by :func:`~pwtools.io.read_pw_scf` will have that.
 
 By using the :meth:`~pwtools.base.FlexibleGetters.dump` method, you can store
-the object as binary file [using Python's cPickle module] for fast re-loading later::
+the object as binary file [using Python's ``pickle`` module] for fast
+re-loading later::
 
     >>> st.dump('struck.pk')
     >>> st_loaded = io.read_pickle('struck.pk')

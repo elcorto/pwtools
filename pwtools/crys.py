@@ -1,5 +1,3 @@
-# Crystal and unit-cell related tools, MD analysis, container classes
-
 from math import acos, pi, sin, cos, sqrt
 import textwrap, time, os, tempfile, types, copy, itertools
 
@@ -77,7 +75,7 @@ def volume_cell(cell):
     return abs(np.linalg.det(cell))
 
 def volume_cell3d(cell, axis=0):
-    """Same as volume_cell() for 3d arrays.
+    """Same as :func:`volume_cell` for 3d arrays.
     
     Parameters
     ----------
@@ -120,7 +118,7 @@ def volume_cc(cryst_const):
 
 
 def volume_cc3d(cryst_const, axis=0):
-    """Same as volume_cc() for 2d arrays (the name "3d" is just to indicate
+    """Same as :func:`volume_cc` for 2d arrays (the name "3d" is just to indicate
     that we work w/ trajectories).
     
     Parameters
@@ -171,7 +169,7 @@ def cell2cc(cell):
     return cryst_const
 
 def cell2cc3d(cell, axis=0):
-    """Same as cell2cc() for 3d arrays.
+    """Same as :func:`cell2cc` for 3d arrays.
     
     Parameters
     ----------
@@ -242,7 +240,7 @@ def cc2cell(cryst_const):
     return np.array([va, vb, vc])
 
 def cc2cell3d(cryst_const, axis=0):
-    """Same as cc2cell() for 2d arrays (the name "3d" is just to indicate
+    """Same as :func:`cc2cell` for 2d arrays (the name "3d" is just to indicate
     that we work w/ trajectories).
     
     Parameters
@@ -801,8 +799,8 @@ def pbc_wrap_coords(coords_frac, copy=True, mask=[True]*3, xyz_axis=-1):
 def pbc_wrap(obj, copy=True, **kwds):
     """Apply periodic boundary conditions to fractional coords. 
 
-    Same as ``pbc_wrap_coords`` but accepts a Structure or Trajectory instead
-    of the array ``coords_frac``. Returns an object with atoms
+    Same as :func:`pbc_wrap_coords` but accepts a Structure or Trajectory
+    instead of the array ``coords_frac``. Returns an object with atoms
     (coords_frac and coords) wrapped into the cell.
 
     Parameters
@@ -811,7 +809,7 @@ def pbc_wrap(obj, copy=True, **kwds):
     copy : bool
         Return copy or in-place modified object.
     **kwds : keywords
-        passed to pbc_wrap_coords()
+        passed to :func:`pbc_wrap_coords`
     """
     out = obj.copy() if copy else obj
     # set to None so that it will be re-calculated by set_all()
@@ -2103,6 +2101,7 @@ def center_on_atom(obj_in, idx=None, copy=True):
 #-----------------------------------------------------------------------------
 
 class UnitsHandler(FlexibleGetters):
+    """Base class for :class:`Structure`, providing unit conversion methods."""
     def __init__(self):
         # XXX cryst_const is not in 'length' and needs to be treated specially,
         # see _apply_units_raw()
@@ -3317,14 +3316,16 @@ def align_cart(obj, x=None, y=None, vecs=None, indices=None, cart=None,
 
 
 def tensor2voigt(tensor):
-    """
+    """Convert stress tensor to Voigt notation.
+
     Parameters
     ----------
     tensor : (3,3)
 
     Returns
     -------
-    voigt: [xx,yy,zz,yz,xz,xy]
+    voigt: 1d array
+        [xx,yy,zz,yz,xz,xy]
     """
     assert tensor.shape == (3,3), "tensor must be (3,3)"
     voigt = np.empty(6)
@@ -3338,10 +3339,12 @@ def tensor2voigt(tensor):
 
 
 def voigt2tensor(voigt):
-    """
+    """Convert Voigt stress array to stress tensor.
+    
     Parameters
     ----------
-    voigt: [xx,yy,zz,yz,xz,xy]
+    voigt: 1d array 
+        [xx,yy,zz,yz,xz,xy]
 
     Returns
     -------
@@ -3361,7 +3364,8 @@ def voigt2tensor(voigt):
     return tensor
 
 def voigt2tensor3d(voigt):
-    """
+    """Same as :func:`voigt2tensor` for trajectories.
+
     Parameters
     ----------
     voigt: (nstep,6)
@@ -3387,7 +3391,8 @@ def voigt2tensor3d(voigt):
 
 
 def tensor2voigt3d(tensor):
-    """
+    """Same as :func:`tensor2voigt` for trajectories.
+    
     Parameters
     ----------
     tensor : (nstep,3,3)

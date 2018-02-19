@@ -1,7 +1,3 @@
-# common.py
-#
-# File operations, common system utils and other handy tools.
-
 import signal
 import os
 import subprocess

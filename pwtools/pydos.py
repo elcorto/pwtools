@@ -1,17 +1,16 @@
-# pydos.py
-#
-# This module implements the functionallity to calculate the phonon density of
-# states (PDOS) from MD trajectories. For parsing output files into a format
-# which is used here, see parse.py and test/* for examples. For a theory
-# overview, see [1,2].
-#
-# [1] doc/source/written/background/phonon_dos.rst
-# [2] http://elcorto.bitbucket.org/pwtools/written/background/phonon_dos.html
-#
-# Other codes wich do that:
-# * tfreq from Tim Teatro
-#   http://www.timteatro.net/2010/09/29/velocity-autocorrelation-and-vibrational-spectrum-calculation
-# * fourier from CPMD
+"""
+This module implements the functionality to calculate the phonon density of
+states (PDOS) from MD trajectories. For parsing output files into a format
+which is used here, see parse.py and test/* for examples. For a theory
+overview, see [1]_.
+
+Other codes which do that are [2]_ and [3]_.
+
+.. [1] doc/source/written/background/phonon_dos.rst
+.. [2] tfreq from Tim Teatro
+       http://www.timteatro.net/2010/09/29/velocity-autocorrelation-and-vibrational-spectrum-calculation
+.. [3] fourier.x from CPMD
+"""
 
 import os, warnings
 import numpy as np
