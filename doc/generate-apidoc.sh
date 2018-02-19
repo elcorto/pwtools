@@ -1,14 +1,24 @@
 #!/bin/sh
 
-loc=sphinx-autodoc/sphinx-autodoc.py
-if which sphinx-autodoc.py; then 
-    autodoc=sphinx-autodoc.py
-elif [ -f $loc ]; then
-    autodoc=$loc
+err(){
+    echo "error: $@"
+    exit 1
+}
+
+if [ $# -eq 1 ]; then
+    autodoc=$(readlink -f $1)
+    [ -e $autodoc ] || err "not found: $autodoc"
 else
-    git clone https://github.com/elcorto/sphinx-autodoc
-    autodoc=$loc
-fi    
+    loc=sphinx-autodoc/sphinx-autodoc.py
+    if which sphinx-autodoc.py; then 
+        autodoc=sphinx-autodoc.py
+    elif [ -f $loc ]; then
+        autodoc=$loc
+    else
+        git clone https://github.com/elcorto/sphinx-autodoc
+        autodoc=$loc
+    fi   
+fi
 
 # ensure a clean generated tree
 rm -v $(find ../ -name "*.pyc")
