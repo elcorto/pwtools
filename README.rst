@@ -46,7 +46,7 @@ See the `install notes`_ for details.
 .. _docs_files: https://github.com/elcorto/pwtools/tree/master/doc
 .. _overview: http://elcorto.github.io/pwtools/written/features/overview.html#overview
 .. _api: http://elcorto.github.io/pwtools/generated/api/index.html
-.. _tests: https://github.com/elcorto/pwtools/tree/master/test   
+.. _tests: https://github.com/elcorto/pwtools/tree/master/pwtools/test  
 .. _sphinx-autodoc: https://github.com/elcorto/sphinx-autodoc
 
 .. Define derived link names here. Reason: We have nice and short labels which

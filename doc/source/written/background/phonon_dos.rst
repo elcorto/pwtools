@@ -91,24 +91,12 @@ increasing the interpolation, use more padding `of the time series`, for
 instance ``pad_zeros(v, nadd=(len(v)-1)*5)`` instead of `len(v)-1`.
 
 
-Calculation of the phonon DOS from MD data in pwtools
------------------------------------------------------
+Calculation of the phonon DOS from MD data
+------------------------------------------
 
-The main function is :func:`~pwtools.pydos.pdos`. The :mod:`~pwtools.pydos`
-module containes many helper and reference implementations which may be ignored.
-The module has
-
-.. automodule:: pwtools.pydos
-   :no-members:
-.. currentmodule:: pwtools.pydos
-.. autosummary::
-   :toctree:
-
-   pdos
-   vacf_pdos
-   direct_pdos
-   fvacf
-   pyvacf
+The :mod:`~pwtools.pydos` module containes many helper and reference
+implementations, but the the main function to be used is
+:func:`~pwtools.pydos.pdos`. 
 
 There are two ways of computing the phonon density of states (PDOS) from an MD
 trajectory. ``v`` is the 3d array of atomic velocities with shape (nstep,natoms,3),

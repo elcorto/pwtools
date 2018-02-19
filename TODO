@@ -77,7 +77,12 @@ all
 
 examples
 --------
-Clean up examples/phonon_dos/pdos_methods.py .
+* go thru all and check if they still work, make sure we use python3
+* Clean up examples/phonon_dos/pdos_methods.py
+
+bin
+---
+* go thru all and check if they still work, make sure we use python3
 
 constants.py / units in general
 -------------------------------
