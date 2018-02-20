@@ -38,24 +38,6 @@ def test_rbf():
     print(err)
     assert err < tol
     
-    # Test train_param(). Note that in general, the `param` from param='est'
-    # is already quite good and fmin() doesn't gain much. In fact, we have to
-    # use a *higher* `tol` in order for all tests to pass :) This is only an API
-    # test mostly, which we want to be fast, not accurate. 
-    # Play w/ fmin keywords (ftol, ...) to tune the optimization.
-    rbfi = rbf.train_param(X,Y,pattern='rand', randskip=0.2, shuffle=False)
-    tol = 1e-5
-    err = rbfi(np.atleast_2d([0,0]))[0] - 1.0
-    print(err)
-    assert err < tol
-    err = rbfi(np.atleast_2d([.5,.3]))[0] - (np.sin(0.5)+np.cos(0.3))
-    print(err)
-    assert err < tol
-    # Big errors occur only at the domain boundary: -1, 1
-    err = np.abs(Y - rbfi(X)).max()
-    print(err)
-    assert err < tol    
-    
     # 1d example, deriv test
     X = np.linspace(0,10,20)
     Y = np.sin(X)
@@ -64,5 +46,3 @@ def test_rbf():
     rbfi.train()
     assert np.allclose(rbfi(XI[:,None]), np.sin(XI), rtol=1e-3, atol=1e-3)
     assert np.allclose(rbfi(XI[:,None], der=1)[:,0], np.cos(XI), rtol=1e-2, atol=1e-3)
-
-

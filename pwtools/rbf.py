@@ -48,18 +48,10 @@ usually a measure for the "width" of the function.
 
 other traing methods
 --------------------
-* :func:`train_param`, i.e. optimizing the RBF's free parameter by repeated
-  training, works extremely good, for all kinds of (random) training
-  point pattern on all test problems, but not so much for real world 
-  data, when points are slightly noisy.
-* If you really use train_param(), then make sure to use train_param(...,
-  ftol=1e-8, maxfun=...), i.e. pass fmin() keywords. The default fmin()
-  convergence thresholds are pretty high.
 * We'd like have a method which lets us specify some kind of smoothness.
-  For perfect data, RBF works perfect. But for "almost" perfect data, we
+  For perfect data, RBF works perfect. But for noisy data, we
   would like to do some kind of fit instead, like the "s" parameter to
-  scipy.interpolate.bisplrep(). But then, this wouldn't be interpolation
-  anymore.
+  scipy.interpolate.bisplrep().
 
 input data
 ----------
@@ -488,77 +480,3 @@ class RBFInt(object):
             return self.deriv(*args, **kwargs)
         else:            
             return self.interpolate(*args, **kwargs)
-
-
-# This function is very experimental and pretty untested. Also, I don't seem
-# to remember what the data skipping business is all about. It's not that we
-# do cross validation here.
-def train_param(X, Y, param0='est', pattern='rand', regstep=2,
-                randskip=0.2, shuffle=False, rbf=RBFMultiquadric(), **fmin_kwds):
-    """Try to optimize the RBF's `param` automatically.
-    
-    We try to optimizes `param` by fmin using only a subset
-    of the training set, evaluating the full training set and measuring the
-    interpolation error at the missing points.
-    
-    This could be also implemented as another training method inside RBFInt.
-
-    Parameters
-    ----------
-    X, Y: See RBFInt.
-    param0 : float or str 'est'
-        Start RBF parameter. 'est' for using the mean point distance in the
-        training point set.
-    pattern : str
-        Pattern for picking out training points from X.
-        'reg': Use a "regular" pattern, i.e. use only every `regstep`th point.
-             Note that of course this depends on how points in X are sorted.
-        'rand': Pick points at random, leaving out a fraction of `randskip`
-            points. Example: randskip=0.2 means use ramdomly 80% of all points. 
-    regstep : int
-    randskip : float in [0,1]
-    shuffle : randomize sort order of points in X *before* using `pattern`.
-        Note that is for testing and in fact somewhat redundant, for instance
-            shuffle=True  + pattern='regular' + regstep=2
-        is the same as
-            shuffle=False + pattern='random' + randskip=0.5
-    rbf : RBFFunction instance
-    **fmin_kwds : passed to fmin()
-
-    Returns
-    -------
-    RBFInt instance
-    
-    """
-    npoints = X.shape[0]
-    assert 0.0 < randskip < 1.0, ("use 0.0 < randskip < 1.0")                
-    assert 0 < regstep < npoints, ("use 0 < regstep < npoints")               
-    def func(p, *args):
-        rbfi.train('linalg', param=p[0])
-        d = Y - rbfi(X)
-        err = math.sqrt(np.dot(d,d))
-        print(('train_param: err=%e' %err))
-        return err
-    idxs = list(range(npoints))
-    if shuffle:        
-        np.random.shuffle(idxs)
-    if pattern == 'reg':
-        Xtr = X[idxs[::regstep],...]
-        Ytr = Y[idxs[::regstep]]
-    elif pattern == 'rand':
-        msk = (np.random.rand(npoints) >= randskip).astype(bool)
-        Xtr = X[np.array(idxs)[msk],...]
-        Ytr = Y[np.array(idxs)[msk]]
-    else:
-        raise Exception("unknown pattern")
-    rbfi = RBFInt(Xtr, Ytr, rbf=rbf)
-    rbfi.calc_dist_mat() # only for get_param .. fix later
-    p0 = rbfi.get_param(param0) 
-    popt = opt.fmin(func, [p0], args=(X,Y), **fmin_kwds)
-    # After optimization, re-train w/ all points, using the optimized param.
-    # Not sure if we should set param < popt b/c the full points set has
-    # less mean distance. For test cases, this doesn't seem to make much
-    # difference. Even not for randskip=0.5 (use only half the points) where we
-    # would expect that the true `param` would be param/2.
-    rbfi.train('linalg', param=popt[0])
-    return rbfi
