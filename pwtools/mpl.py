@@ -26,7 +26,7 @@ import matplotlib
 from matplotlib import pyplot as plt
 import numpy as np
 try:
-    from mpl_toolkits.axes_grid.parasite_axes import SubplotHost, \
+    from mpl_toolkits.axes_grid1.parasite_axes import SubplotHost, \
         ParasiteAxes
 except ImportError:
     warnings.warn("cannot import from mpl_toolkits.axes_grid")
