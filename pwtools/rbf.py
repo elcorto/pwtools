@@ -23,9 +23,9 @@ rbf parameter
 Each RBF has a single parameter (`param`), which can be tuned. This is
 usually a measure for the "width" of the function.
 
-* What seems to work best is RBFMultiquadric + train('linalg') +
-  param='est' (mean distance of all points), i.e. the "traditional" RBF
-  approach. This is exactly what's done in scipy.interpolate.Rbf .
+* What seems to work best is RBFMultiquadric + param='est' (mean distance of
+  all points), i.e. the "traditional" RBF approach. This is exactly what's done
+  in scipy.interpolate.Rbf .
 
 * It seems that for very few data points (say 5x5 for x**2 + x**2), the
   default param='est' is too small, which results in wildly fluctuating
@@ -86,10 +86,15 @@ example, X and Y have very different scales (say X -0.1 .. 0.1 and Y
 also live on more or less equal x-y scales.
 """
 
+import warnings
+import math
+from scipy import optimize
 import numpy as np
 import scipy.linalg as linalg
 from scipy.spatial import distance
 from pwtools import num
+
+warnings.simplefilter('always')
 
 
 class RBFFunction:
@@ -177,7 +182,7 @@ class RBFInt:
         >>> X=linspace(0,10,20)     # shape (M,), M=20 points
         >>> Y=sin(X)                # shape (M,)
         >>> rbfi=rbf.RBFInt(X[:,None],Y)
-        >>> rbfi.train()
+        >>> rbfi.fit()
         >>> XI=linspace(0,10,100)   # shape (M,), M=100 points
         >>> ax.plot(X,Y,'o', label='data')
         >>> ax.plot(XI, sin(XI), label='sin(x)')
@@ -194,7 +199,7 @@ class RBFInt:
         >>> X1I,X2I=np.meshgrid(x1i,x2i); X1I,X2I = X1I.T,X2I.T
         >>> XI = np.array([X1I.flatten(), X2I.flatten()]).T
         >>> rbfi=rbf.RBFInt(X,Y)
-        >>> rbfi.train()
+        >>> rbfi.fit()
         >>> fig1,ax1 = mpl.fig_ax3d()
         >>> ax1.scatter(X[:,0], X[:,1], Y, label='data', color='r')
         >>> ax1.plot_wireframe(X1I, X2I, rbfi(XI).reshape(50,50), label='rbf')
@@ -231,11 +236,6 @@ class RBFInt:
     def _assert_ndim_Y(Y):
         assert Y.ndim == 1, ("Y not 1d array")
 
-    def msg(self, msg):
-        """Print a message."""
-        if self.verbose:
-            print(msg)
-
     def calc_dist_mat(self):
         """Calculate self.Rsq for the training set.
 
@@ -250,7 +250,7 @@ class RBFInt:
         >>> rbfi.calc_dist_mat()
         >>> for Y in ...:
         >>> ... rbfi.set_Y(Y)
-        >>> ... rbfi.train()
+        >>> ... rbfi.fit()
         >>> ... YI=rbfi(XI)
         """
         self.Rsq = self.get_dist_mat(X=self.X, C=self.C)
@@ -296,7 +296,6 @@ class RBFInt:
         #      >>> R = spatial.distances.cdist(X,X)
         #      >>> Rsq = R**2
         if X is not None:
-            self.msg("get_dist_mat...")
             C = self.C if C is None else C
             if self.distmethod == 'spatial':
                 Rsq = distance.cdist(X, C)**2.0
@@ -315,7 +314,6 @@ class RBFInt:
 
     def get_rbf_mat(self, Rsq=None):
         """Matrix of RBF values g_ij = rbf(||x_i - c_j||)."""
-        self.msg("get_rbf_mat...")
         Rsq = self.Rsq if Rsq is None else Rsq
         G = self.rbf(Rsq)
         return G
@@ -328,37 +326,38 @@ class RBFInt:
         param : string 'est' or float
             If 'est', then return the mean distance of all points.
         """
-        self.msg("get_param...")
         if param == 'est':
             return np.sqrt(self.get_dist_mat()).mean()
         else:
             return param
 
-    def _train_linalg(self, param='est', solver='lstsq'):
-        """Simple training by solving for the weights w_j:
+    def train(self, mode=None, **kwds):
+        """Use :meth:`fit` instead."""
+        if mode is not None:
+            warnings.warn("train(mode=..) deprecated, use fit()",
+                          DeprecationWarning)
+        return self.fit(**kwds)
+
+    
+    def fit(self, param='est', solver='lstsq'):
+        """Solve for the weights w_j:
             y_i = Sum_j g_ij w_j
-        in case C == X (center vectors are all data points). Then G is
-        quadratic w/ dim (M,M).
-
-        By definition, this always yields perfect interpolation at the points
-        in X, but may oscillate between points if you have only a few. Use
-        bigger param in that case.
-
-        This method is a sure-fire one, i.e. it always works by definition. You
-        "only" need to choose `param` properly (which can be very hard
-        sometimes).
         
-        can update
+        in case C == X (center vectors are all data points). Then G is
+        quadratic w/ dim (M,M). Updates ``self.weights``.
+        
+        Parameters
         ----------
-        weights
-
-        Returns
-        -------
-        {'weights': w, 'param': p}
-            w : (K,), linear output weights for K center vectors
-            p : None
+        param : 'est' or float
+            see :meth:`get_param`
+        solver : str
+            'solve' : interpolation
+                By definition, this always yields perfect interpolation at the points
+                in X, but may oscillate between points if you have only a few. Use
+                bigger param in that case.
+            'lstsq' : fitting
+                use least squares
         """
-        self.msg("_train_linalg...")
         # this test may be expensive for big data sets
         assert (self.C == self.X).all(), "C == X not fulfilled"
         if self.Rsq is None:
@@ -371,18 +370,25 @@ class RBFInt:
             weights, res, rnk, svs = getattr(linalg, solver)(G, self.Y)
         else:
             raise Exception("unknown solver: {}".format(solver))
-        return {'weights': weights, 'param': None}
+        self.weights = weights
 
-    def train(self, mode='linalg', *args, **kwargs):
-        """Call one of the training methods self._train_<mode>().
-
-        Always use this, not the methods directly, as they don't set
-        self.weights after training!
-        """
-        ret = getattr(self, '_train_' + mode)(*args, **kwargs)
-        self.weights = ret['weights']
-        if ret['param'] is not None:
-            self.rbf.param = ret['param']
+    def fit_opt_param(self):
+        def func(pvec):
+            param = pvec[0]
+            self.fit(param=param, solver='lstsq')
+            res = self.Y - self.interpolate(self.X)
+            err = np.dot(res,res)
+            err = math.exp(abs(err)) if param < 0 else err
+            if self.verbose:
+                print('err={}, param={}'.format(err, param))
+            return err 
+        self.fit(param='est', solver='lstsq') 
+        # self.rbf.param and self.weights are constantly updated in func(), the
+        # last iteration already set the converged values, no need to assign
+        # the result of fmin() 
+        optimize.fmin(func, [self.rbf.param], disp=self.verbose)
+        ##optimize.differential_evolution(func, bounds=[(0,3*self.rbf.param)], 
+        ##                                disp=self.verbose)
 
     def interpolate(self, X):
         """Actually do interpolation. Return interpolated Y values at each
@@ -390,7 +396,7 @@ class RBFInt:
 
         Parameters
         ----------
-        X : see interpolate()
+        X : see :meth:`__call__`
 
         Returns
         -------
@@ -424,7 +430,7 @@ class RBFInt:
 
         Parameters
         ----------
-        X : see interpolate()
+        X : see :meth:`__call__`
 
         Returns
         -------
@@ -484,7 +490,7 @@ class RBFInt:
 
     def __call__(self, *args, **kwargs):
         """
-        Call self.interpolate() or self.deriv().
+        Call :meth:`interpolate` or :meth:`deriv`.
 
         Parameters
         ----------

@@ -1,6 +1,6 @@
 import numpy as np
 from matplotlib import cm
-from pwtools import mpl, rbf
+from pwtools import mpl, rbf, num
 plt = mpl.plt
 rand = np.random.rand
 
@@ -12,7 +12,7 @@ class SurfaceData(object):
         self.nx = nx
         self.ny = ny
         self.xg, self.yg = self.get_xy_grid()
-        self.XG, self.YG = mpl.meshgridt(self.xg, self.yg)
+        self.XG, self.YG = num.meshgridt(self.xg, self.yg)
         self.X = self.gen_coords(mode)
         
     def gen_coords(self, mode='grid'):
@@ -112,7 +112,7 @@ if __name__ == '__main__':
     Z = fu(X)
 
     rbfi = rbf.RBFInt(X, Z, rbf=rbf.RBFMultiquadric(), verbose=True)
-    rbfi.train('linalg')
+    rbfi.fit()
     print("param:", rbfi.rbf.param)
     
     dati = SurfaceData(fu.xlim, fu.ylim, fu.nx*2, fu.ny*2, 'grid')
