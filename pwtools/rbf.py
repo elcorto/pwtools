@@ -65,7 +65,7 @@ class RBFInverseMultiquadric(RBFFunction):
 class RBFInt:
     """Radial basis function neural network interpolator."""
     def __init__(self, X, Y=None, C=None, rbf=RBFMultiquadric(),
-                 verbose=False, distmethod='fortran'):
+                 verbose=False):
         """
         Parameters
         ----------
@@ -79,11 +79,6 @@ class RBFInt:
         rbf : RBFFunction instance, optional
         verbose : bool, optional
             print some messages
-        distmethod : str, optional
-            Choose method for distance matrix calculation.
-                fortran : Fortran implementation (OpenMP, fastest)
-                spatial : scipy.spatial.distance.cdist
-                numpy : pure numpy (memory hungry, slowest)
 
         Examples
         --------
@@ -135,7 +130,6 @@ class RBFInt:
         self.C = self.X if C is None else C
         self.rbf = rbf
         self.verbose = verbose
-        self.distmethod = distmethod
         self._assert_ndim_X(self.X)
         self._assert_ndim_X(self.C)
         self._assert_ndim_Y(self.Y)
@@ -211,17 +205,7 @@ class RBFInt:
         #      >>> Rsq = R**2
         if X is not None:
             C = self.C if C is None else C
-            if self.distmethod == 'spatial':
-                Rsq = distance.cdist(X, C)**2.0
-            elif self.distmethod == 'fortran':
-                Rsq = num.distsq(X, C)
-            elif self.distmethod == 'numpy':
-                dist = X[:, None, ...] - C[None, ...]
-                Rsq = (dist**2.0).sum(axis=-1)
-            else:
-                raise Exception("unknown value for distmethod: %s"
-                                % self.distmethod)
-            return Rsq
+            return num.distsq(X, C)
         else:
             assert self.Rsq is not None, ("self.Rsq is None")
             return self.Rsq
