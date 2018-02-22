@@ -93,18 +93,17 @@ cat > $rsync_excl << EOF
 **/__pycache__
 doc/
 EOF
-$build && echo "${scriptdir}/../*.so" >> $rsync_excl
+$build && echo '**.so' >> $rsync_excl
 rsync -av $scriptdir/../../ $tgtdir --exclude-from=$rsync_excl > $logfile 2>&1
-cd $tgtdir/pwtools
 prnt "... ready"
 
 if $build; then
     prnt "build extension modules ..."
-    [ -f Makefile ] && make gfortran-omp -B >> $logfile 2>&1
+    cd $tgtdir/src && make gfortran-omp -B >> $logfile && cd $here 2>&1
     prnt "... ready"
 fi 
 
-cd test/
+cd $tgtdir/pwtools/test
 
 # HACK: communicate variable to test_*.py modules. All tests which write temp
 # files must import this module and write their files to "testdir":
