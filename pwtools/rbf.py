@@ -1,89 +1,5 @@
 """
-Radial Basis Functions Neural Network for interpolation or fitting of n-dim
-data points.
-
-Refs:
-
-.. [1] http://en.wikipedia.org/wiki/Radial_basis_function_network
-.. [2] Numerical Recipes, 3rd ed., ch 3.7
-
-Training
---------
-For our RBF network, we use the traditional approach and simply solve a
-linear system for the weights. Calculating the distance matrix w/
-scipy.spatial.distance.cdist() or num.distsq() is handled efficiently,
-even for many points. But we get into trouble for many points (order 1e4) b/c
-solving a big dense linear system (1e4 x 1e4) with plain numpy.linalg on a
-single core is possible but painful (takes some minutes) -- the traditional
-RBF problem. Maybe use numpy build against threaded MKL, or even scalapack?
-For the latter, look at how GPAW does this.
-
-rbf parameter
--------------
-Each RBF has a single parameter (`param`), which can be tuned. This is
-usually a measure for the "width" of the function.
-
-* What seems to work best is RBFMultiquadric + param='est' (mean distance of
-  all points), i.e. the "traditional" RBF approach. This is exactly what's done
-  in scipy.interpolate.Rbf .
-
-* It seems that for very few data points (say 5x5 for x**2 + x**2), the
-  default param='est' is too small, which results in wildly fluctuating
-  interpolation, b/c there is no data support in between the data points. We
-  need to have wider RBFs. Usually, bigger (x10), sometimes much bigger
-  (x100) params work.
-
-* However, we also had a case where we found that the square of a
-  small param (param (from 'est') = 0.3, param**2 = 0.1) was actually much
-  better than the one from param='est'.
-
-Interpolation vs. fitting
--------------------------
-For smooth noise-free data, RBF works perfect. But for noisy data, we would
-like to do some kind of fit instead, like the "s" parameter to
-scipy.interpolate.bisplrep(). scipy.interpolate.Rbf has a "smooth" parameter
-and what they do is some form of regularization (solve (G-I*smooth) . w = y
-instead of G . w = y; G = RBF matrix, w = weights to solve for, y = data).
-
-We found (see examples/rbf.py) that scipy.linalg.solve() often gives an
-ill-conditioned matrix warning, which shows numerical instability and results
-in bad interpolation. It seems that problems start to show as soon as the noise
-level (y + noise) is in the same order or magnitude as the mean point distance.
-Then we see wildly fluctuating data points which are hard to interpolate. In
-that case, the mean-distance estimate for the rbf param breaks down and one
-needs to use smaller values to interpolate all fluctuations. However, in most
-cases, on does actually want to perform a fit instead in such situations.
-
-If we switch from scipy.linalg.solve() to scipy.linalg.lstsq() and solve the
-system in a least squares sense, we get much more stable solutions. With
-lstsq(), we have the smoothness by construction, b/c we do *not* perform
-interpolation anymore -- this is a fit now. The advantage of using least
-squares is that we don't have a smoothness parameter which needs to be tuned.
-
-If the noise is low relative to the point distance, we get interpolation-like
-results, which cannot be distinguished from the solutions obtained with a
-normal linear system solver. The method will try its best to do interpolation,
-but will smoothly transition to fitting as noise increases, which is what we
-want. Hence, lstsq is the default solver.
-
-other codes
------------
-
-* scipy.interpolate.Rbf
-  Essentially the same as we do. We took some ideas from there.
-* http://pypi.python.org/pypi/PyRadbas/0.1.0
-  Seems to work with Gaussians hardcoded. Not what we want.
-* http://code.google.com/p/pyrbf/
-  Seems pretty useful for large problems (many points), but not
-  documented very much.
-
-input data
-----------
-It usually helps if all data ranges (points X and values Y) are in the same
-order of magnitude, e.g. all have a maximum close to unity or so. If, for
-example, X and Y have very different scales (say X -0.1 .. 0.1 and Y
-0...1e4), you may get bad interpolation between points. This is b/c the RBFs
-also live on more or less equal x-y scales.
+Radial Basis Function N-dim fitting. See :ref:`rbf` for details.
 """
 
 import warnings
@@ -93,8 +9,6 @@ import numpy as np
 import scipy.linalg as linalg
 from scipy.spatial import distance
 from pwtools import num
-
-warnings.simplefilter('always')
 
 
 class RBFFunction:
@@ -373,6 +287,10 @@ class RBFInt:
         self.weights = weights
 
     def fit_opt_param(self):
+        """Optimize ``rbf.param`` and weights simultaneously by minimizing the
+        fit error with :meth:`fit` using ``solver='lstsq'``. Can be used in
+        place of :meth:`fit`.
+        """
         def func(pvec):
             param = pvec[0]
             self.fit(param=param, solver='lstsq')
