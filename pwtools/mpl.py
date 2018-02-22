@@ -248,6 +248,13 @@ class Data2D(object):
 
     2D because the data is a 2D scalar field, i.e. `z(x,y)`. See
     also :class:`~pwtools.num.Interpol2D`.
+
+    Naming conventions:
+    * lowercase: 1d array
+    * uppercase: 2d array
+
+    num.Interpol2D.points = num.PolyFit.points = mpl.Data2D.XY
+    num.Interpol2D.values = num.PolyFit.values = mpl.Data2D.zz
     """
     def __init__(self, x=None, y=None, xx=None, yy=None, zz=None, X=None,
                  Y=None, Z=None, XY=None):

@@ -709,6 +709,7 @@ def sum(arr, axis=None, keepdims=False, **kwds):
         return _sum(arr, tosum)
 
 
+# XXX PolyFit can be added as well!
 class Interpol2D(object):
     """Common 2D interpolator API. 
     
