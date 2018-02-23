@@ -318,10 +318,10 @@ def lorentz(M, std=1.0, sym=True):
     scipy.signal.gaussian().
     
     The Lorentz function is
+    
+    .. math::
 
-    .. math:: 
-
-        L(x) = \\frac{\Gamma}{(x-x_0)^2 + \Gamma^2}
+        L(x) = \frac{\Gamma}{(x-x_0)^2 + \Gamma^2}
     
     Here :math:`x_0 = 0` and `std` = :math:`\Gamma`.
     Some definitions use :math:`1/2\,\Gamma` instead of :math:`\Gamma`, but
@@ -582,7 +582,7 @@ def find_peaks(y, x=None, k=3, spread=2, ymin=None):
 
 
 def smooth(data, kern, axis=0, edge='m', norm=True):
-    """Smooth `data` by convolution with a kernel `kern`. 
+    """Smooth N-dim `data` by convolution with a kernel `kern`. 
     
     Uses scipy.signal.fftconvolve(). 
     
@@ -593,11 +593,11 @@ def smooth(data, kern, axis=0, edge='m', norm=True):
     Parameters
     ----------
     data : nd array
-        The data to smooth. Example: 1d (N,) or (N,natoms,3)
+        The data to smooth. Example: 1d (N,) or (N,K,3)
         for trajectory
     kern : nd array
         Convolution kernel. Example: 1d (M,) or (M,1,1)
-        for trajectory
+        for trajectory along axis=0 (data length N)
     axis : int
         Axis along which to do the smoothing. That is actually not needed for
         the convolution ``fftconvolve(data, kern)`` but is used for padding the
@@ -734,7 +734,7 @@ def smooth(data, kern, axis=0, edge='m', norm=True):
     >>>         ret[:,jj,kk] = smooth(arr[:,jj,kk], kern) 
     
     The size of the chunk over which you explicitely loop depends on the data
-    of course.
+    of course. We do exactly this in :func:`pwtools.crys.smooth`.
     """
     # edge = 'm'
     # ----------

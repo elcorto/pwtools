@@ -14,13 +14,13 @@ No problem, use :func:`~pwtools.crys.atoms2struct` and
 
 For basic ASE compatibility, you may get away with
 :meth:`~pwtools.crys.Structure.get_fake_ase_atoms`. That creates an object
-which behaves like ``ase.Atoms`` without the need to have ASE installed. 
+which behaves like ``ase.Atoms`` without the need to have ASE installed.
 This is used in :mod:`pwtools.symmetry`, for example.
 
 Parse MD output, plot stuff
 ---------------------------
 Lets take cp2k as an example (assuming an interactive Ipython session)::
-    
+
     >>> from pwtools import io
     >>> tr = io.read_cp2k_md('cp2k.out')
     >>> plot(tr.etot)
@@ -32,7 +32,7 @@ Lets take cp2k as an example (assuming an interactive Ipython session)::
 Parse SCF or relax output, plot stuff
 -------------------------------------
 Parse SCF and relax run from PWscf::
-    
+
     >>> from pwtools import io
     >>> st = io.read_pw_scf('pw.scf.out')
     >>> # coords, forces, ...: shape = (natoms,3)
@@ -49,12 +49,12 @@ Binary IO
 ---------
 You can save a :class:`~pwtools.crys.Structure` or
 :class:`~pwtools.crys.Trajectory` object as binary file::
-    
+
     >>> # save to binary pickle file
     >>> tr.dump('traj.pk')
 
 and read it back in later using :func:`~pwtools.io.read_pickle` ::
-    
+
     >>> tr = io.read_pickle('traj.pk')
 
 which is usually very fast.
@@ -77,7 +77,7 @@ structs or trajectories.
     >>> vmd_script = os.path.dirname(visualize.__file__) + \
                                      '/examples/vmd/nice_bonds.tcl'
     >>> # bg=True: start in background such that all 3 viewers are opened at
-    >>> # once                               
+    >>> # once
     >>> visualize.view_xcrysden(st, bg=True)
     >>> visualize.view_jmol(st, bg=True)
     >>> visualize.view_vmd_axsf(tr, options='-e %s' %vmd_script)
@@ -101,7 +101,7 @@ OK, so use a :math:`2\times2\times3` MP grid. Instead of defining ``cell`` by
 hand, you could also build your structure, have it in a Structure object, say
 ``st`` and use ``st.cell`` instead.
 
-    
+
 Find spacegroup
 ---------------
 Say you have a Trajectory ``tr``, which is the result of a relax calculation and you
@@ -116,16 +116,35 @@ Easy, eh?
 
 Smoothing a signal or a Trajectory
 ----------------------------------
-Smoothing a signal (usually called "time series") by convolution with another
-function and with edge effects handling: :func:`pwtools.signal.smooth`. The same 
-can be applied to a Trajectory, which is just a "time series" of Structures.
-See :func:`pwtools.crys.smooth`::
-    
+Smoothing a signal (usually called "time series") can be done by convolution
+with another function (e.g. with ``scipy.signal.convolve`` or
+``scipy.signal.fftconvolve``). We implement advanced methods which add edge
+effect handling: :func:`pwtools.signal.smooth`. The same can be applied to a
+Trajectory, which is just a "time series" of Structures. See
+:func:`pwtools.crys.smooth`::
+
     >>> a = rand(10000)
     >>> a_smooth = signal.smooth(a, scipy.signal.hann(151))
     >>> tr = Trajectory(...)
     >>> tr_smooth = crys.smooth(tr, scipy.signal.hann(151))
 
+Example::
+
+    >>> from pwtools.signal import smooth
+    >>> from pwtools import mpl
+    >>> from scipy.signal import hann
+    >>> fig,ax = mpl.fig_ax()
+    >>> x = np.linspace(0,10,300) 
+    >>> y = np.sin(x) + np.random.rand(len(x))
+    >>> k = hann(21)
+    >>> ax.plot(x, y, color='0.7', label='signal')
+    >>> ax.plot(x, smooth(y, k), label='smooth')
+    >>> ax.legend()
+    >>> mpl.plt.show()
+
+.. image:: ../_static/smooth_1d.png
+
+The same is applied to each atomic coordinate in :func:`pwtools.crys.smooth`.
 
 .. _avoid_auto_calc:
 
@@ -148,7 +167,7 @@ logfile and the default binary file is ``lmp.out.dcd``).
 
 In order to maximally reduce data, you can tell the parser to parse only
 certain things::
-    
+
     >>> pp.set_attr_lst(['etot', 'coords', 'temperature'])
     >>> tr = pp.get_traj(auto_calc=False)
 
@@ -166,7 +185,7 @@ implements (mind also base classes, best is to use Tab completion in ipython:
 Interpolation and fitting
 -------------------------
 
-See 
+See
 
 :class:`~pwtools.num.PolyFit`
 :class:`~pwtools.num.PolyFit1D`
@@ -183,7 +202,7 @@ interpolation of samples of a "mexican hat" function :math:`\sin(r)/r`
 .. image:: ../_static/rbf_1d_opt_False.png
 .. image:: ../_static/rbf_2d_surface_opt_False.png
 
-Work with SQLite databases 
+Work with SQLite databases
 --------------------------
 See :class:`~pwtools.sql.SQLiteDB`.
 

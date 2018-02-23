@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Example for smoothing a signal with a Lorentz kernel. 
@@ -45,7 +45,7 @@ for nrand_fac in [0.2, 1.0]:
     # even nrand
     if nrand % 2 == 1:
         nrand += 1
-    y[npoints/2-nrand/2:npoints/2+nrand/2] = np.random.rand(nrand) + 2.0
+    y[npoints//2-nrand//2:npoints//2+nrand//2] = np.random.rand(nrand) + 2.0
     
     # Sum of Lorentz functions at data points. This is the same as convolution
     # with a Lorentz function withOUT end point correction, valid if data `y`
