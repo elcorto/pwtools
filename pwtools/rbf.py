@@ -143,7 +143,7 @@ class RBFInt:
     def _assert_ndim_values(values):
         assert values.ndim == 1, ("values not 1d array")
 
-    def calc_dist_mat(self):
+    def calc_distsq(self):
         """Calculate self.distsq for the training set.
 
         Can be used in conjunction w/ set_values() to construct a network which
@@ -154,19 +154,19 @@ class RBFInt:
         Examples
         --------
         >>> rbfi = rbf.RBFInt(points=points, values=None)
-        >>> rbfi.calc_dist_mat()
+        >>> rbfi.calc_distsq()
         >>> for values in ...:
         >>> ... rbfi.set_values(values)
         >>> ... rbfi.fit()
         >>> ... ZI=rbfi(XI)
         """
-        self.distsq = self.get_dist_mat(points=self.points, centers=self.centers)
+        self.distsq = self.get_distsq()
 
     def set_values(self, values):
         self._assert_ndim_values(values)
         self.values = values
 
-    def get_dist_mat(self, points=None, centers=None):
+    def get_distsq(self, points=None):
         """Matrix of distance values r_ij = ||x_i - c_j|| with::
 
             x_i : points[i,:]
@@ -174,12 +174,9 @@ class RBFInt:
 
         Parameters
         ----------
-        points : None or array (M,N) with N-dim points
-            Training data or interpolation points. If None then self.distsq is
-            returned.
-        centers : 2d array (K,N), optional
-            If None then self.centers is used.
-
+        points : array (M,N) with N-dim points, optional
+            If None then ``self.points`` is used.
+        
         Returns
         -------
         distsq : (M,K), where K = M usually for training
@@ -197,22 +194,18 @@ class RBFInt:
         # training:
         #     If points == centers, we could also use pdist(points), which
         #     would give us a 1d array of all distances. But we need the
-        #     redundant square matrix form for get_rbf_mat() anyway, so there
+        #     redundant square matrix form for G=rbf(distsq) anyway, so there
         #     is no real point in special-casing that. These two are the same:
         #      >>> R = spatial.squareform(spatial.distances.pdist(points))
         #      >>> R = spatial.distances.cdist(points,points)
         #      >>> distsq = R**2
-        if points is not None:
-            centers = self.centers if centers is None else centers
-            return num.distsq(points, centers)
+        if points is None:
+            if self.distsq is None:
+                return num.distsq(self.points, self.centers)
+            else:
+                return self.distsq
         else:
-            assert self.distsq is not None, ("self.distsq is None")
-            return self.distsq
-
-    def get_rbf_mat(self, distsq=None):
-        """Matrix of RBF values g_ij = rbf(||x_i - c_j||)."""
-        distsq = self.distsq if distsq is None else distsq
-        return self.rbf(distsq)
+            return num.distsq(points, self.centers)
 
     def get_param(self, param):
         """Return `param` for RBF (to set self.rbf.param).
@@ -223,7 +216,7 @@ class RBFInt:
             If 'est', then return the mean distance of all points.
         """
         if param == 'est':
-            return np.sqrt(self.get_dist_mat()).mean()
+            return np.sqrt(self.get_distsq()).mean()
         else:
             return param
 
@@ -256,10 +249,11 @@ class RBFInt:
         """
         # this test may be expensive for big data sets
         assert (self.centers == self.points).all(), "centers == points not fulfilled"
+        # re-use self.distsq if possible
         if self.distsq is None:
-            self.distsq = self.get_dist_mat(points=self.points, centers=self.centers)
+            self.distsq = self.get_distsq()
         self.rbf.param = self.get_param(param)
-        G = self.get_rbf_mat(distsq=self.distsq)
+        G = self.rbf(self.distsq)
         if solver == 'solve':
             weights = getattr(linalg, solver)(G, self.values)
         elif solver == 'lstsq':
@@ -310,8 +304,8 @@ class RBFInt:
             zi = dot(G, w)                  # interpolation z_i = Sum_j g_ij w_j
         """
         self._assert_ndim_points(points)
-        distsq = self.get_dist_mat(points=points, centers=self.centers)
-        G = self.get_rbf_mat(distsq)
+        distsq = self.get_distsq(points=points)
+        G = self.rbf(distsq)
         assert G.shape[1] == len(self.weights), \
                "shape mismatch between g_ij: %s and w_j: %s, 2nd dim of "\
                "g_ij must match length of w_j" %(str(G.shape),
@@ -372,8 +366,8 @@ class RBFInt:
         self._assert_ndim_points(points)
         L,N = points.shape
         centers = self.centers
-        distsq = self.get_dist_mat(points=points, centers=centers)
-        G = self.get_rbf_mat(distsq)
+        distsq = self.get_distsq(points=points)
+        G = self.rbf(distsq)
         D = np.empty((L,N), dtype=float)
         ww = self.weights
         maxw = np.abs(ww).max()*1.0
