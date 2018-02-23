@@ -67,19 +67,23 @@ structs or trajectories.
 
 ::
 
-    >>> import os
     >>> from pwtools import visualize, random, crys
-    >>> # random struct and traj
     >>> st = random.random_struct(['Si']*50)
+    >>> visualize.view_xcrysden(st)
+    >>> ##visualize.view_jmol(st)    
+
+.. image:: ../_static/random_Si.png
+
+
+Andf you have VMD installed, view a random MD trajectory::
+
+    >>> import os
     >>> tr = crys.concatenate([random.random_struct(['Si']*10) for i in \
     ...                        range(5)])
     >>> # vmd startup script
     >>> vmd_script = os.path.dirname(visualize.__file__) + \
                                      '/examples/vmd/nice_bonds.tcl'
-    >>> # bg=True: start in background such that all 3 viewers are opened at
-    >>> # once
-    >>> visualize.view_xcrysden(st, bg=True)
-    >>> visualize.view_jmol(st, bg=True)
+
     >>> visualize.view_vmd_axsf(tr, options='-e %s' %vmd_script)
 
 
@@ -150,6 +154,9 @@ Example::
 .. image:: ../_static/smooth_1d.png
 
 The same is applied to each atomic coordinate in :func:`pwtools.crys.smooth`.
+
+Find more about edge effects in ``examples/lorentz.py`` and the doc string of
+:func:`pwtools.signal.smooth`.
 
 .. _avoid_auto_calc:
 
