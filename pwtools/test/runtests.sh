@@ -119,13 +119,13 @@ eval "PYTHONPATH=$testdir:$PYTHONPATH \
 prnt "... ready"
 
 cat << eof
-
 Logfile: $logfile
 Logfile error/warning summary follows. Logfile may not contain everything. Use
 $0 -s in that case. 
 ------------------------------------------------------------------------------
 eof
-egrep -i 'error|warning|fail' $logfile
+egrep -i 'error|warning|fail|fatal|exception' $logfile
 cat << eof
 ------------------------------------------------------------------------------
+Logfile: $logfile
 eof
