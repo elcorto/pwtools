@@ -108,11 +108,16 @@ Say you have a Trajectory ``tr``, which is the result of a relax calculation and
 want to know the space group of the final optimized structure, namely
 ``tr[-1]``::
 
-    >>> from pwtools import symmetry
+    >>> from pwtools import symmetry, crys
     >>> symmetry.get_spglib_spacegroup(tr[-1], symprec=1e-2)
 
-Easy, eh?
+Easy, eh? Or build one using ASE::
 
+    >>> import ase.build
+    >>> at = ase.build.bulk(name='AlN', crystalstructure='rocksalt', a=3)
+    >>> symmetry.spglib_get_spacegroup(crys.atoms2struct(at))
+    (225, 'Fm-3m')
+    
 
 Smoothing a signal or a Trajectory
 ----------------------------------
