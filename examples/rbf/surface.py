@@ -4,6 +4,8 @@ from pwtools import mpl, rbf, num
 plt = mpl.plt
 rand = np.random.rand
 
+# create shiny polished plot for documentation
+shiny = False
 
 class SurfaceData(object):
     def __init__(self, xlim, ylim, nx, ny, mode):
@@ -124,25 +126,35 @@ if __name__ == '__main__':
     zlim = [ZI_func.min(), ZI_func.max()]
 
     fig, ax = mpl.fig_ax3d()
+    ax.w_xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
+    ax.w_yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
+    ax.w_zaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
+    ax.grid(False)
+
     ax.scatter(X[:,0], X[:,1], Z, color='b', label='f(x,y) samples')
     dif = np.abs(ZI_func - ZI_rbf).reshape((dati.nx, dati.ny))
-    wff = ax.plot_wireframe(dati.XG, dati.YG, ZG_func, cstride=1, rstride=1,
-                            color='g', label='f(x,y)')
-    wff.set_alpha(0.5)
+    if not shiny:
+        wff = ax.plot_wireframe(dati.XG, dati.YG, ZG_func, cstride=1, rstride=1,
+                                color='g', label='f(x,y)')
+        wff.set_alpha(0.5)
     wfr = ax.plot_wireframe(dati.XG, dati.YG, ZG_rbf, cstride=1, rstride=1,
                             color='r', label='rbf(x,y)')
     wfr.set_alpha(0.5)
     cont = ax.contour(dati.XG, dati.YG, dif, offset=zlim[0], 
                       levels=np.linspace(dif.min(), dif.max(), 20),
                       cmap=cm.plasma)
-    fig.colorbar(cont, aspect=5, shrink=0.5, format="%.3f")    
+    if not shiny:
+        fig.colorbar(cont, aspect=5, shrink=0.5, format="%.3f")    
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_xlim3d(dati.xlim)
     ax.set_ylim3d(dati.ylim)
     ax.set_zlim3d(zlim)
-    ax.legend()
-    
+    if not shiny:
+        ax.legend()
+    else:
+        fig.savefig('/tmp/rbf_2d_surface_opt_False.png') 
+
     # derivs only implemented for MexicanHat
     ZI_func = fu(dati.X, der='x')
     ZI_rbf = rbfi(dati.X, der=1)[:,0]
@@ -154,6 +166,11 @@ if __name__ == '__main__':
     zlim = [ZI_func.min(), ZI_func.max()]
 
     fig, ax = mpl.fig_ax3d()
+    ax.w_xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
+    ax.w_yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
+    ax.w_zaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
+    ax.grid(False)
+    
     dif = np.abs(ZI_func - ZI_rbf).reshape((dati.nx, dati.ny))
     wff = ax.plot_wireframe(dati.XG, dati.YG, ZG_func, cstride=1, rstride=1,
                             color='g', label='df/dx')

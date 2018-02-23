@@ -175,6 +175,14 @@ See
 :class:`~pwtools.num.meshgridt`
 :class:`~pwtools.rbf.RBFInt`
 
+Example result from a 1D fit of noisy data (``examples/rbf/noise.py``) and a 2D
+interpolation of samples of a "mexican hat" function :math:`\sin(r)/r`
+(``examples/rbf/surface.py``) using :class:`~pwtools.rbf.RBFInt`. See
+:ref:`rbf`.
+
+.. image:: ../_static/rbf_1d_opt_False.png
+.. image:: ../_static/rbf_2d_surface_opt_False.png
+
 Work with SQLite databases 
 --------------------------
 See :class:`~pwtools.sql.SQLiteDB`.

@@ -84,9 +84,9 @@ def spglib_get_primitive(struct, **kwds):
     spglib used to return (None,None,None) if no primitive cell can be found,
     i.e. the given input Structure cannot be reduced, which can occur if (a) a
     given Structure is already a primitive cell or (b) any other reason like a
-    too small value of `symprec`. Now ([py]spglib >= 1.8.x) it seems to always
-    return data and use func:`is_same_struct` to determine if the struct is
-    irreducible. In that case we return None in order to keep the API
+    too small value of `symprec`. Now [py]spglib >= 1.8.x seems to always
+    return data instead. We use :func:`is_same_struct` to determine if the
+    struct is irreducible. In that case we return None in order to keep the API
     unchanged.
 
     Also note that a primitive cell (e.g. with 2 atoms) can have a number of
