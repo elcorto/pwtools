@@ -120,3 +120,38 @@ def test_scale_get_min():
         f = num.PolyFit1D(x, y, deg=9, scale=scale)
         assert np.allclose(f.get_min(x0=4), xlo)
         assert np.allclose(f.get_min(x0=8), xhi)       
+
+def test_api():
+    # PolyFit's call method returns a scalar when given a "scalar" input (a
+    # single x point). All other interpolators return a length-1 array instead.
+    # We need to ckeck where this specific behavior is used in code using
+    # pwtools before we can deal with it. Until then, we have this test to make
+    # sure it behaves as it does.
+    #
+    #   >>> f=num.Interpol2D(dd=dd, what='bispl')
+    #   >>> f.get_min()
+    #   array([ 4.58624188, -3.59544779])
+    #   >>> f(f.get_min())
+    #   array([-2.13124442])
+    #
+    # BUT
+    #
+    #   >>> f=num.PolyFit(dd.XY, dd.zz, deg=5)
+    #   >>> f(f.get_min())
+    #   -2.1312444200439651
+    #
+    # ... scalar (numpy.float64)
+    #
+    # Note that PolyFit1D.get_min() returns a float instead!
+    #
+    # This has not been a problem, at least in tests, since 
+    # >>> np.allclose(1.0, array([1.0]))
+    # True
+    #
+    x = np.linspace(-5,5,20)
+    y = x**2
+    f = num.PolyFit(x[:,None], y, deg=2)
+    assert type(f.get_min()) == type(np.array([1.0]))
+    assert type(f(f.get_min())) == type(np.array([1.0])[0])
+    f = num.PolyFit1D(x, y, deg=2)
+    assert type(f.get_min()) == type(1.0)

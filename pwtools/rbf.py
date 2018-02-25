@@ -229,11 +229,11 @@ class RBFInt:
 
     
     def fit(self, param='est', solver='lstsq'):
-        """Solve for the weights w_j:
-            z_i = Sum_j g_ij w_j
+        """Solve linear system for the weights w:
+            G . w = z
         
-        in case centers == points (center vectors are all data points). Then G is
-        quadratic w/ dim (M,M). Updates ``self.weights``.
+        with centers == points (center vectors are all data points). Then G is
+        quadratic. Updates ``self.weights``.
         
         Parameters
         ----------
@@ -241,11 +241,13 @@ class RBFInt:
             see :meth:`get_param`
         solver : str
             'solve' : interpolation
-                By definition, this always yields perfect interpolation at the points
-                in points, but may oscillate between points if you have only a few. Use
-                bigger param in that case.
-            'lstsq' : fitting
-                use least squares
+                Use ``scipy.linalg.solve()``. By definition, this always yields
+                perfect interpolation at the data points. May be numerically
+                unstable.
+            'lstsq' : least squares regression (default)
+                Use ``scipy.linalg.lstsq()``. Numerically more stable. Will
+                mostly be the same as the interpolation result, but will not go
+                thru all points for very noisy data.
         """
         # this test may be expensive for big data sets
         assert (self.centers == self.points).all(), "centers == points not fulfilled"

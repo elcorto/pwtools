@@ -709,7 +709,6 @@ def sum(arr, axis=None, keepdims=False, **kwds):
         return _sum(arr, tosum)
 
 
-# XXX PolyFit can be added as well!
 class Interpol2D(object):
     """Common 2D interpolator API. 
     
@@ -720,9 +719,6 @@ class Interpol2D(object):
 
     This is for easy testing of multiple interpolators on a surface z = f(x,y),
     which is given as an unordered set of points.
-    
-    Except for 'bispl', all interpolators do actually work in ND as well, as
-    does :meth:`get_min`.
     """
     def __init__(self, points=None, values=None, xx=None, yy=None,  dd=None,
                  what='rbf_inv_multi', **initkwds):
@@ -740,30 +736,43 @@ class Interpol2D(object):
             | 'rbf_multi' : RBFN w/ multiquadric rbf, see :class:`~pwtools.rbf.RBFInt`
             | 'rbf_inv_multi' : RBFN w/ inverse multiquadric rbf
             | 'rbf_gauss' : RBFN w/ gaussian rbf
+            | 'poly'      : :class:`PolyFit`
             | 'bispl'     : scipy.interpolate.bispl{rep,ev} 
             | 'ct'        : scipy.interpolate.CloughTocher2DInterpolator
             | 'linear'    : scipy.interpolate.LinearNDInterpolator
             | 'nearest'   : scipy.interpolate.NearestNDInterpolator
-        **initkwds : keywords passed on to the interpolator's constructor             
+        **initkwds : keywords passed on to the interpolator's constructor or
+            fit() method (RBF case)
         
         Notes
         -----
+        Despite the name "Interpol2D", the RBF methods 'rbf_*' as well as 'poly' are
+        actually fits (least squares regression). You can force interpolation with
+        the RBF methods using the ``solver='solve'`` keyword (see
+        :meth:`pwtools.rbf.RBFInt.fit`).
+        
         The methods 'ct', 'linear' and of course 'nearest' can be inaccurate
         (see also ``test/test_interpol.py``). Use only for plotting, not for
         data evaluation, i.e. accurate minimas etc.
 
+        Except for 'bispl', all interpolators do actually work in ND as well, as
+        does :meth:`get_min`.
+
         Possible keywords (examples):
         
-        rbf :
-            param = 'est' (default)
-            param = 0.05
-        ct :
-            tol = 1e-6 (default)
-        bispl :
-            s = 1e-4 
-            kx = 3, ky = 3 (default)
-            nxest, nyest
-        
+        | rbf :
+        |     param = 'est' (default)
+        |     param = 0.05
+        |     solver = 'solve' | 'lstsq' (default)
+        | ct :
+        |     tol = 1e-6 (default)
+        | bispl :
+        |     s = 1e-4 
+        |     kx = 3, ky = 3 (default)
+        |     nxest, nyest
+        | poly :
+        |     deg = 5
+
         Examples
         --------
         >>> from pwtools import num, mpl
@@ -773,17 +782,25 @@ class Interpol2D(object):
         >>> Z=(X+3)**2+(Y+4)**2 + 5 
         >>> dd=mpl.Data2D(X=X,Y=Y,Z=Z)
         >>> fmt="what: {:15} target: [5,30] result: {}"
-        >>> for what in ['rbf_multi', 'rbf_inv_multi', 'rbf_gauss', 'ct', 'bispl', 
-		         'linear', 'nearest']:
-        ...     inter=num.Interpol2D(dd=dd, what=what)   
+        >>> for method in ['rbf_multi', 'rbf_inv_multi',
+        ...                'rbf_gauss', ('poly', {'deg': 5}), 
+        ...                'ct', 'bispl', 'linear', 'nearest']:
+        ...     if isinstance(method, tuple):
+        ...         what = method[0]
+        ...         kwds = method[1]
+        ...     else:
+        ...         what = method
+        ...         kwds = {}
+        ...     inter=num.Interpol2D(dd=dd, what=what, **kwds)   
         ...     print(fmt.format(what, inter([[-3,-4],[0,0]])))
-	what: rbf_multi       target: [5,30] result: [  4.99999972  29.99999988]
-	what: rbf_inv_multi   target: [5,30] result: [  4.99999661  29.9999993 ]
-	what: rbf_gauss       target: [5,30] result: [  4.99999783  29.99999569]
-	what: ct              target: [5,30] result: [  4.99762256  30.010856  ]
-	what: bispl           target: [5,30] result: [  5.  30.]
-	what: linear          target: [5,30] result: [  5.06925208  30.13850416]
-	what: nearest         target: [5,30] result: [  5.01385042  33.82271468]
+        what: rbf_multi       target: [5,30] result: [  5.00000005  29.99999959]
+        what: rbf_inv_multi   target: [5,30] result: [  4.99999808  29.99999798]
+        what: rbf_gauss       target: [5,30] result: [  5.00000051  30.00000352]
+        what: poly            target: [5,30] result: [  5.  30.]
+        what: ct              target: [5,30] result: [  4.99762256  30.010856  ]
+        what: bispl           target: [5,30] result: [  5.  30.]
+        what: linear          target: [5,30] result: [  5.06925208  30.13850416]
+        what: nearest         target: [5,30] result: [  5.01385042  33.82271468]
         """
         if dd is None:
             if xx is None and yy is None:
@@ -805,17 +822,21 @@ class Interpol2D(object):
         if what == 'rbf_multi':
             self.inter = rbf.RBFInt(self.points, self.values, 
                                     rbf=rbf.RBFMultiquadric())
-            self.inter.train('linalg', **initkwds)
+            self.inter.fit(**initkwds)
             self.call = self.inter
         elif what == 'rbf_inv_multi':
             self.inter = rbf.RBFInt(self.points, self.values, 
                                     rbf=rbf.RBFInverseMultiquadric())
-            self.inter.train('linalg', **initkwds)
+            self.inter.fit(**initkwds)
             self.call = self.inter
         elif what == 'rbf_gauss':
             self.inter = rbf.RBFInt(self.points, self.values, rbf=rbf.RBFGauss())
-            self.inter.train('linalg', **initkwds)
+            self.inter.fit(**initkwds)
             self.call = self.inter
+        elif what == 'poly':
+            self.inter = PolyFit(self.points, self.values, scale=True, **initkwds)
+            self.call = self.inter
+            self.call = self._poly_format_return
         elif what == 'ct':
             if CloughTocher2DInterpolator is None:
                 raise ImportError("could not import "
@@ -856,7 +877,13 @@ class Interpol2D(object):
             self.call = _call
         else:
             raise Exception("unknown interpolator type: %s" %what)
-   
+    
+    # See pwtools.test.test_polyfit.test_api: work around subtle PolyFit API
+    # difference to all other interpolators w/o breaking neither Interpol2D's
+    # nor PolyFit's API
+    def _poly_format_return(self, *args, **kwds):
+        return np.atleast_1d(self.inter(*args, **kwds))
+
     def __call__(self, points, **callkwds):
         """
         Parameters
@@ -1598,6 +1625,7 @@ class PolyFit1D(Fit1D, PolyFit):
             %str(self.points.shape))
         # set self.x, self.y, need that in Fit1D._findroot()
         Fit1D.__init__(self, self.points[:,0], self.values)
+
     
     @staticmethod
     def _fix_shape_init(points):

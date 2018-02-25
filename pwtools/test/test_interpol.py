@@ -32,20 +32,30 @@ class TestInterpol2D:
         inter = num.Interpol2D(dd=self.dd, what='rbf_multi') 
         assert np.allclose(inter([[-3,-4],[0,0]]), self.tgt)
         assert np.allclose(return_min(inter), 5.0)
+        assert np.allclose(inter(self.dd.XY), self.dd.zz)
         dump(inter)
     
     def test_rbf_inv_multi(self):
         inter = num.Interpol2D(dd=self.dd, what='rbf_inv_multi') 
         assert np.allclose(inter([[-3,-4],[0,0]]), self.tgt)
         assert np.allclose(return_min(inter), 5.0)
+        assert np.allclose(inter(self.dd.XY), self.dd.zz)
         dump(inter)
     
     def test_rbf_gauss(self):
         inter = num.Interpol2D(dd=self.dd, what='rbf_gauss')
         assert np.allclose(inter([[-3,-4],[0,0]]), self.tgt)
         assert np.allclose(return_min(inter), 5.0, atol=1e-5)
+        assert np.allclose(inter(self.dd.XY), self.dd.zz)
         dump(inter)
    
+    def test_poly(self):
+        inter = num.Interpol2D(dd=self.dd, what='poly', deg=5)
+        assert np.allclose(inter([[-3,-4],[0,0]]), self.tgt)
+        assert np.allclose(return_min(inter), 5.0, atol=1e-5)
+        assert np.allclose(inter(self.dd.XY), self.dd.zz)
+        dump(inter)
+    
     def test_bispl(self):
         # pickling this fails:
         #
@@ -62,6 +72,7 @@ class TestInterpol2D:
         inter = num.Interpol2D(dd=self.dd, what='bispl')
         assert np.allclose(inter([[-3,-4],[0,0]]), self.tgt)
         assert np.allclose(return_min(inter), 5.0)
+        assert np.allclose(inter(self.dd.XY), self.dd.zz)
         ##dump(inter)
     
     def test_linear(self):
@@ -69,6 +80,7 @@ class TestInterpol2D:
         inter = num.Interpol2D(dd=self.dd, what='linear')
         assert np.allclose(inter([[-3,-4],[0,0]]), self.tgt, atol=5e-1)
         assert np.allclose(return_min(inter), 5.0, atol=1e-1)
+        assert np.allclose(inter(self.dd.XY), self.dd.zz)
         dump(inter)
     
     def test_nearest(self):
@@ -83,6 +95,7 @@ class TestInterpol2D:
             assert np.allclose(inter([[-3,-4],[0,0]]), self.tgt,
                 atol=1e-1)
             assert np.allclose(return_min(inter), 5.0, atol=1e-1)
+            assert np.allclose(inter(self.dd.XY), self.dd.zz)
             dump(inter)
         except ImportError:
             tools.skip("couldn't import scipy.interpolate.CloughTocher2DInterpolator")
