@@ -455,16 +455,15 @@ class Data2D(object):
 # backwd compat
 Data3D = Data2D
 
-def get_2d_testdata():
+def get_2d_testdata(n=20):
     """2D sin + cos data.
 
     Returns
     -------
     ret : :class:`Data2D`
     """
-    x = np.linspace(-5,5,20)
-    y = np.linspace(-5,5,20)
-    X,Y = num.meshgridt(x,y)
+    x = np.linspace(-5, 5, n)
+    X,Y = num.meshgridt(x, x)
     Z = np.sin(X) + np.cos(Y)
     return Data2D(X=X, Y=Y, Z=Z)
 
