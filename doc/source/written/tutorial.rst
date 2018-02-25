@@ -67,10 +67,11 @@ structs or trajectories.
 
 ::
 
-    >>> from pwtools import visualize, random, crys
+    >>> from pwtools import visualize, random
     >>> st = random.random_struct(['Si']*50)
     >>> visualize.view_xcrysden(st)
     >>> ##visualize.view_jmol(st)    
+    >>> ##visualize.view_avogadro(st)    
 
 .. image:: ../_static/random_Si.png
 
@@ -78,6 +79,7 @@ structs or trajectories.
 Andf you have VMD installed, view a random MD trajectory::
 
     >>> import os
+    >>> from pwtools import crys
     >>> tr = crys.concatenate([random.random_struct(['Si']*10) for i in \
     ...                        range(5)])
     >>> # vmd startup script
@@ -160,6 +162,58 @@ Find more about edge effects in ``examples/lorentz.py`` and the doc string of
 
 .. _avoid_auto_calc:
 
+Interpolation and fitting
+-------------------------
+
+Care for some surface data? Here we fit with a 2D polynomial::
+
+    >>> from pwtools import num, rbf, mpl
+    >>> fig,ax=mpl.fig_ax3d(clean=True)
+    >>> dd=mpl.get_2d_testdata(20)
+    >>> ax.scatter(dd.xx, dd.yy, dd.zz)
+    >>> # same as 
+    >>> #   num.Interpol2D(dd=dd, what='poly', deg=5)
+    >>> #   num.Interpol2D(dd.XY, dd.zz, what='poly', deg=5)
+    >>> f=num.PolyFit(dd.XY, dd.zz, deg=5)
+    >>> ddi=mpl.get_2d_testdata(50)
+    >>> ddi.update(zz=f(ddi.XY))
+    >>> ax.plot_surface(ddi.X, ddi.Y, ddi.Z, alpha=0.3, color='r')
+
+.. image:: ../_static/interpol_2d.png
+
+Example result from a 1D fit of noisy data (``examples/rbf/noise.py``) using 
+:class:`~pwtools.rbf.RBFInt`. Without all plot commands and only one data set::
+    
+    >>> N = # number of points
+    >>> x = np.linspace(0, 10, N)
+    >>> y = np.sin(x) + rand(N)
+    >>> f = rbf.RBFInt(x[:,None], y)
+    >>> f.fit()
+
+.. image:: ../_static/rbf_1d_opt_False.png
+
+2D interpolation of samples of a "mexican hat" function :math:`\sin(r)/r`
+(``examples/rbf/surface.py``), also using :class:`~pwtools.rbf.RBFInt`. See
+:ref:`rbf` for more. Similar to the :class:`~pwtools.num.PolyFit` example above::
+
+    >>> # same as
+    >>> #   num.Interpol2D(dd=dd, what='rbf_multi')
+    >>> #   num.Interpol2D(dd.XZ, dd.zz, what='rbf_multi')
+    >>> f=rbf.RBFInt(dd.XZ, dd.zz)
+    >>> f.fit()
+
+.. image:: ../_static/rbf_2d_surface_opt_False.png
+
+See also
+
+:class:`~pwtools.num.PolyFit`
+:class:`~pwtools.num.PolyFit1D`
+:class:`~pwtools.num.Spline`
+:class:`~pwtools.num.Interpol2D`
+:class:`~pwtools.num.meshgridt`
+:class:`~pwtools.rbf.RBFInt`
+
+
 Avoid auto-calculation for big MD data
 --------------------------------------
 If you have really big MD data (say several GB), then the :ref:`auto-calculation of
@@ -193,26 +247,6 @@ To find out what can be parsed, also check which ``get_*()`` methods the parser
 implements (mind also base classes, best is to use Tab completion in ipython:
 ``>>> pp.get_<tab>`` or have a look at the API documentation).
 
-
-Interpolation and fitting
--------------------------
-
-See
-
-:class:`~pwtools.num.PolyFit`
-:class:`~pwtools.num.PolyFit1D`
-:class:`~pwtools.num.Spline`
-:class:`~pwtools.num.Interpol2D`
-:class:`~pwtools.num.meshgridt`
-:class:`~pwtools.rbf.RBFInt`
-
-Example result from a 1D fit of noisy data (``examples/rbf/noise.py``) and a 2D
-interpolation of samples of a "mexican hat" function :math:`\sin(r)/r`
-(``examples/rbf/surface.py``) using :class:`~pwtools.rbf.RBFInt`. See
-:ref:`rbf`.
-
-.. image:: ../_static/rbf_1d_opt_False.png
-.. image:: ../_static/rbf_2d_surface_opt_False.png
 
 Work with SQLite databases
 --------------------------

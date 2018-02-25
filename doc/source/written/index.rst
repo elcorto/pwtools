@@ -2,7 +2,7 @@
 
 .. toctree::
     
-   features/index
+   features
    install
    tutorial
    background/index

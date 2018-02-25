@@ -44,7 +44,7 @@ See the `install notes`_ for details.
 .. _tutorial: http://elcorto.github.io/pwtools/written/tutorial.html
 .. _docs_html: http://elcorto.github.io/pwtools
 .. _docs_files: https://github.com/elcorto/pwtools/tree/master/doc
-.. _overview: http://elcorto.github.io/pwtools/written/features/overview.html#overview
+.. _features: http://elcorto.github.io/pwtools/written/features.html
 .. _api: http://elcorto.github.io/pwtools/generated/api/index.html
 .. _tests: https://github.com/elcorto/pwtools/tree/master/pwtools/test  
 .. _sphinx-autodoc: https://github.com/elcorto/sphinx-autodoc
@@ -73,7 +73,7 @@ See the `install notes`_ for details.
 .. _the tests: tests_
 .. _Quantum Espresso: QE_   
 .. _install notes: install_   
-.. _feature overview: overview_
+.. _feature overview: features_
 .. _the docs: docs_html_
 .. _doc/: docs_files_
 .. _API documentation: api_

@@ -3,6 +3,10 @@
 Radial Basis Functions Networks for interpolation or fitting of N-dim data points
 =================================================================================
 
+Some background information on the method implemented in
+:mod:`~pwtools.rbf`. For code examples, see the docstring of
+:class:`~pwtools.rbf.RBFInt` and ``examples/rbf/``.
+
 Refs:
 
 .. [1] http://en.wikipedia.org/wiki/Radial_basis_function_network
@@ -83,7 +87,7 @@ actually very good and doesn't change much when optimizing. However, this is
 not always the global min. There are cases where we find a much smaller
 ``param`` (e.g. factor 10 smaller), which leads to better fits at the data
 points but oscillations between them (found with methods where we actually have
-more points for testing than we use for fitting, see ``examples/rbf.py``). That
+more points for testing than we use for fitting, see ``examples/rbf/``). That
 minimum was found sometimes with ``scipy.optimize.fmin`` and always with
 ``scipy.optimize.differential_evolution``. However, as stated above, we usually
 want to do a fit with the mean-distance estimate rather than a perfect
