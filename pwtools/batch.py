@@ -378,17 +378,14 @@ class ParameterStudy(object):
     >>> # axis and par3 on the other
     >>> params_lst = comb.nested_loops([zip(par1, par2), par3], flatten=True)
     
-    Here is a complete example:
-
-    .. literalinclude:: ../../../../examples/parameter_study/input.py
-    
-    See test/test_parameter_study.py for more examples.
+    See ``examples/parameter_study/`` for complete examples, as well as
+    ``test/test_parameter_study.py``.
 
     See Also
     --------
     itertools.product
-    comb.nested_loops
-    sql.sql_column
+    :func:`pwtools.comb.nested_loops`
+    :func:`pwtools.sql.sql_column`
     """
     # more notes
     # ----------

@@ -4,7 +4,8 @@ Features
 ========
 
 * container classes for single unit cells (:class:`~pwtools.crys.Structure`)
-  and molecular dynamics trajectories (:class:`~pwtools.crys.Trajectory`)
+  and structure sequences such as molecular dynamics trajectories, relaxation
+  runs or NEB paths (:class:`~pwtools.crys.Trajectory`)
 
 * classes to set up calculations (parameter studies) based on template input
   files for any kind of computational backend (:mod:`~pwtools.batch`)
@@ -23,7 +24,7 @@ Features
 * pythonic interface to external molecular viewers for interactive use:
   xcrysden_, avogadro_, jmol_, VMD_ (:mod:`~pwtools.visualize`)
 
-* interface to the Elk_ code's EOS fitting tool and own implementation (only Vinet
+* interface to the Elk_ code's EOS fitting tool and own implementation (Vinet
   EOS) (:mod:`~pwtools.eos`)
 
 * thermodynamic properties in the quasi-harmonic approximation from phonon
@@ -41,7 +42,7 @@ Features
 
 * basic signal processing / fft related tools (:mod:`~pwtools.signal`)
 
-* radial basis function interpolation and fitting (:mod:`~pwtools.rbf`)
+* N-dim radial basis function interpolation and fitting (:mod:`~pwtools.rbf`)
 
 * tools to handle matplotlib plots in scripts (:mod:`~pwtools.mpl`)
 

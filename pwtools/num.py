@@ -1853,7 +1853,7 @@ def euler_matrix(phi, theta, psi, deg=False):
     
     References
     ----------
-    [1] http://mathworld.wolfram.com/EulerAngles.html
+    .. [1] http://mathworld.wolfram.com/EulerAngles.html
     """
     if deg:
         phi = radians(phi)

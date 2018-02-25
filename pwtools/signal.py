@@ -848,16 +848,17 @@ class FIRFilter(object):
     Notes
     -----
     To plot the frequency response (the frequency bands), use::
-    >>> f = Filter(...)
-    >>> plot(f.w, abs(f.h))
+
+        >>> f = Filter(...)
+        >>> plot(f.w, abs(f.h))
     
     Examples
     --------
-    .. literalinclude:: ../../../examples/filter_example.py
+    .. literalinclude:: ../../../../examples/filter_example.py
 
     References
     ----------
-    .. [1]: http://www.scipy.org/Cookbook/FIRFilter
+    .. [1] http://www.scipy.org/Cookbook/FIRFilter
     """
     def __init__(self, cutoff, nyq, ntaps=None, ripple=None, width=None,
                  window='hamming', mode='lowpass'):
