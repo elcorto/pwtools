@@ -84,21 +84,40 @@ def plotlines3d(ax3d, x,y,z, *args, **kwargs):
         ax3d.plot(xx[:,j], np.ones(xx.shape[0])*y[j], z[:,j], *args, **kwargs)
     return ax3d        
 
+
 def fig_ax(**kwds):
     """``fig,ax = fig_ax()``"""
     fig = plt.figure(**kwds)
     ax = fig.add_subplot(111)
     return fig, ax
 
-def fig_ax3d(**kwds):
-    """``fig,ax3d = fig_ax()``"""
+
+def fig_ax3d(clean=False, **kwds):
+    """``fig,ax3d = fig_ax()``
+    
+    Parameters
+    ----------
+    clean : bool
+        see :func:`clean_ax3d`
+    """
     fig = plt.figure(**kwds)
     try: 
         ax = fig.add_subplot(111, projection='3d')
     except:
         # mpl < 1.0.0
         ax = Axes3D(fig)
+    if clean:
+        clean_ax3d(ax)
     return fig, ax
+
+
+def clean_ax3d(ax):
+    """On ``Axes3DSubplot`` `ax`, set x,y,z pane color to white and remove
+    grid."""
+    ax.w_xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
+    ax.w_yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
+    ax.w_zaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
+    ax.grid(False)
 
 
 class Plot(object):
