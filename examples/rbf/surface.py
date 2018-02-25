@@ -1,3 +1,12 @@
+"""
+* define 2D scalar field z=f(x,y)
+* sample random (x,y) points from f
+* fit with RBF, plot and compare with original function, plot contour of
+  difference -> fit is almost perfect
+* calculate and plot the x-derivative of the fit, compare to analytic deriv ->
+  also almost perfect match
+"""
+
 import numpy as np
 from matplotlib import cm
 from pwtools import mpl, rbf, num
@@ -115,7 +124,7 @@ if __name__ == '__main__':
 
     rbfi = rbf.RBFInt(X, Z, rbf=rbf.RBFMultiquadric(), verbose=True)
     rbfi.fit()
-    print("param:", rbfi.rbf.param)
+##    print("param:", rbfi.rbf.param)
     
     dati = SurfaceData(fu.xlim, fu.ylim, fu.nx*2, fu.ny*2, 'grid')
 
@@ -125,21 +134,15 @@ if __name__ == '__main__':
     ZG_rbf = ZI_rbf.reshape((dati.nx, dati.ny))
     zlim = [ZI_func.min(), ZI_func.max()]
 
-    fig, ax = mpl.fig_ax3d()
-    ax.w_xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
-    ax.w_yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
-    ax.w_zaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
-    ax.grid(False)
+    fig, ax = mpl.fig_ax3d(clean=True)
 
     ax.scatter(X[:,0], X[:,1], Z, color='b', label='f(x,y) samples')
     dif = np.abs(ZI_func - ZI_rbf).reshape((dati.nx, dati.ny))
     if not shiny:
-        wff = ax.plot_wireframe(dati.XG, dati.YG, ZG_func, cstride=1, rstride=1,
-                                color='g', label='f(x,y)')
-        wff.set_alpha(0.5)
-    wfr = ax.plot_wireframe(dati.XG, dati.YG, ZG_rbf, cstride=1, rstride=1,
-                            color='r', label='rbf(x,y)')
-    wfr.set_alpha(0.5)
+        ax.plot_wireframe(dati.XG, dati.YG, ZG_func, cstride=1, rstride=1,
+                          color='g', label='f(x,y)', alpha=0.5)
+    ax.plot_wireframe(dati.XG, dati.YG, ZG_rbf, cstride=1, rstride=1,
+                      color='r', label='rbf(x,y)', alpha=0.5)
     cont = ax.contour(dati.XG, dati.YG, dif, offset=zlim[0], 
                       levels=np.linspace(dif.min(), dif.max(), 20),
                       cmap=cm.plasma)
@@ -158,26 +161,18 @@ if __name__ == '__main__':
     # derivs only implemented for MexicanHat
     ZI_func = fu(dati.X, der='x')
     ZI_rbf = rbfi(dati.X, der=1)[:,0]
-    print(ZI_func.shape)
-    print(ZI_rbf.shape)
     ZG_func = ZI_func.reshape((dati.nx, dati.ny))
     ZG_rbf = ZI_rbf.reshape((dati.nx, dati.ny))
 
     zlim = [ZI_func.min(), ZI_func.max()]
 
-    fig, ax = mpl.fig_ax3d()
-    ax.w_xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
-    ax.w_yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
-    ax.w_zaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
-    ax.grid(False)
+    fig, ax = mpl.fig_ax3d(clean=True)
     
     dif = np.abs(ZI_func - ZI_rbf).reshape((dati.nx, dati.ny))
-    wff = ax.plot_wireframe(dati.XG, dati.YG, ZG_func, cstride=1, rstride=1,
-                            color='g', label='df/dx')
-    wff.set_alpha(0.5)
-    wfr = ax.plot_wireframe(dati.XG, dati.YG, ZG_rbf, cstride=1, rstride=1,
-                            color='r', label='d(rbf)/dx')
-    wfr.set_alpha(0.5)
+    ax.plot_wireframe(dati.XG, dati.YG, ZG_func, cstride=1, rstride=1,
+                      color='g', label='df/dx', alpha=0.5)
+    ax.plot_wireframe(dati.XG, dati.YG, ZG_rbf, cstride=1, rstride=1,
+                      color='r', label='d(rbf)/dx', alpha=0.5)
     cont = ax.contour(dati.XG, dati.YG, dif, offset=zlim[0], 
                       levels=np.linspace(dif.min(), dif.max(), 20),
                       cmap=cm.plasma)
