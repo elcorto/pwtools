@@ -16,6 +16,7 @@ rand = np.random.rand
 # create shiny polished plot for documentation
 shiny = False
 
+
 class SurfaceData(object):
     def __init__(self, xlim, ylim, nx, ny, mode):
         self.xlim = xlim
@@ -24,34 +25,30 @@ class SurfaceData(object):
         self.ny = ny
         self.xg, self.yg = self.get_xy_grid()
         self.XG, self.YG = num.meshgridt(self.xg, self.yg)
-        self.X = self.gen_coords(mode)
+        self.XY = self.make_XY(mode)
         
-    def gen_coords(self, mode='grid'):
+    def make_XY(self, mode='grid'):
         if mode == 'grid':
-            X = np.empty((self.nx * self.ny,2))
-            X[:,0] = self.XG.flatten()
-            X[:,1] = self.YG.flatten()
+            XY = np.empty((self.nx * self.ny,2))
+            XY[:,0] = self.XG.flatten()
+            XY[:,1] = self.YG.flatten()
             ##for i in range(self.nx):
             ##    for j in range(self.ny):
-            ##        X[i*self.ny+j,0] = self.xg[i]
-            ##        X[i*self.ny+j,1] = self.yg[j]
+            ##        XY[i*self.ny+j,0] = self.xg[i]
+            ##        XY[i*self.ny+j,1] = self.yg[j]
         elif mode == 'rand':
-            X = rand(self.nx * self.ny, 2)
-            X[:,0] = X[:,0] * (self.xlim[1] - self.xlim[0]) + self.xlim[0]
-            X[:,1] = X[:,1] * (self.ylim[1] - self.ylim[0]) + self.ylim[0]
-        return X
+            XY = rand(self.nx * self.ny, 2)
+            XY[:,0] = XY[:,0] * (self.xlim[1] - self.xlim[0]) + self.xlim[0]
+            XY[:,1] = XY[:,1] * (self.ylim[1] - self.ylim[0]) + self.ylim[0]
+        return XY
     
     def get_xy_grid(self):
         x = np.linspace(self.xlim[0], self.xlim[1], self.nx)
         y = np.linspace(self.ylim[0], self.ylim[1], self.ny)
         return x,y
-
-    def get_X(self, X=None):
-        return self.X if X is None else X
-
-    def func(self, X=None):
-        X = self.get_X(X)
-        return None
+    
+    def func(self, XY):
+        raise NotImplementedError
 
     def __call__(self, *args, **kwargs):
         if 'der' in kwargs:
@@ -68,45 +65,39 @@ class SurfaceData(object):
 
 
 class MexicanHat(SurfaceData):
-    def func(self, X=None):
-        X = self.get_X(X)
-        r = np.sqrt((X**2).sum(axis=1))
+    def func(self, XY):
+        r = np.sqrt((XY**2).sum(axis=1))
         return np.sin(r)/r
     
-    def deriv_x(self, X=None):
-        X = self.get_X(X)
-        r = np.sqrt((X**2).sum(axis=1))
-        x = X[:,0]
+    def deriv_x(self, XY):
+        r = np.sqrt((XY**2).sum(axis=1))
+        x = XY[:,0]
         return x * np.cos(r) / r**2 - x * np.sin(r) / r**3.0
 
-    def deriv_y(self, X=None):
-        X = self.get_X(X)
-        r = np.sqrt((X**2).sum(axis=1))
-        y = X[:,1]
+    def deriv_y(self, XY):
+        r = np.sqrt((XY**2).sum(axis=1))
+        y = XY[:,1]
         return y * np.cos(r) / r**2 - y * np.sin(r) / r**3.0
 
 
 class UpDown(SurfaceData):
-    def func(self, X=None):
-        X = self.get_X(X)
-        x = X[:,0]
-        y = X[:,1]
+    def func(self, XY):
+        x = XY[:,0]
+        y = XY[:,1]
         return x*np.exp(-x**2-y**2)
 
 
 class SinExp(SurfaceData):
-    def func(self, X=None):
-        X = self.get_X(X)
-        x = X[:,0]
-        y = X[:,1]
+    def func(self, XY):
+        x = XY[:,0]
+        y = XY[:,1]
         return np.sin(np.exp(x)) * np.cos(y) + 0.5*y
 
 
 class Square(SurfaceData):
-    def func(self, X=None):
-        X = self.get_X(X)
-        x = X[:,0]
-        y = X[:,1]
+    def func(self, XY):
+        x = XY[:,0]
+        y = XY[:,1]
         return (x**2 + y**2)
 
 
@@ -119,24 +110,23 @@ if __name__ == '__main__':
 ##    fu = SinExp([-1,2.5], [-2,2], 40, 30, 'rand')
 ##    fu = Square([-1,1], [-1,1], 20, 20, 'grid')
     
-    X = fu.X
-    Z = fu(X)
+    Z = fu(fu.XY)
 
-    rbfi = rbf.RBFInt(X, Z, rbf=rbf.RBFMultiquadric(), verbose=True)
+    rbfi = rbf.RBFInt(fu.XY, Z, rbf=rbf.RBFMultiquadric(), verbose=True)
     rbfi.fit()
 ##    print("param:", rbfi.rbf.param)
     
     dati = SurfaceData(fu.xlim, fu.ylim, fu.nx*2, fu.ny*2, 'grid')
 
-    ZI_func = fu(dati.X)
-    ZI_rbf = rbfi(dati.X)
+    ZI_func = fu(dati.XY)
+    ZI_rbf = rbfi(dati.XY)
     ZG_func = ZI_func.reshape((dati.nx, dati.ny))
     ZG_rbf = ZI_rbf.reshape((dati.nx, dati.ny))
     zlim = [ZI_func.min(), ZI_func.max()]
 
     fig, ax = mpl.fig_ax3d(clean=True)
 
-    ax.scatter(X[:,0], X[:,1], Z, color='b', label='f(x,y) samples')
+    ax.scatter(fu.XY[:,0], fu.XY[:,1], Z, color='b', label='f(x,y) samples')
     dif = np.abs(ZI_func - ZI_rbf).reshape((dati.nx, dati.ny))
     if not shiny:
         ax.plot_wireframe(dati.XG, dati.YG, ZG_func, cstride=1, rstride=1,
@@ -159,8 +149,8 @@ if __name__ == '__main__':
         fig.savefig('/tmp/rbf_2d_surface_opt_False.png') 
 
     # derivs only implemented for MexicanHat
-    ZI_func = fu(dati.X, der='x')
-    ZI_rbf = rbfi(dati.X, der=1)[:,0]
+    ZI_func = fu(dati.XY, der='x')
+    ZI_rbf = rbfi(dati.XY, der=1)[:,0]
     ZG_func = ZI_func.reshape((dati.nx, dati.ny))
     ZG_rbf = ZI_rbf.reshape((dati.nx, dati.ny))
 
