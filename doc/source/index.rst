@@ -2,7 +2,7 @@
 Welcome to the pwtools documentation
 ====================================
 
-``pwtools`` is a Python package for pre- and postprocessing of atomic
+``pwtools`` is a Python package for pre- and postprocessing of atomistic
 calculations, mostly targeted to `Quantum Espresso <QE_>`_, CPMD_, CP2K_ and
 LAMMPS_. It is almost, but not quite, entirely unlike ASE_, with some tools
 extending numpy_/scipy_. It has a set of powerful parsers and data types for
