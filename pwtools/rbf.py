@@ -235,7 +235,7 @@ class RBFInt:
         return self.fit(**kwds)
 
     
-    def fit(self, param='est', solver='lstsq'):
+    def fit(self, param='est', solver='lstsq', reg=None):
         """Solve linear system for the weights w:
             G . w = z
         
@@ -247,14 +247,22 @@ class RBFInt:
         param : 'est' or float
             see :meth:`get_param`
         solver : str
-            'solve' : interpolation
+            'solve' : linear system solver
                 Use ``scipy.linalg.solve()``. By definition, this always yields
-                perfect interpolation at the data points. May be numerically
-                unstable.
-            'lstsq' : least squares regression (default)
-                Use ``scipy.linalg.lstsq()``. Numerically more stable. Will
-                mostly be the same as the interpolation result, but will not go
-                thru all points for very noisy data.
+                perfect interpolation at the data points for ``reg=None``. May
+                be numerically unstable in that case. Use `reg` to increase
+                stability and create smooth fitting (generate more stiff
+                functions), similar to ``lstsq`` but appears to be numerically
+                more stable (no small noise in solution) .. but it is another
+                parameter that needs to be tuned.
+            'lstsq' : least squares solver (default)
+                Use ``scipy.linalg.lstsq()``. Numerically more stable than
+                direct solver w/o regularization. Will mostly be the same as
+                the interpolation result, but will not go thru all points for
+                very noisy data. May create small noise in solution (plot fit
+                with high point density).
+        reg : None, float, optional
+            regularization parameter for solver='solve' 
         """
         # this test may be expensive for big data sets
         assert (self.centers == self.points).all(), "centers == points not fulfilled"
@@ -264,7 +272,10 @@ class RBFInt:
         self.rbf.param = self.get_param(param)
         G = self.rbf(self.distsq)
         if solver == 'solve':
-            weights = getattr(linalg, solver)(G, self.values)
+            if reg is None:
+                weights = getattr(linalg, solver)(G, self.values)
+            else:
+                weights = getattr(linalg, solver)(G + np.identity(G.shape[0])*reg, self.values)
         elif solver == 'lstsq':
             weights, res, rnk, svs = getattr(linalg, solver)(G, self.values)
         else:

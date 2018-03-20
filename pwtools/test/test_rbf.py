@@ -40,14 +40,20 @@ def test_2d():
 
 def test_1d_with_deriv():
     # 1d example, deriv test
-    x = np.linspace(0,10,20)
+    x = np.linspace(0,10,30)
     z = np.sin(x)
     xx = np.linspace(0,10,100)
     rbfi = rbf.RBFInt(x[:,None],z)
-    for solver in ['solve', 'lstsq']:
-        rbfi.fit(solver=solver)
-        assert np.allclose(rbfi(xx[:,None]), np.sin(xx), rtol=1e-6, atol=1e-3)
-        assert np.allclose(rbfi(xx[:,None], der=1)[:,0], np.cos(xx), rtol=1e-2, atol=1e-4)
+    cases = [
+        dict(solver='solve'),
+        dict(solver='solve', reg=0),
+        dict(solver='solve', reg=1e-11),
+        dict(solver='lstsq'),
+        ]
+    for kwds in cases:
+        rbfi.fit(**kwds)
+        assert np.allclose(rbfi(xx[:,None]), np.sin(xx), rtol=0, atol=1e-4)
+        assert np.allclose(rbfi(xx[:,None], der=1)[:,0], np.cos(xx), rtol=0, atol=1e-3)
 
 def test_rbf_func_api():
     X = rand(100,3)
