@@ -112,7 +112,7 @@ if __name__ == '__main__':
     
     Z = fu(fu.XY)
 
-    rbfi = rbf.RBFInt(fu.XY, Z, rbf=rbf.RBFMultiquadric(), verbose=True)
+    rbfi = rbf.RBFInt(fu.XY, Z, rbf='multi', verbose=True)
     rbfi.fit()
 ##    print("param:", rbfi.rbf.param)
     

@@ -48,3 +48,17 @@ def test_1d_with_deriv():
         rbfi.fit(solver=solver)
         assert np.allclose(rbfi(xx[:,None]), np.sin(xx), rtol=1e-6, atol=1e-3)
         assert np.allclose(rbfi(xx[:,None], der=1)[:,0], np.cos(xx), rtol=1e-2, atol=1e-4)
+
+def test_rbf_func_api():
+    X = rand(100,3)
+    z = rand(100)
+    r1 = rbf.RBFInt(X, z, rbf='multi')
+    r2 = rbf.RBFInt(X, z, rbf=rbf.RBFMultiquadric())
+    r1.fit()
+    r2.fit()
+    assert (r1(X) == r2(X)).all()
+    
+    # make sure we don't share the same RBFFunction
+    assert not r1.rbf is r2.rbf
+    r1.rbf.param *= 1000
+    assert r1.rbf.param != r2.rbf.param

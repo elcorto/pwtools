@@ -60,9 +60,16 @@ class RBFInverseMultiquadric(RBFFunction):
         return (rsq + self._get_param(param)**2.0)**(-0.5)
 
 
+rbf_dct = {
+    'gauss': RBFGauss,
+    'multi': RBFMultiquadric,
+    'inv_multi': RBFInverseMultiquadric,
+    }
+
+
 class RBFInt:
-    """Radial basis function neural network interpolator."""
-    def __init__(self, points, values=None, centers=None, rbf=RBFMultiquadric(),
+    """Radial basis function network interpolation and fitting."""
+    def __init__(self, points, values=None, centers=None, rbf='multi',
                  verbose=False):
         """
         Parameters
@@ -74,7 +81,7 @@ class RBFInt:
         centers : 2d array (K,N)
             K N-dim center vectors, for usual interpolation training points == centers
             (default)
-        rbf : RBFFunction instance, optional
+        rbf : str or :class:`RBFFunction` instance
         verbose : bool, optional
             print some messages
 
@@ -127,7 +134,7 @@ class RBFInt:
         self.points = points
         self.values = values
         self.centers = self.points if centers is None else centers
-        self.rbf = rbf
+        self.rbf = rbf_dct[rbf]() if isinstance(rbf, str) else rbf
         self.verbose = verbose
         self._assert_ndim_points(self.points)
         self._assert_ndim_points(self.centers)

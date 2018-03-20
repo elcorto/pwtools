@@ -821,16 +821,16 @@ class Interpol2D(object):
         from pwtools import rbf
         if what == 'rbf_multi':
             self.inter = rbf.RBFInt(self.points, self.values, 
-                                    rbf=rbf.RBFMultiquadric())
+                                    rbf='multi')
             self.inter.fit(**initkwds)
             self.call = self.inter
         elif what == 'rbf_inv_multi':
             self.inter = rbf.RBFInt(self.points, self.values, 
-                                    rbf=rbf.RBFInverseMultiquadric())
+                                    rbf='inv_multi')
             self.inter.fit(**initkwds)
             self.call = self.inter
         elif what == 'rbf_gauss':
-            self.inter = rbf.RBFInt(self.points, self.values, rbf=rbf.RBFGauss())
+            self.inter = rbf.RBFInt(self.points, self.values, rbf='gauss')
             self.inter.fit(**initkwds)
             self.call = self.inter
         elif what == 'poly':
