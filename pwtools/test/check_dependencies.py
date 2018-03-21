@@ -13,7 +13,7 @@ if __name__ == '__main__':
 
     print("required packages:")
     for name in ['numpy', 'scipy', 'ase', 'pyspglib', 'CifFile', 'h5py',
-                 'nose', 'matplotlib']:
+                 'nose', 'matplotlib', 'sphinx', 'numpydoc']:
         check_module(name)
 
     print("optional executables:")
