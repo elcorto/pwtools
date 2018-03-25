@@ -13,9 +13,6 @@ Features
 * simple sqlite3 interface with convenience data extraction methods
   (:mod:`~pwtools.sql`)
 
-* velocity autocorrelation function and phonon DOS from MD trajectories
-  (:mod:`~pwtools.pydos`)
-
 * parsing of PWscf (QE_), CPMD_ , CP2K_ and LAMMPS_ 
   output into Python objects for easy access (:mod:`~pwtools.parse`)
 
@@ -30,22 +27,29 @@ Features
 * thermodynamic properties in the quasi-harmonic approximation from phonon
   density of states, QHA implementation (:mod:`~pwtools.thermo`) 
 
-* MD analyis: radial pair distribution function (own implementation and VMD_
+* MD analysis: radial pair distribution function (own implementation and VMD_
   interface), RMS, RMSD (:mod:`~pwtools.crys`)
+
+* velocity autocorrelation function and phonon DOS from MD trajectories
+  (:mod:`~pwtools.pydos`)
 
 * unit cell related tools: super cell building, coordinate transformation,
   k-grid tools, ... (:mod:`~pwtools.crys`)
 
+* thin wrappers for spglib_ functions (:mod:`~pwtools.symmetry`)
+
 * functions and classes to extend numpy/scipy, e.g. N-dim polynomial fitting
-  (!) and a number of convenient 1D classes (polynomial, spline) with a common
+  and a number of convenient 1D classes (polynomial, spline) with a common
   API (:mod:`~pwtools.num`)
 
-* basic signal processing / fft related tools (:mod:`~pwtools.signal`)
-
 * N-dim radial basis function interpolation and fitting (:mod:`~pwtools.rbf`)
+
+* basic signal processing / fft related tools (:mod:`~pwtools.signal`)
 
 * tools to handle matplotlib plots in scripts (:mod:`~pwtools.mpl`)
 
 * QE and LAMMPS calculators for ASE (:mod:`~pwtools.calculators`)
+
+* extensive test suite
 
 .. include:: refs.rst

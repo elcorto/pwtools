@@ -17,32 +17,60 @@ For basic ASE compatibility, you may get away with
 which behaves like ``ase.Atoms`` without the need to have ASE installed.
 This is used in :mod:`pwtools.symmetry`, for example.
 
-Parse MD output, plot stuff
----------------------------
-Lets take cp2k as an example (assuming an interactive Ipython session)::
+Parse SCF, relax or MD output
+-----------------------------
 
-    >>> from pwtools import io
-    >>> tr = io.read_cp2k_md('cp2k.out')
-    >>> plot(tr.etot)
-    >>> figure()
-    >>> # x-coord of all atoms over time
-    >>> plot(tr.coords[...,0])
+Parse SCF run from QE (single :class:`~pwtools.crys.Structure`)::
 
-
-Parse SCF or relax output, plot stuff
--------------------------------------
-Parse SCF and relax run from PWscf::
 
     >>> from pwtools import io
     >>> st = io.read_pw_scf('pw.scf.out')
-    >>> # coords, forces, ...: shape = (natoms,3)
-    >>> print st.coords, st.etot
-    >>> tr = io.read_pw_md('pw.relax.out')
-    >>> plot(tr.etot)
-    >>> figure()
-    >>> # max force component during relaxation
-    >>> # tr.forces.shape = (nstep, natoms, 3)
-    >>> plot(np.max(np.abs(tr.forces), axis=0))
+    >>> # natoms=2
+    >>> st.coords_frac
+    array([[0.  , 0.  , 0.  ],
+           [0.25, 0.25, 0.25]])
+    >>> st.etot
+    -258.58148870118305
+    >>> st.stress
+    array([[9.825, 0.   , 0.   ],
+           [0.   , 9.825, 0.   ],
+           [0.   , 0.   , 9.825]])
+
+Variable cell relax run from QE into :class:`~pwtools.crys.Trajectory`. Use the
+MD parser::
+
+    >>> tr = io.read_pw_md('pw.vc_relax.out')
+    >>> tr.nstep
+    7
+    >>> tr.etot - tr.etot[-1]
+    array([-0.74763576,  0.68611164,  0.22244653, -0.06793023, -0.01616479,
+            0.00121567,  0.        ])
+    >>> tr.volume
+    array([54.12697068, 51.59033133, 49.81153398, 50.1512203 , 50.26524368,
+           50.25804864, 50.25804864])
+    >>> # [trace(s)/3 for s in tr.stress]
+    >>> tr.pressure
+    array([ 2.60203333e+01, -5.28800000e+00, -2.22400000e+00,  6.80000000e-01,
+            1.14000000e-01, -6.30000000e-02, -2.33333333e-02])
+    >>> tr.cryst_const[-1,...]
+    array([  3.29944506,   3.29944506,   5.33081055,  90.        ,
+            90.        , 120.00001397])
+    >>> # nstep=7, natoms=4 
+    >>> tr.coords.shape
+    (7, 4, 3)
+
+Now an MD from CP2K::
+
+    >>> tr = io.read_cp2k_md('cp2k.out')
+    >>> tr.nstep 
+    123456
+    >>> # extract first and last Structure objects
+    >>> st_first = tr[0]
+    >>> st_last = tr[-1]
+    >>> # slice out a part of the trajectory
+    >>> tr_middle = tr[100:500]
+    >>> # use every 5th step
+    >>> tr[::5]
 
 
 Binary IO
@@ -117,7 +145,7 @@ want to know the space group of the final optimized structure, namely
     >>> from pwtools import symmetry, crys
     >>> symmetry.get_spglib_spacegroup(tr[-1], symprec=1e-2)
 
-Easy, eh? Or build one using ASE::
+Or build one using ASE::
 
     >>> import ase.build
     >>> at = ase.build.bulk(name='AlN', crystalstructure='rocksalt', a=3)
@@ -168,39 +196,37 @@ Interpolation and fitting
 Care for some surface data? Here we fit with a 2D polynomial::
 
     >>> from pwtools import num, rbf, mpl
-    >>> fig,ax=mpl.fig_ax3d(clean=True)
-    >>> dd=mpl.get_2d_testdata(20)
+    >>> fig,ax = mpl.fig_ax3d(clean=True)
+    >>> dd = mpl.get_2d_testdata(20)
     >>> ax.scatter(dd.xx, dd.yy, dd.zz)
     >>> # same as 
     >>> #   num.Interpol2D(dd=dd, what='poly', deg=5)
     >>> #   num.Interpol2D(dd.XY, dd.zz, what='poly', deg=5)
-    >>> f=num.PolyFit(dd.XY, dd.zz, deg=5)
-    >>> ddi=mpl.get_2d_testdata(50)
+    >>> f = num.PolyFit(dd.XY, dd.zz, deg=5)
+    >>> ddi = mpl.get_2d_testdata(50)
     >>> ddi.update(zz=f(ddi.XY))
     >>> ax.plot_surface(ddi.X, ddi.Y, ddi.Z, alpha=0.3, color='r')
 
 .. image:: ../_static/interpol_2d.png
 
 Example result from a 1D fit of noisy data (``examples/rbf/noise.py``) using 
-:class:`~pwtools.rbf.RBFInt`. Without all plot commands and only one data set::
+:class:`~pwtools.rbf.Rbf`. Without all plot commands and only one data set::
     
     >>> N = # number of points
     >>> x = np.linspace(0, 10, N)
     >>> y = np.sin(x) + rand(N)
-    >>> f = rbf.RBFInt(x[:,None], y)
-    >>> f.fit()
+    >>> f = rbf.Rbf(x[:,None], y)
 
 .. image:: ../_static/rbf_1d_opt_False.png
 
 2D interpolation of samples of a "mexican hat" function :math:`\sin(r)/r`
-(``examples/rbf/surface.py``), also using :class:`~pwtools.rbf.RBFInt`. See
+(``examples/rbf/surface.py``), also using :class:`~pwtools.rbf.Rbf`. See
 :ref:`rbf` for more. Similar to the :class:`~pwtools.num.PolyFit` example above::
 
     >>> # same as
     >>> #   num.Interpol2D(dd=dd, what='rbf_multi')
     >>> #   num.Interpol2D(dd.XZ, dd.zz, what='rbf_multi')
-    >>> f=rbf.RBFInt(dd.XZ, dd.zz)
-    >>> f.fit()
+    >>> f=rbf.Rbf(dd.XZ, dd.zz)
 
 .. image:: ../_static/rbf_2d_surface_opt_False.png
 
@@ -211,7 +237,7 @@ See also
 :class:`~pwtools.num.Spline`
 :class:`~pwtools.num.Interpol2D`
 :class:`~pwtools.num.meshgridt`
-:class:`~pwtools.rbf.RBFInt`
+:class:`~pwtools.rbf.Rbf`
 
 
 Avoid auto-calculation for big MD data
@@ -253,8 +279,8 @@ Work with SQLite databases
 See :class:`~pwtools.sql.SQLiteDB`.
 
 
-More stuff
-----------
+More
+----
 * :ref:`dispersion_example`
 * :ref:`cp2k_restart`
 

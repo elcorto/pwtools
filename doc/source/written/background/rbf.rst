@@ -3,108 +3,133 @@
 Radial Basis Functions Networks for interpolation or fitting of N-dim data points
 =================================================================================
 
-Some background information on the method implemented in
-:mod:`~pwtools.rbf`. For code examples, see the docstring of
-:class:`~pwtools.rbf.RBFInt` and ``examples/rbf/``.
+Some background information on the method implemented in :mod:`~pwtools.rbf`.
+For code examples, see the doc string of :class:`~pwtools.rbf.Rbf`. See
+``examples/rbf/`` for advanced topics such as cross-validation error
+convergence, avoidance of overfitting, error landscape analysis and
+optimization of the RBF parameter :math:`p` (and regularization strength
+:math:`r`).
 
 Refs:
 
 .. [1] http://en.wikipedia.org/wiki/Radial_basis_function_network
 .. [2] Numerical Recipes, 3rd ed., ch 3.7
 
-Training
---------
-For our RBF network, we use the traditional approach and simply solve a linear
-system for the weights. Calculating the distance matrix w/
-``scipy.spatial.distance.cdist`` or :func:`~pwtools.num.distsq` is handled
-efficiently, even for many points. But we get into trouble for many points
-(order 1e4) b/c solving a big dense linear system (1e4 x 1e4) with plain
-``scipy.linalg`` on a single core is possible but painful (takes some minutes)
--- the traditional RBF problem. Maybe use numpy build against threaded MKL, or
-even scalapack? For the latter, look at how GPAW does this.
+Theory
+------
 
-rbf parameter
--------------
-Each RBF has a single parameter :math:`p`, which can be tuned. This is
-usually a measure for the "width" of the function. e.g. in
-:class:`~pwtools.rbf.RBFMultiquadric` :math:`\sqrt{r^2+p^2}`, attribute
-``param`` in the code.
+The goal is to interpolate or fit an unordered set of :math:`M` ND data points
+:math:`\mathbf x_i` and values :math:`z_i` so as to obtain :math:`z=f(\mathbf
+x)`. In radial basis function (RBF) interpolation, the interpolating function
+:math:`f(\mathbf x)` is a linear combination of RBFs :math:`\phi(r)`
 
-* What seems to work best is :class:`~pwtools.rbf.RBFMultiquadric` +
-  ``RBFInt.get_param(param='est')`` (mean-distance of all points, default),
-  i.e. the "traditional" RBF approach. This is exactly what's done in
-  ``scipy.interpolate.Rbf``.
+.. math::
+    f(\mathbf x) = \sum_j w_j\,\phi(|\mathbf x - \mathbf c_j|)
 
-* It seems that for very few data points (say 5x5 for x**2 + x**2), the default
-  mean-distance estimate is too small. We then have good interpolation at the
-  data points, but wildly fluctuating bogus between them, since there is no
-  data support in between the data points. We need to have wider RBFs. Usually,
-  bigger (x10), sometimes much bigger (x100) params work.
+with the weights :math:`w_j` and the center points :math:`\mathbf c_j`. An RBF
+:math:`\phi(r)` is thus a function of the distance :math:`r=|\mathbf x -
+\mathbf c_j|` between :math:`\mathbf x` and a center point. Common functions
+include
 
-* Similarly, in some cases params smaller than the mean-distance estimate
-  provide lower fit error at the points, but with the same between-points behavior
-  as above.
+.. math::
+    \begin{align}
+        & \phi(r) = \exp\left(-\frac{r^2}{2\,p^2}\right) && \text{Gaussian}\\
+        & \phi(r) = \sqrt{r^2 + p^2} && \text{multiquadric}\\
+        & \phi(r) = \frac{1}{\sqrt{r^2 + p^2}} && \text{inverse multiquadric}
+    \end{align}
 
-In general however, the mean-distance estimate is the best default one can use
-(see below for more details).
+All RBFs contain a single parameter :math:`p` which defines the width of the
+function. The function :math:`f(\mathbf x)` can be also thought of as a neural
+network with one hidden layer and activation functions :math:`\phi`.
 
-Interpolation vs. fitting
--------------------------
-For smooth noise-free data, RBF works perfect. But for noisy data, we would
-like to do some kind of fit instead, like the "s" parameter to
+In interpolation the center points :math:`\mathbf c_j` are equal to the data points 
+:math:`\mathbf x_j` such that
+
+.. math::
+    \begin{gather}
+        z_i = f(\mathbf x_i) = \sum_j w_j\,\phi(|\mathbf x_i - \mathbf x_j|) = \sum_j w_j\,G_{ij}\\
+        \mathbf G\,\mathbf w = \mathbf z\\
+    \end{gather}
+
+with :math:`\mathbf G` the :math:`M\times M` matrix of RBF function values. The
+weights :math:`\mathbf w = (w_j)` are found by solving the linear system
+:math:`\mathbf G\,\mathbf w = \mathbf z`.
+
+Thus, the applicability of the method is limited by the number of points
+:math:`M` in the sense that a dense linear system :math:`M\times M` must be
+stored and solved. For large point sets, the calculation of the distance matrix
+:math:`R_{ij} = |\mathbf x_i - \mathbf x_j|` is one of the bottlenecks. In
+pwtools, this is coded in Fortran (see :func:`~pwtools.num.distsq`). 
+
+RBF parameter :math:`p`
+-----------------------
+Each RBF has a single "width" parameter :math:`p`, which can be tuned
+(attribute ``Rbf.p`` in the code). While :math:`f(\mathbf x)` goes through all
+data points :math:`\mathbf x_i` by definition (in interpolation, regularization
+:math:`r\rightarrow 0`), the behavior of the interpolation between points is
+determined by :math:`p`. For instance, too narrow functions :math:`\phi` can
+lead to oscillations between points. Therefore :math:`p` must be tuned for the
+specific data set. The scipy implementation :math:`p_{\text{scipy}}` in
+``scipy.interpolate.Rbf`` uses something like the mean nearest neighbor
+distance. We provide this as ``Rbf(points, values, p='scipy')`` or
+``rbf.estimate_p(points, 'scipy')``. The default in :class:`pwtools.rbf.Rbf`
+however is the mean distance of all points
+:math:`p_{\text{pwtools}}=1/M^2\,\sum_{ij} R_{ij}` (``Rbf(points, values,
+p='mean')`` or ``rbf.estimate_p(points, 'mean')``). This is always bigger than
+:math:`p_{\text{scipy}}`, and yes this will change with the min-max span of the
+data, while the mean nearest neighbor
+distance stays constant. However it is usually the better
+start guess for :math:`p` since it is less prone to overfitting in case of
+noisy data, where the smaller scipy :math:`p` will often still interpolate all
+points. However, there is no ad-hoc best choice for :math:`p`. In general,
+:math:`p` must be determined by methods such as K-fold cross validation. Use
+:class:`~pwtools.rbf.FitError`, esp. :meth:`~pwtools.rbf.FitError.err_cv` or
+other tools from ``scikit-learn`` which are outside of the scope of pwtools.
+See ``examples/rbf/overfit.py``.
+
+Interpolation vs. fitting and regularization
+--------------------------------------------
+For smooth noise-free data, RBF provides nice interpolation. But for noisy
+data, we would like to do a fit instead, similar to "s" parameter of
 ``scipy.interpolate.bisplrep``. ``scipy.interpolate.Rbf`` has a "smooth"
-parameter and what they do is some form of regularization (solve (``G-I*smooth)
-. w = z`` instead of ``G . w = z``; ``G`` = RBF matrix, ``w`` = weights to
-solve for, ``z`` = data).
+parameter for regularization. Here we can do the same (``Rbf.r``, ``Rbf(points,
+values, r=1e-8)``) and solve
 
-We found (see ``examples/rbf.py``) that ``scipy.linalg.solve`` often gives an
-ill-conditioned matrix warning, which shows numerical instability and results
-in bad interpolation. It seems that problems start to show as soon as the noise
-level (``z`` + noise) is in the same order or magnitude as the mean point distance.
-Then we see wildly fluctuating data points which are hard to interpolate. In
-that case, the mean-distance estimate for the rbf param breaks down and one
-needs to use smaller values to interpolate all fluctuations. However, in most
-cases, on does actually want to perform a fit instead in such situations.
+.. math::
+        (\mathbf G + r\,\mathbf I)\,\mathbf w = \mathbf z
 
-If we switch from ``scipy.linalg.solve`` to ``scipy.linalg.lstsq`` and solve the
-system in a least squares sense, we get much more stable solutions. With
-``lstsq``, we have the smoothness by construction, b/c we do *not* perform
-interpolation anymore -- this is a fit now. The advantage of using least
-squares is that we don't have a smoothness parameter which needs to be tuned.
+which creates a more "stiff" (low curvature) function :math:`f(\mathbf x)`
+which does not necessarily interpolate all points. The regularization also
+deals with the numerical instability of :math:`\mathbf G\,\mathbf w = \mathbf
+z`, which results in ``scipy.linalg.solve`` often issuing an ill-conditioned
+matrix warning and very bad interpolation results. 
 
-If the noise is low relative to the point distance, we get interpolation-like
-results, which cannot be distinguished from the solutions obtained with a
-normal linear system solver. The method will try its best to do interpolation,
-but will smoothly transition to fitting as noise increases, which is what we
-want. Hence, lstsq is the default solver.
+See ``examples/rbf/`` for how to investigate the :math:`(p,r)` fit error
+landscape and to calculate optimal :math:`p` and :math:`r` for
+a given data set:
 
-optimize rbf param
-------------------
-With :meth:`~pwtools.rbf.RBFInt.fit_opt_param`, we try to optimize
-``rbf.param`` by repeated fitting with ``fit(solver='lstsq')``. In all
-experiments so far, we find that the mean-distance estimate of ``param`` is
-actually very good and doesn't change much when optimizing. However, this is
-not always the global min. There are cases where we find a much smaller
-``param`` (e.g. factor 10 smaller), which leads to better fits at the data
-points but oscillations between them (found with methods where we actually have
-more points for testing than we use for fitting, see ``examples/rbf/``). That
-minimum was found sometimes with ``scipy.optimize.fmin`` and always with
-``scipy.optimize.differential_evolution``. However, as stated above, we usually
-want to do a fit with the mean-distance estimate rather than a perfect
-interpolation in those cases.
+.. image:: ../../_static/crossval_pr_gauss.png
 
-other codes
+One can also switch from ``scipy.linalg.solve`` to ``scipy.linalg.lstsq`` and
+solve the system in a least squares sense without regularization. In that case
+we also get much more stable solutions. The advantage [*] of using least
+squares is that we have the smoothness by construction no smoothness parameter
+needs to be tuned. If the noise is low relative to the point distance, we get
+interpolation-like results, which cannot be distinguished from the solutions
+obtained with a normal linear system solver. The method will try its best to do
+interpolation, but will smoothly transition to fitting as noise increases.
+
+[*] However, we found that ``lstsq`` can introduce small numerical noise in the
+    solution, so test before using (as always!).
+
+Other codes
 -----------
 
 * ``scipy.interpolate.Rbf``
-  Essentially the same as we do. We took some ideas from there.
 * http://pypi.python.org/pypi/PyRadbas/0.1.0
-  Seems to work with Gaussians hardcoded. Not what we want.
 * http://code.google.com/p/pyrbf/
-  Seems pretty useful for large problems (many points), but not
-  documented very much.
 
-input data
+Input data
 ----------
 It usually helps if all data ranges (points X and values Y) are in the same
 order of magnitude, e.g. all have a maximum close to unity or so. If, for

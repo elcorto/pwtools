@@ -109,7 +109,7 @@ supports iteration and slicing, for example::
     >>> st_last = tr[-1]
     >>> # slice out a part of the trajectory
     >>> tr_middle = tr[100:500]
-    >>> # use every 5t step
+    >>> # use every 5th step
     >>> tr[::5]
 
 Structure and Trajectory objects can also be freely concatenated into a new
@@ -147,8 +147,16 @@ These return a :class:`~pwtools.crys.Trajectory`:
 For example::
 
     >>> st = io.read_pw_scf('pw.out') # SCF run
-    >>> print st.etot, st.cell
+    >>> st.etot
+    -258.58148870118305
+    >>> st.cell
+    array([[-2.71536701,  0.        ,  2.71536701],
+           [ 0.        ,  2.71536701,  2.71536701],
+           [-2.71536701,  2.71536701,  0.        ]])
     >>> tr = io.read_pw_md('pw.out') # MD/relax run
+    >>> tr.etot[:5]
+    >>> array([-17812.03671913, -17810.74831561, -17811.38315829,
+               -17808.90413645, -17807.96259264])
     >>> plot(tr.etot)
 
 These functions use the appropriate parser class and transform the result of

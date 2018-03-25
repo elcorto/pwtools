@@ -928,17 +928,19 @@ def fempty(shape, dtype=np.float):
 
 
 def distsq(arrx, arry):
-    """Squared distances between all points in `arrx` and `arry`:
-        
-        r_ij**2 = sum_k (arrx[i,k] - arry[j,k])**2.0
-        i = 1..Mx
-        j = 1..My
+    r"""Squared distances between all points in `arrx` and `arry`:
+    
+    .. math::
+
+        r_{ij}^2 = \sum_k (\texttt{arrx}[i,k] - \texttt{arry}[j,k])^2 \\
+        i = 1..M_x \\
+        j = 1..M_y \\
         k = 1..N
 
     This is like 
         scipy.spatial.distance.cdist(arrx, arry)**2.0
     
-    This is a wrapper for _flib.distsq().
+    This is a wrapper for :func:`pwtools._flib.distsq`.
 
     Parameters
     ----------

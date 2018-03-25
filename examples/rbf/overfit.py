@@ -17,9 +17,11 @@ produce anything more meaningful. We use method='de' (differential_evolution)
 to make sure we find the global minimum for demonstration purpose.
 
 This example shows that it is paramount to use cross-validation to calculate a
-more useful fit error estimate. Note that we use a low number of points here
-for speed, such that the CV error is not yet converged, but shows the correct
-trend already.
+more useful fit error estimate. Observe how the CV error is highest where the
+normal fit error has the global minimum (location of scipy's p estimate).
+
+Note that we use a low number of points here for speed, such that the CV error
+is not yet converged, but shows the correct trend already.
 """
 
 import numpy as np

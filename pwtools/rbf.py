@@ -19,17 +19,40 @@ except ImportError:
 
 def rbf_gauss(rsq, p):
     r"""Gaussian RBF :math:`\exp\left(-\frac{r^2}{2\,p^2}\right)`
+
+    Parameters
+    ----------
+    rsq : float
+        squared distance :math:`r^2`
+    p : float
+        width
     """
     return np.exp(-0.5*rsq / p**2.0)
 
 
 def rbf_multi(rsq, p):
-    r"""Multiquadric RBF :math:`\sqrt{r^2 + p^2}`"""
+    r"""Multiquadric RBF :math:`\sqrt{r^2 + p^2}`
+
+    Parameters
+    ----------
+    rsq : float
+        squared distance :math:`r^2`
+    p : float
+        width
+    """
     return np.sqrt(rsq + p**2.0)
 
 
 def rbf_inv_multi(rsq, p):
-    r"""Inverse Multiquadric RBF :math:`\frac{1}{\sqrt{r^2 + p^2}}`"""
+    r"""Inverse Multiquadric RBF :math:`\frac{1}{\sqrt{r^2 + p^2}}`
+
+    Parameters
+    ----------
+    rsq : float
+        squared distance :math:`r^2`
+    p : float
+        width
+    """
     return 1/rbf_multi(rsq, p)
 
 
@@ -142,10 +165,11 @@ class Rbf:
         assert values.ndim == 1, ("values not 1d array")
 
     def get_distsq(self, points=None):
-        """Matrix of distance values r_ij = ||x_i - c_j|| with::
-
-            x_i : points[i,:]
-            c_i : centers[i,:]
+        """Matrix of distance values :math:`R_{ij} = |\mathbf x_i - \mathbf
+        c_j|`.
+        
+            | :math:`\mathbf x_i` : points[i,:]
+            | :math:`\mathbf c_i` : centers[i,:]
 
         Parameters
         ----------
@@ -186,36 +210,30 @@ class Rbf:
         return self.p, self.r
 
     def fit(self):
-        """Solve linear system for the weights w:
-            G . w = z
+        """Solve linear system for the weights.
+        
+        The weights  `self.w` (:math:`\mathbf w`) are found from: :math:`\mathbf
+        G\,\mathbf w = \mathbf z` or if :math:`r` is given :math:`(\mathbf G +
+        r\,\mathbf I)\,\mathbf w = \mathbf z`.
         
         with centers == points (center vectors are all data points). Then G is
-        quadratic. Updates ``self.w`` and ``self.p``.
-        
-        Parameters
-        ----------
-        p : 'mean' or float
-            see :meth:`get_p`
+        quadratic. Updates ``self.w``.
         
         Notes
         -----
-        solver : 
-             r != None: linear system solver
-                Use ``scipy.linalg.solve()``. By definition, this always yields
-                perfect interpolation at the data points for ``r=None``. May
-                be numerically unstable in that case. Use `r` to increase
-                stability and create smooth fitting (generate more stiff
-                functions), similar to ``lstsq`` but appears to be numerically
-                more stable (no small noise in solution) .. but it is another
-                parameter that needs to be tuned.
-            r=None: least squares solver (default)
-                Use ``scipy.linalg.lstsq()``. Numerically more stable than
-                direct solver w/o regularization. Will mostly be the same as
-                the interpolation result, but will not go thru all points for
-                very noisy data. May create small noise in solution (plot fit
-                with high point density).
-        r : None, float, optional
-            regularization parameter for solver='solve' 
+        ``self.r != None`` : linear system solver
+            Use ``scipy.linalg.solve()``. By definition, this always yields
+            perfect interpolation at the data points. May be numerically
+            unstable in that case. Use `r` to increase stability and create
+            smooth fitting (generate more stiff functions), similar to
+            ``lstsq`` but appears to be numerically more stable (no small noise
+            in solution) .. but it is another parameter that needs to be tuned.
+        ``self.r = None`` : least squares solver
+            Use ``scipy.linalg.lstsq()``. Numerically more stable than
+            direct solver w/o regularization. Will mostly be the same as
+            the interpolation result, but will not go thru all points for
+            very noisy data. May create small noise in solution (plot fit
+            with high point density).
         """
         # this test may be expensive for big data sets
         assert (self.centers == self.points).all(), "centers == points not fulfilled"
@@ -261,10 +279,6 @@ class Rbf:
 
     def deriv(self, points):
         """Matrix of partial first derivatives.
-
-        Implemented for
-            RBFMultiquadric
-            RBFGauss
 
         Parameters
         ----------
@@ -331,7 +345,7 @@ class Rbf:
         return D
 
     def fit_error(self, points, values):
-        """Sum of squared fit errors whith penality on negative p."""
+        """Sum of squared fit errors with penalty on negative p."""
         res = values - self(points)
         err = np.dot(res,res) / len(res)
         return math.exp(abs(err)) if self.p < 0 else err
@@ -347,7 +361,7 @@ class Rbf:
             evaluate the training set. If 1d, then this is just 1 point, which
             will be converted to shape (1,N) internally.
         der : int
-            If == 1 return matrix of partial derivatives (see self.deriv()), else
+            If == 1 return matrix of partial derivatives (see :meth"`deriv`), else
             interpolated values values (default).
 
         Returns
@@ -390,13 +404,41 @@ def estimate_p(points, method='mean'):
 
 
 class FitError:
-    def __init__(self, points, values, rbf_kwds=dict(), cv_kwds=dict()):
+    """Direct or cross-validation (CV) fit error of :class:`Rbf` for a
+    parameter set ``[p,r]`` or just ``[p]``.
+    
+    All methods accept a sequence `params` with either only `p` (length 1) or
+    `p` and `r` (length 2) to build a :class:`Rbf` model and fit it. 
+    
+    examples:
+    
+        | r = None (default in :class:`Rbf`) -> scipy.linalg.lstsq
+        |     params = [1.5]
+        |     params = [1.5, None]
+
+        | r != None -> scipy.linalg.solve
+        |     params = [1.5, 0]       -> no regularization (r=0)
+        |     params = [1.5, 1e-8]    -> with regularization
+
+    Use :meth:`err_cv` or :meth:`err_direct` as error metric for `param`.
+    """
+    def __init__(self, points, values, rbf_kwds=dict(), cv_kwds=dict(ns=5, nr=1)):
+        """
+        Parameters
+        ----------
+        points, values : see :class:`Rbf`
+        rbf_kwds : dict
+            for ``Rbf(points, values, **rbf_kwds)``
+        cv_kwds : dict
+            cross-validation parameters: `ns` = `n_splits`, `nr` = `n_repeats` (see
+            sklearn.model_selection.RepeatedKFold)
+        """
         self.points = points
         self.values = values
         self.rbf_kwds = rbf_kwds
         self.cv_kwds = cv_kwds
 
-    def get_rbfi(self, params, points=None, values=None):
+    def _get_rbfi(self, params, points=None, values=None):
         points = self.points if points is None else points
         values = self.values if values is None else values
         if len(params) == 1:
@@ -411,32 +453,74 @@ class FitError:
                             "{}".format(len(params)))
 
     def cv(self, params):
-        ns = self.cv_kwds.get('ns', 5)
-        nr = self.cv_kwds.get('nr', 1)
+        """K-fold repeated CV.
+        
+        Split data (points, values) randomly into K parts ("folds", K = ``ns``
+        in ``self.cv_kwds``) along axis 0 and use each part once as test set,
+        the rest as training set. For example `ns=5`: split in 5 parts at
+        random indices, use 5 times 4/5 data for train, 1/5 for test (each of
+        the folds), so 5 fits total -> 5 fit errors. Optionally repeat ``nr``
+        times with different random splits. So, `nr` * `ns` fit errors total.
+
+        Each time, build an Rbf interpolator with ``self.rbf_kwds``, fit,
+        return the fit error (scalar sum of squares from
+        :meth:`Rbf.fit_error`). 
+
+        Parameters
+        ----------
+        params : seq length 1 or 2
+            | params[0] = p
+            | params[1] = r (optional)
+            
+        Returns
+        -------
+        errs : 1d array (nr*ns,)
+            direct fit error from each fold
+        """
+        ns = self.cv_kwds['ns']
+        nr = self.cv_kwds['nr']
         errs = np.empty((ns*nr,), dtype=float)
         folds = RepeatedKFold(n_splits=ns, 
                               n_repeats=nr)
         for ii, tup in enumerate(folds.split(self.points)):
             idxs_train, idxs_test = tup
-            rbfi = self.get_rbfi(params, 
-                                 self.points[idxs_train,...],
-                                 self.values[idxs_train,...])
+            rbfi = self._get_rbfi(params, 
+                                  self.points[idxs_train,...],
+                                  self.values[idxs_train,...])
             errs[ii] = rbfi.fit_error(self.points[idxs_test,...],
                                       self.values[idxs_test,...])
         return errs
     
     def err_cv(self, params):
+        """Median of :meth:`cv`."""
         return np.median(self.cv(params))
 
     def err_direct(self, params):
-        """Normal fit error w/o CV."""
-        return self.get_rbfi(params).fit_error(self.points, self.values)
+        """Normal fit error w/o CV. Uses :meth:`Rbf.fit_error`.
+        
+        Build and Rbf interpolator with ``self.rbf_kwds``, fit, return the fit
+        error (scalar, sum of squares). Should be zero for interpolation, i.e. no
+        regularization ``r=0``.  
+        """
+        return self._get_rbfi(params).fit_error(self.points, self.values)
 
 
 def fit_opt(points, values, method='de', what='pr', cv_kwds=dict(ns=5, nr=1), 
             opt_kwds=dict(), rbf_kwds=dict()):
-    """Optimize p or p+r using a cross validation error metric or the direct
-    fit error if cv_kwds is None. 
+    """Optimize :math:`p` or :math:`(p,r)` using a cross validation error
+    metric or the direct fit error if `cv_kwds` is None. 
+
+    Parameters
+    ----------
+    points, values : see :class:`Rbf`
+    method : str
+        | 'de' : scipy.optimize.differential_evolution
+        | 'fmin': scipy.optimize.fmin
+    what : str
+        'p' or 'pr'
+    cv_kwds, rbf_kwds : see :class:`FitError`
+    opt_kwds : dict
+        kwds for the optimizer (see `method`)
     """
     assert what in ['p', 'pr'], ("unknown `what` value: {}".format(what))
     assert method in ['de', 'fmin'], ("unknown `method` value: {}".format(what))
@@ -471,6 +555,3 @@ def fit_opt(points, values, method='de', what='pr', cv_kwds=dict(ns=5, nr=1),
     else:
         rbfi = Rbf(points, values, p=xopt[0])
     return rbfi
-
-
-RBFInt = Rbf
