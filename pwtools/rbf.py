@@ -70,7 +70,7 @@ rbf_dct = {
 class RBFInt:
     """Radial basis function network interpolation and fitting."""
     def __init__(self, points, values=None, centers=None, rbf='multi',
-                 verbose=False):
+                 reg=None, param='est', verbose=False):
         """
         Parameters
         ----------
@@ -96,7 +96,6 @@ class RBFInt:
         >>> x=linspace(0,10,20)     # shape (M,), M=20 points
         >>> z=sin(x)                # shape (M,)
         >>> rbfi=rbf.RBFInt(x[:,None],z)
-        >>> rbfi.fit()
         >>> xi=linspace(0,10,100)   # shape (M,), M=100 points
         >>> ax.plot(x,z,'o', label='data')
         >>> ax.plot(xi, sin(xi), label='sin(x)')
@@ -109,7 +108,6 @@ class RBFInt:
         >>> dd = mpl.Data2D(x=x, y=x)
         >>> dd.update(Z=np.sin(dd.X)+np.cos(dd.Y))
         >>> rbfi=rbf.RBFInt(dd.XY, dd.zz)
-        >>> rbfi.fit()
         >>> xi=linspace(-3,3,50)
         >>> ddi = mpl.Data2D(x=xi, y=xi)
         >>> fig1,ax1 = mpl.fig_ax3d()
@@ -139,8 +137,10 @@ class RBFInt:
         self._assert_ndim_points(self.points)
         self._assert_ndim_points(self.centers)
         self._assert_ndim_values(self.values)
-
+        self.reg = reg
         self.distsq = None
+        self.param = param
+        self.fit()
 
     @staticmethod
     def _assert_ndim_points(points):
@@ -168,10 +168,6 @@ class RBFInt:
         >>> ... ZI=rbfi(XI)
         """
         self.distsq = self.get_distsq()
-
-    def set_values(self, values):
-        self._assert_ndim_values(values)
-        self.values = values
 
     def get_distsq(self, points=None):
         """Matrix of distance values r_ij = ||x_i - c_j|| with::
@@ -213,7 +209,8 @@ class RBFInt:
                 return self.distsq
         else:
             return num.distsq(points, self.centers)
-
+    
+    
     def get_param(self, param):
         """Return `param` for RBF (to set self.rbf.param).
 
@@ -227,15 +224,7 @@ class RBFInt:
         else:
             return param
 
-    def train(self, mode=None, **kwds):
-        """Use :meth:`fit` instead."""
-        if mode is not None:
-            warnings.warn("train(mode=..) deprecated, use fit()",
-                          DeprecationWarning)
-        return self.fit(**kwds)
-
-    
-    def fit(self, param='est', solver='lstsq', reg=None):
+    def fit(self):
         """Solve linear system for the weights w:
             G . w = z
         
@@ -246,8 +235,11 @@ class RBFInt:
         ----------
         param : 'est' or float
             see :meth:`get_param`
-        solver : str
-            'solve' : linear system solver
+        
+        Notes
+        -----
+        solver : 
+             reg != None: linear system solver
                 Use ``scipy.linalg.solve()``. By definition, this always yields
                 perfect interpolation at the data points for ``reg=None``. May
                 be numerically unstable in that case. Use `reg` to increase
@@ -255,7 +247,7 @@ class RBFInt:
                 functions), similar to ``lstsq`` but appears to be numerically
                 more stable (no small noise in solution) .. but it is another
                 parameter that needs to be tuned.
-            'lstsq' : least squares solver (default)
+            reg=None: least squares solver (default)
                 Use ``scipy.linalg.lstsq()``. Numerically more stable than
                 direct solver w/o regularization. Will mostly be the same as
                 the interpolation result, but will not go thru all points for
@@ -269,40 +261,13 @@ class RBFInt:
         # re-use self.distsq if possible
         if self.distsq is None:
             self.distsq = self.get_distsq()
-        self.rbf.param = self.get_param(param)
+        self.rbf.param = self.get_param(self.param)
         G = self.rbf(self.distsq)
-        if solver == 'solve':
-            if reg is None:
-                weights = getattr(linalg, solver)(G, self.values)
-            else:
-                weights = getattr(linalg, solver)(G + np.identity(G.shape[0])*reg, self.values)
-        elif solver == 'lstsq':
-            weights, res, rnk, svs = getattr(linalg, solver)(G, self.values)
+        if self.reg is None:
+            weights, res, rnk, svs = linalg.lstsq(G, self.values)
         else:
-            raise Exception("unknown solver: {}".format(solver))
+            weights = linalg.solve(G + np.identity(G.shape[0])*self.reg, self.values)
         self.weights = weights
-
-    def fit_opt_param(self):
-        """Optimize ``rbf.param`` and weights simultaneously by minimizing the
-        fit error with :meth:`fit` using ``solver='lstsq'``. Can be used in
-        place of :meth:`fit`.
-        """
-        def func(pvec):
-            param = pvec[0]
-            self.fit(param=param, solver='lstsq')
-            res = self.values - self.interpolate(self.points)
-            err = np.dot(res,res)
-            err = math.exp(abs(err)) if param < 0 else err
-            if self.verbose:
-                print('err={}, param={}'.format(err, param))
-            return err 
-        self.fit(param='est', solver='lstsq') 
-        # self.rbf.param and self.weights are constantly updated in func(), the
-        # last iteration already set the converged values, no need to assign
-        # the result of fmin() 
-        optimize.fmin(func, [self.rbf.param], disp=self.verbose)
-        ##optimize.differential_evolution(func, bounds=[(0,3*self.rbf.param)], 
-        ##                                disp=self.verbose)
 
     def interpolate(self, points):
         """Actually do interpolation. Return interpolated values values at each

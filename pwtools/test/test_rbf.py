@@ -12,7 +12,6 @@ def test_interpol_high_dim():
     z = rand(100)
     
     rbfi = rbf.RBFInt(X,z) 
-    rbfi.fit(solver='solve') 
     assert np.abs(z - rbfi(X)).max() < 1e-13
 
 def test_2d():
@@ -25,7 +24,6 @@ def test_2d():
     X = np.array([X1.flatten(), X2.flatten()]).T
     print(X.shape, z.shape)
     rbfi = rbf.RBFInt(X,z) 
-    rbfi.fit()
     # test fit at 300 random points within [-1,1]^2
     Xr = -1.0 + 2*np.random.rand(300,2)
     zr = np.sin(Xr[:,0]) + np.cos(Xr[:,1]) 
@@ -43,15 +41,13 @@ def test_1d_with_deriv():
     x = np.linspace(0,10,30)
     z = np.sin(x)
     xx = np.linspace(0,10,100)
-    rbfi = rbf.RBFInt(x[:,None],z)
     cases = [
-        dict(solver='solve'),
-        dict(solver='solve', reg=0),
-        dict(solver='solve', reg=1e-11),
-        dict(solver='lstsq'),
+        dict(reg=0),        # linalg.solve, no regularization
+        dict(reg=1e-11),    # linalg.solve, w/ regularization 
+        dict(),             # linalg.lstsq
         ]
     for kwds in cases:
-        rbfi.fit(**kwds)
+        rbfi = rbf.RBFInt(x[:,None], z, **kwds)
         assert np.allclose(rbfi(xx[:,None]), np.sin(xx), rtol=0, atol=1e-4)
         assert np.allclose(rbfi(xx[:,None], der=1)[:,0], np.cos(xx), rtol=0, atol=1e-3)
 
@@ -60,8 +56,6 @@ def test_rbf_func_api():
     z = rand(100)
     r1 = rbf.RBFInt(X, z, rbf='multi')
     r2 = rbf.RBFInt(X, z, rbf=rbf.RBFMultiquadric())
-    r1.fit()
-    r2.fit()
     assert (r1(X) == r2(X)).all()
     
     # make sure we don't share the same RBFFunction
