@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 """
 * define 2D scalar field z=f(x,y)
 * sample random (x,y) points from f
@@ -112,9 +114,7 @@ if __name__ == '__main__':
     
     Z = fu(fu.XY)
 
-    rbfi = rbf.RBFInt(fu.XY, Z, rbf='multi', verbose=True)
-    rbfi.fit()
-##    print("param:", rbfi.rbf.param)
+    rbfi = rbf.RBFInt(fu.XY, Z, rbf='inv_multi', verbose=True)
     
     dati = SurfaceData(fu.xlim, fu.ylim, fu.nx*2, fu.ny*2, 'grid')
 
