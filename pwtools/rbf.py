@@ -358,3 +358,104 @@ class Rbf:
             return self.deriv(*args, **kwargs)
         else:
             return self.interpolate(*args, **kwargs)
+
+
+def estimate_p(points, method='mean'):
+    if method == 'mean':
+        return np.sqrt(num.distsq(points, points)).mean() 
+    elif method == 'scipy':
+        xi = points.T
+        ximax = np.amax(xi, axis=1)
+        ximin = np.amin(xi, axis=1)
+        edges = ximax - ximin
+        edges = edges[np.nonzero(edges)]
+        return np.power(np.prod(edges)/xi.shape[-1], 1.0/edges.size)
+    else:
+        raise Exception(f"illegal method: {method}")
+
+
+class FitError:
+    def __init__(self, points, values, rbf_kwds=dict(), cv_kwds=dict()):
+        self.points = points
+        self.values = values
+        self.rbf_kwds = rbf_kwds
+        self.cv_kwds = cv_kwds
+
+    def get_rbfi(self, params, points=None, values=None):
+        points = self.points if points is None else points
+        values = self.values if values is None else values
+        if len(params) == 1:
+            assert 'p' not in self.rbf_kwds.keys(), "'p' in kwds"
+            return Rbf(points, values, p=params[0], **self.rbf_kwds)
+        elif len(params) == 2:
+            for kw in ['p', 'r']:
+                assert kw not in self.rbf_kwds.keys(), f"'{kw}' in kwds"
+            return Rbf(points, values, p=params[0], r=params[1], **self.rbf_kwds)
+        else:
+            raise Exception("length of params can only be 1 or 2, got "
+                            "{}".format(len(params)))
+
+    def cv(self, params):
+        ns = self.cv_kwds.get('ns', 5)
+        nr = self.cv_kwds.get('nr', 1)
+        errs = np.empty((ns*nr,), dtype=float)
+        folds = RepeatedKFold(n_splits=ns, 
+                              n_repeats=nr)
+        for ii, tup in enumerate(folds.split(self.points)):
+            idxs_train, idxs_test = tup
+            rbfi = self.get_rbfi(params, 
+                                 self.points[idxs_train,...],
+                                 self.values[idxs_train,...])
+            errs[ii] = rbfi.fit_error(self.points[idxs_test,...],
+                                      self.values[idxs_test,...])
+        return errs
+    
+    def err_cv(self, params):
+        return np.median(self.cv(params))
+
+    def err_direct(self, params):
+        """Normal fit error w/o CV."""
+        return self.get_rbfi(params).fit_error(self.points, self.values)
+
+
+def fit_opt(points, values, method='de', what='pr', cv_kwds=dict(ns=5, nr=1), 
+            opt_kwds=dict(), rbf_kwds=dict()):
+    """Optimize p or p+r using a cross validation error metric or the direct
+    fit error if cv_kwds is None. 
+    """
+    assert what in ['p', 'pr'], ("unknown `what` value: {}".format(what))
+    assert method in ['de', 'fmin'], ("unknown `method` value: {}".format(what))
+    fit_err = FitError(points, values, cv_kwds=cv_kwds, rbf_kwds=rbf_kwds)
+    if cv_kwds is None:
+        func = lambda params: fit_err.err_direct(params)
+    else:
+        func = lambda params: np.median(fit_err.err_cv(params))
+    p0 = estimate_p(points)
+    disp = opt_kwds.pop('disp', False)
+    if method == 'fmin':
+        if what == 'p':
+            x0 = opt_kwds.pop('x0', [p0])
+        elif what == 'pr':
+            x0 = opt_kwds.pop('x0', [p0, 1e-8])
+        xopt = optimize.fmin(func, x0,
+                             disp=disp, **opt_kwds)
+    elif method == 'de':
+        if what == 'p':
+            bounds = opt_kwds.pop('bounds', [(0, 5*p0)])
+            assert len(bounds) == 1, "len(bounds) != 1"
+        elif what == 'pr':
+            bounds = opt_kwds.pop('bounds', [(0, 5*p0), (1e-12, 1e-1)])
+            assert len(bounds) == 2, "len(bounds) != 2"
+        ret = optimize.differential_evolution(func, 
+                                              bounds=bounds, 
+                                              disp=disp,
+                                              **opt_kwds)
+        xopt = ret.x
+    if what == 'pr':
+        rbfi = Rbf(points, values, p=xopt[0], r=xopt[1])
+    else:
+        rbfi = Rbf(points, values, p=xopt[0])
+    return rbfi
+
+
+RBFInt = Rbf
