@@ -131,7 +131,7 @@ class Plot(object):
     >>> pp = mpl.Plot() 
     >>> pp.ax.plot([1,2,3], label='ax')
     >>> pp.ax2 = pp.ax.twinx()
-    >>> pp.ax2.plot([2,2,1], 'r', label='ax2')
+    >>> pp.ax2.plot([3,2,1], 'r', label='ax2')
     >>> # legend on `ax` (default legaxname='ax') with all lines from `ax` and
     >>> # `ax2`
     >>> pp.legend(['ax', 'ax2'], loc='lower left')
@@ -180,11 +180,9 @@ class Plot(object):
             ([line1, line2, ...], ['foo', 'bar', ...])
         where lines and labels are taken from all axes. Use this as input for
         any axis's legend() method.
-        """            
-        axhls = [getattr(self, axname).get_legend_handles_labels() for axname in
-                 axnames]
-        ret = [common.flatten(x) for x in zip(*tuple(axhls))]
-        return ret[0], ret[1]
+        """
+        return collect_legends(*tuple(getattr(self, axname) for axname in
+                                      axnames))
     
     def legend(self, axnames=None, legaxname='ax', **kwargs):
         """Collect legend entries from all axes in `axnames` and place legend on
@@ -227,6 +225,24 @@ class Plot(object):
         for ex in ext:
             self.fig.savefig(base + '.' + ex, **kwds)
 
+
+def collect_legends(*axs):
+    """
+    Collect legend data from multiple axes, return input for legend().
+    
+    Examples
+    --------
+    >>> fig, ax = mpl.fig_ax()
+    >>> ax.plot([1,2,3], label='ax')
+    >>> ax2 = ax.twinx()
+    >>> ax2.plot([3,2,1], 'r', label='ax2')
+    >>> ax.legend(*mpl.collect_legends(ax, ax2))
+    """
+    axhls = tuple(ax.get_legend_handles_labels() for ax in
+                  axs)
+    ret = [common.flatten(x) for x in zip(*axhls)]
+    return ret[0], ret[1]
+    
 
 def prepare_plots(names, projection='2d', **kwds):
     """Return a dict of Plot instances.
