@@ -11,66 +11,39 @@ from scipy.spatial import distance
 from pwtools import num
 
 
-class RBFFunction:
-    """Radial basis function base class."""
-    def __init__(self, param=None):
-        """
-        Parameters
-        ----------
-        param : scalar or None
-            The RBF's free parameter.
-        """
-        self.param = param
-
-    def _get_param(self, param):
-        p = self.param if param is None else param
-        assert p is not None, ("param is None")
-        return p
-
-    def __call__(self, rsq, param=None):
-        """
-        Parameters
-        ----------
-        rsq : scalar or nd array
-            Squared distances. Squared b/c this avoids using sqrt() in the
-            distance matrix (R) calculation just to square them here again.
-            Note that with scipy.spatial, we get R instead of R**2 anyway.
-        param : scalar or None, optional
-            If None, then self.param is used.
-        """
-        pass
+try:
+    from sklearn.model_selection import RepeatedKFold
+except ImportError:
+    pass
 
 
-class RBFGauss(RBFFunction):
+def rbf_gauss(rsq, p):
     r"""Gaussian RBF :math:`\exp\left(-\frac{r^2}{2\,p^2}\right)`
     """
-    def __call__(self, rsq, param=None):
-        return np.exp(-0.5*rsq / self._get_param(param)**2.0)
+    return np.exp(-0.5*rsq / p**2.0)
 
 
-class RBFMultiquadric(RBFFunction):
+def rbf_multi(rsq, p):
     r"""Multiquadric RBF :math:`\sqrt{r^2 + p^2}`"""
-    def __call__(self, rsq, param=None):
-        return np.sqrt(rsq + self._get_param(param)**2.0)
+    return np.sqrt(rsq + p**2.0)
 
 
-class RBFInverseMultiquadric(RBFFunction):
+def rbf_inv_multi(rsq, p):
     r"""Inverse Multiquadric RBF :math:`\frac{1}{\sqrt{r^2 + p^2}}`"""
-    def __call__(self, rsq, param=None):
-        return (rsq + self._get_param(param)**2.0)**(-0.5)
+    return 1/rbf_multi(rsq, p)
 
 
 rbf_dct = {
-    'gauss': RBFGauss,
-    'multi': RBFMultiquadric,
-    'inv_multi': RBFInverseMultiquadric,
+    'gauss': rbf_gauss,
+    'multi': rbf_multi,
+    'inv_multi': rbf_inv_multi,
     }
 
 
-class RBFInt:
+class Rbf:
     """Radial basis function network interpolation and fitting."""
-    def __init__(self, points, values=None, centers=None, rbf='multi',
-                 reg=None, param='est', verbose=False):
+    def __init__(self, points, values, centers=None, rbf='inv_multi',
+                 r=None, p='mean', verbose=False, fit=True):
         """
         Parameters
         ----------
@@ -81,9 +54,15 @@ class RBFInt:
         centers : 2d array (K,N)
             K N-dim center vectors, for usual interpolation training points == centers
             (default)
-        rbf : str or :class:`RBFFunction` instance
-        verbose : bool, optional
-            print some messages
+        rbf : str (see rbf_dct.keys()) or callable rbf(r**2, p)
+        r : float or None
+            regularization parameter, if None then we use a least squares
+            solver
+        p : float
+            the RBF's free parameter
+        verbose : bool
+        fit : bool
+            call self.fit() in __init__
 
         Examples
         --------
@@ -95,7 +74,7 @@ class RBFInt:
         >>> fig,ax = mpl.fig_ax()
         >>> x=linspace(0,10,20)     # shape (M,), M=20 points
         >>> z=sin(x)                # shape (M,)
-        >>> rbfi=rbf.RBFInt(x[:,None],z)
+        >>> rbfi=rbf.Rbf(x[:,None],z)
         >>> xi=linspace(0,10,100)   # shape (M,), M=100 points
         >>> ax.plot(x,z,'o', label='data')
         >>> ax.plot(xi, sin(xi), label='sin(x)')
@@ -107,7 +86,7 @@ class RBFInt:
         >>> x = np.linspace(-3,3,10)
         >>> dd = mpl.Data2D(x=x, y=x)
         >>> dd.update(Z=np.sin(dd.X)+np.cos(dd.Y))
-        >>> rbfi=rbf.RBFInt(dd.XY, dd.zz)
+        >>> rbfi=rbf.Rbf(dd.XY, dd.zz)
         >>> xi=linspace(-3,3,50)
         >>> ddi = mpl.Data2D(x=xi, y=xi)
         >>> fig1,ax1 = mpl.fig_ax3d()
@@ -132,15 +111,20 @@ class RBFInt:
         self.points = points
         self.values = values
         self.centers = self.points if centers is None else centers
-        self.rbf = rbf_dct[rbf]() if isinstance(rbf, str) else rbf
+        self.rbf = rbf_dct[rbf] if isinstance(rbf, str) else rbf
         self.verbose = verbose
         self._assert_ndim_points(self.points)
         self._assert_ndim_points(self.centers)
         self._assert_ndim_values(self.values)
-        self.reg = reg
         self.distsq = None
-        self.param = param
-        self.fit()
+        if p == 'mean':
+            self.distsq = self.get_distsq()
+            self.p = np.sqrt(self.distsq).mean()
+        else:
+            self.p = p
+        self.r = r
+        if fit:
+            self.fit()
 
     @staticmethod
     def _assert_ndim_points(points):
@@ -149,25 +133,6 @@ class RBFInt:
     @staticmethod
     def _assert_ndim_values(values):
         assert values.ndim == 1, ("values not 1d array")
-
-    def calc_distsq(self):
-        """Calculate self.distsq for the training set.
-
-        Can be used in conjunction w/ set_values() to construct a network which
-        calculates distsq only once. Then it can be trained for different
-        values many times, using the same points grid w/o re-calculating distsq
-        over and over again.
-
-        Examples
-        --------
-        >>> rbfi = rbf.RBFInt(points=points, values=None)
-        >>> rbfi.calc_distsq()
-        >>> for values in ...:
-        >>> ... rbfi.set_values(values)
-        >>> ... rbfi.fit()
-        >>> ... ZI=rbfi(XI)
-        """
-        self.distsq = self.get_distsq()
 
     def get_distsq(self, points=None):
         """Matrix of distance values r_ij = ||x_i - c_j|| with::
@@ -178,7 +143,7 @@ class RBFInt:
         Parameters
         ----------
         points : array (M,N) with N-dim points, optional
-            If None then ``self.points`` is used.
+            If None then ``self.points`` is used (training points).
         
         Returns
         -------
@@ -210,50 +175,39 @@ class RBFInt:
         else:
             return num.distsq(points, self.centers)
     
-    
-    def get_param(self, param):
-        """Return `param` for RBF (to set self.rbf.param).
-
-        Parameters
-        ----------
-        param : string 'est' or float
-            If 'est', then return the mean distance of all points.
-        """
-        if param == 'est':
-            return np.sqrt(self.get_distsq()).mean()
-        else:
-            return param
+    def get_params(self):
+        return self.p, self.r
 
     def fit(self):
         """Solve linear system for the weights w:
             G . w = z
         
         with centers == points (center vectors are all data points). Then G is
-        quadratic. Updates ``self.weights``.
+        quadratic. Updates ``self.w`` and ``self.p``.
         
         Parameters
         ----------
-        param : 'est' or float
-            see :meth:`get_param`
+        p : 'mean' or float
+            see :meth:`get_p`
         
         Notes
         -----
         solver : 
-             reg != None: linear system solver
+             r != None: linear system solver
                 Use ``scipy.linalg.solve()``. By definition, this always yields
-                perfect interpolation at the data points for ``reg=None``. May
-                be numerically unstable in that case. Use `reg` to increase
+                perfect interpolation at the data points for ``r=None``. May
+                be numerically unstable in that case. Use `r` to increase
                 stability and create smooth fitting (generate more stiff
                 functions), similar to ``lstsq`` but appears to be numerically
                 more stable (no small noise in solution) .. but it is another
                 parameter that needs to be tuned.
-            reg=None: least squares solver (default)
+            r=None: least squares solver (default)
                 Use ``scipy.linalg.lstsq()``. Numerically more stable than
                 direct solver w/o regularization. Will mostly be the same as
                 the interpolation result, but will not go thru all points for
                 very noisy data. May create small noise in solution (plot fit
                 with high point density).
-        reg : None, float, optional
+        r : None, float, optional
             regularization parameter for solver='solve' 
         """
         # this test may be expensive for big data sets
@@ -261,16 +215,14 @@ class RBFInt:
         # re-use self.distsq if possible
         if self.distsq is None:
             self.distsq = self.get_distsq()
-        self.rbf.param = self.get_param(self.param)
-        G = self.rbf(self.distsq)
-        if self.reg is None:
-            weights, res, rnk, svs = linalg.lstsq(G, self.values)
+        G = self.rbf(self.distsq, self.p)
+        if self.r is None:
+            self.w, res, rnk, svs = linalg.lstsq(G, self.values)
         else:
-            weights = linalg.solve(G + np.identity(G.shape[0])*self.reg, self.values)
-        self.weights = weights
+            self.w = linalg.solve(G + np.identity(G.shape[0])*self.r, self.values)
 
     def interpolate(self, points):
-        """Actually do interpolation. Return interpolated values values at each
+        """Actually do interpolation. Return interpolated values at each
         point in points.
 
         Parameters
@@ -279,7 +231,7 @@ class RBFInt:
 
         Returns
         -------
-        vals : 1d array (L,)
+        vals : 1d array (points.shape[0],)
 
         Notes
         -----
@@ -290,13 +242,13 @@ class RBFInt:
         """
         self._assert_ndim_points(points)
         distsq = self.get_distsq(points=points)
-        G = self.rbf(distsq)
-        assert G.shape[1] == len(self.weights), \
+        G = self.rbf(distsq, self.p)
+        assert G.shape[1] == len(self.w), \
                "shape mismatch between g_ij: %s and w_j: %s, 2nd dim of "\
                "g_ij must match length of w_j" %(str(G.shape),
-                                                 str(self.weights.shape))
-        # normalize weights
-        ww = self.weights
+                                                 str(self.w.shape))
+        # normalize w
+        ww = self.w
         maxw = np.abs(ww).max()*1.0
         return np.dot(G, ww / maxw) * maxw
 
@@ -317,9 +269,9 @@ class RBFInt:
             Each row holds the partial derivatives of one input point ``points[i,:] =
             [x_0, ..., x_N-1]``. For all points points: (L,N), we get the matrix::
 
-                [[dy/dx0_0,   dy/dx0_1,   ..., dy/dx0_N-1],
+                [[dz/dx0_0,   dz/dx0_1,   ..., dz/dx0_N-1],
                  [...],
-                 [dy/dxL-1_0, dy/dxL-1_1, ..., dy/dxL-1_N-1]]
+                 [dz/dxL-1_0, dz/dxL-1_1, ..., dz/dxL-1_N-1]]
         """
         # For the implemented RBF types, the derivatives w.r.t. to the point
         # coords simplify to nice dot products, which can be evaluated
@@ -336,36 +288,46 @@ class RBFInt:
         #
         # # 3 loops:
         # D = np.zeros((L,N), dtype=float)
-        # for zz in range(L):
+        # for ll in range(L):
         #     for kk in range(N):
-        #         for ii in range(len(self.weights)):
-        #             D[zz,kk] += (points[zz,kk] - centers[ii,kk]) / G[zz,ii] * \
-        #                 self.weights[ii]
+        #         for jj in range(len(self.w)):
+        #             D[ll,kk] += (points[ll,kk] - centers[jj,kk]) / G[ll,jj] * \
+        #                 self.w[jj]
         #
         # # 2 loops:
         # D = np.zeros((L,N), dtype=float)
-        # for zz in range(L):
+        # for ll in range(L):
         #     for kk in range(N):
-        #         vec = -1.0 * (centers[:,kk] - points[zz,kk]) / G[zz,:]
-        #         D[zz,kk] = np.dot(vec, self.weights)
+        #         vec = -1.0 * (centers[:,kk] - points[ll,kk]) / G[ll,:]
+        #         D[ll,kk] = np.dot(vec, self.w)
         self._assert_ndim_points(points)
         L,N = points.shape
         centers = self.centers
         distsq = self.get_distsq(points=points)
-        G = self.rbf(distsq)
+        G = self.rbf(distsq, self.p)
         D = np.empty((L,N), dtype=float)
-        ww = self.weights
+        ww = self.w
         maxw = np.abs(ww).max()*1.0
-        if isinstance(self.rbf, RBFMultiquadric):
+        fname = self.rbf.__name__
+        if fname == 'rbf_multi':
             for zz in range(L):
                 D[zz,:] = -np.dot(((centers - points[zz,:]) / G[zz,:][:,None]).T, ww / maxw) * maxw
-        elif isinstance(self.rbf, RBFGauss):
+        elif fname == 'rbf_inv_multi':
             for zz in range(L):
-                D[zz,:] = 1.0 / self.rbf.param**2.0 * \
+                D[zz,:] = np.dot(((centers - points[zz,:]) * (G[zz,:]**3.0)[:,None]).T, ww / maxw) * maxw
+        elif fname == 'rbf_gauss':
+            for zz in range(L):
+                D[zz,:] = 1.0 / self.p**2.0 * \
                     np.dot(((centers - points[zz,:]) * G[zz,:][:,None]).T, ww / maxw) * maxw
         else:
-            raise Exception("derivative for rbf type not implemented")
+            raise Exception(f"derivative not implemented for function: {fname}")
         return D
+
+    def fit_error(self, points, values):
+        """Sum of squared fit errors whith penality on negative p."""
+        res = values - self(points)
+        err = np.dot(res,res) / len(res)
+        return math.exp(abs(err)) if self.p < 0 else err
 
     def __call__(self, *args, **kwargs):
         """
