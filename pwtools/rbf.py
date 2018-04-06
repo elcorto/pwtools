@@ -58,7 +58,7 @@ class Rbf:
         r : float or None
             regularization parameter, if None then we use a least squares
             solver
-        p : float
+        p : 'mean' or 'scipy' (see :func:`estimate_p`) or float
             the RBF's free parameter
         verbose : bool
         fit : bool
@@ -117,9 +117,16 @@ class Rbf:
         self._assert_ndim_points(self.centers)
         self._assert_ndim_values(self.values)
         self.distsq = None
-        if p == 'mean':
-            self.distsq = self.get_distsq()
-            self.p = np.sqrt(self.distsq).mean()
+        if isinstance(p, str):
+            if p == 'mean':
+                # re-implement the 'mean' case here again since we can re-use
+                # distsq later (training data distance matrix)
+                self.distsq = self.get_distsq()
+                self.p = np.sqrt(self.distsq).mean()
+            elif p == 'scipy':
+                self.p = estimate_p(points, 'scipy')
+            else:
+                raise ValueError("p is not 'mean' or 'scipy'")
         else:
             self.p = p
         self.r = r
@@ -361,6 +368,14 @@ class Rbf:
 
 
 def estimate_p(points, method='mean'):
+    r"""Estimate :math:`p`.
+
+    Parameters
+    ----------
+    method : str
+        | 'mean' : :math:`1/M^2\,\sum_{ij} R_{ij}; M=\texttt{points.shape[0]}`
+        | 'scipy' : mean nearest neighbor distance
+    """
     if method == 'mean':
         return np.sqrt(num.distsq(points, points)).mean() 
     elif method == 'scipy':
