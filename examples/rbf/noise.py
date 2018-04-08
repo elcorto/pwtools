@@ -10,7 +10,7 @@ def go(nn, ax):
     y = np.sin(x) + np.random.rand(len(x))
     ax.plot(x, y, 'o', alpha=0.3)
     for name in ['gauss', 'multi']:
-        f = rbf.RBFInt(x[:,None], y, rbf=name) 
+        f = rbf.Rbf(x[:,None], y, rbf=name) 
         ax.plot(xi, f(xi[:,None]), label=name)
 
 if __name__ == '__main__':

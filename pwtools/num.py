@@ -733,7 +733,7 @@ class Interpol2D(object):
         what : str, optional
             which interpolator to use
 
-            | 'rbf_multi' : RBFN w/ multiquadric rbf, see :class:`~pwtools.rbf.RBFInt`
+            | 'rbf_multi' : RBFN w/ multiquadric rbf, see :class:`~pwtools.rbf.Rbf`
             | 'rbf_inv_multi' : RBFN w/ inverse multiquadric rbf
             | 'rbf_gauss' : RBFN w/ gaussian rbf
             | 'poly'      : :class:`PolyFit`
@@ -748,8 +748,9 @@ class Interpol2D(object):
         -----
         Despite the name "Interpol2D", the RBF methods 'rbf_*' as well as 'poly' are
         actually fits (least squares regression). You can force interpolation with
-        the RBF methods using the ``solver='solve'`` keyword (see
-        :meth:`pwtools.rbf.RBFInt.fit`).
+        the RBF methods using the ``r=0`` keyword (see
+        :meth:`pwtools.rbf.Rbf.fit`), which will use ``scipy.linalg.solve``
+        without regularization.
         
         The methods 'ct', 'linear' and of course 'nearest' can be inaccurate
         (see also ``test/test_interpol.py``). Use only for plotting, not for
@@ -761,9 +762,9 @@ class Interpol2D(object):
         Possible keywords (examples):
         
         | rbf :
-        |     param = 'est' (default)
-        |     param = 0.05
-        |     solver = 'solve' | 'lstsq' (default)
+        |     p='mean' [,r=None] (default)    # linalg.lstsq
+        |     p='scipy', r=1e-8               # linalg.solve w/ regularization 
+        |     p=3.5, r=0                      # linalg.solve w/o regularization
         | ct :
         |     tol = 1e-6 (default)
         | bispl :
@@ -820,18 +821,15 @@ class Interpol2D(object):
         # need to import here b/c of circular dependency rbf.py <-> num.py
         from pwtools import rbf
         if what == 'rbf_multi':
-            self.inter = rbf.RBFInt(self.points, self.values, 
-                                    rbf='multi')
-            self.inter.fit(**initkwds)
+            self.inter = rbf.Rbf(self.points, self.values, 
+                                 rbf='multi', **initkwds)
             self.call = self.inter
         elif what == 'rbf_inv_multi':
-            self.inter = rbf.RBFInt(self.points, self.values, 
-                                    rbf='inv_multi')
-            self.inter.fit(**initkwds)
+            self.inter = rbf.Rbf(self.points, self.values, 
+                                 rbf='inv_multi', **initkwds)
             self.call = self.inter
         elif what == 'rbf_gauss':
-            self.inter = rbf.RBFInt(self.points, self.values, rbf='gauss')
-            self.inter.fit(**initkwds)
+            self.inter = rbf.Rbf(self.points, self.values, rbf='gauss', **initkwds)
             self.call = self.inter
         elif what == 'poly':
             self.inter = PolyFit(self.points, self.values, scale=True, **initkwds)

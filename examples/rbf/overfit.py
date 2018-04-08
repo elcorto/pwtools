@@ -44,7 +44,7 @@ if __name__ == '__main__':
     ax = axs[0]
     ax.plot(x, y, 'o', alpha=0.3)
 
-    rbfi = rbf.RBFInt(points, values, **rbf_kwds)
+    rbfi = rbf.Rbf(points, values, **rbf_kwds)
     p_default = rbfi.get_params()[0]
     ax.plot(xi, rbfi(xi), 'r', label='$p$ default')
     
@@ -55,11 +55,11 @@ if __name__ == '__main__':
     p_opt = rbfi.get_params()[0]
     ax.plot(xi, rbfi(xi), 'g', label='$p$ opt')
     
-    rbfi = rbf.RBFInt(points, values, p=10, **rbf_kwds)
+    rbfi = rbf.Rbf(points, values, p=10, **rbf_kwds)
     p_cv = rbfi.get_params()[0]
     ax.plot(xi, rbfi(xi), 'y', label='$p$ big')
     
-    rbfi = rbf.RBFInt(points, values, p=rbf.estimate_p(points, 'scipy'), 
+    rbfi = rbf.Rbf(points, values, p=rbf.estimate_p(points, 'scipy'), 
                       **rbf_kwds)
     p_scipy = rbfi.get_params()[0]
     ax.plot(xi, rbfi(xi), 'm', label='$p$ scipy')
