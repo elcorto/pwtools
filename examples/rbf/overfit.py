@@ -89,7 +89,7 @@ if __name__ == '__main__':
     ax.set_xlabel('$p$')
     ax.set_ylabel('fit error')
     ax2.set_ylabel('CV fit error')
-    ax.legend(*mpl.collect_legends(ax,ax2), loc='lower right')
+    ax.legend(*mpl.collect_legends(ax,ax2), loc='center right')
 
     plt.subplots_adjust(hspace=0.33)
     plt.show()
