@@ -319,10 +319,16 @@ def str_arr(arr, fmt='%.16e', delim=' '*4, zero_eps=None, eps=EPS):
 #-----------------------------------------------------------------------------
 
 def makedirs(path):
-    """Same as os.makedirs() but silently skips existing dirs."""
-    pp = './' if path.strip() == '' else path
-    if not os.path.exists(pp):
-        os.makedirs(pp)
+    """Same as os.makedirs() but silently skips empty paths.
+    
+    The common use case is when we always create a path for a file w/o knowing
+    beforehand whether we actually have a path.
+
+    >>> fn = 'foo.pk'
+    >>> makedirs(os.path.dirname(fn))
+    """
+    if not path.strip() == '':
+        os.makedirs(path, exist_ok=True)
 
 
 def get_filename(fh):
