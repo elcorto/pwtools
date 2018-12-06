@@ -135,4 +135,10 @@ tests
     zip() -> list(zip())
     print("foo %s" %x) -> print(("foo %s" %x))
 
+extenions
+---------
+* dist, extensions -- wheel?
+* build extensions and link statically for that to deal w/ dep. on liblapack
+  etc which is outside of pip's scope
+
 # vim:comments=fb\:*
