@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 """
-Map the cross-validation error in p-r space. 
+Map the cross-validation error in p-r space.
 
 p = RBF free parameter, width of the function
 r = regularization strength
@@ -26,7 +26,7 @@ needs to know the error landscape.
 
 [*] Even though we always land in the upper left corner around p=1, r=1 but
 we're as of now not sure whether this is a real global opt of the flat valley
-or some artifact of the differential_evolution. 
+or some artifact of the differential_evolution.
 
 gauss and inv_multi have virtually identical behavior, while for multi we find
 a very inconsistent landscape with many error spikes in the valley. This is not
@@ -69,22 +69,22 @@ if __name__ == '__main__':
         p = np.linspace(0.01, 15, nsample)
         r = np.logspace(-10, 2, nsample)
         g = np.array(list(itertools.product(p,r)))
-        zz = np.array([np.median(fe.err_cv(params)) for params in g])
+        zz = np.array([fe.err_cv(params) for params in g])
         zz[zz > zmax] = zmax
         dd = mpl.Data2D(xx=g[:,0], yy=np.log10(g[:,1]), zz=zz)
         pl = ax.contourf(dd.X, dd.Y, dd.Z, cmap=cm.jet)
-        plt.colorbar(pl) 
+        plt.colorbar(pl)
         ax.set_xlabel('p')
         ax.set_ylabel('log10(r)')
 ##        fig.savefig(f'/tmp/crossval_pr_{name}.png')
-        
-##        f = rbf.fit_opt(x[:,None], y, method='de', what='pr', 
-##                        opt_kwds=dict(disp=True, 
+
+##        f = rbf.fit_opt(x[:,None], y, method='de', what='pr',
+##                        opt_kwds=dict(disp=True,
 ##                                      maxiter=20,
 ##                                      popsize=20,
 ##                                      bounds=[(p.min(),p.max()),(r.min(),r.max())],
 ##                                      mutation=1.5,
-##                                      polish=True), 
+##                                      polish=True),
 ##                        rbf_kwds=dict(rbf=name))
 ##        popt = f.get_params()
 ##        print(popt)
