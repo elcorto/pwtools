@@ -1,0 +1,9 @@
+matplotlib
+nose
+numpy
+scipy
+h5py
+ase
+numpydoc
+PyCifRW
+pyspglib
