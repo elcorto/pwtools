@@ -3,12 +3,10 @@
 #   $ python3 setup.py sdist
 #   $ twine upload dist/<this-package>-x.y.z.tar.gz
 
-import os, importlib
+import os
 from setuptools import setup, find_packages
-from distutils.version import StrictVersion as Version
 
 here = os.path.abspath(os.path.dirname(__file__))
-bindir = 'bin'
 with open(os.path.join(here, 'README.rst')) as fd:
     long_description = fd.read()
 
@@ -35,5 +33,4 @@ setup(
     install_requires=open('requirements.txt').read().splitlines(),
     python_requires='>=3',
     package_data={'pwtools': ['*.so']},
-##    scripts=['{}/{}'.format(bindir, script) for script in os.listdir(bindir)]
 )
