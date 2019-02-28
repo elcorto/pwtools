@@ -2,19 +2,22 @@ Installation
 ============
 
 To build the extension modules and install all Python dependencies via pip in
-one go, use:: 
-    
+one go, use::
+
     $ pip3 install .
 
 or the setuptools "development install" (no copy of files)::
-    
+
     $ pip3 install -e .
 
-See the pip and setuptools documentation for all other funny ways to install a
-package (using pip or the traditional ``python3 setup.py install | develop``).
+If all dependencies are installed, e.g. by a package manager such as ``apt``,
+then use a virtual environment that uses the system site-packages (here we use
+virtualenvwrapper_)::
 
-If all dependencies are installed, you may also simply build the extensions and
-set ``PYTHONPATH``::
+    $ mkvirtualenv --system-site-packages -p /usr/bin/python3 pwtools
+    (pwtools) $ pip3 install -e .
+
+Alternatively, you may also simply build the extensions and set ``PYTHONPATH``::
 
     $ cd src && make && cd ..
     $ [ -n "$PYTHONPATH" ] && pp=$(pwd):$PYTHONPATH || pp=$(pwd)
@@ -22,32 +25,28 @@ set ``PYTHONPATH``::
 
 Dependencies
 ------------
-::
+See ``requirements.txt`` for packages installable by pip. On a Debian-ish system,
+you may install::
 
-	# apt (Debian-ish systems)
-	python3-numpy
-	python3-scipy
-	python3-nose
-	python3-dev     # for compiling extensions
-	python3-h5py 
-	python3-matplotlib 
-	python3-ase
-	python3-numpydoc
-	python3-sphinx
-	gfortran        # or ifort, see src/Makefile
-	liblapack-dev
+    # apt
+    python3-numpy
+    python3-scipy
+    python3-nose
+    python3-dev     # for compiling extensions
+    python3-h5py
+    python3-matplotlib
+    python3-ase
+    python3-numpydoc
+    python3-sphinx
+    gfortran        # or ifort, see src/Makefile
+    liblapack-dev
 
-	# pip
-	PyCifRW
-	pyspglib  # renamed to spglib after v1.8.x, not supported yet
+    # pip
+    PyCifRW
+    pyspglib  # renamed to spglib after v1.8.x, not supported yet
 
 You can use ``test/check_dependencies.py`` to find out what your system has
 installed.
-
-With ``setup.py``, all Python dependencies are installed by pip, which might
-not be what you want when you are using a system package manager (e.g. apt).
-Then, install Debian packages beforehand. ``setup.py`` will detect and use them
-if version constraints are fulfilled.
 
 Optional dependencies
 ^^^^^^^^^^^^^^^^^^^^^
@@ -76,7 +75,7 @@ directly with pwtools, such as eos.
    really need the Elk code's eos tool anymore. It was used for generating
    refernce EOS fit data once, which is stored in test/files/, but there is no
    use of eos.x in pwtools anymore.
-   
+
 Running tests
 -------------
 
@@ -114,7 +113,7 @@ You need:
 * Lapack (Debian: liblapack3)
 
 The module is compiled with f2py (currently part of numpy, tested with numpy
-1.1.0 .. 1.13.x). 
+1.1.0 .. 1.13.x).
 
 Compiler / f2py
 ^^^^^^^^^^^^^^^
@@ -137,33 +136,33 @@ On some systems (Debian), you may have:
 
 and such. But usually ``F2PY=f2py`` is fine.
 
-OpenMP 
+OpenMP
 ^^^^^^
 We managed to speed up the calculations by sprinkling some OpenMP
-pragmas in ``*.f90``. This works pretty good. If you wanna try, use 
-``make ifort-omp`` or ``make gfortran-omp``.
+pragmas in ``*.f90``. Use ``make ifort-omp`` or ``make gfortran-omp`` in that
+case.
 
 If all went well, ``_flib.so`` should be linked to ``libgomp`` (or ``libiomp``
 for ``ifort``). Check with:
 
 .. code-block:: shell
 
-	$ ldd _flib.so
+    $ ldd _flib.so
 
 Setting the number of threads:
 
 .. code-block:: shell
-	
-	$ export OMP_NUM_THREADS=2
-	$ python -c "import numpy as np; from pwtools.pydos import fvacf; \
-	             fvacf(np.random.rand(5000,1000,3))"
+
+    $ export OMP_NUM_THREADS=2
+    $ python -c "import numpy as np; from pwtools.pydos import fvacf; \
+                 fvacf(np.random.rand(5000,1000,3))"
 
 If this env var is NOT set, then OpenMP uses all available cores (e.g. 4 on a
 quad-core box).
 
-IMPORTANT: 
-	Note that we may have found a f2py bug (see test/test_f2py_flib_openmp.py)
-	re. OMP_NUM_THREADS. We have a workaround for that in pydos.fvacf().
+IMPORTANT:
+    Note that we may have found a f2py bug (see test/test_f2py_flib_openmp.py)
+    re. OMP_NUM_THREADS. We have a workaround for that in pydos.fvacf().
 
 There is also an optional arg 'nthreads' to _flib.vacf(). If this is
 supplied, then it will override OMP_NUM_THREADS. Currently, this is the
@@ -176,7 +175,7 @@ results, even if it runs, if OpenMP is used incorrectly :) The test script
 ``test/runtests.sh`` calls `make gfortran-omp`, so if code is broken by OpenMP,
 all test using the Fortran extensions might fail. To run tests with other
 builds, use one of
-    
+
 .. code-block:: shell
 
     $ make gfortran
@@ -187,8 +186,8 @@ and
 
 .. code-block:: shell
 
-    $ cd test 
-    $ ./runtests.sh --nobuild 
+    $ cd test
+    $ ./runtests.sh --nobuild
 
 
 .. include:: refs.rst
