@@ -17,7 +17,7 @@ with open(os.path.join(here, 'README.rst')) as fd:
 # we just need to tell setuptools that these are "data files" that we wish to
 # copy when installing, along with all *.py files.
 from subprocess import run
-run("cd src; make", shell=True, check=True)
+run("cd src; make clean; make", shell=True, check=True)
 
 setup(
     name='pwtools',
