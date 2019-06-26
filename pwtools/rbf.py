@@ -114,18 +114,18 @@ class Rbf:
         >>> ddi = mpl.Data2D(x=xi, y=xi)
         >>> fig1,ax1 = mpl.fig_ax3d()
         >>> ax1.scatter(dd.xx, dd.yy, dd.zz, label='data', color='r')
-        >>> ax1.plot_wireframe(ddi.X, ddi.Y, rbfi(ddi.XY).reshape(50,50), 
+        >>> ax1.plot_wireframe(ddi.X, ddi.Y, rbfi(ddi.XY).reshape(50,50),
         ...                    label='rbf')
         >>> ax1.set_xlabel('x'); ax1.set_ylabel('y');
         >>> ax1.legend()
         >>> fig2,ax2 = mpl.fig_ax3d()
         >>> offset=2
-        >>> ax2.plot_wireframe(ddi.X, ddi.Y, rbfi(ddi.XY).reshape(50,50), 
+        >>> ax2.plot_wireframe(ddi.X, ddi.Y, rbfi(ddi.XY).reshape(50,50),
         ...                    label='rbf', color='b')
-        >>> ax2.plot_wireframe(ddi.X, ddi.Y, 
+        >>> ax2.plot_wireframe(ddi.X, ddi.Y,
         ...                    rbfi(ddi.XY, der=1)[:,0].reshape(50,50)+offset,
         ...                    color='g', label='d(rbf)/dx')
-        >>> ax2.plot_wireframe(ddi.X, ddi.Y, 
+        >>> ax2.plot_wireframe(ddi.X, ddi.Y,
         ...                    rbfi(ddi.XY, der=1)[:,1].reshape(50,50)+2*offset,
         ...                    color='r', label='d(rbf)/dy')
         >>> ax2.set_xlabel('x'); ax2.set_ylabel('y');
@@ -167,7 +167,7 @@ class Rbf:
     def get_distsq(self, points=None):
         """Matrix of distance values :math:`R_{ij} = |\mathbf x_i - \mathbf
         c_j|`.
-        
+
             | :math:`\mathbf x_i` : points[i,:]
             | :math:`\mathbf c_i` : centers[i,:]
 
@@ -175,7 +175,7 @@ class Rbf:
         ----------
         points : array (M,N) with N-dim points, optional
             If None then ``self.points`` is used (training points).
-        
+
         Returns
         -------
         distsq : (M,K), where K = M usually for training
@@ -205,31 +205,33 @@ class Rbf:
                 return self.distsq
         else:
             return num.distsq(points, self.centers)
-    
+
     def get_params(self):
         return self.p, self.r
 
     def fit(self):
         """Solve linear system for the weights.
-        
+
         The weights  `self.w` (:math:`\mathbf w`) are found from: :math:`\mathbf
         G\,\mathbf w = \mathbf z` or if :math:`r` is given :math:`(\mathbf G +
         r\,\mathbf I)\,\mathbf w = \mathbf z`.
-        
+
         with centers == points (center vectors are all data points). Then G is
         quadratic. Updates ``self.w``.
-        
+
         Notes
         -----
         ``self.r != None`` : linear system solver
-            Use ``scipy.linalg.solve()``. By definition, this always yields
+            Use :func:`scipy.linalg.solve`. For :math:`r=0`, this always yields
             perfect interpolation at the data points. May be numerically
-            unstable in that case. Use `r` to increase stability and create
-            smooth fitting (generate more stiff functions), similar to
-            ``lstsq`` but appears to be numerically more stable (no small noise
-            in solution) .. but it is another parameter that needs to be tuned.
+            unstable in that case. Use :math:`r>0` to increase stability (try
+            small values such as ``1e-10`` first) or create smooth fitting (generate
+            more stiff functions with higher `r`). Behaves similar to ``lstsq``
+            but appears to be numerically more stable (no small noise in
+            solution) .. but `r` it is another parameter that needs to be
+            tuned.
         ``self.r = None`` : least squares solver
-            Use ``scipy.linalg.lstsq()``. Numerically more stable than
+            Use :func:`scipy.linalg.lstsq`. Numerically more stable than
             direct solver w/o regularization. Will mostly be the same as
             the interpolation result, but will not go thru all points for
             very noisy data. May create small noise in solution (plot fit
@@ -391,7 +393,7 @@ def estimate_p(points, method='mean'):
         | 'scipy' : mean nearest neighbor distance
     """
     if method == 'mean':
-        return np.sqrt(num.distsq(points, points)).mean() 
+        return np.sqrt(num.distsq(points, points)).mean()
     elif method == 'scipy':
         xi = points.T
         ximax = np.amax(xi, axis=1)
@@ -406,17 +408,17 @@ def estimate_p(points, method='mean'):
 class FitError:
     """Direct or cross-validation (CV) fit error of :class:`Rbf` for a
     parameter set ``[p,r]`` or just ``[p]``.
-    
+
     All methods accept a sequence `params` with either only `p` (length 1) or
-    `p` and `r` (length 2) to build a :class:`Rbf` model and fit it. 
-    
+    `p` and `r` (length 2) to build a :class:`Rbf` model and fit it.
+
     examples:
-    
-        | r = None (default in :class:`Rbf`) -> scipy.linalg.lstsq
+
+        | r = None (default in :class:`Rbf`) -> :func:`scipy.linalg.lstsq`
         |     params = [1.5]
         |     params = [1.5, None]
 
-        | r != None -> scipy.linalg.solve
+        | r != None -> :func:`scipy.linalg.solve`
         |     params = [1.5, 0]       -> no regularization (r=0)
         |     params = [1.5, 1e-8]    -> with regularization
 
@@ -454,7 +456,7 @@ class FitError:
 
     def cv(self, params):
         """K-fold repeated CV.
-        
+
         Split data (points, values) randomly into K parts ("folds", K = ``ns``
         in ``self.cv_kwds``) along axis 0 and use each part once as test set,
         the rest as training set. For example `ns=5`: split in 5 parts at
@@ -464,14 +466,14 @@ class FitError:
 
         Each time, build an Rbf interpolator with ``self.rbf_kwds``, fit,
         return the fit error (scalar sum of squares from
-        :meth:`Rbf.fit_error`). 
+        :meth:`Rbf.fit_error`).
 
         Parameters
         ----------
         params : seq length 1 or 2
             | params[0] = p
             | params[1] = r (optional)
-            
+
         Returns
         -------
         errs : 1d array (nr*ns,)
@@ -480,42 +482,42 @@ class FitError:
         ns = self.cv_kwds['ns']
         nr = self.cv_kwds['nr']
         errs = np.empty((ns*nr,), dtype=float)
-        folds = RepeatedKFold(n_splits=ns, 
+        folds = RepeatedKFold(n_splits=ns,
                               n_repeats=nr)
         for ii, tup in enumerate(folds.split(self.points)):
             idxs_train, idxs_test = tup
-            rbfi = self._get_rbfi(params, 
+            rbfi = self._get_rbfi(params,
                                   self.points[idxs_train,...],
                                   self.values[idxs_train,...])
             errs[ii] = rbfi.fit_error(self.points[idxs_test,...],
                                       self.values[idxs_test,...])
         return errs
-    
+
     def err_cv(self, params):
         """Median of :meth:`cv`."""
         return np.median(self.cv(params))
 
     def err_direct(self, params):
         """Normal fit error w/o CV. Uses :meth:`Rbf.fit_error`.
-        
+
         Build and Rbf interpolator with ``self.rbf_kwds``, fit, return the fit
         error (scalar, sum of squares). Should be zero for interpolation, i.e. no
-        regularization ``r=0``.  
+        regularization ``r=0``.
         """
         return self._get_rbfi(params).fit_error(self.points, self.values)
 
 
-def fit_opt(points, values, method='de', what='pr', cv_kwds=dict(ns=5, nr=1), 
+def fit_opt(points, values, method='de', what='pr', cv_kwds=dict(ns=5, nr=1),
             opt_kwds=dict(), rbf_kwds=dict()):
     """Optimize :math:`p` or :math:`(p,r)` using a cross validation error
-    metric or the direct fit error if `cv_kwds` is None. 
+    metric or the direct fit error if `cv_kwds` is None.
 
     Parameters
     ----------
     points, values : see :class:`Rbf`
     method : str
-        | 'de' : scipy.optimize.differential_evolution
-        | 'fmin': scipy.optimize.fmin
+        | 'de' : :func:`scipy.optimize.differential_evolution`
+        | 'fmin': :func:`scipy.optimize.fmin`
     what : str
         'p' or 'pr'
     cv_kwds, rbf_kwds : see :class:`FitError`
@@ -545,8 +547,8 @@ def fit_opt(points, values, method='de', what='pr', cv_kwds=dict(ns=5, nr=1),
         elif what == 'pr':
             bounds = opt_kwds.pop('bounds', [(0, 5*p0), (1e-12, 1e-1)])
             assert len(bounds) == 2, "len(bounds) != 2"
-        ret = optimize.differential_evolution(func, 
-                                              bounds=bounds, 
+        ret = optimize.differential_evolution(func,
+                                              bounds=bounds,
                                               disp=disp,
                                               **opt_kwds)
         xopt = ret.x

@@ -2,8 +2,8 @@
 
 """
 Convergence of the cross-validation error. Use repeated K-fold cross-validation
-(ns folds (splits), nr repititions). Find the minimum number of data points and the best
-CV parameters for further experiments.
+(ns folds (splits), nr repititions). Find the minimum number of data points and
+the best CV parameters for further experiments.
 
 We define converged as mean(cv) = median(cv) where cv is the resulting 1d array
 of length (ns*nr) of fit errors from CV.
@@ -19,6 +19,9 @@ experiment here are a bit different each time (in theory, we would need to
 repeat and average that as well :). Most of the time, the gauss RBF behaves the
 best and often converges for npoints=100 already, while multi and inv_multi
 don't.
+
+We evaluate the CV error at RBF width parameter p=3, which we know results
+sizable CV error values.
 """
 
 import numpy as np
@@ -33,7 +36,7 @@ if __name__ == '__main__':
         for npoints in [50, 100, 200, 400]:
             x = np.linspace(0, 10, npoints)
             y = np.sin(x) + rnd.rand(npoints)
-            print("") 
+            print("")
             for nr in [1, 2]:
                 for ns in [5, 10, 20]:
                     fe = rbf.FitError(x[:,None], y, cv_kwds=dict(ns=ns, nr=nr),

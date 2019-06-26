@@ -10,8 +10,8 @@ Use a fit problem with large noise where interpolation of all points will have
 large CV error, i.e. CV favors smooth fits instead. See overfit.py
 
 We find that in regions of high r (strong regularization = strong smoothing)
-where r is around 1, we can apply very low p which would otherwise
-produce narrow RBFs which overfit, b/c r provides enough stiffness.
+where r is around 0.1 (log10(r)=-1), we can apply rather low p (narrow RBFs
+which can overfit) b/c r provides enough stiffness.
 
 In regions of typical low r (1e-6 and lower), it basically doesn't matter which
 p we use, as long as it is big enough to not overfit. In these regions, both p
@@ -19,7 +19,7 @@ and r provide stiffness (also called "good generalization" in ML speak).
 
 We also try to calculate the global optimal (p,r) with differential_evolution,
 but the large p-r valley of good values is flat and a bit rugged such that
-there is no pronounced global optimum [*]. This supportes our experimental
+there is no pronounced global optimum [*]. This supports our experimental
 experience that the p value is basically irrelevant as long as it is not too
 small. B/c of the flat valley, there is no use for optimization. One simply
 needs to know the error landscape.
@@ -31,10 +31,12 @@ or some artifact of the differential_evolution.
 gauss and inv_multi have virtually identical behavior, while for multi we find
 a very inconsistent landscape with many error spikes in the valley. This is not
 fully understood yet since the CV error convergence is the same for multi and
-inv_multi. The only difference between all of them is that gauss and inv_multi
-have similar shape characteristics (bell-like curves with tails approaching
-zero), while multi is inverted (but that's only a question of the sign), but
-has no such tails.
+inv_multi (but this is evaluated at one p value only). The only difference
+between all of them is that gauss and inv_multi have similar shape
+characteristics (bell-like curves with tails approaching zero). multi is
+inverted (but that's only a question of the sign), but has no such tails. It
+doesn't get narrow for low p as gauss and inv_multi but instead approaches a
+triangle shape, which may not be optimal for fitting continuous functions.
 """
 
 import itertools
@@ -76,8 +78,8 @@ if __name__ == '__main__':
         plt.colorbar(pl)
         ax.set_xlabel('p')
         ax.set_ylabel('log10(r)')
-##        fig.savefig(f'/tmp/crossval_pr_{name}.png')
 
+        fig.savefig(f'/tmp/crossval_pr_{name}.png')
 ##        f = rbf.fit_opt(x[:,None], y, method='de', what='pr',
 ##                        opt_kwds=dict(disp=True,
 ##                                      maxiter=20,

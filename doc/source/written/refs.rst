@@ -21,3 +21,6 @@
 .. _xcrysden: http://www.xcrysden.org/
 .. _matplotlib: http://matplotlib.org/
 .. _virtualenvwrapper: https://virtualenvwrapper.readthedocs.io
+.. _wiki_uat: https://en.wikipedia.org/wiki/Universal_approximation_theorem
+.. _wiki_rbf: http://en.wikipedia.org/wiki/Radial_basis_function_network
+.. _nr3: http://numerical.recipes/aboutNR3book.html

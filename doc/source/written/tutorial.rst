@@ -55,14 +55,14 @@ MD parser::
     >>> tr.cryst_const[-1,...]
     array([  3.29944506,   3.29944506,   5.33081055,  90.        ,
             90.        , 120.00001397])
-    >>> # nstep=7, natoms=4 
+    >>> # nstep=7, natoms=4
     >>> tr.coords.shape
     (7, 4, 3)
 
 Now an MD from CP2K::
 
     >>> tr = io.read_cp2k_md('cp2k.out')
-    >>> tr.nstep 
+    >>> tr.nstep
     123456
     >>> # extract first and last Structure objects
     >>> st_first = tr[0]
@@ -98,8 +98,8 @@ structs or trajectories.
     >>> from pwtools import visualize, random
     >>> st = random.random_struct(['Si']*50)
     >>> visualize.view_xcrysden(st)
-    >>> ##visualize.view_jmol(st)    
-    >>> ##visualize.view_avogadro(st)    
+    >>> ##visualize.view_jmol(st)
+    >>> ##visualize.view_avogadro(st)
 
 .. image:: ../_static/random_Si.png
 
@@ -151,7 +151,7 @@ Or build one using ASE::
     >>> at = ase.build.bulk(name='AlN', crystalstructure='rocksalt', a=3)
     >>> symmetry.spglib_get_spacegroup(crys.atoms2struct(at))
     (225, 'Fm-3m')
-    
+
 
 Smoothing a signal or a Trajectory
 ----------------------------------
@@ -173,7 +173,7 @@ Example::
     >>> from pwtools import mpl
     >>> from scipy.signal import hann
     >>> fig,ax = mpl.fig_ax()
-    >>> x = np.linspace(0,10,300) 
+    >>> x = np.linspace(0,10,300)
     >>> y = np.sin(x) + np.random.rand(len(x))
     >>> k = hann(21)
     >>> ax.plot(x, y, color='0.7', label='signal')
@@ -199,7 +199,7 @@ Care for some surface data? Here we fit with a 2D polynomial::
     >>> fig,ax = mpl.fig_ax3d(clean=True)
     >>> dd = mpl.get_2d_testdata(20)
     >>> ax.scatter(dd.xx, dd.yy, dd.zz)
-    >>> # same as 
+    >>> # same as
     >>> #   num.Interpol2D(dd=dd, what='poly', deg=5)
     >>> #   num.Interpol2D(dd.XY, dd.zz, what='poly', deg=5)
     >>> f = num.PolyFit(dd.XY, dd.zz, deg=5)
@@ -209,9 +209,9 @@ Care for some surface data? Here we fit with a 2D polynomial::
 
 .. image:: ../_static/interpol_2d.png
 
-Example result from a 1D fit of noisy data (``examples/rbf/noise.py``) using 
+Example result from a 1D fit of noisy data (``examples/rbf/noise.py``) using
 :class:`~pwtools.rbf.Rbf`. Without all plot commands and only one data set::
-    
+
     >>> N = # number of points
     >>> x = np.linspace(0, 10, N)
     >>> y = np.sin(x) + rand(N)
@@ -225,8 +225,8 @@ Example result from a 1D fit of noisy data (``examples/rbf/noise.py``) using
 
     >>> # same as
     >>> #   num.Interpol2D(dd=dd, what='rbf_multi')
-    >>> #   num.Interpol2D(dd.XZ, dd.zz, what='rbf_multi')
-    >>> f=rbf.Rbf(dd.XZ, dd.zz)
+    >>> #   num.Interpol2D(dd.XY, dd.zz, what='rbf_multi')
+    >>> f=rbf.Rbf(dd.XY, dd.zz)
 
 .. image:: ../_static/rbf_2d_surface_opt_False.png
 

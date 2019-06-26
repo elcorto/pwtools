@@ -44,6 +44,7 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
+    'sphinx.ext.intersphinx',
     'numpydoc',
     ]
 
@@ -60,6 +61,12 @@ autodoc_default_flags = ['members',             # doc of each method on class pa
                         ]
 
 autosummary_generate = True
+
+intersphinx_mapping = {
+    'sklearn':  ('http://scikit-learn.org/stable', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy/reference', None),
+    }
+
 
 #-----------------------------------------------------------------------------
 # extra TeX
@@ -81,7 +88,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'pwtools'
-copyright = '2018, Steve Schmerler'
+copyright = '2019, Steve Schmerler'
 author = 'Steve Schmerler'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -130,6 +137,7 @@ html_theme_options = {
     'github_user': 'elcorto',
     'github_repo': 'pwtools',
     'page_width': '1100px',
+    'fixed_sidebar': True,
     }
 
 # Add any paths that contain custom static files (such as style sheets) here,

@@ -9,19 +9,22 @@ if [ $# -eq 1 ]; then
     autodoc=$(readlink -f $1)
     [ -e $autodoc ] || err "not found: $autodoc"
 else
-    loc=sphinx-autodoc/sphinx-autodoc.py
-    if which sphinx-autodoc.py; then 
+    local_loc=sphinx-autodoc/sphinx-autodoc.py
+    std_loc=$HOME/soft/git/sphinx-autodoc/sphinx-autodoc.py
+    if which sphinx-autodoc.py; then
         autodoc=sphinx-autodoc.py
-    elif [ -f $loc ]; then
-        autodoc=$loc
+    elif [ -f $std_loc ]; then
+        autodoc=$std_loc
+    elif [ -f $local_loc ]; then
+        autodoc=$local_loc
     else
         git clone https://github.com/elcorto/sphinx-autodoc
-        autodoc=$loc
-    fi   
+        autodoc=$local_loc
+    fi
 fi
 
 # ensure a clean generated tree
-rm -v $(find ../ -name "*.pyc")
+rm -v $(find ../ -name "*.pyc" -o -name "__pycache__")
 make clean
 rm -rfv build/ source/generated/
 
