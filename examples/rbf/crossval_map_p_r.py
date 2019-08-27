@@ -46,21 +46,32 @@ import numpy as np
 from pwtools import rbf, mpl
 plt = mpl.plt
 
+export = False
+
+if export:
+    savefig_opts = dict(bbox_inches='tight', pad_inches=0)
+    plt.rcParams['font.size'] = 15
+
+
 if __name__ == '__main__':
     # don't plot errors bigger than zmax
     zmax = 0.7
 
-    # nsample x nsample points in p-r space
-    nsample = 12
-
-    # number of data points of the fit problem, we use 100 for more speed in
-    # this demo even though we know that the CV error startes to really
-    # converge for 200+ points, 100 already gives quite OK error maps which
-    # show the essential features. See crossval_convergence.py .
-    npoints = 100
+    # nsample: nsample x nsample points in p-r space
+    # npoints: number of data points of the fit problem, we use 100 for more
+    # speed in this demo even though we know that the CV error startes to
+    # really converge for 200+ points, 100 already gives quite OK error maps
+    # which show the essential features. See crossval_convergence.py .
+    if export:
+        nsample = 50
+        npoints = 200
+    else:
+        nsample = 12
+        npoints = 100
 
     rnd = np.random.RandomState(seed=1234)
     for name in ['gauss', 'multi', 'inv_multi']:
+##    for name in ['gauss']:
         print(name)
         fig,ax = mpl.fig_ax()
         ax.set_title(name)
@@ -76,10 +87,13 @@ if __name__ == '__main__':
         dd = mpl.Data2D(xx=g[:,0], yy=np.log10(g[:,1]), zz=zz)
         pl = ax.contourf(dd.X, dd.Y, dd.Z, cmap=cm.jet)
         plt.colorbar(pl)
-        ax.set_xlabel('p')
-        ax.set_ylabel('log10(r)')
+        ax.set_xlabel(r'$p$')
+        ax.set_ylabel(r'$\log_{10}(r)$')
 
-        fig.savefig(f'/tmp/crossval_pr_{name}.png')
+        if export:
+            for ext in ['png', 'pdf']:
+                fig.savefig(f'/tmp/crossval_pr_{name}.{ext}',
+                            **savefig_opts)
 ##        f = rbf.fit_opt(x[:,None], y, method='de', what='pr',
 ##                        opt_kwds=dict(disp=True,
 ##                                      maxiter=20,

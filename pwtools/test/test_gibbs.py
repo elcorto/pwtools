@@ -6,13 +6,13 @@ In the 2d case, we need to use fairly high tolerances (rtol). We have numerical
 noise in the test/files/gibbs/**.h5 test data files when running
 test/utils/gibbs_test_data.py on different machines, with the same numpy, scipy
 etc versions! But only in the 2d case. All #opt results are affected. This is a
-comparison of 
+comparison of
 
   files/gibbs/2d/cartman.h5
   files/gibbs/2d/kenny.h5
-  
+
   value                 abs. err   rel. err
-  -----                 --------   --------  
+  -----                 --------   --------
   /#opt/T/P/Cp          1.04e-10   4.18e-11
   /#opt/T/P/G              5e-16   5.36e-16  <<<
   /#opt/T/P/V           3.02e-07   9.78e-09
@@ -32,7 +32,7 @@ comparison of
   /ax0-ax1/T/Svib              0          0
   /ax0-ax1/V                   0          0
   /ax0-ax1/ax0-ax1             0          0
-   
+
 Since all #opt results are affected, it seems that fmin(), which is used by
 default in the 2d case to minimize G(ax0,...), is very sensitive to rounding
 errors and therefore the results depend on the machine. But note that
@@ -76,7 +76,7 @@ def compare_dicts_with_arrays(a, b):
             df = abs(a[k]-b[k]).max()
             fmt = "{:20}  {:8.3g}   {:8.3g}"
             print(fmt.format(k, df, df / abs(a[k]).max()))
-                
+
 
 def test_gibbs():
     # number of varied axis points
@@ -111,15 +111,15 @@ def test_gibbs():
                   volfunc_ax=volfunc_ax, case=case, dosarea=None)
     gibbs.set_fitfunc('C', lambda x,y: num.Spline(x,y,s=None,k=5, eps=1e-5))
     g = gibbs.calc_G(calc_all=True)
-    
+
     dr = 'files/gibbs/2d'
     for name in os.listdir(dr):
         fn = '%s/%s' %(dr, name)
         gref = io.read_h5(fn)
         print("testing: %s" %fn)
-        compare_dicts_with_arrays(gref, g) 
-        tools.assert_dict_with_all_types_almost_equal(gref, 
-                                                      g, 
+        compare_dicts_with_arrays(gref, g)
+        tools.assert_dict_with_all_types_almost_equal(gref,
+                                                      g,
                                                       keys=list(gref.keys()),
                                                       atol=1e-8, rtol=1e-3)
 
@@ -138,25 +138,25 @@ def test_gibbs():
                   volfunc_ax=volfunc_ax, case=case, dosarea=None)
     gibbs.set_fitfunc('C', lambda x,y: num.Spline(x,y,s=None,k=5, eps=1e-5))
     g = gibbs.calc_G(calc_all=True)
-    
+
     dr = 'files/gibbs/1d'
     for name in os.listdir(dr):
         fn = '%s/%s' %(dr, name)
         gref = io.read_h5(fn)
         print("testing: %s" %fn)
-        compare_dicts_with_arrays(gref, g) 
-        tools.assert_dict_with_all_types_almost_equal(gref, 
-                                                      g, 
+        compare_dicts_with_arrays(gref, g)
+        tools.assert_dict_with_all_types_almost_equal(gref,
+                                                      g,
                                                       keys=list(gref.keys()),
                                                       atol=1e-14, rtol=1e-8)
-    
+
     # test enthalpy stuff for 1d case
-    # E(V) 
+    # E(V)
     ev = num.PolyFit1D(g['/ax0/V'], g['/ax0/Etot'], deg=5)
     # P(V)
     pv = lambda v: -ev(v, der=1)*constants.eV_by_Ang3_to_GPa
     assert np.allclose(g['/P/P'], pv(g['/#opt/P/V']))
-    assert np.allclose(g['/#opt/P/H'], 
+    assert np.allclose(g['/#opt/P/H'],
                        ev(g['/#opt/P/V']) + g['/P/P']*g['/#opt/P/V'] / \
                        constants.eV_by_Ang3_to_GPa)
 

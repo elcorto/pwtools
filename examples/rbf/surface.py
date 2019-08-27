@@ -16,7 +16,11 @@ plt = mpl.plt
 rand = np.random.rand
 
 # create shiny polished plot for documentation
-shiny = False
+export = False
+##export = True
+if export:
+    savefig_opts = dict(bbox_inches='tight', pad_inches=0)
+    plt.rcParams['font.size'] = 15
 
 
 class SurfaceData(object):
@@ -28,7 +32,7 @@ class SurfaceData(object):
         self.xg, self.yg = self.get_xy_grid()
         self.XG, self.YG = num.meshgridt(self.xg, self.yg)
         self.XY = self.make_XY(mode)
-        
+
     def make_XY(self, mode='grid'):
         if mode == 'grid':
             XY = np.empty((self.nx * self.ny,2))
@@ -43,12 +47,12 @@ class SurfaceData(object):
             XY[:,0] = XY[:,0] * (self.xlim[1] - self.xlim[0]) + self.xlim[0]
             XY[:,1] = XY[:,1] * (self.ylim[1] - self.ylim[0]) + self.ylim[0]
         return XY
-    
+
     def get_xy_grid(self):
         x = np.linspace(self.xlim[0], self.xlim[1], self.nx)
         y = np.linspace(self.ylim[0], self.ylim[1], self.ny)
         return x,y
-    
+
     def func(self, XY):
         raise NotImplementedError
 
@@ -62,7 +66,7 @@ class SurfaceData(object):
                 return self.deriv_y(*args, **kwargs)
             else:
                 raise Exception("der != 'x' or 'y'")
-        else:                
+        else:
             return self.func(*args, **kwargs)
 
 
@@ -70,7 +74,7 @@ class MexicanHat(SurfaceData):
     def func(self, XY):
         r = np.sqrt((XY**2).sum(axis=1))
         return np.sin(r)/r
-    
+
     def deriv_x(self, XY):
         r = np.sqrt((XY**2).sum(axis=1))
         x = XY[:,0]
@@ -104,18 +108,18 @@ class Square(SurfaceData):
 
 
 if __name__ == '__main__':
-    
+
     # Some nice 2D examples
-    
+
     fu = MexicanHat([-10,20], [-10,15], 20, 20, 'rand')
 ##    fu = UpDown([-2,2], [-2,2], 20, 20, 'grid')
 ##    fu = SinExp([-1,2.5], [-2,2], 40, 30, 'rand')
 ##    fu = Square([-1,1], [-1,1], 20, 20, 'grid')
-    
+
     Z = fu(fu.XY)
 
     rbfi = rbf.Rbf(fu.XY, Z, rbf='inv_multi', verbose=True)
-    
+
     dati = SurfaceData(fu.xlim, fu.ylim, fu.nx*2, fu.ny*2, 'grid')
 
     ZI_func = fu(dati.XY)
@@ -128,25 +132,29 @@ if __name__ == '__main__':
 
     ax.scatter(fu.XY[:,0], fu.XY[:,1], Z, color='b', label='f(x,y) samples')
     dif = np.abs(ZI_func - ZI_rbf).reshape((dati.nx, dati.ny))
-    if not shiny:
+    if not export:
         ax.plot_wireframe(dati.XG, dati.YG, ZG_func, cstride=1, rstride=1,
                           color='g', label='f(x,y)', alpha=0.5)
     ax.plot_wireframe(dati.XG, dati.YG, ZG_rbf, cstride=1, rstride=1,
                       color='r', label='rbf(x,y)', alpha=0.5)
-    cont = ax.contour(dati.XG, dati.YG, dif, offset=zlim[0], 
+    cont = ax.contour(dati.XG, dati.YG, dif, offset=zlim[0],
                       levels=np.linspace(dif.min(), dif.max(), 20),
                       cmap=cm.plasma)
-    if not shiny:
-        fig.colorbar(cont, aspect=5, shrink=0.5, format="%.3f")    
+    if not export:
+        fig.colorbar(cont, aspect=5, shrink=0.5, format="%.3f")
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_xlim3d(dati.xlim)
     ax.set_ylim3d(dati.ylim)
     ax.set_zlim3d(zlim)
-    if not shiny:
-        ax.legend()
+    if export:
+        ax.xaxis.set_ticklabels([])
+        ax.yaxis.set_ticklabels([])
+        ax.zaxis.set_ticklabels([])
+        for ext in ['png', 'pdf']:
+            fig.savefig(f'/tmp/rbf_2d_surface.{ext}', **savefig_opts)
     else:
-        fig.savefig('/tmp/rbf_2d_surface_opt_False.png') 
+        ax.legend()
 
     # derivs only implemented for MexicanHat
     ZI_func = fu(dati.XY, der='x')
@@ -157,21 +165,28 @@ if __name__ == '__main__':
     zlim = [ZI_func.min(), ZI_func.max()]
 
     fig, ax = mpl.fig_ax3d(clean=True)
-    
+
     dif = np.abs(ZI_func - ZI_rbf).reshape((dati.nx, dati.ny))
     ax.plot_wireframe(dati.XG, dati.YG, ZG_func, cstride=1, rstride=1,
                       color='g', label='df/dx', alpha=0.5)
     ax.plot_wireframe(dati.XG, dati.YG, ZG_rbf, cstride=1, rstride=1,
                       color='r', label='d(rbf)/dx', alpha=0.5)
-    cont = ax.contour(dati.XG, dati.YG, dif, offset=zlim[0], 
+    cont = ax.contour(dati.XG, dati.YG, dif, offset=zlim[0],
                       levels=np.linspace(dif.min(), dif.max(), 20),
                       cmap=cm.plasma)
-    fig.colorbar(cont, aspect=5, shrink=0.5, format="%.3f")    
+    if not export:
+        fig.colorbar(cont, aspect=5, shrink=0.5, format="%.3f")
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_xlim3d(dati.xlim)
     ax.set_ylim3d(dati.ylim)
     ax.set_zlim3d(zlim)
     ax.legend()
-    
+    if export:
+        ax.xaxis.set_ticklabels([])
+        ax.yaxis.set_ticklabels([])
+        ax.zaxis.set_ticklabels([])
+        for ext in ['png', 'pdf']:
+            fig.savefig(f'/tmp/rbf_2d_surface_deriv.{ext}', **savefig_opts)
+
     plt.show()
