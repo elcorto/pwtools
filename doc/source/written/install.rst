@@ -1,31 +1,41 @@
 Installation
 ============
 
-To build the extension modules and install all Python dependencies via pip in
-one go, use::
+To build the extension modules and install all Python dependencies via
+``pip``::
 
-    $ pip3 install .
+    $ pip install .
 
 or the setuptools "development install" (no copy of files)::
 
-    $ pip3 install -e .
+    $ cd src && make clean && make && cd ..
+    $ pip install -e .
+
+Note that in this case you need to build the extensions first, which will live
+in ``pwtools/*.so``, since ``pip install -e .`` only sets a link to this repo.
+See samplepkg_ for details.
 
 If all dependencies are installed, e.g. by a package manager such as ``apt``,
-then use a virtual environment that uses the system site-packages (here we use
+then recent ``pip`` versions should pick those up. Alternatively force ``pip``
+to install only the package without installing dependencies from pypi::
+
+    $ pip install --no-deps .
+
+When using a virtual environment, you can map in the system site-packages (here we use
 virtualenvwrapper_)::
 
     $ mkvirtualenv --system-site-packages -p /usr/bin/python3 pwtools
-    (pwtools) $ pip3 install -e .
+    (pwtools) $ pip install .
 
 Alternatively, you may also simply build the extensions and set ``PYTHONPATH``::
 
-    $ cd src && make && cd ..
+    $ cd src && make clean && make && cd ..
     $ [ -n "$PYTHONPATH" ] && pp=$(pwd):$PYTHONPATH || pp=$(pwd)
     $ export PYTHONPATH=$pp
 
 Dependencies
 ------------
-See ``requirements.txt`` for packages installable by pip. On a Debian-ish system,
+See ``requirements.txt`` for packages installable by ``pip``. On a Debian-ish system,
 you may install::
 
     # apt
@@ -84,9 +94,12 @@ See test/README. Actually, all of these are good examples, too!
 Python versions
 ---------------
 
-Only Python3, tested: Python 3.6
+Only Python3 is supported, tested: Python 3.6, 3.7
 
-The package was developed mostly with Python 2.5..2.7 and ported using 2to3.
+The package was developed mostly with Python 2.5..2.7 and ported using 2to3 +
+manual changes. Therefore, you might find some crufty Python 2 style code
+fragments in lesser used parts of the codebase.
+
 
 Compiling Fortran extensions and OpenMP notes
 ---------------------------------------------

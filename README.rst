@@ -19,18 +19,9 @@ auto-generated `API documentation`_ (by using sphinx-autodoc_). Quick start
 instructions can be found in `the tutorial`_. Many examples, besides the ones
 in the doc strings are in `the tests`_.
 
-Quick install
--------------
-To build the extension modules and install all Python dependencies via pip in
-one go, use::
-
-    $ pip3 install .
-
-or the setuptools "development install" (no copy of files)::
-
-    $ pip3 install -e .
-
-See the `install notes`_ for details.
+Install
+-------
+See the `install notes`_.
 
 .. ---------------------------------------------------------------------------
    link targets, see also doc/source/written/refs.rst

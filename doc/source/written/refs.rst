@@ -24,3 +24,4 @@
 .. _wiki_uat: https://en.wikipedia.org/wiki/Universal_approximation_theorem
 .. _wiki_rbf: http://en.wikipedia.org/wiki/Radial_basis_function_network
 .. _nr3: http://numerical.recipes/aboutNR3book.html
+.. _samplepkg: https://github.com/elcorto/samplepkg
