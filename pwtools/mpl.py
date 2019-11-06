@@ -42,16 +42,16 @@ except ImportError:
 
 def plotlines3d(ax3d, x,y,z, *args, **kwargs):
     """Plot x-z curves stacked along y.
-    
+
     Parameters
     ----------
     ax3d : Axes3D instance
     x : nd array
         1d (x-axis) or 2d (x-axes are the columns)
-    y : 1d array        
+    y : 1d array
     z : nd array with "y"-values
         1d : the same curve will be plotted len(y) times against x (1d) or
-             x[:,i] (2d) 
+             x[:,i] (2d)
         2d : each column z[:,i] will be plotted against x (1d) or each x[:,i]
              (2d)
     *args, **kwargs : additional args and keywords args passed to ax3d.plot()
@@ -64,7 +64,7 @@ def plotlines3d(ax3d, x,y,z, *args, **kwargs):
     --------
     >>> x = linspace(0,5,100)
     >>> y = arange(1.0,5) # len(y) = 4
-    >>> z = np.repeat(sin(x)[:,None], 4, axis=1)/y # make 2d 
+    >>> z = np.repeat(sin(x)[:,None], 4, axis=1)/y # make 2d
     >>> fig,ax = fig_ax3d()
     >>> plotlines3d(ax, x, y, z)
     >>> show()
@@ -82,7 +82,7 @@ def plotlines3d(ax3d, x,y,z, *args, **kwargs):
     assert len(y) == xx.shape[1] == zz.shape[1]
     for j in range(xx.shape[1]):
         ax3d.plot(xx[:,j], np.ones(xx.shape[0])*y[j], z[:,j], *args, **kwargs)
-    return ax3d        
+    return ax3d
 
 
 def fig_ax(**kwds):
@@ -94,14 +94,14 @@ def fig_ax(**kwds):
 
 def fig_ax3d(clean=False, **kwds):
     """``fig,ax3d = fig_ax()``
-    
+
     Parameters
     ----------
     clean : bool
         see :func:`clean_ax3d`
     """
     fig = plt.figure(**kwds)
-    try: 
+    try:
         ax = fig.add_subplot(111, projection='3d')
     except:
         # mpl < 1.0.0
@@ -124,11 +124,11 @@ class Plot(object):
     """Container for a plot figure with (by default one) axis `ax`.
 
     You can add more axes with twinx() etc and operate on them.
-    
+
     Examples
     --------
     # same as Plot(*mpl.fig_ax()), i.e. default is 2d plot
-    >>> pp = mpl.Plot() 
+    >>> pp = mpl.Plot()
     >>> pp.ax.plot([1,2,3], label='ax')
     >>> pp.ax2 = pp.ax.twinx()
     >>> pp.ax2.plot([3,2,1], 'r', label='ax2')
@@ -154,17 +154,17 @@ class Plot(object):
         if [fig, ax] == [None]*2:
             if projection == '2d':
                 func = fig_ax
-            elif projection == '3d':        
+            elif projection == '3d':
                 func = fig_ax3d
-            else:   
+            else:
                 raise Exception("unknown projection: %s" %projection)
             self.fig, self.ax = func(**kwds)
         elif [fig, ax].count(None) == 1:
             raise Exception("one of fig,ax is None")
-        else:            
+        else:
             self.fig = fig
             self.ax = ax
-    
+
     def collect_legends(self, axnames=['ax']):
         """If self has more then one axis object attached, then collect legends
         from all axes specified in axnames. Useful for handling legend entries
@@ -183,7 +183,7 @@ class Plot(object):
         """
         return collect_legends(*tuple(getattr(self, axname) for axname in
                                       axnames))
-    
+
     def legend(self, axnames=None, legaxname='ax', **kwargs):
         """Collect legend entries from all axes in `axnames` and place legend on
         the axis named with `legaxname`.
@@ -202,7 +202,7 @@ class Plot(object):
             >>> pp.ax2 = pp.ax.twinx()
             >>> pp.ax2.plot(...)
             >>> pp.legend(axnames=['ax', 'ax2'], legaxname='ax2')
-        
+
         Notes
         -----
         This is not completly transparent. This:
@@ -210,8 +210,8 @@ class Plot(object):
             >>> plot.ax.plot(...)
             >>> plot.legend(...)
         does only behave as ax.legend() if only kwargs are used. For anything
-        else, use 
-            >>> plot.ax.legend() 
+        else, use
+            >>> plot.ax.legend()
         directly.
         """
         ax = getattr(self, legaxname)
@@ -229,7 +229,7 @@ class Plot(object):
 def collect_legends(*axs):
     """
     Collect legend data from multiple axes, return input for legend().
-    
+
     Examples
     --------
     >>> fig, ax = mpl.fig_ax()
@@ -242,11 +242,11 @@ def collect_legends(*axs):
                   axs)
     ret = [common.flatten(x) for x in zip(*axhls)]
     return ret[0], ret[1]
-    
+
 
 def prepare_plots(names, projection='2d', **kwds):
     """Return a dict of Plot instances.
-    
+
     Parameters
     ----------
     names : sequence
@@ -268,12 +268,12 @@ def prepare_plots(names, projection='2d', **kwds):
         "'2d', '3d'")
     if projection == '2d':
         func = fig_ax
-    elif projection == '3d':        
+    elif projection == '3d':
         func = fig_ax3d
     plots = {}
     for nn in names:
         plots[nn] = Plot(*func(**kwds))
-    return plots        
+    return plots
 
 
 class Data2D(object):
@@ -302,17 +302,17 @@ class Data2D(object):
         ----------
         x,y : 1d arrays, (nx,) and (ny,)
             These are the raw x and y "axes".
-        X,Y,Z : 2d arrays (nx, ny) 
-            Like ``np.meshgrid`` but transposed to have shape (nx,ny), see also 
+        X,Y,Z : 2d arrays (nx, ny)
+            Like ``np.meshgrid`` but transposed to have shape (nx,ny), see also
             :func:`~pwtools.num.meshgridt`
         xx,yy,zz : 1d arrays (nx*ny)
             "Double-loop" versions of x,y,Z, input for ax3d.scatter() or
-            bisplrep(). 
+            bisplrep().
         XY : np.array([xx,yy]).T
 
         Examples
         --------
-        >>> from pwtools.mpl import Data2D, 
+        >>> from pwtools.mpl import Data2D,
         >>> from pwtools import num
         >>> from scipy.interpolate import bisplrep, bisplev
         >>> x = linspace(-5,5,10)
@@ -327,7 +327,7 @@ class Data2D(object):
         >>> fig,ax3d = mpl.fig_ax3d()
         >>> ax3d.scatter(data.xx, data.yy, data.zz, color='b')
         >>> ax3d.plot_wireframe(data.X, data.Y, data.Z, color='g')
-        >>> ax3d.plot_surface(spline.X, spline.Y, spline.Z, cstride=1, 
+        >>> ax3d.plot_surface(spline.X, spline.Y, spline.Z, cstride=1,
         ...                   rstride=1, color='r')
 
         Notes
@@ -335,24 +335,24 @@ class Data2D(object):
         ``X,Y = num.meshgridt(x,y)`` are the *transposed* versions of ``X,Y =
         numpy.meshgrid()`` which returns shape (ny,nx). The shape (nx,ny),
         which we use, is more intuitive and also used in ``ax3d.plot_surface``
-        etc. The output of ``scipy.interpolate.bisplev`` is also (nx,ny).        
-        
+        etc. The output of ``scipy.interpolate.bisplev`` is also (nx,ny).
+
         ::
-            
+
             nx = 10
             ny = 5
             x = linspace(...,nx)
             y = linspace(...,ny)
-        
+
         To calculate z=f(x,y) on the x,y-grid, use num.meshgridt() or X.T, Y.T
         from numpy.meshgrid()::
-            
+
             X,Y = num.meshgridt(x,y)
             Z = X**2 + Y**2
 
         X,Y,Z are good for data generation and plotting (ax3d.plot_wireframe()). But
         the input to bisplrep() must be flat X,Y,Z (xx,yy,zz) like so::
-            
+
             xx = X.flatten()
             yy = Y.flatten()
             zz = Z.flatten()
@@ -368,9 +368,9 @@ class Data2D(object):
                     xx[idx] = x[ii]
                     yy[idx] = y[jj]
                     zz[idx] = x[ii]**2 + y[jj]**2
-        
+
         or::
-            
+
             XY = np.array([k for k in itertools.product(x,y)])
             xx = XY[:,0]
             yy = XY[:,1]
@@ -380,14 +380,14 @@ class Data2D(object):
 
             spl = bisplrep(xx,yy,zz,...)
             ZI = bisplev(x,y)
-        
+
         `ZI` has the correct shape: (nx, ny), which is the shape of
         ``np.outer(x,y)``.
-        
+
         The "inverse meshgrid" operation to transform `xx`, `yy` to `x`, `y` is
         done by using ``numpy.unique``. We assumes that ``xx`` and ``yy`` are
         generated like in the nested loop above. For otherwise ordered `xx`,
-        `yy` this will fail. 
+        `yy` this will fail.
         """
         self.attr_lst = ['x', 'y', 'xx', 'yy', 'zz', 'X', 'Y', 'Z', 'XY']
         self.x = x
@@ -400,7 +400,7 @@ class Data2D(object):
         self.Z = Z
         self.XY = XY
         self._update()
-    
+
     @staticmethod
     def _unique(x):
         # numpy.unique(x) with preserved order
@@ -438,7 +438,7 @@ class Data2D(object):
             self.X,self.Y = num.meshgridt(self.x, self.y)
         else:
             raise Exception("cannot determine x and y from input")
-        # by now, we have all forms of x and y: x,y; xx,yy; X,Y; XY            
+        # by now, we have all forms of x and y: x,y; xx,yy; X,Y; XY
         self.nx = len(self.x)
         self.ny = len(self.y)
         # Z is optional
@@ -455,7 +455,7 @@ class Data2D(object):
             assert key in self.attr_lst, ("'%s' not allowed" %key)
             setattr(self, key, val)
         self._update()
-    
+
     def copy(self):
         """Copy object. numpy arrays are real copies, not views."""
         kwds = {}
@@ -463,7 +463,7 @@ class Data2D(object):
             attr = getattr(self, name)
             if attr is not None:
                 kwds[name] = attr.copy()
-            else:                
+            else:
                 kwds[name] = None
         return Data2D(**kwds)
 
@@ -489,14 +489,14 @@ def get_2d_testdata(n=20):
 #----------------------------------------------------------------------------
 
 # Typical matplotlib line/marker colors and marker styles. See help(plot).
-# The naming is convention is foo_bar for 
-# 
+# The naming is convention is foo_bar for
+#
 # lst_of_plot_styles = []
 # foo = ['b', 'r']
 # bar = ['-', '--']
 # for x in foo:
 #     for y in bar:
-#         lst_of_plot_styles.append(x+y)  
+#         lst_of_plot_styles.append(x+y)
 #
 colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
 markers = ['o', 'v', '^', '<', '>', 's', 'p', '*', 'h', 'H', '+', 'x', 'D']
@@ -515,7 +515,7 @@ iter_colors_linestyles = iter(colors_linestyles)
 iter_markers_colors = iter(markers_colors)
 iter_linestyles_colors = iter(linestyles_colors)
 
-# Iterators which infinitely repeat each sequence. 
+# Iterators which infinitely repeat each sequence.
 cycle_colors = itertools.cycle(colors)
 cycle_markers = itertools.cycle(markers)
 cycle_colors_markers = itertools.cycle(colors_markers)
@@ -553,6 +553,34 @@ def smooth_color(idx, niter):
     idx = float(idx)
     return idx / niter
 
+
+def smooth_color_func(niter, func):
+    """Version of :func:`smooth_color` that accepts a function.
+
+    Can be used to pre-calculate a color list outside of a loop.
+
+    Parameters
+    ----------
+    niter : int
+        number of iterations
+    func : callable
+
+    Examples
+    --------
+    >>> from pwtools import mpl
+    >>> mpl.smooth_color_func(3, lambda z: (z,0,1-z))
+    [(0.0, 0, 1.0), (0.5, 0, 0.5), (1.0, 0, 0.0)]
+
+    >>> for ii,color in enumerate(mpl.smooth_color_func(10, lambda z: (z,0,1-z))):
+    ...     plot(rand(20)+ii, color=color)
+    """
+    col = []
+    fniter = float(niter) - 1
+    for ii in range(niter):
+        z = float(ii) / fniter
+        col.append(func(z))
+    return col
+
 #----------------------------------------------------------------------------
 # new axis line
 #----------------------------------------------------------------------------
@@ -583,7 +611,7 @@ def new_axis(fig, hostax, off=50, loc='bottom', ticks=None, wsadd=0.1,
         and is used to change the bounding box: hostax.get_position().
     label : str, xlabel (ylabel) for 'top','bottom' ('left', 'right')
     sharex, sharey : bool, share xaxis (yaxis) with `hostax`
-    
+
     Returns
     -------
     (fig, hostax, parax)
@@ -599,14 +627,14 @@ def new_axis(fig, hostax, off=50, loc='bottom', ticks=None, wsadd=0.1,
     # Create ParasiteAxes, an ax which overlays hostax.
     if sharex and sharey:
         parax = ParasiteAxes(hostax, sharex=hostax, sharey=hostax)
-    elif sharex:        
+    elif sharex:
         parax = ParasiteAxes(hostax, sharex=hostax)
-    elif sharey:        
+    elif sharey:
         parax = ParasiteAxes(hostax, sharey=hostax)
-    else:        
+    else:
         parax = ParasiteAxes(hostax)
     hostax.parasites.append(parax)
-    
+
     # If off != 0, the new axis line will be detached from hostax, i.e.
     # completely "free standing" below (above, left or right of) the main ax
     # (hostax), so we don't need anything visilbe from it b/c we create a
@@ -615,9 +643,9 @@ def new_axis(fig, hostax, off=50, loc='bottom', ticks=None, wsadd=0.1,
     for _loc in ['left', 'right', 'top', 'bottom']:
         parax.axis[_loc].set_visible(False)
         parax.axis[_loc].label.set_visible(True)
-    
+
     # Create axis line. Free-standing if off != 0, else overlaying one of hostax's
-    # axis lines. In fact, with off=0, one simulates twinx/y(). 
+    # axis lines. In fact, with off=0, one simulates twinx/y().
     new_axisline = parax.get_grid_helper().new_fixed_axis
     if loc == 'top':
         offset = (0, off)
@@ -637,7 +665,7 @@ def new_axis(fig, hostax, off=50, loc='bottom', ticks=None, wsadd=0.1,
     while loc + str(n) in parax.axis:
         n += 1
     parax.axis[loc + str(n)] = newax
-    
+
     # set ticks
     if ticks is not None:
         newax.axis.set_ticks(ticks)
@@ -647,12 +675,12 @@ def new_axis(fig, hostax, off=50, loc='bottom', ticks=None, wsadd=0.1,
     #
     # indices of the values in the array returned by ax.get_position()
     bbox_idx = dict(left=[0,0], bottom=[0,1], right=[1,0], top=[1,1])
-    old_pos = np.array(hostax.get_position())[bbox_idx[loc][0], bbox_idx[loc][1]] 
+    old_pos = np.array(hostax.get_position())[bbox_idx[loc][0], bbox_idx[loc][1]]
     if loc in ['top', 'right']:
         new_ws = old_pos - wsadd
     else:
         new_ws = old_pos + wsadd
-    # hack ...        
+    # hack ...
     cmd = "fig.subplots_adjust(%s=%f)" %(loc, new_ws)
     eval(cmd)
     return fig, hostax, parax
@@ -661,14 +689,14 @@ def new_axis(fig, hostax, off=50, loc='bottom', ticks=None, wsadd=0.1,
 def make_axes_grid_fig(num=None):
     """Create an mpl Figure and add to it an axes_grid.SubplotHost subplot
     (`hostax`).
-    
+
     Returns
     -------
     fig, hostax
     """
     if num is not None:
         fig = plt.figure(num)
-    else:        
+    else:
         fig = plt.figure()
     hostax = SubplotHost(fig, 111)
     fig.add_axes(hostax)
@@ -677,80 +705,80 @@ def make_axes_grid_fig(num=None):
 
 
 if __name__ == '__main__':
-    
+
     #-------------------------------------------------------------------------
-    # colors and markers  
+    # colors and markers
     #-------------------------------------------------------------------------
 
     fig0 = plt.figure(0)
     # All combinations of color and marker
-    for col_mark in colors_markers: 
+    for col_mark in colors_markers:
         plt.plot(np.random.rand(10), col_mark+'-')
         # The same
         ## plot(rand(10), col_mark, linestyle='-')
-    
+
     fig1 = plt.figure(1)
     # Now use one of those iterators
     t = np.linspace(0, 2*np.pi, 100)
     for f in np.linspace(1,2, 14):
-        plt.plot(t, np.sin(2*np.pi*f*t)+10*f, next(ccm)+'-')        
-    
+        plt.plot(t, np.sin(2*np.pi*f*t)+10*f, next(ccm)+'-')
+
     #-------------------------------------------------------------------------
-    # new axis lines, works with mpl 0.99 
+    # new axis lines, works with mpl 0.99
     #-------------------------------------------------------------------------
-    
+
     try:
         from pwtools.common import flatten
     except ImportError:
         from matplotlib.cbook import flatten
-    
+
     # Demo w/ all possible axis lines.
-    
+
     x = np.linspace(0,10,100)
     y = np.sin(x)
 
     fig3, hostax = make_axes_grid_fig(3)
-    
+
     hostax.set_xlabel('hostax bottom')
     hostax.set_ylabel('hostax left')
 
     # {'left': (off, wsadd),
     # ...}
-    off_dct = dict(left=(60, .1), 
-                   right=(60, .1), 
-                   top=(60, .15), 
+    off_dct = dict(left=(60, .1),
+                   right=(60, .1),
+                   top=(60, .15),
                    bottom=(50, .15))
 
     for n, val in enumerate(off_dct.items()):
         loc, off, wsadd = tuple(flatten(val))
-        fig3, hostax, parax = new_axis(fig3, hostax=hostax, 
-                                       loc=loc, off=off, label=loc, 
+        fig3, hostax, parax = new_axis(fig3, hostax=hostax,
+                                       loc=loc, off=off, label=loc,
                                        wsadd=wsadd)
         parax.plot(x*n, y**n)
-    
-    new_axis(fig3, hostax=hostax, loc='right', off=0, wsadd=0, 
-             label="hostax right, I'm like twinx()")
-    
-    new_axis(fig3, hostax=hostax, loc='top', off=0, wsadd=0, 
-             label="hostax top, I'm like twiny()")
-    
 
-    # many lines 
+    new_axis(fig3, hostax=hostax, loc='right', off=0, wsadd=0,
+             label="hostax right, I'm like twinx()")
+
+    new_axis(fig3, hostax=hostax, loc='top', off=0, wsadd=0,
+             label="hostax top, I'm like twiny()")
+
+
+    # many lines
 
     fig4, hostax = make_axes_grid_fig(4)
     off=40
     for n in range(1,5):
-        fig4, hostax, parax = new_axis(fig4, 
-                                       hostax=hostax, 
-                                       off=n*off, 
+        fig4, hostax, parax = new_axis(fig4,
+                                       hostax=hostax,
+                                       off=n*off,
                                        ticks=np.linspace(0,10*n,11),
                                        loc='bottom')
-    hostax.plot(x, y, label='l1') 
+    hostax.plot(x, y, label='l1')
     hostax.set_title('many axis lines yeah yeah')
-    
+
     hostax.legend()
-    
-    
+
+
     #-------------------------------------------------------------------------
     # plotlines3d
     #-------------------------------------------------------------------------
@@ -758,17 +786,17 @@ if __name__ == '__main__':
     fig4, ax3d = fig_ax3d()
     x = np.linspace(0,5,100)
     y = np.arange(1.0,5) # len(y) = 4
-    z = np.repeat(np.sin(x)[:,None], 4, axis=1)/y # make 2d 
+    z = np.repeat(np.sin(x)[:,None], 4, axis=1)/y # make 2d
     plotlines3d(ax3d, x, y, z)
     ax3d.set_xlabel('x')
     ax3d.set_ylabel('y')
     ax3d.set_zlabel('z')
-    
+
     plt.show()
 
 # deprecation warnings
 def meshgridt(*args, **kwds):
 ##    warnings.simplefilter('always')
-    warnings.warn("mpl.meshgridt is deprecated, use num.meshgridt", 
+    warnings.warn("mpl.meshgridt is deprecated, use num.meshgridt",
                   DeprecationWarning)
     return num.meshgridt(*args, **kwds)
