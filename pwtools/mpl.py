@@ -540,18 +540,18 @@ ilc = iter_linestyles_colors
 
 
 def smooth_color(idx, niter):
-    """Helper for creating color transitions on loops.
+    """Helper for creating color transitions in loops.
 
     Examples
     --------
-    # change color smoothly blue -> red
-    for ii in range(10):
-        z = smooth_color(ii,10)
-        plot(..., color=(z, 0, 1-z)
+    >>> # change color smoothly blue -> red
+    >>> from pwtools import mpl
+    >>> N = 10
+    >>> for ii in range(N):
+    ...     z = mpl.smooth_color(ii,N)
+    ...     plot(rand(20)+ii, color=(z,0,1-z))
     """
-    niter = float(niter)
-    idx = float(idx)
-    return idx / niter
+    return float(idx) / float(niter - 1)
 
 
 def smooth_color_func(niter, func):
