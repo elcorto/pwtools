@@ -12,7 +12,7 @@ import warnings
 ##warnings.simplefilter('always')
 
 # Hack for older scipy versions.
-try: 
+try:
     from scipy.interpolate import CloughTocher2DInterpolator, \
         NearestNDInterpolator, LinearNDInterpolator
 except ImportError:
@@ -45,7 +45,7 @@ def normalize(a):
 def vlinspace(a, b, num, endpoint=True):
     """Like numpy.linspace, but for 1d arrays. Generate uniformly spaced points
     (vectors) along the distance vector connecting a and b.
-    
+
     Parameters
     ----------
     a, b : 1d arrays
@@ -63,7 +63,7 @@ def vlinspace(a, b, num, endpoint=True):
     if endpoint:
         # If num == 1, then the value of `ddv` doesn't matter b/c ret == a.
         ddv = 0 if (num == 1) else dv/float(num-1)
-    else:        
+    else:
         ddv = dv/float(num)
     ret = np.empty((num, len(dv)), dtype=float)
     ret[...] = ddv
@@ -73,7 +73,7 @@ def vlinspace(a, b, num, endpoint=True):
 
 def norm_int(y, x, area=1.0, scale=True, func=simps):
     """Normalize integral area of y(x) to `area`.
-    
+
     Parameters
     ----------
     x,y : numpy 1d arrays
@@ -100,7 +100,7 @@ def norm_int(y, x, area=1.0, scale=True, func=simps):
         fy = np.abs(y).max()
         sx = x / fx
         sy = y / fy
-    else:    
+    else:
         fx = fy = 1.0
         sx, sy = x, y
     # Area under unscaled y(x).
@@ -111,7 +111,7 @@ def norm_int(y, x, area=1.0, scale=True, func=simps):
 def deriv_spl(y, x=None, xnew=None, n=1, fullout=False, **splrep_kwargs):
     """n-th derivative for 1d arrays of possibly nonuniformly sampled data.
     Returns matching x-axis for plotting. Splines are used.
-    
+
     Parameters
     ----------
     x,y : 1d arrays of same length
@@ -119,7 +119,7 @@ def deriv_spl(y, x=None, xnew=None, n=1, fullout=False, **splrep_kwargs):
     xnew : {None, 1d array)
         x-axis to evaluate the derivative, if None then xnew=x
     n : int
-        order of the derivative, can only be <= k 
+        order of the derivative, can only be <= k
     fullout : bool
         return xd, yd or just yd
     splrep_kwargs : keyword args to scipy.interpolate.splrep, default: k=3, s=0
@@ -133,7 +133,7 @@ def deriv_spl(y, x=None, xnew=None, n=1, fullout=False, **splrep_kwargs):
     xd : 1d array, (len(x) or len(xnew),)
     yd : 1d array, (len(x) or len(xnew),)
         n-th derivative of y at points xd
-    
+
     Notes
     -----
     xd is actually == x or xnew (if x is not None). xd can be returned to match
@@ -158,7 +158,7 @@ def findmin(x, y):
     """Find minimum of x-y curve by searching for the root of the 1st
     derivative of a spline thru x,y. `x` must be sorted min -> max and the
     interval [x[0], x[-1]] must contain the minimum.
-    
+
     This is intended for quick interactive work. For working with
     pre-calculated splines, see :class:`Spline`.
 
@@ -183,7 +183,7 @@ def findroot(x, y):
 
     This is intended for quick interactive work. For working with
     pre-calculated splines, see :class:`Spline`.
-    
+
     Parameters
     ----------
     x,y : 1d arrays
@@ -201,15 +201,15 @@ def findroot(x, y):
 class Fit1D(object):
     """Base class for 1D data fit/interpolation classes (:class:`Spline`,
     :class:`PolyFit1D`). It provides :meth:`get_min`, :meth:`get_max`,
-    :meth:`get_root`, :meth:`is_mono`. 
-    
+    :meth:`get_root`, :meth:`is_mono`.
+
     The assumed API is that the ``__call__`` method has a kwd `der` which
     causes it to calculate derivatives, i.e. ``__call__(x, der=1)`` is the
     first deriv."""
     def __init__(self, x, y):
         self.x = x
         self.y = y
-    
+
     # XXX once the now deprecated module-level findroot() is gone, we can turn
     # this into a new module-level findroot(), with another API however.
     def _findroot(self, func, x0=None, xab=None, **kwds):
@@ -224,7 +224,7 @@ class Fit1D(object):
             start guess for Newton's secant method
         xab : sequence of length 2
             start bracket for Brent's method, root must lie in between
-        **kwds : 
+        **kwds :
             passed to scipy root finder (newton() or brentq())
 
         Returns
@@ -238,32 +238,32 @@ class Fit1D(object):
             if xab is None:
                 xab = [self.x[0], self.x[-1]]
             xx = optimize.brentq(func, xab[0], xab[1], **kwds)
-        return xx    
-    
+        return xx
+
     def is_mono(self):
         """Return True if the curve described by the fit function f(x) is
         monotonic."""
-        tmp = np.diff(np.sign(np.diff(self(self.x))))       
+        tmp = np.diff(np.sign(np.diff(self(self.x))))
         return (tmp == 0).all()
 
     def get_min(self, x0=None, xab=None, **kwds):
         """Return x where y(x) = min(y) by calculating the root of the
         fit's 1st derivative (by calling ``self(x, der=1)``).
-        
+
         Parameters
         ----------
-        x0 or xab : 
+        x0 or xab :
             see :meth:`_findroot`
-        **kwds : 
+        **kwds :
             passed to :meth:`_findroot`
-        
+
         Returns
         -------
         xx : scalar
             min(y) = y(xx)
         """
         return self._findroot(lambda x: self(x, der=1), x0=x0, xab=xab, **kwds)
-    
+
     def get_max(self, x0=None, xab=None, **kwds):
         """Convenience method. Same as :meth:`get_min`, just for local maxima,
         simply using ``-self(x, der=1)``."""
@@ -274,25 +274,25 @@ class Fit1D(object):
 
         In :class:`Spline`, this is the same as ``Spline.invsplev(0.0, ...)``,
         i.e. lookup x where y=0, which is exactly the root.
-        
+
         Parameters
         ----------
         x0 or xab :
             see :meth:`_findroot`
-        **kwds : 
+        **kwds :
             passed to :meth:`_findroot`
-        
+
         Returns
         -------
         xx : scalar
             y(xx) = 0
         """
         return self._findroot(self, x0=x0, xab=xab, **kwds)
-    
+
 
 class Spline(Fit1D):
     """:class:`Fit1D`-based spline interpolator.
-    
+
     Like ``scipy.interpolate.UnivariateSpline``, this is a wrapper around
     ``scipy.interpolate.splrep/splev`` with some nice features like y->x lookup
     and interpolation accuracy check etc. It basically simplifies setting up a
@@ -314,7 +314,7 @@ class Spline(Fit1D):
     >>> plot(x, sp(x, der=1), label='1st derivative')
     >>> xx = sp.invsplev(0.5, xab=[0, pi/2])
     >>> print("at %f degrees, sin(x) = 0.5" %(xx/pi*180))
-    >>> 
+    >>>
     >>> y = x**2 - 5
     >>> sp = num.Spline(x,y)
     >>> print("the root is at x=%f" %sp.invsplev(0.0))
@@ -331,7 +331,7 @@ class Spline(Fit1D):
             smoothing factor) much bigger than 0. See `ckeckeps`.
         checkeps : bool
             Whether to use `eps` to ckeck interpolation accuracy.
-        **splrep_kwargs : keywords args to splrep(), default: k=3, s=0            
+        **splrep_kwargs : keywords args to splrep(), default: k=3, s=0
         """
         super(Spline, self).__init__(x,y)
         self.arr_zero_dim_t = type(np.array(1.0))
@@ -354,7 +354,7 @@ class Spline(Fit1D):
             return float(ret)
         else:
             return ret
-    
+
     def splev(self, x, *args, **kwds):
         warnings.warn("use Spline(x,y)(new_x) instead of Spline.splev()", DeprecationWarning)
         return self(x, *args, **kwds)
@@ -364,7 +364,7 @@ class Spline(Fit1D):
         the name. Find x where y(x) == y0 by calculating the root of y(x) -
         y0. We can use Newton's (x0) or Brent's (xab) methods. Use only one of
         them. If neither is given, we use xab=[x[0], x[-1]] and Brent.
-       
+
         There are a few caveats. The result depends the nature of the
         underlying x-y curve (is it strictly monotinic -> hopefully one root or
         oscillating -> possibly several roots) and on how good x0 or xab are.
@@ -373,17 +373,17 @@ class Spline(Fit1D):
         interval xab which contains no (or several) root(s) will cause the
         Brent method to error out or give wrong/unexpected results. Always plot
         you data before using.
-        
+
         Works only for scalar input (one point lookup). For many points, try to
         construct an inverse spline: Spline(y,x).
-        
+
         Parameters
         ----------
         x0 : float
             start guess for Newton's secant method
         xab : sequence of length 2
             start bracket for Brent's method, root must lie in between
-        
+
         Returns
         -------
         xx : scalar
@@ -398,25 +398,25 @@ class Spline(Fit1D):
                                     %(y0, ymn, ymx))
         func = lambda x: self(x) - y0
         return self._findroot(func, x0=x0, xab=xab)
-   
+
 
 def slicetake(a, sl, axis=None, copy=False):
     """The equivalent of numpy.take(a, ..., axis=<axis>), but accepts slice
     objects instead of an index array. Also by default, it returns a *view* and
     no copy.
-    
+
     Parameters
     ----------
     a : numpy ndarray
     sl : slice object, list or tuple of slice objects
         axis=<int>
             one slice object for *that* axis
-        axis=None 
-            `sl` is a list or tuple of slice objects, one for each axis. 
+        axis=None
+            `sl` is a list or tuple of slice objects, one for each axis.
             It must index the whole array, i.e. len(sl) == len(a.shape).
     axis : {None, int}
     copy : bool, return a copy instead of a view
-    
+
     Returns
     -------
     A view into `a` or copy of a slice of `a`.
@@ -426,9 +426,9 @@ def slicetake(a, sl, axis=None, copy=False):
     >>> from numpy import s_
     >>> a = np.random.rand(20,20,20)
     >>> b1 = a[:,:,10:]
-    >>> # single slice for axis 2 
+    >>> # single slice for axis 2
     >>> b2 = slicetake(a, s_[10:], axis=2)
-    >>> # tuple of slice objects 
+    >>> # tuple of slice objects
     >>> b3 = slicetake(a, s_[:,:,10:])
     >>> (b2 == b1).all()
     True
@@ -440,12 +440,12 @@ def slicetake(a, sl, axis=None, copy=False):
     """
     # The long story
     # --------------
-    # 
+    #
     # 1) Why do we need that:
-    # 
+    #
     # # no problem
     # a[5:10:2]
-    # 
+    #
     # # the same, more general
     # sl = slice(5,10,2)
     # a[sl]
@@ -455,28 +455,28 @@ def slicetake(a, sl, axis=None, copy=False):
     #  - Take the slice of different arrays along different axes.
     # Since numpy.take() and a.take() don't handle slice objects, one would
     # have to use direct slicing and pay attention to the shape of the array:
-    #       
+    #
     #     a[sl], b[:,:,sl,:], etc ...
-    # 
+    #
     # We want to use an 'axis' keyword instead. np.r_() generates index arrays
     # from slice objects (e.g r_[1:5] == r_[s_[1:5] ==r_[slice(1,5,None)]).
     # Since we need index arrays for numpy.take(), maybe we can use that? Like
     # so:
-    #     
+    #
     #     a.take(r_[sl], axis=0)
     #     b.take(r_[sl], axis=2)
-    # 
+    #
     # Here we have what we want: slice object + axis kwarg.
     # But r_[slice(...)] does not work for all slice types. E.g. not for
-    #     
+    #
     #     r_[s_[::5]] == r_[slice(None, None, 5)] == array([], dtype=int32)
     #     r_[::5]                                 == array([], dtype=int32)
     #     r_[s_[1:]]  == r_[slice(1, None, None)] == array([0])
     #     r_[1:]
     #         ValueError: dimensions too large.
-    # 
+    #
     # The returned index arrays are wrong (or we even get an exception).
-    # The reason is given below. 
+    # The reason is given below.
     # Bottom line: We need this function.
     #
     # The reason for r_[slice(...)] gererating sometimes wrong index arrays is
@@ -490,20 +490,20 @@ def slicetake(a, sl, axis=None, copy=False):
     # <number>).
     #
     # 2) Slice vs. copy
-    # 
+    #
     # numpy.take(a, array([0,1,2,3])) or a[array([0,1,2,3])] return a copy of
     # `a` b/c that's "fancy indexing". But a[slice(0,4,None)], which is the
-    # same as indexing (slicing) a[:4], return *views*. 
-    
+    # same as indexing (slicing) a[:4], return *views*.
+
     if axis is None:
         slices = sl
-    else: 
+    else:
         # Note that these are equivalent:
         #   a[:]
-        #   a[s_[:]] 
-        #   a[slice(None)] 
+        #   a[s_[:]]
+        #   a[slice(None)]
         #   a[slice(None, None, None)]
-        #   a[slice(0, None, None)]   
+        #   a[slice(0, None, None)]
         slices = [slice(None)]*a.ndim
         slices[axis] = sl
     # a[...] can take a tuple or list of slice objects
@@ -511,29 +511,29 @@ def slicetake(a, sl, axis=None, copy=False):
     # a[(slice(x,y,z), slice(i,j,k))] == a[[slice(x,y,z), slice(i,j,k)]]
     if copy:
         return a[slices].copy()
-    else:        
+    else:
         return a[slices]
 
 
 def sliceput(a, b, sl, axis=None):
     """The equivalent of a[<slice or index>]=b, but accepts slices objects
     instead of array indices or fancy indexing (e.g. a[:,1:]).
-    
+
     Parameters
     ----------
     a : numpy ndarray
     sl : slice object, list or tuple of slice objects
         axis=<int>
             one slice object for *that* axis
-        axis=None 
-            `sl` is a list or tuple of slice objects, one for each axis. 
+        axis=None
+            `sl` is a list or tuple of slice objects, one for each axis.
             It must index the whole array, i.e. len(sl) == len(a.shape).
     axis : {None, int}
-    
+
     Returns
     -------
     The modified `a`.
-    
+
     Examples
     --------
     >>> from numpy import s_
@@ -564,13 +564,13 @@ def extend_array(arr, nstep, axis=0):
     """Repeat an array along ``axis`` by inserting a new axis (dimension)
     before ``axis``. Use this to "broadcast" e.g. a 2d array (3,3) ->
     (3,3,nstep).
-    
+
     Parameters
     ----------
     arr : ndarray
     nstep : int, number of times to repeat
     axis : axis to add
-    
+
     Examples
     --------
     >>> a=arange(4)
@@ -603,7 +603,7 @@ def extend_array(arr, nstep, axis=0):
     >>> extend_array(a, 3, 2)[...,2]
     array([[0, 1],
            [2, 3]])
-    
+
     See Also
     --------
     np.repeat()
@@ -647,7 +647,7 @@ def sum(arr, axis=None, keepdims=False, **kwds):
         If this is set to True, the axes from `axis` are left in the result
         and the reduction (sum) is performed for all remaining axes. Therefore,
         it reverses the `axis` to be summed over.
-    **kwds : passed to np.sum().        
+    **kwds : passed to np.sum().
 
     Examples
     --------
@@ -686,7 +686,7 @@ def sum(arr, axis=None, keepdims=False, **kwds):
             return _sum(_arr, _tosum)
         else:
             return arr
-    
+
     axis_is_int = isinstance(axis, int)
     if (axis is None):
         if keepdims:
@@ -710,8 +710,8 @@ def sum(arr, axis=None, keepdims=False, **kwds):
 
 
 class Interpol2D(object):
-    """Common 2D interpolator API. 
-    
+    """Common 2D interpolator API.
+
     The API is the same as in ``scipy.interpolate``, e.g.
 
     >>> inter = scipy.interpolate.SomeInterpolatorClass(points, values)
@@ -737,13 +737,13 @@ class Interpol2D(object):
             | 'rbf_inv_multi' : RBFN w/ inverse multiquadric rbf
             | 'rbf_gauss' : RBFN w/ gaussian rbf
             | 'poly'      : :class:`PolyFit`
-            | 'bispl'     : scipy.interpolate.bispl{rep,ev} 
+            | 'bispl'     : scipy.interpolate.bispl{rep,ev}
             | 'ct'        : scipy.interpolate.CloughTocher2DInterpolator
             | 'linear'    : scipy.interpolate.LinearNDInterpolator
             | 'nearest'   : scipy.interpolate.NearestNDInterpolator
         **initkwds : keywords passed on to the interpolator's constructor or
             fit() method (RBF case)
-        
+
         Notes
         -----
         Despite the name "Interpol2D", the RBF methods 'rbf_*' as well as 'poly' are
@@ -751,7 +751,7 @@ class Interpol2D(object):
         the RBF methods using the ``r=0`` keyword (see
         :meth:`pwtools.rbf.Rbf.fit`), which will use ``scipy.linalg.solve``
         without regularization.
-        
+
         The methods 'ct', 'linear' and of course 'nearest' can be inaccurate
         (see also ``test/test_interpol.py``). Use only for plotting, not for
         data evaluation, i.e. accurate minimas etc.
@@ -760,15 +760,15 @@ class Interpol2D(object):
         does :meth:`get_min`.
 
         Possible keywords (examples):
-        
+
         | rbf :
         |     p='mean' [,r=None] (default)    # linalg.lstsq
-        |     p='scipy', r=1e-8               # linalg.solve w/ regularization 
+        |     p='scipy', r=1e-8               # linalg.solve w/ regularization
         |     p=3.5, r=0                      # linalg.solve w/o regularization
         | ct :
         |     tol = 1e-6 (default)
         | bispl :
-        |     s = 1e-4 
+        |     s = 1e-4
         |     kx = 3, ky = 3 (default)
         |     nxest, nyest
         | poly :
@@ -777,14 +777,14 @@ class Interpol2D(object):
         Examples
         --------
         >>> from pwtools import num, mpl
-        >>> x=linspace(-5,5,20) 
-        >>> y=x 
-        >>> X,Y=np.meshgrid(x,y); X=X.T; Y=Y.T 
-        >>> Z=(X+3)**2+(Y+4)**2 + 5 
+        >>> x=linspace(-5,5,20)
+        >>> y=x
+        >>> X,Y=np.meshgrid(x,y); X=X.T; Y=Y.T
+        >>> Z=(X+3)**2+(Y+4)**2 + 5
         >>> dd=mpl.Data2D(X=X,Y=Y,Z=Z)
         >>> fmt="what: {:15} target: [5,30] result: {}"
         >>> for method in ['rbf_multi', 'rbf_inv_multi',
-        ...                'rbf_gauss', ('poly', {'deg': 5}), 
+        ...                'rbf_gauss', ('poly', {'deg': 5}),
         ...                'ct', 'bispl', 'linear', 'nearest']:
         ...     if isinstance(method, tuple):
         ...         what = method[0]
@@ -792,7 +792,7 @@ class Interpol2D(object):
         ...     else:
         ...         what = method
         ...         kwds = {}
-        ...     inter=num.Interpol2D(dd=dd, what=what, **kwds)   
+        ...     inter=num.Interpol2D(dd=dd, what=what, **kwds)
         ...     print(fmt.format(what, inter([[-3,-4],[0,0]])))
         what: rbf_multi       target: [5,30] result: [  5.00000005  29.99999959]
         what: rbf_inv_multi   target: [5,30] result: [  4.99999808  29.99999798]
@@ -817,15 +817,15 @@ class Interpol2D(object):
             self.values = values
         else:
             self.xx, self.yy, self.values, self.points = dd.xx, dd.yy, dd.zz, dd.XY
-        
+
         # need to import here b/c of circular dependency rbf.py <-> num.py
         from pwtools import rbf
         if what == 'rbf_multi':
-            self.inter = rbf.Rbf(self.points, self.values, 
+            self.inter = rbf.Rbf(self.points, self.values,
                                  rbf='multi', **initkwds)
             self.call = self.inter
         elif what == 'rbf_inv_multi':
-            self.inter = rbf.Rbf(self.points, self.values, 
+            self.inter = rbf.Rbf(self.points, self.values,
                                  rbf='inv_multi', **initkwds)
             self.call = self.inter
         elif what == 'rbf_gauss':
@@ -839,16 +839,16 @@ class Interpol2D(object):
             if CloughTocher2DInterpolator is None:
                 raise ImportError("could not import "
                     "scipy.interpolate.CloughTocher2DInterpolator")
-            else:                    
-                self.inter = CloughTocher2DInterpolator(self.points, 
-                                                        self.values, 
+            else:
+                self.inter = CloughTocher2DInterpolator(self.points,
+                                                        self.values,
                                                         **initkwds)
                 self.call = self.inter
         elif what == 'nearest':
             if NearestNDInterpolator is None:
                 raise ImportError("could not import "
                     "scipy.interpolate.NearestNDInterpolator")
-            else:                    
+            else:
                 self.inter = NearestNDInterpolator(self.points, self.values,
                                                **initkwds)
                 self.call = self.inter
@@ -856,7 +856,7 @@ class Interpol2D(object):
             if LinearNDInterpolator is None:
                 raise ImportError("could not import "
                     "scipy.interpolate.LinearNDInterpolator")
-            else:                    
+            else:
                 self.inter = LinearNDInterpolator(self.points, self.values,
                                                    **initkwds)
                 self.call = self.inter
@@ -875,7 +875,7 @@ class Interpol2D(object):
             self.call = _call
         else:
             raise Exception("unknown interpolator type: %s" %what)
-    
+
     # See pwtools.test.test_polyfit.test_api: work around subtle PolyFit API
     # difference to all other interpolators w/o breaking neither Interpol2D's
     # nor PolyFit's API
@@ -889,39 +889,39 @@ class Interpol2D(object):
         points : 2d (M,2) or 1d (N,)
             M points in 2-dim space where to evalutae the interpolator
             (only one in 1d case)
-        **callkwds : keywords passed to the interpolator's __call__ method            
-        
+        **callkwds : keywords passed to the interpolator's __call__ method
+
         Returns
         -------
         Y : 1d array (M,)
             interpolated values
-        """            
+        """
         points = np.asarray(points)
         if len(points.shape) == 1:
             points = points[None,:]
         return self.call(points, **callkwds)
-    
+
     def get_min(self, x0=None, **kwds):
         """Return [x,y] where z(x,y) = min(z) by minimizing z(x,y) w/
         scipy.optimize.fmin().
-        
+
         Parameters
         ----------
         x0 : sequence, length (2,), optional
             Initial guess. If None then use the data grid point with the
             smallest `z` value.
-        
+
         Returns
         -------
         [xmin, ymin]: 1d array (2,)
         """
         _kwds = dict(disp=0, xtol=1e-12, ftol=1e-8, maxfun=1e4, maxiter=1e4)
-        _kwds.update(kwds)                            
+        _kwds.update(kwds)
         if x0 is None:
             idx0 = self.values.argmin()
             x0 = [self.xx[idx0], self.yy[idx0]]
         xopt = optimize.fmin(self, x0, **_kwds)
-        return xopt                        
+        return xopt
 
 def fempty(shape, dtype=np.float):
     return np.empty(shape, dtype=dtype, order='F')
@@ -929,7 +929,7 @@ def fempty(shape, dtype=np.float):
 
 def distsq(arrx, arry):
     r"""Squared distances between all points in `arrx` and `arry`:
-    
+
     .. math::
 
         r_{ij}^2 = \sum_k (\texttt{arrx}[i,k] - \texttt{arry}[j,k])^2 \\
@@ -937,26 +937,26 @@ def distsq(arrx, arry):
         j = 1..M_y \\
         k = 1..N
 
-    This is like 
+    This is like
         scipy.spatial.distance.cdist(arrx, arry)**2.0
-    
+
     This is a wrapper for :func:`pwtools._flib.distsq`.
 
     Parameters
     ----------
     arrx, arry : ndarray (Mx,N), (My,N)
         Mx (My) points in N-dim space
-    
+
     Returns
     -------
     2d array (Mx,My)
-    """        
+    """
     nx, ny = arrx.shape[0], arry.shape[0]
     ndim = arrx.shape[1]
     ndimx, ndimy = arrx.shape[1], arry.shape[1]
     assert ndimx == ndimy, ("ndimx (%s, shape: %s) != ndimy (%s, shape: %s)" \
-                           %(str(ndimx), 
-                             str(arrx.shape), 
+                           %(str(ndimx),
+                             str(arrx.shape),
                              str(ndimy),
                              str(arry.shape)))
     # Allocating in F-order is essential for speed! For many points, this step
@@ -964,7 +964,7 @@ def distsq(arrx, arry):
     # is order='C' (numpy default), then the f2py wrapper makes a copy of the
     # array before starting to crunch numbers.
     dist = np.empty((nx, ny), dtype=arrx.dtype, order='F')
-    return _flib.distsq(arrx, arry, dist, nx, ny, ndim)    
+    return _flib.distsq(arrx, arry, dist, nx, ny, ndim)
 
 
 
@@ -974,18 +974,18 @@ class DataND(object):
     values on a grid represented by the nd array. The 2d array is the
     "flattened" version of the nd array. Works only for ordered axes where `a2`
     was generated by a nested loop over ordered 1d sequences, i.e.
-    
+
     >>> nx,ny,nz = len(x),len(y),len(z)
     >>> for ii in range(nx):
     ...     for jj in range(ny):
     ...         for kk in range(nz):
-    ...             idx = ii*ny*nz + jj*nz + kk 
+    ...             idx = ii*ny*nz + jj*nz + kk
     ...             a2[idx,0] = x[ii]
     ...             a2[idx,1] = y[jj]
     ...             a2[idx,2] = z[kk]
     ...             a2[idx,3] = <some value>
     >>> axes = [x,y,z]
-    
+
     The `axes` are also extracted by numpy.unique() from `a2`'s columns,
     therefore only ordered axes work.
 
@@ -997,7 +997,7 @@ class DataND(object):
     >>> # something to create grid values
     >>> a=iter(arange(1,100))
     >>> # Nested loop
-    >>> a2=array([[x,y,z,a.next()] for x in [0,1,2] for y in [0,1] for z in [0,1,2,3]])  
+    >>> a2=array([[x,y,z,a.next()] for x in [0,1,2] for y in [0,1] for z in [0,1,2,3]])
     >>> nd=num.DataND(a2=a2)
     >>> nd.an.shape
     (3,2,4)
@@ -1012,13 +1012,13 @@ class DataND(object):
     >>> nd.axes
     [array([0, 1, 2]), array([0, 1]), array([0, 1, 2, 3])]
     """
-    
+
     def __init__(self, a2=None, an=None, axes=None):
         """
         Parameters
         ----------
         arr : 2d array (nrows, ncols)
-        
+
         Attributes
         -------
         nd : nd arry
@@ -1042,12 +1042,12 @@ class DataND(object):
         # an[1,2,3] == an[(1,2,3)], need way to eliminate loop over index array
         for ii,_idx in enumerate(idx):
             an[tuple(_idx)] = self.a2[ii,-1]
-        return an, axes    
+        return an, axes
 
 
 def rms(arr, nitems='all'):
     """RMS of all elements in a ndarray.
-    
+
     Parameters
     ----------
     arr : ndarray
@@ -1065,12 +1065,12 @@ def rms(arr, nitems='all'):
     else:
         nitems = float(nitems)
     rms = np.sqrt((arr**2.0).sum() / nitems)
-    return rms        
+    return rms
 
 
 def rms3d(arr, axis=0, nitems='all'):
     """RMS of 3d array along `axis`. Sum all elements of all axes != axis.
-    
+
     Parameters
     ----------
     arr : 3d array
@@ -1081,7 +1081,7 @@ def rms3d(arr, axis=0, nitems='all'):
         normalization constant, the sum of squares is divided by this number,
         set to unity for no normalization, if 'all' then use nitems = number of
         elements in each sub-array along `axis`
-    
+
     Returns
     -------
     rms : 1d array, (arr.shape[axis],)
@@ -1104,8 +1104,8 @@ def rms3d(arr, axis=0, nitems='all'):
         rms =  np.sqrt((arr**2.0).sum(0).sum(1) / nitems)
     elif axis == 2:
         rms =  np.sqrt((arr**2.0).sum(0).sum(0) / nitems)
-    return rms        
-    
+    return rms
+
 
 def inner_points_mask(points):
     """Mask array into `points` where ``points[msk]`` are all "inner" points,
@@ -1132,7 +1132,7 @@ def inner_points_mask(points):
         tri = Delaunay(points)
         edge_idx = np.unique(tri.convex_hull)
         msk.put(edge_idx, False)
-    return msk    
+    return msk
 
 
 def poly_str(ndim, deg):
@@ -1143,9 +1143,9 @@ def poly_str(ndim, deg):
         term = 'a%i*' %ii + xx
         if st == '':
             st = term
-        else:    
+        else:
             st += ' + %s' %term
-    return st        
+    return st
 
 
 def poly_powers(ndim, deg):
@@ -1165,41 +1165,41 @@ def poly_powers(ndim, deg):
     --------
     For one dim, we have data points (x_i,y_i) and the to-be-fitted poly of order
     k is::
-        
+
         f(x) = a0*x^0 + a1*x^1 + a2*x^2 + ... + ak*x^k
 
     The Vandermonde matrix A consists of all powers of x (cols) for all data
     points (rows) and each row has the form of the poly::
 
         [[x_0^0 x_0^1 ... x_0^k],
-         [x_1^0 x_1^1 ... x_1^k],   
+         [x_1^0 x_1^1 ... x_1^k],
          ...
          [x_n^0 x_n^1 ... x_n^k]]
-    
+
     To fit, we solve A . a = y, where a = [a0,...,ak].
 
     The returned array `powers` has k rows, where each row holds the powers for
     one term in the poly. For ndim=1 and poly order k, we have::
-        
+
         [[0],
          [1],
          ...
          [k]]
-    
+
     and::
 
         [0] -> x^0
         [1] -> x^1
         ...
         [k] -> x^k
-    
+
     Now, suppose we have 2 dims, thus data points (x0_i,x1_i,y_i) and a poly
     of order 2::
-        
+
         f(x0,x1) = a0*x0^0*x1^0 + a1*x0^0*x1^1 + a2*x0^0*x1^2 + a3*x0^1*x1^0 +
                    a4*x0^1*x1^1 + a5*x0^1*x1^2 + a6*x0^2*x1^0 + a7*x0^2*x1^1 +
                    a8*x0^2*x1^2
-    
+
     with 9 coeffs a = [a0,...,a8]. Therefore, ``powers.shape = (9,2)``::
 
         [[0, 0],
@@ -1211,14 +1211,14 @@ def poly_powers(ndim, deg):
          [2, 0],
          [2, 1],
          [2, 2]]
-    
-    and:: 
-        
+
+    and::
+
         [0,0] -> x0^0*x1^0
         [1,2] -> x0^1*x1^2
         ...
     """
-    return np.array([x for x in itertools.product(range(deg+1), 
+    return np.array([x for x in itertools.product(range(deg+1),
                                                   repeat=ndim)])
 
 
@@ -1231,7 +1231,7 @@ def vander(points, deg):
     points : see polyfit()
     deg : int
         Degree of the poly (e.g. 3 for cubic).
-    
+
     Returns
     -------
     vander : 2d array (npoints, (deg+1)**ndim)
@@ -1328,7 +1328,7 @@ def polyval(fit, points, der=0, avg=False):
         Derivative order. Only for 1D, uses np.polyder().
     avg : bool, optional
         Internal hack, only used by :func:`avgpolyval`.
-    
+
     Notes
     -----
     For 1D we provide "analytic" derivatives using np.polyder(). For ND, we
@@ -1357,7 +1357,7 @@ def polyval(fit, points, der=0, avg=False):
             return np.dot(vand, fit['coeffs']) * vscale + vmin
 
 
-def avgpolyfit(points, values, deg=None, degmin=None, degmax=None, levels=1, 
+def avgpolyfit(points, values, deg=None, degmin=None, degmax=None, levels=1,
                degrange=None, scale=True):
     """Same as :func:`polyfit`, but fit multiple polys. There are two types of fits,
     which can be combined. (1) Fit `levels` polys and remove one level of
@@ -1384,7 +1384,7 @@ def avgpolyfit(points, values, deg=None, degmin=None, degmax=None, levels=1,
         polyfit(), `errors` =  1d array (ndeg*levels,) with RMS errors of each
         fit, `degrees` = 1d array (ndeg*levels,) with poly degrees, npoints =
         1d array (ndeg*levels,) with used number of points.
-    
+
     Examples
     --------
     >>> fit=avgpolyfit(points, values, degmin=3, degmax=7, levels=5)
@@ -1405,7 +1405,7 @@ def avgpolyfit(points, values, deg=None, degmin=None, degmax=None, levels=1,
     if degrange is None:
         assert (deg is not None) or ([degmin, degmax] != [None]*2), \
             ("use deg, degmin+degmax or degrange")
-        if deg is None:    
+        if deg is None:
             assert degmin <= degmax, "degmin (%i) > degmax (%i)" %(degmin, degmax)
             degs = list(range(degmin, degmax+1))
         else:
@@ -1436,7 +1436,7 @@ def avgpolyfit(points, values, deg=None, degmin=None, degmax=None, levels=1,
 def avgpolyval(fit, points, der=0, weight_type=1):
     """Use poly fits from :func:`avgpolyfit` and average them according to their RMS
     error.
-    
+
     Parameters
     ----------
     fit : tuple
@@ -1452,8 +1452,8 @@ def avgpolyval(fit, points, der=0, weight_type=1):
     The weighting and averaging is due to [1]_, but by default we don't include
     the polynomial's degree in the weight as this produces worse fits
     sometimes.
-    
-    .. [1] Blanco, M.; Francisco, E. & Luana, V., 
+
+    .. [1] Blanco, M.; Francisco, E. & Luana, V.,
        "GIBBS: isothermal-isobaric thermodynamics of solids from energy
        curves using a quasi-harmonic Debye model", Computer Physics
        Communications, 2004, 158, 57-72
@@ -1467,7 +1467,7 @@ def avgpolyval(fit, points, der=0, weight_type=1):
     fits, errors, degrees, npoints = \
         fit['fits'], fit['errors'], fit['degrees'], fit['npoints']
     if weight_type == 1:
-        err = errors / errors.min() 
+        err = errors / errors.min()
     elif weight_type == 2:
         err = errors / errors.min() * \
               (degrees + 1.0) / npoints
@@ -1480,8 +1480,8 @@ def avgpolyval(fit, points, der=0, weight_type=1):
         wft = copy.deepcopy(ft)
         wft['coeffs'] *= wght
         ret += polyval(wft, points, der=der, avg=True)
-    if der > 0:        
-        return ret 
+    if der > 0:
+        return ret
     else:
         return ret + fit['fits'][0]['vmin']
 
@@ -1502,7 +1502,7 @@ class PolyFit(object):
     points : nd array (npoints,ndim)
         `npoints` points in `ndim`-space, to be fitted by a `ndim` polynomial
         f(x0,x1,...,x{ndim-1}).
-    values : 1d array        
+    values : 1d array
     deg : int
         Degree of the poly (e.g. 3 for cubic).
     levels : int
@@ -1513,13 +1513,13 @@ class PolyFit(object):
         range of poly degrees, use either this or `degmin` + `degmax`
     scale: bool, optional
         Scale `points` and `values` to unity internally before fitting.
-    
+
     Notes
     -----
     | __init__: `points` must be (npoints,ndim) even if ndim=1.
     | __call__: `points` can be (ndim,) instead of (1,ndim), need this if called in
                 fmin()
-    
+
     Examples
     --------
     >>> fit1=polyfit(points, values, deg=3); polyval(fit1, new_points)
@@ -1546,23 +1546,23 @@ class PolyFit(object):
             self.fitfunc = polyfit
             self.evalfunc = polyval
         self.fit = self.fitfunc(self.points, self.values, *args, **kwds)
-    
+
     @staticmethod
     def _has_keys(dct, keys):
         """True if at least one key in `keys` is in dct.keys()."""
         if type(keys) != type([]):
             keys = [keys]
-        ret = False            
+        ret = False
         for k in keys:
             if k in dct:
                 ret = True
                 break
-        return ret                
-    
+        return ret
+
     @staticmethod
     def _fix_shape_init(points):
         return points
-    
+
     @staticmethod
     def _fix_shape_call(points):
         # (ndim,) -> (1,ndim) -> 1 point in ndim space
@@ -1570,7 +1570,7 @@ class PolyFit(object):
             return points[None,:]
         else:
             return points
-        
+
     def __call__(self, points, **kwds):
         points = self._fix_shape_call(points)
         ret = self.evalfunc(self.fit, points, **kwds)
@@ -1588,18 +1588,18 @@ class PolyFit(object):
             Initial guess. If not given then `points[i,...]` at the min of
             `values` is used.
         **kwds : keywords to fmin()
-        
+
         Returns
         -------
         1d array (ndim,)
-        """            
+        """
         _kwds = dict(disp=0, xtol=1e-12, ftol=1e-8, maxfun=1e4, maxiter=1e4)
         _kwds.update(kwds)
         if x0 is None:
             idx = self.values.argmin()
             x0 = self.points[idx,...]
         xopt = optimize.fmin(self, x0, **_kwds)
-        return xopt                        
+        return xopt
 
 
 # Need to inherit first Fit1D such that Fit1D.get_min() is used instead of
@@ -1620,8 +1620,8 @@ class PolyFit1D(Fit1D, PolyFit):
     2.0000000000000009
     >>> f.get_min()
     1.0
-    >>> xx = linspace(x[0],x[-1],50) 
-    >>> plot(x,y,'o', label='data') 
+    >>> xx = linspace(x[0],x[-1],50)
+    >>> plot(x,y,'o', label='data')
     >>> plot(xx, f(xx), label='poly')
     >>> plot(xx, f(xx,der=1), label='d(poly)/dx')
     >>> legend()
@@ -1641,32 +1641,32 @@ class PolyFit1D(Fit1D, PolyFit):
         # set self.x, self.y, need that in Fit1D._findroot()
         Fit1D.__init__(self, self.points[:,0], self.values)
 
-    
+
     @staticmethod
     def _fix_shape_init(points):
         pp = np.asarray(points)
-        # 1 -> (1,1)            
+        # 1 -> (1,1)
         if pp.ndim == 0:
             return np.array([[pp]])
         # (N,) -> (N,1)
-        elif pp.ndim == 1:            
+        elif pp.ndim == 1:
             return pp[:,None]
         elif  pp.ndim == 2:
             return pp
         else:
             raise ValueError("points has wrong shape or dim")
-    
+
     _fix_shape_call = _fix_shape_init
-    
-    
+
+
 def match_mask(arr, values, fullout=False, eps=None):
     """Bool array of ``len(arr)`` which is True if ``arr[i] == values[j],
-    j=0..len(values)``. 
-    
+    j=0..len(values)``.
+
     This is the same as creating bool arrays like ``arr == some_value`` just
     that `some_value` can be an array (numpy can only do `some_value` =
     scalar). By default we assume integer arrays, unless `eps` is used.
-    
+
     With `eps=None` and `fullout=False`, it behaves like ``numpy.in1d``.
 
     Parameters
@@ -1677,7 +1677,7 @@ def match_mask(arr, values, fullout=False, eps=None):
     fullout : bool
     eps : float
         Use this threshold to compare array values.
-    
+
     Returns
     -------
     ret : fullout = False
@@ -1687,7 +1687,7 @@ def match_mask(arr, values, fullout=False, eps=None):
         which are also in `values`.
     idx_lst : 1d array
         Indices for which ``arr[idx_lst[i]]`` equals some value in `values`.
-    
+
     Examples
     --------
     >>> arr=array([1,2,3,4,5]); values=array([1,3])
@@ -1704,7 +1704,7 @@ def match_mask(arr, values, fullout=False, eps=None):
     >>> # float values: use eps
     >>> num.match_mask(arr+0.1, values, fullout=True, eps=0.2)
     (array([ True, False,  True, False, False], dtype=bool), array([0, 2]))
-    
+
     See Also
     --------
     numpy.in1d
@@ -1713,14 +1713,14 @@ def match_mask(arr, values, fullout=False, eps=None):
     if eps is None:
         # assume integer array
         idx_lst = ((arr[None,:] - values[:,None]) == 0).nonzero()[1]
-    else:        
+    else:
         idx_lst = (np.abs(arr[None,:] - values[:,None]) < eps).nonzero()[1]
-    idx_lst = np.unique(idx_lst)        
+    idx_lst = np.unique(idx_lst)
     ret = np.zeros((arr.shape[0],), dtype=bool)
     ret.put(idx_lst, True)
     if fullout:
         return ret, idx_lst
-    else:        
+    else:
         return ret
 
 
@@ -1733,13 +1733,13 @@ def order_similar(arr, repeat=1, order=2):
     Parameters
     ----------
     arr : 2d array (npoints, ndim)
-        `ndim` 1d data streams with `npoints` each. 
+        `ndim` 1d data streams with `npoints` each.
     repeat : int
         1: run 1 time, N: run recursively N times
     order : int
         Order of extrapolation: 0 = next similar point, 1 = linear using the
         two last points, 2 = quadratic using the 3 last points
-    
+
     Returns
     -------
     arr2 : like `arr`
@@ -1759,8 +1759,8 @@ def order_similar(arr, repeat=1, order=2):
     >>> from pwtools import mpl, num
     >>> plt = mpl.plt
     >>> x = np.linspace(0,10,200)
-    >>> a = np.array([np.sin(0.5*x), 
-    ...               1.2*np.cos(2*x), 
+    >>> a = np.array([np.sin(0.5*x),
+    ...               1.2*np.cos(2*x),
     ...               np.sin(2.5*(x-1.5)),
     ...               0.2*np.sin(x-1.1),
     ...               0.3*np.sin(x-1.1),
@@ -1772,7 +1772,7 @@ def order_similar(arr, repeat=1, order=2):
     >>> plt.figure(); plt.plot(aa); plt.title('sorted, repeat=1, order=2')
     >>> aa = num.order_similar(a, repeat=2, order=1)
     >>> plt.figure(); plt.plot(aa); plt.title('sorted, repeat=2, order=1')
-    >>> plt.show()    
+    >>> plt.show()
     """
     assert 0 <= order <= 2, "order must be 0,1,2"
     assert repeat >= 1, "repeat must be >= 1"
@@ -1799,7 +1799,7 @@ def order_similar(arr, repeat=1, order=2):
                     ref = 2*arr2[ii,jj] - arr2[ii-1,jj]
                 elif (ii >= 2) and _o_two:
                     # > 2 rows: quadradic extrapolation
-                    # 
+                    #
                     # Calling polyfit is pretty slow and could be
                     # optimized. For 3 points in x,y, we can write the
                     # expressions for the coeffs by hand, yes?
@@ -1812,8 +1812,8 @@ def order_similar(arr, repeat=1, order=2):
                 arr2[ii+1,jj] = arr[ii+1,idx]
     else:
         arr2 = order_similar(arr, repeat=repeat-1)
-    return arr2            
-            
+    return arr2
+
 
 def round_up_next_multiple(x, mult):
     """Round integer `x` up to the next possible multiple of `mult`."""
@@ -1831,14 +1831,14 @@ def norm(a):
 
 
 def meshgridt(x, y):
-    """A version of 
-        X,Y = numpy.meshgrid(x,y) 
-    which returns X and Y transposed, i.e. (nx, ny) instead (ny, nx) 
+    """A version of
+        X,Y = numpy.meshgrid(x,y)
+    which returns X and Y transposed, i.e. (nx, ny) instead (ny, nx)
     where nx,ny = len(x),len(y).
 
-    This is useful for dealing with 2D splines in 
+    This is useful for dealing with 2D splines in
     scipy.interpolate.bisplev(), which also returns a (nx,ny) array.
-    
+
     Parameters
     ----------
     x,y : 1d arrays
@@ -1854,18 +1854,18 @@ def euler_matrix(phi, theta, psi, deg=False):
 
     .. math::
         (\phi, \theta, \psi)        \\
-        A = B\,C\,D                 \\ 
+        A = B\,C\,D                 \\
         D: \phi = 0,...,2\,\pi      \\
         C: \theta = 0,...,\pi       \\
         B: \psi = 0,...,2\,\pi      \\
-    
+
     Parameters
     ----------
     phi, theta, psi : float
         angles
     deg : bool
         angles in degree (True) or radians (False, default)
-    
+
     References
     ----------
     .. [1] http://mathworld.wolfram.com/EulerAngles.html
@@ -1890,7 +1890,7 @@ def euler_matrix(phi, theta, psi, deg=False):
     C = np.array([[     1,      0,      0],
                   [     0,  cos_b,  sin_b],
                   [     0, -sin_b,  cos_b]])*1.0
-    
+
     B = np.array([[ cos_c,  sin_c,      0],
                   [-sin_c,  cos_c,      0],
                   [     0,      0,      1]])*1.0
