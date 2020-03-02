@@ -1246,7 +1246,7 @@ def vander(points, deg):
     return tmp.prod(axis=1)
 
 
-def polyfit(points, values, deg, scale=True):
+def polyfit(points, values, deg, scale=True, scale_vand=False):
     """Fit nd polynomial of dregree `deg`. The dimension is ``points.shape[1]``.
 
     Parameters
@@ -1254,13 +1254,16 @@ def polyfit(points, values, deg, scale=True):
     points : nd array (npoints,ndim)
         `npoints` points in `ndim`-space, to be fitted by a `ndim` polynomial
         f(x0,x1,...,x{ndim-1}).
-    values : 1d array        
+    values : 1d array
     deg : int
         Degree of the poly (e.g. 3 for cubic).
     scale: bool, optional
         Scale `points` and `values` to unity internally before fitting.
         ``fit['coeffs']`` are for scaled data. ``polyval`` handles that
         transparently.
+    scale_vand : bool, optional
+        scale Vandermonde matrix as in numpy.polyfit (devide by column norms to
+        improve condition number)
 
     Returns
     -------
@@ -1268,19 +1271,22 @@ def polyfit(points, values, deg, scale=True):
         {coeffs, deg, pscale, vscale, pmin, vmin} where coeffs = 1d array
         ((deg+1)**ndim,) with poly coefficients and `*min` and `*scale` are for
         data scaling. Input for polyval().
-    
+
     Notes
     -----
-    `scale`: numpy.polyfit does only x-scaling by default, which seems to be
-    enough for most real world data. So, with `scale=True` you should get
-    almost exactly the numpy result, while there may be small differences for
-    `scale=False` and funny scaled data (e.g. x=-1000 ... 1000 and y = 0 ...
-    0.0001). 
+    `scale`: `numpy.polyfit` does only `scale_vand` by default, which seems to be
+    enough for most real world data. The new `np.polynomial.Polynomial.fit`
+    now does the equivalent of what we do here with `scale`, **but they do it
+    only for `points`, not `values`**. They map to [-1,1], we use [0,1].
 
-    Because ``fit['coeffs']`` are w.r.t. scaled data, you cannot compare them to
-    the result of np.polyfit directly. Only with `scale=False` you can compare
-    the coeffs. However, you may simply compare the resulting fits, evaluated
-    at the same points.
+    In most tests so far, `scale_vand` and `scale` have pretty much the same
+    effect: enable fitting data with very different scales on x and y.
+
+    Because ``fit['coeffs']`` are w.r.t. scaled data, you cannot compare them
+    to the result of `np.polyfit` directly. Only with `scale=False` you can
+    compare the coeffs, which should be the same up to numerical noise.
+    However, you may simply compare the resulting fits, evaluated at the same
+    points.
 
     See Also
     --------
@@ -1296,10 +1302,18 @@ def polyfit(points, values, deg, scale=True):
     else:
         pscale = np.ones((points.shape[1],), dtype=float)[None,:]
         vscale = 1.0
-        pmin = np.zeros((points.shape[1],), dtype=float)[None,:] 
+        pmin = np.zeros((points.shape[1],), dtype=float)[None,:]
         vmin = 0.0
     vand = vander((points - pmin) / pscale, deg)
-    return {'coeffs': np.linalg.lstsq(vand, (values - vmin) / vscale)[0], 
+    if scale_vand:
+        sv = np.sqrt((vand*vand).sum(axis=0))
+        vv = vand / sv[None,:]
+    else:
+        vv = vand
+    coeffs = np.linalg.lstsq(vv, (values - vmin) / vscale, rcond=None)[0]
+    if scale_vand:
+        coeffs = coeffs / sv
+    return {'coeffs': coeffs,
             'deg': deg, 'pscale': pscale, 'vscale': vscale,
             'pmin': pmin, 'vmin': vmin}
 
