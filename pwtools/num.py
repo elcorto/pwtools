@@ -1218,8 +1218,7 @@ def poly_powers(ndim, deg):
         [1,2] -> x0^1*x1^2
         ...
     """
-    return np.array([x for x in itertools.product(range(deg+1),
-                                                  repeat=ndim)])
+    return np.array(list(itertools.product(range(deg+1), repeat=ndim)))
 
 
 def vander(points, deg):
