@@ -1326,6 +1326,7 @@ def polyval(fit, points, der=0, avg=False):
     --------
     :class:`PolyFit`, :class:`PolyFit1D`, :func:`polyfit`
     """
+    assert points.ndim == 2, "points must be 2d array"
     pscale, pmin = fit['pscale'], fit['pmin']
     vscale, vmin = fit['vscale'], fit['vmin']
     if der > 0:
