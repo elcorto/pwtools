@@ -14,12 +14,11 @@ def make_kwd_lst(*args):
         kwd_lst.append(tmp)
     return kwd_lst
 
+
 def test_polyfit():
     scale = [{'scale': False}, {'scale': True}]
-    levels = [{}, {'levels': 2}]
-    degs = [{'deg': 2}, {'degrange': [2,3,4,5]},
-            {'degmin': 1, 'degmax': 5}]
-    kwd_lst = make_kwd_lst(scale, levels, degs)
+    degs = [{'deg': 2}, {'deg': 3}]
+    kwd_lst = make_kwd_lst(scale, degs)
     for kwds in kwd_lst:
         print(kwds)
         # 1D
@@ -43,32 +42,10 @@ def test_polyfit():
         fit1 = num.polyfit(x[:,None],y,2)
         fit2 = num.polyfit(x[:,None],y,deg=2)
         assert_all_types_equal(fit1, fit2)
-        # avgpolyfit() returns a dict "fit1", where fit1['fits'] is a sequence of
-        # dicts, that's too much for assert_all_types_equal() :), must fiddle
-        # test by hand ...
-        fit1 = num.avgpolyfit(x[:,None],y,2)
-        fit2 = num.avgpolyfit(x[:,None],y,deg=2)
-        for f1,f2 in zip(fit1['fits'], fit2['fits']):
-            assert_all_types_equal(f1, f2)
-        keys = list(fit1.keys())
-        keys.pop(keys.index('fits'))
-        for key in keys:
-            assert_all_types_equal(fit1[key], fit2[key])
-
-
-        # copy self.fit and call avgpolyfit
-        y = np.sin(x)
-        f = num.PolyFit1D(x,y,**kwds)
-        ret = f(x)
-        for i in range(10):
-            assert (ret == f(x)).all()
-
 
     scale = [{'scale': False}, {'scale': True}]
-    levels = [{}, {'levels': 1}]
-    degs = [{'deg': 4}, {'degrange': [3,4]},
-            {'degmin': 2, 'degmax': 5}]
-    kwd_lst = make_kwd_lst(scale, levels, degs)
+    degs = [{'deg': 4}]
+    kwd_lst = make_kwd_lst(scale, degs)
     for kwds in kwd_lst:
         print(kwds)
         # 2D
