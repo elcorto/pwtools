@@ -232,15 +232,18 @@ def collect_legends(*axs):
 
     Examples
     --------
+    >>> from pwtools import mpl
+    >>> from numpy.random import rand
     >>> fig, ax = mpl.fig_ax()
-    >>> ax.plot([1,2,3], label='ax')
+    >>> ax.plot([1,2,3], label='ax line')
+    >>> ax.bar([1,2,3], rand(3), label='ax bar')
     >>> ax2 = ax.twinx()
     >>> ax2.plot([3,2,1], 'r', label='ax2')
     >>> ax.legend(*mpl.collect_legends(ax, ax2))
     """
     axhls = tuple(ax.get_legend_handles_labels() for ax in
                   axs)
-    ret = [common.flatten(x) for x in zip(*axhls)]
+    ret = [itertools.chain(*x) for x in zip(*axhls)]
     return ret[0], ret[1]
 
 
