@@ -3003,7 +3003,7 @@ def compress(traj, copy=True, **kwds):
 def atoms2struct(at):
     """Transform ASE Atoms object to Structure."""
     return Structure(symbols=at.get_chemical_symbols(),
-                     cell=at.get_cell(),
+                     cell=np.array(at.get_cell()),
                      coords_frac=at.get_scaled_positions())
 
 
