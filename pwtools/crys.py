@@ -88,7 +88,7 @@ def volume_cell3d(cell, axis=0):
     ret = []
     for ii in range(cell.shape[axis]):
         sl[axis] = ii
-        ret.append(volume_cell(cell[sl]))
+        ret.append(volume_cell(cell[tuple(sl)]))
     return np.array(ret)
 
 
@@ -133,7 +133,7 @@ def volume_cc3d(cryst_const, axis=0):
     ret = []
     for ii in range(cryst_const.shape[axis]):
         sl[axis] = ii
-        ret.append(volume_cc(cryst_const[sl]))
+        ret.append(volume_cc(cryst_const[tuple(sl)]))
     return np.array(ret)
 
 
@@ -185,7 +185,7 @@ def cell2cc3d(cell, axis=0):
     ret = []
     for ii in range(cell.shape[axis]):
         sl[axis] = ii
-        ret.append(cell2cc(cell[sl]))
+        ret.append(cell2cc(cell[tuple(sl)]))
     return np.array(ret)
 
 
@@ -259,7 +259,7 @@ def cc2cell3d(cryst_const, axis=0):
     ret = []
     for ii in range(cryst_const.shape[axis]):
         sl[axis] = ii
-        ret.append(cc2cell(cryst_const[sl]))
+        ret.append(cc2cell(cryst_const[tuple(sl)]))
     return np.array(ret)
 
 
@@ -754,8 +754,8 @@ def rmsd(traj, ref_idx=0):
     sl_ref[traj.timeaxis] = ref_idx
     sl_newaxis = [slice(None)]*ndim
     sl_newaxis[traj.timeaxis] = None
-    ref = coords[sl_ref].copy()
-    coords -= ref[sl_newaxis]
+    ref = coords[tuple(sl_ref)].copy()
+    coords -= ref[tuple(sl_newaxis)]
     return rms3d(coords, axis=traj.timeaxis, nitems=float(traj.natoms))
 
 
@@ -801,7 +801,8 @@ def pbc_wrap_coords(coords_frac, copy=True, mask=[True]*3, xyz_axis=-1):
         if mask[i]:
             sl = [slice(None)]*ndim
             sl[xyz_axis] = i
-            tmp[sl] = np.remainder(tmp[sl], 1.0)
+            tsl = tuple(sl)
+            tmp[tsl] = np.remainder(tmp[tsl], 1.0)
     return tmp
 
 
@@ -989,9 +990,10 @@ def coord_trans3d(coords, old=None, new=None, copy=True, axis=-1, timeaxis=0):
     ret = []
     for ii in range(nstep):
         sl[timeaxis] = ii
-        ret.append(coord_trans(coords[sl],
-                               old=old[sl],
-                               new=new[sl],
+        tsl = tuple(sl)
+        ret.append(coord_trans(coords[tsl],
+                               old=old[tsl],
+                               new=new[tsl],
                                axis=axis,
                                copy=copy))
     ret = np.array(ret)

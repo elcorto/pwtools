@@ -509,6 +509,7 @@ def slicetake(a, sl, axis=None, copy=False):
     # a[...] can take a tuple or list of slice objects
     # a[x:y:z, i:j:k] is the same as
     # a[(slice(x,y,z), slice(i,j,k))] == a[[slice(x,y,z), slice(i,j,k)]]
+    slices = tuple(slices)
     if copy:
         return a[slices].copy()
     else:
@@ -621,7 +622,7 @@ def extend_array(arr, nstep, axis=0):
     sl = [slice(None)]*(max_axis + 1)
     # e.g: [:,:,np.newaxis,...]
     sl[axis] = None
-    return np.repeat(arr[sl], nstep, axis=axis)
+    return np.repeat(arr[tuple(sl)], nstep, axis=axis)
 
 
 def sum(arr, axis=None, keepdims=False, **kwds):
@@ -1095,7 +1096,7 @@ def rms3d(arr, axis=0, nitems='all'):
     if nitems == 'all':
         sl = [slice(None)]*arr.ndim
         sl[axis] = 0 # pick out 1st sub-array along axis
-        nitems = float(arr[sl].nbytes / arr.itemsize)
+        nitems = float(arr[tuple(sl)].nbytes / arr.itemsize)
     else:
         nitems = float(nitems)
     if axis == 0:
