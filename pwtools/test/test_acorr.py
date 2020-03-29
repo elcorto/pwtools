@@ -7,6 +7,6 @@ def test_acorr():
         ref = acorr(arr, method=1, norm=norm)
         for m in range(2,8):
             print("%i : 1" %m)
-            np.testing.assert_array_almost_equal(acorr(arr, method=m, 
-                                                       norm=norm), 
-                                                 ref)    
+            np.testing.assert_array_almost_equal(acorr(arr, method=m,
+                                                       norm=norm),
+                                                 ref)

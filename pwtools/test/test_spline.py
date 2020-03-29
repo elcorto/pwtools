@@ -15,11 +15,11 @@ def test_spline():
     y = x**2.0 - 5
     spl = Spline(x,y)
     assert spl.is_mono()
-    
+
     y = -(x**2.0 - 5)
     spl = Spline(x,y)
     assert spl.is_mono()
-    
+
     y0s = [5,0,-40]
     xabs = [[0,2], [1,3], [6,8]]
     x0s = [1,2,7]
@@ -29,16 +29,16 @@ def test_spline():
     # use smaller bracket
     for y0,xab in zip(y0s, xabs):
         np.testing.assert_almost_equal(y0, spl(spl.invsplev(y0, xab=xab)))
-    # use start guess for newton() 
+    # use start guess for newton()
     for y0,x0 in zip(y0s, x0s):
         np.testing.assert_almost_equal(y0, spl(spl.invsplev(y0, x0=x0)))
-    
-    # root    
+
+    # root
     np.testing.assert_almost_equal(spl.invsplev(0.0), spl.get_root())
 
 def test_min_max():
     # min: num.Fit1D.get_min()
-    x = np.linspace(-10,10,100) 
+    x = np.linspace(-10,10,100)
     y = (x-5)**2.0 + 1.0
     spl = Spline(x,y)
     xmin = spl.get_min()
@@ -55,14 +55,14 @@ def test_min_max():
     np.testing.assert_almost_equal(ymax, 1.0)
 
 def test_api():
-    x = np.linspace(-10,10,100) 
+    x = np.linspace(-10,10,100)
     y = (x-5)**2.0 + 1.0
     spl = Spline(x,y,k=2,s=0.1,eps=0.11)
     for kw in ['k', 's']:
         assert kw in list(spl.splrep_kwargs.keys())
-    assert spl.splrep_kwargs['k'] == 2       
+    assert spl.splrep_kwargs['k'] == 2
     assert spl.splrep_kwargs['s'] == 0.1
 
-    # scalar 
+    # scalar
     assert type(spl(1.0)) != type(np.array(1.0))
 

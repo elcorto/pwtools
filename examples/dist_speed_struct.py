@@ -20,7 +20,7 @@ def fdist(arr, cell, pbc=0):
     return _flib.distsq_frac(arr, cell, pbc, distsq, dummy1, dummy2)
 
 if __name__ == '__main__':
-    
+
     pbc = 1
 
     arr = np.random.rand(100,3)
@@ -36,4 +36,4 @@ if __name__ == '__main__':
         fdist(arr,cell,pbc)
     tt.pt('f')
 
-        
+

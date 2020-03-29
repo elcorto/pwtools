@@ -12,7 +12,7 @@ local = batch.Machine(hostname='local',
                       filename='calc.templ/job.local',
                       home='/home/schmerler')
 
-templates = [batch.FileTemplate(basename=x) for x in 
+templates = [batch.FileTemplate(basename=x) for x in
              ['lmp.in', 'lmp.struct', 'lmp.struct.symbols']]
 
 # rs-AlN
@@ -29,7 +29,7 @@ for target_press in np.linspace(-20,20,15): # GPa, bar in lammps
 
 calc = batch.ParameterStudy(machines=local,
                             templates=templates,
-                            params_lst=params_lst, 
+                            params_lst=params_lst,
                             study_name='lammps_ev',
                             )
 calc.write_input(sleep=0, backup=False, mode='w')

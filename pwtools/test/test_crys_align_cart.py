@@ -12,7 +12,7 @@ def euler_rotation(phi,theta,psi):
     # 2. the second rotation is by an angle theta in [0,pi] about the former
     #    x-axis (now x') using C, and
     # 3. the third rotation is by an angle psi about the former z-axis (now
-    #    z') using B. 
+    #    z') using B.
     phi = radians(phi)
     theta = radians(theta)
     psi = radians(psi)
@@ -41,25 +41,25 @@ def test_methods():
     st = crys.Structure(coords=rand(10,3),
                         cell=rand(3,3),
                         symbols=['H']*10)
-    
+
     for obj,indices in [(st, [0,1,2]), (tr, [0,0,1,2])]:
         if obj.is_traj:
             v0 = obj.coords[indices[0],indices[1],...]
             v1 = obj.coords[indices[0],indices[2],...]
             v2 = obj.coords[indices[0],indices[3],...]
-        else:            
+        else:
             v0 = obj.coords[indices[0],...]
             v1 = obj.coords[indices[1],...]
             v2 = obj.coords[indices[2],...]
-        # use eps=0 since the new system is not orthogonal, only test API            
+        # use eps=0 since the new system is not orthogonal, only test API
         o1 = crys.align_cart(obj, x=v1-v0, y=v2-v0, eps=0)
         o2 = crys.align_cart(obj, vecs=np.array([v0,v1,v2]), eps=0)
         o3 = crys.align_cart(obj, indices=indices, eps=0)
-        tools.assert_dict_with_all_types_almost_equal(o1.__dict__, 
-                                                      o2.__dict__, 
+        tools.assert_dict_with_all_types_almost_equal(o1.__dict__,
+                                                      o2.__dict__,
                                                       keys=o1.attr_lst)
-        tools.assert_dict_with_all_types_almost_equal(o1.__dict__, 
-                                                      o3.__dict__, 
+        tools.assert_dict_with_all_types_almost_equal(o1.__dict__,
+                                                      o3.__dict__,
                                                       keys=o1.attr_lst)
 
 

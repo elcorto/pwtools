@@ -12,7 +12,7 @@
 /
 &system
     ibrav = 0,
-    nat = XXXNATOMS, 
+    nat = XXXNATOMS,
     ntyp = 2,
     ecutwfc = XXXECUTWFC,
     ecutrho = XXXECUTRHO,

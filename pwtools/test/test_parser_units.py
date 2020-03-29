@@ -28,11 +28,11 @@ def test_parser_units():
                                         pp.units[key]))
                 # Check if units passed by the user are correctly passed on.
                 dval = pp.default_units[key]
-                val = pp.units[key] 
+                val = pp.units[key]
                 print("  key, default, curent:", key, dval, val)
                 pp2 = pa(units={key: val*20})
                 dval2 = pp2.default_units[key]
-                val2 = pp2.units[key] 
+                val2 = pp2.units[key]
                 print("  key, default, curent:", key, dval2, val2)
                 assert dval2 == dval
                 assert val2 == 20*val

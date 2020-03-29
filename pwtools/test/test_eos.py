@@ -9,7 +9,7 @@
 #                     natoms=1,
 #                     etype=1,
 #                     npoints=300)
-# natoms=1 -> no normalitation in ref. data *.OUT 
+# natoms=1 -> no normalitation in ref. data *.OUT
 #
 # Note: Ref data generated w/ old units Ry, Bohr, we convert to eV, Ang here
 
@@ -38,8 +38,8 @@ def test_eos():
     ref_min[1] *= (Ry / eV)     # e0
     assert ref_ev.shape[0] == ref_pv.shape[0], ("reference data lengths "
         "inconsistent")
-    ref = {}        
-    ref['ev'] = ref_ev        
+    ref = {}
+    ref['ev'] = ref_ev
     ref['pv'] = ref_pv
     ref['v0'], ref['e0'], ref['p0'], ref['b0'] = ref_min
 
@@ -59,7 +59,7 @@ def test_eos():
         msg = "EosFit: key=%s, ref=%e, val=%e" %(key, ref[key], val)
         assert np.allclose(val, ref[key], atol=1e-7), msg
 
-    # Test legacy ElkEOSFit / ExternEOS. 
+    # Test legacy ElkEOSFit / ExternEOS.
     # 'exe' must be on your $PATH.
     exe = 'eos.x'
     app = common.backtick("which %s" %exe).strip()
@@ -83,7 +83,7 @@ def test_eos():
             now['ev'] = eos.ev
             now['pv'] = eos.pv
             now.update(eos.get_min())
-            
+
             # compare to reference
             for key, val in ref.items():
                 print("ElkEOSFit: testing:", key)
@@ -93,7 +93,7 @@ def test_eos():
                     np.testing.assert_almost_equal(now[key], ref[key],
                                                    decimal=3)
             eos_store[bv_method] = eos
-            
+
             # internal check: are the splines correct?
             for name in ['ev', 'pv', 'bv']:
                 # API
@@ -110,7 +110,7 @@ def test_eos():
         # Other attrs for which we do not have external ref data. Test only
         # among the two bv_methods 'ev' and 'pv'.
         print("bv")
-        np.testing.assert_array_almost_equal(eos_store['ev'].bv, 
+        np.testing.assert_array_almost_equal(eos_store['ev'].bv,
                                              eos_store['pv'].bv,
                                              decimal=2)
 
@@ -118,23 +118,23 @@ def test_eos_fit_deriv():
     data = np.loadtxt("files/ev/evdata.txt")
     volume = data[:,0] * Bohr3_to_Ang3
     energy = data[:,1] * (Ry / eV)
-    
+
     eos = EosFit(volume=volume,
                  energy=energy,
                  splpoints=500)
-    
+
     # EosFit is a num.Fit1D subclass, so it has self.x and self.y
     assert (volume == eos.x).all()
     assert (energy == eos.y).all()
-    
-    # this reference to self.spl causes self.spl to be defined (lazyprop)               
-    xx = eos.spl.x             
-    yy = eos.spl.y             
+
+    # this reference to self.spl causes self.spl to be defined (lazyprop)
+    xx = eos.spl.x
+    yy = eos.spl.y
     assert len(xx) == len(yy) == 500
-    
+
     # spline thru fitted data, must be exactly like eos.spl
     spl = num.Spline(xx, yy, k=5, s=None)
-    
+
     assert np.allclose(eos(xx), yy)             # call _vinet, consistency of fitted data
     assert np.allclose(eos(xx), spl(xx))        # consistency of splines
     assert np.allclose(eos(xx), eos.spl(xx))    # consistency of splines

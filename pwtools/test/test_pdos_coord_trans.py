@@ -5,7 +5,7 @@
 # One must convert coords to cartesian before calculating the PDOS.
 #
 # "cart" and "cart2" must be exactly the same. "cell1"
-# must match in principle, but not overlay the other two. 
+# must match in principle, but not overlay the other two.
 
 
 import numpy as np
@@ -31,7 +31,7 @@ def test_pdos_coord_trans():
     cell1 = rand((3,3))
     # coord_trans: axis=-1 specifies the "x,y,z"-axis of dimension 3
     coords['cell1'] = coord_trans(coords['cart'],
-                                  old=np.identity(3), 
+                                  old=np.identity(3),
                                   new=cell1,
                                   axis=-1)
 

@@ -18,7 +18,7 @@ def test_get_ase_atoms():
             st2.__dict__,
             keys=keys,
             strict=True)
-        # in case the test fails, use this to find out which key failed            
+        # in case the test fails, use this to find out which key failed
 ##        for kk in keys:
 ##            print("testing: %s ..." %kk)
 ##            tools.assert_all_types_almost_equal(st.__dict__[kk], st2.__dict__[kk])

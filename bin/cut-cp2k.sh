@@ -38,7 +38,7 @@ every 50 steps, so the last was written at 8400. A restart using
 You want to delete these 23 steps from the old cell, ener, etc files before the
 restart, such that they are cleanly continued. Then use:
 
-$ $prog /path/to/calc/ 8401 
+$ $prog /path/to/calc/ 8401
 
 If <step> is omited, then STEP_START_VAL+1 from the restart file will be used.
 EOF
@@ -46,17 +46,17 @@ EOF
 
 msg(){
     echo "$prog: $@"
-}    
+}
 
 err(){
     echo "$prog: error: $@"
     exit 1
-}    
+}
 
 cmdline=$(getopt -o hs -- "$@")
 eval set -- "$cmdline"
 while [ $# -gt 0 ]; do
-    case "$1" in 
+    case "$1" in
         -s)
             simulate=true
             ;;
@@ -114,8 +114,8 @@ for fn in $file_cell $file_ener $file_stress; do
         cmd="sed -i.$bakname -re '/^\s+$step_to_cut\s+/,\$d' $fn"
         echo $fn
         $simulate && echo "    $cmd" || eval $cmd
-    fi        
-done    
+    fi
+done
 
 natoms=$(head -n1 $file_pos | tr -d ' ')
 for fn in $file_frc $file_pos $file_vel; do
@@ -128,6 +128,6 @@ for fn in $file_frc $file_pos $file_vel; do
              fi"
         echo $fn
         $simulate && echo "    $cmd" || eval $cmd
-    fi        
-done    
+    fi
+done
 

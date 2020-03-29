@@ -1,10 +1,10 @@
 """
 Clarify the difference between the enthalpies
-    H = E + P * V 
+    H = E + P * V
 with
     P = P(V) = -dE/dV
 and
-    H = E + Pconst * V 
+    H = E + Pconst * V
 In the latter case, min_V [ E + Pconst * V ] provides V_opt and
 P(V_opt) == Pconst.
 """
@@ -14,14 +14,14 @@ from pwtools import mpl, num
 
 pl = mpl.Plot()
 ax = pl.ax
-pl.ax2 = pl.ax.twinx(); 
+pl.ax2 = pl.ax.twinx();
 ax2 = pl.ax2
 
-v=np.linspace(1,5,20) 
-e=(v-3)**2+1; 
-p=-2*(v-3); 
+v=np.linspace(1,5,20)
+e=(v-3)**2+1;
+p=-2*(v-3);
 Pconst = 2.0
-ax.plot(v,e, label='E(V)'); 
+ax.plot(v,e, label='E(V)');
 ax.plot([3], [1], 'bo')
 
 # E at each point + P at each point * V = minimal enthalpy at each point

@@ -12,5 +12,5 @@ def test_is_seq():
         assert is_seq(xx) is True
     for xx in ('aaa', fd):
         print(type(xx))
-        assert is_seq(xx) is False 
+        assert is_seq(xx) is False
     fd.close()

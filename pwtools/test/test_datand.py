@@ -28,6 +28,6 @@ def test_datand():
 
     nd = DataND(a2=a2)
     assert (nd.an == an_ref).all()
-    
+
     for x,y in zip(axes, nd.axes):
         assert (x == y).all()

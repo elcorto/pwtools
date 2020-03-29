@@ -1,10 +1,10 @@
 
-     Program PWSCF v.5.0.2 (svn rev. 9656) starts on  1Oct2013 at 11:28:53 
+     Program PWSCF v.5.0.2 (svn rev. 9656) starts on  1Oct2013 at 11:28:53
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
          "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
-          URL http://www.quantum-espresso.org", 
+          URL http://www.quantum-espresso.org",
      in publications or presentations arising from this work. More details at
      http://www.quantum-espresso.org/quote.php
 
@@ -23,14 +23,14 @@
      Subspace diagonalization in iterative solution of the eigenvalue problem:
      a serial algorithm will be used
 
- 
+
      Parallelization info
      --------------------
      sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
      Min         238     238     70                 9670     9670    1494
      Max         239     239     71                 9679     9679    1495
      Sum         955     955    283                38707    38707    5979
- 
+
 
 
      bravais-lattice index     =            0
@@ -52,14 +52,14 @@
      celldm(4)=   0.000000  celldm(5)=   0.000000  celldm(6)=   0.000000
 
      crystal axes: (cart. coord. in units of alat)
-               a(1) = (   1.000000   0.000000   0.000000 )  
-               a(2) = (  -0.500000   0.866025   0.000000 )  
-               a(3) = (   0.000000   0.000000   1.603101 )  
+               a(1) = (   1.000000   0.000000   0.000000 )
+               a(2) = (  -0.500000   0.866025   0.000000 )
+               a(3) = (   0.000000   0.000000   1.603101 )
 
      reciprocal axes: (cart. coord. in units 2 pi/alat)
-               b(1) = (  1.000000  0.577350  0.000000 )  
-               b(2) = (  0.000000  1.154701  0.000000 )  
-               b(3) = (  0.000000  0.000000  0.623791 )  
+               b(1) = (  1.000000  0.577350  0.000000 )
+               b(2) = (  0.000000  1.154701  0.000000 )
+               b(3) = (  0.000000  0.000000  0.623791 )
 
 
      PseudoPot. # 1 for Al read from file:
@@ -68,12 +68,12 @@
      Pseudo is Projector augmented-wave + core cor, Zval =  3.0
      Generated using "atomic" code by A. Dal Corso  v.5.0.2 svn rev. 9415
      Shape of augmentation charge: PSQ
-     Using radial grid of 1135 points,  4 beta functions with: 
+     Using radial grid of 1135 points,  4 beta functions with:
                 l(1) =   0
                 l(2) =   0
                 l(3) =   1
                 l(4) =   1
-     Q(r) pseudized with 0 coefficients 
+     Q(r) pseudized with 0 coefficients
 
 
      PseudoPot. # 2 for  N read from file:
@@ -82,12 +82,12 @@
      Pseudo is Projector augmented-wave + core cor, Zval =  5.0
      Generated using "atomic" code by A. Dal Corso  v.5.0.2 svn rev. 9415
      Shape of augmentation charge: PSQ
-     Using radial grid of 1085 points,  4 beta functions with: 
+     Using radial grid of 1085 points,  4 beta functions with:
                 l(1) =   0
                 l(2) =   0
                 l(3) =   1
                 l(4) =   1
-     Q(r) pseudized with 0 coefficients 
+     Q(r) pseudized with 0 coefficients
 
 
      atomic species   valence    mass     pseudopotential
@@ -148,7 +148,7 @@
 
      starting charge   15.99540, renormalised to   16.00000
      Starting wfc are   16 randomized atomic wfcs
-     Checking if some PAW data can be deallocated... 
+     Checking if some PAW data can be deallocated...
 
      total cpu time spent up to now is        7.7 secs
 
@@ -461,7 +461,7 @@
 
 
      Writing output data file j120vc_relax_ph_run98.save
- 
+
      init_run     :      0.78s CPU      1.19s WALL (       1 calls)
      electrons    :      4.51s CPU      8.23s WALL (       1 calls)
      forces       :      0.28s CPU      0.30s WALL (       1 calls)
@@ -496,19 +496,19 @@
      fft          :      0.26s CPU      0.69s WALL (     284 calls)
      fftw         :      2.38s CPU      4.72s WALL (    7190 calls)
      davcio       :      0.00s CPU      0.09s WALL (     366 calls)
- 
+
      Parallel routines
      fft_scatter  :      2.18s CPU      3.93s WALL (    7474 calls)
- 
+
      PAW routines
      PAW_pot      :      0.23s CPU      0.36s WALL (      20 calls)
      PAW_ddot     :      0.45s CPU      0.44s WALL (     571 calls)
      PAW_symme    :      0.00s CPU      0.01s WALL (      39 calls)
- 
+
      PWSCF        :     6.94s CPU        19.12s WALL
 
- 
-   This run was terminated on:  11:29:12   1Oct2013            
+
+   This run was terminated on:  11:29:12   1Oct2013
 
 =------------------------------------------------------------------------------=
    JOB DONE.

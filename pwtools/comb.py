@@ -13,7 +13,7 @@ def unique2d(arr, what='row'):
     arr : 2d-like
     what : str
         {'row', 'col'}
-    
+
     Returns
     -------
     numpy 2d array
@@ -40,9 +40,9 @@ def unique2d(arr, what='row'):
                 break
         if not is_in:
             uniq.append(row_a)
-    if what == 'row':            
-        return np.asarray(uniq)            
-    else:        
+    if what == 'row':
+        return np.asarray(uniq)
+    else:
         return np.asarray(uniq).T
 
 
@@ -57,7 +57,7 @@ def _ensure_list(arg):
 # legacy, we keep it for now b/c it is used in batch.py
 def nested_loops(lists, flatten=False):
     """Nested loops, optional flattening.
-    
+
     Parameters
     ----------
     lists : list of sequences
@@ -66,11 +66,11 @@ def nested_loops(lists, flatten=False):
         different types/objects, e.g. [['a', 'b'], [Foo(), Bar(), Baz()],
         [1,2,3,4,5,6,7]].
     flatten : bool
-        Flatten each entry in returned list. 
-    
+        Flatten each entry in returned list.
+
     Returns
     -------
-    list : nested lists 
+    list : nested lists
 
     Examples
     --------

@@ -1,10 +1,10 @@
 
-     Program DYNMAT v.5.0.2 (svn rev. 9656) starts on 29Oct2013 at 17:49:37 
+     Program DYNMAT v.5.0.2 (svn rev. 9656) starts on 29Oct2013 at 17:49:37
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
          "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
-          URL http://www.quantum-espresso.org", 
+          URL http://www.quantum-espresso.org",
      in publications or presentations arising from this work. More details at
      http://www.quantum-espresso.org/quote.php
 
@@ -40,11 +40,11 @@
    10    669.67   20.0762   31.5712         5.0265    0.7500
    11    738.22   22.1311    0.0000         0.0000    0.7306
    12    922.64   27.6600   31.5712         5.0265    0.7500
- 
+
      DYNMAT       :     0.00s CPU         0.01s WALL
 
- 
-   This run was terminated on:  17:49:37  29Oct2013            
+
+   This run was terminated on:  17:49:37  29Oct2013
 
 =------------------------------------------------------------------------------=
    JOB DONE.

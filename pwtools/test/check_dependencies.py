@@ -24,6 +24,6 @@ if __name__ == '__main__':
                 print("    %s ... ok" %name)
                 ok = True
                 break
-        if not ok:                    
+        if not ok:
             print("    %s ... NOT FOUND" %name)
 

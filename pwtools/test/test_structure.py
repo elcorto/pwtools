@@ -15,7 +15,7 @@ def test_struct():
     cell = np.array([[3,0,0],
                      [1.1,5,-0.04],
                      [-0.33,1.5,7]])
-    cryst_const = crys.cell2cc(cell)                 
+    cryst_const = crys.cell2cc(cell)
     coords_frac = rand(natoms,3)
     coords = crys.coord_trans(coords=coords_frac,
                               old=cell,
@@ -32,7 +32,7 @@ def test_struct():
                    stress=stress,
                    forces=forces,
                    etot=42)
-    
+
     # Test if all getters work.
     for name in st.attr_lst:
         print(name)
@@ -67,17 +67,17 @@ def test_struct():
                     stress=stress,
                     forces=forces,
                     units={'length': 2, 'forces': 3, 'stress': 4})
-    aaae(2*coords, st.coords)                    
-    aaae(3*forces, st.forces)                    
-    aaae(4*stress, st.stress)                    
-    
+    aaae(2*coords, st.coords)
+    aaae(3*forces, st.forces)
+    aaae(4*stress, st.stress)
+
     traj = crys.struct2traj(st)
     assert traj.is_traj
 
     # copy(): Assert everything has another memory location = is a new copy of
     # the object. IntTypes are NOT copied by copy.deepcopy(), which we use in
     # Structure.copy(), apparently b/c they are always automatically copied
-    # before in-place operations. Same for float type. 
+    # before in-place operations. Same for float type.
     #
     # >>> a=10; b=a; print id(a); print id(b)
     # 36669152
@@ -133,22 +133,22 @@ def test_coord_trans():
     cell = np.array([[3,0,0],
                      [1.1,5,-0.04],
                      [-0.33,1.5,7]])
-    cryst_const = crys.cell2cc(cell)                 
+    cryst_const = crys.cell2cc(cell)
     coords_frac = rand(natoms,3)
     coords = crys.coord_trans(coords=coords_frac,
                               old=cell,
                               new=np.identity(3))
-    
-    st = crys.Structure(coords=coords, 
+
+    st = crys.Structure(coords=coords,
                         cell=cell)
     assert np.allclose(coords_frac, st.coords_frac)
-    st = crys.Structure(coords_frac=coords_frac, 
+    st = crys.Structure(coords_frac=coords_frac,
                         cell=cell)
-    assert np.allclose(coords, st.coords)   
+    assert np.allclose(coords, st.coords)
 
-    st = crys.Structure(coords=coords, 
+    st = crys.Structure(coords=coords,
                         cell=cell)
-    assert np.allclose(cryst_const, st.cryst_const)   
+    assert np.allclose(cryst_const, st.cryst_const)
 
 
 def test_get_fake_ase_atoms():
@@ -185,7 +185,7 @@ def test_mix():
         tr = crys.mix(st1, st2, alpha=np.linspace(0,1,20))
         assert tr.nstep == 20
         assert tr.coords_frac.shape == (20, st1.natoms, 3)
-        
+
         for idx,st in [(0,st1), (-1, st2)]:
             tools.assert_dict_with_all_types_almost_equal(st.__dict__,
                                                           tr[idx].__dict__,

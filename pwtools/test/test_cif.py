@@ -14,8 +14,8 @@ def test_cif_parse():
         assert p1.cryst_const is not None
         assert p1.symbols is not None
         assert p1.coords is not None
-        assert p1.coords_frac is not None    
-        
+        assert p1.coords_frac is not None
+
         # test writing
         filename = os.path.join(testdir, 'test_write_cif.cif')
         io.write_cif(filename, p1)
@@ -29,7 +29,7 @@ def test_cif_parse():
 
 def test_cif2any():
     tools.skip_if_pkg_missing('CifFile')
-    exe = os.path.join(os.path.dirname(__file__), 
+    exe = os.path.join(os.path.dirname(__file__),
                        '../../bin/cif2any.py')
     cmd = '{e} files/cif_struct.cif > cif2any.log'.format(e=exe)
     sp.run(cmd, check=True, shell=True)
@@ -37,7 +37,7 @@ def test_cif2any():
 
 def test_cif2sgroup():
     tools.skip_if_pkg_missing('CifFile')
-    exe = os.path.join(os.path.dirname(__file__), 
+    exe = os.path.join(os.path.dirname(__file__),
                        '../../bin/cif2sgroup.py')
     cmd = '{e} files/cif_struct.cif > cif2sgroup.log'.format(e=exe)
     sp.run(cmd, check=True, shell=True)

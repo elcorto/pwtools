@@ -22,7 +22,7 @@ def test_mode_txt_conv_true():
     ref_txt = "1 lala"
     assert tgt_txt == ref_txt, ("ref_txt={} "
                                 "tgt_txt={}".format(ref_txt, tgt_txt))
-    
+
 def test_mode_txt_conv_true_single():
     # string-only is required, note that conv=False
     templ_txt = "XXXFOO"
@@ -31,7 +31,7 @@ def test_mode_txt_conv_true_single():
     ref_txt = "1"
     assert tgt_txt == ref_txt, ("ref_txt={} "
                                 "tgt_txt={}".format(ref_txt, tgt_txt))
-    
+
 def test_mode_txt_conv_true_warn_more_rules():
     # warn but pass not found placeholders in `rules`
     templ_txt = "XXXFOO XXXBAR"

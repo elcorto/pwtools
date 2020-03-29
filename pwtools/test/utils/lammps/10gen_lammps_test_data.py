@@ -6,20 +6,20 @@ from pwtools import io, crys, common
 lmp_in = {}
 lmp_in['md-nvt'] = """
 clear
-units metal 
-boundary p p p 
+units metal
+boundary p p p
 atom_style atomic
 
 read_data lmp.struct
 
-### interactions 
-pair_style tersoff 
+### interactions
+pair_style tersoff
 pair_coeff * * ../AlN.tersoff Al N
 
 ### IO
 dump dump_txt all custom 1 lmp.out.dump id type xu yu zu fx fy fz &
-    vx vy vz xsu ysu zsu 
-dump_modify dump_txt sort id 
+    vx vy vz xsu ysu zsu
+dump_modify dump_txt sort id
 dump dump_dcd all dcd 1 lmp.out.dcd
 dump_modify dump_dcd sort id unwrap yes
 thermo_style custom step temp vol cella cellb cellc cellalpha cellbeta cellgamma &
@@ -42,22 +42,22 @@ run 100
 
 lmp_in['md-npt'] = """
 clear
-units metal 
-boundary p p p 
+units metal
+boundary p p p
 atom_style atomic
 
 read_data lmp.struct
 
-### interactions 
-pair_style tersoff 
+### interactions
+pair_style tersoff
 pair_coeff * * ../AlN.tersoff Al N
 
 ### IO
 dump dump_txt all custom 1 lmp.out.dump id type xu yu zu fx fy fz &
-    vx vy vz xsu ysu zsu 
-dump_modify dump_txt sort id 
+    vx vy vz xsu ysu zsu
+dump_modify dump_txt sort id
 dump dump_xyz all xyz 1 lmp.out.xyz
-dump_modify dump_xyz element Al N 
+dump_modify dump_xyz element Al N
 dump dump_dcd all dcd 1 lmp.out.dcd
 dump_modify dump_dcd sort id unwrap yes
 thermo_style custom step temp vol cella cellb cellc cellalpha cellbeta cellgamma &
@@ -80,20 +80,20 @@ run 100
 
 lmp_in['vc-relax'] = """
 clear
-units metal 
-boundary p p p 
+units metal
+boundary p p p
 atom_style atomic
 
 read_data lmp.struct
 
-### interactions 
-pair_style tersoff 
+### interactions
+pair_style tersoff
 pair_coeff * * ../AlN.tersoff Al N
 
 ### IO
 dump dump_txt all custom 1 lmp.out.dump id type xu yu zu fx fy fz &
-    vx vy vz xsu ysu zsu 
-dump_modify dump_txt sort id 
+    vx vy vz xsu ysu zsu
+dump_modify dump_txt sort id
 dump dump_dcd all dcd 1 lmp.out.dcd
 dump_modify dump_dcd sort id unwrap yes
 thermo_style custom step temp vol cella cellb cellc cellalpha cellbeta cellgamma &
@@ -103,7 +103,7 @@ thermo_modify flush yes
 thermo 1
 
 fix 1 all box/relax tri 0.0
-minimize 1e-8 1e-8 5000 10000 
+minimize 1e-8 1e-8 5000 10000
 """
 
 st = crys.Structure(coords_frac=np.array([[0.0]*3, [.5]*3]),

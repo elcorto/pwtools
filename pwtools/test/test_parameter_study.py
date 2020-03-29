@@ -20,10 +20,10 @@ def check_key_in_file(lines, key, file_target):
             for converter in [repr, str, int, float]:
                 try:
                     file_val = converter(file_val_str)
-                    ok = True    
+                    ok = True
                 except ValueError:
                     ok = False
-                if ok:                                    
+                if ok:
                     ret = all_types_equal(file_target, file_val)
                     if ret:
                         break
@@ -56,7 +56,7 @@ def check_generated(calc_root, machine_dct, params_lst, revision):
                     db_val = db.get_single("select %s from calc "
                                            "where idx==?" %db_key,
                                            (idx,))
-                    if db_val is not None:                                           
+                    if db_val is not None:
                         sql_lst.append(sql.SQLEntry(key=db_key, sqlval=db_val))
                 # for each replacement key, check if they are correctly placed
                 # in the database (if applicable) and in the written files
@@ -69,32 +69,32 @@ def check_generated(calc_root, machine_dct, params_lst, revision):
                     else:
                         db_val = 'NOT_DEFINED_IN_DB'
                     print("check_generated: idx={0}, sqlentry.key={1}, "
-                          "sqlentry.sqlval={2}, db_val={3}".format(idx, sqlentry.key, 
+                          "sqlentry.sqlval={2}, db_val={3}".format(idx, sqlentry.key,
                                                                  sqlentry.sqlval,
                                                                  db_val))
                     check_key_in_file(lines, sqlentry.key, sqlentry.sqlval)
     db.finish()
 
 
-def test_parameter_study():    
+def test_parameter_study():
     templ_dir = 'files/calc.templ'
     calc_root = pj(testdir, 'calc_test_param_study')
-    
+
     # filename: FileTemplate built from that internally
     host0 = batch.Machine(hostname='host0',
                           subcmd='qsub_host0',
                           home='/home/host0/user',
                           scratch='/tmp/host0',
                           filename='files/calc.templ/job.host0')
-    
+
     # template: provide FileTemplate directly
     host1 = batch.Machine(hostname='host1',
                           subcmd='qsub_host1',
                           home='/home/host1/user',
                           scratch='/tmp/host1',
-                          template=batch.FileTemplate(basename='job.host1', 
+                          template=batch.FileTemplate(basename='job.host1',
                                                       templ_dir=templ_dir))
-    
+
     # use template text here instead of a file
     host2_txt = """
 subcmd=XXXSUBCMD
@@ -104,22 +104,22 @@ calc_name=XXXCALC_NAME
 idx=XXXIDX
 revision=XXXREVISION
 study_name=XXXSTUDY_NAME
-"""    
+"""
     host2 = batch.Machine(hostname='host2',
                           subcmd='qsub_host2',
                           home='/home/host2/user',
                           scratch='/tmp/host2',
-                          template=batch.FileTemplate(basename='job.host2', 
+                          template=batch.FileTemplate(basename='job.host2',
                                                       txt=host2_txt))
-    
 
-    
+
+
     study_name = 'convergence'
     templates = [batch.FileTemplate(basename='pw.in', templ_dir=templ_dir)]
     param0 = sql.sql_column(key='param0', lst=[25.0, 50.0])
     param1 = sql.sql_column(key='param1', lst=['2x2x2','3x3x3','4x4x4'])
     param2 = sql.sql_column(key='param2', lst=[77,88,99,111])
-    
+
     # only needed for this test
     machine_dct = {'host0': host0,
                    'host1': host1,
@@ -133,9 +133,9 @@ study_name=XXXSTUDY_NAME
     # revision=0
     #------------------------------------------------------------------------
     params_lst0 = comb.nested_loops([param0])
-    calc = batch.ParameterStudy(machines=host0, 
-                                templates=templates, 
-                                params_lst=params_lst0, 
+    calc = batch.ParameterStudy(machines=host0,
+                                templates=templates,
+                                params_lst=params_lst0,
                                 study_name=study_name,
                                 calc_root=calc_root)
     # same as mode='w' + backup=True
@@ -146,9 +146,9 @@ study_name=XXXSTUDY_NAME
     # revision=0, no backup, erase all
     #------------------------------------------------------------------------
     params_lst0 = comb.nested_loops([param0])
-    calc = batch.ParameterStudy(machines=host0, 
-                                templates=templates, 
-                                params_lst=params_lst0, 
+    calc = batch.ParameterStudy(machines=host0,
+                                templates=templates,
+                                params_lst=params_lst0,
                                 study_name=study_name,
                                 calc_root=calc_root)
     calc.write_input(mode='w', backup=False)
@@ -165,9 +165,9 @@ study_name=XXXSTUDY_NAME
     # revision=0, backup, then erase all
     #------------------------------------------------------------------------
     params_lst0 = comb.nested_loops([param0])
-    calc = batch.ParameterStudy(machines=host0, 
-                                templates=templates, 
-                                params_lst=params_lst0, 
+    calc = batch.ParameterStudy(machines=host0,
+                                templates=templates,
+                                params_lst=params_lst0,
                                 study_name=study_name,
                                 calc_root=calc_root)
     calc.write_input(mode='w', backup=True)
@@ -184,9 +184,9 @@ study_name=XXXSTUDY_NAME
     # revision=1, backup and extend
     #------------------------------------------------------------------------
     params_lst1 = comb.nested_loops([param1,param2])
-    calc = batch.ParameterStudy(machines=[host0,host1,host2], 
-                                templates=templates, 
-                                params_lst=params_lst1, 
+    calc = batch.ParameterStudy(machines=[host0,host1,host2],
+                                templates=templates,
+                                params_lst=params_lst1,
                                 study_name=study_name,
                                 calc_root=calc_root)
     calc.write_input(mode='a', backup=True)
@@ -200,13 +200,13 @@ study_name=XXXSTUDY_NAME
     for ii in range(nparam0+1, nparam1*nparam2):
         assert os.path.exists(pj(calc_root, 'calc_host1/%i' %ii))
         assert os.path.exists(pj(calc_root, 'calc_host2/%i' %ii))
-    
+
     # excl_push
     excl_fn = pj(calc_root, 'excl_push')
     # ['0', '1', '2', ...]
     assert common.file_read(excl_fn).split() == \
         [str(x) for x in range(len(params_lst0))]
-    
+
     # sum params_lstm b/c we use `idx` from calc.db and that counts params_lst0
     # + params_lst1, i.e. all paramseter sets from revision=0 up to now
     check_generated(calc_root, machine_dct, params_lst0+params_lst1, revision=1)

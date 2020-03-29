@@ -19,10 +19,10 @@ and these files:
 import numpy as np
 from pwtools import kpath, common, pwscf, io, crys, mpl
 
-sp_symbols = ['$\Gamma$', 
+sp_symbols = ['$\Gamma$',
               'M',
-              'K', 
-              '$\Gamma$', 
+              'K',
+              '$\Gamma$',
               'A',
               ]
 # fractional k-space coords for special points
@@ -41,14 +41,14 @@ rcell_reduced = crys.recip_cell(st.cell) / 2.0 / np.pi * st.cryst_const[0]
 sp_points = np.dot(sp_points_frac, rcell_reduced)
 
 # fine path: use N=500 for nice LO-TO split jumps [see below for more comments
-# on that] 
+# on that]
 ks_path = kpath.kpath(sp_points, N=50)
 
 # call matdyn.x
 templ_txt = """
 &input
     asr='crystal',
-XXXMASS    
+XXXMASS
     flfrc='q2r.fc',
     flfrq='XXXFNFREQ'
 /
@@ -80,11 +80,11 @@ sp = kpath.SpecialPointsPath(ks=sp_points, ks_frac=sp_points_frac,
 
 # QE 4.x, 5.x
 ks, freqs = pwscf.read_matdyn_freq(matdyn_freq_fn)
-fig,ax = kpath.plot_dis(kpath.get_path_norm(ks_path), freqs, sp, marker='', ls='-', color='k') 
+fig,ax = kpath.plot_dis(kpath.get_path_norm(ks_path), freqs, sp, marker='', ls='-', color='k')
 
 # QE 5.x
 ##d = np.loadtxt(matdyn_freq_fn + '.gp')
-##fig,ax = kpath.plot_dis(d[:,0], d[:,1:], sp, marker='', ls='-', color='k') 
+##fig,ax = kpath.plot_dis(d[:,0], d[:,1:], sp, marker='', ls='-', color='k')
 
 # if needed
 #ax.set_ylim(...)

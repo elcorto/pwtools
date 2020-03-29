@@ -32,14 +32,14 @@ class RandomStructure(object):
     # Notes
     # -----
     # * Maybe add outer loop, create new cryst_const and try again if creating
-    #   struct failed once. 
+    #   struct failed once.
     # * Maybe don't raise exceptions if struct creation fails, only print
     #   warning / let user decide -- add arg error={True,False}.
     # * The bottleneck is get_random_struct() -- the loop over
-    #   _atoms_too_close().   
-    def __init__(self, 
-                 symbols, 
-                 vol_scale=4, 
+    #   _atoms_too_close().
+    def __init__(self,
+                 symbols,
+                 vol_scale=4,
                  angle_range = [60.0, 120.0],
                  vol_range_scale=[0.7,1.3],
                  length_range_scale=[0.7,1.3],
@@ -63,7 +63,7 @@ class RandomStructure(object):
             Scale estimated mean volume by `min` and `max` to get allowed
             volume range.
         length_range_scale : sequence of 2 floats [min, max]
-            Scale estimated mean cell side length (3rd root of mean volume) 
+            Scale estimated mean cell side length (3rd root of mean volume)
             by `min` and `max` to get allowed cell side range.
         close_scale : float
             Scale allowed distance between atoms (from sum of covalent radii).
@@ -88,11 +88,11 @@ class RandomStructure(object):
         self.dij_min = (self.cov_radii + self.cov_radii[:,None]) * self.close_scale
         self.vol_mean = 4.0/3.0 * pi * (self.cov_radii**3.0).sum() * vol_scale
         self.length_mean = self.vol_mean ** (1.0/3.0)
-        self.vol_range = [self.vol_mean*vol_range_scale[0], 
+        self.vol_range = [self.vol_mean*vol_range_scale[0],
                           self.vol_mean*vol_range_scale[1]]
         self.length_range = [self.length_mean * length_range_scale[0],
                              self.length_mean * length_range_scale[1]]
-        self.counters = {'cryst_const': None, 'coords': None} 
+        self.counters = {'cryst_const': None, 'coords': None}
 
     def get_random_cryst_const(self):
         """Create random cryst_const.
@@ -106,9 +106,9 @@ class RandomStructure(object):
         RandomStructureFail
         """
         def _get():
-            return np.concatenate((uniform(self.length_range[0], 
+            return np.concatenate((uniform(self.length_range[0],
                                            self.length_range[1], 3),
-                                   uniform(self.angle_range[0], 
+                                   uniform(self.angle_range[0],
                                            self.angle_range[1], 3)))
         cnt = 1
         while cnt <= self.cell_maxtry:
@@ -116,16 +116,16 @@ class RandomStructure(object):
             vol = volume_cc(cc)
             if not self.vol_range[0] <= vol <= self.vol_range[1]:
                 cc = _get()
-                cnt += 1                                 
+                cnt += 1
             else:
                 self.counters['cryst_const'] = cnt
                 return cc
-        raise RandomStructureFail("failed creating random cryst_const")            
-    
+        raise RandomStructureFail("failed creating random cryst_const")
+
     def _atoms_too_close(self, iatom):
         """Check if any two atoms are too close, i.e. closer then the sum of
         their covalent radii, scaled by self.close_scale.
-        
+
         Minimum image distances are used.
 
         Parameters
@@ -161,11 +161,11 @@ class RandomStructure(object):
                                                    distsq,
                                                    dummy1,
                                                    dummy2)
-        dist = np.sqrt(distsq)                                                            
+        dist = np.sqrt(distsq)
         # This part is fast
         dij_min_filled = self.dij_min[:natoms_filled,:natoms_filled]
         return np.triu(dist < dij_min_filled, k=1).any()
-    
+
     def _add_random_atom(self, iatom):
         self.coords_frac[iatom,:] = np.random.rand(3)
 
@@ -177,7 +177,7 @@ class RandomStructure(object):
             if self.verbose:
                 print(err.msg)
             return None
-    
+
     def _get_random_struct(self):
         """Generate random cryst_const and atom coords.
 
@@ -196,7 +196,7 @@ class RandomStructure(object):
             if iatom == 0:
                 cnt = 1
                 self._add_random_atom(iatom)
-            else:                
+            else:
                 cnt = 1
                 while cnt <= self.atom_maxtry:
                     self._add_random_atom(iatom)
@@ -212,13 +212,13 @@ class RandomStructure(object):
                                                              self.natoms-1))
         st = Structure(symbols=self.symbols,
                        coords_frac=self.coords_frac,
-                       cell=self.cell)        
+                       cell=self.cell)
         return st
-    
+
     def _get_random_struct_nofail(self):
         """Same as _get_random_struct(), but if RandomStructureFail is raised,
         start over.
-        
+
         Returns
         -------
         Structure
@@ -229,12 +229,12 @@ class RandomStructure(object):
             if self.verbose:
                 print("  try: %i" %cnt)
             st = self._try_random_struct()
-            cnt += 1          
-        return st             
-    
+            cnt += 1
+        return st
+
     def get_random_struct(self, fail=True):
         """Generate random cryst_const and atom coords.
-        
+
         If `fail=True`, then RandomStructureFail may be raised if structure
         generation fails (`cell_maxtry` or  `atom_maxtry` exceeded).
 
@@ -257,7 +257,7 @@ class RandomStructure(object):
         """
         if fail:
             return self._get_random_struct()
-        else:            
+        else:
             return self._get_random_struct_nofail()
 
 

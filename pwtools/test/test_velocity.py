@@ -6,7 +6,7 @@ def test_velocity_traj():
     # Test Trajectory.get_velocity() against velocities output from CP2K. The
     # agreement is very good. Works only for fixed-cell MDs, however!
     dr = 'files/cp2k/md/nvt_print_low'
-    base = os.path.dirname(dr) 
+    base = os.path.dirname(dr)
     fn = '%s/cp2k.out' %dr
     print(common.backtick('tar -C {0} -xzf {1}.tgz'.format(base,dr)))
     tr = io.read_cp2k_md(fn)
@@ -25,13 +25,13 @@ def test_velocity_traj():
     print(">>>> np.abs(v1-v2).max()", np.abs(v1-v2).max())
     print(">>>> np.abs(v1-v2).min()", np.abs(v1-v2).min())
     assert np.allclose(v1[1:-1,...], v2[1:-1,...], atol=1e-4)
-    
+
     ##from pwtools import mpl
     ##fig,ax = mpl.fig_ax()
     ##ax.plot(v1[1:-1,:,0], 'b')
     ##ax.plot(v2[1:-1,:,0], 'r')
     ##mpl.plt.show()
-    
+
     shape = (100,10,3)
     arr = np.random.rand(*shape)
     assert crys.velocity_traj(arr, axis=0).shape == shape

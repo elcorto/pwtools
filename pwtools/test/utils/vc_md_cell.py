@@ -6,7 +6,7 @@
 #
 # usage
 # ------
-# ./make-vc-md-cell.py > ../files/pw.vc-md.cell.out 
+# ./make-vc-md-cell.py > ../files/pw.vc-md.cell.out
 
 import numpy as np
 from pwtools import common
@@ -19,4 +19,4 @@ if __name__ == '__main__':
         for ii in range(5):
             cell_str = common.str_arr((cell + 0.02*ii + ialat)/alat)
             print("CELL_PARAMETERS (alat= %.5f)\n%s" %(alat, cell_str))
-            
+

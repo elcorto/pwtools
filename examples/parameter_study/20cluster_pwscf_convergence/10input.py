@@ -32,7 +32,7 @@ for ecutwfc in np.linspace(30,100,8):
 
 calc = batch.ParameterStudy(machines=theo,
                             templates=templates,
-                            params_lst=params_lst, 
+                            params_lst=params_lst,
                             study_name='convergence_test_cutoff',
                             )
 calc.write_input(sleep=0, backup=False, mode='w')

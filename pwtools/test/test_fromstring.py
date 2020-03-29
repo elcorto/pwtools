@@ -4,15 +4,15 @@ import numpy as np
 # update :)
 def test_fromstring():
     txt1 = """1
-2.0 3.0      
+2.0 3.0
     4
 
   5 6
-"""  
+"""
     txt2 = """
     1 2 3
     4 5 6"""
-    
+
     txt3 = "1 2 3 4 5             6"
 
     arr = np.array([1,2,3,4,5.0, 6])

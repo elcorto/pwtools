@@ -1,14 +1,14 @@
 r"""
 Parser classes for different file formats. Input- and output files.
 ===================================================================
- 
+
 We need the following basic Unix tools installed:
 
 | grep/egrep
 | sed
 | awk (better mawk)
 | tail
-| wc 
+| wc
 | ...
 
 The tested egrep versions don't know the ``\s`` character class for
@@ -32,11 +32,11 @@ cannot find anything in the file, it returns None. All getters which depend
 on it will also return None.
 
 * After initialization
-      pp = SomeParsingClass(<filename>) 
+      pp = SomeParsingClass(<filename>)
   all attrs whoose name is in pp.attr_lst will be set to None.
 
-* parse() will invoke self.try_set_attr(<attr>), which does 
-      self.<attr> = self.get_<attr>() 
+* parse() will invoke self.try_set_attr(<attr>), which does
+      self.<attr> = self.get_<attr>()
   for each <attr> in self.attr_lst, thus setting self.<attr> to a defined
   value: None if nothing was found in the file or not None else
 
@@ -56,7 +56,7 @@ on it will also return None.
       pp=io.read_pickle(...)
   then use direct attr access
       pp.<attr>
-  instead of 
+  instead of
       pp.get_<attr>()
   b/c latter would simply parse self.filname again.
 
@@ -76,7 +76,7 @@ classes. If parse() is used, all this information retrieved and stored.
 * Use get_struct() / get_traj() to get a Structure / Trajectory object with
   pwtools standard units (eV, Ang, fs).
 
-Using parse():    
+Using parse():
 
 Pro:
 
@@ -85,7 +85,7 @@ Pro:
 * In theory, you can delete the file pointed to by self.filename, assuming
   all getters have extracted all information that you need.
 
-Con:      
+Con:
 
 * The object is full of (potentially big) arrays holding redundant
   information. Thus, the dump()'ed file may be large. Use the compress()
@@ -94,7 +94,7 @@ Con:
 
 Using get_<attr>():
 
-Pro: 
+Pro:
 
 * You only parse what you really need.
 
@@ -120,7 +120,7 @@ try:
 except ImportError:
     pass
 
-from pwtools import (common, constants, regex, crys, atomic_data, num, 
+from pwtools import (common, constants, regex, crys, atomic_data, num,
     arrayio, dcd)
 from pwtools.verbose import verbose
 from pwtools.base import FlexibleGetters
@@ -131,11 +131,11 @@ pj = os.path.join
 
 # mawk is _much_ faster than GNU awk, which is ususlly /usr/bin/awk on linux.
 # This test is pretty simple-minded but very fast. Maybe add more paths if
-# needed (e.g. /usr/local/bin') or use a more elaborate thing such as 
+# needed (e.g. /usr/local/bin') or use a more elaborate thing such as
 #
 #   1) distutils.spawn.find_executable
 #   2) shutil.which # python 3.3
-#   3) try: 
+#   3) try:
 #          subprocess.call(...) # or subprocess.Popen(...)
 #      except OSError:
 #          ...
@@ -146,7 +146,7 @@ if os.path.exists('/usr/bin/mawk'):
     AWK = 'mawk'
 else:
     AWK = 'awk'
-    
+
 
 #-----------------------------------------------------------------------------
 # General helpers
@@ -173,7 +173,7 @@ def nstep_from_txt(txt):
 def traj_from_txt(txt, shape, axis=0, dtype=np.float, sep=' '):
     """Used for 3d trajectories where the exact shape of the array as written
     by the MD code must be known, e.g. (nstep,N,3) where N=3 (cell, stress) or
-    N=natoms (coords, forces, ...). 
+    N=natoms (coords, forces, ...).
 
     We use np.fromstring for speed, so `txt` can only contain numbers and
     separators (white space), no comments (like "# this is the header"), which
@@ -190,9 +190,9 @@ def traj_from_txt(txt, shape, axis=0, dtype=np.float, sep=' '):
     axis : int
         Axis along which the array was written in 2d chunks to text. (see
         also `axis` in arrayio.writetxt()).
-        Used to reconstruct the array. 
+        Used to reconstruct the array.
         Only axis=0 implemented.
-    dtype, sep : passed to np.fromstring    
+    dtype, sep : passed to np.fromstring
     """
     if txt.strip() == '':
         return None
@@ -221,8 +221,8 @@ def arr2d_from_txt(txt, dtype=np.float):
         return ret
 
 def axis_lens(seq, axis=0):
-    """Return length of `axis` of all arrays in `seq`. 
-    
+    """Return length of `axis` of all arrays in `seq`.
+
     If an entry in `seq` is None instead of an array, return 0. All arrays must
     have at least axis+1 dimensions, of course (i.e. axis=1 -> all arrays at
     least 2d).
@@ -239,7 +239,7 @@ def axis_lens(seq, axis=0):
             ret.append(xx.shape[axis])
         except AttributeError:
             ret.append(0)
-    return ret            
+    return ret
 
 
 #-----------------------------------------------------------------------------
@@ -250,11 +250,11 @@ class StructureFileParser(UnitsHandler):
     """Base class for single-structure parsers.
     """
     Container = crys.Structure
-    default_units = {}    
+    default_units = {}
     def __init__(self, filename=None, units=None):
-        self.parse_called = False    
+        self.parse_called = False
         self.filename = filename
-        # Some parsers do 
+        # Some parsers do
         #   self._foo_file = os.path.join(self.basedir,'foo')
         # in their __init__. That should not fail if we create an instance
         # without passing a filename, like parser=SomeParsingClass(). So
@@ -270,15 +270,15 @@ class StructureFileParser(UnitsHandler):
         self.update_units(self.default_units)
         self.update_units(units)
         self.cont = self.Container(set_all_auto=False, units=self.units)
-        self.init_attr_lst(self.cont.attr_lst)            
-    
+        self.init_attr_lst(self.cont.attr_lst)
+
     def parse(self):
         self.set_all()
         self.parse_called = True
-    
+
     def get_cont(self, auto_calc=True):
         """Populate and return a Container object.
-        
+
         Parameters
         ----------
         auto_calc : bool
@@ -286,7 +286,7 @@ class StructureFileParser(UnitsHandler):
             parsed data by calling ``set_all()``.
 
             | True:  call ``Container.set_all()`` =
-            |           ``Container._extend_arrays_apply_units()`` + 
+            |           ``Container._extend_arrays_apply_units()`` +
             |           ``FlexibleGetters.set_all()``
             | False: call only ``Container._extend_arrays_apply_units()``
         """
@@ -296,14 +296,14 @@ class StructureFileParser(UnitsHandler):
             setattr(self.cont, attr_name, getattr(self, attr_name))
         if auto_calc:
             self.cont.set_all()
-        else:            
+        else:
             self.cont._extend_arrays_apply_units()
-        assert self.cont.units_applied, "Container units not applied"            
+        assert self.cont.units_applied, "Container units not applied"
         return self.cont
-   
+
     def apply_units(self):
         raise NotImplementedError("don't use that in parsers")
-    
+
     def get_struct(self, **kwds):
         return self.get_cont(**kwds)
 
@@ -314,7 +314,7 @@ class TrajectoryFileParser(StructureFileParser):
     # timeaxis in Trajectory defined before __init__, so we don't need to
     # instantiate the object
     timeaxis = Container.timeaxis
-    
+
     def get_struct(self, **kwds):
         raise NotImplementedError("use get_traj()")
 
@@ -328,15 +328,15 @@ class CifFile(StructureFileParser):
     References
     ----------
     .. [1] https://bitbucket.org/jamesrhester/pycifrw
-    """        
+    """
     def __init__(self, filename=None, block=None, *args, **kwds):
-        """        
+        """
         Parameters
         ----------
         filename : name of the input file
         block : data block name (i.e. 'data_foo' in the Cif file -> 'foo'
             here). If None then the first data block in the file is used.
-        
+
         """
         self.block = block
         StructureFileParser.__init__(self, filename=filename, *args, **kwds)
@@ -347,8 +347,8 @@ class CifFile(StructureFileParser):
             'symbols',
             'cryst_const',
             ]
-        self.init_attr_lst()      
-    
+        self.init_attr_lst()
+
     def cif_str2float(self, st):
         """'7.3782(7)' -> 7.3782"""
         if '(' in st:
@@ -356,15 +356,15 @@ class CifFile(StructureFileParser):
         return float(st)
 
     def cif_clear_atom_symbol(self, st, rex=re.compile(r'([a-zA-Z]+)([0-9+-]*)')):
-        """Remove digits and "+,-" from atom names. 
-        
+        """Remove digits and "+,-" from atom names.
+
         Examples
         --------
         >>> cif_clear_atom_symbol('Al1')
         'Al'
         """
         return rex.match(st).group(1)
-    
+
     def _get_cif_dct(self):
         # celldm from a,b,c and alpha,beta,gamma
         # alpha = angbe between b,c
@@ -379,7 +379,7 @@ class CifFile(StructureFileParser):
             what = '_cell_angle_' + x
             cif_dct[x] = self.cif_str2float(self._cif_block[what])
         return cif_dct
-    
+
     def _get_cif_block(self):
         cf = pycifrw_CifFile.ReadCif(self.filename)
         if self.block is None:
@@ -387,7 +387,7 @@ class CifFile(StructureFileParser):
         else:
             cif_block = cf['data_' + self.block]
         return cif_block
-    
+
     def get_coords_frac(self):
         if self.check_set_attr('_cif_block'):
             if '_atom_site_fract_x' in self._cif_block:
@@ -395,12 +395,12 @@ class CifFile(StructureFileParser):
                                     self._cif_block['_atom_site_fract_x'],
                                     self._cif_block['_atom_site_fract_y'],
                                     self._cif_block['_atom_site_fract_z'])])
-                return arr                                    
+                return arr
             else:
                 return None
         else:
             return None
-        
+
     def get_coords(self):
         if self.check_set_attr('_cif_block'):
             if '_atom_site_Cartn_x' in self._cif_block:
@@ -408,7 +408,7 @@ class CifFile(StructureFileParser):
                                     self._cif_block['_atom_site_Cartn_x'],
                                     self._cif_block['_atom_site_Cartn_y'],
                                     self._cif_block['_atom_site_Cartn_z'])])
-                return arr                                    
+                return arr
             else:
                 return None
         else:
@@ -420,25 +420,25 @@ class CifFile(StructureFileParser):
         for entry in try_lst:
             if entry in self._cif_block:
                 return list(map(self.cif_clear_atom_symbol, self._cif_block[entry]))
-        return None                
-    
+        return None
+
     def get_cryst_const(self):
         self.try_set_attr('_cif_dct')
         return np.array([self._cif_dct[key] for key in \
             ['a', 'b', 'c', 'alpha', 'beta', 'gamma']])
-    
+
 
 class PDBFile(StructureFileParser):
-    """Very very simple pdb file parser. 
-    
+    """Very very simple pdb file parser.
+
     Extract only ATOM/HETATM and CRYST1 (if present) records. If you want smth
     serious, check biopython or openbabel.
-    
+
     Notes
     -----
     self.cryst_const :
         If no CRYST1 record is found, this is None.
-    
+
     parsing:
         We use regexes which may not work for more complicated ATOM records. We
         don't use the strict column numbers for each field as stated in the PDB
@@ -475,7 +475,7 @@ class PDBFile(StructureFileParser):
     #  79 - 80      LString(2)    charge       Charge  on the atom.
     #
     # CRYST1 record:
-    # 
+    #
     # COLUMNS       DATA  TYPE    FIELD          DEFINITION
     # -------------------------------------------------------------
     #  1 -  6       Record name   "CRYST1"
@@ -496,19 +496,19 @@ class PDBFile(StructureFileParser):
             'symbols',
             'cryst_const',
             ]
-        self.init_attr_lst()      
+        self.init_attr_lst()
         if self.filename is not None:
             self.txt = common.file_read(self.filename)
-    
+
     def _get_coords_data(self):
         pat = r'(ATOM|HETATM)[\s0-9]+([A-Za-z]+)[\sa-zA-Z0-9]*' + \
             r'[\s0-9]+((\s+'+ regex.float_re + r'){3}?)'
-        # array of string type            
+        # array of string type
         return np.array([[m.group(2)] + m.group(3).split() for m in \
                          re.finditer(pat,self.txt)])
-    
+
     def get_symbols(self):
-        # list of strings (system:nat,) 
+        # list of strings (system:nat,)
         # Fix atom names, e.g. "AL" -> Al. Note that this is only needed b/c we
         # use the "wrong" column "Atom name".
         self.try_set_attr('_coords_data')
@@ -523,8 +523,8 @@ class PDBFile(StructureFileParser):
     def get_coords(self):
         self.try_set_attr('_coords_data')
         # float array, (system:nat, 3)
-        return self._coords_data[:,1:].astype(float)        
-    
+        return self._coords_data[:,1:].astype(float)
+
     def get_cryst_const(self):
         # grep CRYST1 record, extract only crystallographic constants
         # example:
@@ -537,29 +537,29 @@ class PDBFile(StructureFileParser):
 
 class PwSCFOutputFile(StructureFileParser):
     r"""Parse a pw.x SCF output file (calculation='scf').
-    
+
     Some getters (_get_<attr>_raw) work for MD-like output, too. Here in the
     SCF case, only the first item along the time axis is returned and should
     only be used on calculation='scf' output.
-    
+
     SCF output files don't have an ATOMIC_POSITIONS block. We need to parse the
     block below, which can be found at the top the file (cartesian, divided by
     alat). From that, we also get symbols::
 
         Cartesian axes
-        
+
           site n.     atom                  positions (a_0 units)
               1           Al  tau(  1) = (  -0.0000050   0.5773532   0.0000000  )
               2           Al  tau(  2) = (   0.5000050   0.2886722   0.8000643  )
               3           N   tau(  3) = (  -0.0000050   0.5773532   0.6208499  )
               4           N   tau(  4) = (   0.5000050   0.2886722   1.4209142  )
-    
+
     Many quantities in PWscf's output files are always in units of the lattice
     vector "a" (= a_0 = celldm1 = "alat" [Bohr]), i.e. divided by that value,
     which is usually printed in the output in low precision::
 
          lattice parameter (a_0)   =       5.8789  a.u.
-    
+
     You can parse that value with ``get_alat(use_alat=True)``. We do that by
     default: ``PwSCFOutputFile(filename, use_alat=True)`` b/c this is what most
     people will expect if they just call the parser on some file. Then, we
@@ -569,9 +569,9 @@ class PwSCFOutputFile(StructureFileParser):
     If ``use_alat=False``, we use ``alat=1.0``, i.e. all length quantities
     which are "in alat units" are returned exactly as found in the file, which
     is the same behavior as in all other parsers. Unit conversion happens only
-    when we pass things to Structure / Trajectory using self.units. 
+    when we pass things to Structure / Trajectory using self.units.
 
-    If you need/want to use another alat (i.e. a value with more precision), 
+    If you need/want to use another alat (i.e. a value with more precision),
     then you need to explicitly provide that value and use ``use_alat=False``::
 
     >>> alat = 1.23456789 # high precision value in Bohr
@@ -581,7 +581,7 @@ class PwSCFOutputFile(StructureFileParser):
     ``use_alat=False`` will prevent parsing the low precision value from
     'pw.out'. The option ``units=...`` will overwrite ``default_units['length']
     = Bohr/Ang``, which is used to convert all PWscf length [Bohr] to [Ang]
-    when passing things to Trajectory. 
+    when passing things to Trajectory.
 
     In either case, all quantities with a length unit or derived from such a
     quantitiy, e.g.
@@ -592,9 +592,9 @@ class PwSCFOutputFile(StructureFileParser):
         | coords_frac
         | volume
         | ...
-    
+
     will be correct (up to alat's precision).
-    
+
     All getters return PWscf standard units (Ry, Bohr, ...).
 
     It is a special case for PWscf that a parser class may modify values parsed
@@ -612,7 +612,7 @@ class PwSCFOutputFile(StructureFileParser):
     Use ``crys.rms(self.forces)`` (for PwSCFOutputFile) or
     ``crys.rms3d(self.forces, axis=self.timeaxis)`` (for PwMDOutputFile)
     instead.
-    
+
     Verbose force printing: When using van der Waals (``london=.true.``) or
     ``verbosity='high'``, then more than one force block (natoms,3) is printed.
     In that case, we assume the first block to be the sum of all force
@@ -621,19 +621,19 @@ class PwSCFOutputFile(StructureFileParser):
     ``self._forces_raw`` (see ``self._get_forces_raw()``) to obtain all forces,
     which will have the shape (N*natoms). The forces blocks will be in the
     following order:
-    
+
     =====================   =====================     =======================
-    ``london=.true.``       ``verbosity='high'``      ``verbosity='high'`` + 
-                                                      ``london=.true.`` 
+    ``london=.true.``       ``verbosity='high'``      ``verbosity='high'`` +
+                                                      ``london=.true.``
     =====================   =====================     =======================
-    sum                     sum                       sum          
+    sum                     sum                       sum
     vdw                     non-local                 non-local
     \                       ionic                     ionic
     \                       local                     local
     \                       core                      core
     \                       Hubbard                   Hubbard
     \                       SCF correction            SCF correction
-    \                       \                         vdw  
+    \                       \                         vdw
     =====================   =====================     =======================
 
     Note that this order may change with QE versions, check your output file!
@@ -649,7 +649,7 @@ class PwSCFOutputFile(StructureFileParser):
          'length': Bohr / Angstrom, # Bohr -> Angstrom
          'forces': Ry / eV * Angstrom / Bohr, # Ry / Bohr -> eV / Angstrom
          'stress': 0.1, # kbar -> GPa
-        } 
+        }
     def __init__(self, filename=None, use_alat=True, **kwds):
         StructureFileParser.__init__(self, filename=filename, **kwds)
         self.timeaxis = crys.Trajectory(set_all_auto=False).timeaxis
@@ -665,7 +665,7 @@ class PwSCFOutputFile(StructureFileParser):
             'nkpoints',
             'scf_converged',
             ]
-        self.use_alat = use_alat            
+        self.use_alat = use_alat
         self.init_attr_lst()
 
     def _get_stress_raw(self):
@@ -677,9 +677,9 @@ class PwSCFOutputFile(StructureFileParser):
             cmd = "grep -A3 '%s' %s | grep -v -e %s -e '--'| \
                   %s '{print $4\"  \"$5\"  \"$6}'" \
                   %(key, self.filename, key, AWK)
-            return traj_from_txt(com.backtick(cmd), 
+            return traj_from_txt(com.backtick(cmd),
                                  shape=(nstep,3,3),
-                                 axis=self.timeaxis)              
+                                 axis=self.timeaxis)
         else:
             return None
 
@@ -687,7 +687,7 @@ class PwSCFOutputFile(StructureFileParser):
         verbose("getting _etot_raw")
         cmd =  r"grep '^!' %s | %s '{print $5}'" %(self.filename, AWK)
         return arr1d_from_txt(com.backtick(cmd))
-    
+
     def _get_forces_raw(self):
         verbose("getting _forces_raw")
         if self.check_set_attr('natoms'):
@@ -709,8 +709,8 @@ class PwSCFOutputFile(StructureFileParser):
                 assert nlines_block % self.natoms  == 0, ("nlines_block forces doesn't "
                     "match natoms")
                 return arrayio.arr2d_to_3d(arr2d,
-                                           shape=(nstep,nlines_block,3), 
-                                           axis=self.timeaxis)     
+                                           shape=(nstep,nlines_block,3),
+                                           axis=self.timeaxis)
             else:
                 return None
         else:
@@ -740,13 +740,13 @@ class PwSCFOutputFile(StructureFileParser):
               %(natoms, self.filename, natoms, AWK)
         symbols = com.backtick(cmd).strip().split()
         return {'coords': coords, 'symbols': symbols}
-    
+
     def _get_cell_2d(self):
         """Start 2d cell in alat units.
-        
+
         Grep start cell from pw.out. Multiplication by alat in
         :meth:`get_cell`.
-        
+
         The cell in pw.out is always in alat units (divided by alat) but
         printed with much less precision compared to the input file. If you
         need this information for further calculations, use the input file
@@ -754,11 +754,11 @@ class PwSCFOutputFile(StructureFileParser):
         cmd = "egrep -m1 -A3 'crystal.*axes.*units.*(a_0|alat)' %s | tail -n3 | \
                %s '{print $4\" \"$5\" \"$6}'" %(self.filename, AWK)
         return arr2d_from_txt(com.backtick(cmd))
-    
+
     def get_alat(self, use_alat=None):
         """Lattice parameter "alat" [Bohr]. If use_alat or self.use_alat is
         False, return 1.0, i.e. disbale alat.
-        
+
         Parameters
         ----------
         use_alat : bool
@@ -768,7 +768,7 @@ class PwSCFOutputFile(StructureFileParser):
         if use_alat:
             cmd = r"grep -m1 'lattice parameter' %s | \
                 sed -re 's/.*=(.*)\s+a\.u\./\1/'" %self.filename
-            return float_from_txt(com.backtick(cmd))            
+            return float_from_txt(com.backtick(cmd))
         else:
             return 1.0
 
@@ -786,7 +786,7 @@ class PwSCFOutputFile(StructureFileParser):
             return self._coords_symbols['symbols']
         else:
             return None
-    
+
     def get_stress(self):
         """Stress tensor [kbar]."""
         return self.raw_slice_get('stress', sl=0, axis=self.timeaxis)
@@ -794,7 +794,7 @@ class PwSCFOutputFile(StructureFileParser):
     def get_etot(self):
         """Total enery [Ry]."""
         return self.raw_slice_get('etot', sl=0, axis=0)
-    
+
     def get_forces(self):
         """Forces [Ry / Bohr]."""
         if self.check_set_attr('natoms'):
@@ -809,10 +809,10 @@ class PwSCFOutputFile(StructureFileParser):
 
     def get_nstep_scf(self):
         return self.raw_slice_get('nstep_scf', sl=0, axis=0)
-    
+
     def get_cell(self):
         """Start cell [Bohr].
-        
+
         Apply self.alat unit to _cell_2d."""
         if self.check_set_attr_lst(['_cell_2d', 'alat']):
             return self._cell_2d * self.alat
@@ -824,7 +824,7 @@ class PwSCFOutputFile(StructureFileParser):
         cmd = r"grep -m 1 'number.*atoms/cell' %s | \
               sed -re 's/.*=\s+([0-9]+).*/\1/'" %self.filename
         return int_from_txt(com.backtick(cmd))
-    
+
     def get_nkpoints(self):
         verbose("getting nkpoints")
         cmd = r"grep -m 1 'number of k points=' %s | \
@@ -838,27 +838,27 @@ class PwSCFOutputFile(StructureFileParser):
             return True
         else:
             return False
-    
+
 
 class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
-    """Parse pw.x MD-like output. 
-    
-    Tested so far: md, relax, vc-relax. For vc-md, see PwVCMDOutputFile. 
-    
+    """Parse pw.x MD-like output.
+
+    Tested so far: md, relax, vc-relax. For vc-md, see PwVCMDOutputFile.
+
     Notes
     -----
     Units: Notes on units for PwSCFOutputFile, esp. alat, apply here as well.
     Additionally, the ATOMIC_POSITIONS and CELL_PARAMETERS blocks can have an
     optional unit, which we account for. See get_cell(), get_coords() and
-    methods called in there. 
+    methods called in there.
 
         | ATOMIC_POSITIONS <empty> | bohr | angstrom | alat | crystal
         | CELL_PARAMETERS <empty> | (alat=...) | bohr | angstrom | alat
-    
+
     In each case, the quantity is multiplied by alat if applicable and
     converted to Bohr, which is PWscf's default length, and later to Ang by
     default (or whatever self.units['length'] does).
-    
+
     Initial SCF run: A special "feature" of pwscf is that SCF coords+cell
     output is printed differently from MD-like output (where we have
     ATOMIC_POSITIONS and CELL_PARAMETERS blocks). Since this parser uses only
@@ -894,12 +894,12 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
             'timestep',
             ]
         self.init_attr_lst()
-        self.use_alat = use_alat            
-    
-    
+        self.use_alat = use_alat
+
+
     def _get_block_header_unit(self, key):
-        """Parse things like 
-            
+        """Parse things like
+
             ATOMIC_POSITIONS            -> None
             ATOMIC_POSITIONS unit       -> unit
             ATOMIC_POSITIONS (unit)     -> unit
@@ -924,7 +924,7 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
             return None
         else:
             return tmp[1].split('=')[0]
-    
+
     def _get_coords(self):
         """Parse ATOMIC_POSITIONS block. Unit is handled by get_coords_unit()."""
         verbose("getting _coords")
@@ -940,15 +940,15 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
             cmd = "grep -A%i '%s' %s | grep -v -e %s -e '--' | \
                   %s '{print $2\"  \"$3\"  \"$4}'" \
                   %(natoms, key, self.filename, key, AWK)
-            return traj_from_txt(com.backtick(cmd), 
+            return traj_from_txt(com.backtick(cmd),
                                  shape=(nstep,natoms,3),
                                  axis=self.timeaxis)
         else:
             return None
 
     def _get_cell_3d(self):
-        """Parse CELL_PARAMETERS block. 
-        
+        """Parse CELL_PARAMETERS block.
+
         The block unit is ignored here. Only the content of the block is parsed
         (i.e. the CELL_PARAMETERS as they are in the file). See also
         ``_get_block_header_unit()`` and ``get_cell``.
@@ -958,15 +958,15 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
         key = 'CELL_PARAMETERS'
         cmd = 'grep -c %s %s' %(key, self.filename)
         nstep = nstep_from_txt(com.backtick(cmd))
-        # cell            
+        # cell
         cmd = "grep -A3 %s %s | grep -v -e %s -e '--'" %(key, self.filename, key)
-        return traj_from_txt(com.backtick(cmd), 
+        return traj_from_txt(com.backtick(cmd),
                              shape=(nstep,3,3),
                              axis=self.timeaxis)
-    
+
     def _get_cell_3d_factors(self):
         """Parse CELL_PARAMETERS unit factor printed at each time step.
-        
+
         ::
             CELL_PARAMETERS (alat= 22.75306514)
 
@@ -975,7 +975,7 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
         alat_values : 1d array (nstep,) or None
             1d array with alat for each time step if 'CELL_PARAMETERS.*alat' is
             found; None if not found or if use_alat=False.
-        
+
         Notes
         -----
         During one run, that alat value doesn't change and is the same as alat
@@ -999,7 +999,7 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
     def _match_nstep(self, arr):
         """Get nstep from _coords.shape[0] and return the last nstep steps from
         the array `arr` along self.timeaxis.
-        
+
         Used to match forces,stress,... etc to coords b/c for MDs, the former
         ones are always one step longer b/c of stuff printed in the first SCF
         loop before the MD starts."""
@@ -1007,19 +1007,19 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
             if self.check_set_attr('_coords'):
                 nstep = self._coords.shape[self.timeaxis]
                 if arr.shape[self.timeaxis] > nstep:
-                    return num.slicetake(arr, slice(-nstep,None,None), 
+                    return num.slicetake(arr, slice(-nstep,None,None),
                                          axis=self.timeaxis)
                 else:
                     return arr
             else:
                 return None
-        else: 
+        else:
             return None
 
     def get_coords_unit(self):
         verbose("getting coords_unit")
         return self._get_block_header_unit('ATOMIC_POSITIONS')
-    
+
     def get_cell_unit(self):
         verbose("getting cell_unit")
         return self._get_block_header_unit('CELL_PARAMETERS')
@@ -1038,20 +1038,20 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
                 return None
         else:
             return None
-    
+
     def get_cell(self):
         """Cell [Bohr]. Return 3d array from CELL_PARAMETERS or 2d array
         self._cell_2d. Beware: complicated units logic ahead!"""
         # From the manual, regarding the unit of CELL_PARAMETERS in the input
         # file:
-        # 
+        #
         # bohr / angstrom: lattice vectors in bohr radii / angstrom.
         # alat or nothing specified: if a lattice constant (celldm(1)
         # or a) is present, lattice vectors are in units of the lattice
         # constant; otherwise, in bohr radii or angstrom, as specified.
         #
         # .. yo!
-        
+
         # MD-like case
         if self.check_set_attr('_cell_3d'):
             # CELL_PARAMETERS (alat=...) | bohr | angstrom | alat
@@ -1061,7 +1061,7 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
                 elif self.cell_unit == 'alat':
                     if self.check_set_attr('_cell_3d_factors'):
                         return self._cell_3d * self._cell_3d_factors[:,None,None]
-                    elif self.check_set_attr('alat'):                    
+                    elif self.check_set_attr('alat'):
                         return self._cell_3d * self.alat
                     else:
                         return None
@@ -1069,9 +1069,9 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
                     return self._cell_3d * Angstrom / Bohr
                 else:
                     return None
-            # CELL_PARAMETERS <empty> 
+            # CELL_PARAMETERS <empty>
             else:
-                if self.check_set_attr('alat'):                    
+                if self.check_set_attr('alat'):
                     return self._cell_3d * self.alat
                 else:
                     return None
@@ -1090,7 +1090,7 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
                 return None
         else:
             return None
-    
+
     def get_ekin(self):
         """Ion kinetic energy [Ry]."""
         verbose("getting ekin")
@@ -1105,13 +1105,13 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
               r"| sed -re 's/.*temp.*=\s*(" + regex.float_re + \
               r")\s*K/\1/'"
         return arr1d_from_txt(com.backtick(cmd))
-    
+
     def get_timestep(self):
         """Time step [tryd]."""
         cmd = r"grep -m1 'Time.*step' %s | sed -re \
               's/.*step\s+=\s+(.*)a.u..*/\1/'" %self.filename
         return float_from_txt(com.backtick(cmd))
-    
+
     def get_stress(self):
         """Stress tensor [kbar]."""
         return self._match_nstep(self.raw_return('stress'))
@@ -1119,7 +1119,7 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
     def get_etot(self):
         """[Ry] """
         return self._match_nstep(self.raw_return('etot'))
-    
+
     def get_forces(self):
         """[Ry / Bohr] """
         if self.check_set_attr('natoms'):
@@ -1127,7 +1127,7 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
             return forces[:,:self.natoms,:]
         else:
             return None
-    
+
     def get_nstep_scf(self):
         return self.raw_return('nstep_scf')
 
@@ -1145,22 +1145,22 @@ class PwVCMDOutputFile(PwMDOutputFile):
         ret_str = com.backtick(cmd)
         if ret_str.strip() == '':
             return None
-        else:            
+        else:
             data = np.atleast_2d(np.loadtxt(StringIO(ret_str)))
             return {'ekin': data[:,0],
                     'temperature': data[:,1],
                     'econst': data[:,2]}
-    
+
     def get_ekin(self):
         verbose("getting ekin")
         self.try_set_attr('_datadct')
         return self._datadct['ekin']
-    
+
     def get_econst(self):
         verbose("getting econst")
         self.try_set_attr('_datadct')
         return self._datadct['econst']
-    
+
     def get_temperature(self):
         verbose("getting temperature")
         self.try_set_attr('_datadct')
@@ -1169,14 +1169,14 @@ class PwVCMDOutputFile(PwMDOutputFile):
 
 class CpmdSCFOutputFile(StructureFileParser):
     """Parse output from a CPMD "single point calculation" (wave function
-    optimization). 
-    
+    optimization).
+
     Some extra files are assumed to be in the same directory as self.filename.
-    
+
     extra files::
 
         GEOMETRY.scale
-    
+
     Notes
     -----
     * The SYSTEM section must have SCALE such that a file GEOMETRY.scale is
@@ -1199,16 +1199,16 @@ class CpmdSCFOutputFile(StructureFileParser):
                 /tmp
         &END
         &SYSTEM
-            SCALE 
+            SCALE
             ....
-        &END    
+        &END
     """
     default_units = \
         {'energy': Ha / eV, # Ha -> eV
          'length': Bohr / Angstrom, # Bohr -> Angstrom
          'forces': Ha / eV * Angstrom / Bohr, # Ha / Bohr -> eV / Angstrom
          'stress': 0.1, # kbar -> GPa
-        } 
+        }
     def __init__(self, *args, **kwds):
         StructureFileParser.__init__(self, *args, **kwds)
         self.attr_lst = [\
@@ -1227,7 +1227,7 @@ class CpmdSCFOutputFile(StructureFileParser):
 
     def _get_coords_forces(self):
         """Low precision cartesian coords [Bohr] + forces [Ha / Bohr] I guess.
-        Only printed in this form if we use 
+        Only printed in this form if we use
         &CPMD
             PRINT ON COORDINATES FORCES
         &END
@@ -1241,10 +1241,10 @@ class CpmdSCFOutputFile(StructureFileParser):
                   | tail -n%i \
                   | %s '{print $3\" \"$4\" \"$5\" \"$6\" \"$7\" \"$8}'" \
                   %(self.natoms, self.filename, self.natoms, AWK)
-            return arr2d_from_txt(com.backtick(cmd))                  
+            return arr2d_from_txt(com.backtick(cmd))
         else:
             return None
-    
+
     def _get_scale_file(self):
         """Read GEOMETRY.scale file with fractional coords."""
         fn = os.path.join(self.basedir, 'GEOMETRY.scale')
@@ -1257,31 +1257,31 @@ class CpmdSCFOutputFile(StructureFileParser):
             arr = arr2d_from_txt(com.backtick(cmd), dtype=str)
             coords_frac = arr[:,:3].astype(np.float)
             symbols = arr[:,3].tolist()
-            return {'coords_frac': coords_frac, 
+            return {'coords_frac': coords_frac,
                     'symbols': symbols,
                     'cell': cell}
         else:
             return None
-    
+
     def _get_cell_2d(self):
         """2d array `cell` [Bohr] for fixed-cell MD or SCF from GEOMETRY.scale
         file."""
         verbose("getting _cell_2d")
         if self.check_set_attr('_scale_file'):
             return self._scale_file['cell']
-        else: 
+        else:
             return None
-    
+
     def get_cell(self):
         """2d cell [Bohr]"""
         verbose("getting cell")
         return self.get_return_attr('_cell_2d')
-    
+
     def get_stress(self):
         """[kbar]"""
         verbose("getting stress")
         cmd = "grep -A3 'TOTAL STRESS TENSOR' %s | tail -n3" %self.filename
-        return arr2d_from_txt(com.backtick(cmd))              
+        return arr2d_from_txt(com.backtick(cmd))
 
     def get_etot(self):
         """[Ha]"""
@@ -1289,21 +1289,21 @@ class CpmdSCFOutputFile(StructureFileParser):
         cmd =  r"grep 'TOTAL ENERGY =' %s | tail -n1 | %s '{print $5}'" \
         %(self.filename, AWK)
         return float_from_txt(com.backtick(cmd))
-    
+
     def get_coords_frac(self):
         verbose("getting coords_frac")
         if self.check_set_attr('_scale_file'):
             return self._scale_file['coords_frac']
-        else:            
+        else:
            return None
- 
+
     def get_symbols(self):
         verbose("getting symbols")
         if self.check_set_attr('_scale_file'):
             return self._scale_file['symbols']
-        else:            
+        else:
            return None
- 
+
     def get_forces(self):
         """[Ha / Bohr]"""
         verbose("getting forces")
@@ -1311,7 +1311,7 @@ class CpmdSCFOutputFile(StructureFileParser):
             return self._coords_forces[:,3:]
         else:
             return None
-    
+
     def get_natoms(self):
         """Number of atoms. Apparently only printed as "NUMBER OF ATOMS ..." in
         the SCF case, not in MD. So we use "grep -c" on the GEOMETRY file, which
@@ -1325,7 +1325,7 @@ class CpmdSCFOutputFile(StructureFileParser):
             return int_from_txt(com.backtick(cmd))
         else:
             return None
-    
+
     def get_nkpoints(self):
         verbose("getting nkpoints")
         cmd = r"grep 'NUMBER OF SPECIAL K POINTS' %s | \
@@ -1337,7 +1337,7 @@ class CpmdSCFOutputFile(StructureFileParser):
         cmd = r"grep -B2 'RESTART INFORMATION WRITTEN' %s | head -n1 \
               | %s '{print $1}'" %(self.filename, AWK)
         return int_from_txt(com.backtick(cmd))
-   
+
     def get_scf_converged(self):
         verbose("getting scf_converged")
         cmd = "grep 'BUT NO CONVERGENCE' %s" %self.filename
@@ -1348,12 +1348,12 @@ class CpmdSCFOutputFile(StructureFileParser):
 
 
 class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
-    """Parse CPMD MD output. 
-    
+    """Parse CPMD MD output.
+
     Works with BO-MD and CP-MD, fixed and variable cell. Some attrs may be None
     or have different shapes (2d va 3d arrays) depending on what type of MD is
     parsed and what info/files are available.
-    
+
     Notes for the comments below::
 
         {A,B,C} = A or B or C
@@ -1366,14 +1366,14 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
         GEOMETRY
         TRAJECTORY
         ENERGIES
-    
+
     Extra files which will be parsed and MAY be present depending on the type
     of MD::
 
         (FTRAJECTORY)
-        (CELL) 
+        (CELL)
         (STRESS)
-    
+
     Notes
     -----
     The input should look like that::
@@ -1392,7 +1392,7 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
             SCALE
             ...
         &END
-    
+
     Tested with CPMD 3.15.1, the following extra files are always written::
 
         GEOMETRY.scale
@@ -1402,15 +1402,15 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
 
     In the listing below, we show which extra files are written (+) or not (-)
     if the input follows the example above.
-    
+
     Also, the order of columns in the ENERGIES file depends on what type of MD
     we are running. In case of BO-MD it depends on the kind of wavefunction
     optimizer, too! This is most unpleasant. Currently we rely on the fact that
     each tested case has a different number of columns, but this is very
     hackish b/c it is not guaranteed to be unique! Maybe, we should let the
     user set self.energies_order or a keywords mdtype={'cp-npt', 'bo', etc}
-    instead of subclassed for each case. 
-    
+    instead of subclassed for each case.
+
     This is what we tested so far (cpmd 3.15.1). For BO-MD + ODIIS, some
     columns are always 0.0, but all are there (e.g. EKINC is there but 0.0 b/c
     not defined for BO, only CP). For BO-MD, we list the wf optimizer (xxx for
@@ -1420,8 +1420,8 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
             +FTRAJECTORY
             -CELL
             -STRESS         # why!?
-          ODISS        
-            NFI EKINC TEMPP EKS ECLASSIC EHAM DIS TCPU 
+          ODISS
+            NFI EKINC TEMPP EKS ECLASSIC EHAM DIS TCPU
           LANCZOS DIAGONALIZATION
             NFI TEMPP EKS ECLASSIC DIS TCPU
 
@@ -1429,19 +1429,19 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
             +FTRAJECTORY
             -CELL
             +STRESS
-          xxx        
-            NFI EKINC TEMPP EKS ECLASSIC EHAM DIS TCPU 
-        
+          xxx
+            NFI EKINC TEMPP EKS ECLASSIC EHAM DIS TCPU
+
         MOLECULAR DYNAMICS BO
         PARRINELLO-RAHMAN
             not implemented !
-            
+
         MOLECULAR DYNAMICS CP
         PARRINELLO-RAHMAN
             -FTRAJECTORY    # why!?
             +CELL
             +STRESS
-          xxx        
+          xxx
             NFI EKINC EKINH TEMPP EKS ECLASSIC EHAM DIS TCPU
 
         MOLECULAR DYNAMICS BO
@@ -1451,7 +1451,7 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
             +STRESS
           ODIIS
             NFI EKINC EKINH TEMPP EKS ECLASSIC EHAM DIS TCPU
-        
+
         MOLECULAR DYNAMICS CP
         PARRINELLO-RAHMAN NPT
             -FTRAJECTORY    # why!?
@@ -1459,7 +1459,7 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
             +STRESS
           xxx
             NFI EKINC EKINH TEMPP EKS ECLASSIC EHAM DIS TCPU
-    """        
+    """
 
     def __init__(self, *args, **kwds):
         """
@@ -1490,7 +1490,7 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
             'velocity',
         ]
         self.init_attr_lst()
-        
+
         self._energies_order = {\
             9:\
                 {'nfi': 0,
@@ -1518,8 +1518,8 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
                  'eclassic': 3,
                  'dis': 4,
                  'tcpu': 5},
-            }                 
-    
+            }
+
     def _get_energies_file(self):
         verbose("getting _energies_file")
         fn = os.path.join(self.basedir, 'ENERGIES')
@@ -1538,7 +1538,7 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
             return dct
         else:
             return None
-    
+
     def _get_coords_vel_forces(self):
         verbose("getting _coords_vel_forces")
         """Parse (F)TRAJECTORY file. Ignore lines which say
@@ -1547,9 +1547,9 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
         # cols (both files):
         #   0:   natoms x nfi (natoms x 1, natoms x 2, ...)
         #   1-3: x,y,z cartesian coords [Bohr]
-        #   4-6: x,y,z cartesian velocites [Bohr / thart ] 
+        #   4-6: x,y,z cartesian velocites [Bohr / thart ]
         #        thart = Hartree time =  0.024189 fs
-        # FTRAJECTORY extra:       
+        # FTRAJECTORY extra:
         #   7-9: x,y,z cartesian forces [Ha / Bohr]
         self.assert_set_attr('natoms')
         have_file = False
@@ -1561,7 +1561,7 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
             have_file = True
             ncols = 10
             fn = fn_ftr
-        elif os.path.exists(fn_tr):            
+        elif os.path.exists(fn_tr):
             have_forces = False
             have_file = True
             ncols = 7
@@ -1585,9 +1585,9 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
             dct['velocity'] = arr[...,4:7]
             dct['forces'] = arr[...,7:] if have_forces else None
             return dct
-        else:           
+        else:
             return None
-    
+
     def get_ekin(self):
         if self.check_set_attr('_energies_file'):
             return self._energies_file['eclassic']
@@ -1598,7 +1598,7 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
         verbose("getting cell")
         """Parse CELL file [Bohr]. If CELL is not there, return 2d cell
         from GEOMETRY.scale (self.cell from CpmdSCFOutputFile)."""
-        # So far tested CELL files have 6 cols: 
+        # So far tested CELL files have 6 cols:
         # 1-3: x,y,z cell vectors
         # 4-6: cell forces? ditch them for now ...
         fn = os.path.join(self.basedir, 'CELL')
@@ -1608,10 +1608,10 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
             cmd = "grep -c 'CELL PARAMETERS' %s" %fn
             nstep = int_from_txt(com.backtick(cmd))
             cmd = "grep -A3 'CELL PARAMETERS' %s | grep -v 'CELL'" %fn
-            arr = traj_from_txt(com.backtick(cmd), 
+            arr = traj_from_txt(com.backtick(cmd),
                                 shape=(nstep,3,ncols),
                                 axis=self.timeaxis)
-            return arr[...,:3]                                
+            return arr[...,:3]
         else:
             if self.check_set_attr('_cell_2d'):
                 return self._cell_2d
@@ -1625,7 +1625,7 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
         self.try_set_attr(req)
         return self._coords_vel_forces['coords'] if self.is_set_attr(req) \
             else None
-    
+
     def get_econst(self):
         """[Ha]"""
         verbose("getting econst")
@@ -1633,7 +1633,7 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
         self.try_set_attr_lst(req)
         if self.is_set_attr_lst(req):
             if 'eham' in self._energies_file:
-                return self._energies_file['eham'] 
+                return self._energies_file['eham']
             else:
                 return self.etot
         else:
@@ -1660,10 +1660,10 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
     def get_ekinh(self):
         verbose("getting ekinh")
         """Fictitious cell kinetic energy [Ha].
-        From prcpmd.F: 
+        From prcpmd.F:
             EKINH [J] = 9/2 * kb [J/K] * TEMPH [K]
             EKINH [Ha] = 9/2 * kb [J/K] * TEMPH [K] / Ha
-        where TEMPH is the fictitious cell temperature.            
+        where TEMPH is the fictitious cell temperature.
         """
         req = '_energies_file'
         self.try_set_attr(req)
@@ -1671,7 +1671,7 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
             return self._energies_file['ekinh']
         else:
             return None
-    
+
     # alias
     def get_ekin_cell(self):
         verbose("getting ekin_cell")
@@ -1681,7 +1681,7 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
     def get_ekin_elec(self):
         verbose("getting ekin_elec")
         return self.get_ekinc()
-    
+
     def get_temperature_cell(self):
         """[K]"""
         verbose("getting temperature_cell")
@@ -1691,7 +1691,7 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
             return self.ekin_cell * 2.0 / 9.0 / constants.kb * constants.Ha
         else:
             return None
-    
+
     def get_forces(self):
         """Cartesian forces [Ha/Bohr]."""
         verbose("getting forces")
@@ -1699,7 +1699,7 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
         self.try_set_attr(req)
         return self._coords_vel_forces['forces'] if self.is_set_attr(req) \
             else None
-    
+
     def get_stress(self):
         """Stress tensor from STRESS file if available [kbar]"""
         verbose("getting stress")
@@ -1708,12 +1708,12 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
             cmd = "grep -c 'TOTAL STRESS' %s" %fn
             nstep = int_from_txt(com.backtick(cmd))
             cmd = "grep -A3 'TOTAL STRESS TENSOR' %s | grep -v TOTAL" %fn
-            return traj_from_txt(com.backtick(cmd), 
+            return traj_from_txt(com.backtick(cmd),
                                  shape=(nstep,3,3),
-                                 axis=self.timeaxis)              
+                                 axis=self.timeaxis)
         else:
             return None
-    
+
     def get_temperature(self):
         """[K]"""
         verbose("getting temperature")
@@ -1721,24 +1721,24 @@ class CpmdMDOutputFile(TrajectoryFileParser, CpmdSCFOutputFile):
         self.try_set_attr(req)
         return self._energies_file['tempp'] if self.is_set_attr(req) \
             else None
-    
+
     def get_velocity(self):
         verbose("getting velocity")
         """Cartesian velocity [Bohr / thart]. Not sure about the unit!"""
         if self.check_set_attr('_coords_vel_forces'):
             return self._coords_vel_forces['velocity']
-        else:      
+        else:
             return None
-    
+
     def get_timestep(self):
         """Timestep [thart]."""
         cmd = r"grep 'TIME STEP FOR IONS' %s | \
             sed -re 's/.*IONS:\s+(.*)$/\1/'" %self.filename
-        return float_from_txt(com.backtick(cmd))            
+        return float_from_txt(com.backtick(cmd))
 
 
 class Cp2kSCFOutputFile(StructureFileParser):
-    """CP2K SCF output parser ("global/run_type energy_force,print_level low"). 
+    """CP2K SCF output parser ("global/run_type energy_force,print_level low").
 
     Notes
     -----
@@ -1752,8 +1752,8 @@ class Cp2kSCFOutputFile(StructureFileParser):
     default_units = \
         {'energy': Ha / eV, # Ha -> eV
          'forces': Ha / eV * Angstrom / Bohr, # Ha / Bohr -> eV / Angstrom
-        } 
-    
+        }
+
     def __init__(self, *args, **kwds):
         StructureFileParser.__init__(self, *args, **kwds)
         self.attr_lst = [\
@@ -1764,11 +1764,11 @@ class Cp2kSCFOutputFile(StructureFileParser):
             'symbols',
         ]
         self.init_attr_lst()
-    
+
     def _get_run_type(self):
         cmd = r"grep -m1 'GLOBAL.*Run type' {0} | sed \
             -re 's/.*type\s+(.*)\s*/\1/'".format(self.filename)
-        return com.backtick(cmd).strip()            
+        return com.backtick(cmd).strip()
 
     def _get_natoms_symbols_forces(self):
         cmd = r"sed -nre '1,/ATOMIC FORCES/d; " + \
@@ -1782,7 +1782,7 @@ class Cp2kSCFOutputFile(StructureFileParser):
                     'forces': arr[:,3:].astype(float)}
         else:
             return None
-    
+
     def get_natoms(self):
         if self.check_set_attr('_natoms_symbols_forces'):
             return self._natoms_symbols_forces['natoms']
@@ -1807,7 +1807,7 @@ class Cp2kSCFOutputFile(StructureFileParser):
         cmd = r"sed -nre 's/.*ENERGY.*Total.*energy.*:(.*)/\1/p' %s" %self.filename
         return float_from_txt(com.backtick(cmd))
 
-    
+
     def get_stress(self):
         """[GPa]"""
         cmd = r"grep -A5 'STRESS TENSOR.*GPa' %s | egrep -v 'X[ ]+Y[ ]+Z' | \
@@ -1846,7 +1846,7 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
         self._pos_file = common.pj(self.basedir, 'PROJECT-pos-1.xyz')
         self._frc_file = common.pj(self.basedir, 'PROJECT-frc-1.xyz')
         self._vel_file = common.pj(self.basedir, 'PROJECT-vel-1.xyz')
-    
+
     @staticmethod
     def _cp2k_repack_arr(arr):
         """Convert arr, which is an unrolled (nstep,3,3) array, back."""
@@ -1861,7 +1861,7 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
         out[:,2,1] = arr[:,9]
         out[:,2,2] = arr[:,10]
         return out
-    
+
     def _cp2k_xyz2arr(self, fn):
         """Parse cp2k style XYZ files and return the 3d array."""
         cmd = "grep -c 'i = .*E =' %s" %fn
@@ -1875,38 +1875,38 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
     def _get_cell_file_arr(self):
         if os.path.exists(self._cell_file):
             return np.loadtxt(self._cell_file)
-        else:            
+        else:
             return None
-    
+
     def _get_ener_file_arr(self):
         if os.path.exists(self._ener_file):
             return np.loadtxt(self._ener_file)
-        else:            
+        else:
             return None
 
     def _get_stress_file_arr(self):
         if os.path.exists(self._stress_file):
             return np.loadtxt(self._stress_file)
-        else:            
+        else:
             return None
 
     def get_natoms(self):
         cmd = r"grep -m1 'Number of atoms:' %s | \
             sed -re 's/.*:(.*)/\1/'" %self.filename
-        return int_from_txt(com.backtick(cmd)) 
-    
+        return int_from_txt(com.backtick(cmd))
+
     def get_timestep(self):
         """[fs]"""
         cmd = r"egrep -m1 'MD\| Time Step \[fs\]' %s | \
             sed -re 's/.*\](.*)/\1/'" %self.filename
-        return float_from_txt(com.backtick(cmd))            
+        return float_from_txt(com.backtick(cmd))
 
     def get_symbols(self):
         for fn in [self._pos_file, self._frc_file, self._vel_file]:
             if os.path.exists(fn) and self.check_set_attr('natoms'):
                 cmd = r"grep -m1 -A%i 'i =' %s | \
                     grep -v 'i ='| %s '{print $1}'" \
-                    %(self.natoms, fn, AWK) 
+                    %(self.natoms, fn, AWK)
                 return com.backtick(cmd).strip().split()
         return None
 
@@ -1918,9 +1918,9 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
                  | egrep -v -e 'ATOM|--|Kind' \
                  | tr -s ' ' | cut -d ' ' -f5-".format(fn=self.filename,
                                                        nlines=self.natoms+1)
-            return traj_from_txt(com.backtick(cmd), 
+            return traj_from_txt(com.backtick(cmd),
                                  shape=(nstep,self.natoms,3),
-                                 axis=self.timeaxis)              
+                                 axis=self.timeaxis)
         else:
             return None
 
@@ -1928,23 +1928,23 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
         """Cartesian [Ang]"""
         if os.path.exists(self._pos_file):
             return self._cp2k_xyz2arr(self._pos_file)
-        else:            
+        else:
             return None
 
     def get_forces(self):
         """[Ha/Bohr]"""
         if os.path.exists(self._frc_file):
             return self._cp2k_xyz2arr(self._frc_file)
-        else:            
+        else:
             return self._get_forces_from_outfile()
-    
+
     def get_velocity(self):
         """[Bohr/thart]"""
         if os.path.exists(self._vel_file):
             return self._cp2k_xyz2arr(self._vel_file)
-        else:            
+        else:
             return None
-    
+
     def get_stress(self):
         """[bar]"""
         if self.check_set_attr('_stress_file_arr'):
@@ -1965,21 +1965,21 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
             return self._ener_file_arr[:,3]
         else:
             return None
-    
+
     def get_etot(self):
         """[Ha]"""
         if self.check_set_attr('_ener_file_arr'):
             return self._ener_file_arr[:,4]
         else:
             return None
-    
+
     def get_econst(self):
         """[Ha]"""
         if self.check_set_attr('_ener_file_arr'):
             return self._ener_file_arr[:,5]
         else:
             return None
-    
+
     def get_cell(self):
         """[Ang]"""
         if self.check_set_attr('_cell_file_arr'):
@@ -2004,14 +2004,14 @@ class Cp2kRelaxOutputFile(Cp2kMDOutputFile):
             return int_from_txt(com.backtick(cmd))
         else:
             return None
-    
+
     def get_etot(self):
         if os.path.exists(self._pos_file):
             cmd = r"%s '/i =.*E/ {print $6}' %s" %(AWK, self._pos_file)
             return arr1d_from_txt(com.backtick(cmd))
         else:
             return None
-        
+
     def get_cell(self):
         # For cell_opt, cp2k does a final scf calc after the cell optimization.
         # That creates an additional time step in _pos_file, but NOT in
@@ -2020,14 +2020,14 @@ class Cp2kRelaxOutputFile(Cp2kMDOutputFile):
         # longer. Handle that by appending cell[-1,...] to the end of the cell
         # array in order to have equal length. Need that to make get_traj()
         # happy.
-        if self.check_set_attr('_cell_file_arr'): 
+        if self.check_set_attr('_cell_file_arr'):
             cell = self._cp2k_repack_arr(self._cell_file_arr)
             self.assert_set_attr('_run_type')
             if self._run_type == 'CELL_OPT':
                 if self.check_set_attr('coords'):
-                    offset = self.coords.shape[0] - cell.shape[0] 
+                    offset = self.coords.shape[0] - cell.shape[0]
                     if offset == 1:
-                        return np.concatenate((cell, cell[-1,...][None,...]), 
+                        return np.concatenate((cell, cell[-1,...][None,...]),
                                                axis=0)
                     else:
                         raise Exception("cell and coords have a timestep "
@@ -2051,14 +2051,14 @@ class DcdOutputFile(object):
     def _get_dcd_data(self):
         if os.path.exists(self.dcdfilename):
             cryst_const, coords = dcd.read_dcd_data(self.dcdfilename, convang=self._dcd_convang)
-            return {'cryst_const': cryst_const, 
-                    'coords': coords, 
-                    'nstep': cryst_const.shape[0], 
+            return {'cryst_const': cryst_const,
+                    'coords': coords,
+                    'nstep': cryst_const.shape[0],
                     'natoms': coords.shape[1],
                     'timestep': dcd.read_dcd_header(self.dcdfilename)['timestep']}
         else:
             return None
-    
+
     def get_coords(self):
         if self.check_set_attr('_dcd_data'):
             return self._dcd_data['coords']
@@ -2082,14 +2082,14 @@ class DcdOutputFile(object):
             return self._dcd_data['nstep']
         else:
             return None
-    
+
     # Avoid reading PROJECT-1.cell (cp2k) or any other text output (lammps)
     # with cell info even if it exists. We need to make sure that we read the
     # unit cell from the dcd file. This is essential in cp2k when using
     # dcd_aligned_cell.
     def get_cell(self):
         return None
-    
+
     def get_volume(self):
         return None
 
@@ -2120,41 +2120,41 @@ class Cp2kDcdMDOutputFile(DcdOutputFile, Cp2kMDOutputFile):
 
 
 class LammpsTextMDOutputFile(TrajectoryFileParser):
-    """Parse LAMMPS text output. 
-    
+    """Parse LAMMPS text output.
+
     We parse the default ``log.lammps`` file (`filename`) with ``thermo``
     output and, if present, a custom dump file ``lmp.out.dump`` created by
     something like ``dump 2 all custom 1 lmp.out.dump ...`` Tested with MD and
     structure optimization (``minimize``).
-   
+
     Currently hardcoded file names:
-        | `dumpfilename` = ``basedir/lmp.out.dump`` 
+        | `dumpfilename` = ``basedir/lmp.out.dump``
         | `symbolsfilename` = ``basedir/lmp.struct.symbols``
     where `basedir` is the dir where `filename` (i.e. ``log.lammps``) lives.
-    
+
     default_units are for lammps metal units.
-    
+
     Examples
     --------
     Example lammps input::
-    
+
         clear
-        units metal 
-        boundary p p p 
+        units metal
+        boundary p p p
         atom_style atomic
 
         read_data lmp.struct
 
-        ### interactions 
-        pair_style tersoff 
+        ### interactions
+        pair_style tersoff
         pair_coeff * * AlN.tersoff Al N
 
         ### IO
         dump dump_txt all custom 1 lmp.out.dump id type xsu ysu zsu xu yu zu fx fy fz vx vy vz
         dump dump_dcd all dcd 1 lmp.out.dcd
         ##dump dump_xyz all xyz 1 lmp.out.xyz
-        ##dump_modify dump_xyz element Al N 
-        dump_modify dump_txt sort id 
+        ##dump_modify dump_xyz element Al N
+        dump_modify dump_txt sort id
         dump_modify dump_dcd sort id unwrap yes
         thermo_style custom step temp vol cella cellb cellc cellalpha cellbeta cellgamma &
                             ke pe etotal &
@@ -2236,15 +2236,15 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
         self.dumpfilename = pj(self.basedir, 'lmp.out.dump')
         # written by io.write_lammps()
         self.symbolsfilename = pj(self.basedir, 'lmp.struct.symbols')
-   
+
     @staticmethod
     def _get_from_dct(dct, key):
         if key in dct:
             return dct[key]
         else:
             return None
-    
-    @staticmethod 
+
+    @staticmethod
     def _assert_shape_mod(name, a, b):
         mod = a % b
         msg = ("{name}: shape mismatch: a: {a}, b: {b}, "
@@ -2255,20 +2255,20 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
     def _get_thermo_dct(self):
         """Parse all text between "Step ..." and "Loop ..." in self.filename::
 
-            Step Temp Volume Cella Cellb Cellc 
-                   0            0    37.412297            3            3          4.8 
-                   1            0     37.42182    3.0002318    3.0002318      4.80048 
-                   2            0    37.431339    3.0004633    3.0004633      4.80096 
+            Step Temp Volume Cella Cellb Cellc
+                   0            0    37.412297            3            3          4.8
+                   1            0     37.42182    3.0002318    3.0002318      4.80048
+                   2            0    37.431339    3.0004633    3.0004633      4.80096
             ....
-                        
-                1000            0    37.431339    3.0004633    3.0004633      4.80096 
+
+                1000            0    37.431339    3.0004633    3.0004633      4.80096
             Loop time of 0.115472 on 1 procs (1 MPI x 1 OpenMP) for 1043 steps with 4 atoms
 
-        This is usually generated by:: 
-            
+        This is usually generated by::
+
             thermo_style custom step temp vol cella cellb cellc
             thermo 1
-        
+
         in the input file. I think if no ``thermo_style`` command is used, it
         still prints a line starting with "Step ...".
         """
@@ -2293,13 +2293,13 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
                 | sed -re 's/.*TOMS //'" %self.dumpfilename).split()
             cmd = r"grep -A%i 'ITEM: ATOMS' %s | \
                     egrep -ve '--|ITEM'" %(self.natoms, self.dumpfilename)
-            arr = np.fromstring(com.backtick(cmd), 
+            arr = np.fromstring(com.backtick(cmd),
                                 sep=' ').reshape(nstep*self.natoms,len(header))
             self._assert_shape_mod('dump', arr.shape[0], self.natoms)
             return dict((x, arr[:,ii]) for ii,x in enumerate(header))
         else:
             return None
-    
+
     def _lmp_dump2arr3d(self, dct, keys):
         if self.check_set_attr('natoms'):
             for k in keys:
@@ -2313,14 +2313,14 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
             return arr
         else:
             return None
-    
+
     def get_natoms(self):
         if os.path.exists(self.dumpfilename):
             cmd = r"grep -A1 -m1 'ITEM: NUMBER OF ATOMS' %s | tail -n1" %self.dumpfilename
             return nstep_from_txt(com.backtick(cmd))
         else:
             return None
-    
+
     def get_stress(self):
         if self.check_set_attr('_thermo_dct'):
             keys = 'Pxx Pyy Pzz Pxy Pxz Pyz'.split()
@@ -2329,10 +2329,10 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
                     return None
             voigt = np.array([self._thermo_dct['P'+k] for k in ['xx', 'yy',
                 'zz', 'yz', 'xz', 'xy']]).T
-            return crys.voigt2tensor3d(voigt)                
+            return crys.voigt2tensor3d(voigt)
         else:
             return None
-    
+
     def get_etot(self):
         """Potetntial energy PotEng [eV]. etot+ekin here is
         TotEng=PotEng+KinEng in lammps. In DFT, the potential energy is usually
@@ -2342,25 +2342,25 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
             return self._get_from_dct(self._thermo_dct, 'PotEng')
         else:
             return None
-    
+
     def get_ekin(self):
         if self.check_set_attr('_thermo_dct'):
             return self._get_from_dct(self._thermo_dct, 'KinEng')
         else:
             return None
-    
+
     def get_temperature(self):
         if self.check_set_attr('_thermo_dct'):
             return self._get_from_dct(self._thermo_dct, 'Temp')
         else:
             return None
-    
+
     def get_volume(self):
         if self.check_set_attr('_thermo_dct'):
             return self._get_from_dct(self._thermo_dct, 'Volume')
         else:
             return None
-    
+
     def get_cryst_const(self):
         if self.check_set_attr('_thermo_dct'):
             keys = 'Cella Cellb Cellc CellAlpha CellBeta CellGamma'.split()
@@ -2381,28 +2381,28 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
             return self._lmp_dump2arr3d(self._dump_dct, keys)
         else:
             return None
-    
+
     def get_coords(self):
         if self.check_set_attr('_dump_dct'):
             keys = 'xu yu zu'.split()
             return self._lmp_dump2arr3d(self._dump_dct, keys)
         else:
             return None
-    
+
     def get_forces(self):
         if self.check_set_attr('_dump_dct'):
             keys = 'fx fy fz'.split()
             return self._lmp_dump2arr3d(self._dump_dct, keys)
         else:
             return None
-    
+
     def get_velocity(self):
         if self.check_set_attr('_dump_dct'):
             keys = 'vx vy vz'.split()
             return self._lmp_dump2arr3d(self._dump_dct, keys)
         else:
             return None
-    
+
     def get_timestep(self):
         if os.path.exists(self.filename):
             cmd = r"grep -m1 timestep %s | \
@@ -2420,7 +2420,7 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
                    cmd = r"grep -m1 'dump_modify.*element' %s | sed -re \
                            's/.*ment (.*)/\1/'" %self.filename
                    revorder = dict((ii+1,sy) for ii,sy in \
-                              enumerate(com.backtick(cmd).split()))        
+                              enumerate(com.backtick(cmd).split()))
                 else:
                     # {'a':1,'b':2} -> {1:'a',2:'b'}
                     revorder = dict((v,k) for k,v in self.order.items())
@@ -2429,7 +2429,7 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
                 return None
         else:
             return None
-    
+
     def get_cell(self):
         if os.path.exists(self.dumpfilename):
             cmd = r"grep -c 'ITEM: BOX BOUNDS' %s" %self.dumpfilename
@@ -2461,7 +2461,7 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
                 cell[ii,1,0] = xy
                 cell[ii,2,0] = xz
                 cell[ii,2,1] = yz
-            return cell                
+            return cell
         else:
             return None
 

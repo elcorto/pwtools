@@ -6,7 +6,7 @@ import pickle as pickle
 from .testenv import testdir
 
 def return_min(inter):
-    # Return scalar minimum instead of array (5.0 instead of [5.0]).    
+    # Return scalar minimum instead of array (5.0 instead of [5.0]).
     return inter(inter.get_min(maxfun=1e6, maxiter=1e2))[0]
 
 def dump(obj, testdir=testdir):
@@ -16,10 +16,10 @@ def dump(obj, testdir=testdir):
     fd.close()
 
 def get_data():
-    x = np.linspace(-5,5,20) 
-    y = x 
-    X,Y = np.meshgrid(x,y); X=X.T; Y=Y.T 
-    Z = (X+3)**2+(Y+4)**2 + 5 
+    x = np.linspace(-5,5,20)
+    y = x
+    X,Y = np.meshgrid(x,y); X=X.T; Y=Y.T
+    Z = (X+3)**2+(Y+4)**2 + 5
     dd = mpl.Data2D(X=X,Y=Y,Z=Z)
     tgt = np.array([  5.0 ,  30])
     return dd, tgt
@@ -27,35 +27,35 @@ def get_data():
 class TestInterpol2D:
     def __init__(self):
         self.dd, self.tgt = get_data()
-    
+
     def test_rbf_multi(self):
-        inter = num.Interpol2D(dd=self.dd, what='rbf_multi') 
+        inter = num.Interpol2D(dd=self.dd, what='rbf_multi')
         assert np.allclose(inter([[-3,-4],[0,0]]), self.tgt)
         assert np.allclose(return_min(inter), 5.0)
         assert np.allclose(inter(self.dd.XY), self.dd.zz)
         dump(inter)
-    
+
     def test_rbf_inv_multi(self):
-        inter = num.Interpol2D(dd=self.dd, what='rbf_inv_multi') 
+        inter = num.Interpol2D(dd=self.dd, what='rbf_inv_multi')
         assert np.allclose(inter([[-3,-4],[0,0]]), self.tgt)
         assert np.allclose(return_min(inter), 5.0)
         assert np.allclose(inter(self.dd.XY), self.dd.zz)
         dump(inter)
-    
+
     def test_rbf_gauss(self):
         inter = num.Interpol2D(dd=self.dd, what='rbf_gauss')
         assert np.allclose(inter([[-3,-4],[0,0]]), self.tgt)
         assert np.allclose(return_min(inter), 5.0, atol=1e-5)
         assert np.allclose(inter(self.dd.XY), self.dd.zz)
         dump(inter)
-   
+
     def test_poly(self):
         inter = num.Interpol2D(dd=self.dd, what='poly', deg=5)
         assert np.allclose(inter([[-3,-4],[0,0]]), self.tgt)
         assert np.allclose(return_min(inter), 5.0, atol=1e-5)
         assert np.allclose(inter(self.dd.XY), self.dd.zz)
         dump(inter)
-    
+
     def test_bispl(self):
         # pickling this fails:
         #
@@ -74,7 +74,7 @@ class TestInterpol2D:
         assert np.allclose(return_min(inter), 5.0)
         assert np.allclose(inter(self.dd.XY), self.dd.zz)
         ##dump(inter)
-    
+
     def test_linear(self):
         # linear, ct and nearest are very inaccurate, use only for plotting!
         inter = num.Interpol2D(dd=self.dd, what='linear')
@@ -82,12 +82,12 @@ class TestInterpol2D:
         assert np.allclose(return_min(inter), 5.0, atol=1e-1)
         assert np.allclose(inter(self.dd.XY), self.dd.zz)
         dump(inter)
-    
+
     def test_nearest(self):
         # don't even test accuracy here
         inter = num.Interpol2D(dd=self.dd, what='nearest')
         dump(inter)
-    
+
     def test_ct(self):
         try:
             from scipy.interpolate import CloughTocher2DInterpolator
@@ -99,7 +99,7 @@ class TestInterpol2D:
             dump(inter)
         except ImportError:
             tools.skip("couldn't import scipy.interpolate.CloughTocher2DInterpolator")
-    
+
     def test_api_bispl(self):
         # API
         inter = num.Interpol2D(xx=self.dd.xx, yy=self.dd.yy, values=self.dd.zz, what='bispl')

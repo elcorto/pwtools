@@ -23,7 +23,7 @@ except ImportError:
 
 def wien_sgroup_input(struct, lat_symbol='P'):
     """Generate input for WIEN2K's ``sgroup`` symmetry analysis tool.
-    
+
     length: can be any
 
     Parameters
@@ -101,14 +101,14 @@ def write_wien_sgroup(filename, struct, **kwds):
 
 def write_cif(filename, struct):
     """Q'n'D Cif writer. Uses PyCifRW.
-    
+
     length: Angstrom
 
     Parameters
     ----------
     filename : str
         name of output .cif file
-    struct : Structure, length units Angstrom assumed        
+    struct : Structure, length units Angstrom assumed
     """
     ffmt = "%.16e"
     cf = pycifrw_CifFile.CifFile()
@@ -124,25 +124,25 @@ def write_cif(filename, struct):
     block['_symmetry_Int_Tables_number'] = 1
     # assigning a list produces a "loop_"
     block['_symmetry_equiv_pos_as_xyz'] = ['x,y,z']
-    
+
     # atoms
     #
     # _atom_site_label: We just use symbols, which is then =
     #   _atom_site_type_symbol, but we *could* use that to number atoms of each
     #   specie, e.g. Si1, Si2, ..., Al1, Al2, ...
-    data_names = ['_atom_site_label', 
+    data_names = ['_atom_site_label',
                   '_atom_site_fract_x',
                   '_atom_site_fract_y',
                   '_atom_site_fract_z',
                   '_atom_site_type_symbol']
     _xyz2str = lambda arr: [ffmt %x for x in arr]
-    data = [struct.symbols, 
-            _xyz2str(struct.coords_frac[:,0]), 
-            _xyz2str(struct.coords_frac[:,1]), 
+    data = [struct.symbols,
+            _xyz2str(struct.coords_frac[:,0]),
+            _xyz2str(struct.coords_frac[:,1]),
             _xyz2str(struct.coords_frac[:,2]),
             struct.symbols]
-    # "loop_" with multiple columns            
-    block.AddCifItem([[data_names], [data]])                
+    # "loop_" with multiple columns
+    block.AddCifItem([[data_names], [data]])
     cf['pwtools'] = block
     # maxoutlength = 2048 is default for cif 1.1 standard (which is default in
     # pycifrw 3.x). Reset default wraplength=80 b/c ASE's cif reader cannot
@@ -152,9 +152,9 @@ def write_cif(filename, struct):
 
 def write_xyz(filename, obj, name='pwtools_dummy_mol_name'):
     """Write VMD-style [VMD] XYZ file.
-    
+
     length: Angstrom
-    
+
     Parameters
     ----------
     filename : target file name
@@ -171,7 +171,7 @@ def write_xyz(filename, obj, name='pwtools_dummy_mol_name'):
     for istep in range(traj.nstep):
         xyz_str += "%i\n%s\n%s" %(traj.natoms,
                                   name + '.%i' %(istep + 1),
-                                  pwscf.atpos_str_fast(traj.symbols, 
+                                  pwscf.atpos_str_fast(traj.symbols,
                                                        traj.coords[istep,...]),
                                   )
     common.file_write(filename, xyz_str)
@@ -181,7 +181,7 @@ def write_axsf(filename, obj):
     """Write animated XSF file for Structure (only 1 step) or Trajectory.
 
     Note that forces are converted eV / Ang -> Ha / Ang.
-    
+
     length: Angstrom
     forces: Ha / Angstrom
 
@@ -217,7 +217,7 @@ def write_axsf(filename, obj):
                                          common.str_arr(traj.cell[istep,...]))
         axsf_str += "\nPRIMCOORD %i\n%i 1\n%s" %(istep+1,
                                                  traj.natoms,
-                                                 pwscf.atpos_str_fast(traj.symbols, 
+                                                 pwscf.atpos_str_fast(traj.symbols,
                                                                       ccf[istep,...]))
     common.file_write(filename, axsf_str)
 
@@ -226,10 +226,10 @@ def write_lammps(filename, struct, symbolsbasename='lmp.struct.symbols'):
     """Write Structure object to lammps format. That file can be read in a
     lammps input file by ``read_data``. Write file ``lmp.struct.symbols`` with
     atom symbols.
-    
+
     Parameters
     ----------
-    filename : str 
+    filename : str
         name of file to write
     symbolsbasename : str, optional
         file for atom symbols
@@ -241,24 +241,24 @@ def write_lammps(filename, struct, symbolsbasename='lmp.struct.symbols'):
     """
     dr = os.path.dirname(filename)
     fn = os.path.join(dr, symbolsbasename)
-    common.file_write(fn, '\n'.join(struct.symbols))        
+    common.file_write(fn, '\n'.join(struct.symbols))
     common.file_write(filename, lammps.struct_str(struct))
 
 
 def write_h5(fn, dct, **kwds):
     """Write dictionary with arrays (or whatever HDF5 handles) to h5 file.
-    
+
     Dict keys are supposed to be HDF group + dataset names like `/a/b/c/dset`.
     The leading slash can be skipped.
-    
+
     Parameters
     ----------
     fn : str
         filename (e.g. 'foo.h5', 'bar.hdf')
     dct : dict
-    **kwds : 
+    **kwds :
         keywords to ``h5py.File`` (e.g. ``mode='w'``)
-    
+
     Notes
     -----
     The file opening mode is the ``h5py.File`` default value, which is
@@ -280,7 +280,7 @@ def write_h5(fn, dct, **kwds):
 
 def read_h5(fn):
     """Read h5 file into dict.
-    
+
     Dict keys are the group + dataset names, e.g. '/a/b/c/dset'. All keys start
     with a leading slash even if written without (see :func:`write_h5`).
 
@@ -288,19 +288,19 @@ def read_h5(fn):
     ----------
     fn : str
         filename
-    
+
     Examples
     --------
     >>> read_h5('foo.h5').keys()
     ['/a/b/d1', '/a/b/d2', '/a/c/d3', '/x/y/z']
     """
-    fh = h5py.File(fn, mode='r') 
+    fh = h5py.File(fn, mode='r')
     dct = {}
     def get(name, obj, dct=dct):
         if isinstance(obj, h5py.Dataset):
             _name = name if name.startswith('/') else '/'+name
             dct[_name] = obj.value
-    fh.visititems(get)            
+    fh.visititems(get)
     fh.close()
     return dct
 
@@ -330,7 +330,7 @@ class ReadFactory(object):
             Whether the callables should return parser.get_{struct,traj}()'s
             return value.
         doc : str
-            docstring header 
+            docstring header
         """
         self.parser = parser
         self.struct_or_traj = struct_or_traj
@@ -341,20 +341,20 @@ class ReadFactory(object):
         # is perfectly right from sphinx' point of view. We would need to add
         # `doc` to __call__.__doc__, but how? Fancy decorator magic!
         self.__doc__ = doc + """
-        
+
         Parameters
         ----------
         filename : str
             Name of the file to parse.
         **kwds : keywords args
             passed to the parser class (e.g. units=...)
-        
+
         Returns
         -------
         ret : :class:`~pwtools.crys.Structure` (SCF runs) or \
               :class:`~pwtools.crys.Trajectory` (MD-like runs)
         """
-    
+
     def __call__(self, filename, **kwds):
         """
         Parameters
@@ -372,56 +372,56 @@ class ReadFactory(object):
             raise Exception("unknown struct_or_traj: %s" %struct_or_traj)
 
 
-read_cif = ReadFactory(parser=parse.CifFile, 
+read_cif = ReadFactory(parser=parse.CifFile,
                        struct_or_traj='struct',
                        doc="Read Cif files."
                        )
-read_pdb = ReadFactory(parser=parse.PDBFile, 
+read_pdb = ReadFactory(parser=parse.PDBFile,
                        struct_or_traj='struct',
                        doc="Read PDB files."
                        )
-read_pw_scf = ReadFactory(parser=parse.PwSCFOutputFile, 
-                          struct_or_traj='struct', 
+read_pw_scf = ReadFactory(parser=parse.PwSCFOutputFile,
+                          struct_or_traj='struct',
                           doc="Read Pwscf SCF run ouput."
                           )
-read_pw_md = ReadFactory(parser=parse.PwMDOutputFile, 
-                         struct_or_traj='traj', 
+read_pw_md = ReadFactory(parser=parse.PwMDOutputFile,
+                         struct_or_traj='traj',
                          doc="Read Pwscf md/relax/vc-relax run ouput."
                          )
-read_pw_vcmd = ReadFactory(parser=parse.PwVCMDOutputFile, 
-                           struct_or_traj='traj', 
+read_pw_vcmd = ReadFactory(parser=parse.PwVCMDOutputFile,
+                           struct_or_traj='traj',
                            doc="Read Pwscf vc-md run ouput."
                            )
 read_cpmd_scf = ReadFactory(parser=parse.CpmdSCFOutputFile,
-                            struct_or_traj='struct', 
+                            struct_or_traj='struct',
                             doc="Read CPMD SCF (single point) run ouput."
                             )
-read_cpmd_md = ReadFactory(parser=parse.CpmdMDOutputFile, 
-                           struct_or_traj='traj', 
+read_cpmd_md = ReadFactory(parser=parse.CpmdMDOutputFile,
+                           struct_or_traj='traj',
                            doc="Read CPMD MD (fixed and variable cell, BO and CP) run ouput."
                            )
-read_cp2k_scf = ReadFactory(parser=parse.Cp2kSCFOutputFile, 
-                           struct_or_traj='struct', 
+read_cp2k_scf = ReadFactory(parser=parse.Cp2kSCFOutputFile,
+                           struct_or_traj='struct',
                            doc="Read CP2K SCF (single point) run ouput."
                            )
-read_cp2k_md = ReadFactory(parser=parse.Cp2kMDOutputFile, 
-                           struct_or_traj='traj', 
+read_cp2k_md = ReadFactory(parser=parse.Cp2kMDOutputFile,
+                           struct_or_traj='traj',
                            doc="Read CP2K MD run ouput (all text)."
                            )
-read_cp2k_md_dcd = ReadFactory(parser=parse.Cp2kDcdMDOutputFile, 
-                               struct_or_traj='traj', 
+read_cp2k_md_dcd = ReadFactory(parser=parse.Cp2kDcdMDOutputFile,
+                               struct_or_traj='traj',
                                doc="Read CP2K MD run ouput (coordinates in dcd binary format)."
                                )
-read_cp2k_relax = ReadFactory(parser=parse.Cp2kRelaxOutputFile, 
-                              struct_or_traj='traj', 
+read_cp2k_relax = ReadFactory(parser=parse.Cp2kRelaxOutputFile,
+                              struct_or_traj='traj',
                               doc="Read CP2K relaxation run ouput (all text)."
                               )
-read_lammps_md_txt = ReadFactory(parser=parse.LammpsTextMDOutputFile, 
-                                 struct_or_traj='traj', 
+read_lammps_md_txt = ReadFactory(parser=parse.LammpsTextMDOutputFile,
+                                 struct_or_traj='traj',
                                  doc="Read LAMMPS MD run ouput (all text)."
                                  )
-read_lammps_md_dcd = ReadFactory(parser=parse.LammpsDcdMDOutputFile, 
-                                 struct_or_traj='traj', 
+read_lammps_md_dcd = ReadFactory(parser=parse.LammpsDcdMDOutputFile,
+                                 struct_or_traj='traj',
                                  doc="Read LAMMPS MD run ouput (coordinates in dcd format)."
                                  )
 

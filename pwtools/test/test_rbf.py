@@ -10,8 +10,8 @@ def test_interpol_high_dim():
     # interpolation must be "perfect".
     X = rand(10,40)
     z = rand(10)
-    
-    rbfi = rbf.Rbf(X,z) 
+
+    rbfi = rbf.Rbf(X,z)
     assert np.abs(z - rbfi(X)).max() < 1e-13
 
 
@@ -24,10 +24,10 @@ def test_2d():
     z = (np.sin(X1)+np.cos(X2)).flatten()
     X = np.array([X1.flatten(), X2.flatten()]).T
     print(X.shape, z.shape)
-    rbfi = rbf.Rbf(X, z, p=1.5)  
+    rbfi = rbf.Rbf(X, z, p=1.5)
     # test fit at 300 random points within [-1,1]^2
     Xr = -1.0 + 2*np.random.rand(300,2)
-    zr = np.sin(Xr[:,0]) + np.cos(Xr[:,1]) 
+    zr = np.sin(Xr[:,0]) + np.cos(Xr[:,1])
     err = np.abs(rbfi(Xr) - zr).max()
     print(err)
     assert err < 1e-6
@@ -50,7 +50,7 @@ def test_api_and_all_types_and_1d_with_deriv():
             (True,  dict(p='mean')),
             (False, dict(p='scipy')), # not accurate enough, only API test
             (True,  dict(rbf=name, r=1e-11)),
-            (True,  dict(rbf=name, p=rbf.estimate_p(x[:,None]))),         
+            (True,  dict(rbf=name, p=rbf.estimate_p(x[:,None]))),
             (True,  dict(rbf=name, p=rbf.estimate_p(x[:,None]), r=1e-11)),
             ]
         for go, kwds in cases:

@@ -20,7 +20,7 @@ def test_sql():
             print("found:", exe)
             have_sqlite3 = True
             break
-        
+
     # --- SQLiteDB ----------------------------------------------------
     dbfn = pj(testdir, 'test.db')
     if os.path.exists(dbfn):
@@ -29,7 +29,7 @@ def test_sql():
     header = [('idx', 'INTEGER'), ('foo', 'REAL'), ('bar', 'TEXT')]
     db = SQLiteDB(dbfn, table='calc')
     db.execute("CREATE TABLE calc (%s)" %','.join("%s %s" %(x[0], x[1]) \
-                                                  for x in header)) 
+                                                  for x in header))
 
     vals = [[0, 1.1, 'a'],
             [1, 2.2, 'b'],
@@ -37,14 +37,14 @@ def test_sql():
     for lst in vals:
         db.execute("INSERT INTO calc (idx, foo, bar) VALUES (?,?,?)", tuple(lst))
     db.commit()
-    
+
     # get_max_rowid
     assert db.get_max_rowid() == 3
 
     # has_table
     assert db.has_table('calc')
     assert not db.has_table('foo')
-    
+
     # has_column
     assert db.has_column('idx')
     assert not db.has_column('grrr')
@@ -53,13 +53,13 @@ def test_sql():
     assert float(db.get_single("select foo from calc where idx==0")) == 1.1
 
     assert header == db.get_header()
-    
+
     if have_sqlite3:
         # call sqlite3, the cmd line interface
         assert common.backtick("sqlite3 %s 'select * from calc'" %dbfn) \
             == '0|1.1|a\n1|2.2|b\n2|3.3|c\n'
 
-    # ret = 
+    # ret =
     # [(0, 1.1000000000000001, u'a'),
     # (1, 2.2000000000000002, u'b'),
     # (2, 3.2999999999999998, u'c')]
@@ -84,14 +84,14 @@ def test_sql():
 
     assert db.execute("select bar from calc where idx==0").fetchone()[0] == \
         'a'
-    
+
     # get_list1d(), get_array1d(), get_array()
     assert db.get_list1d("select idx from calc") == [0,1,2]
     np.testing.assert_array_equal(db.get_array1d("select idx from calc"),
                                   np.array([0,1,2]))
-    np.testing.assert_array_equal(db.get_array("select idx from calc"), 
+    np.testing.assert_array_equal(db.get_array("select idx from calc"),
                                   np.array([0,1,2])[:,None])
-    np.testing.assert_array_equal(db.get_array("select idx,foo from calc"), 
+    np.testing.assert_array_equal(db.get_array("select idx,foo from calc"),
                                   np.array(vals, dtype='S3')[:,:2].astype(float))
 
     # add_column(), fill with values
@@ -108,20 +108,20 @@ def test_sql():
     print(db.execute("select baz from calc").fetchall())
     assert db.execute("select baz from calc").fetchall() == \
         [('xx',), ('yy',), ('zz',)]
-    
+
     # add even more cols with add_columns()
     add_header = [('bob', 'TEXT'), ('alice', 'BLOB')]
     header += add_header
     db.add_columns(add_header)
     assert db.get_header() == header
-    
+
     # create_table()
     dbfn2 = pj(testdir, 'test2.db')
     header2 = [('a', 'REAL'), ('b', 'TEXT')]
     db2 = SQLiteDB(dbfn2, table='foo')
     db2.create_table(header2)
     assert db2.get_header() == header2
-    
+
     # get_dict()
     dct = db.get_dict("select foo,bar from calc")
     cols = [x[0] for x in db.get_header()]
@@ -165,29 +165,29 @@ def test_attach_fill_column():
     db = sql.makedb(dbfn, lists, colnames, close=False)
 
     # attach_column, fill_column
-    db.attach_column('baz', values=[1,2,3,4,5,6], 
+    db.attach_column('baz', values=[1,2,3,4,5,6],
                      extend=False, start=1)
     for col, typ in db.get_header():
         if col == 'baz':
             assert typ == 'INTEGER'
-    assert db.get_max_rowid() == 4                     
+    assert db.get_max_rowid() == 4
     assert db.get_list1d('select baz from test3') == [1,2,3,4]
     # need `extend` b/c up to now, table has 4 rows
-    db.fill_column('baz', values=[5,6], 
+    db.fill_column('baz', values=[5,6],
                     extend=True, start=5)
-    assert db.get_max_rowid() == 6                     
+    assert db.get_max_rowid() == 6
     assert db.get_list1d('select baz from test3') == [1,2,3,4,5,6]
     assert db.get_list1d("select foo from test3") == ['a', 'b']*2 + [None]*2
     assert db.get_list1d("select bar from test3") ==  [1.0, 2.0]*2 + [None]*2
     # `extend` kwd not needed b/c table already has 6 rows
-    db.attach_column('baz2', values=[1,2,3,4,5,6], 
+    db.attach_column('baz2', values=[1,2,3,4,5,6],
                      start=1)
     assert db.get_list1d('select baz2 from test3') == [1,2,3,4,5,6]
-    db.fill_column('baz2', values=[1,4,9,16], 
+    db.fill_column('baz2', values=[1,4,9,16],
                     overwrite=True, start=1)
     assert db.get_list1d('select baz2 from test3') == [1,4,9,16,5,6]
     # attach_column(..., overwrite=True) = fill_column()
-    db.attach_column('baz2', values=[2,4,6,8,10,12], 
+    db.attach_column('baz2', values=[2,4,6,8,10,12],
                      overwrite=True, start=1)
     assert db.get_list1d('select baz2 from test3') == [2,4,6,8,10,12]
 
@@ -206,12 +206,12 @@ def test_sql_entry():
     assert x.fileval == 'xx\nlala'
     # auto type detection
     mapping = \
-        [('NULL',     None),    
-         ('INTEGER',  1),       
-         ('INTEGER',  int(1)), 
-         ('REAL',     1.0),     
-         ('TEXT',     'xx'),    
-         ('TEXT',     'xx'),   
+        [('NULL',     None),
+         ('INTEGER',  1),
+         ('INTEGER',  int(1)),
+         ('REAL',     1.0),
+         ('TEXT',     'xx'),
+         ('TEXT',     'xx'),
          ('BLOB',     np.array([1,2,3]).data)]
     for sqltype, val in mapping:
         print(val, sqltype)
@@ -247,12 +247,12 @@ def test_makedb():
     dct =  db.get_dict("select * from %s" %table)
     assert dct['foo'] == ['a', 'b']*2
     assert dct['bar'] == [1.0, 2.0]*2
-    
-    # makedb, set table name, close=False, return open db 
+
+    # makedb, set table name, close=False, return open db
     dbfn = _rand_db_filename()
     table = dbfn.split('/')[-1].replace('.db','')
     db = sql.makedb(dbfn, lists, colnames, mode='w',
-                    table=table, close=False)    
+                    table=table, close=False)
     dct =  db.get_dict("select * from %s" %table)
     assert dct['foo'] == ['a', 'b']
     assert dct['bar'] == [1.0, 2.0]
@@ -269,21 +269,21 @@ def test_multi_table():
     db = sql.SQLiteDB(':memory:')
     db.executescript("attach '%s' as db1; attach '%s' as db2" %(fn1, fn2))
     cmd = """
-select 
+select
     db1.tab1.idx,
     db1.tab1.c1  as db1_c1,
     db2.tab1.c1  as db2_c1,
     db2.tab1.c2  as db2_c2
-from     
-    db1.tab1,db2.tab1 
-where 
+from
+    db1.tab1,db2.tab1
+where
     db1.tab1.idx==db2.tab1.idx;
     """
     dct = db.get_dict(cmd)
-    assert dct['idx'] == [0,1]                      
-    assert dct['db1_c1'] == ['a','b']                      
-    assert dct['db2_c1'] == ['c','d']                      
-    assert dct['db2_c2'] == [3.0,4.0]                      
+    assert dct['idx'] == [0,1]
+    assert dct['db1_c1'] == ['a','b']
+    assert dct['db2_c1'] == ['c','d']
+    assert dct['db2_c2'] == [3.0,4.0]
 
     # multi table
     db = sql.SQLiteDB(fn1)
@@ -303,10 +303,10 @@ where
     assert db.has_column('x', table='tab2')
     assert db.get_max_rowid('tab2') == 2
     db.set_table('tab1')
-    assert db.has_column('idx') 
+    assert db.has_column('idx')
     assert db.get_header() == header1
     assert db.get_max_rowid() == 2
     db.set_table('tab2')
     assert db.get_header() == header2
-    assert db.has_column('x') 
+    assert db.has_column('x')
     assert db.get_max_rowid() == 2

@@ -9,7 +9,7 @@ nstep = 10
 a = np.ones((natoms, nstep, 3))
 for j in range(a.shape[1]):
     a[:,j,:] *= (j+1)
-    print(a[:,j,:])    
+    print(a[:,j,:])
 
 print("-----------------------")
 
@@ -35,7 +35,7 @@ for j in range(a.shape[1]):
         # a[i,j,0]*a0 + a[i,j,1]*a1 + a[i,j,2]*a2
         for k in range(a.shape[2]):
             c0[i,j,:] += a[i,j,k] * b[k,:]
-    print(c0[:,j,:]) 
+    print(c0[:,j,:])
 
 print("-----------------------")
 
@@ -44,7 +44,7 @@ c1 = np.empty(a.shape)
 for j in range(a.shape[1]):
     for i in range(a.shape[0]):
         c1[i,j,:] = np.dot(a[i,j,:], b)
-    print(c1[:,j,:]) 
+    print(c1[:,j,:])
 
 print("-----------------------")
 

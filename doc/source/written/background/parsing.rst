@@ -43,7 +43,7 @@ contained in the output of all codes. For example,
 ``pp.coords`` and the unit cell into ``pp.cell``. However, often we need to use
 the fractional coordinates ``pp.coords_frac``. This quantity is not present in
 the PWscf output and thus ``pp.coords_frac`` will be None. However, we know
-that we can manually calculate it from ``coords`` and ``cell``. 
+that we can manually calculate it from ``coords`` and ``cell``.
 
 .. _container_classes:
 
@@ -55,24 +55,24 @@ have implemented unified container classes. These classes are
 :class:`~pwtools.crys.Structure` and :class:`~pwtools.crys.Trajectory`. The
 former is used to represent a single crystal structure (unit cell, atom
 coordinates, total energy, stress tensor, ...). The latter represents a
-sequence of structures, for instance an MD or relaxation run. 
+sequence of structures, for instance an MD or relaxation run.
 
 They have two important features:
 
 * A defined set of units
   (eV, Angstrom,...), to which all quantities are converted.
 * Calculate all missing
-  attributes automatically and thus provide a unified API. 
+  attributes automatically and thus provide a unified API.
 
 Note that the latter is a convenience feature and will also produce some
-redundant data. You may want to :ref:`turn it off <avoid_auto_calc>` 
+redundant data. You may want to :ref:`turn it off <avoid_auto_calc>`
 for parsing/storing big data.
 
 The auto-calculation of missing properties in :class:`~pwtools.crys.Trajectory`
 and :class:`~pwtools.crys.Structure` is done by trying to calculate all
 properties for which there is a ``get_*`` method. For example, if a parser
 finds ``coords`` and ``cell`` in the MD data, then in
-:class:`~pwtools.crys.Trajectory` ``coords_frac`` is calculated from that. 
+:class:`~pwtools.crys.Trajectory` ``coords_frac`` is calculated from that.
 
 You can of course use these classes to build new structures and trajectories by
 hand (just as with ``ase.Atoms``, or you use :func:`~pwtools.crys.atoms2struct`)::
@@ -103,7 +103,7 @@ re-loading later::
 A Trajectory object can be viewed a list of Structure instances [even though it
 is implemented differently due to efficiency: we use 3d numpy arrays], it
 supports iteration and slicing, for example::
-    
+
     >>> # extract first and last Structure objects
     >>> st_first = tr[0]
     >>> st_last = tr[-1]
@@ -163,7 +163,7 @@ These functions use the appropriate parser class and transform the result of
 the parsing to a :class:`~pwtools.crys.Structure` or
 :class:`~pwtools.crys.Trajectory`. For example, what is essentially done is
 simply::
-    
+
     >>> # same as tr=io.read_pw_md('pw.out')
     >>> pp = parse.PwMDOutputFile('pw.out')
     >>> tr = pp.get_traj()
@@ -174,7 +174,7 @@ simply::
 
 It is important to note that Structure and Trajectory instances built by hand
 can be used in exactly the same way as those obtained by using one of the
-``io.read_*()`` functions. 
+``io.read_*()`` functions.
 
 Units
 -----
@@ -184,12 +184,12 @@ Each parser will (try to) return the "natural" units of each code:
 =========== =========   =============== ================== ====================
 property    PWscf       CPMD            CP2K               LAMMPS (metal units)
 =========== =========   =============== ================== ====================
-length      Bohr        Bohr            Angstrom           Angstrom 
-energy      Ry          Ha              Ha                 eV 
+length      Bohr        Bohr            Angstrom           Angstrom
+energy      Ry          Ha              Ha                 eV
 forces      Ry/Bohr     Ha/Bohr         Ha/Bohr            eV/Angstrom
 stress      kbar        kbar            bar[MD], GPa[SCF]  bar
-temperature K           K               K                  K 
-velocity    -           Bohr/thart (?)  Bohr/thart         Angstrom/ps 
+temperature K           K               K                  K
+velocity    -           Bohr/thart (?)  Bohr/thart         Angstrom/ps
 time        tryd        thart           thart              ps
 =========== =========   =============== ================== ====================
 
@@ -199,7 +199,7 @@ For PWscf, we also detect things like "ATOMIC_POSITIONS crystal | alat | bohr"
 and transform accordingly. Nevertheless, *always* verify that the units you get
 are the ones you expect!
 
-In :class:`~pwtools.crys.Structure` and :class:`~pwtools.crys.Trajectory`, we have 
+In :class:`~pwtools.crys.Structure` and :class:`~pwtools.crys.Trajectory`, we have
 units eV, Angstrom,...
 
 =========== ==============  ===============================
@@ -209,7 +209,7 @@ length      Angstrom        (1e-10 m)
 energy      eV              (1.602176487e-19 J)
 forces      eV / Angstrom
 stress      GPa             (not eV/Angstrom**3)
-temperature K             
+temperature K
 velocity    Angstrom / fs
 time        fs              (1e-15 s)
 mass        amu             (1.6605387820000001e-27 kg)

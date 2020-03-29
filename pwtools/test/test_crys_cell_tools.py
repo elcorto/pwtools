@@ -17,7 +17,7 @@ def test_cell_tools():
     np.testing.assert_array_almost_equal(crys.cc2cell(crys.cell2cc(cell)), cell)
     np.testing.assert_array_almost_equal(crys.cell2cc(crys.cc2cell(cryst_const)),
                                          cryst_const)
-                                         
+
     # random
     #
     # volume : volume_cc() always returns positive values, whereas det() and
@@ -49,7 +49,7 @@ def test_cell_tools():
 
     assert crys.cell2cc3d(cell, axis=0).shape == (100,6)
     assert crys.cc2cell3d(cc, axis=0).shape == (100,3,3)
-    
+
     assert vol_cc.shape == (100,)
     assert vol_cell.shape == (100,)
     aaae(vol_cell, vol_cc)
@@ -63,7 +63,7 @@ def test_recip_cell():
     vol = crys.volume_cell(cell)
     try:
         assert np.allclose(crys.recip_cell(rcell), cell)
-    except AssertionError:        
+    except AssertionError:
         assert np.allclose(crys.recip_cell(rcell), -1.0 * cell)
     assert np.allclose(crys.volume_cell(rcell), (2*pi)**3.0 / vol)
 
@@ -83,7 +83,7 @@ def test_kgrid():
 
 
 def test_voigt():
-    a = rand(3,3) 
+    a = rand(3,3)
     # symmetric tensor
     s = np.dot(a,a.T)
     v = crys.tensor2voigt(s)
@@ -94,9 +94,9 @@ def test_voigt():
     assert v[3] == s[1,2] == s[2,1]
     assert v[4] == s[0,2] == s[2,0]
     assert v[5] == s[0,1] == s[1,0]
-    
+
     nstep = 10
-    a = rand(nstep,3,3) 
+    a = rand(nstep,3,3)
     s = np.array([np.dot(a[i,...],a[i,...].T) for i in range(nstep)])
     v = crys.tensor2voigt3d(s)
     assert (v[:,0] == s[:,0,0]).all()

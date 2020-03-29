@@ -7,7 +7,7 @@ proc snap {base} {
 }
 
 source very_nice_bonds.tcl
-display resetview 
+display resetview
 axes location lowerright
 ##axes location off
 scale to 0.120

@@ -57,7 +57,7 @@ class EVFunction(object):
     """Base class for E(V) models, such as the Vinet EOS."""
     def __init__(self):
         self.param_order = ['e0', 'b0', 'b1', 'v0']
-    
+
     def evaluate(self, volume, params):
         """Evaluate function for x-axis `volume`.
 
@@ -67,9 +67,9 @@ class EVFunction(object):
             volume per atom [Ang^3]
         params : dict
             {'e0', 'b0', 'b1', 'v0'} in eV, eV/Ang^3, 1, Ang^3
-        """    
+        """
         pass
-    
+
     def deriv(self, volume, params, der=None):
         """Calculate derivative of E(V) of order `der`. ``der=1`` is the first
         deriv etc.
@@ -82,9 +82,9 @@ class EVFunction(object):
             {'e0', 'b0', 'b1', 'v0'} in eV, eV/Ang^3, 1, Ang^3
         der : int
             derivative order
-        """    
+        """
         pass
-    
+
     def get_min(self):
         pass
 
@@ -93,19 +93,19 @@ class EVFunction(object):
             return self.evaluate(volume, params)
         else:
             return self.deriv(volume, params, der)
-    
+
     def lst2dct(self, lst):
         return dict([(k, lst[ii]) for ii,k in enumerate(self.param_order)])
 
     def dct2lst(self, dct):
         return [dct[k] for k in self.param_order]
-    
+
 
 class Vinet(EVFunction):
     """Vinet EOS model."""
     def evaluate(self, volume, params):
         return _vinet(volume, params)
-    
+
     def deriv(self, volume, params, der=None):
         if der == 1:
             return _vinet_deriv1(volume, params)
@@ -113,7 +113,7 @@ class Vinet(EVFunction):
             return _vinet_deriv2(volume, params)
         else:
             raise MaxDerivException("der %i not supported" %der)
-    
+
 
 # Before using this a fitfunc in thermo.Gibbs, test it! You may need to
 # implement data scaling, as we do in num.PolyFit.
@@ -150,14 +150,14 @@ class EosFit(Fit1D):
         func : EVFunction instance
         splpoints : int
             number of spline points for fallback derivative calculation
-        """    
+        """
         Fit1D.__init__(self, x=volume, y=energy)
         self.func = func
         self.energy = energy
         self.volume = volume
         self.splpoints = splpoints
         self.fit()
-    
+
     @lazyprop
     def spl(self):
         """Spline thru the fitted E(V) b/c we are too lazy to calculate the
@@ -165,12 +165,12 @@ class EosFit(Fit1D):
         # use many points for accurate deriv
         vv = np.linspace(self.volume.min(), self.volume.max(), self.splpoints)
         return num.Spline(vv, self(vv, der=0), k=5, s=None)
-    
+
     def fit(self):
         """Fit E(V) model, fill ``self.params``."""
-        # Quadratic fit to get an initial guess for the parameters. 
+        # Quadratic fit to get an initial guess for the parameters.
         # Thanks: https://github.com/materialsproject/pymatgen
-        # -> pymatgen/io/abinitio/eos.py 
+        # -> pymatgen/io/abinitio/eos.py
         a, b, c = np.polyfit(self.volume, self.energy, 2)
         v0 = -b/(2*a)
         e0 = a*v0**2 + b*v0 + c
@@ -178,12 +178,12 @@ class EosFit(Fit1D):
         b1 = 4  # b1 is usually a small number like 4
         if not self.volume.min() < v0 and v0 < self.volume.max():
             raise Exception('The minimum volume of a fitted parabola is not in the input volumes')
-        
-        # need to use lst2dct and dct2lst here to keep the order of parameters 
+
+        # need to use lst2dct and dct2lst here to keep the order of parameters
         pp0_dct = dict(e0=e0, b0=b0, b1=b1, v0=v0)
         target = lambda pp, v: self.energy - self.func(v, self.func.lst2dct(pp))
-        pp_opt, ierr = leastsq(target, 
-                               self.func.dct2lst(pp0_dct), 
+        pp_opt, ierr = leastsq(target,
+                               self.func.dct2lst(pp0_dct),
                                args=(self.volume,))
         self.params = self.func.lst2dct(pp_opt)
 
@@ -195,30 +195,30 @@ class EosFit(Fit1D):
             volume per atom [Ang^3]
         der : int
             derivative order
-        """     
-        try:    
+        """
+        try:
             return self.func(volume, self.params, der=der)
         except MaxDerivException:
             return self.spl(volume, der=der)
-    
+
     # Fit1D compat
     def get_min(self):
         """V0 [Ang^3]"""
         if 'v0' in self.params:
             return self.params['v0']
-        else:    
+        else:
             return super(EosFit, self).get_min()
-    
+
     def pressure(self, volume):
         """P(V) [GPa]
-        
+
         Parameters
         ----------
         volume : scalar, 1d array
             volume per atom [Ang^3]
-        """     
+        """
         return -self(volume, der=1) * eV_by_Ang3_to_GPa
-    
+
     def bulkmod(self, volume):
         """B(V) [GPa]
 
@@ -226,7 +226,7 @@ class EosFit(Fit1D):
         ----------
         volume : scalar, 1d array
             volume per atom [Ang^3]
-        """        
+        """
         if 'b0' in self.params:
             return self.params['b0'] * eV_by_Ang3_to_GPa
         else:
@@ -249,8 +249,8 @@ class ExternEOS(FlexibleGetters):
         depends on the fitting app. For instance, in ElkEOSFit, you can use
         `npoints` to set N.
     (c) Splines thru fitted or calculated (N,2) data ev,pv,bv :
-        self.spl_{ev,pv,bv}.        
-    
+        self.spl_{ev,pv,bv}.
+
     Attributes
     ----------
     ev, pv, bv, spl_ev, spl_pv, spl_bv, see fit() doc string.
@@ -266,7 +266,7 @@ class ExternEOS(FlexibleGetters):
     >>> plot(efit.ev[:,0], efit.spl_ev(efit.ev[:,0]), label='spline E(V)')
     >>> plot(efit.pv[:,0], efit.spl_pv(efit.pv[:,0]), label='spline P(V)')
     >>> print "V0={v0} E0={e0} B0={b0} P0={p0}".format(**efit.get_min())
-    
+
     Notes
     -----
     For derived classes:
@@ -287,7 +287,7 @@ class ExternEOS(FlexibleGetters):
         """
         Parameters
         ----------
-        app : str 
+        app : str
             name of the executable ([/path/to/]eos.x), make sure that it is on
             your PATH or use an absolute path
         energy : 1d array [eV]
@@ -298,8 +298,8 @@ class ExternEOS(FlexibleGetters):
         bv_method : str, {'pv', 'ev'}
             Based on which quantity should B(V) and minimum properties be
             calculated.
-            pv: based on P(V) 
-            ev: based on E(V) 
+            pv: based on P(V)
+            ev: based on E(V)
         verbose : bool
             print stdout and stderr of fitting tool
         """
@@ -321,21 +321,21 @@ class ExternEOS(FlexibleGetters):
             self.dir = dir
         if not os.path.exists(self.dir):
             os.makedirs(self.dir)
-        if self.verbose:            
+        if self.verbose:
             print(("After calling the fit() method, find data from '%s' "
                   "in %s/" %(self.app, self.dir)))
         self.infn = os.path.join(self.dir, 'eos.in')
-    
+
     def _fit(self):
         """Fit E-V data (self.energy, self.volume) and set self.ev, self.pv .
 
         This is the interface which derived classes must implement. If pv is
         not calculated by the fitting tool, use smth like num.deriv_spl() to
-        calculate the pressure P=-dE/dV.            
+        calculate the pressure P=-dE/dV.
         """
         self.ev = None
         self.pv = None
-    
+
     # user-callable method
     def fit(self, *args, **kwargs):
         """Fit E-V data (self.energy, self.volume).
@@ -347,8 +347,8 @@ class ExternEOS(FlexibleGetters):
             | self.spl_ev : Spline thru E(V)
             | self.spl_pv : Spline thru P(V)
             | self.spl_bv : Spline thru B(V)
-        
-        """            
+
+        """
         self._fit(*args, **kwargs)
         self.bv = self.calc_bv()
         self.try_set_attr('spl_ev')
@@ -364,19 +364,19 @@ class ExternEOS(FlexibleGetters):
         else:
             arr = getattr(self, attr_name)
             return num.Spline(arr[:,0], arr[:,1])
-    
+
     def get_spl_ev(self):
         return self._get_spl('ev')
-    
+
     def get_spl_pv(self):
         return self._get_spl('pv')
-    
+
     def get_spl_bv(self):
         return self._get_spl('bv')
 
     def set_bv_method(self, bv_method):
         """Set self.bv_method, a.k.a. switch to another bv_method.
-        
+
         Parameters
         ----------
         bv_method : str
@@ -390,7 +390,7 @@ class ExternEOS(FlexibleGetters):
             self.try_set_attr('spl_pv')
             vv = self.pv[:,0]
             return np.array([vv, -vv * self.spl_pv(vv, der=1)]).T
-        # B = V*d^2E/dV^2 
+        # B = V*d^2E/dV^2
         elif self.bv_method == 'ev':
             self.try_set_attr('spl_ev')
             # eV / Ang^3 -> GPa
@@ -399,7 +399,7 @@ class ExternEOS(FlexibleGetters):
             return np.array([vv, vv * self.spl_ev(vv, der=2) * fac]).T
         else:
             raise Exception("unknown bv_method: '%s'" %bv_method)
-    
+
     def get_min(self, behave='new'):
         """
         Calculate properites at energy minimum of E(V).
@@ -407,7 +407,7 @@ class ExternEOS(FlexibleGetters):
         Parameters
         ----------
         behave : str, optional, {'new', 'old'}
-        
+
         Returns
         -------
         behave = 'new' : return a dict {v0, e0, p0, b0}
@@ -437,7 +437,7 @@ class ExternEOS(FlexibleGetters):
         b0 = self.spl_bv(v0)
         if behave == 'old':
             return np.array([v0, e0, p0, b0])
-        elif behave == 'new':            
+        elif behave == 'new':
             dct = {}
             dct['v0'] = v0
             dct['e0'] = e0
@@ -446,7 +446,7 @@ class ExternEOS(FlexibleGetters):
             return dct
         else:
             raise Exception("unknown value for `behave`: %s" %str(behave))
-    
+
     def _call(self, cmd):
         """
         Call shell command 'cmd' and merge stdout and stderr.
@@ -454,12 +454,12 @@ class ExternEOS(FlexibleGetters):
         Use this instead of common.backtick() if fitting tool insists on beeing
         very chatty on stderr.
         """
-        pp = subprocess.Popen(cmd, 
+        pp = subprocess.Popen(cmd,
                               shell=True,
-                              stdout=subprocess.PIPE, 
+                              stdout=subprocess.PIPE,
                               stderr=subprocess.STDOUT)
         out,err = pp.communicate()
-        assert err is None, "stderr output is not None"                              
+        assert err is None, "stderr output is not None"
         return out
 
 
@@ -470,11 +470,11 @@ class ElkEOSFit(ExternEOS):
 
     Note that the data produced by eos.x is divided by natoms and that energy
     is in Hartree. We remove the normalization and convert Ha -> eV.
-    
+
     self.{ev,bv,pv} all have the same shape[0] b/c we do not use finite
     differences for derivatives.
     """
-    def __init__(self, app='eos.x', natoms=1, name='foo', etype=1, 
+    def __init__(self, app='eos.x', natoms=1, name='foo', etype=1,
                  npoints=300, **kwargs):
         """
         Parameters
@@ -548,11 +548,11 @@ class ElkEOSFit(ExternEOS):
 %f,  %f,  %i
 %i
 %s
-        """%(self.name, 
-             self.natoms, 
-             self.etype, 
+        """%(self.name,
+             self.natoms,
+             self.etype,
              volume[0], volume[-1], self.npoints,
-             len(volume), 
+             len(volume),
              common.str_arr(data))
         common.file_write(self.infn, infn_txt)
         out = common.backtick('cd %s && %s' %(self.dir, self.app_basename))

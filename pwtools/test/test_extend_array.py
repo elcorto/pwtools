@@ -11,8 +11,8 @@ def test_extend_array():
     nrep = 5
     a0 = num.extend_array(arr, nrep, axis=0)
     a1 = num.extend_array(arr, nrep, axis=1)
-    a2 = num.extend_array(arr, nrep, axis=2)    
-    am1 = num.extend_array(arr, nrep, axis=-1)    
+    a2 = num.extend_array(arr, nrep, axis=2)
+    am1 = num.extend_array(arr, nrep, axis=-1)
     assert a0.shape == (nrep,3,3)
     assert a1.shape == (3,nrep,3)
     assert a2.shape == (3,3,nrep)

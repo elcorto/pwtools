@@ -13,9 +13,9 @@ parse.py
 
     class C(B,A):
         pass
-    # calls only B.__init__, not A.__init__    
+    # calls only B.__init__, not A.__init__
     c=C()
-  
+
   In some classes, we call __init__'s of two base classes and cannot use
   super() then? Is this bad design? Probably, since the MRO (method resolution
   order) has clear rules also for multi inheritance. But who understands them?
@@ -29,11 +29,11 @@ parse.py
 * auto_calc kwd in StructureFileParser.get_cont(): make kwd of __init__ instead
   and also pass thru from io.read_*() such that the API is more simple and
   users can do:
-    
+
     tr = io.read_foo(file, auto_calc=False)
 
   instead of
-    
+
     pp = parse.SomeParser(file)
     tr = pp.get_traj(auto_calc=False)
 
@@ -43,7 +43,7 @@ crys.py
   versions or re-implement in Fortran (flib.f90) / Cython. But use profiling
   first! Ipython's %prun or kernprof.py / line profiler.
 * Structure / Trajectory: Instead of cryst_const, store abc+angles, apply
-  length unit to abc and derive cell + cryst_const from abc+angles. 
+  length unit to abc and derive cell + cryst_const from abc+angles.
 * rpdf(): Use scipy.spatial.distance.pdist() or cdist() or a variant of
    _flib.distsq_frac() for 3d array which is *much* faster.
   pdist() also returns a "condensed" 1d array w/ all distances. We can feed
@@ -51,23 +51,23 @@ crys.py
   fuction.
 * rpdf(): If we re-code the distance part in Fortran, add support for variable
   cell trajectories, if the rpdf is defined for that. Makes surely no sense if
-  the cell changes drastically during an MD and we do the average of the rpdf's 
+  the cell changes drastically during an MD and we do the average of the rpdf's
   over time? Also, rmax will change in each timestep! We'll then output only up
   to the smallest of all rmax values.
-* Maybe make crys.Structure / Trajectory do lazy evaluation by default 
+* Maybe make crys.Structure / Trajectory do lazy evaluation by default
   by setting set_all_auto to False (maybe rename it to "lazy"). No we have:
     st = Structure(...)
     st.cell         # access pre-calculated attr
     st.get_cell()   # calculate and return or return pre-calculated attr
-  We want:  
+  We want:
     st.cell # call self.get_cell() if not calculated etc.
   This can be done only if we turn all attrs into lazy evaluated properties.
 
 pydos.py
 --------
-* pydos is a very stupid name, rename to pdos.py 
+* pydos is a very stupid name, rename to pdos.py
 * let *_pdos() return one 2d array with several columns, like crys.rpdf()
- 
+
 all
 ---
 * Drop verbose.py. Use the logging or warnings module.
@@ -93,14 +93,14 @@ constants.py / units in general
   constants.py and use that everywhere instead of assuming GPa and fs.
   Set apu_to_GPa =1.0 for now etc...
 * The units implementation is a mess. Now, we have UnitsHandler ->
-  StructureFileParser -> parse.*OutputFile and default_units in each 
-  *OutputFile. This must be simplified. 
+  StructureFileParser -> parse.*OutputFile and default_units in each
+  *OutputFile. This must be simplified.
 
 num.py
 ------
 * Similar to the Fit1D base class, we could also define a FitND base class
   which defines get_min() for the ND-case. Right now we have the same get_min()
-  implementation in PolyFit and Interpol2D. We could derive them from FitND. 
+  implementation in PolyFit and Interpol2D. We could derive them from FitND.
 * Interpol2D is actually InterpolND if we remove the 'bispl' method. So add
   InterpolND and derive Interpol2D from that and add bispl only there. Uuuuhh :)
 

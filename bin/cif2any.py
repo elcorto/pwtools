@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# 
+#
 # Extract information from a .cif file and print them in a format suitable for
 # inclusion in a pwscf,abinit,cpmd input file.
 #
@@ -24,9 +24,9 @@ struct = io.read_cif(sys.argv[1], units={'length': Angstrom/Bohr})
 rcell = crys.recip_cell(struct.cell)
 norms = np.sqrt((rcell**2.0).sum(axis=1))
 bar = '-'*78
-mass_unique = [atomic_data.pt[sym]['mass'] for sym in struct.symbols_unique]                 
-atspec = pwscf.atspec_str(struct.symbols_unique, 
-                          mass_unique, 
+mass_unique = [atomic_data.pt[sym]['mass'] for sym in struct.symbols_unique]
+atspec = pwscf.atspec_str(struct.symbols_unique,
+                          mass_unique,
                           [sym + '.UPF' for sym in struct.symbols_unique])
 celldm = crys.cc2celldm(struct.cryst_const)
 atpos_frac = pwscf.atpos_str(struct.symbols, struct.coords_frac)
@@ -48,20 +48,20 @@ CPMD
 * Instead of CELL ABSOLUTE DEGREE, one can also use
     CELL
         celldm(1) ... celldm(6)
-  just like in PWscf.    
+  just like in PWscf.
 * The manual mentions that the code may only read lines up to 80 chars length.
   B/c of that and the fact that Fortran expects 6 numbers after CELL, no matter
   how many linebreaks, better use
     CELL
-        celldm(1) 
-        ... 
+        celldm(1)
+        ...
         celldm(6)
   to avoid long lines if each number is printed with "%.16e" or so.
 
 PWscf
 -----
 We always output ibrav=0, CELL_PARAMETERS and all celldm(1..6) even though you
-don't need all that at the same time. Check pw.x's manual. 
+don't need all that at the same time. Check pw.x's manual.
 """)
 
 #-------------------------------------------------------------------------------
@@ -120,7 +120,7 @@ rules = {'bar': bar,
         }
 for ii, cd in enumerate(celldm):
     rules['cd%i' %(ii+1,)] = cd
-        
+
 print(out.format(**rules))
 
 #-------------------------------------------------------------------------------
@@ -130,14 +130,14 @@ print("\n")
 print(bar)
 print("ABINIT")
 print(bar)
-print("natom %i" %struct.natoms)    
+print("natom %i" %struct.natoms)
 print("ntypat %i" %struct.ntypat)
 print("typat %s" %seq2str(struct.typat))
 print("znucl %s" %seq2str(struct.znucl))
 print("acell %s" %str_arr(struct.cryst_const[:3]))
 print("angdeg %s" %str_arr(struct.cryst_const[3:]))
 print("xred\n%s" %str_arr(struct.coords_frac))
-print("pseudopotential order:\n%s" %"\n".join(["%s %i" %(sym, zz) for sym,zz in 
+print("pseudopotential order:\n%s" %"\n".join(["%s %i" %(sym, zz) for sym,zz in
                                                zip(struct.symbols_unique,
                                                    struct.znucl)]))
 
@@ -164,7 +164,7 @@ for sym, natoms in struct.nspecies.items():
     mask = np.array(struct.symbols) == sym
     print("*%s.psp\n    LMAX=XXXLMAX_%s LOC=XXXLOC_%s" %((sym,) + (sym.upper(),)*2))
     print("    %i" %natoms)
-    print(indent(str_arr(struct.coords_frac[mask,:]),4))    
+    print(indent(str_arr(struct.coords_frac[mask,:]),4))
 print("&END")
 
 

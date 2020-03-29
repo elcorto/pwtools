@@ -3,13 +3,13 @@
 # gen_rpdf_ref.py
 #
 # For the two AlN structures pwtools/test/files/rpdf/*.cif, generate
-# pwtools/test/files/rpdf/result.*.txt files with reference results. 
+# pwtools/test/files/rpdf/result.*.txt files with reference results.
 # Also, generate results for a random set of atoms.
 #
 # The AlN structures were generated with pwtools/examples/rpdf/rpdf_aln.py .
 #   $ python pwtools/examples/rpdf/rpdf_aln.py
 #   $ cp /tmp/rpdf_test/* pwtools/test/files/rpdf/
-#   $ python pwtools/test/utils/gen_rpdf_ref.py 
+#   $ python pwtools/test/utils/gen_rpdf_ref.py
 #
 # Notes
 # -----
@@ -23,7 +23,7 @@ from pwtools import crys, parse, io
 pj = os.path.join
 
 if __name__ == '__main__':
-    
+
     for name in ['rand_3d', 'aln_ibrav0_sc', 'aln_ibrav2_sc']:
         dd = '../files/rpdf'
         if name == 'rand_3d':
@@ -46,14 +46,14 @@ if __name__ == '__main__':
             pp.parse()
             coords = pp.coords
             cell = pp.cell
-        rad, hist, num_int = crys.rpdf(coords, 
-                                       rmax=5.0, 
+        rad, hist, num_int = crys.rpdf(coords,
+                                       rmax=5.0,
                                        cell=cell,
-                                       dr=0.05, 
+                                       dr=0.05,
                                        pbc=True,
                                        )
-        np.savetxt(pj(dd, "result.rad."         + name + ".txt"), rad) 
-        np.savetxt(pj(dd, "result.hist."        + name + ".txt"), hist) 
-        np.savetxt(pj(dd, "result.num_int."     + name + ".txt"), num_int) 
+        np.savetxt(pj(dd, "result.rad."         + name + ".txt"), rad)
+        np.savetxt(pj(dd, "result.hist."        + name + ".txt"), hist)
+        np.savetxt(pj(dd, "result.num_int."     + name + ".txt"), num_int)
         np.savetxt(pj(dd, "result.rmax_auto."   + name + ".txt"),
-                   [crys.rmax_smith(cell)]) 
+                   [crys.rmax_smith(cell)])

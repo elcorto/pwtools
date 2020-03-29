@@ -15,7 +15,7 @@ Suggested naming convention for runs::
 
 After the equi run with a strong thermostat such as::
 
-    motion/md/thermostat/csvr/timecon=0.1 
+    motion/md/thermostat/csvr/timecon=0.1
 
 do the production run in NVE or NVT with a weakly coupled thermostat like::
 
@@ -65,7 +65,7 @@ Now, add the restart section to the input file. Also change the ensemble (e.g.
                 &end thermostat
                 ...
             &end md
-        &end motion        
+        &end motion
     $ qsub job.script
 
 For all subsequent restarts, ``0.2``, ``0.3``, ... you only copy the last
@@ -97,7 +97,7 @@ Now, one can parse each run ``0.1``, ``0.2``, ... separately::
     ...
 
 and then concatenate the trajectories::
-    
+
     >>> tr=crys.concatenate([tr1,tr2])
 
 or more compact::

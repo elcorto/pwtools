@@ -13,7 +13,7 @@ Features
 * simple sqlite3 interface with convenience data extraction methods
   (:mod:`~pwtools.sql`)
 
-* parsing of PWscf (QE_), CPMD_ , CP2K_ and LAMMPS_ 
+* parsing of PWscf (QE_), CPMD_ , CP2K_ and LAMMPS_
   output into Python objects for easy access (:mod:`~pwtools.parse`)
 
 * structure io: read cif, pdb, write axsf, cif, xyz  (:mod:`~pwtools.io`)
@@ -25,7 +25,7 @@ Features
   EOS) (:mod:`~pwtools.eos`)
 
 * thermodynamic properties in the quasi-harmonic approximation from phonon
-  density of states, QHA implementation (:mod:`~pwtools.thermo`) 
+  density of states, QHA implementation (:mod:`~pwtools.thermo`)
 
 * MD analysis: radial pair distribution function (own implementation and VMD_
   interface), RMS, RMSD (:mod:`~pwtools.crys`)

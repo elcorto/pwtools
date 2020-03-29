@@ -28,7 +28,7 @@ $prog [-hs] <dir> <step>
 options:
 --------
 -s : simulate
---not-inplace : don't use ``sed -i.$bakname ...``, use if YKWYAD 
+--not-inplace : don't use ``sed -i.$bakname ...``, use if YKWYAD
 
 example
 -------
@@ -39,23 +39,23 @@ ACCUMULATORS" and continuing files with "<<< NEW DATA >>>" markers starts at
 old CELL, ENERGIES, etc files before the restart, such that they are cleanly
 continued. Then use:
 
-$ $prog /path/to/calc/ 8401 
+$ $prog /path/to/calc/ 8401
 EOF
 }
 
 msg(){
     echo "$prog: $@"
-}    
+}
 
 err(){
     echo "$prog: error: $@"
     exit 1
-}    
+}
 
 cmdline=$(getopt -o hs -l not-inplace -- "$@")
 eval set -- "$cmdline"
 while [ $# -gt 0 ]; do
-    case "$1" in 
+    case "$1" in
         -s)
             simulate=true
             ;;
@@ -90,16 +90,16 @@ while read conf; do
     [ -n "$_bakname" ] && bakname=$_bakname
     if $inplace; then
         cmd="sed -i.$bakname $sed_opts '$sedstr' $fn"
-    else        
+    else
         cmd="sed $sed_opts '$sedstr' $fn"
-    fi        
+    fi
     if [ -f $fn ]; then
         echo ">> $fn <<"
         echo "  $cmd"
         $simulate || eval $cmd
     else
         msg "not found: $fn"
-    fi        
+    fi
 done << EOF
 $dr/CELL@@/.*CELL PARAMETERS.*Step.*$step.*/,$ d
 $dr/ENERGIES@@/^\\\s+$step\\\s.*/,$ d

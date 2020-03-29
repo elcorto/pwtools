@@ -18,14 +18,14 @@ def assert_cond(cond, string=None):
     numpy-discussions that the assert statement shouldn't be used to test user
     input in functions b/c with `python ... -O0` or __debug__ not beeing
     defined, the statement is not tested.
-    
+
     Parameters
     ----------
     cond : bool
         True : None is returned
         False : exception is raised
     string : str
-    
+
     Examples
     --------
     assert_cond(1==1, 'lala') -> ok
@@ -41,7 +41,7 @@ def assert_cond(cond, string=None):
 
 def add_to_config(config, info):
     """Add sections and key-val paris in `info` to `config`.
-    
+
     Parameters
     ----------
     config : configparser.ConfigParser object
@@ -63,10 +63,10 @@ def add_to_config(config, info):
 #-----------------------------------------------------------------------------
 
 def toslice(val):
-    """A simple wrapper around numpy.s_() taking strings as argument. 
+    """A simple wrapper around numpy.s_() taking strings as argument.
     Convert strings representing Python/numpy slice to slice
     objects.
-    
+
     Parameters
     ----------
     val : string
@@ -100,7 +100,7 @@ def toslice(val):
     # >>> np.s_[-2:]
     # slice(9223372036854775805, None, None)
     if val.strip().startswith('-'):
-        if np.s_[-2:] != slice(-2, None, None): 
+        if np.s_[-2:] != slice(-2, None, None):
             raise Exception("Some minus slices (e.g -2:) not supported "
                 "by your numpy (probably old version). Use "
                 "[<start>[:<step>]:<end>] as workaround.")
@@ -110,13 +110,13 @@ def toslice(val):
 
 def tobool(val):
     """Convert `val` to boolean value True or False.
-        
+
     Parameters
     ----------
     val : bool, string, integer
         '.true.', '1', 'true',  'on',  'yes', integers != 0 -> True
         '.false.','0', 'false', 'off', 'no',  integers == 0 -> False
-    
+
     Returns
     -------
     True or False
@@ -153,8 +153,8 @@ def tobool(val):
 def ffloat(st):
     """Convert strings representing numbers to Python floats using
     float(). The returned value is a double (or whatever the float() of your
-    Python installation  returns). 
-    
+    Python installation  returns).
+
     Especially, strings representing Fortran floats are handled. Fortran Reals
     (= single) are converted to doubles. Kind parameters (like '_10' in
     '3.0d5_10') are NOT supported, they are ignored.
@@ -184,7 +184,7 @@ def ffloat(st):
         if m is None:
             raise ValueError("no match on string '%s'" %st)
         if m.group(4).strip() != '':
-            verbose("[ffloat] WARNING: skipping kind '%s' in string '%s'" 
+            verbose("[ffloat] WARNING: skipping kind '%s' in string '%s'"
                 %(m.group(4), st))
         ss = "%se%s%s" %m.groups()[:-1]
         return float(ss)
@@ -196,23 +196,23 @@ def frepr(var, ffmt="%.16e"):
 
     If `var` is a string, e.g. 'lala', it returns 'lala' not "'lala'" as
     Python's repr() does.
-    
+
     Parameters
     ----------
     var : almost anything (str, None, int, float)
     ffmt : format specifier for float values
-    
+
     Examples
     --------
     >>> frepr(1)
     '1'
-    >>> frepr(1.0) 
-    '1.000000000000000e+00' 
+    >>> frepr(1.0)
+    '1.000000000000000e+00'
     >>> frepr(None)
     'None'
     >>> # Python's repr() does: 'abc' -> "'abc'"
     >>> frepr('abc')
-    'abc' 
+    'abc'
     """
     if isinstance(var, float):
         return ffmt %var
@@ -262,14 +262,14 @@ def fix_eps(arr, eps=EPS, copy=True):
 
 def str_arr(arr, fmt='%.16e', delim=' '*4, zero_eps=None, eps=EPS):
     """Convert array `arr` to nice string representation for printing.
-    
+
     Parameters
     ----------
-    arr : array_like 
+    arr : array_like
         1d or 2d array
-    fmt : str 
+    fmt : str
         format specifier, all entries of arr are formatted with that
-    delim : str 
+    delim : str
         delimiter
     eps : float
         Print values as 0.0 where abs(value) < eps. If eps < 0.0, then disable
@@ -320,7 +320,7 @@ def str_arr(arr, fmt='%.16e', delim=' '*4, zero_eps=None, eps=EPS):
 
 def makedirs(path):
     """Same as os.makedirs() but silently skips empty paths.
-    
+
     The common use case is when we always create a path for a file w/o knowing
     beforehand whether we actually have a path.
 
@@ -333,13 +333,13 @@ def makedirs(path):
 
 def get_filename(fh):
     """Try to get the `name` attribute from file-like objects. If it fails
-    (fh=cStringIO.StringIO(), fh=StringIO.StringIO(), fh=gzip.open(), ...), 
+    (fh=cStringIO.StringIO(), fh=StringIO.StringIO(), fh=gzip.open(), ...),
     then return a dummy name."""
     try:
         name = fh.name
     except AttributeError:
         name = 'object_%s_pwtools_dummy_filename' %str(fh)
-    return name        
+    return name
 
 
 def file_read(fn):
@@ -352,7 +352,7 @@ def file_read(fn):
 
 def file_write(fn, txt):
     """Write string `txt` to file with name `fn`. No check is made wether the
-    file exists and/or is nonempty. Yah shalleth know whath thy is doingth.  
+    file exists and/or is nonempty. Yah shalleth know whath thy is doingth.
     shell$ echo $string > $file """
     fd = open(fn, 'w')
     fd.write(txt)
@@ -381,8 +381,8 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
                      warn_not_found=True, disp=True, mode='dct'):
     """Replace placeholders dct.keys() with string values dct.values() in a
     text string. This function adds some bells and whistles such as warnings
-    in case of not-found placeholders and whatnot. 
-    
+    in case of not-found placeholders and whatnot.
+
     Parameters
     ----------
     txt : string with placeholders
@@ -398,20 +398,20 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
             dct.values() can be anything. The conversion to a string is done at
             replacement time and determined by the <format_str>. This
             effectively does `txt % dct`. This method is faster, uses Python
-            standard syntax and is therefore default.  
+            standard syntax and is therefore default.
         'txt' : Text mode. Placeholders in `txt` and keys in `dct` are the
             exact same arbitrary string (e.g. 'XXXFOO' in both). Here,
             dct.values() must be strings. If not, use conv=True to
             automatically convert them to strings, but note that this is
             limited since only frepr(<val>) is used.
-    
+
     Returns
     -------
     new string
-    
+
     Examples
     --------
-    >>> txt = 'XXXONE  XXXPI'                            
+    >>> txt = 'XXXONE  XXXPI'
     >>> dct = {'XXXONE': 1, 'XXXPI': math.pi}
     >>> template_replace(txt, dct, conv=True, mode='txt')
     '1  3.1415926535897931e+00'
@@ -423,7 +423,7 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
     >>> txt = '%(one)s  %(pi).16e'; dct = {'one': 1, 'pi': math.pi}
     >>> template_replace(txt, dct)
     '1  3.1415926535897931e+00'
-    >>> 
+    >>>
     >>> txt % dct
     '1  3.1415926535897931e+00'
     """
@@ -443,10 +443,10 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
         is_txt_mode = True
     else:
         raise Exception("mode must be 'txt' or 'dct'")
-    
+
     # This is a copy. Each txt.replace() returns an additional copy. We need
     # that if we loop over dct.iteritems() and sucessively replace averything.
-    if is_txt_mode: 
+    if is_txt_mode:
         new_txt = txt
     for key, val in dct.items():
         if is_dct_mode:
@@ -460,16 +460,16 @@ def template_replace(txt, dct, conv=False, warn_mult_found=True,
             if is_txt_mode:
                 if conv:
                     val = frepr(val, ffmt="%.16e")
-                else:                    
+                else:
                     if not isinstance(val, str):
                         raise Exception("dict vals must be strings: "
                                         "key: '%s', val: " %key + str(type(val)))
-            if warn_mult_found:                    
+            if warn_mult_found:
                 cnt = txt.count(tst_key)
                 if cnt > 1:
                     print("template_replace: warning: key '%s' found %i times"
                     %(tst_key, cnt))
-            if is_txt_mode:                    
+            if is_txt_mode:
                 new_txt = new_txt.replace(key, val)
             if disp:
                 print("template_replace: %s -> %s" %(key, val))
@@ -500,12 +500,12 @@ def file_template_replace(fn, dct, bak='', **kwargs):
     dct = {'xxx': 'foo', 'yyy': 'bar'}
     fn = 'bla.txt'
     file_template_replace(fn, dct, '.bak', mode='txt')
-    
+
     This the same as:
     shell$ sed -i.bak -r -e 's/xxx/foo/g -e 's/yyy/bar/g' bla.txt"""
     txt = template_replace(file_read(fn), dct, **kwargs)
     if bak != '':
-        shutil.copy(fn, fn + bak)                
+        shutil.copy(fn, fn + bak)
     file_write(fn, txt)
 
 
@@ -513,7 +513,7 @@ def backup(src, prefix='.'):
     """Backup (copy) `src` to <src><prefix><num>, where <num> is an integer
     starting at 0 which is incremented until there is no destination with that
     name.
-    
+
     Symlinks are handled by shutil.copy() for files and shutil.copytree() for
     dirs. In both cases, the content of the file/dir pointed to by the link is
     copied.
@@ -526,7 +526,7 @@ def backup(src, prefix='.'):
     """
     if os.path.exists(src):
         if os.path.isfile(src):
-            copy = shutil.copy 
+            copy = shutil.copy
         elif os.path.isdir(src):
             copy = shutil.copytree
         else:
@@ -539,7 +539,7 @@ def backup(src, prefix='.'):
         # sanity check
         if os.path.exists(dst):
             raise Exception("destination '%s' exists" %dst)
-        else:        
+        else:
             copy(src, dst)
 
 #-----------------------------------------------------------------------------
@@ -548,10 +548,10 @@ def backup(src, prefix='.'):
 
 def dict2str(dct):
     """Nicer than simply __repr__."""
-    st = ""    
+    st = ""
     for key, val in dct.items():
         st += "%s: %s\n" %(key, repr(val))
-    return st        
+    return st
 
 # backward compat only
 def print_dct(dct):
@@ -589,15 +589,15 @@ def is_seq(seq):
 
     Exclude cases which are iterable but that we still don't like (string, file
     object). In fact, we wish to catch list, tuple, numpy array.
-    
+
     Parameters
     ----------
     seq : (nested) sequence of arbitrary objects
-    """ 
+    """
     if isinstance(seq, str) or \
        isinstance(seq, io.IOBase):
        return False
-    else:        
+    else:
         try:
             x=iter(seq)
             return True
@@ -624,7 +624,7 @@ def flatten(seq):
 def pop_from_list(lst, items):
     """Pop all `items` from `lst` and return a shorter copy of
     `lst`.
-    
+
     Parameters
     ----------
     lst: list
@@ -633,12 +633,12 @@ def pop_from_list(lst, items):
     Returns
     -------
     lst2 : list
-        Copy of `lst` with `items` removed.    
+        Copy of `lst` with `items` removed.
     """
     lst2 = copy.deepcopy(lst)
     for item in items:
         lst2.pop(lst2.index(item))
-    return lst2    
+    return lst2
 
 
 def asseq(arg):
@@ -657,7 +657,7 @@ def system(call, wait=True):
     """Fire up shell commamd line `call`.
 
     No exception is raised if the command fails.
-    
+
     Parameters
     ----------
     call: str (example: 'ls -l')
@@ -679,10 +679,10 @@ def permit_sigpipe():
     Things like::
 
         >>> cmd = r"grep pattern /path/to/very_big_file | head -n1"
-        >>> pp = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, 
+        >>> pp = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
         ...                       stderr=subprocess.PIPE)
         >>> out,err = pp.communicate()
-    
+
     sometimes end with a broken pipe error: "grep: writing output: Broken
     pipe". They run fine at the bash prompt, while failing with Popen. The
     reason is that they actually "kind of" fail in the shell too, namely,

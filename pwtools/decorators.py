@@ -13,18 +13,18 @@ def open_and_close(func):
         * open the file
         * go thru
         * close file
-    
+
     Now, they all expect file objects, as first argument. This decorator
-    assures that the first arg to `func` is a file object. 
-    
+    assures that the first arg to `func` is a file object.
+
     Cases:
-    
+
     * 1st arg is a fileobject: do nothig, just call function
     * 1st arg is a file name:
         * open file
         * call func
         * close file
-    
+
     Examples
     --------
     >>> @open_and_close
@@ -57,15 +57,15 @@ def open_and_close(func):
             return ret
         else:
             # File object case. Don't explicitly test for types.FileType b/c
-            # that does not if largs[0] is actually a [c]StringIO.StringIO 
-            # instances. 
+            # that does not if largs[0] is actually a [c]StringIO.StringIO
+            # instances.
             #
             # Also, the 'name' attribute can be set (largs[0].name = ...) for
             # StringIO.StringIO, but NOT for cStringIO.StringIO. We don't even
             # try fiddling with try-except here. There just won't be any
             # filename.
             return func(*args, **kwargs)
-    return wrapper        
+    return wrapper
 
 
 def crys_add_doc(func):
@@ -90,14 +90,14 @@ def crys_add_doc(func):
     # Use dictionary string replacement:
     # >>> '%(lala)i %(xxx)s' %{'lala': 3, 'xxx': 'grrr'}
     # '3 grrr'
-    func.__doc__ = func.__doc__ % dct 
+    func.__doc__ = func.__doc__ % dct
     return func
 
 
 class lazyprop(object):
     """Decorator for creating lazy evaluated properties.
     The property should represent non-mutable data, as it replaces itself.
-    
+
     kudos: Cyclone over at stackoverflow!
     http://stackoverflow.com/questions/3012421/python-lazy-property-decorator
     """

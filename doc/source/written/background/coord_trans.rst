@@ -19,7 +19,7 @@ Row vs. column form
 -------------------
 In the math literature you find a column oriented form, where matrix :math:`A`
 has the basis vectors as columns and :math:`x`, :math:`b` are column vectors
-(M,1), such that a linear system is written as :math:`A x = b`. 
+(M,1), such that a linear system is written as :math:`A x = b`.
 
 We use a row oriented form of all relations such that :math:`x A = b`, where
 :math:`x` are :math:`b` are row vectors (1,M) and :math:`A` has basis vectors
@@ -46,7 +46,7 @@ where we call :math:`C = X Y^{-1}` the transformation matrix.
 
 Every product :math:`v_X X; v_Y Y; v_I I` is actually an expansion of
 :math:`v_{X,Y,...}` in the basis vectors contained in :math:`X,Y,...` . If the
-dot product is computed, we always get :math:`v` in cartesian coords. 
+dot product is computed, we always get :math:`v` in cartesian coords.
 
 Notes for the special case fractional <-> cartesian
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -72,7 +72,7 @@ We now switch to code examples, where :math:`v_X` == ``v_X``.
 
 In general, we don't have one vector ``v_X`` but an array ``R_X`` of shape
 (N,M) of row vectors::
-    
+
     R_X = [[--- v_X0 ---],
            [--- v_X1 ---],
            ...
@@ -87,8 +87,8 @@ Examples:
 
 1d: ``R_X.shape = (3,)``::
 
-    >>> # R_X == v_X = [x,y,z] 
-    >>> # R_Y == v_Y = [x',y',z'] 
+    >>> # R_X == v_X = [x,y,z]
+    >>> # R_Y == v_Y = [x',y',z']
     >>> X=rand(3,3); R_X=rand(3); Y=rand(3,3); C=dot(X, inv(Y))
     >>> R_Y1=dot(R_X, C)
     >>> R_Y2=dot(dot(R_X, X), inv(Y))
@@ -101,7 +101,7 @@ Examples:
     >>> # Array of coords of N atoms, R_X[i,:] = coord of i-th atom. The dot
     >>> # product is broadcast along the first axis of R_X (i.e. *each* row of R_X is
     >>> # dot()'ed with C)::
-    >>> #   
+    >>> #
     >>> # R_X = [[x0,       y0,     z0],
     >>> #        [x1,       y1,     z1],
     >>> #         ...
@@ -117,7 +117,7 @@ Examples:
     >>> R_Y3=linalg.solve(Y.T, dot(R_X, X).T).T
     >>> assert allclose(R_Y1, R_Y2)
     >>> assert allclose(R_Y1, R_Y3)
-    
+
 Here we used the fact that ``linalg.solve`` can solve for many rhs's at the
 same time (``Ax=b, A:(M,M), b:(M,N)`` where the rhs's are the columns of
 ``b``). The result from ``linalg.solve`` has the same shape as ``b``:
@@ -140,7 +140,7 @@ transpose.
     >>>     R_Y3[istep,...] = linalg.solve(Y.T, dot(R_X[istep,...], X).T).T
     >>> assert allclose(R_Y1, R_Y2)
     >>> assert allclose(R_Y1, R_Y3)
-    
+
 Here, ``linalg.solve`` cannot be used b/c ``R_X`` is a 3d array and not a
 matrix. Direct dot products (``R_Y1`` and ``R_Y2``) involve calculating the
 inverse, which is unpleasant. Hence, the numerically most stable method is to
@@ -148,5 +148,5 @@ loop over ``nstep`` and use the 2d array method using ``linalg.solve``
 (``R_Y3``).
 
 The above loops are implemented in ``flib.f90`` for the special case fractional
-<-> cartesian, using only dot products and linear system solvers from Lapack 
+<-> cartesian, using only dot products and linear system solvers from Lapack
 in each loop.

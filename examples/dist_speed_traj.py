@@ -54,7 +54,7 @@ if __name__ == '__main__':
     traj = Trajectory(coords_frac=coords_frac,
                       cell=cell,
                       symbols=symbols)
-    
+
     ##assert np.allclose(pydist_bigmem(traj), pydist_loop(traj))
     ##print "... ok"
     ##assert np.allclose(pydist_loop(traj), fdist(traj))
@@ -62,19 +62,19 @@ if __name__ == '__main__':
 
     tt = timer.TagTimer()
     nn = 1
-    
+
     tt.t('py_bigmen')
     for ii in range(nn):
         pydist_bigmem(traj)
     tt.pt('py_bigmen')
-    
+
     tt.t('py_loop')
     for ii in range(nn):
         pydist_loop(traj)
     tt.pt('py_loop')
-    
+
     tt.t('f')
     for ii in range(nn):
         fdist(traj)
     tt.pt('f')
-    
+

@@ -32,7 +32,7 @@
 ! Doc:
 ! [1] http://cens.ioc.ee/projects/f2py2e/usersguide/index.html
 ! [2] http://www.sagemath.org/doc/numerical_sage/f2py.html
-! 
+!
 ! A Fortran subroutine always needs to get input and pre-allocated result
 ! arrays. The result arrays get overwriten inside the subroutine. This is in
 ! contrast to Python fuctions, which usually only take input args and allocate
@@ -44,7 +44,7 @@
 ! there is more then one). Note that there must be one "intent(out)" line for
 ! *each* arg. Also, the order in the tuple is the one of the input args.
 !
-! There are basically 2 (well, 2.5) ways of wrapping a subroutine: 
+! There are basically 2 (well, 2.5) ways of wrapping a subroutine:
 !
 ! (1) the python wrapper doesn't pre-allocate and pass result arrays. The
 ! Fortran routine looks like this::
@@ -61,8 +61,8 @@
 !
 ! and the call signature would be::
 !
-!      c,d = foo(a,b,[n]) 
-! 
+!      c,d = foo(a,b,[n])
+!
 ! It takes only the inputs `a` and `b` and well as `n` as optional arg, which is
 ! determined from `a` and `b`'s array dimension if not given. This is the most
 ! easy and pythonic way. In that case, the output arrays `c` and `d` are
@@ -72,7 +72,7 @@
 ! Note: It used to be that `c` and `d` are copied to C order when the f2py
 ! wrapper function returns. But see method 3 below!
 !
-! (2) Explicitely allocate result arrays on python side and pass in. 
+! (2) Explicitely allocate result arrays on python side and pass in.
 !
 !     subroutine foo(a, b, c, d, n)
 !         implicit none
@@ -83,12 +83,12 @@
 !         c = matmul(a,b)
 !         d = matmul(a,b)*2.0d0
 !     end subroutine foo
-! 
+!
 ! Here, we changed the f2py statement to "!f2py intent(in,out)", telling f2py
 ! that the user must supply `c` and `d` explicitely. The signature is now::
 !
 !     c,d = foo(a,b,c,d,[n])
-! 
+!
 ! In that case, there are two usage pattern in Python: (A) One can call the wrapper
 ! with or (B) without return args b/c the result arrays get overwritten in-place.
 !
@@ -98,7 +98,7 @@
 !     _flib(a,b,c,d)                # variant A
 !     c,d = _flib(a,b,c,d)          # variant B
 !
-! 
+!
 ! (3) Don't use f2py comment lines and get F order arrays back without passing
 ! them in.
 !
@@ -109,28 +109,28 @@
 !     subroutine foo(a, b, c, d, n)
 !         implicit none
 !         integer :: n
-!         double precision, intent(in) :: a(n,n), b(n,n) 
+!         double precision, intent(in) :: a(n,n), b(n,n)
 !         double precision, intent(out) :: c(n,n), d(n,n)
 !         c = matmul(a,b)
 !         d = matmul(a,b)*2.0d0
 !     end subroutine foo
-! 
+!
 ! and the f2py wrapper signature as in case (1)::
 !
-!      c,d = foo(a,b,[n]) 
-! 
+!      c,d = foo(a,b,[n])
+!
 ! This is the best version b/c we don't need to explicitely allocate `c` and `d`
 ! in F order in Python and pass in + we get F order arrys back w/o a copy. This
 ! is cool as long as we don't need C-order arrays in Python.
 !
 ! C/F-order arrays and copies (method 1 and 2 only)
 ! -------------------------------------------------
-! 
+!
 ! By default, the f2py wrapper will make a copy of each numpy input array which
 !
 !   * has rank >= 2
 !   * order='C'
-! 
+!
 ! and each output array (F to C order) which was not explicitely passed in.
 ! This can be a real bottleneck for big arrays, sometimes performing much slower
 ! than the actual calculations! Use f2py -DF2PY_REPORT_ON_ARRAY_COPY=1 ... if
@@ -158,10 +158,10 @@ subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
     !
     ! method=1: loops
     ! method=2: vectorized, but makes a copy of `v`
-#ifdef __OPENMP    
+#ifdef __OPENMP
     use omp_lib
     !f2py threadsafe
-#endif    
+#endif
     implicit none
     integer, intent(in) :: natoms, nstep, method, use_m
     integer, intent(in), optional ::  nthreads
@@ -180,16 +180,16 @@ subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
     !! character(100) :: OMP_NUM_THREADS
     !! call getenv('OMP_NUM_THREADS', OMP_NUM_THREADS)
     !! write(*,*) 'OMP_NUM_THREADS: ', OMP_NUM_THREADS
-    
+
     ! With f2py, "if (present(nthreads)) then ..." doesn't work for 'optional'
     ! input args. nthreads is alawys present. When it is not
-    ! supplied, the if clause *should* evaluate to .false. . Instead, 
+    ! supplied, the if clause *should* evaluate to .false. . Instead,
     ! nthreads is simply 0.
     if (nthreads /= 0) then
         call omp_set_num_threads(nthreads)
-    end if        
-#endif    
-    if (method == 1) then 
+    end if
+#endif
+    if (method == 1) then
         if (use_m == 1) then
             !$omp parallel
             !$omp do
@@ -200,8 +200,8 @@ subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
                         c(t) = c(t) + ( v(j+t,i,0) * v(j,i,0)  &
                                     +   v(j+t,i,1) * v(j,i,1)  &
                                     +   v(j+t,i,2) * v(j,i,2) ) * m(i)
-                    end do                    
-                end do                    
+                    end do
+                end do
             end do
             !$omp end do
             !$omp end parallel
@@ -214,9 +214,9 @@ subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
                         ! poor man's unrolled dot
                         c(t) = c(t) + ( v(j+t,i,0) * v(j,i,0)  &
                                     +   v(j+t,i,1) * v(j,i,1)  &
-                                    +   v(j+t,i,2) * v(j,i,2) ) 
-                    end do                    
-                end do                    
+                                    +   v(j+t,i,2) * v(j,i,2) )
+                    end do
+                end do
             end do
             !$omp end do
             !$omp end parallel
@@ -226,14 +226,14 @@ subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
         end if
         c = c / c(0)
         return
-    
+
     ! Vectorzied version of the loops.
-    else if (method == 2) then        
-        
+    else if (method == 2) then
+
         ! Slightly faster b/c of vectorization, but makes a copy of `v`. Use
         ! only if you have enough memory.  Don't know how to implement numpy's
         ! newaxis+broadcast magic into Fortran, but numpy will also make temp
-        ! copies, for sure. 
+        ! copies, for sure.
         ! We need a copy of `v` b/c `v` is "intent(in) v" and Fortran does not
         ! allow manipulation of input args. Moreover, we don't want to modify
         ! `v` directly should it become "intent(in,out)" one day.
@@ -242,19 +242,19 @@ subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
         ! Element-wise multiply each vector of length `natoms` vv(:,j,k) with
         ! sqrt(m). In the dot product of the velocities
         ! vv(i,j,:) . vv(i,j+t,:), we get m(i) back.
-        
+
         if (use_m == 1) then
             !$omp parallel
             !$omp do
             do j = 0,nstep-1
                 do k = 0,2
                     vv(j,:,k) = dsqrt(m) * v(j,:,k)
-                end do    
+                end do
             end do
             !$omp end do
             !$omp end parallel
             call vect_loops(vv, natoms, nstep, c)
-        else if (use_m == 0) then        
+        else if (use_m == 0) then
             call vect_loops(v, natoms, nstep, c)
         else
             write(stderr,*) this, "ERROR: illegal value for 'use_m'"
@@ -262,7 +262,7 @@ subroutine vacf(v, m, c, method, use_m, nthreads, natoms, nstep)
         end if
         c = c / c(0)
         return
-    else        
+    else
         write(stderr,*) this, "ERROR: illegal value for 'method'"
         return
     end if
@@ -270,9 +270,9 @@ end subroutine vacf
 
 
 subroutine vect_loops(v, natoms, nstep, c)
-#ifdef __OPENMP    
+#ifdef __OPENMP
     !f2py threadsafe
-#endif    
+#endif
     implicit none
     integer :: t, nstep, natoms
     double precision, intent(in) :: v(0:nstep-1, 0:natoms-1, 0:2)
@@ -295,30 +295,30 @@ subroutine acorr(v, c, nstep, method, norm)
     double precision, intent(in) :: v(0:nstep-1)
     double precision, intent(out) :: c(0:nstep-1)
     !f2py intent(in, out) c
-    if (method == 1) then 
+    if (method == 1) then
         do t = 0,nstep-1
             do j = 0,nstep - t - 1
                 c(t) = c(t) + v(j) * v(j+t)
-            end do                    
-        end do                    
-    else if (method == 2) then        
+            end do
+        end do
+    else if (method == 2) then
         do t = 0,nstep-1
             c(t) = sum(v(:(nstep-t-1)) * v(t:))
         end do
     end if
     if (norm == 1) then
         c = c / c(0)
-    end if        
+    end if
     return
 end subroutine acorr
 
 subroutine distsq(arrx, arry, dsq, nx, ny, ndim)
-#ifdef __OPENMP    
+#ifdef __OPENMP
     !f2py threadsafe
-#endif    
+#endif
     implicit none
     integer :: ii, jj, nx, ny, ndim
-    double precision :: arrx(nx, ndim), arry(ny, ndim), dsq(nx,ny) 
+    double precision :: arrx(nx, ndim), arry(ny, ndim), dsq(nx,ny)
     !f2py intent(in, out) dsq
     ! note row-major loop order -> speed!
     !$omp parallel
@@ -327,7 +327,7 @@ subroutine distsq(arrx, arry, dsq, nx, ny, ndim)
         do ii=1,nx
             dsq(ii,jj) = sum((arrx(ii,:) - arry(jj,:))**2.0d0)
         end do
-    end do        
+    end do
     !$omp end parallel
 end subroutine distsq
 
@@ -343,7 +343,7 @@ subroutine angles(distvecs, dists, mask_val, deg, anglesijk, natoms)
     ! mask_val : float
     !   Fill value for anglesijk(ii,jj,kk) where ii==jj or ii==kk or
     !   jj==kk, i.e. no angle defined. Can be used to create bool mask arrays in
-    !   numpy. 
+    !   numpy.
     ! deg : int, {0,1}
     !   whether to return angles in degrees (1) or cosine values (0)
     ! anglesijk : dummy result array
@@ -371,12 +371,12 @@ subroutine angles(distvecs, dists, mask_val, deg, anglesijk, natoms)
                     anglesijk(ii,jj,kk) = cang
                 else
                     anglesijk(ii,jj,kk) = mask_val
-                end if                        
-            end do                        
-        end do                        
+                end if
+            end do
+        end do
     end do
     if (deg==1) then
-        ! handle numerical corner cases where acos() can return NaN, 
+        ! handle numerical corner cases where acos() can return NaN,
         ! note that eps is hardcoded currently
         where (anglesijk /= mask_val .and. anglesijk > ceps) anglesijk = 1.0d0
         where (anglesijk /= mask_val .and. anglesijk < -ceps) anglesijk = -1.0d0
@@ -388,7 +388,7 @@ end subroutine angles
 subroutine distsq_frac(coords_frac, cell, pbc, distsq, distvecs, distvecs_frac, natoms)
     ! Special purpose routine to calculate distance vectors, squared distances
     ! and apply minimum image convention (pbc) for fractional atom coords.
-    ! 
+    !
     ! Parameters
     ! ----------
     ! coords_frac : (natoms,3)
@@ -398,15 +398,15 @@ subroutine distsq_frac(coords_frac, cell, pbc, distsq, distvecs, distvecs_frac, 
     !     {0,1}
     ! distsq : dummy input
     ! distvecs : dummy input
-    ! distvecs_frac : dummy input  
-    ! natoms : dummy input  
+    ! distvecs_frac : dummy input
+    ! natoms : dummy input
     !
     ! Returns
     ! -------
     ! distsq : (natoms,natoms)
     !     squared cartesien distances
     ! distvecs : (natoms,natoms,3)
-    !     cartesian distance vectors  
+    !     cartesian distance vectors
     ! distvecs_frac : (natoms,natoms,3)
     !     fractional distance vectors, PBC applied if pbc=1
     implicit none
@@ -429,15 +429,15 @@ subroutine distsq_frac(coords_frac, cell, pbc, distsq, distvecs, distvecs_frac, 
                 do ii=1,natoms
                     do while (distvecs_frac(ii,jj,kk) >= 0.5d0)
                         distvecs_frac(ii,jj,kk) = distvecs_frac(ii,jj,kk) - 1.0d0
-                    end do    
+                    end do
                     do while (distvecs_frac(ii,jj,kk) < -0.5d0)
                         distvecs_frac(ii,jj,kk) = distvecs_frac(ii,jj,kk) + 1.0d0
-                    end do    
+                    end do
                 end do
             end do
         end do
     end if
-    
+
     do kk=1,3
         do jj=1,natoms
             do ii=1,natoms
@@ -456,11 +456,11 @@ end subroutine distsq_frac
 
 ! This routine below works, but on one core it is NOT faster than looping thru a
 ! Trajectory in Python::
-!   
+!
 !   >>> tr = Trajectory(...)
 !   >>> for st in tr:
 !   ...     dist = crys.distances(st,...)
-! 
+!
 ! where distances() uses distsq_frac(), which is the called 1e4 times if
 ! tr.nstep=1e4! See examples/dist_speed_traj.py. We know that looping thru
 ! Trajectory is very fast b/c we only use array views when calling
@@ -468,7 +468,7 @@ end subroutine distsq_frac
 ! small, proably b/c we allocate arrays in F order in distances() etc. That's
 ! pretty impressive!
 !
-! Below, OpenMP scales almost linear (tested up to 4 cores). 
+! Below, OpenMP scales almost linear (tested up to 4 cores).
 ! But: The array `dists` tends to get quite big (some GB) very quickly.
 !
 ! Instead, what is easy on memory *and* scales linear is using
@@ -487,7 +487,7 @@ subroutine distances_traj(coords_frac, cell, pbc, natoms, nstep, dists)
     !     {0,1}
     ! dists : (nstep, natoms, natoms)
     !   dummy input
-    ! natoms,nstep : dummy input  
+    ! natoms,nstep : dummy input
     !
     ! Returns
     ! -------
@@ -500,14 +500,14 @@ subroutine distances_traj(coords_frac, cell, pbc, natoms, nstep, dists)
     double precision :: distsq(natoms,natoms), distvecs_frac(natoms, natoms, 3), &
                         distvecs(natoms, natoms, 3)
 
-#ifdef __OPENMP    
+#ifdef __OPENMP
     !f2py threadsafe
-#endif    
-    
+#endif
+
     !f2py intent(in,out,overwrite) dists
-    
+
     ! Without these private(...) statements the routine produces wrong results.
-    !$omp parallel private(distvecs_frac, distvecs, distsq) 
+    !$omp parallel private(distvecs_frac, distvecs, distsq)
     !$omp do
     do istep=1,nstep
         call distsq_frac(coords_frac(istep,:,:), &
@@ -521,8 +521,8 @@ end subroutine distances_traj
 
 
 subroutine solve(aa, bb, nn, xx)
-    ! Solve linear system a*x=b. 
-    ! 
+    ! Solve linear system a*x=b.
+    !
     ! Parameters
     ! ----------
     ! aa : (nn,nn)
@@ -541,7 +541,7 @@ subroutine solve(aa, bb, nn, xx)
     double precision, intent(in) :: aa(nn,nn), bb(nn)
     double precision, intent(out) :: xx(nn)
     integer :: ipiv(nn), info
-    
+
     ! Make a copy of bb b/c that will be overwritten in dgesv(). Not sure if
     ! this is the Fortran way to do it. But the Pyhon wrapper works and doesn't
     ! overwrite `bb`.
@@ -559,7 +559,7 @@ subroutine frac2cart(coords_frac, cell, natoms, coords)
     do ii=1,natoms
         ! same as: matmul(transpose(cell), coords_frac(ii,:))
         coords(ii,:) = matmul(coords_frac(ii,:), cell)
-    end do        
+    end do
 end subroutine frac2cart
 
 
@@ -569,8 +569,8 @@ subroutine cart2frac(coords, cell, natoms, coords_frac)
     double precision, intent(in) :: coords(natoms, 3), cell(3,3)
     double precision, intent(out) :: coords_frac(natoms, 3)
     double precision :: wrk(3,natoms)
-    
-    ! solve for all `natoms` RHS at once 
+
+    ! solve for all `natoms` RHS at once
     wrk = transpose(coords)
     call dgesv(3, natoms, transpose(cell), 3, ipiv, wrk, 3, info)
     coords_frac = transpose(wrk)
@@ -586,7 +586,7 @@ subroutine frac2cart_traj(coords_frac, cell, nstep, natoms, coords)
     do ii=1,nstep
         call frac2cart(coords_frac(ii,:,:), cell(ii,:,:), natoms, &
                         coords(ii,:,:))
-    end do        
+    end do
 end subroutine frac2cart_traj
 
 
@@ -599,5 +599,5 @@ subroutine cart2frac_traj(coords, cell, nstep, natoms, coords_frac)
     do ii=1,nstep
         call cart2frac(coords(ii,:,:), cell(ii,:,:), natoms, &
                         coords_frac(ii,:,:))
-    end do        
+    end do
 end subroutine cart2frac_traj

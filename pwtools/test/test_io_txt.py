@@ -23,14 +23,14 @@ def test_io_txt():
 
     # 2d
     shape = (3, 5)
-    a = np.arange(0, np.prod(shape)).reshape(shape) 
+    a = np.arange(0, np.prod(shape)).reshape(shape)
     fn = pj(testdir, 'a2d.txt')
     write_read_check(fn, a)
 
     # 3d, store array along axis 0,1,2,-1
     shape = (3, 5, 7)
     a = np.arange(0, np.prod(shape)).reshape(shape)
-    
+
     # ignore file header if shape != None
     for sh in [None, shape]:
         fn = pj(testdir, 'a3d0.txt')
@@ -41,7 +41,7 @@ def test_io_txt():
         write_read_check(fn, a, axis=2, shape=sh)
         fn = pj(testdir, 'a3dm1.txt')
         write_read_check(fn, a, axis=-1, shape=sh)
-    
+
     # API
     shape = (3, 5)
     arr = np.arange(0, np.prod(shape)).reshape(shape)
@@ -57,11 +57,11 @@ def test_io_txt():
     txt = "1.0 2.0 3\n4   5   6\n"
     arr = arrayio.readtxt(StringIO(txt), shape=(2,3), axis=-1, dtype=float)
     assert arr.dtype == np.array([1.0]).dtype
-    # Apparently in Python 2.7: 
+    # Apparently in Python 2.7:
     #   float('1.0') -> 1.0
     #   int('1.0')  -> ValueError: invalid literal for int() with base 10: '1.0'
     #   int(float('1.0')) -> 1
-    # We need to (ab)use converters. Ugh.  
+    # We need to (ab)use converters. Ugh.
     arr = arrayio.readtxt(StringIO(txt), shape=(2,3), axis=-1, dtype=int,
                           converters=dict((x,lambda a: int(float(a))) for x in [0,1,2]))
     assert arr.dtype == np.array([1]).dtype
@@ -80,11 +80,11 @@ def test_traj_from_txt():
     with open(fn) as fd:
         arr3d = parse.traj_from_txt(fd.read(), axis=axis,
                                     shape=written_shape)
-        fd.seek(0)                                    
-        # test if the "old" way of reading also works 
+        fd.seek(0)
+        # test if the "old" way of reading also works
         arr3d_readtxt = arrayio.readtxt(fd, shape=written_shape, axis=axis)
-        assert (arr3d_readtxt == arr3d_orig).all()    
-    # now test traj_from_txt result 
+        assert (arr3d_readtxt == arr3d_orig).all()
+    # now test traj_from_txt result
     assert arr3d.shape == arr3d_orig.shape, \
            ("axis={}, shapes: read={} written={} orig={}".format(axis,
                   arr3d.shape, written_shape, arr3d_orig.shape))

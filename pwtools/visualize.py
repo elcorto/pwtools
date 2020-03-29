@@ -58,7 +58,7 @@ class ViewFactory(object):
         writer : callable
             Called as ``writer(obj, structfile)``. Write struct file to read by
             viewer.
-        
+
         Examples
         --------
         >>> viewer = ViewFactory(...)
@@ -72,17 +72,17 @@ class ViewFactory(object):
         self.assert_cmd = assert_cmd
         self.suffix = suffix
         self.writer = writer
-    
+
     def __call__(self, obj, logfile=None, structfile=None, disp=False,
                  keepfiles=False, tmpdir='/tmp', wait=True, bg=False,
                  options=''):
         """
-        Call viewer. 
-        
+        Call viewer.
+
         The executed shell command is::
-            
+
             <cmd> <options> <structfile> > <logfile>
-        
+
         Parameters
         ----------
         obj : Structure or Trajectory
@@ -103,12 +103,12 @@ class ViewFactory(object):
             `keepfiles=True`. The latter is needed b/c with just `wait=False`,
             temp files will be deleted right after the shell call and the
             viewer program may complain.
-        """        
+        """
         if bg:
             wait = False
             keepfiles = True
         if self.assert_cmd is not None:
-            self.assert_cmd(obj)    
+            self.assert_cmd(obj)
         self._set_dummy_symbols(obj)
         if structfile is None:
             fd1,structfile = mkstemp(dir=tmpdir,
@@ -116,12 +116,12 @@ class ViewFactory(object):
                                      suffix=self.suffix)
 
         if logfile is None:
-            fd2,logfile = mkstemp(dir=tmpdir, 
+            fd2,logfile = mkstemp(dir=tmpdir,
                                   prefix='pwtools_view_log_')
         self.writer(structfile, obj)
         if disp:
             cmd_str = "%s %s %s 2>&1 | tee %s" %(self.cmd, options, structfile, logfile)
-        else:       
+        else:
             cmd_str = "%s %s %s > %s 2>&1" %(self.cmd, options, structfile, logfile)
         common.system(cmd_str, wait=wait)
         if not keepfiles:

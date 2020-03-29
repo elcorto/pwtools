@@ -37,11 +37,11 @@ def test_traj():
                                 new=num.extend_array(np.identity(3),
                                                      nstep,axis=0),
                                 axis=1,
-                                timeaxis=0)                                                    
+                                timeaxis=0)
     assert cryst_const.shape == (nstep, 6)
     assert coords.shape == (nstep,natoms,3)
     symbols = ['H']*natoms
-    
+
     # automatically calculated:
     #   coords
     #   cell
@@ -80,7 +80,7 @@ def test_traj():
                     symbols=symbols,
                     cell=cell)
     aaae(coords, traj.coords)
-    
+
     # Cell calculated from cryst_const has defined orientation in space which may be
     # different from the original `cell`, but the volume and underlying cryst_const
     # must be the same.
@@ -90,7 +90,7 @@ def test_traj():
     np.testing.assert_almost_equal(crys.volume_cell3d(cell),
                                    crys.volume_cell3d(traj.cell))
     aaae(cryst_const, crys.cell2cc3d(traj.cell))
-    
+
     # extend arrays
     cell2d = rand(3,3)
     cc2d = crys.cell2cc(cell2d)
@@ -102,7 +102,7 @@ def test_traj():
     for ii in range(traj.nstep):
         assert (traj.cell[ii,...] == cell2d).all()
         assert (traj.cryst_const[ii,:] == cc2d).all()
-    
+
     traj = Trajectory(coords_frac=coords_frac,
                       cryst_const=cc2d,
                       symbols=symbols)
@@ -118,12 +118,12 @@ def test_traj():
                     stress=stress,
                     forces=forces,
                     units={'length': 2, 'forces': 3, 'stress': 4})
-    aaae(2*coords, traj.coords)                    
-    aaae(3*forces, traj.forces)                    
-    aaae(4*stress, traj.stress)                    
-    
+    aaae(2*coords, traj.coords)
+    aaae(3*forces, traj.forces)
+    aaae(4*stress, traj.stress)
+
     # iterate, check if Structures are complete
-    traj = Trajectory(coords=coords, 
+    traj = Trajectory(coords=coords,
                       symbols=symbols,
                       cell=cell,
                       forces=forces,
@@ -139,10 +139,10 @@ def test_traj():
         if attr_name in struct.attrs_only_traj:
             msg = "tr[0] %s is not None" %attr_name
             assert getattr(struct,attr_name) is None, msg
-        else:            
+        else:
             msg = "tr[0] %s is None" %attr_name
             assert getattr(struct,attr_name) is not None, msg
-    
+
     # slices, return traj
     keys = traj.attr_lst[:]
     tsl = traj[10:80:2]
@@ -155,7 +155,7 @@ def test_traj():
     assert tsl.nstep == traj.nstep / 2 - 15
     assert_attrs_not_none(tsl, attr_lst=keys)
     assert tsl.is_traj
-    
+
     # iteration over sliced traj
     tsl = traj[10:80:2]
     for x in tsl:
@@ -168,8 +168,8 @@ def test_traj():
         cnt = 0
         for st in traj:
             cnt += 1
-        assert cnt == nstep, "%i, %i" %(cnt, nstep)    
-    
+        assert cnt == nstep, "%i, %i" %(cnt, nstep)
+
     # copy
     traj2 = traj.copy()
     for name in traj.attr_lst:
@@ -187,7 +187,7 @@ def test_traj():
 def test_concatenate():
     st = get_rand_struct()
     nstep = 5
-    
+
     # cat Structure
     tr_cat = crys.concatenate([st]*nstep)
     keys = tr_cat.attr_lst
@@ -203,18 +203,18 @@ def test_concatenate():
             print("test_concatenate: shape[0] == nstep:", attr_name)
             assert getattr(tr_cat, attr_name).shape[0] == nstep
             print("test_concatenate: shape[0] == nstep:", attr_name, "...ok")
-    
+
     # cat Trajectory
     tr = get_rand_traj()
     tr_cat = crys.concatenate([tr]*3)
     assert tr_cat.nstep == 3*tr.nstep
     none_attrs = ['timestep', 'time']
     keys = remove_from_lst(tr_cat.attr_lst, none_attrs)
-    for x in [tr_cat[0:tr.nstep], 
-              tr_cat[tr.nstep:2*tr.nstep], 
+    for x in [tr_cat[0:tr.nstep],
+              tr_cat[tr.nstep:2*tr.nstep],
               tr_cat[2*tr.nstep:3*tr.nstep]]:
         assert_dict_with_all_types_equal(x.__dict__, tr.__dict__,
-                                         keys=keys) 
+                                         keys=keys)
     for attr_name in tr_cat.attrs_nstep:
         if attr_name in none_attrs:
             assert getattr(tr_cat, attr_name) is None
@@ -246,7 +246,7 @@ def test_populated_attrs():
                 setattr(self, name, None)
             for k,v in kwds.items():
                 setattr(self, k, v)
-    
+
     x = Dummy(a=1,b=2,c=3,d=8)
     y = Dummy(a=4)
     z = Dummy(d=7)
@@ -261,7 +261,7 @@ def test_api():
         assert getattr(tr, name) is not None
     for name in tr.attrs_only_traj:
         assert getattr(st, name) is None
-    
+
     aa = tr[0]      # Structure
     bb = tr[0:1]    # Trajectory
     keys = set.difference(set(aa.attr_lst), set(aa.attrs_only_traj))
@@ -272,7 +272,7 @@ def test_api():
         attr = getattr(bb, name)
         if attr.ndim == 1:
             setattr(bb, name, attr[0])
-        else:            
+        else:
             setattr(bb, name, attr[0,...])
     assert_dict_with_all_types_equal(aa.__dict__, bb.__dict__, keys=keys)
 
@@ -286,9 +286,9 @@ def test_mean():
         if attr_name in attrs_only_traj:
             assert attr is None, "%s is not None" %attr_name
         elif attr_name in tr.attrs_nstep:
-            assert np.allclose(attr, 
+            assert np.allclose(attr,
                                getattr(tr, attr_name).mean(axis=tr.timeaxis))
-        
+
 
 def test_smooth():
     tr = get_rand_traj()
@@ -303,14 +303,14 @@ def test_smooth():
         assert np.abs(a1 - a2).sum() > 0.0
     assert trs.timestep == tr.timestep
     assert trs.nstep == tr.nstep
-    
+
     # reproduce data with kernel [0,1,0]
     trs = crys.smooth(tr, hanning(3))
     for name in tr.attrs_nstep:
         a1 = getattr(tr, name)
         a2 = getattr(trs, name)
         assert np.allclose(a1, a2)
-    
+
     trs1 = crys.smooth(tr, hanning(3), method=1)
     trs2 = crys.smooth(tr, hanning(3), method=2)
     assert len(trs1.attrs_nstep) > 0
@@ -321,7 +321,7 @@ def test_smooth():
         a3 = getattr(trs2, name)
         assert np.allclose(a1, a2)
         assert np.allclose(a1, a3)
-    
+
     trs1 = crys.smooth(tr, hanning(11), method=1)
     trs2 = crys.smooth(tr, hanning(11), method=2)
     assert len(trs1.attrs_nstep) > 0
@@ -343,13 +343,13 @@ def test_coords_trans():
                                 new=num.extend_array(np.identity(3),
                                                      nstep,axis=0),
                                 axis=1,
-                                timeaxis=0)                                                    
-    
+                                timeaxis=0)
+
     traj = Trajectory(coords_frac=coords_frac,
                       cell=cell)
     assert np.allclose(cryst_const, traj.cryst_const)
     assert np.allclose(coords, traj.coords)
-    
+
     traj = Trajectory(coords=coords,
                       cell=cell)
     assert np.allclose(coords_frac, traj.coords_frac)

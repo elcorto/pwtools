@@ -22,17 +22,17 @@ def find_sqltype(val):
     Parameters
     ----------
     val : any python type
-    
+
     Returns
     -------
     sqltype : str
         String with sql type which can be used to set up a sqlile table
-    """        
+    """
     mapping = {\
         type(None): 'NULL',
         int:        'INTEGER',
         float:      'REAL',  # 'FLOAT' also works
-        str:        'TEXT',  
+        str:        'TEXT',
         memoryview: 'BLOB'}
     for typ in mapping:
         if isinstance(val, typ):
@@ -42,13 +42,13 @@ def find_sqltype(val):
 
 
 def fix_sqltype(sqltype):
-    """Fix `sqltype` string. Force uppercase string and  
+    """Fix `sqltype` string. Force uppercase string and
     change 'FLOAT' -> 'REAL'.
 
     Parameters
     ----------
     sqltype : str
-    
+
     Returns
     -------
     st : string
@@ -56,7 +56,7 @@ def fix_sqltype(sqltype):
     st = sqltype.upper()
     if st == 'FLOAT':
         st = 'REAL'
-    return st        
+    return st
 
 
 def fix_sql_header(header):
@@ -67,12 +67,12 @@ def fix_sql_header(header):
 class SQLEntry(object):
     """
     Represent an entry in a SQLite database. An entry is one single
-    value of one column and record (record = row). 
-    
+    value of one column and record (record = row).
+
     This class is ment to be used in parameter studies where a lot of
     parameters are vaired (e.g. in pw.x input files) and entered in a
-    SQLite database. 
-    
+    SQLite database.
+
     There is the possibility that the entry has a slightly different value
     in the db and in the actual input file. See fileval.
     """
@@ -92,14 +92,14 @@ class SQLEntry(object):
         fileval : {None, <anything>}, optional
             If not None, then this is the value of the entry that it has in
             another context (actually used in the input file). If None, then
-            fileval = val. 
+            fileval = val.
             Example: K_POINTS in pw.x input file::
 
                 sqlval: '2 2 2 0 0 0'
                 fileval: 'K_POINTS automatic\\n2 2 2 0 0 0'
 
         key : optional, {None, str}, optional
-            An optional key. This key should refer to the column name in the 
+            An optional key. This key should refer to the column name in the
             database table, as in::
 
                 % create table calc (key1 sqltype1, key2 sqltype2, ...)
@@ -130,9 +130,9 @@ class SQLEntry(object):
 
 # Implementation of multiple tables support: It works perfect, but new code
 # changes will need good testing. This is b/c we explicitely pass
-# `table` around as arg to every method which used to use self.table. That 
+# `table` around as arg to every method which used to use self.table. That
 # affects all "convenience" methods like "has_column()" etc. Now it is very
-# easy to introduce bugs, if passing `table` is forgotten. 
+# easy to introduce bugs, if passing `table` is forgotten.
 #
 # The reason for doing this is that SQLiteDB was first developed with the
 # assumption that we always use one db + one table in it. But often, the
@@ -151,8 +151,8 @@ class SQLEntry(object):
 class SQLiteDB(object):
     """Interface class which wraps the sqlite3 module. It abstacts away the
     connecting to the database and cursor setup and adds some convenience
-    methods.   
-    
+    methods.
+
     Examples
     --------
     >>> db = SQLiteDB('test.db', table='calc')
@@ -193,20 +193,20 @@ class SQLiteDB(object):
        type conversion Python -> sqlite is done by the sqlite3 module. For
        instance, double numbers (i.e. Python float type) will be correctly
        stored as double by SQLite default.
-       
+
        >>> db.execute("insert into calc ('a', 'b') values (?,?)", (1.0, 'lala'))
-    
+
     2) Write values directly into sql command. Here all values are actually
        strings.
 
        >>> db.execute("insert into calc ('a', 'b') values (1.0, 'lala')")
        >>> db.execute("insert into calc ('a', 'b') values (%e, '%s')" %(1.0, 'lala')")
-       
+
        There are some caveats. For example, the string ('lala' in the example)
        must appear *qsingle-quoted* in the sqlite cmd to be recognized as such.
        Also aviod things like `"... %s" %str(1.0)`. This will truncate the
        float after less then 16 digits and thus store the 8-byte float with
-       less precision! 
+       less precision!
     """
     def __init__(self, db_fn, table=None):
         """
@@ -218,12 +218,12 @@ class SQLiteDB(object):
             name of the database table, you can also use :meth:`set_table`
             later or the `table` keyword in all methods which need to know to
             which database table you're talking
-        """            
+        """
         self.db_fn = db_fn
         self.conn = sqlite3.connect(db_fn)
         self.cur = self.conn.cursor()
         self.set_table(table)
-    
+
     def _get_table(self, table):
         if table is None:
             if self.table is None:
@@ -240,9 +240,9 @@ class SQLiteDB(object):
         ----------
         table : str
             table name
-        """            
+        """
         self.table = table
-    
+
     def get_table(self):
         """Return string self.table."""
         return self.table
@@ -250,18 +250,18 @@ class SQLiteDB(object):
     def execute(self, *args, **kwargs):
         """This calls self.cur.execute()."""
         return self.cur.execute(*args, **kwargs)
-    
+
     def executemany(self, *args, **kwargs):
         """This calls self.cur.executemany()."""
         return self.cur.executemany(*args, **kwargs)
-    
+
     def executescript(self, *args, **kwargs):
-        """This calls self.cur.executescript(). 
-        
+        """This calls self.cur.executescript().
+
         Returns what `executescript` returns. Calling
         ``executescript().fetchall()`` returns []."""
         return self.cur.executescript(*args, **kwargs)
-    
+
     def has_table(self, table):
         """Check if a table named `table` already extists."""
         assert table is not None, ("table is None")
@@ -269,45 +269,45 @@ class SQLiteDB(object):
 
     def has_column(self, col, table=None):
         """Check if `table`  already has the column `col`.
-        
+
         Parameters
         ----------
         col : str
             column name in the database
-        table : str, optional            
-        """            
+        table : str, optional
+        """
         for entry in self.get_header(self._get_table(table)):
             if entry[0] == col:
                 return True
-        return False                
-    
+        return False
+
     def add_column(self, col, sqltype, table=None):
         """Add column `col` with type `sqltype` to the header. To actually put
-        data into that, use :meth:`execute` and standard sql statements or see 
+        data into that, use :meth:`execute` and standard sql statements or see
         :meth:`attach_column` or :meth:`fill_column`.
-        
+
         Parameters
         ----------
         col : str
             column name
         sqltype : str
             sqlite data type (see :class:`SQLEntry`)
-        table : str, optional            
+        table : str, optional
         """
         table = self._get_table(table)
         if not self.has_column(col, table=table):
             self.execute("ALTER TABLE %s ADD COLUMN %s %s" \
                         %(table, col, fix_sqltype(sqltype)))
-    
+
     def add_columns(self, header, table=None):
         """Convenience function to add multiple columns from `header`. See
         :meth:`get_header`.
-        
+
         Parameters
         ----------
         header : sequence
             see :meth:`get_header`
-        table : str, optional            
+        table : str, optional
 
         Examples
         --------
@@ -319,26 +319,26 @@ class SQLiteDB(object):
         kwds = {'table': self._get_table(table)}
         for entry in fix_sql_header(header):
             self.add_column(*entry, **kwds)
-    
+
     def get_max_rowid(self, table=None):
         """Return max(rowid), which is equal to the number of rows in
         `table`.
-        
+
         Parameters
         ----------
-        table : str, optional            
+        table : str, optional
         """
         return self.get_single("select max(rowid) from %s" %self._get_table(table))
 
-    def fill_column(self, col, values, start=1, extend=True, 
+    def fill_column(self, col, values, start=1, extend=True,
                     overwrite=False, table=None):
         """Fill existing column `col` with values from `values`, starting from
         rowid `start`. "rowid" is a special sqlite column which is always
-        present and which numbers all rows. 
+        present and which numbers all rows.
 
         The column must already exist. To add a new column and fill it, see
         :meth:`attach_column`.
-        
+
         Parameters
         ----------
         col : str
@@ -353,7 +353,7 @@ class SQLiteDB(object):
             False, then we silently stop inserting at the last row.
         overwrite : bool
             Whether to overwrite entries which are not NULL (None in Python).
-        table : str, optional            
+        table : str, optional
         """
         # The operation "update <table> ..." works only as long as there is at
         # least one column with a non-NULL entry. After that, rowid is not
@@ -378,14 +378,14 @@ class SQLiteDB(object):
                 if extend:
                     self.execute("insert into %s (%s) values (?)" %(table,
                         col,), (val,))
-            rowid += 1                
-    
+            rowid += 1
+
     def attach_column(self, col, values, sqltype=None, table=None, **kwds):
         """Attach (add) a new column named `col` of `sqltype` and fill it with
         `values`. With overwrite=True, allow writing into existing columns,
         i.e. behave like :meth:`fill_column`.
-        
-        This is a short-cut method which essentially does 
+
+        This is a short-cut method which essentially does
         ``add_column(...); fill_column(...)``
 
         Parameters
@@ -396,18 +396,18 @@ class SQLiteDB(object):
             Values to be inserted.
         sqltype : str, optional
             sqlite type of values in `values`, obtained from values[0] if None
-        table : str, optional            
-        **kwds : 
+        table : str, optional
+        **kwds :
             additional keywords passed to :meth:`fill_column`,
             default: `start=1, extend=True, overwrite=False`
         """
         table = self._get_table(table)
-        current_kwds = {'start':1, 'extend': True, 'overwrite': False, 
+        current_kwds = {'start':1, 'extend': True, 'overwrite': False,
                         'table': table}
         current_kwds.update(kwds)
         if not current_kwds['overwrite']:
             assert not self.has_column(col, table=table), \
-                       ("column already present: %s, use " 
+                       ("column already present: %s, use "
                         "overwrite=True" %col)
         if sqltype is None:
             sqltype = find_sqltype(values[0])
@@ -425,33 +425,33 @@ class SQLiteDB(object):
         --------
         >>> db = SQLiteDB('test.db')
         >>> db.execute("create table foo (a text, b real)")
-        >>> db.get_header('foo') 
+        >>> db.get_header('foo')
         [('a', 'text'), ('b', 'real')]
         """
         return [(x[1], x[2]) for x in \
                 self.execute("PRAGMA table_info(%s)" %self._get_table(table))]
-    
+
     def create_table(self, header, table=None):
         """Create a `table` from `header`. `header` is in the
         same format which :meth:`get_header` returns.
-        
+
         Parameters
         ----------
         header : list of lists/tuples
             [(colname1, sqltype1), (colname2, sqltype2), ...]
         table : str, optional
         """
-        self.execute("CREATE TABLE %s (%s)" %(self._get_table(table), 
+        self.execute("CREATE TABLE %s (%s)" %(self._get_table(table),
                                             ','.join("%s %s" %(x[0], x[1]) \
                                             for x in fix_sql_header(header))))
-    
+
     def get_list1d(self, *args, **kwargs):
         """Shortcut for commonly used functionality. If one extracts a single
         column, then ``self.cur.fetchall()`` returns a list of tuples like
-        ``[(1,), (2,)]`` We call ``fetchall()`` and return the flattened list. 
+        ``[(1,), (2,)]`` We call ``fetchall()`` and return the flattened list.
         """
         return common.flatten(self.execute(*args, **kwargs).fetchall())
-    
+
     def get_single(self, *args, **kwargs):
         """Return single entry from the table."""
         ret = self.get_list1d(*args, **kwargs)
@@ -462,19 +462,19 @@ class SQLiteDB(object):
     def get_array1d(self, *args, **kwargs):
         """Same as :meth:`get_list1d`, but return numpy array."""
         return np.array(self.get_list1d(*args, **kwargs))
-    
+
     def get_array(self, *args, **kwargs):
-        """Return result of ``self.execute().fetchall()`` as numpy array. 
-        
+        """Return result of ``self.execute().fetchall()`` as numpy array.
+
         Usful for 2d arrays, i.e. convert result of extracting >1 columns to
         numpy 2d array. The result depends on the data types of the columns."""
         return np.array(self.execute(*args, **kwargs).fetchall())
-    
+
     def get_dict(self, *args, **kwargs):
         """For the provided select statement, return a dict where each key is
         the column name and the column is a list. Column names are obtained
         from the ``Cursor.description`` attribute.
-        
+
         Examples
         --------
         >>> db.get_dict("select foo,bar from calc")
@@ -489,18 +489,18 @@ class SQLiteDB(object):
         #  ...]
         ret = cur.fetchall()
         dct = dict((col, []) for col in cols)
-        # {'col0': [val0_0, val1_0, ...], 
-        #  'col1': [val0_1, val1_1, ...], 
+        # {'col0': [val0_0, val1_0, ...],
+        #  'col1': [val0_1, val1_1, ...],
         #  ...}
         for row in ret:
             for idx, col in enumerate(cols):
                 dct[col].append(row[idx])
-        return dct                
+        return dct
 
     def commit(self):
         """Commit changes to connection."""
         self.conn.commit()
-    
+
     def finish(self):
         """Commit and close cursor."""
         self.commit()
@@ -511,14 +511,14 @@ class SQLiteDB(object):
 
 
 # XXX old behavior in argument list: key, sqltype, lst. If you want this, then
-# either replace sql_column -> sql_column_old in your script or explitely use 
+# either replace sql_column -> sql_column_old in your script or explitely use
 # sql_column(key=..., sqltype=..., lst=...).
 def sql_column_old(key, sqltype, lst, sqlval_func=lambda x: x, fileval_func=lambda x: x):
     """
     Examples
     --------
     >>> _vals = [25,50,75]
-    >>> vals = sql_column('ecutfwc', 'float', _vals, 
+    >>> vals = sql_column('ecutfwc', 'float', _vals,
     ...                   fileval_func=lambda x: 'ecutfwc=%s'%x)
     >>> for v in vals:
     ...     print v.key, v.sqltype, v.sqlval, v.fileval
@@ -526,19 +526,19 @@ def sql_column_old(key, sqltype, lst, sqlval_func=lambda x: x, fileval_func=lamb
     ecutfwc float 50 ecutfwc=50
     ecutfwc float 75 ecutfwc=75
     """
-    return [SQLEntry(key=key, 
-                     sqltype=sqltype, 
-                     sqlval=sqlval_func(x), 
+    return [SQLEntry(key=key,
+                     sqltype=sqltype,
+                     sqlval=sqlval_func(x),
                      fileval=fileval_func(x)) for x in lst]
 
 
 def sql_column(key, lst, sqltype=None, sqlval_func=lambda x: x, fileval_func=lambda x: x):
     """Convert a list `lst` of values of the same type (i.e. all floats) to a
     list of SQLEntry instances of the same column name `key` and `sqltype`
-    (e.g. 'float'). 
+    (e.g. 'float').
 
     See ParameterStudy for applications.
-     
+
     Parameters
     ----------
     key : str
@@ -557,14 +557,14 @@ def sql_column(key, lst, sqltype=None, sqlval_func=lambda x: x, fileval_func=lam
             lst[i] = '23'
             fileval = 'value = 23'
             fileval_func = lambda x: "value = %s" %str(x)
-    
+
     Examples
     --------
-    >>> vals = sql_column('ecutfwc', [25.0, 50.0, 75.0], 
+    >>> vals = sql_column('ecutfwc', [25.0, 50.0, 75.0],
     ...                   fileval_func=lambda x: 'ecutfwc=%s'%x)
     >>> for v in vals:
     ...     print v.key, v.sqltype, v.sqlval, v.fileval
-    ecutfwc REAL 25.0 ecutfwc=25.0 
+    ecutfwc REAL 25.0 ecutfwc=25.0
     ecutfwc REAL 50.0 ecutfwc=50.0
     ecutfwc REAL 75.0 ecutfwc=75.0
     """
@@ -575,9 +575,9 @@ def sql_column(key, lst, sqltype=None, sqlval_func=lambda x: x, fileval_func=lam
         "sqlval_lst have the same type: %s" %str(types))
     _sqltype = find_sqltype(sqlval_lst[0]) if sqltype is None \
         else sqltype.upper()
-    return [SQLEntry(key=key, 
-                     sqltype=_sqltype, 
-                     sqlval=sv, 
+    return [SQLEntry(key=key,
+                     sqltype=_sqltype,
+                     sqlval=sv,
                      fileval=fv) for sv,fv in \
                         zip(sqlval_lst, fileval_lst)]
 
@@ -587,11 +587,11 @@ def sql_matrix(lists, header=None, colnames=None, sqlval_funcs=None, fileval_fun
     SQLEntry based on `header`. This can be used to quickly convert the result
     of comb.nested_loops() (nested lists) to input `params_lst` for
     ParameterStudy.
-    
+
     The entries in the lists can have arbitrary values, but each "column"
     should have the same type. Each sublist (= row) can be viewed as a record in
     an sql database, each column as input for sql_column().
-    
+
     If you provide `header`, then tyes for each column are taken from that. If
     `colnames` are used, then types are fetched (by find_sqltype()) from the
     first row. May not work for "incomplete" datasets, where some entries in
@@ -599,8 +599,8 @@ def sql_matrix(lists, header=None, colnames=None, sqlval_funcs=None, fileval_fun
 
     Parameters
     ----------
-    lists : list of lists 
-    header : sequence, optional 
+    lists : list of lists
+    header : sequence, optional
         [('foo', 'integer'), ('bar', 'float'), ...], see
         sql.SQLiteDB
     colnames : sequence os strings, optional
@@ -610,7 +610,7 @@ def sql_matrix(lists, header=None, colnames=None, sqlval_funcs=None, fileval_fun
         fileval_func. They have the same meaning as in sql_column().
         E.g. sql_matrix(..., fileval_funcs={'foo': lambda x: str(x)+'-value'})
         would set fileval_func for the whole column 'foo'.
-    
+
     Returns
     -------
     list of lists
@@ -619,11 +619,11 @@ def sql_matrix(lists, header=None, colnames=None, sqlval_funcs=None, fileval_fun
     --------
     >>> lists=comb.nested_loops([[1.0,2.0], zip(['a']*2, [777,888])],flatten=True)
     >>> lists
-    [[1.0, 'a', 777], 
-     [1.0, 'a', 888], 
-     [2.0, 'a', 777], 
+    [[1.0, 'a', 777],
+     [1.0, 'a', 888],
+     [2.0, 'a', 777],
      [2.0, 'a', 888]]
-    >>> # use explicit header 
+    >>> # use explicit header
     >>> header=[('col0', 'float'), ('col1', 'text'), ('col2', 'integer')]
     >>> m=sql.sql_matrix(lists, header=header)
     >>> for row in m: print [(xx.key, xx.fileval, xx.sqltype) for xx in row]
@@ -638,7 +638,7 @@ def sql_matrix(lists, header=None, colnames=None, sqlval_funcs=None, fileval_fun
     [('col0', 100.0, 'REAL'), ('col1', 'a', 'TEXT'), ('col2', 888, 'INTEGER')]
     [('col0', 200.0, 'REAL'), ('col1', 'a', 'TEXT'), ('col2', 777, 'INTEGER')]
     [('col0', 200.0, 'REAL'), ('col1', 'a', 'TEXT'), ('col2', 888, 'INTEGER')]
- 
+
     """
     if header is None:
         assert colnames is not None, ("colnames is None")
@@ -655,7 +655,7 @@ def sql_matrix(lists, header=None, colnames=None, sqlval_funcs=None, fileval_fun
         _sqlval_funcs.update(sqlval_funcs)
     if fileval_funcs is not None:
         _fileval_funcs.update(fileval_funcs)
-    newlists = []        
+    newlists = []
     for row in lists:
         newrow = []
         for ii, entry in enumerate(row):
@@ -665,13 +665,13 @@ def sql_matrix(lists, header=None, colnames=None, sqlval_funcs=None, fileval_fun
                                    sqltype=sqltype,
                                    sqlval=_sqlval_funcs[key](entry),
                                    fileval=_fileval_funcs[key](entry)))
-        newlists.append(newrow)                                   
-    return newlists   
+        newlists.append(newrow)
+    return newlists
 
 
 def makedb(filename, lists, colnames, table=None, mode='a', close=True, **kwds):
     """ Create sqlite db `filename` (mode='w') or append to existing db
-    (mode='a'). The database is build up from `lists` and `colnames`, see 
+    (mode='a'). The database is build up from `lists` and `colnames`, see
     sql_matrix().
 
     In append mode, rows are simply added to the bottom of the table and only
@@ -680,7 +680,7 @@ def makedb(filename, lists, colnames, table=None, mode='a', close=True, **kwds):
     other entries are NULL by default.
 
     If the datsbase file doesn't exist, then mode='a' is the same as mode='w'.
-    
+
     By default `close=True`, i.e. a db with a closed connection is returned.
     For interactive use, `close=False` is what you want. That gives you a db
     which can be used right away.
@@ -719,8 +719,8 @@ def makedb(filename, lists, colnames, table=None, mode='a', close=True, **kwds):
     assert table is not None, ("table name missing or could not determine "
                                "from filename")
     assert len(colnames) == len(lists[0]), ("len(colnames) != length of "
-                                            "first list")        
-    if mode == 'w':        
+                                            "first list")
+    if mode == 'w':
         if os.path.exists(filename):
             os.remove(filename)
     sqltypes = [find_sqltype(xx) for xx in lists[0]]
@@ -744,8 +744,8 @@ def makedb(filename, lists, colnames, table=None, mode='a', close=True, **kwds):
         values = ','.join(['?']*ncols)
         cmd = 'insert into %s (%s) values (%s)' %(table, names, values)
         db.execute(cmd, [entry.sqlval for entry in row])
-    if close:    
-        db.finish() 
+    if close:
+        db.finish()
     else:
         db.commit()
     return db

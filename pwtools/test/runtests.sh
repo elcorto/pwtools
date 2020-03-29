@@ -55,7 +55,7 @@ EOF
 
 prnt(){
     echo "$@" | tee -a $logfile
-}    
+}
 
 here=$(pwd)
 scriptdir=$(readlink -f $(dirname $0))
@@ -66,16 +66,16 @@ scriptdir=$(readlink -f $(dirname $0))
 if echo "$@" | egrep -qe "-h|--help"; then
     usage
     exit 0
-fi    
-if echo "$@" | egrep -qe "--nobuild"; then 
+fi
+if echo "$@" | egrep -qe "--nobuild"; then
     build=false
     params=$(echo "$@" | sed -re 's/--nobuild//g')
 else
     build=true
     params=$@
-fi    
+fi
 
-nose_opts="$params" 
+nose_opts="$params"
 
 testdir=/tmp/pwtools-test.$$
 tgtdir=$testdir/pwtools
@@ -101,7 +101,7 @@ if $build; then
     prnt "build extension modules ..."
     cd $tgtdir/src && make gfortran-omp -B >> $logfile && cd $here 2>&1
     prnt "... ready"
-fi 
+fi
 
 cd $tgtdir/pwtools/test
 
@@ -121,7 +121,7 @@ prnt "... ready"
 cat << eof
 Logfile: $logfile
 Logfile error/warning summary follows. Logfile may not contain everything. Use
-$0 -s in that case. 
+$0 -s in that case.
 ------------------------------------------------------------------------------
 eof
 egrep -i 'error|warning|fail|fatal|exception' $logfile

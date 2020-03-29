@@ -2,7 +2,7 @@ This dir contains the documentation rst source files. To build the html doc,
 do::
 
     make html
-    firefox build/html/index.html 
+    firefox build/html/index.html
 
 For this to work, you need Sphinx, the Python documention generation tool
 (Debian: ``apt-get install python-sphinx``). If you don't have that, you can
@@ -15,12 +15,12 @@ hand-written documentation (like the tutorial and install notes) located in
 If you like to generate the optional API doc source ``*.rst`` files
 automagically before ``make html``, you need ``sphinx-autodoc.py`` [1]_ which
 is used in ``generate-apidoc.sh`` to generate ``source/generated/*``. You
-also need numpydoc. Then:: 
-    
+also need numpydoc. Then::
+
     sudo apt-get install python-numpydoc
     ./generate-apidoc.sh
     make html
-    firefox build/html/index.html 
+    firefox build/html/index.html
 
 ``generate-apidoc.sh`` will try to find ``sphinx-autodoc.py`` on PATH or clone
 its git repo. Then, ``make html`` will run longer and produce many more

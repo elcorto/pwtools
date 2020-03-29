@@ -16,7 +16,7 @@ except ImportError:
 class TestIsSameStruct:
     def __init__(self):
         tools.skip_if_pkg_missing('pyspglib')
-    
+
     def test_rand(self):
         st1 = rc.get_rand_struct()
         st2 = rc.get_rand_struct()

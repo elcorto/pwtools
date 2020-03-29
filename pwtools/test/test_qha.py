@@ -39,12 +39,12 @@ def test_qha():
     fqha = np.loadtxt(fqha_fn)
     pdos = np.loadtxt(pdos_fn)
     pack(files)
-    temp = fqha[:,0] 
+    temp = fqha[:,0]
 
     msg('Verify against ref data')
-    
+
     ha = HarmonicThermo(pdos[:,0], pdos[:,1], temp, skipfreq=True)
-    
+
     # refenence Evib + Fvib [Ry], need to convert. Cv and Svib [kb].
     dct = {'evib': Store(arr1=ha.evib(), arr2=fqha[:,1]*Ry/eV),
            'fvib': Store(arr1=ha.fvib(), arr2=fqha[:,2]*Ry/eV),
@@ -53,45 +53,45 @@ def test_qha():
            }
     for key, store in dct.items():
         assrt_aae(store.arr1, store.arr2, decimal=2)
-    
+
     msg('Consistency')
-    
+
     # Fvib = Evib -T*Svib
-    assrt_aae(dct['fvib'].arr1, 
+    assrt_aae(dct['fvib'].arr1,
               (dct['evib'].arr1 - temp*dct['svib'].arr1*kb/eV))
-    
+
     msg('API tests')
 
     # use temp arg in methods
     ha = HarmonicThermo(pdos[:,0], pdos[:,1], skipfreq=True)
-    x=ha.evib(temp)                        
+    x=ha.evib(temp)
     x=ha.fvib(temp)
     x=ha.cv(temp)
     x=ha.svib(temp)
-    
+
     msg('skip and fix')
     freq = np.linspace(1, 10, 100)
     dos = freq**2.0
     temp = np.linspace(10, 100, 100)
     freq[0] = 0.0
-    ha = HarmonicThermo(freq=freq, 
+    ha = HarmonicThermo(freq=freq,
                         dos=dos,
                         skipfreq=False)
-    assert ha.f[0] == 0.0 
-    ha = HarmonicThermo(freq=freq, 
-                        dos=dos, 
+    assert ha.f[0] == 0.0
+    ha = HarmonicThermo(freq=freq,
+                        dos=dos,
                         skipfreq=True)
-    assert ha.f[0] > 0.0                        
+    assert ha.f[0] > 0.0
     freq[0] = -100.0
-    ha = HarmonicThermo(freq=freq, 
-                        dos=dos, 
+    ha = HarmonicThermo(freq=freq,
+                        dos=dos,
                         skipfreq=False)
-    assert ha.f[0] == -100                
-    ha = HarmonicThermo(freq=freq, 
-                        dos=dos, 
+    assert ha.f[0] == -100
+    ha = HarmonicThermo(freq=freq,
+                        dos=dos,
                         skipfreq=True)
-    assert ha.f[0] > 0.0                
-    
+    assert ha.f[0] > 0.0
+
     msg('API: dosarea + integrator')
     area = np.random.rand()*10
     ha = HarmonicThermo(pdos[:,0], pdos[:,1], skipfreq=True, dosarea=area,

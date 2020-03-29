@@ -16,7 +16,7 @@ def test_pw_vc_md_cell_alat():
             this_cell = cell_single+0.02*ii + ialat
             cell[ialat*5 + ii,...] = this_cell
             cell_no_unit[ialat*5 + ii,...] = this_cell/alat
-    
+
     # Even though PwVCMDOutputFile.get_cell is derived from
     # PwMDOutputFile, we test the API here
     for parser in [parse.PwMDOutputFile, parse.PwVCMDOutputFile]:

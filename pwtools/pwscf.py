@@ -11,13 +11,13 @@ from math import sin, acos, sqrt
 def atpos_str(symbols, coords, fmt="%.16e", zero_eps=None, eps=EPS, delim=4*' '):
     """Convenience function to make a string for the ATOMIC_POSITIONS section
     of a pw.x input file.
-    
+
     Parameters
     ----------
     symbols : sequence
         strings with atom symbols, (natoms,), must match with the
         rows of coords
-    coords : array (natoms, 3) 
+    coords : array (natoms, 3)
         with atomic coords, can also be (natoms, >3) to add constraints on
         atomic forces in PWscf
     eps : float
@@ -44,14 +44,14 @@ def atpos_str(symbols, coords, fmt="%.16e", zero_eps=None, eps=EPS, delim=4*' ')
     txt = '\n'.join("%s%s%s" %(symbols[i], delim, str_arr(row, fmt=fmt, eps=eps,
                                                           delim=delim)) \
         for i,row in enumerate(coords))
-    return txt        
+    return txt
 
 
 def atpos_str_fast(symbols, coords):
     """Fast version of atpos_str() for usage in loops. We use a fixed string
     dtype ``U32`` to convert the array `coords` to string form. We also avoid
     all asserts for speed.
-    
+
     Parameters
     ----------
     symbols : list of strings with atom symbols, (natoms,), must match with the
@@ -71,9 +71,9 @@ def atpos_str_fast(symbols, coords):
 
     >>> array([pi]*2).astype('U')
     array(['3.141592653589793', '3.141592653589793'], dtype='<U32')
-    
+
     ``<`` means little endian and is based on the machine arch automatically.
-    
+
     Needs about 1/3 of the time of :func:`atpos_str`.
     """
     nrows = coords.shape[0]
@@ -82,13 +82,13 @@ def atpos_str_fast(symbols, coords):
     arr[:,0] = symbols
     arr[:,1:] = coords
     txt = ('  '.join(['%s']*(ncols+1)) + '\n')*nrows %tuple(arr.flatten())
-    return txt        
+    return txt
 
 
 def atspec_str(symbols, masses, pseudos):
     """Convenience function to make a string for the ATOMIC_SPECIES section
     of a pw.x input file.
-    
+
     Parameters
     ----------
     symbols : sequence of strings with atom symbols, (natoms,)
@@ -108,13 +108,13 @@ def atspec_str(symbols, masses, pseudos):
     assert len(symbols) == len(masses) == len(pseudos), \
         "len(symbols) != len(masses) != len(pseudos)"
     txt = '\n'.join(["%s\t%s\t%s" %(sym, str(mass), pp) for sym, mass, pp in
-    zip(symbols, masses, pseudos)])        
-    return txt      
+    zip(symbols, masses, pseudos)])
+    return txt
 
 
 def kpoints_str(lst, base='nk'):
-    """[3,3,3] -> "nk1=3,nk2=3,nk3=3" 
-    
+    """[3,3,3] -> "nk1=3,nk2=3,nk3=3"
+
     Useful for QE's phonon toolchain ph.x, q2r.x, matdyn.x
     """
     return ','.join(['%s%i=%i' %(base, i+1, x) for i, x in enumerate(lst)])
@@ -122,7 +122,7 @@ kpointstr = kpoints_str
 
 
 def kpoints_str_pwin(lst, shift=[0,0,0]):
-    """[3,3,3] -> " 3 3 3 0 0 0" 
+    """[3,3,3] -> " 3 3 3 0 0 0"
     Useful for pwscf input files, card K_POINTS.
 
     Parameters
@@ -136,7 +136,7 @@ kpointstr_pwin = kpoints_str_pwin
 
 def kpoints_str_pwin_full(lst, shift=[0,0,0], gamma=True):
     """Full k-points string for pw.x input files, card K_POINTS.
-    
+
     Parameters
     ----------
     lst : sequence (3,)
@@ -145,7 +145,7 @@ def kpoints_str_pwin_full(lst, shift=[0,0,0], gamma=True):
         If lst == [1,1,1] then return "K_POINTS gamma", else
         "K_POINTS automatic <newline> 1 1 1 <`shift`>".
     """
-    lst = lst if type(lst) == type('s') else list(lst) 
+    lst = lst if type(lst) == type('s') else list(lst)
     if (lst == [1,1,1] and gamma) or (lst == 'gamma'):
         return "K_POINTS gamma"
     else:
@@ -160,14 +160,14 @@ def bool2str(x):
 
 def read_matdyn_modes(filename, natoms=None):
     """Parse modes file produced by QE's matdyn.x.
-    
+
     Parameters
     ----------
     filename : str
         File to parse (usually "matdyn.modes")
     natoms : int
         Number of atoms.
-    
+
     Returns
     -------
     qpoints, freqs, vecs
@@ -177,7 +177,7 @@ def read_matdyn_modes(filename, natoms=None):
         Each row: 3*natoms phonon frequencies in [cm^-1] at each q-point.
     vecs : 4d complex array (nqpoints, nmodes, natoms, 3)
         Complex eigenvectors of the dynamical matrix for each q-point.
-    
+
     Examples
     --------
     >>> qpoints,freqs,vecs=read_matdyn_modes('matdyn.modes',natoms=27)
@@ -198,7 +198,7 @@ def read_matdyn_modes(filename, natoms=None):
     The file to be parsed looks like this::
 
            diagonalizing the dynamical matrix ...
-      
+
        q =       0.0000      0.0000      0.0000
        **************************************************************************
            omega( 1) =     -26.663631 [THz] =    -889.402992 [cm-1]
@@ -212,7 +212,7 @@ def read_matdyn_modes(filename, natoms=None):
       [... until omega(3*natoms) ...]
        **************************************************************************
            diagonalizing the dynamical matrix ...
-      
+
       [... until next q-point ...]
        q =       0.0000      0.0000     -0.5000
        **************************************************************************
@@ -244,17 +244,17 @@ def read_matdyn_modes(filename, natoms=None):
 
 def read_dyn(filename, natoms=None):
     """Read one dynamical matrix file (for 1 qpoint) produced by ``ph.x`` and
-    extract the same as :func:`read_matdyn_modes` for this qpoint only. 
-    
+    extract the same as :func:`read_matdyn_modes` for this qpoint only.
+
     All arrays have one dim less compared to :func:`read_matdyn_modes`.
-    
+
     Parameters
     ----------
     filename : str
         Name of dyn file. Example: "ph.dyn3" for qpoint 3.
     natoms : int
         number of atoms in the cell (used for nmodes=3*natoms only)
-    
+
     Returns
     -------
     qpoints, freqs, vecs
@@ -300,7 +300,7 @@ def read_all_dyn(path, nqpoints=None, natoms=None, base='ph.dyn'):
     natoms : int
     base : str
         Basename of the dyn files.
-    
+
     Returns
     -------
     (qpoint,freqs,vecs)
@@ -323,7 +323,7 @@ def read_dynmat(path='.', natoms=None, filename='dynmat.out', axsf='dynmat.axsf'
     """Read ``dynmat.x`` output.
 
     `freqs` are parsed from `filename` and `vecs` from `axsf`. `qpoints` is
-    alawys Gamma, i.e. [0,0,0].     
+    alawys Gamma, i.e. [0,0,0].
 
     Output format is the same as in :func:`read_dyn`.
 
@@ -337,7 +337,7 @@ def read_dynmat(path='.', natoms=None, filename='dynmat.out', axsf='dynmat.axsf'
         to `path`.
     axsf : str
         AXSF file (``filxsf`` in input) with mode vectors as forces.
-    
+
     Returns
     -------
     qpoints, freqs, vecs
@@ -348,11 +348,11 @@ def read_dynmat(path='.', natoms=None, filename='dynmat.out', axsf='dynmat.axsf'
     vecs : 3d real array (nmodes, natoms, 3)
         Real parts (???) if the eigenvectors of the dynamical matrix for the
         q-point.
-    
+
     Notes
     -----
     We assume the output to be generated with ``dynmat.x < dynmat.in >
-    dynmat.out``. 
+    dynmat.out``.
     """
     assert natoms is not None, ("natoms is None")
     nmodes = 3*natoms
@@ -368,11 +368,11 @@ def read_dynmat(path='.', natoms=None, filename='dynmat.out', axsf='dynmat.axsf'
     return qpoints,freqs,vecs
 
 
-def read_dynmat_ir_raman(filename='dynmat.out', natoms=None, 
+def read_dynmat_ir_raman(filename='dynmat.out', natoms=None,
                          cols={1: 'freqs', 3:'ir', 4: 'raman', 5: 'depol'}):
     """Read ``dynmat.x`` text output file and extract IR and Raman
     intensities.
-    
+
     Parameters
     ----------
     filename : str
@@ -385,13 +385,13 @@ def read_dynmat_ir_raman(filename='dynmat.out', natoms=None,
 
     Returns
     -------
-    cols = None 
+    cols = None
         Return the parsed array as found in the file
-    cols = dict 
+    cols = dict
         Return dict with keys from `cols` and 1d arrays ``{'freqs': <array>,
         'ir': <array>, 'raman': <array>, 'depol': <array>}``. If a column is
         not present, the array is None.
- 
+
     Notes
     -----
     The parsed textblock looks like this::
@@ -409,9 +409,9 @@ def read_dynmat_ir_raman(filename='dynmat.out', natoms=None,
            10    669.67   20.0762   31.5712         5.0265    0.7500
            11    738.22   22.1311    0.0000         0.0000    0.7306
            12    922.64   27.6600   31.5712         5.0265    0.7500
-    
+
     Some columns (e.g. IR, Raman) may be missing.
-    """                    
+    """
     assert natoms is not None, ("natoms is None")
     cmd = "grep -A{0} 'mode.*cm-1' {1} | grep -v mode".format(3*natoms, filename)
     arr = parse.arr2d_from_txt(common.backtick(cmd))
@@ -431,7 +431,7 @@ def read_dynmat_out(*args, **kwds):
     """Backward compat wrapper for :func:`read_dynmat_ir_raman`."""
     warnings.warn("read_dynmat_out() is deprecated, use read_dynmat_ir_raman()",
                   DeprecationWarning)
-    return read_dynmat_ir_raman(*args, **kwds)                  
+    return read_dynmat_ir_raman(*args, **kwds)
 
 
 def read_matdyn_freq(filename):
@@ -448,11 +448,11 @@ def read_matdyn_freq(filename):
     >>> kpoints,freqs = pwscf.read_matdyn_freq("matdyn.freq")
     >>> allclose(d[:,0], kpath.get_path_norm(kpoints))
     >>> allclose(d[:,1:], freqs)
-    
+
     Parameters
     ----------
     filename : file with k-points and phonon frequencies
-    
+
     Returns
     -------
     kpoints : array (nks, 3)
@@ -461,13 +461,13 @@ def read_matdyn_freq(filename):
     freqs : array (nks, nbnd)
         Array with `nbnd` energies/frequencies at each of the `nks` k-points.
         For phonon DOS, nbnd == 3*natoms.
-    
+
     Notes
     -----
     `matdyn.in`::
 
         &input
-            asr='simple',  
+            asr='simple',
             amass(1)=26.981538,
             amass(2)=14.00674,
             flfrc='fc',
@@ -486,7 +486,7 @@ def read_matdyn_freq(filename):
         <k-point, (3,)>
         <frequencies,(nbnd,)
         ...
-    
+
     for example::
 
         &plot nbnd=   6, nks= 101 /
@@ -538,7 +538,7 @@ def ibrav2cell(ibrav, celldm):
     conventional cell (cell=a*identity(3)), which is also found in a .cif file
     together with all symmetries. OTOH, for a hexagonal cell (ibrav=4)
     primitive == conventional cell.
-    
+
     `celldm` (a = celldm[0]) is assumed be in the unit that you want for
     `cell` (Bohr, Angstrom, etc).
 
@@ -553,7 +553,7 @@ def ibrav2cell(ibrav, celldm):
     celldm : sequence of length 6
         This not the isame length 6 array `celldm` in crys.py. Here, the
         entries which are not needed can be None.
-    
+
     Returns
     -------
     array (3,3) : cell vectors as rows, unit is that of celldm[0], i.e. a
@@ -581,20 +581,20 @@ def ibrav2cell(ibrav, celldm):
     elif ibrav == 2:
         # cubic F (fcc), fcc face centered cubic
         # v1 = (a/2)(-1,0,1),  v2 = (a/2)(0,1,1), v3 = (a/2)(-1,1,0)
-        cell = 0.5*aa * np.array([[-1,  0,  1], 
-                                  [ 0,  1,  1], 
+        cell = 0.5*aa * np.array([[-1,  0,  1],
+                                  [ 0,  1,  1],
                                   [-1,  1,  0.0]])
     elif ibrav == 3:
         # cubic I (bcc), bcc body entered cubic
         # v1 = (a/2)(1,1,1),  v2 = (a/2)(-1,1,1),  v3 = (a/2)(-1,-1,1)
-        cell = 0.5*aa * np.array([[ 1,  1,  1], 
-                                  [-1,  1,  1], 
+        cell = 0.5*aa * np.array([[ 1,  1,  1],
+                                  [-1,  1,  1],
                                   [-1, -1,  1.0]])
     elif ibrav == 4:
         # Hexagonal and Trigonal P, simple hexagonal and trigonal(p)
         # v1 = a(1,0,0),  v2 = a(-1/2,sqrt(3)/2,0),  v3 = a(0,0,c/a)
-        cell = aa * np.array([[ 1,    0,            0], 
-                              [-0.5,  sqrt(3)/2.0,  0], 
+        cell = aa * np.array([[ 1,    0,            0],
+                              [-0.5,  sqrt(3)/2.0,  0],
                               [ 0,    0,            cc/aa]])
     elif ibrav == 5:
         # Trigonal R, trigonal(r)
@@ -605,55 +605,55 @@ def ibrav2cell(ibrav, celldm):
         tx = sqrt((1.0 - cos_alpha)/2.0)
         ty = sqrt((1.0 - cos_alpha)/6.0)
         tz = sqrt((1.0 + 2*cos_alpha)/3.0)
-        cell = aa * np.array([[ tx,   -ty,      tz], 
-                              [ 0.0,   2.0*ty,  tz], 
+        cell = aa * np.array([[ tx,   -ty,      tz],
+                              [ 0.0,   2.0*ty,  tz],
                               [-tx,   -ty,      tz]])
     elif ibrav == 6:
         # Tetragonal P (st), simple tetragonal (p)
         # v1 = a(1,0,0),  v2 = a(0,1,0),  v3 = a(0,0,c/a)
-        cell = aa * np.array([[1,  0,  0], 
-                              [0,  1,  0], 
+        cell = aa * np.array([[1,  0,  0],
+                              [0,  1,  0],
                               [0,  0,  cc/aa]])
     elif ibrav == 7:
         # Tetragonal I (bct), body centered tetragonal (i)
         # v1 = (a/2)(1,-1,c/a),  v2 = (a/2)(1,1,c/a),  v3 = (a/2)(-1,-1,c/a)
-        cell = 0.5*aa * np.array([[ 1,  -1,  cc/aa], 
-                                  [ 1,   1,  cc/aa], 
-                                  [-1,  -1,  cc/aa]])        
+        cell = 0.5*aa * np.array([[ 1,  -1,  cc/aa],
+                                  [ 1,   1,  cc/aa],
+                                  [-1,  -1,  cc/aa]])
     elif ibrav == 8:
         # Orthorhombic P, simple orthorhombic (p)
         # v1 = (a,0,0),  v2 = (0,b,0), v3 = (0,0,c)
-        cell = np.array([[aa,  0,  0], 
-                         [0,   bb, 0], 
+        cell = np.array([[aa,  0,  0],
+                         [0,   bb, 0],
                          [0,   0,  cc]])
     elif ibrav == 9:
         # Orthorhombic base-centered(bco), bco base centered orthorhombic
         # v1 = (a/2,b/2,0),  v2 = (-a/2,b/2,0),  v3 = (0,0,c)
-        cell = np.array([[ aa/2.0,   bb/2.0,   0], 
-                         [-aa/2.0,   bb/2.0,   0], 
+        cell = np.array([[ aa/2.0,   bb/2.0,   0],
+                         [-aa/2.0,   bb/2.0,   0],
                          [ 0,        0,        cc]])
     elif ibrav == 10:
         # Orthorhombic face-centered, face centered orthorhombic
         # v1 = (a/2,0,c/2),  v2 = (a/2,b/2,0),  v3 = (0,b/2,c/2)
-        cell = np.array([[aa/2.0,    0,       cc/2.0], 
-                         [aa/2.0,    bb/2.0,  0], 
+        cell = np.array([[aa/2.0,    0,       cc/2.0],
+                         [aa/2.0,    bb/2.0,  0],
                          [0,         bb/2.0,  cc/2.0]])
     elif ibrav == 11:
         # Orthorhombic body-centered, body centered orthorhombic
         # v1 = (a/2,b/2,c/2),  v2 = (-a/2,b/2,c/2),  v3 = (-a/2,-b/2,c/2)
-        cell = np.array([[ aa/2.0,   bb/2.0,  cc/2.0], 
+        cell = np.array([[ aa/2.0,   bb/2.0,  cc/2.0],
                          [-aa/2.0,   bb/2.0,  cc/2.0],
                          [-aa/2.0,  -bb/2.0,  cc/2.0]])
     elif ibrav == 12:
         # Monoclinic P, monoclinic (p)
         # v1 = (a,0,0), v2= (b*cos(gamma), b*sin(gamma), 0),  v3 = (0, 0, c)
-        cell = np.array([[aa,             0,              0], 
+        cell = np.array([[aa,             0,              0],
                          [bb*cos_gamma,  bb*sin_gamma,  0],
                          [0,              0,              cc]])
     elif ibrav == 13:
         # Monoclinic base-centered, base centered monoclinic
         # v1 = (a/2,0,-c/2), v2 = (b*cos(gamma),b*sin(gamma), 0), v3 = (a/2,0,c/2)
-        cell = np.array([[aa/2.0,         0,             -cc/2.0], 
+        cell = np.array([[aa/2.0,         0,             -cc/2.0],
                          [bb*cos_gamma,   bb*sin_gamma,   0],
                          [aa/2.0,         0,              cc/2.0]])
     elif ibrav == 14:
@@ -662,14 +662,14 @@ def ibrav2cell(ibrav, celldm):
         # v2 = (b*cos(gamma), b*sin(gamma), 0)
         # v3 = (c*cos(beta),  c*(cos(alpha)-cos(beta)cos(gamma))/sin(gamma),
         # c*sqrt( 1 + 2*cos(alpha)cos(beta)cos(gamma)
-        #           - cos(alpha)^2-cos(beta)^2-cos(gamma)^2 )/sin(gamma) 
+        #           - cos(alpha)^2-cos(beta)^2-cos(gamma)^2 )/sin(gamma)
         v1 = np.array([aa,0,0])
         v2 = np.array([bb*cos_gamma, bb*sin_gamma, 0])
-        v3 = np.array([cc*cos_beta, 
-                       cc*(cos_alpha - cos_beta*cos_gamma)/sin_gamma, 
+        v3 = np.array([cc*cos_beta,
+                       cc*(cos_alpha - cos_beta*cos_gamma)/sin_gamma,
                        cc*sqrt( 1 + 2*cos_alpha*cos_beta*cos_gamma - \
                        cos_alpha**2.0-cos_beta**2.0-cos_gamma**2.0)/sin_gamma])
         cell = np.array([v1, v2, v3])
     else:
         raise Exception("illegal ibrav: %s" %ibrav)
-    return cell        
+    return cell

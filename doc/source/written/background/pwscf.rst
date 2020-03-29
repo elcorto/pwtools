@@ -8,7 +8,7 @@ From http://www.quantum-espresso.org/input-syntax/INPUT_PW.html:
 "All quantities whose dimensions are not explicitly specified are in
 RYDBERG ATOMIC UNITS". See also ``constants.py``.
 
-matdyn.x and phonon dos: 
+matdyn.x and phonon dos:
     With dos=.true., matdyn.x calculates the phonon density of states. The
     frequency axis in the output file is f in cm^-1. Note that THIS IS NOT THE
     ANGULAR FREQUENCY omega = 2*pi*f!!! Therefore, if you calculate with this
@@ -55,7 +55,7 @@ files).
 summary::
 
     ATOMIC_POSITIONS angstrom  -> cartesian angstrom
-    ATOMIC_POSITIONS bohr      -> cartesian a.u. 
+    ATOMIC_POSITIONS bohr      -> cartesian a.u.
     ATOMIC_POSITIONS           -> cartesian alat
     ATOMIC_POSITIONS alat      -> cartesian alat
     ATOMIC_POSITIONS crystal   -> crystal alat or crystal a.u. (see below)
@@ -81,4 +81,4 @@ crys.rms3d() for MD runs where the RMS of each (f_ij) is::
 
     sqrt( (sum_ij f_ij^2) / N )
 
-with N = 3*natoms or N=natoms.   
+with N = 3*natoms or N=natoms.

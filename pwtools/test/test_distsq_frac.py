@@ -11,13 +11,13 @@ def pydist(coords_frac, cell, pbc=0):
     return distsq, distvecs, distvecs_frac
 
 def test_fdist():
-    
+
     natoms = 5
     coords_frac = np.random.rand(natoms,3)
     cell = np.random.rand(3,3)*3
     struct = crys.Structure(coords_frac=coords_frac,
                             cell=cell)
-    
+
     for pbc in [0,1]:
         print("pbc:", pbc)
         pyret = pydist(coords_frac, cell, pbc)

@@ -15,16 +15,16 @@
 #
 # This script is a modified VMD log file (User Guide: 3.9 Tracking Script
 # Command Versions of the GUI Actions). In the original file, there were lines
-# like 
+# like
 #     mol modstyle 0 0 CPK 1.000000 0.000000 20.000000 6.000000
 #     mol representation CPK 1.000000 0.000000 20.000000 6.000000
-# We replaced them by   
+# We replaced them by
 #    set rep [mol modstyle 0 0 CPK 1.000000 0.000000 20.000000 6.000000]
 #    mol representation $rep
 
 if !{[info exists molid]} then {
      set molid 0
-}     
+}
 
 set repnum -1
 display resetview

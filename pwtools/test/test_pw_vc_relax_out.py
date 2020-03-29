@@ -1,7 +1,7 @@
 import numpy as np
 from pwtools.parse import PwMDOutputFile
 from pwtools import common, parse
-from pwtools.test.tools import assert_attrs_not_none 
+from pwtools.test.tools import assert_attrs_not_none
 from pwtools.test import tools
 
 def test_pw_vc_relax_out():
@@ -10,21 +10,21 @@ def test_pw_vc_relax_out():
     pp = PwMDOutputFile(filename=filename)
     pp.parse()
     common.system('gzip %s' %filename)
-    none_attrs = ['coords', 
-                  'ekin', 
+    none_attrs = ['coords',
+                  'ekin',
                   'temperature',
                   'timestep',
                   ]
     assert_attrs_not_none(pp, none_attrs=none_attrs)
     traj = pp.get_traj()
     none_attrs = [\
-        'ekin', 
+        'ekin',
         'temperature',
         'timestep',
         'velocity',
         'time',
         ]
-    assert_attrs_not_none(traj, none_attrs=none_attrs)   
+    assert_attrs_not_none(traj, none_attrs=none_attrs)
 
 
 # for test_return_3d_if_no_cell_unit

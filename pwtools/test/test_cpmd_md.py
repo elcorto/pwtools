@@ -20,9 +20,9 @@ def run(filename, none_attrs=[]):
     pp.parse()
     assert_attrs_not_none(pp, none_attrs=none_attrs)
     traj = pp.get_traj()
-    attrs3d = ['coords', 
-               'coords_frac', 
-               'forces', 
+    attrs3d = ['coords',
+               'coords_frac',
+               'forces',
                'cell',
                'stress',
                ]
@@ -40,23 +40,23 @@ def test_cpmd_md():
     run(filename='files/cpmd/md_bo_odiis/cpmd.bo.out',
         none_attrs=['stress',
                     'pressure',
-                    'ekin_cell', 
+                    'ekin_cell',
 ##                    'ekin_elec',
                     'temperature_cell',
                     ])
     run(filename='files/cpmd/md_bo_odiis_npt/cpmd.out',
         none_attrs=['forces',
-                    'ekin_cell', 
+                    'ekin_cell',
 ##                    'ekin_elec',
                     'temperature_cell',
-                    ])        
+                    ])
     run(filename='files/cpmd/md_bo_lanczos/cpmd.bo.out',
         none_attrs=['stress',
                     'pressure',
-                    'ekin_cell', 
+                    'ekin_cell',
                     'ekin_elec',
                     'temperature_cell',
-                    ]) 
+                    ])
     run(filename='files/cpmd/md_cp_mttk/cpmd.out',
         none_attrs=['forces',
                     ])
@@ -64,10 +64,10 @@ def test_cpmd_md():
         none_attrs=['forces',
                     ])
     run(filename='files/cpmd/md_cp_nvt_nose/cpmd.out',
-        none_attrs=['ekin_cell', 
+        none_attrs=['ekin_cell',
                     'temperature_cell',
-                    ])               
+                    ])
     run(filename='files/cpmd/md_cp_nve/cpmd.out',
-        none_attrs=['ekin_cell', 
+        none_attrs=['ekin_cell',
                     'temperature_cell',
                     ])

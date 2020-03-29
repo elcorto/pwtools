@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# 
+#
 # cif2sgroup.py
 #
 # Extract information from a .cif file and print an input file for WIEN2k's
@@ -11,7 +11,7 @@
 #   $ cif2sgroup.py foo.cif > foo.sgroup.in
 #   # Find primitive cell
 #   $ sgroup -prim [-set-TOL=1e-4] foo.sgroup.in
-# 
+#
 # See ``sgroup -help`` for more options.
 #
 # Notes

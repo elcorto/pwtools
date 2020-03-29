@@ -20,14 +20,14 @@ def test_pdos():
     # Only needed in pd.*_pdos(), not in pd.velocity(). Here is why:
     #
     # vacf_pdos, direct_pdos:
-    # If we compute the *normalized* VCAF, then dt is a factor: 
-    #       <v_x(0) v_x(t)> = 1/dt^2 <dx(0) dx(t)> 
+    # If we compute the *normalized* VCAF, then dt is a factor:
+    #       <v_x(0) v_x(t)> = 1/dt^2 <dx(0) dx(t)>
     # which cancels in the normalization. dt is not needed in the velocity
-    # calculation, hence not 
-    #   V=velocity(coords, dt=dt) 
+    # calculation, hence not
+    #   V=velocity(coords, dt=dt)
     # only
     #   V=velocity(coords).
-       
+
     V = traj.velocity # Ang / fs
     mass = traj.mass # amu
     dt = traj.timestep # fs
@@ -38,7 +38,7 @@ def test_pdos():
 
     np.testing.assert_array_almost_equal(fd, fv, err_msg="freq not equal")
     np.testing.assert_array_almost_equal(dd, dv, err_msg="dos not equal")
-    
+
     assert np.allclose(fd, np.loadtxt('files/ref_test_pdos/fd.txt.gz'))
     assert np.allclose(fv, np.loadtxt('files/ref_test_pdos/fv.txt.gz'))
     assert np.allclose(dd, np.loadtxt('files/ref_test_pdos/dd.txt.gz'))
@@ -49,7 +49,7 @@ def test_pdos():
     print("df: %e:" %df)
     print("timestep: %f fs = %f tryd" %(dt, dt * constants.fs / constants.tryd))
     print("timestep pw.out: %f tryd" %(pp.timestep))
-    
+
     # API
     fd, dd, ffd, fdd, si = pd.direct_pdos(V, m=mass, dt=dt, full_out=True)
     fv, dv, ffv, fdv, si, vacf, fft_vacf = pd.vacf_pdos(V, m=mass, dt=dt,

@@ -43,7 +43,7 @@ def test_scell():
     assert sc.symbols == sc_symbols
     np.testing.assert_array_almost_equal(sc.coords_frac, sc_coords_frac)
     np.testing.assert_array_almost_equal(sc.cell, sc_cell)
-    
+
     # non-orthorhombic cell
     cell = \
         np.array([[ 1.,  0.5,  0.5],
@@ -61,11 +61,11 @@ def test_scell():
     # crystal coords are cell-independent
     np.testing.assert_array_almost_equal(sc.coords_frac, sc_coords_frac)
 
-    
+
     # slab
     #
     # Test if old and new implementation behave for a tricky case: natoms == 2
-    # mask.shape[0], i.e. if reshape() behaves correctly. 
+    # mask.shape[0], i.e. if reshape() behaves correctly.
     # Reference generated with old implementation. Default is new.
     cell = np.identity(3)
     coords_frac = np.array([[0.5, 0.5, 0.5],
@@ -87,7 +87,7 @@ def test_scell():
     assert sc.symbols == sc_symbols
     np.testing.assert_array_almost_equal(sc.cell, sc_cell)
     np.testing.assert_array_almost_equal(sc.coords_frac, sc_coords_frac)
-    
+
     sc = crys.scell(Structure(coords_frac=coords_frac,
                               cell=cell,
                               symbols=symbols), (1,2,1))
@@ -119,13 +119,13 @@ def test_scell():
     assert sc.symbols == sc_symbols
     np.testing.assert_array_almost_equal(sc.cell, sc_cell)
     np.testing.assert_array_almost_equal(sc.coords_frac, sc_coords_frac)
-    
+
     # symbols = None
     sc = crys.scell(Structure(coords_frac=coords_frac,
                               cell=cell,
                               symbols=None), (2,2,2))
     assert sc.symbols is None
-    
+
     # Trajectory
     natoms = 4
     nstep = 100
@@ -137,32 +137,32 @@ def test_scell():
     nmask = np.prod(dims)
     sc = crys.scell(Trajectory(coords_frac=coords_frac,
                                cell=cell,
-                               symbols=symbols), 
+                               symbols=symbols),
                       dims=dims)
     assert sc.coords_frac.shape == (nstep, nmask*natoms, 3)
     assert sc.symbols == common.flatten([[sym]*nmask for sym in symbols])
-    assert sc.cell.shape == (nstep,3,3)                                            
-    np.testing.assert_array_almost_equal(sc.cell, 
-                                         num.extend_array(cell * np.asarray(dims)[:,None], 
+    assert sc.cell.shape == (nstep,3,3)
+    np.testing.assert_array_almost_equal(sc.cell,
+                                         num.extend_array(cell * np.asarray(dims)[:,None],
                                                           sc.nstep,
                                                           axis=0))
     # cell 3d
     cell = rand(nstep,3,3)
     sc = crys.scell(Trajectory(coords_frac=coords_frac,
                                cell=cell,
-                               symbols=symbols), 
+                               symbols=symbols),
                       dims=dims)
     assert sc.coords_frac.shape == (nstep, nmask*natoms, 3)
-    coords_frac2 = np.array([crys.scell(Structure(coords_frac=coords_frac[ii,...,], 
+    coords_frac2 = np.array([crys.scell(Structure(coords_frac=coords_frac[ii,...,],
                                                   cell=cell[ii,...],
                                                   symbols=symbols), dims=dims).coords_frac \
                              for ii in range(nstep)])
-    np.testing.assert_array_almost_equal(sc.coords_frac, coords_frac2) 
+    np.testing.assert_array_almost_equal(sc.coords_frac, coords_frac2)
     assert sc.symbols == common.flatten([[sym]*nmask for sym in symbols])
-    assert sc.cell.shape == (nstep,3,3) 
-    np.testing.assert_array_almost_equal(sc.cell, 
+    assert sc.cell.shape == (nstep,3,3)
+    np.testing.assert_array_almost_equal(sc.cell,
                                          cell * np.asarray(dims)[None,:,None])
-    
+
     # methods
     natoms = 20
     coords_frac = rand(natoms,3)
@@ -184,15 +184,15 @@ def test_direc_and_neg_dims():
         m1 = crys.scell_mask(*dims, direc=1)[::-1,:]
         m2 = crys.scell_mask(*dims, direc=-1)
         assert (m1==m2).all()
-    
+
     for direc in [1,-1]:
         ref = crys.scell_mask( 2, 3, 4, direc=direc)
         assert ((ref + crys.scell_mask(-2,-3,-4, direc=direc)) == 0.0).all()
-        
+
         now = crys.scell_mask(-2, 3, 4, direc=direc)
         assert ((ref[:,0] + now[:,0]) == 0.0).all()
         assert (ref[:,1:] == now[:,1:]).all()
-        
+
         now = crys.scell_mask(2, -3, 4, direc=direc)
         assert ((ref[:,1] + now[:,1]) == 0.0).all()
         assert (ref[:,(0,2)] == now[:,(0,2)]).all()

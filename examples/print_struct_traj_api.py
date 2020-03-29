@@ -21,7 +21,7 @@ only in Structure:
 
 Attributes which are None w.r.t. the Trajectory API after the following
 operation, starting with a fully populated struct or traj (all attrs not None):
-""".format(st=st.attr_lst, tr=tr.attr_lst, onlytr=list(onlytr), 
+""".format(st=st.attr_lst, tr=tr.attr_lst, onlytr=list(onlytr),
            onlyst=list(onlyst)))
 
 items = [\
@@ -39,5 +39,5 @@ items = [\
 for name,obj in items:
     none_attrs = set.difference(set(tr.attr_lst),
                                 crys.populated_attrs([obj]))
-    typ = 'traj' if obj.is_traj else 'struct'                                          
+    typ = 'traj' if obj.is_traj else 'struct'
     print("{:25} {:7} {}".format(name, typ, list(none_attrs)))

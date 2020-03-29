@@ -7,7 +7,7 @@ The following functions are defined:
     | :func:`all_types_no_dict_equal`
     | :func:`dict_with_all_types_equal`
     | :func:`all_types_equal`
-    | 
+    |
     | :func:`array_almost_equal`
     | :func:`all_types_no_dict_almost_equal`
     | :func:`dict_with_all_types_almost_equal`
@@ -83,8 +83,8 @@ def true_or_false(cond):
 #-----------------------------------------------------------------------------
 
 class AllTypesFactory(object):
-    """Factory for creating functions which compare "any" type. 
-    
+    """Factory for creating functions which compare "any" type.
+
     We need a dict `comp_map` which maps types (result of ``type(foo)``) to a
     comparison function for that type which returns True or False and is called
     like ``comp_map[<type>](a,b)``. Also a ``comp_map['default']`` entry is
@@ -97,12 +97,12 @@ class AllTypesFactory(object):
         ----------
         comp_map : dict
             Dict with types and comparison fucntions.
-            Example: ``{type(np.array([1.0])): np.allclose, 
+            Example: ``{type(np.array([1.0])): np.allclose,
                         type(1): lambda x,y: x==y,
                         'default': lambda x,y: x==y}``
         """
         self.comp_map = comp_map
-    
+
     def __call__(self, d1, d2, strict=False, **kwds):
         """
         Parameters
@@ -119,10 +119,10 @@ class AllTypesFactory(object):
         d1_t = type(d1)
         d2_t = type(d2)
         if strict:
-            if d1_t != d2_t: 
+            if d1_t != d2_t:
                 err("AllTypesFactory: d1 (%s) and d2 (%s) are not the "
                       "same type" %(d1_t, d2_t))
-                return False       
+                return False
         for typ, comp_func in self.comp_map.items():
             if d1_t == typ:
                 msg("AllTypesFactory: type=%s, comp_func=%s" \
@@ -135,7 +135,7 @@ class AllTypesFactory(object):
                 "cannot process type=%s" %(d1_t))
         msg("AllTypesFactory: type=default, comp_func=%s" \
               %str(comp_func))
-        return comp_func(d1, d2, **kwds)          
+        return comp_func(d1, d2, **kwds)
 
 
 class DictWithAllTypesFactory(object):
@@ -143,7 +143,7 @@ class DictWithAllTypesFactory(object):
     "any" type, also numpy arrays. Nested dicts are possible."""
     def __init__(self, comp_func=None):
         self.comp_func = comp_func
-    
+
     def __call__(self, d1, d2, keys=None, strict=False, attr_lst=None, **kwds):
         """
         Parameters
@@ -163,9 +163,9 @@ class DictWithAllTypesFactory(object):
             warnings.warn("'attr_lst' keyword deprecated. Use 'keys' instead.",
                           DeprecationWarning)
             keys = attr_lst
-        # Test equal keys only if user doesn't provide them.            
-        if keys is None:            
-            d1_keys = list(d1.keys())    
+        # Test equal keys only if user doesn't provide them.
+        if keys is None:
+            d1_keys = list(d1.keys())
             d2_keys = list(d2.keys())
             if len(d1_keys) != len(d2_keys):
                 err("DictWithAllTypesFactory: key list not equally long")
@@ -173,14 +173,14 @@ class DictWithAllTypesFactory(object):
             if set(d1_keys) != set(d2_keys):
                 err("DictWithAllTypesFactory: keys not equal")
                 return False
-        _keys = d1_keys if keys is None else keys    
+        _keys = d1_keys if keys is None else keys
         ret = True
         for key in _keys:
             msg("DictWithAllTypesFactory: testing key=%s" %key)
             d1_t = type(d1[key])
             d2_t = type(d2[key])
             if strict:
-                if d1_t != d2_t: 
+                if d1_t != d2_t:
                     err("DictWithAllTypesFactory: d1[%s] (%s) and d2[%s] (%s) are not "
                           "the same type" %(key, d1_t, key, d2_t))
                     return False
@@ -199,7 +199,7 @@ class AssertFactory(object):
     comp_func(*args, **kwds)``."""
     def __init__(self, comp_func=None):
         self.comp_func = comp_func
-    
+
     def __call__(self, *args, **kwds):
         assert self.comp_func(*args, **kwds)
 
@@ -311,15 +311,15 @@ def unpack_compressed(src, prefix='tmp', testdir=testdir, ext=None):
     """Convenience function to uncompress files/some_file.out.gz into a random
     location. Return the filename "path/to/random_location/some_file.out"
     without ".gz", which can be used in subsequent commands.
-    
+
     Supported file types: gz, tgz, tar.gz
         gunzip path/to/random_location/some_file.out.gz
         tar -C path/to/random_location -xzf path/to/random_location/some_file.out.tgz
-    
+
     Other compress formats may be implemented as needed.
-    
+
     Can also be used for slightly more complex unpack business, see for
-    example test_cpmd_md.py. 
+    example test_cpmd_md.py.
 
     Parameters
     ----------
@@ -361,18 +361,18 @@ def skip(msg):
     nose.plugins.skip.SkipTest and makes the test be skipped. Doesn't work as a
     decorator. If you need a decorator to temporarily disable a test function,
     then use unitest.skip(). The latter is supposed to work on test functions
-    and classes (probably unittest.TestCase and derivatives, untested). 
+    and classes (probably unittest.TestCase and derivatives, untested).
 
     Examples
     --------
-    
+
     from pwtools.test.tools import skip
     import unitest
-    
+
     def test_foo():
         if some_error_condition:
             skip("skipping this test b/c of foo")
-    
+
     def test_bar():
         skip("we're not at the bar, skip ordering beer")
         normal_test_code_here()

@@ -17,11 +17,11 @@ def test_dist_traj():
                                 new=num.extend_array(np.identity(3),
                                                      nstep,axis=0),
                                 axis=1,
-                                timeaxis=0)                                                    
+                                timeaxis=0)
     assert cryst_const.shape == (nstep, 6)
     assert coords.shape == (nstep,natoms,3)
     symbols = ['H']*natoms
-    
+
     traj = Trajectory(coords_frac=coords_frac,
                       cell=cell,
                       symbols=symbols,
@@ -30,7 +30,7 @@ def test_dist_traj():
                       etot=etot,
                       timestep=1,
                       )
-    
+
     for pbc in [True, False]:
         # (nstep, natoms, natoms, 3)
         distvecs_frac = traj.coords_frac[:,:,None,:] - \

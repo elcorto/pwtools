@@ -7,7 +7,7 @@ def assrt(a,b):
 def test_celldm_cryst_const():
     cc = np.array([3,4,5, 30, 50, 123.0])
     assrt(cc, celldm2cc(cc2celldm(cc)))
-    
+
     cc = np.array([3,4,5, 30, 50, 123.0])
     assrt(cc, celldm2cc(cc2celldm(cc, fac=10), fac=0.1))
 
@@ -15,10 +15,10 @@ def test_celldm_cryst_const():
     assrt(cc2celldm(cc), np.array([3,1,1,0,0,0]))
 
     cc = [3,4,5, 90, 90, 120]
-    assrt(cc2celldm(cc), 
+    assrt(cc2celldm(cc),
           np.array([3, 4/3., 5/3., 0,0, -0.5]))
-    
+
     cc = [3,4,5, 90, 90, 120]
-    assrt(cc2celldm(cc, fac=10), 
+    assrt(cc2celldm(cc, fac=10),
           np.array([30, 4/3., 5/3., 0,0, -0.5]))
-       
+

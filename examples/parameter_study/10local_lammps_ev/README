@@ -8,13 +8,13 @@ Run the example, clean the directory (clean.sh).
 
 The work flow would be:
 
-1) 10input.py 
+1) 10input.py
 
 2) run calculations
     local:
         * go to calc_local
         * execute run.sh -> submitt all jobs
-    cluster:      
+    cluster:
         * copy calc_theo to the cluster
             rsync -auvz calc_theo theo:path/to/calculation/
         * ssh to cluster, go to path/to/calculation/calc_theo

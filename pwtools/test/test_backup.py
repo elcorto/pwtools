@@ -18,7 +18,7 @@ def test_backup():
     assert os.path.exists(name + '.1')
     backup(name)
     assert os.path.exists(name + '.2')
-    
+
     # dir
     name = tempfile.mktemp(prefix='testdir', dir=testdir)
     create_full_dir(name)
@@ -50,7 +50,7 @@ def test_backup():
     for name in ['a', 'b', 'c']:
         assert file_read(pj(dirname, name)) == \
                file_read(pj(linkname + '.0', name))
-    
+
     # prefix
     name = tempfile.mktemp(prefix='testfile', dir=testdir)
     file_write(name, 'foo')

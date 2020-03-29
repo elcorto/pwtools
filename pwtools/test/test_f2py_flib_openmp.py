@@ -25,7 +25,7 @@ def test_f2py_flib_openmp():
             if has_key:
                 print("[omp_num_threads] backup os.environ['%s'] = '%s'" %(key, os.environ[key]))
                 omp_dct['num_threads'] = os.environ[key]
-            else:            
+            else:
                 omp_dct['num_threads'] = None
         elif action == 'restore':
             if has_key:
@@ -38,10 +38,10 @@ def test_f2py_flib_openmp():
 
     rand = np.random.rand
 
-    nat = 10 
-    nstep = 500 
+    nat = 10
+    nstep = 500
     vel = rand(nstep, nat, 3)
-    mass = rand(nat) 
+    mass = rand(nat)
     cc = np.zeros((nstep,))
 
     bar = '-'*70
@@ -49,7 +49,7 @@ def test_f2py_flib_openmp():
     ret = omp_num_threads('check', err=True)
     if ret == 'err':
         print(bar)
-        print("""Do 
+        print("""Do
         $ export OMP_NUM_THREADS=3
     before running this test.""")
         print(bar + '\n')
@@ -82,7 +82,7 @@ def test_f2py_flib_openmp():
     print(bar)
     print("testing _flib.vacf(vel,mass,cc,1,1), no nthreads from Python, take two")
     print("*" * 70)
-    print("""!!! POSSIBLE F2PY BUG !!! 
+    print("""!!! POSSIBLE F2PY BUG !!!
     After calling omp_set_num_threads() in the last test, OMP_NUM_THREADS is no
     longer recognized on the Fortran side!!! nthreads is still at the value from
     the last test: %s, that is WRONG

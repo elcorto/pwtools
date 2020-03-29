@@ -2,7 +2,7 @@ def test_import_io():
     # pwtools.io
     from pwtools import io
     assert hasattr(io, 'write_axsf')
-    
+
     # std lib io
     import io
     assert 'pwtools' not in io.__file__

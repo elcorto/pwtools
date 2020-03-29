@@ -9,7 +9,7 @@ rand = np.random.rand
 def test_slices():
     # Test if the fancy slice stunts in smooth() do what we want, i.e. test
     # if numpy has changed.
-    y = np.arange(7) 
+    y = np.arange(7)
     npad = len(y)
     ysl = y[1:][::-1]
     assert (ysl == y[slice(npad,0,-1)]).all()
@@ -55,7 +55,7 @@ def test_smooth_nd():
             assert asm.shape == a.shape
             for jj in range(asm.shape[1]):
                 for kk in range(asm.shape[2]):
-                    assert np.allclose(asm[:,jj,kk], smooth(a[:,jj,kk], kern, 
+                    assert np.allclose(asm[:,jj,kk], smooth(a[:,jj,kk], kern,
                                                             edge=edge))
                     mn = a[:,jj,kk].min()
                     mx = a[:,jj,kk].max()
@@ -66,11 +66,11 @@ def test_smooth_nd():
 
 
 def test_find_peaks():
-    x = np.linspace(0,10,300) 
+    x = np.linspace(0,10,300)
     y = 0.2*gauss(x-0.5,.1) + gauss(x-2,.1) + 0.7*gauss(x-3,0.1) + gauss(x-6,1)
     # ymin=0.4: ignore first peak at x=0.5
     idx0, pos0 = find_peaks(y,x, ymin=0.4)
-    assert idx0 == [60, 90, 179] 
+    assert idx0 == [60, 90, 179]
     assert np.allclose(pos0, np.array([2,3,6.]), atol=1e-3)
 
 

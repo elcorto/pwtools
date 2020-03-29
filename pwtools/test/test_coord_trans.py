@@ -54,7 +54,7 @@ def test_coord_trans():
     # back-transform
     aaae(coord_trans(v_X,X,I), v_I)
     aaae(coord_trans(v_Y,Y,I), v_I)
-    
+
     # higher "x,y,z"-dims: 4-vectors
     c_X = rand(20,4)
     X = rand(4,4)*5
@@ -62,8 +62,8 @@ def test_coord_trans():
     c_Y = coord_trans(c_X, old=X, new=Y)
     c_X2 = coord_trans(c_Y, old=Y, new=X)
     aaae(c_X, c_X2)
-     
-    
+
+
     #-----------------------------------------------------------
     # 3D
     #-----------------------------------------------------------
@@ -75,7 +75,7 @@ def test_coord_trans():
     c_Y = coord_trans(c_X, old=X, new=Y, axis=1)
     c_X2 = coord_trans(c_Y, old=Y, new=X, axis=1)
     aaae(c_X, c_X2)
-    
+
     c_X = rand(20,10,3)
     c_Y = coord_trans(c_X, old=X, new=Y, axis=-1)
     c_X2 = coord_trans(c_Y, old=Y, new=X, axis=-1)
@@ -85,7 +85,7 @@ def test_coord_trans():
     c_Y = coord_trans(c_X, old=X, new=Y, axis=0)
     c_X2 = coord_trans(c_Y, old=Y, new=X, axis=0)
     aaae(c_X, c_X2)
-    
+
     # 3d, higher "x,y,z"-dims, i.e. 4-vectors: trajectory of 5 atoms, 10 steps,
     # "4d-coordinates"
     c_X = rand(20,4,10)
@@ -94,11 +94,11 @@ def test_coord_trans():
     c_Y = coord_trans(c_X, old=X, new=Y, axis=1)
     c_X2 = coord_trans(c_Y, old=Y, new=X, axis=1)
     aaae(c_X, c_X2)
-    
+
     #-----------------------------------------------------------
     # ND
     #-----------------------------------------------------------
-    
+
     # arbitrary collection of 4-vectors
     c_X = rand(20,4,10,8)
     X = rand(4,4)*5
@@ -106,7 +106,7 @@ def test_coord_trans():
     c_Y = coord_trans(c_X, old=X, new=Y, axis=1)
     c_X2 = coord_trans(c_Y, old=Y, new=X, axis=1)
     aaae(c_X, c_X2)
-    
+
     #-----------------------------------------------------------
     # special case 3d
     #-----------------------------------------------------------

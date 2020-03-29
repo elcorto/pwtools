@@ -1,7 +1,7 @@
 .. Written documentation.
 
 .. toctree::
-    
+
    features
    install
    tutorial

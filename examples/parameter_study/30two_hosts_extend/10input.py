@@ -11,7 +11,7 @@ Another way to specify the parameters in step 4
 -----------------------------------------------
 
 ::
-    
+
     ecutwfc = sql.sql_column('ecutwfc', np.array([50,60,70,80.0]))
     pseudo = sql.sql_column('pseudo', ['Si.pp', 'Si.paw'])
     params_lst = comb.nested_loops([ecutwfc,pseudo])
@@ -37,7 +37,7 @@ You can also pass the text content of the template file directly::
 The same applies to FileTemplate instances passed to ParameterStudy with the
 `templates` keyword.
 """
- 
+
 import os
 import numpy as np
 from pwtools import common, batch, sql, comb
@@ -58,7 +58,7 @@ study_name = 'job_' + os.path.basename(common.fullpath('.'))
 # are defined by `filename` or `template`. These are usually shell scripts which
 # you use on a cluster to submit the job to a batch system such as LSF, PBS,
 # SLURM, ...
-# 
+#
 host0 = \
     batch.Machine(hostname='host0',
                   subcmd='bash',
@@ -87,7 +87,7 @@ machines = [host0, host1]
 # The default dir where template files are supposed to be found is
 # FileTemplate(..., templ_dir='calc.templ'). Since we have that, passing a
 # `basename` is sufficient.
-# 
+#
 templates = [batch.FileTemplate(basename='input.in')]
 
 
@@ -96,7 +96,7 @@ templates = [batch.FileTemplate(basename='input.in')]
 #
 # Define your parameters to vary (ecutwfc and pseudo). They are added to
 # the default replacements.
-# 
+#
 params_lst = []
 for ecutwfc in np.array([50,60.0]):
     for pseudo in ['Si.pp', 'Si.paw']:
@@ -112,7 +112,7 @@ for ecutwfc in np.array([50,60.0]):
 #
 calc = batch.ParameterStudy(machines=host0,
                             templates=templates,
-                            params_lst=params_lst, 
+                            params_lst=params_lst,
                             study_name=study_name,
                             )
 calc.write_input(sleep=0, backup=True, mode='a')
@@ -136,7 +136,7 @@ for ecutwfc in np.array([70,80.0]):
 
 calc = batch.ParameterStudy(machines=[host0,host1],
                             templates=templates,
-                            params_lst=params_lst, 
+                            params_lst=params_lst,
                             study_name=study_name,
                             )
 calc.write_input(sleep=0, backup=True, mode='a')
@@ -146,6 +146,6 @@ calc.write_input(sleep=0, backup=True, mode='a')
 print(common.backtick("sqlite3 -column -header calc.db \
                        'select * from calc'"))
 
-# Some example db query using Python.    
+# Some example db query using Python.
 db = sql.SQLiteDB('calc.db', table='calc')
 print(db.get_dict("select idx,ecutwfc,pseudo from calc where ecutwfc <= 60"))

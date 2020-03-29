@@ -19,7 +19,7 @@ def angles(struct, pbc=False, mask_val=999.0, deg=True):
         if pbc:
             dvij = np.dot(crys.min_image_convention(dvij), struct.cell)
             dvik = np.dot(crys.min_image_convention(dvik), struct.cell)
-        else:            
+        else:
             dvij = np.dot(dvij, struct.cell)
             dvik = np.dot(dvik, struct.cell)
         cang = np.dot(dvij, dvik) / norm(dvij) / norm(dvik)
@@ -28,11 +28,11 @@ def angles(struct, pbc=False, mask_val=999.0, deg=True):
             cang = 1.0
         elif cang < -ceps:
             cang = -1.0
-        if deg:            
+        if deg:
             anglesijk[ii,jj,kk] = np.arccos(cang) * 180.0 / np.pi
-        else:            
+        else:
             anglesijk[ii,jj,kk] = cang
-    return anglesijk, angleidx        
+    return anglesijk, angleidx
 
 
 def test_angle():
@@ -52,7 +52,7 @@ def test_angle():
             assert aipy.shape[0] == nang
             assert len((agf != mask_val).nonzero()[0]) == nang
             angleidx = np.array(list(zip(*(agf != mask_val).nonzero())))
-            assert (angleidx == aipy).all()       
+            assert (angleidx == aipy).all()
             assert not np.isnan(agpy).any(), "python angle nan"
             assert not np.isnan(agf).any(), "fortran angle nan"
             # do we have 0 and 180 degrees?

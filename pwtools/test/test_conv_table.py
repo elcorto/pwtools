@@ -18,6 +18,6 @@ def test_conv_table():
             st1 = conv_table(xx, [yy1,yy2,yy3], mode=mode)
             st2 = conv_table(xx, np.array([yy1,yy2,yy3]), mode=mode)
             assert st1 == st2
-    
+
     # API
     conv_table(xx, [yy1,yy2,yy3], mode='last', orig=True)

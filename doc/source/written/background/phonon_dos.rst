@@ -14,10 +14,10 @@ The cross-correlation theorem for the two-sided correlation::
 
 If a == b, then this reduces to the special case of the Wiener-Khinchin theorem
 (autocorrelation of `a`)::
-  
+
   corr(a,a) = ifft(abs(fft(a))**2)
 
-where the power spectrum of `a` is simply:: 
+where the power spectrum of `a` is simply::
 
     fft(corr(a,a)) == abs(fft(a))**2
 
@@ -37,7 +37,7 @@ the arrays c1,c2,c3 and p1,p2 are the same and for ``corr(v,v)`` we use
 ``acorr(v)`` here.
 
 Two-sided correlation for -lag...0...+lag::
-    
+
     >>> from pwtools.signal import pad_zeros, welch, mirror, acorr
     >>> from scipy.signal import correlate
     >>> from scipy.fftpack import fft,ifft
@@ -55,23 +55,23 @@ Two-sided correlation for -lag...0...+lag::
     ... plot(c3, label='acorr'); title('corr'); legend()
 
 and the power spectra as ``fft(corr(v,v))``, now one-sided::
-    
+
     >>> p1=(abs(fft(pad(v)))**2.0)[:n]
     >>> p2=(abs(fft(mirror(acorr(v,norm=False)))))[:n]
     >>> figure(); plot(f,p1, label='fft'); plot(f,p2, label='acorr'); \
     ... title('spectrum'); legend()
 
-also with a Welch window::    
-    
+also with a Welch window::
+
     >>> p1=(abs(fft(pad(v*w)))**2.0)[:n]
     >>> p2=(abs(fft(mirror(acorr(v*w,norm=False)))))[:n]
     >>> figure(); plot(f,p1, label='fft'); plot(f,p2, label='acorr'); \
     ... title('spectrum welch'); legend()
 
 The zero-padding before ``fft`` is manadatory! It is also done inside
-:func:`scipy.signal.correlate()`.  
+:func:`scipy.signal.correlate()`.
 
-The 1D reference implementation is :func:`pwtools.signal.acorr`, which contains the 
+The 1D reference implementation is :func:`pwtools.signal.acorr`, which contains the
 fft-based correlation (Wiener-Khinchin) along with other methods.
 
 Padding and smoothing
@@ -96,11 +96,11 @@ Calculation of the phonon DOS from MD data
 
 The :mod:`~pwtools.pydos` module containes many helper and reference
 implementations, but the the main function to be used is
-:func:`~pwtools.pydos.pdos`. 
+:func:`~pwtools.pydos.pdos`.
 
 There are two ways of computing the phonon density of states (PDOS) from an MD
 trajectory. ``v`` is the 3d array of atomic velocities with shape (nstep,natoms,3),
-i.e. ``Trajectory.velocity``, see :func:`~pwtools.crys.velocity_traj`. 
+i.e. ``Trajectory.velocity``, see :func:`~pwtools.crys.velocity_traj`.
 
 * ``method='vacf'``: ``fft`` of the velocity autocorrelation function (``vacf``):
     ``v`` -> ``vacf`` -> ``fft(vacf)`` = PDOS, see :func:`~pwtools.pydos.vacf_pdos`
@@ -115,7 +115,7 @@ The actual implementation is in :func:`~pwtools.pydos.pdos` and the above two
 functions are convenience wrappers.
 
 * In method 'vacf', if we mirror the ``vacf`` at t=0 before the ``fft``, then we get
-  double frequency resolution. 
+  double frequency resolution.
 
 * By default, :func:`~pwtools.pydos.direct_pdos` uses zero-padding of ``v`` to
   get the same frequency resolution as we would get with mirroring the signal
@@ -127,13 +127,13 @@ functions are convenience wrappers.
 
 * Both methods must produce exactly the same results (up to numerical noise).
 
-* The frequency axis of the PDOS is in Hz. It is "f", NOT the angular frequency 
+* The frequency axis of the PDOS is in Hz. It is "f", NOT the angular frequency
   2*pi*f. See also ``examples/pdos_methods.py``.
 
-* The difference to the 1d case: 
+* The difference to the 1d case:
     * mass weighting: this affects only the relative peak `heights` in the
       PDOS, not the peak positions
-    * averaging over `natoms` to get a 1d array (time series) 
+    * averaging over `natoms` to get a 1d array (time series)
 
 
 .. include:: ../refs.rst

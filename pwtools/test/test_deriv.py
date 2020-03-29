@@ -24,4 +24,4 @@ def test_deriv():
         xd, yd = num.deriv_spl(y, x, n=n, fullout=True)
         asrt(func(xd), yd, decimal=decimal)
         assert [len(xd), len(yd)] == [len(x)]*2
-        
+

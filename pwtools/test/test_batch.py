@@ -1,14 +1,14 @@
 from pwtools.batch import Case
 
 def test_case():
-    
+
     c = Case(a=1, b='b')
     assert c.a == 1
     assert c.b == 'b'
 
     class MyCase(Case):
         pass
-    
+
     c = MyCase(a=1, b='b')
     assert c.a == 1
     assert c.b == 'b'

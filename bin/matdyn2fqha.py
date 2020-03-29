@@ -10,7 +10,7 @@
 #   natom
 #   natom   nstep   emax    de
 #   <matdyn.phdos>
-# 
+#
 # where
 #   natom : number of atoms in unit cell
 #   nstep : number of rows in matdyn.phdos
@@ -22,14 +22,14 @@
 #   $ f90 F_QHA.f90 -o fqha.x
 #   # make input file "fqha.in" for fqha.x:
 #   $ cat fqha.in
-#     PHDOS.out   
-#     fqha.out    
-#     10,1500,10 
+#     PHDOS.out
+#     fqha.out
+#     10,1500,10
 #     ! phonon dos file w/ special header
 #     ! file where to write output
 #     ! Tmin,Tmax,dT
 #   $ ./fqha.x < fqha.in
-# 
+#
 # Find results in fqha.out .
 
 import sys
@@ -50,9 +50,9 @@ de = freq[1] - freq[0]
 
 sys.stderr.write("""\
 integal: %f
-natom: %f 
-nstep: %i 
-emax: %f 
+natom: %f
+nstep: %i
+emax: %f
 de: %f
 """%(integral, natom, nstep, emax, de))
 

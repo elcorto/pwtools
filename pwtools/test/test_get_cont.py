@@ -11,7 +11,7 @@ def test_get_cont():
     # applied again since self.units_applied=True.
     pp = parse.PwMDOutputFile(filename=filename)
     tr2 = pp.get_traj(auto_calc=False)
-    
+
     # specific for the used pw.out file, None is everything which is not parsed
     # since nothing is calculated from parsed data
     none_attrs = [
@@ -31,7 +31,7 @@ def test_get_cont():
         'znucl',
         'znucl_unique',
         ]
-    
+
     for name in tr1.attr_lst:
         a1 = getattr(tr1, name)
         a2 = getattr(tr2, name)

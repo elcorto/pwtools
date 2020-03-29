@@ -22,7 +22,7 @@ frequency axis
 --------------
 
 In the literature, the PDOS is defined as depending on omega (angular
-frequency). 
+frequency).
 
 But here, all 3 methods give a frequency axis in f (ordinary cyclic frequency)
 AND NOT IN ANGULAR FREQUENCY (omega)!!!! This is b/c (1) and (2) use scipy.fft
@@ -50,13 +50,13 @@ of doing (2). BTW, (3) is the same as (2) -- direct FFT of velocities.
 Let corr(v,v) == VACF == the velocity autocorrelation. We skip all technical
 details like zero-padding, mirroring, normalization. See also NR, chap. 12
 "Fast Fourier Transform".
-  
+
   Correlation theorem:
     fft(corr(v,w)) = fft(v)*fft(w).conj()
- 
+
   Wiener-Khinchin theorem:
     fft(corr(v,v)) = fft(v)*fft(v).conj() = |fft(v)|^2
-    
+
     =>
     PSD := fft(corr(v,v))         # (1)
          = |fft(v)|^2             # (2), (3)
@@ -71,7 +71,7 @@ all approx. the same height. That's b/c with arr = <velocity>, we are
 integrating (fft-ing) the *derivative* of a time function. Then, with
 integration by parts:
 
-F[v'(t)](f) =             Int(t) v' * exp(i*2*pi*f*t) dt 
+F[v'(t)](f) =             Int(t) v' * exp(i*2*pi*f*t) dt
             = ...
             = -i*2*pi*f * Int(t) v  * exp(i*2*pi*f*t) dt
             = -i*2*pi*f * F[v(t)]
@@ -97,7 +97,7 @@ input is queried in main.f90. These quantities are required in this order:
   - input data file
   - output data file
   - dt in Hartree (see below)
-  - temperature (seems not important for pure power spectrum w/o any prefactor, 
+  - temperature (seems not important for pure power spectrum w/o any prefactor,
         i.e. the 2nd column of the output data file)
   - max frequency in 1/cm
   - frequency increment (always use 1 to do no averaging)
@@ -129,11 +129,11 @@ Some variables in main.f90 and the corresponding value here (main.f90 : here)
 
 Looking thru the code, we find that all 2*pi terms eventually cancel at the
 end. The output frequency axis is "t*wave_fac" in write_file() and t == wtrans
-in main.f90. We have 
+in main.f90. We have
 
     f = i / ((n+1) * 100*c0 * dt)
 
-which is just (almost) the definition of the f-axis for DFT, converted to 1/cm. 
+which is just (almost) the definition of the f-axis for DFT, converted to 1/cm.
 The n+1 might be wrong leading to very slightly shifted frequencies, though.
 """
 
@@ -151,7 +151,7 @@ pj = os.path.join
 def cut_norm(full_y, dt, area=1.0):
     """Cut out an FFT spectrum from scipy.fftpack.fft() (or numpy.fft.fft())
     result and normalize the integral `int(f) y(f) df = area`.
-    
+
     full_y : 1d array
         Result of fft(...)
     dt : time step
@@ -189,7 +189,7 @@ else:
 # `fmax` but extends to higher values (we increase the Nyquist frequency).
 df = 0.001
 fmax = 1
-fmax_extend_fac = 1.5 
+fmax_extend_fac = 1.5
 
 # number of frequencies contained in the signal
 nfreq = 10
@@ -225,7 +225,7 @@ coords = np.sin(2*pi*freqs[:,None]*taxis).sum(axis=0)
 arr = np.diff(coords) # "velocity"
 
 # Our methods 1 and 2 must result in exactly the same after
-# norm_int()'ing them (within numerical noise). 
+# norm_int()'ing them (within numerical noise).
 # In both, we use a Welch window as in fourier.x .
 
 # 1) Zero-pad arr at the end and fft directly. For padding, use nadd=N-1 to get
@@ -263,7 +263,7 @@ if use_fourier:
     common.file_write(fourier_in_fn, fourier_in_txt)
     # In order to make picky gfortrans happy, we need to use savetxt(...,
     # fmt="%g") such that the first column is an integer (1 instead of
-    # 1.0000e+00). 
+    # 1.0000e+00).
     np.savetxt(fourier_in_data_fn, fourier_in_data, fmt='%g')
     common.system("%s < %s > %s" %(fourier_exe, fourier_in_fn, fourier_out_fn))
     fourier_out_data = np.loadtxt(fourier_out_data_fn)
@@ -345,15 +345,15 @@ if use_fourier:
                                                           1)
         common.file_write(fourier_in_fn, fourier_in_txt)
         np.savetxt(fourier_in_data_fn, fourier_in_data, fmt='%g')
-        common.system("{exe} < {inp} >> {log}".format(exe=fourier_exe, 
-                                                      inp=fourier_in_fn, 
+        common.system("{exe} < {inp} >> {log}".format(exe=fourier_exe,
+                                                      inp=fourier_in_fn,
                                                       log=fourier_out_fn))
         fourier_loaded_data = np.loadtxt(fourier_out_data_fn)
         # frequency axis fourier_out_data[:,0] is the same for all atoms, sum up
         # only power spectra
         if iatom == 0:
             fourier_out_data = fourier_loaded_data
-        else:        
+        else:
             fourier_out_data[:,1:] += fourier_loaded_data[:,1:]
     f8 = fourier_out_data[:,0]*(constants.c0*100)
     y8n = num.norm_int(fourier_out_data[:,1], f8)
@@ -373,5 +373,5 @@ axs[-1].set_title('3d arr, with mass')
 axs[-1].plot(f6, y6nm, label='3d vacf')
 axs[-1].plot(f7, y7nm, label='3d direct')
 axs[-1].legend()
- 
+
 plt.show()

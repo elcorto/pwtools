@@ -39,14 +39,14 @@ def add_doc(func):
     # Use dictionary string replacement:
     # >>> '%(lala)i %(xxx)s' %{'lala': 3, 'xxx': 'grrr'}
     # '3 grrr'
-    func.__doc__ = func.__doc__ % dct 
+    func.__doc__ = func.__doc__ % dct
     return func
 
 
 @add_doc
 def particle_nhc_masses(freq, temp, nf=None, nnos=4):
     """Fictitious masses Q_p for the particle NHC to thermostat the atoms.
-    
+
     Abinit: qmass for ionmov 13.
 
     Parameters
@@ -71,7 +71,7 @@ def particle_nhc_masses(freq, temp, nf=None, nnos=4):
 @add_doc
 def barostat_nhc_masses(freq, temp, ndim=3, nnos=4):
     """Fictitious masses Q_b for the barostat NHC to thermostat the barostat.
-    
+
     There is NO equivalent in Abinit. I think they use the particle NHC also
     for the barostat.
 
@@ -98,7 +98,7 @@ def barostat_nhc_masses(freq, temp, ndim=3, nnos=4):
 def barostat_mass_w(freq, temp, nf=None, ndim=3):
     """Fictitious mass W for the barostat itself for isotropic cell
     fluctuations.
-    
+
     Abinit: bmass for ionmov 13 + optcell 1.
 
     Parameters
@@ -118,7 +118,7 @@ def barostat_mass_w(freq, temp, nf=None, ndim=3):
 @add_doc
 def barostat_mass_wg(freq, temp, nf=None, ndim=3):
     """Fictitious mass W_g for the barostat itself for full cell fluctuations.
-    
+
     Abinit: bmass for ionmov 13 + optcell 2.
 
     Parameters

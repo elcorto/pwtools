@@ -3,11 +3,11 @@ from pwtools.parse import PwSCFOutputFile
 from pwtools import common, io
 from pwtools.constants import Ang, Bohr
 from pwtools.test.tools import aaae, assert_attrs_not_none, adae, \
-    unpack_compressed 
-from pwtools.test import tools    
+    unpack_compressed
+from pwtools.test import tools
 
 def test_pw_scf_out():
-    
+
     # ref data for Structure, all lengths in Ang, energy in eV
     natoms = 2
     symbols = ['Si', 'Si']
@@ -42,16 +42,16 @@ def test_pw_scf_out():
     # use_alat=False. Provide high-precision alat from outside (e.g.
     # from pw.in instead of parsing and using low-precision value from pw.out).
     # Here we use the same alat for the tests.
-    pp1 = PwSCFOutputFile(filename=filename, 
+    pp1 = PwSCFOutputFile(filename=filename,
                          use_alat=False, # alat=1.0
                          units={'length': alat*Bohr/Ang})
     struct1 = pp1.get_struct() # pp1.parse() called here
-    assert_attrs_not_none(struct1) 
-    assert_attrs_not_none(pp1) 
+    assert_attrs_not_none(struct1)
+    assert_attrs_not_none(pp1)
     assert pp1.scf_converged is True
     assert alat == pp1.get_alat(True)
     assert 1.0 == pp1.get_alat(False)
-    
+
     aaae(cryst_const, struct1.cryst_const)
     aaae(cell, struct1.cell)
     aaae(coords, struct1.coords)
@@ -61,28 +61,28 @@ def test_pw_scf_out():
     assert np.allclose(volume, struct1.volume)
     assert np.allclose(etot, struct1.etot)
     assert np.allclose(pressure, struct1.pressure)
-    
+
     # use_alat=True, alat = 10.2626 Bohr
     pp2 = PwSCFOutputFile(filename=filename, use_alat=True)
     struct2 = pp2.get_struct() # pp.parse() called here
-    assert_attrs_not_none(struct2) 
-    assert_attrs_not_none(pp2) 
+    assert_attrs_not_none(struct2)
+    assert_attrs_not_none(pp2)
     assert np.allclose(alat, pp2.alat)
     assert pp2.scf_converged is True
     assert alat == pp2.get_alat(True)    # Bohr
     assert 1.0 == pp2.get_alat(False)
-    
+
     # Skip coords adn cell b/c they are modified by self.alat and
-    # pp1.alat = 1.0, pp2.alat = 10.2626 
+    # pp1.alat = 1.0, pp2.alat = 10.2626
     attr_lst = common.pop_from_list(pp1.attr_lst, ['coords', 'cell'])
-    adae(pp1.__dict__, pp2.__dict__, keys=attr_lst)         
+    adae(pp1.__dict__, pp2.__dict__, keys=attr_lst)
 
     attr_lst = struct1.attr_lst
-    adae(struct1.__dict__, struct2.__dict__, keys=attr_lst)         
-    
+    adae(struct1.__dict__, struct2.__dict__, keys=attr_lst)
+
     pp3 = PwSCFOutputFile(filename=filename)
     assert alat == pp3.get_alat() # self.use_alat=True default
-    
+
     common.system('gzip %s' %filename)
 
 def test_pw_scf_no_forces_stress():

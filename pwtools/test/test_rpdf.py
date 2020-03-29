@@ -24,12 +24,12 @@ if doplot:
 
 def load_old(fn):
     # Load old ref data and reshape:
-    # (natoms, 3, nstep) -> (nstep, natoms, 3)    
+    # (natoms, 3, nstep) -> (nstep, natoms, 3)
     arr = arrayio.readtxt(fn)
     arr2 = np.rollaxis(arr, 2, 0)
     for istep in range(arr.shape[-1]):
         assert (arr[...,istep] == arr2[istep,...]).all()
-    return arr2        
+    return arr2
 
 def test_rpdf():
     have_vmd = os.system('which vmd > /dev/null 2>&1') == 0
@@ -39,7 +39,7 @@ def test_rpdf():
         if name == 'rand_3d':
             # 2 Trajectory = 2 selections
             cell = np.loadtxt(pj(dd, name + '.cell.txt'))
-            coords_frac = [load_old(pj(dd, name + '.coords0.txt')), 
+            coords_frac = [load_old(pj(dd, name + '.coords0.txt')),
                            load_old(pj(dd, name + '.coords1.txt'))]
             trajs = [crys.Trajectory(coords_frac=cf, cell=cell) for cf in
                      coords_frac]
@@ -52,12 +52,12 @@ def test_rpdf():
             struct = parse.CifFile(pj(dd, name + '.cif')).get_struct()
             trajs = [struct]
             cell = struct.cell
-        
+
         ret = crys.rpdf(trajs, rmax=5.0, dr=0.05, pbc=True)
 
         # rpdf() -- compere w/ ref
         results = {'rad':       ret[:,0],
-                   'hist':      ret[:,1], 
+                   'hist':      ret[:,1],
                    'num_int':   ret[:,2],
                    'rmax_auto': np.array(crys.rmax_smith(cell)),
                    }
@@ -77,7 +77,7 @@ def test_rpdf():
                 # slight numerical noise
                 np.testing.assert_array_almost_equal(ref, val, decimal=3)
                 print(("    key: %s ... ok" %key))
-        
+
         # API
         if name.startswith('aln_'):
             sy = np.array(trajs[0].symbols)
@@ -97,7 +97,7 @@ def test_rpdf():
     aae(ret1, ret2)
     ret3 = crys.rpdf(traj, rmax=5.0, dr=0.05, pbc=True)
     aae(ret1, ret3)
-    
+
     # dmask
     ret = crys.rpdf(traj, rmax=5.0, dr=0.05, dmask='>=2.0')
     msk = ret[:,0] >= 2.0
@@ -113,19 +113,19 @@ def test_rpdf():
     assert (ret[msk, 1] >  0.0).any()
     assert (ret[imsk,1] == 0.0).all()
 
-    if have_vmd:                        
+    if have_vmd:
         # slicefirst and API
         print("vmd_measure_gofr: slicefirst ...")
         traj = crys.Trajectory(coords_frac=rand(100,20,3),
                                cell=np.identity(3)*20,
                                symbols=['O']*5+['H']*15)
-        
+
         for first,last,step in [(0,-1,1), (20, 80, 10)]:
             ret = []
             for sf in [True, False]:
                 print("first=%i, last=%i, step=%i, slicefirst=%s" %(first,
                     last, step, sf))
-                tmp = crys.vmd_measure_gofr(traj, 
+                tmp = crys.vmd_measure_gofr(traj,
                                             dr=0.1,
                                             rmax='auto',
                                             sel=['all', 'all'],
@@ -138,11 +138,11 @@ def test_rpdf():
                                             verbose=False,
                                             )
                 ret.append(tmp)
-        
+
             assert np.allclose(ret[0][:,0], ret[1][:,0])
             assert np.allclose(ret[0][:,1], ret[1][:,1])
             assert np.allclose(ret[0][:,2], ret[1][:,2])
-        
+
         # API call_vmd_measure_gofr()
         trajfn = pj(testdir, 'vmd_xsf_call_vmd_measure_gofr')
         data = io.write_axsf(trajfn, traj)
@@ -152,7 +152,7 @@ def test_rpdf():
                                  verbose=False)
 
         # compare results, up to L/2 = rmax_auto = 10 = rmax_smith(cell)
-        
+
         # all-all, hist will differ
         rmax = 10
         vmd = crys.vmd_measure_gofr(traj, dr=0.1, sel=['all', 'all'], rmax=10)
@@ -160,7 +160,7 @@ def test_rpdf():
         assert np.allclose(vmd[:-1,0], pwt[:,0])  # rad
         ##assert np.allclose(vmd[:-1,1], pwt[:,1]) # hist
         assert np.allclose(vmd[:-1,2], pwt[:,2])  # num_int
-        
+
         # 2 selections, all ok
         sy = np.array(traj.symbols)
         vmd = crys.vmd_measure_gofr(traj, dr=0.1, sel=['name O', 'name H'], rmax=10)
@@ -168,6 +168,6 @@ def test_rpdf():
         assert np.allclose(vmd[:-1,0], pwt[:,0])  # rad
         assert np.allclose(vmd[:-1,1], pwt[:,1])  # hist
         assert np.allclose(vmd[:-1,2], pwt[:,2])  # num_int
-        
+
         if doplot:
             plt.show()

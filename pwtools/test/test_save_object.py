@@ -1,6 +1,6 @@
 # Data persistence. Parse some data into a PwMDOutputFile object and save the
 # whole object in binary to disk using the dump() method, which actually uses
-# pickle. 
+# pickle.
 
 import os, tempfile
 import numpy as np

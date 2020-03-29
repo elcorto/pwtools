@@ -27,11 +27,11 @@ initio code output and :mod:`~pwtools.pwscf`, all other parts of the package
 are completely independent from any external simulation code's output.
 Especially the parameter study tools in :mod:`~pwtools.batch` can be used for
 any kind of (computational) study, since only user-supplied template files are
-used. 
+used.
 
 [*] Last time I checked, I stumbled over a `mailing list thread`_ where they said
 that in LCAO mode, the density would be re-used between steps.
 
-.. _mailing list thread: https://listserv.fysik.dtu.dk/pipermail/gpaw-users/2013-April/002044.html  
+.. _mailing list thread: https://listserv.fysik.dtu.dk/pipermail/gpaw-users/2013-April/002044.html
 
 .. include:: ../refs.rst

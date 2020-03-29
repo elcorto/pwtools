@@ -9,14 +9,14 @@
 
 # usage:
 #   plot_dispersion.py matdyn.freq
-#   
+#
 # matdyn.x must have been instructed to calculate a phonon dispersion along a
 # predefined path in the BZ. e.g. natom=2, nbnd=6, 101 k-points on path
-#     
+#
 # `matdyn.in`::
 #
 #     &input
-#         asr='crystal',  
+#         asr='crystal',
 #         amass(1)=26.981538,
 #         amass(2)=14.00674,
 #         flfrc='fc',
@@ -35,7 +35,7 @@
 #     <k-point, (3,)>
 #     <frequencies,(nbnd,)
 #     ...
-# 
+#
 # for example::
 #
 #     &plot nbnd=   6, nks= 101 /
@@ -53,7 +53,7 @@ if __name__ == '__main__':
     import sys
     from pwtools.pwscf import read_matdyn_freq
     from pwtools.kpath import plot_dis, get_path_norm
-    
+
     if len(sys.argv) > 2:
         warnings.warn('kpath definition file no longer supported')
 
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     ##data = np.loadtxt(sys.argv[1])
     ##path_norm = data[:,0]
     ##freqs = data[:,1:]
-    
+
     ks, freqs = read_matdyn_freq(sys.argv[1])
     path_norm = get_path_norm(ks)
 

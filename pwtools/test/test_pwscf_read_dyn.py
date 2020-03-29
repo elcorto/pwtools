@@ -53,10 +53,10 @@ vecs_imag_ref = 0.03*vecs_real_ref
 def test_read_matdyn():
     # matdyn.freq
     kpoints, freqs = pwscf.read_matdyn_freq('files/matdyn.freq')
-    
+
     aae(kpoints, kpoints_ref)
     aae(freqs, freqs_ref)
-    
+
     # matdyn modes: read_matdyn_modes()
     qpoints, freqs, vecs = pwscf.read_matdyn_modes('files/matdyn.modes',
                                                    natoms=2)
@@ -67,7 +67,7 @@ def test_read_matdyn():
 
 def test_read_all_dyn():
     # matdyn modes: read_all_dyn()
-    qpoints, freqs, vecs = pwscf.read_all_dyn('files/dyn/', nqpoints=2, 
+    qpoints, freqs, vecs = pwscf.read_all_dyn('files/dyn/', nqpoints=2,
                                               natoms=2, base='ph.dyn')
     aae(qpoints, qpoints_ref)
     aae(freqs, freqs_modes_ref)
@@ -170,7 +170,7 @@ def test_read_dynmat():
     assert np.allclose(dct['ir'], ir_ref)
     assert np.allclose(dct['raman'], raman_ref)
     assert np.allclose(dct['depol'], depol_ref)
-    
+
     dct = pwscf.read_dynmat_ir_raman(filename='files/dynmat/dynmat_min.out',
                                      natoms=natoms)
     assert np.allclose(dct['freqs'], freqs_ref)

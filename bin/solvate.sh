@@ -26,7 +26,7 @@ will produce
 options
 -------
 All options are passed to Gromacs, such as "-nmol" and "-seed". Run
-    gmx help insert-molecules 
+    gmx help insert-molecules
 for more options.
 
 example
@@ -39,23 +39,23 @@ EOF
 err(){
     echo "error: $@"
     exit 1
-}    
+}
 
 [ $# -eq 0 ] && err "no input args"
-if echo "$@" | grep -qEe '-h|--help'; then 
-    usage 
+if echo "$@" | grep -qEe '-h|--help'; then
+    usage
     exit 0
 fi
 
-if echo "$@" | grep -qEe '-ci '; then 
+if echo "$@" | grep -qEe '-ci '; then
     default_ci=
-else    
+else
     default_ci="-ci water.pdb"
     cat > water.pdb << eof
-ATOM      1  O  OSP3    1       4.013   0.831  -9.083  1.00  0.00              
-ATOM      2 1H  OSP3    1       4.941   0.844  -8.837  1.00  0.00              
-ATOM      3 2H  OSP3    1       3.750  -0.068  -9.293  1.00  0.00              
-TER                                                                             
+ATOM      1  O  OSP3    1       4.013   0.831  -9.083  1.00  0.00
+ATOM      2 1H  OSP3    1       4.941   0.844  -8.837  1.00  0.00
+ATOM      3 2H  OSP3    1       3.750  -0.068  -9.293  1.00  0.00
+TER
 eof
 fi
 
@@ -69,7 +69,7 @@ out_cif=${name}_gmx.cif
 
 # add -ci molecule
 # older Gromacs versions (< 5.x I guess) have a tool called genbox, with
-# slighty different options, smth like 
+# slighty different options, smth like
 #   genbox_d -ci water.pdb -cp foo_gmx.pdb -nmol 18 -o foo_gmx.pdb
 gmx insert-molecules $@ $default_ci -f $start_gmx -o $out_gmx >> $logfile 2>&1
 

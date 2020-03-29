@@ -11,17 +11,17 @@ from pwtools import parse, crys, constants, common, io
 pj = os.path.join
 
 if __name__ == '__main__':
-    
+
     tmpdir = '/tmp/rpdf_vmd_test/'
     if not os.path.exists(tmpdir):
         os.makedirs(tmpdir)
     dct = {}
-    
+
     common.system("gunzip pw.out.gz")
     traj = io.read_pw_md('pw.out')
     common.system("gzip pw.out")
     symbols = np.array(traj.symbols)
-    
+
     # O_Ca
     msk1 = symbols=='O'
     msk2 = symbols=='Ca'
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     dct['O:Ca:-1:-1'] = {'amask': amask, 'tmask': tmask}
     tmask = np.s_[0:]
     dct['O:Ca:0:-1'] = {'amask': amask, 'tmask': tmask}
-    
+
     # Ca_O
     msk1 = symbols=='Ca'
     msk2 = symbols=='O'
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     dct['Ca:O:-1:-1'] = {'amask': amask, 'tmask': tmask}
     tmask = np.s_[0:]
     dct['Ca:O:0:-1'] = {'amask': amask, 'tmask': tmask}
-    
+
     # O_H
     msk1 = symbols=='O'
     msk2 = symbols=='H'
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     dct['O:H:-1:-1'] = {'amask': amask, 'tmask': tmask}
     tmask = np.s_[0:]
     dct['O:H:0:-1'] = {'amask': amask, 'tmask': tmask}
-    
+
     # all_all
     amask = None
     tmask = np.s_[-1]
@@ -61,8 +61,8 @@ if __name__ == '__main__':
         print("--- %s ---" %key)
         print("pwtools ...")
         out_pwt = \
-            crys.rpdf(traj, 
-                      dr=dr, 
+            crys.rpdf(traj,
+                      dr=dr,
                       tmask=val['tmask'],
                       amask=val['amask'],
                       )
@@ -75,9 +75,9 @@ if __name__ == '__main__':
             s2 = "name %s" %s2
         print("vmd ...")
         out_vmd = \
-            crys.vmd_measure_gofr(traj, 
-                                  dr=dr, 
-                                  rmax='auto', 
+            crys.vmd_measure_gofr(traj,
+                                  dr=dr,
+                                  rmax='auto',
                                   sel=[s1,s2],
                                   first=first,
                                   last=last,
@@ -91,5 +91,5 @@ if __name__ == '__main__':
         plt.plot(out_vmd[:,0], out_vmd[:,2], 'r')
         plt.title(key)
         plt.legend()
-    
+
     plt.show()

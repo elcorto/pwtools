@@ -10,15 +10,15 @@ pj = os.path.join
 from pwtools.sql import sql_column, sql_matrix
 
 class Machine(object):
-    """Container for machine-specific stuff. 
-    
+    """Container for machine-specific stuff.
+
     Most of the machine-specific settings can (and should) be placed in the
     corresponding job template file. But some settings need to be in sync
     between files like the scratch dir, the $HOME etc.
-    
+
     Useful to predefine commonly used machines.
     """
-    def __init__(self, hostname=None, subcmd=None, scratch=None, 
+    def __init__(self, hostname=None, subcmd=None, scratch=None,
                  home=None, template=None, filename=None):
         """
         Parameters
@@ -50,7 +50,7 @@ class Machine(object):
                          ]
         if (self.template is None) and (self.filename is not None):
             self.template = FileTemplate(filename=self.filename)
-    
+
     def get_jobfile_basename(self):
         if self.template is not None:
             return self.template.basename
@@ -59,23 +59,23 @@ class Machine(object):
 
     def get_sql_record(self):
         """Return a dict of SQLEntry instances. Each key is a attr name from
-        self.attr_lst. """        
+        self.attr_lst. """
         dct = {}
         for key in self.attr_lst:
             val = getattr(self, key)
             dct[key] = SQLEntry(key=key, sqlval=val)
         return dct
-    
+
 
 class FileTemplate(object):
     """Class to represent a template file in parameter studies.
-    
+
     Each template file is supposed to contain a number of placeholder strings
     (e.g. XXXFOO or @foo@ or whatever other form). The `dct` passed to
     self.write() is a dict which contains key-value pairs for replacement (e.g.
     {'foo': 1.0, 'bar': 'say-what'}, keys=dct.keys()). Each key is converted to
     a placeholder by `func`.
-    
+
     We use common.template_replace(..., mode='txt'). dict-style placeholders
     like "%(foo)s %(bar)i" will not work.
 
@@ -84,14 +84,14 @@ class FileTemplate(object):
     This will take a template file calc.templ/pw.in, replace the placeholders
     "@prefix@" and "@ecutwfc@" with some values and write the file to
     calc/0/pw.in .
-    
+
     Fist, set up a dictionary which maps placeholder to values. Remember,
     that the placeholders in the files will be obtained by processing the
     dictionary keys with `func`. In the example, this will be::
-    
+
         'prefix' -> '@prefix@'
         'ecutwfc' -> '@ecutwfc@'
-    
+
     ::
 
         >>> dct = {}
@@ -106,7 +106,7 @@ class FileTemplate(object):
         >>> templ = FileTemplate(filename='calc.templ/pw.in',
         ...                      func=lambda x: "@%s@" %x)
         >>> templ.write(dct, 'calc/0')
-        >>> 
+        >>>
         >>> # Now with `keys` explicitely.
         >>> templ = FileTemplate(filename='calc.templ/pw.in',
         ...                      keys=['prefix', 'ecutwfc'],
@@ -115,7 +115,7 @@ class FileTemplate(object):
         >>>
         >>> # or with SQL foo in a parameter study
         >>> from sql import SQLEntry
-        >>> dct = {}                     
+        >>> dct = {}
         >>> dct['prefix']  = SQLEntry(sqlval='foo_run_1')
         >>> sct['ecutwfc'] = SQLEntry(sqlval=23.0)
         >>> templ.writesql(dct, 'calc/0')
@@ -180,14 +180,14 @@ class FileTemplate(object):
             self.templ_dir = os.path.dirname(filename)
             self.basename = os.path.basename(filename)
         self.func = func
-        
+
     def write(self, dct, calc_dir='calc', mode='dct'):
-        """Write file self.filename (e.g. calc/0/pw.in) by replacing 
+        """Write file self.filename (e.g. calc/0/pw.in) by replacing
         placeholders in the template (e.g. calc.templ/pw.in).
-        
+
         Parameters
         ----------
-        dct : dict 
+        dct : dict
             key-value pairs, dct.keys() are converted to placeholders with
             self.func()
         calc_dir : str
@@ -218,39 +218,39 @@ class FileTemplate(object):
             else:
                 txt = self.txt
             copy_only = False
-        
+
         tgt = pj(calc_dir, self.basename)
         verbose("write: %s" %tgt)
-        if copy_only:    
+        if copy_only:
             verbose("write: ignoring input, just copying file to %s"
                     %(self.filename, tgt))
             shutil.copy(self.filename, tgt)
-        else:            
+        else:
             rules = {}
             for key in _keys:
                 if mode == 'dct':
                     rules[self.func(key)] = dct[key]
-                elif mode == 'sql':                    
+                elif mode == 'sql':
                     # dct = sql_record, a list of SQLEntry's
                     rules[self.func(key)] = dct[key].fileval
                 else:
                     raise Exception("'mode' must be wrong")
-            new_txt = common.template_replace(txt, 
-                                              rules, 
+            new_txt = common.template_replace(txt,
+                                              rules,
                                               mode='txt',
                                               conv=True,
                                               warn_not_found=warn_not_found,
                                               warn_mult_found=False,
                                               disp=False)
-            common.file_write(tgt, new_txt) 
-                                  
+            common.file_write(tgt, new_txt)
+
     def writesql(self, sql_record, calc_dir='calc'):
         self.write(sql_record, calc_dir=calc_dir, mode='sql')
 
 
 class Calculation(object):
     """Represent a single calculation.
-    
+
     The calculation data will be placed, e.g., in dir calc_foo/0/. A
     Calculation is bound to one Machine. This class is usually not used on it's
     own, but only by ParameterStudy.
@@ -303,7 +303,7 @@ class Calculation(object):
         # database
         self.sql_record_write = copy.deepcopy(self.sql_record)
         if self.machine is not None:
-            self.sql_record_write.update(self.machine.get_sql_record())                                           
+            self.sql_record_write.update(self.machine.get_sql_record())
             # use machine.template if it has one
             if self.machine.template is not None:
                 self.templates.append(self.machine.template)
@@ -327,42 +327,42 @@ class Calculation(object):
 class ParameterStudy(object):
     """Class to represent a parameter study (a number of Calculations,
     based on template files).
-    
+
     The basic idea is to assemble all to-be-varied parameters in a script
     outside (`params_lst`) and pass these to this class along with a list of
     `templates` files, usually software input files. Then, a simple loop over
-    the parameter sets is done and input files are written. 
+    the parameter sets is done and input files are written.
 
     Calculation dirs are numbered automatically. The default is
 
         ``calc_dir = <calc_root>/<calc_dir_prefix>_<machine.hostname>``, e.g.
         ``./calc_foo``
-    
+
     and each calculation for each parameter set
 
         | ``./calc_foo/0``
         | ``./calc_foo/1``
         | ``./calc_foo/2``
         | ``...``
-    
+
     A sqlite database ``calc_dir_root/<db_name>`` is written. If this class
     operates on a `calc_dir_root` where such a database already exists, then
     the default is to append new calculations. The numbering of calc dirs
     continues at the end. This can be changed with the `mode` kwarg of
     :meth:`~ParameterStudy.write_input`. By default, a sql column "revision" is
     added which numbers each addition.
-    
+
     Examples
     --------
     >>> # Here are some examples for constructing `params_lst`.
-    >>> 
+    >>>
     >>> # Vary two (three, ...) parameters on a 2d (3d, ...) grid: In fact, the
     >>> # way you are constructing params_lst is only a matter of zip() and
     >>> # comb.nested_loops()
     >>> par1 = sql.sql_column('par1', [1,2,3])
     >>> par2 = sql.sql_column('par2', ['a','b'])
     >>> par3 = ...
-    >>> # 3d grid   
+    >>> # 3d grid
     >>> params_lst = comb.nested_loops([par1, par2, par3])
     >>> # which is the same as:
     >>> params_lst = []
@@ -377,7 +377,7 @@ class ParameterStudy(object):
     >>> # vary par1 and par2 together, and par3 -> 2d grid w/ par1+par2 on one
     >>> # axis and par3 on the other
     >>> params_lst = comb.nested_loops([zip(par1, par2), par3], flatten=True)
-    
+
     See ``examples/parameter_study/`` for complete examples, as well as
     ``test/test_parameter_study.py``.
 
@@ -390,29 +390,29 @@ class ParameterStudy(object):
     # more notes
     # ----------
     # The `params_lst` list of lists is a "matrix" which in fact represents the
-    # sqlite database table. 
-    # 
+    # sqlite database table.
+    #
     # The most simple case is when we vary only one parameter::
     #
-    #     [[SQLEntry(key='foo', sqlval=1.0)], 
+    #     [[SQLEntry(key='foo', sqlval=1.0)],
     #      [SQLEntry(key='foo', sqlval=2.0)]]
-    # 
+    #
     # The sqlite database would have one column and look like this::
-    #     
-    #     foo   
-    #     ---   
+    #
+    #     foo
+    #     ---
     #     1.0   # calc_foo/0
     #     2.0   # calc_foo/1
-    # 
+    #
     # Note that you have one entry per row [[...], [...]], like in a
     # column vector, b/c "foo" is a *column* in the database and b/c each
     # calculation is represented by one row (record).
-    # 
+    #
     # Another example is a 2x2 setup (vary 2 parameters 'foo' and 'bar')::
     #
     #     [[SQLEntry(key='foo', sqlval=1.0), SQLEntry(key='bar', sqlval='lala')],
     #      [SQLEntry(key='foo', sqlval=2.0), SQLEntry(key='bar', sqlval='huhu')]]
-    # 
+    #
     # Here we have 2 parameters "foo" and "bar" and the sqlite db would
     # thus have two columns::
     #
@@ -420,13 +420,13 @@ class ParameterStudy(object):
     #     ---   ---
     #     1.0   lala  # calc_foo/0
     #     2.0   huhu  # calc_foo/1
-    # 
+    #
     # Each row (or record in sqlite) will be one Calculation, getting
     # it's own dir.
     def __init__(self, machines=[], templates=[], params_lst=[], study_name='calc',
                  db_name='calc.db', db_table='calc', calc_root=os.curdir,
                  calc_dir_prefix='calc'):
-        """                 
+        """
         Parameters
         ----------
         machines : sequence or Machine
@@ -439,8 +439,8 @@ class ParameterStudy(object):
                 [[SQLEntry(...), SQLEntry(...), ...], # calc_foo/0
                  [SQLEntry(...), SQLEntry(...), ...], # calc_foo/1
                  ...
-                ] 
-            
+                ]
+
             For each sublist, a separate calculation dir is created and
             populated with files based on `templates`. The `key` attribute of
             each SQLEntry will be converted to a placeholder in each
@@ -482,7 +482,7 @@ class ParameterStudy(object):
         based on ``templates``. Write sqlite database storing all relevant
         parameters. Write (bash) shell script to start all calculations (run
         locally or submitt batch job file, depending on ``machine.subcmd``).
-    
+
         Parameters
         ----------
         mode : str, optional
@@ -490,7 +490,7 @@ class ParameterStudy(object):
             dirs calc_foo/0/, calc_foo/1/, ... . Note that this doesn't change
             the base dir calc_foo at all, only the subdirs for each calc.
             {'a', 'w'}
-            
+
             | 'a': Append mode (default). If a previous database is found, then
             |     subsequent calculations are numbered based on the last 'idx'.
             |     calc_foo/0 # old
@@ -569,16 +569,16 @@ class ParameterStudy(object):
                                 extra_dct.items()]
                 # templates[:] to copy b/c they may be modified in Calculation
                 calc = Calculation(machine=machine,
-                                   templates=self.templates[:], 
+                                   templates=self.templates[:],
                                    params=params + extra_params,
                                    calc_dir=calc_subdir,
                                    )
                 if mode == 'w' and os.path.exists(calc_subdir):
                     shutil.rmtree(calc_subdir)
-                calc.write_input()                               
+                calc.write_input()
                 run_txt += "cd %i && %s %s && cd $here && sleep %i\n" %(idx,\
                             machine.subcmd, machine.get_jobfile_basename(), sleep)
-                if imach == 0:                            
+                if imach == 0:
                     sql_records.append(calc.get_sql_record())
             common.file_write(pj(calc_dir, 'run.sh'), run_txt)
         for record in sql_records:
@@ -615,7 +615,7 @@ def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s", mode='last', orig=False,
     `yy` values. Return a string (table) listing::
 
         x, dy1, dy2, ...
-    
+
     Useful for quickly viewing the results of a convergence study, where we
     assume that the sequence of `yy` values converges to a constant value.
 
@@ -632,7 +632,7 @@ def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s", mode='last', orig=False,
     orig : bool
         Print original `yy` data as well.
     absdiff : bool
-        absolute values of differences 
+        absolute values of differences
 
     Examples
     --------
@@ -640,9 +640,9 @@ def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s", mode='last', orig=False,
     >>> etot = [-300.0, -310.0, -312.0]
     >>> forces_rms = [0.3, 0.2, 0.1]
     >>> print batch.conv_table(kpoints, etot, mode='last')
-          2 2 2       -12.0000 
-          4 4 4        -2.0000 
-          8 8 8         0.0000 
+          2 2 2       -12.0000
+          4 4 4        -2.0000
+          8 8 8         0.0000
     >>> print batch.conv_table(kpoints, [etot,forces_rms], mode='last')
           2 2 2       -12.0000        -0.2000
           4 4 4        -2.0000        -0.1000
@@ -668,13 +668,13 @@ def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s", mode='last', orig=False,
         if mode == 'next':
             dyy[-1,iy] = 0.0
             dyy[:-1,iy] = np.diff(yy[:,iy])
-        elif mode == 'last':    
+        elif mode == 'last':
             dyy[:,iy] = yy[-1,iy] - yy[:,iy]
         else:
             raise Exception("unknown mode")
     if absdiff:
         dyy = np.abs(dyy)
-    if orig:            
+    if orig:
         fmtstr = ("%s"*(2*ny+1) + "\n") %((sfmt,) + (ffmt,)*2*ny)
     else:
         fmtstr = ("%s"*(ny+1)   + "\n") %((sfmt,) + (ffmt,)*ny)
@@ -710,7 +710,7 @@ def default_repl_keys():
     calc_root = tempfile.mkdtemp()
     jobfn_templ = pj(calc_root, 'foo.job')
     common.file_write(jobfn_templ, 'dummy job template, go away!')
-    m = Machine(hostname='foo', 
+    m = Machine(hostname='foo',
                 template=FileTemplate(basename='foo.job',
                                       templ_dir=calc_root))
     print("writing test files to: %s, will be deleted" %calc_root)
@@ -734,7 +734,7 @@ class Case(object):
     constructor. This is essentially the same as a dictionary, just with
     another syntax for attribute access, i.e. ``case.foo`` instead of
     ``case['foo']``.
-    
+
     Sometimes you want to do more than storing values. Then, you need to
     subclass Case and do stuff in ``__init__``. But don't call
     ``Case.__init__`` as in ::
@@ -743,14 +743,14 @@ class Case(object):
             def __init__(self, *args, **kwds):
                 super(Case, self).__init__(*args, **kwds)
                     self.z = self.x + self.y
-    
+
     Instead, define a method called ``init``, which is automatically called if
     it exists. ::
-        
+
         class MyCase(Case):
             def init(self):
                 self.z = self.x + self.y
-    
+
     Examples
     --------
     >>> case1 = Case(x=1, y=2)
@@ -760,6 +760,6 @@ class Case(object):
     def __init__(self, **kwds):
         for k,v in kwds.items():
             setattr(self, k, v)
-        
+
         if hasattr(self, 'init') and isinstance(self.init, collections.Callable):
             eval('self.init()')

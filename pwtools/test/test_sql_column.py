@@ -2,29 +2,29 @@ from pwtools.sql import sql_column
 from nose.tools import raises
 
 def test_sql_column():
-    x = sql_column(key='foo', 
-                   sqltype='integer', 
+    x = sql_column(key='foo',
+                   sqltype='integer',
                    lst=[1,2,3])
     for num, xx in zip([1,2,3], x):
         assert xx.sqlval == num
         assert xx.fileval == num
-    
-    x = sql_column(key='foo', 
-                   sqltype='integer', 
-                   lst=[1,2,3], 
+
+    x = sql_column(key='foo',
+                   sqltype='integer',
+                   lst=[1,2,3],
                    fileval_func=lambda z: "k=%i"%z)
     for num, xx in zip([1,2,3], x):
         assert xx.sqlval == num
-        assert xx.fileval == "k=%i" %num 
+        assert xx.fileval == "k=%i" %num
 
-    x = sql_column(key='foo', 
-                   sqltype='integer', 
-                   lst=[1,2,3], 
+    x = sql_column(key='foo',
+                   sqltype='integer',
+                   lst=[1,2,3],
                    sqlval_func=lambda z: z**2,
                    fileval_func=lambda z: "k=%i"%z)
     for num, xx in zip([1,2,3], x):
         assert xx.sqlval == num**2
-        assert xx.fileval == "k=%i" %num        
+        assert xx.fileval == "k=%i" %num
 
     for xx in sql_column('foo', [1,2]):
         assert xx.sqltype == 'INTEGER'
@@ -34,4 +34,4 @@ def test_sql_column():
 @raises(AssertionError)
 def test_sql_column_fail_for_mixed_types():
     s = sql_column('foo', [1,2.0])
-        
+

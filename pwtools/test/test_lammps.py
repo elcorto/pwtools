@@ -11,7 +11,7 @@ def test_write_lammps():
                         cell=rand(3,3),
                         symbols=['Al']*10+['N']*10)
     # align cell to lammps standard [[x,0,0],...]
-    st.coords = None  
+    st.coords = None
     st.cell = None
     st.set_all()
     st_fn = common.pj(testdir, 'lmp.struct')
@@ -44,25 +44,25 @@ def run(tgz, skip=[], atol_map={}):
         x1 = getattr(tr1, name)
         x2 = getattr(tr2, name)
         print(name)
-        tools.assert_all_types_almost_equal(x1, x2) 
+        tools.assert_all_types_almost_equal(x1, x2)
     # stress
     assert (tr1.stress[:,0,1] == tr1.stress[:,1,0]).all()
     assert (tr1.stress[:,0,2] == tr1.stress[:,2,0]).all()
     assert (tr1.stress[:,1,2] == tr1.stress[:,2,1]).all()
 
 def test_parse_nvt():
-    run('files/lammps/md-nvt.tgz', 
-        skip=['forces'], 
+    run('files/lammps/md-nvt.tgz',
+        skip=['forces'],
         atol_map={'velocity': 1e-2, 'coords_frac': 1e-6})
 
 def test_parse_npt():
-    run('files/lammps/md-npt.tgz', 
-        skip=['forces', 'coords_frac', 'velocity'], 
+    run('files/lammps/md-npt.tgz',
+        skip=['forces', 'coords_frac', 'velocity'],
         atol_map={'volume': 1e-4})
 
 def test_parse_vc_relax():
-    run('files/lammps/vc-relax.tgz', 
-        skip=['forces', 'coords_frac', 'velocity'], 
+    run('files/lammps/vc-relax.tgz',
+        skip=['forces', 'coords_frac', 'velocity'],
         atol_map={'volume': 1e-4})
 
 def test_missing_files():
@@ -76,7 +76,7 @@ def test_mix_output():
     # Mixing 'run' and 'minimize' commands (and/or using either command
     # multiple times) causes massive jibber-jabber text output in log.lammps,
     # which we filter. Check if we get the  "thermo_style custom" data between
-    # "Step..." and "Loop..." from each command. 
+    # "Step..." and "Loop..." from each command.
     #
     # In this test, we have 3 commands (minimize, run (short MD), minimize),
     # which are all set to perform 10 steps, so we have 30 in total. Due to

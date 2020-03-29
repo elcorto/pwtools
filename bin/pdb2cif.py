@@ -12,7 +12,7 @@ def help(prog):
     print("""
 usage
 -----
-{} input.pdb [output.cif]   
+{} input.pdb [output.cif]
 """.format(prog))
 
 if __name__ == '__main__':
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     infile = argv[1]
     if len(argv) == 3:
         outfile = argv[2]
-    else:    
+    else:
         outfile = infile + '.cif'
 
     io.write_cif(outfile, io.read_pdb(infile))

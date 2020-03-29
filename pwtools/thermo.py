@@ -14,12 +14,12 @@ def coth(x):
 class HarmonicThermo(object):
     """Calculate vibrational internal energy (Evib [eV]), free energy (Fvib
     [eV]), entropy (Svib [R,kb]) and isochoric heat capacity (Cv [R,kb]) in the
-    harmonic approximation from a phonon density of states. 
-    """    
-    def __init__(self, freq, dos, temp=None, skipfreq=False, 
+    harmonic approximation from a phonon density of states.
+    """
+    def __init__(self, freq, dos, temp=None, skipfreq=False,
                  eps=1.5*num.EPS, fixnan=False, nanfill=0.0,
                  dosarea=None, integrator=trapz, verbose=True):
-        """                 
+        """
         Parameters
         ----------
         freq : 1d array
@@ -35,7 +35,7 @@ class HarmonicThermo(object):
             `eps`. The number and rms of the skipped values is printed if
             `verbose=True`.
         eps : float, optional
-            Threshold for `skipfreq`. Default is ~1.5*2.2e-16 . 
+            Threshold for `skipfreq`. Default is ~1.5*2.2e-16 .
         fixnan : bool, optional
             Use if YKWYAD, test before using! Currently, set all NaNs occuring
             during integration to `nanfill`. This is a HACK b/c we must assume
@@ -87,12 +87,12 @@ class HarmonicThermo(object):
         # Let Z = hbar*w/(2*kb*T), D(w) = phonon dos.
         # Cv(T) = kb * Z**2 * Int(w) [w**2 * D(w) / sinh(z))**2]
         #
-        # Cv is in J/K. To get Cv in R[J/(mol*K)], one would have to do 
+        # Cv is in J/K. To get Cv in R[J/(mol*K)], one would have to do
         #   Cv[J/K] * Navo[1/mol] / R = Cv[J/K] / kb[J/K]
-        # since kb = R/Navo, with 
+        # since kb = R/Navo, with
         #   R = gas constant = 8.314 J/(mol*K)
         #   Navo = Avogadro's number = 6e23
-        # 
+        #
         # So, Cv [R] == Cv [kb]. The same holds for the entropy Svib.
         #
         # We save the division by "kb" by dropping the "kb" prefactor:
@@ -124,12 +124,12 @@ class HarmonicThermo(object):
         self.nanfill = nanfill
         self.dosarea = dosarea
         self.integrator = integrator
-        
+
         assert len(self.f) == len(self.dos), ("freq and dos don't have "
                                              "equal length")
         if self.verbose:
             print("HarmonicThermo: number of dos points: %i" %len(self.f))
-        
+
         if self.skipfreq:
             mask = self.f > self.eps
             if self.verbose:
@@ -142,10 +142,10 @@ class HarmonicThermo(object):
                         "rms(f)=%e, rms(dos)=%e" %(nskip, frms, drms))
             self.f = self.f[mask]
             self.dos = self.dos[mask]
-        
+
         if self.dosarea is not None:
             self.dos = self._norm_int(self.dos, self.f, area=float(self.dosarea))
-    
+
     def _norm_int(self, y, x, area):
         fx = np.abs(x).max()
         fy = np.abs(y).max()
@@ -153,7 +153,7 @@ class HarmonicThermo(object):
         sy = y / fy
         _area = self.integrator(sy, sx) * fx * fy
         return y*area/_area
-        
+
     def _printwarn(self, msg):
         if self.verbose:
             print(msg)
@@ -180,12 +180,12 @@ class HarmonicThermo(object):
                                 "fixing %i NaNs in y!" %len(mask))
                 y[mask] = self.nanfill
         # this call signature works for scipy.integrate,{trapz,simps}
-        return self.integrator(y, x=f, axis=1) 
-    
+        return self.integrator(y, x=f, axis=1)
+
     def _get_temp(self, temp):
         if (self.T is None) and (temp is None):
             raise ValueError("temp input and self.T are None")
-        return self.T if temp is None else temp       
+        return self.T if temp is None else temp
 
     def vibrational_internal_energy(self, temp=None):
         """Evib [eV]"""
@@ -193,9 +193,9 @@ class HarmonicThermo(object):
         T = self._get_temp(temp)
         arg = h * f / (kb*T[:,None])
         y = dos * f * (0.5 + 1.0 / (np.exp(arg) - 1.0))
-        eint = self._integrate(y, f) 
+        eint = self._integrate(y, f)
         return eint * (h/eV)
-        
+
     def isochoric_heat_capacity(self, temp=None):
         """Cv [R, kb]"""
         h, f, kb, dos = self.h, self.f, self.kb, self.dos
@@ -205,7 +205,7 @@ class HarmonicThermo(object):
         fac = (h / (kb*2*T))**2
         cv = self._integrate(y, f) * fac
         return cv
-    
+
     def vibrational_free_energy(self, temp=None):
         """Fvib [eV]"""
         h, f, kb, dos = self.h, self.f, self.kb, self.dos
@@ -214,18 +214,18 @@ class HarmonicThermo(object):
         y = dos * np.log(2.0*np.sinh(arg/2.0))
         ret = self._integrate(y,f) * T
         return ret * (kb / eV)
-    
+
     def vibrational_entropy(self, temp=None):
         """Svib [R, kb]"""
         h, f, kb, dos = self.h, self.f, self.kb, self.dos
         T = self._get_temp(temp)
         arg = h * f / (kb*T[:,None])
-        y = dos * (0.5/T[:,None] * (h / kb) * f * coth(arg/2.0) - 
+        y = dos * (0.5/T[:,None] * (h / kb) * f * coth(arg/2.0) -
                    np.log(2.0*np.sinh(arg/2.0)))
         ret = self._integrate(y,f)
         return ret
-    
-    # aliases 
+
+    # aliases
     def evib(self, *args, **kwargs):
         """Same as vibrational_internal_energy()."""
         return self.vibrational_internal_energy(*args, **kwargs)
@@ -233,11 +233,11 @@ class HarmonicThermo(object):
     def cv(self, *args, **kwargs):
         """Same as isochoric_heat_capacity()."""
         return self.isochoric_heat_capacity(*args, **kwargs)
-    
+
     def fvib(self, *args, **kwargs):
         """Same as vibrational_free_energy()."""
         return self.vibrational_free_energy(*args, **kwargs)
-    
+
     def svib(self, *args, **kwargs):
         """Same as vibrational_entropy()."""
         return self.vibrational_entropy(*args, **kwargs)
@@ -248,25 +248,25 @@ class Gibbs(object):
     Calculate thermodynamic properties on a T-P grid in the quasiharmonic
     approximation, given some variation grid of unit cell axes (`axes_flat`) and
     corresponding phonon DOS data for each grid point.
-    
+
     We have 3 cases for how unit cell axis can be be varied.
 
     ==== ===============  ========================  ==============   ============
     case axes_flat.shape  cell parameter grid       fitfunc          bulk modulus
     ==== ===============  ========================  ==============   ============
-    1d   (N,) or (N,1)    ax0 = a (-> V)            G(V), thus any   V*d^2G/dV^2 
-                          (cubic)                   EOS will do      
+    1d   (N,) or (N,1)    ax0 = a (-> V)            G(V), thus any   V*d^2G/dV^2
+                          (cubic)                   EOS will do
 
     2d   (N,2)            (ax0,ax1) = (a,b), (a,c)  G(ax0, ax1)      not
                           or (b,c)                                   implemented
-                          (e.g. hexaonal: (a,c)) 
-    
-    3d   not implemented                                  
+                          (e.g. hexaonal: (a,c))
+
+    3d   not implemented
     ==== ===============  ========================  ==============   ============
-    
+
     Internally, we only deal with `ax0` (1d), `ax0` + `ax1` (2d) and
     `ax0` + `ax1` + `ax2` (3d), thus for 2d and 3d it doesn't matter which cell
-    axes is which, you just have to remember :) 
+    axes is which, you just have to remember :)
 
     Notes
     -----
@@ -280,13 +280,13 @@ class Gibbs(object):
     :class:`~pwtools.num.PolyFit1D`, for 2d: :class:`~pwtools.num.PolyFit` or
     :class:`~pwtools.num.Interpol2D`. See also ``scipy.interpolate``. Use
     :meth:`~pwtools.thermo.Gibbs.set_fitfunc` to change. This can (and should!)
-    be used to tune fitting methods. See examples below for how to change fit 
+    be used to tune fitting methods. See examples below for how to change fit
     functions.
-    
+
     Here is a list of all valid `fitfunc` keys and what they do:
 
     ========  ==========================================================
-    key       value  
+    key       value
     ========  ==========================================================
     '1d-G'    fit G(V), ``__call__(V,der=2)`` for B(V) =
               V*d^2G/dV^2
@@ -294,10 +294,10 @@ class Gibbs(object):
     '1d-ax'   fit V(ax0)
     'alpha'   fit x_opt(T), x=ax0,ax1,ax2,V,
               ``__call__(T,der=1)`` for alpha_x = 1/x * dx/dT
-    'C'       fit G_opt(T), ``__call__(T,der=2)`` for 
+    'C'       fit G_opt(T), ``__call__(T,der=2)`` for
               Cp = -T * d^G_opt(T,P)/dT^2
     ========  ==========================================================
-    
+
     Hints for which fitfuncs to choose: The defaults are pretty good, but
     nevertheless tessting is mandatory! Good choices are
     :class:`~pwtools.num.PolyFit` / :class:`~pwtools.num.PolyFit1D` for all
@@ -307,7 +307,7 @@ class Gibbs(object):
     before fitting to the same order of magnitude! For T grids, choose a very
     fine T-axis (e.g. ``T=linspace(.., num=300)`` and use a
     :class:`~pwtools.num.Spline`. Needed to resolve details of alpha(T) and
-    C(T). 
+    C(T).
 
     The methods :meth:`calc_F`, :meth:`calc_H` and :meth:`calc_G` return dicts
     with nd-arrays holding calculated thermodynamic properites. Naming
@@ -315,10 +315,10 @@ class Gibbs(object):
     path names, e.g. ``/group0/group1/array``, thus the last name in the path
     is the name of the array (`z` in the examples below). All previous names
     define the grid and thus the dimension of the array. A group name starting
-    with "#" is just a prefix. Below, `na=len(a)`, etc. 
-    
+    with "#" is just a prefix. Below, `na=len(a)`, etc.
+
     ==============  ====  ================   ================================
-    key             ndim  shape              description   
+    key             ndim  shape              description
     ==============  ====  ================   ================================
     ``/a/z``        1d    (na,)              z on 1d a-grid
     ``/a/b/z``      2d    (na,nb)            z on 2d a-b grid
@@ -327,7 +327,7 @@ class Gibbs(object):
     ``/a-b-c/z``    1d    (na*nb*nc,)        z on flattened a-b-c grid
     ``/#opt/a/z``   1d    (na,)              optimized z on a-grid
     ==============  ====  ================   ================================
-    
+
     `axes_flat` : Usually, flat grids like "ax0-ax1" or "ax0-ax1-ax2" are
     created by nested loops ``[(ax0_i,ax1_i) for ax0_i in ax0 for ax1_i in
     ax1]`` and therefore have shape (nax0*nax1,2) or (nax0*nax1*nax2,3) . But
@@ -336,7 +336,7 @@ class Gibbs(object):
     to handle that.
 
     Units
-    
+
     =================== =====================
     B,P                 GPa
     T                   K
@@ -345,10 +345,10 @@ class Gibbs(object):
     Cv,Cp               R (8.4314 J/(mol*K))
     alpha_{V,ax{0,1,2}} 1/K
     =================== =====================
-    
+
     Examples
     --------
-    
+
     See also ``test/test_gibbs.py`` for worked examples using fake data.
     Really, go there and have a look. Now!
 
@@ -356,7 +356,7 @@ class Gibbs(object):
     >>> # isotropic cell
     >>> volfunc_ax = lambda x: crys.volume_cc(np.array([[x[0]]*3 + [90]*3]))
     >>> gibbs=Gibbs(axes_flat=..., etot=..., phdos=...,
-    ...             T=linspace(5,2500,100), P=linspace(0,20,5), 
+    ...             T=linspace(5,2500,100), P=linspace(0,20,5),
     ...             volfunc_ax=volfunc_ax)
     >>> # EOS fit for G(V), polynomial for heat capacity (default is Spline)
     >>> gibbs.set_fitfunc('C', lambda x,y: num.PolyFit1D(x,y,deg=5,scale=True))
@@ -378,7 +378,7 @@ class Gibbs(object):
         """
         Parameters
         ----------
-        T : 1d array 
+        T : 1d array
             temperature [K]
         P : 1d array
             pressure [GPa]
@@ -398,7 +398,7 @@ class Gibbs(object):
                 | 3d: (N,3) -> vary a,b,c (general triclinic)
                 |     example: ``itertools.product(ax0, ax1, ax2)``
         volfunc_ax : callable
-            calculate cell volume based on cell axes, 
+            calculate cell volume based on cell axes,
             V[i] = volfunc_ax(axes_flat[i,...]) where axes_flat[i,...]:
                 | 1d: [a0]
                 | 2d: [a0, a1]
@@ -408,14 +408,14 @@ class Gibbs(object):
             '1d', '2d', '3d' or None. If None then it will be determined from
             axes_flat.shape[1]. Can be used to evaluate "fake" 1d data: set
             case='1d' but let `axes_flat` be (N,2) or (N,3)
-        **kwds: keywords 
+        **kwds: keywords
             passed to HarmonicThermo and added here as `self.<key>=<value>`
         """
         assert axes_flat.shape[0] == len(phdos), ("axes_flat and phdos "
             "not equally long")
         self.kwds = dict(verbose=False, fixnan=False, skipfreq=True,
                          dosarea=None)
-        self.kwds.update(kwds)                         
+        self.kwds.update(kwds)
         for k,v in self.kwds.items():
             setattr(self, k, v)
         self.T = T
@@ -455,7 +455,7 @@ class Gibbs(object):
             'alpha': self._default_fit_alpha,
             'C': self._default_fit_C,
             }
-    
+
     def set_fitfunc(self, what, func):
         """Update dict with fitting fucntions: ``self.fitfunc[what] = func``.
 
@@ -463,21 +463,21 @@ class Gibbs(object):
         ----------
         what : str
             One of ``self.fitfunc.keys()``
-        func : callable 
+        func : callable
             function with signature ``func(x,y)`` which returns a
             :class:`~pwtools.num.Spline`-like object, e.g. ``Spline(x,y,k=5)``
-        """            
+        """
         assert what in self.fitfunc, ("unknown key: '%s'" %what)
         self.fitfunc[what] = func
 
     @staticmethod
     def _default_fit_1d_G(x, y):
         return num.PolyFit1D(x, y, deg=5, scale=True)
-    
+
     @staticmethod
-    def _default_fit_2d_G(points, values):    
+    def _default_fit_2d_G(points, values):
         return num.PolyFit(points, values, deg=5, scale=True)
-    
+
     @staticmethod
     def _default_fit_1d_ax(x, y):
         return num.PolyFit1D(x, y, deg=5, scale=True)
@@ -493,11 +493,11 @@ class Gibbs(object):
     def _fit_opt_store(self, ret, gg, prfx='/T/P', ghsym='G', tpidx=None):
         """For each (T,P) or (P,), fit G(ax0,...) or H(ax0,...) minimize and store
         properties in `ret`. Used in /T/P loop in calc_G and /P loop in calc_H.
-        
+
         Parameters
         ----------
         ret : dict
-        gg : G(ax0,...) or H(ax0,...) 
+        gg : G(ax0,...) or H(ax0,...)
         prfx : str
             '/P' for H in :meth:`calc_H`, '/T/P' for G in :meth:`calc_G`
         ghsym : str
@@ -534,7 +534,7 @@ class Gibbs(object):
                 ret['/#opt%s/V' %prfx][tpsl] = self.volfunc_ax(xopt)
         else:
             raise Exception("unknown case: %s" %self.case)
-    
+
     def _set_not_calc_none(self, ret, prfx='/T/P'):
         """We know that the stuff below was not calculated, so set them to
         None. Needs to be done since all arrays are inited to be np.empty().
@@ -544,7 +544,7 @@ class Gibbs(object):
         if self.nax == 1:
             ret['/#opt%s/ax1' %prfx] = None
             ret['/#opt%s/ax2' %prfx] = None
-        elif self.nax == 2: 
+        elif self.nax == 2:
             ret['/#opt%s/ax2' %prfx] = None
             if self.case != '1d':
                 ret['/#opt%s/B' %prfx] = None
@@ -557,12 +557,12 @@ class Gibbs(object):
             for iax in range(self.nax):
                 self.fitax.append(self.fitfunc['1d-ax'](self.V,
                                                         self.axes_flat[:,iax]))
-    
+
     def calc_F(self, calc_all=True):
         """Free energy properties along T axis for each axes grid point
         (ax0,ax1,ax2) in `self.axes_flat`. Also used by :meth:`calc_G`. Uses
         :class:`~pwtools.thermo.HarmonicThermo`.
-        
+
         Parameters
         ----------
         calc_all : bool
@@ -571,15 +571,15 @@ class Gibbs(object):
         Returns
         -------
         ret : dict
-            Keys for 1d: 
+            Keys for 1d:
                 | '/ax0/T/F'
                 | '/ax0/T/Fvib'
                 ...
-            Keys for 2d: 
+            Keys for 2d:
                 | '/ax0-ax1/T/F'
                 | '/ax0-ax1/T/Fvib'
                 | ...
-            Keys for 3d: 
+            Keys for 3d:
                 | '/ax0-ax1-ax2/T/F'
                 | '/ax0-ax1-ax2/T/Fvib'
                 | ...
@@ -589,19 +589,19 @@ class Gibbs(object):
             names = ['F', 'Fvib', 'Evib', 'Svib', 'Cv']
         else:
             names = ['F', 'Fvib']
-        ret = dict((self.axes_prefix + '/T/%s' %name, 
+        ret = dict((self.axes_prefix + '/T/%s' %name,
                     np.empty((self.npoints, self.nT), dtype=float)) \
                     for name in names)
         for idx in range(self.npoints):
             if self.verbose:
                 print("calc_F: axes_flat idx = %i" %idx)
-            ha = HarmonicThermo(freq=self.phdos[idx][:,0], 
+            ha = HarmonicThermo(freq=self.phdos[idx][:,0],
                                 dos=self.phdos[idx][:,1],
-                                temp=self.T, 
+                                temp=self.T,
                                 **self.kwds)
             fvib = ha.fvib()
-            ret[self.axes_prefix + '/T/F'][idx,:] = self.etot[idx] + fvib                            
-            ret[self.axes_prefix + '/T/Fvib'][idx,:] = fvib 
+            ret[self.axes_prefix + '/T/F'][idx,:] = self.etot[idx] + fvib
+            ret[self.axes_prefix + '/T/Fvib'][idx,:] = fvib
             if calc_all:
                 svib = ha.svib()
                 cv = ha.cv()
@@ -609,14 +609,14 @@ class Gibbs(object):
                 ret[self.axes_prefix + '/T/Svib'][idx,:] = svib
                 ret[self.axes_prefix + '/T/Evib'][idx,:] = evib
                 ret[self.axes_prefix + '/T/Cv'][idx,:] = cv
-        ret.update(self.ret)        
+        ret.update(self.ret)
         return ret
-    
+
     def calc_H(self, calc_all=True):
         """Enthalpy H=E+P*V, B and related properties on P grid
         without zero-point contributions. Doesn't need any other method's
         results.
-        
+
         The results of :meth:`calc_G` will in general be _different_ from those
         calculated here in the limit T->0 (typical use case: T=5K) because of
         zero-point contributions. Check the bulk modulus, for example.
@@ -639,13 +639,13 @@ class Gibbs(object):
                 self._fit_opt_store(ret, gg, prfx='/P',
                                     tpidx=[pidx], ghsym='H')
         self._set_not_calc_none(ret, prfx='/P')
-        ret.update(self.ret)        
+        ret.update(self.ret)
         return ret
-    
+
     def calc_G(self, ret=None, calc_all=True):
-        """Gibbs free energy and related properties on T-P grid. 
+        """Gibbs free energy and related properties on T-P grid.
         Uses self.fitfunc.
-        
+
         Needs :meth:`calc_F` results. Called here if not provided.
         Also calls :meth:`calc_H` if `calc_all` is ``True``, i.e. this is the
         you-get-it-all method and the only one you sould really use.
@@ -664,7 +664,7 @@ class Gibbs(object):
         -------
         ret : dict
             All keys starting with the ``/#opt`` prefix are values obtained
-            from minimizing G(ax0,ax1,ax2,T,P) w.r.t. (ax0,ax1,ax2).         
+            from minimizing G(ax0,ax1,ax2,T,P) w.r.t. (ax0,ax1,ax2).
         """
         self._set_fitax()
         if ret is None:
@@ -689,9 +689,9 @@ class Gibbs(object):
                     self._fit_opt_store(ret, gg, prfx='/T/P',
                                         tpidx=[tidx,pidx], ghsym='G')
             self._set_not_calc_none(ret, prfx='/T/P')
-            
+
             alpha_names = ['ax0', 'ax1', 'ax2', 'V']
-            ret.update(dict(('/#opt/T/P/alpha_%s' %name, 
+            ret.update(dict(('/#opt/T/P/alpha_%s' %name,
                              np.empty((self.nT,self.nP))) for name in \
                              alpha_names))
             for name in alpha_names:
@@ -703,20 +703,20 @@ class Gibbs(object):
                         ret['/#opt/T/P/alpha_%s' %name][:,pidx] = fit(self.T, der=1) / x
                 else:
                     ret['/#opt/T/P/alpha_%s' %name] = None
-                            
+
             ret['/#opt/T/P/Cp'] = np.empty((self.nT, self.nP), dtype=float)
             for pidx in range(self.nP):
                 fit = self.fitfunc['C'](self.T, ret['/#opt/T/P/G'][:,pidx]*eV/kb)
                 ret['/#opt/T/P/Cp'][:,pidx] = -self.T * fit(self.T, der=2)
-        ret.update(self.ret)        
-        return ret                
+        ret.update(self.ret)
+        return ret
 
 
 def debye_func(x, nstep=100, zero=1e-8):
     r"""Debye function
 
     :math:`f(x) = 3 \int_0^1 t^3 / [\exp(t x) - 1] dt`
-    
+
     Parameters
     ----------
     x : float or 1d array
@@ -724,7 +724,7 @@ def debye_func(x, nstep=100, zero=1e-8):
         number of points for integration
     zero : float
         approximate the 0 in the integral by this (small!) number
-    """    
+    """
     x = np.atleast_1d(x)
     if x.ndim == 1:
         x = x[:,None]
@@ -735,10 +735,10 @@ def debye_func(x, nstep=100, zero=1e-8):
 
 
 def einstein_func(x):
-    r"""Einstein function 
-    
+    r"""Einstein function
+
     :math:`f(x) = 1 / [ \exp(x) - 1 ]`
-    
+
     Parameters
     ----------
     x : float or 1d array
@@ -749,10 +749,10 @@ def einstein_func(x):
 
 def expansion(temp, alpha, theta, x0=1.0, func=debye_func):
     """Calculate thermal expansion according to the model in `func`.
-     
+
     Parameters
     ----------
-    temp : array_like 
+    temp : array_like
         temperature
     alpha : float
         high-T limit expansion coeff
@@ -762,7 +762,7 @@ def expansion(temp, alpha, theta, x0=1.0, func=debye_func):
         axis length at T=0
     func : callable
         Usually :func:`debye_func` or :func:`einstein_func`
-    
+
     Examples
     --------
     >>> # thermal expansion coeff alpha_x = 1/x(T) * dx/dT
@@ -770,11 +770,11 @@ def expansion(temp, alpha, theta, x0=1.0, func=debye_func):
     >>> from pwtools import num
     >>> T=linspace(5,2500,100)
     >>> for zero in [1e-3, 1e-8]:
-    >>>     x = expansion(T, 5e-6, 1200, 3, lambda x: debye_func(x,zero=zero)) 
+    >>>     x = expansion(T, 5e-6, 1200, 3, lambda x: debye_func(x,zero=zero))
     >>>     plot(T, num.deriv_spl(x, T, n=1)/x)
-    >>> x = expansion(T, 5e-6, 1200, 3, einstein_func) 
+    >>> x = expansion(T, 5e-6, 1200, 3, einstein_func)
     >>> plot(T, num.deriv_spl(x, T, n=1)/x)
-    
+
     References
     ----------
     [1] Figge et al., Appl. Phys. Lett. 94, 101915 (2009)

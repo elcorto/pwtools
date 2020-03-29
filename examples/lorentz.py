@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Example for smoothing a signal with a Lorentz kernel. 
+Example for smoothing a signal with a Lorentz kernel.
 
 We show how to use (a) scipy.signal.convolve, (b) direct sum of Lorentz
 functions (convolution by hand) and (c) pwtools.signal.smooth. We also test
@@ -46,7 +46,7 @@ for nrand_fac in [0.2, 1.0]:
     if nrand % 2 == 1:
         nrand += 1
     y[npoints//2-nrand//2:npoints//2+nrand//2] = np.random.rand(nrand) + 2.0
-    
+
     # Sum of Lorentz functions at data points. This is the same as convolution
     # with a Lorentz function withOUT end point correction, valid if data `y`
     # is properly zero at both ends, else edge effects are visible: smoothed
@@ -65,7 +65,7 @@ for nrand_fac in [0.2, 1.0]:
     plt.plot(scale(convolve(y, kern/float(kern.sum()), 'same')),
              label='conv, klen=%i' %klen)
 
-    # Convolution with Lorentz function with end-point correction.  
+    # Convolution with Lorentz function with end-point correction.
     for klen in [10*std, 100*std, 200*std]:
         klen = klen+1 if klen % 2 == 0 else klen # odd kernel
         kern = lorentz(klen, std=std)

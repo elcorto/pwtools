@@ -19,31 +19,31 @@ def have_pwx():
     for path in os.environ['PATH'].split(':'):
         if os.path.exists("%s/pw.x" %path):
             return True
-    return False            
+    return False
 
 def have_lmp():
     for path in os.environ['PATH'].split(':'):
         if os.path.exists("%s/lammps" %path):
             return True
-    return False            
-    
+    return False
+
 def get_atoms_with_calc_pwscf(pseudo_dir):
     st_start = io.read_pw_scf('files/ase/pw.scf.out.start.rs-AlN')
     at = st_start.get_ase_atoms(pbc=True)
     label = pj(testdir, prefix, 'calc_dir', 'pw')
     calc = Pwscf(label=label,
-                 kpts=1/0.9, 
+                 kpts=1/0.9,
                  ecutwfc=30,
                  conv_thr=1e-5,
                  pp='pbe-n-kjpaw_psl.0.1.UPF',
                  pseudo_dir=pseudo_dir,
-                 calc_name='my_calc', 
-                 outdir=pj(testdir, prefix, 'scratch'), 
+                 calc_name='my_calc',
+                 outdir=pj(testdir, prefix, 'scratch'),
                  command='pw.x < pw.in > pw.out 2>&1',
                  backup=True,
-                 ) 
+                 )
     at.set_calculator(calc)
-    return at        
+    return at
 
 def get_atoms_with_calc_lammps():
     st_start = io.read_pw_scf('files/ase/pw.scf.out.start.wz-AlN')
@@ -54,9 +54,9 @@ def get_atoms_with_calc_lammps():
                   pair_coeff='* * AlN.tersoff Al N',
                   command='lammps < lmp.in > lmp.out 2>&1',
                   backup=True,
-                  ) 
+                  )
     at.set_calculator(calc)
-    return at        
+    return at
 
 def test_pwscf_calculator():
     if not have_ase():
@@ -74,12 +74,12 @@ def test_pwscf_calculator():
         forces = at.get_forces()
         etot = at.get_potential_energy()
         stress = at.get_stress(voigt=False) # 3x3
-        
+
         st = io.read_pw_scf(at.calc.label + '.out')
         assert np.allclose(forces, st.forces)
         assert np.allclose(etot, st.etot)
         assert np.allclose(st.stress, -stress * constants.eV_by_Ang3_to_GPa)
-        
+
         # files/ase/pw.scf.out.start is a norm-conserving LDA struct,
         # calculated with pz-vbc.UPF, so the PBE vc-relax will make the cell
         # a bit bigger
@@ -90,7 +90,7 @@ def test_pwscf_calculator():
         cell = parse.arr2d_from_txt("""
             -1.97281509  0.          1.97281509
              0.          1.97281509  1.97281509
-            -1.97281509  1.97281509  0.""")        
+            -1.97281509  1.97281509  0.""")
         assert np.allclose(cell, at.get_cell())
         opt.run(fmax=0.05) # run only 2 steps
         cell = parse.arr2d_from_txt("""
@@ -120,13 +120,13 @@ def test_lammps_calculator():
         forces = at.get_forces()
         etot = at.get_potential_energy()
         stress = at.get_stress(voigt=False) # 3x3
-        
+
         st = io.read_lammps_md_txt(at.calc.label + '.out')[0]
         assert np.allclose(forces, st.forces)
         assert np.allclose(etot, st.etot)
         assert np.allclose(st.stress, -stress * constants.eV_by_Ang3_to_GPa,
                            atol=1e-10)
-        
+
         print("relax")
         from ase.optimize import BFGS
         opt = BFGS(at, maxstep=0.04)

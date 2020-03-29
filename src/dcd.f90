@@ -1,6 +1,6 @@
 ! vim:tw=79
 !
-! Tools for reading binary DCD files (tested: lammps, cp2k). 
+! Tools for reading binary DCD files (tested: lammps, cp2k).
 !
 ! Endianess
 ! ---------
@@ -44,14 +44,14 @@ subroutine read_dcd_header_from_unit(unt, nstep, natoms, timestep)
     !
     ! Notes
     ! -----
-    ! nstep = 0 in case of cp2k style files 
-    ! 
+    ! nstep = 0 in case of cp2k style files
+    !
     ! lammps
     ! ^^^^^^
     !
     ! The VMD documentation below helped us to implement the parser for the
     ! lammps-flavor dcd format.
-    ! 
+    !
     ! Thanks to:
     ! http://www.ks.uiuc.edu/Research/vmd/plugins/molfile/dcdplugin.html
     ! http://www.ks.uiuc.edu/Research/namd/wiki/?ReadingDCDinFortran
@@ -72,12 +72,12 @@ subroutine read_dcd_header_from_unit(unt, nstep, natoms, timestep)
     ! INT
     ! ==========================================================================
     ! X(I), I=1,NATOM         (DOUBLE)
-    ! Y(I), I=1,NATOM         
-    ! Z(I), I=1,NATOM         
+    ! Y(I), I=1,NATOM
+    ! Z(I), I=1,NATOM
     ! ==========================================================================
     !
     ! Reading the header only works if hdr,nstep,...,9-zeros are read in *one*
-    ! read statement. The same goes for ntitle,title. 
+    ! read statement. The same goes for ntitle,title.
     !
     ! It turns out that for lammps, the last 9 integers (all zero) are actually
     ! 10 and the last one is 24. Same as in cp2k, so at least that's
@@ -88,9 +88,9 @@ subroutine read_dcd_header_from_unit(unt, nstep, natoms, timestep)
     ! nstep     = NSET
     ! timestep  = DELTA
     !
-    ! CP2K 
+    ! CP2K
     ! ^^^^
-    ! 
+    !
     ! From v2.6.1, src/motion_utils.F:
     !
     ! section_ref = "MOTION%PRINT%"//TRIM(my_pk_name)//"%EACH%"//TRIM(id_label)
@@ -102,24 +102,24 @@ subroutine read_dcd_header_from_unit(unt, nstep, natoms, timestep)
     ! remark2 = "REMARK "//TRIM(r_user_name)//"@"//TRIM(r_host_name)
     ! WRITE (UNIT=traj_unit) 2,remark1,remark2
     ! WRITE (UNIT=traj_unit) nat
-    ! 
+    !
     ! where
     !   id_dcd  = 'CORD'
     !   it      = is NOT nstep
     !   iskip   = ???
     !   dtime   = timestep
-    ! 
+    !
     ! nstep (or NSET in the VMD docs) is 0 here -> We need to walk thru the
     ! file until we hit the bottom, just as cp2k/tools/dumpdcd.f90 does it.
     !
-    implicit none 
+    implicit none
     integer, intent(in) :: unt
     integer :: istrt, nsvac, dummyi, natomnfreat, ntitle, i
     character(len=4) :: hdr
     character(len=80) :: remark1, remark2
     integer, intent(out) :: nstep, natoms
     real, intent(out) :: timestep
-    
+
     read(unt) hdr, nstep, istrt, nsvac, (dummyi, i=1,5), natomnfreat, &
               timestep, (dummyi, i=1,10)
     read(unt) ntitle, remark1, remark2
@@ -168,7 +168,7 @@ subroutine read_dcd_data_from_unit(unt, cryst_const, coords, nstep, natoms, &
     real :: x(natoms), y(natoms), z(natoms)
     double precision, intent(out) :: cryst_const(nstep,6)
     real, intent(out) :: coords(nstep, natoms, 3)
-    
+
     ! cryst_const_dcd: The DCD way to store the unit cell parameters is
     ! completely brain damaged. (1) They only store cryst_const and not the
     ! vectors. We must therefore assume that the MD code uses the cell as
@@ -225,7 +225,7 @@ subroutine read_dcd_data(filename, cryst_const, coords, nstep, natoms, convang)
     ! -------
     ! >>> nstep,natoms,timestep = _dcd.get_dcd_file_info(filename,nstephdr)
     ! >>> cryst_const,coords = _dcd.read_dcd_data(filename,nstep,natoms,convang)
-    ! 
+    !
     ! Notes
     ! ------
     ! Splitting the reading up like this (first get_dcd_file_info(), then
@@ -240,12 +240,12 @@ subroutine read_dcd_data(filename, cryst_const, coords, nstep, natoms, convang)
     real :: dummy_timestep
     double precision, intent(out):: cryst_const(nstep,6)
     real, intent(out) :: coords(nstep, natoms, 3)
-    
+
     if ((.not. natoms > 0) .or. (.not. nstep > 0)) then
         write(*,*) "read_dcd_data: error: nstep or natoms not > 0: ", &
                    "nstep=", nstep, "natoms=", natoms
         stop 1
-    end if     
+    end if
     unt = 1
     call open_file(filename, unt)
     ! read header again only to advance in file to the data section
@@ -291,15 +291,15 @@ subroutine get_dcd_file_info(filename, nstep, natoms, timestep, nstephdr)
     real,allocatable :: x(:), y(:), z(:)
     integer, intent(out) :: nstep, natoms
     real, intent(out) :: timestep
-    
+
     unt = 1
-    call open_file(filename, unt)    
-    
+    call open_file(filename, unt)
+
     ! nstephdr = 1: lammps
     !   nstep, natoms, timestep known by call to read_dcd_header_from_unit()
     ! nstephdr = 0: cp2k
     !   natoms, timestep known by call to read_dcd_header_from_unit(),
-    !   nstep = 0 in header, must walk thru data section in file until end 
+    !   nstep = 0 in header, must walk thru data section in file until end
     !   to find out, ugly but works
     call read_dcd_header_from_unit(unt, nstep, natoms, timestep)
     if (nstephdr == 0) then
@@ -315,8 +315,8 @@ subroutine get_dcd_file_info(filename, nstep, natoms, timestep, nstephdr)
                            trim(filename)
                 deallocate(x,y,z)
                 stop 1
-            end if        
-            nstep = nstep + 1 
+            end if
+            nstep = nstep + 1
             read(unt, iostat=iost) (x(iatom), iatom=1,natoms)
             read(unt, iostat=iost) (y(iatom), iatom=1,natoms)
             read(unt, iostat=iost) (z(iatom), iatom=1,natoms)
@@ -327,5 +327,5 @@ subroutine get_dcd_file_info(filename, nstep, natoms, timestep, nstephdr)
     if (.not. nstep > 0) then
        write(*,*) "get_dcd_file_info: error: nstep is not > 0: nstep =", nstep
        stop 1
-    end if    
+    end if
 end subroutine get_dcd_file_info

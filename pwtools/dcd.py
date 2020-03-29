@@ -10,10 +10,10 @@
 
     >>> %timeit cc,co=dcd.read_dcd_data_f('lmp.out.dcd')
     1000 loops, best of 3: 455 µs per loop
-    
+
     >>> %timeit cc,co=dcd.read_dcd_data_f('lmp.out.dcd', nstephdr=True)
-    1000 loops, best of 3: 241 µs per loop    
-    
+    1000 loops, best of 3: 241 µs per loop
+
     >>> # pure numpy wins!
     >>> %timeit cc,co=dcd.read_dcd_data('lmp.out.dcd')
     10000 loops, best of 3: 114 µs per loop
@@ -23,7 +23,7 @@ import numpy as np
 import os
 
 
-# DCD file header 
+# DCD file header
 #   (name, dtype, shape)
 # numpy dtypes:
 #   i4  = int32
@@ -31,13 +31,13 @@ import os
 #   f8  = float64 (double precision)
 #   S80 = string of length 80 (80 chars)
 HEADER_TYPES = [\
-    ('blk0-0',  'i4',1  ),  # 84 (start of first block, size=84 bytes)                    
+    ('blk0-0',  'i4',1  ),  # 84 (start of first block, size=84 bytes)
     ('hdr',     'S4',1  ),  # 'CORD'
     ('9int',    'i4',9  ),  # 9 ints, mostly 0
     ('timestep','f4',1  ),  # timestep (float32)
     ('10int',   'i4',10 ),  # 10 ints, mostly 0, last is 24
     ('blk0-1',  'i4',1  ),  # 84
-    ('blk1-0',  'i4',1  ),  # 164 
+    ('blk1-0',  'i4',1  ),  # 164
     ('ntitle',  'i4',1  ),  # 2
     ('remark1', 'S80',1 ),  # remark1
     ('remark2', 'S80',1 ),  # remark2
@@ -45,7 +45,7 @@ HEADER_TYPES = [\
     ('blk2-0',  'i4',1  ),  # 4 (4 bytes = int32)
     ('natoms',  'i4',1  ),  # natoms (int32)
     ('blk2-1',  'i4',1  ),  # 4
-    ] 
+    ]
 
 HEADER_DTYPE = np.dtype(HEADER_TYPES)
 
@@ -57,11 +57,11 @@ def read_dcd_header(fn):
     ----------
     fn : str
         filename
-    
+
     Returns
     -------
     ret : dict
-    """    
+    """
     fd = open(fn, 'rb')
     arr = np.fromfile(fd, HEADER_DTYPE, 1)
     fd.close()
@@ -86,7 +86,7 @@ def read_dcd_data_ref(fn, convang=False):
         | cryst_const : (nstep,6) float64 array, (a,b,c,alpha,beta,gamma),
         |               Angstrom, degrees
         | coords : (nstep, natoms, 3) float32 array, cartesian coords Angstrom
-    
+
     Examples
     --------
     >>> # default settings read cp2k files
@@ -158,7 +158,7 @@ def read_dcd_data(fn, convang=False):
         | cryst_const : (nstep,6) float64 array, (a,b,c,alpha,beta,gamma),
         |               Angstrom, degrees
         | coords : (nstep, natoms, 3) float32 array, cartesian coords Angstrom
-    
+
     Examples
     --------
     >>> # default settings read cp2k files
@@ -170,9 +170,9 @@ def read_dcd_data(fn, convang=False):
     natoms = np.fromfile(fd, HEADER_DTYPE, 1)[0]['natoms']
     fd_pos = fd.tell()
     # seek to end
-    fd.seek(0, os.SEEK_END) 
+    fd.seek(0, os.SEEK_END)
     # number of bytes between fd_pos and end
-    fd_rest = fd.tell() - fd_pos  
+    fd_rest = fd.tell() - fd_pos
     # reset to pos after header
     fd.seek(fd_pos)
     # calculate nstep: fd_rest / bytes_per_timestep
@@ -186,15 +186,15 @@ def read_dcd_data(fn, convang=False):
     nstep = int(nstep)
     # dtype for fromfile: nstep times dtype of a timestep data block
     dtype = \
-        np.dtype(([('x0', 'i4'), 
-                   ('x1', 'f8', (6,)), 
-                   ('x2', 'i4', (2,)), 
-                   ('x3', 'f4', (natoms,)), 
-                   ('x4', 'i4', (2,)), 
-                   ('x5', 'f4', (natoms,)), 
-                   ('x6', 'i4', (2,)), 
-                   ('x7', 'f4', (natoms,)), 
-                   ('x8', 'i4')], 
+        np.dtype(([('x0', 'i4'),
+                   ('x1', 'f8', (6,)),
+                   ('x2', 'i4', (2,)),
+                   ('x3', 'f4', (natoms,)),
+                   ('x4', 'i4', (2,)),
+                   ('x5', 'f4', (natoms,)),
+                   ('x6', 'i4', (2,)),
+                   ('x7', 'f4', (natoms,)),
+                   ('x8', 'i4')],
                    (nstep,)))
     arr = np.fromfile(fd, dtype, 1)
     fd.close()
@@ -217,7 +217,7 @@ def read_dcd_data(fn, convang=False):
 def read_dcd_data_f(fn, convang=False, nstephdr=False):
     """Read dcd file. Wrapper for the Fortran version in ``dcd.f90``.
     Deprecated, use :func:`read_dcd_data` instead.
-    
+
     Parameters
     ----------
     fn : str
@@ -227,7 +227,7 @@ def read_dcd_data_f(fn, convang=False, nstephdr=False):
     nstephdr : bool
         read nstep from header (lammps) instead of walking the file twice (more
         safe but slower, works for all dcd flavors)
-    
+
     Returns
     -------
     ret : See :func:`read_dcd_data`
@@ -242,6 +242,6 @@ def read_dcd_data_f(fn, convang=False, nstephdr=False):
     >>> cc,co = read_dcd_data_f('lammps.dcd', convang=True, nstephdr=False)
     """
     from pwtools import _dcd
-    nstep, natoms, timestep = _dcd.get_dcd_file_info(fn, nstephdr)    
+    nstep, natoms, timestep = _dcd.get_dcd_file_info(fn, nstephdr)
     return _dcd.read_dcd_data(fn, nstep, natoms, convang)
 

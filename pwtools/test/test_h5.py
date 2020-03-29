@@ -14,13 +14,13 @@ def test_h5():
              '/b/c/x2': rand(2,3),
              }
         # writing a dct w/o leading slash will always be read back in *with*
-        # leading slash             
+        # leading slash
         dct2 = \
             {'a': 'abciqo4iki',
              'b/c/x1': 3,
              'b/c/x2': rand(2,3),
              }
-        for idx,dct in enumerate([dct1, dct2]):             
+        for idx,dct in enumerate([dct1, dct2]):
             h5fn = os.path.join(testdir, 'test_%i.h5' %idx)
             io.write_h5(h5fn, dct)
             read_dct = io.read_h5(h5fn)
@@ -29,7 +29,7 @@ def test_h5():
             for kk in list(dct.keys()):
                 key = '/'+kk if not kk.startswith('/') else kk
                 tools.assert_all_types_equal(dct[kk], read_dct[key])
-        
+
         # write mode='a', test appending
         h5fn = os.path.join(testdir, 'test_append.h5')
         io.write_h5(h5fn, {'/a': 1.0})
