@@ -21,6 +21,7 @@ try:
 except ImportError:
     pass
 
+
 def wien_sgroup_input(struct, lat_symbol='P'):
     """Generate input for WIEN2K's ``sgroup`` symmetry analysis tool.
 
@@ -249,7 +250,8 @@ def write_h5(fn, dct, **kwds):
     """Write dictionary with arrays (or whatever HDF5 handles) to h5 file.
 
     Dict keys are supposed to be HDF group + dataset names like `/a/b/c/dset`.
-    The leading slash can be skipped.
+    The leading slash can be skipped. Default file mode is 'a' (see below for
+    details).
 
     Parameters
     ----------
@@ -261,18 +263,19 @@ def write_h5(fn, dct, **kwds):
 
     Notes
     -----
-    The file opening mode is the ``h5py.File`` default value, which is
-    ``mode='a'``, i.e. read+append mode. In this mode, existing keys cannot be
-    reused (overwritten), only new ones can be appended. The file is created if
-    nonexistent. To overwrite, use ``mode='w'``, but this is the same as
-    deleting the file and writing a new one! If you want to overwrite some or
-    all existing keys and add new ones, use smth like::
+    The default file opening mode is the (old?) ``h5py.File`` default value,
+    which is ``mode='a'``, i.e. read+append mode. In this mode, existing keys
+    cannot be reused (overwritten), only new ones can be appended. The file is
+    created if nonexistent. To overwrite, use ``mode='w'``, but this is the
+    same as deleting the file and writing a new one! If you want to overwrite
+    some or all existing keys and add new ones, use smth like::
 
     >>> old = read_h5('file.h5')
     >>> old.update({'/old/key': new_value, '/new/key': some_more_data})
     >>> write_h5('file.h5', old, mode='w')
     """
-    fh = h5py.File(fn, **kwds)
+    mode = kwds.pop('mode') if 'mode' in kwds else 'a'
+    fh = h5py.File(fn, mode=mode, **kwds)
     for key,val in dct.items():
         fh[key] = val
     fh.close()
@@ -299,7 +302,7 @@ def read_h5(fn):
     def get(name, obj, dct=dct):
         if isinstance(obj, h5py.Dataset):
             _name = name if name.startswith('/') else '/'+name
-            dct[_name] = obj.value
+            dct[_name] = obj[()]
     fh.visititems(get)
     fh.close()
     return dct

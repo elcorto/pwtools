@@ -30,7 +30,7 @@ def test_h5():
                 key = '/'+kk if not kk.startswith('/') else kk
                 tools.assert_all_types_equal(dct[kk], read_dct[key])
 
-        # write mode='a', test appending
+        # write mode='a' is default, test appending
         h5fn = os.path.join(testdir, 'test_append.h5')
         io.write_h5(h5fn, {'/a': 1.0})
         read_dct = io.read_h5(h5fn)
@@ -38,7 +38,7 @@ def test_h5():
         assert read_dct['/a'] == 1.0
         # append '/b', using {'/a': 1.0, '/b': 2.0} would be an error since /a
         # already exists, use mode='w' then, but this overwrites all!
-        io.write_h5(h5fn, {'/b': 2.0}, mode='a')
+        io.write_h5(h5fn, {'/b': 2.0})
         read_dct2 = io.read_h5(h5fn)
         # sort(...): sort possible [/b, /a] -> [/a, /b]
         assert np.sort(np.array(list(read_dct2.keys()))).tolist() == ['/a', '/b']
