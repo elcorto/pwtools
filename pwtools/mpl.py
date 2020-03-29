@@ -87,9 +87,7 @@ def plotlines3d(ax3d, x,y,z, *args, **kwargs):
 
 def fig_ax(**kwds):
     """``fig,ax = fig_ax()``"""
-    fig = plt.figure(**kwds)
-    ax = fig.add_subplot(111)
-    return fig, ax
+    return plt.subplots(**kwds)
 
 
 def fig_ax3d(clean=False, **kwds):

@@ -44,6 +44,9 @@ def test_mpl():
             dct = mpl.prepare_plots(['test'], dpi=15,num=20)
             assert dct['test'].fig.dpi == 15
             assert dct['test'].fig.number == 20
+
+            fig, ax = mpl.fig_ax3d(dpi=15)
+            assert fig.dpi == 15
         except KeyError:
             tools.skip("no DISPLAY environment variable, skipping test")
     except ImportError:
