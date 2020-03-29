@@ -23,28 +23,38 @@ import numpy as np
 import os
 
 
-# DCD file header
+# DCD file header. Define structured dtype with field specs
 #   (name, dtype, shape)
 # numpy dtypes:
 #   i4  = int32
 #   f4  = float32 (single precision)
 #   f8  = float64 (double precision)
 #   S80 = string of length 80 (80 chars)
-HEADER_TYPES = [\
-    ('blk0-0',  'i4',1  ),  # 84 (start of first block, size=84 bytes)
-    ('hdr',     'S4',1  ),  # 'CORD'
-    ('9int',    'i4',9  ),  # 9 ints, mostly 0
-    ('timestep','f4',1  ),  # timestep (float32)
-    ('10int',   'i4',10 ),  # 10 ints, mostly 0, last is 24
-    ('blk0-1',  'i4',1  ),  # 84
-    ('blk1-0',  'i4',1  ),  # 164
-    ('ntitle',  'i4',1  ),  # 2
-    ('remark1', 'S80',1 ),  # remark1
-    ('remark2', 'S80',1 ),  # remark2
-    ('blk1-1',  'i4',1  ),  # 164
-    ('blk2-0',  'i4',1  ),  # 4 (4 bytes = int32)
-    ('natoms',  'i4',1  ),  # natoms (int32)
-    ('blk2-1',  'i4',1  ),  # 4
+# shape:
+#   old syntax:
+#       ('foo', 'i4', 1) -> scalar int32
+#   new syntax: don't use just a blank "1"
+#       ('foo', 'i4', (1,)) -> array([int32])
+#       ('foo', 'i4')       -> scalar int32
+#   for array fields, both work:
+#       ('foo', 'i4',    5) -> array([int32, int32, ...])
+#       ('foo', 'i4', (5,)) -> array([int32, int32, ...])
+#   but to be contistent better use tuple syntax
+HEADER_TYPES = [
+    ('blk0-0',  'i4'       ),  # 84 (start of first block, size=84 bytes)
+    ('hdr',     'S4'       ),  # 'CORD'
+    ('9int',    'i4',  (9,)),  # 9 ints, mostly 0
+    ('timestep','f4'       ),  # timestep (float32)
+    ('10int',   'i4', (10,)),  # 10 ints, mostly 0, last is 24
+    ('blk0-1',  'i4'       ),  # 84
+    ('blk1-0',  'i4'       ),  # 164
+    ('ntitle',  'i4'       ),  # 2
+    ('remark1', 'S80'      ),  # remark1
+    ('remark2', 'S80'      ),  # remark2
+    ('blk1-1',  'i4'       ),  # 164
+    ('blk2-0',  'i4'       ),  # 4 (4 bytes = int32)
+    ('natoms',  'i4'       ),  # natoms (int32)
+    ('blk2-1',  'i4'       ),  # 4
     ]
 
 HEADER_DTYPE = np.dtype(HEADER_TYPES)
@@ -97,19 +107,19 @@ def read_dcd_data_ref(fn, convang=False):
     fd = open(fn, 'rb')
     natoms = np.fromfile(fd, HEADER_DTYPE, 1)[0]['natoms']
     # data per timestep
-    data_dtype = np.dtype([\
-       ('blk0-0',           'i4',1),        # 48 = 6*8 bytes = 6*float64
-       ('cryst_const_dcd',  'f8',6),        # unit cell (6*float64)
-       ('bkl0-1',           'i4',1),        # 48
-       ('blkx-0',           'i4',1),        # natoms*4 = natoms*float32
-       ('x',                'f4',natoms),   # x (natoms*float32)
-       ('blkx-1',           'i4',1),        # natoms*4
-       ('blky-0',           'i4',1),        # natoms*4
-       ('y',                'f4',natoms),   # y
-       ('blky-1',           'i4',1),        # natoms*4
-       ('blkz-0',           'i4',1),        # natoms*4
-       ('z',                'f4',natoms),   # z
-       ('blkz-1',           'i4',1),        # natoms*4
+    data_dtype = np.dtype([
+       ('blk0-0',          'i4'           ),   # 48 = 6*8 bytes = 6*float64
+       ('cryst_const_dcd', 'f8',      (6,)),   # unit cell (6*float64)
+       ('bkl0-1',          'i4'           ),   # 48
+       ('blkx-0',          'i4'           ),   # natoms*4 = natoms*float32
+       ('x',               'f4', (natoms,)),   # x (natoms*float32)
+       ('blkx-1',          'i4'           ),   # natoms*4
+       ('blky-0',          'i4'           ),   # natoms*4
+       ('y',               'f4', (natoms,)),   # y
+       ('blky-1',          'i4'           ),   # natoms*4
+       ('blkz-0',          'i4'           ),   # natoms*4
+       ('z',               'f4', (natoms,)),   # z
+       ('blkz-1',          'i4'           ),   # natoms*4
        ])
     cryst_const = []
     coords = []
@@ -244,4 +254,3 @@ def read_dcd_data_f(fn, convang=False, nstephdr=False):
     from pwtools import _dcd
     nstep, natoms, timestep = _dcd.get_dcd_file_info(fn, nstephdr)
     return _dcd.read_dcd_data(fn, nstep, natoms, convang)
-
