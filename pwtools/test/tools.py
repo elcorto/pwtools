@@ -360,14 +360,14 @@ def skip(msg):
     """Use inside a test function or class. This raises
     nose.plugins.skip.SkipTest and makes the test be skipped. Doesn't work as a
     decorator. If you need a decorator to temporarily disable a test function,
-    then use unitest.skip(). The latter is supposed to work on test functions
+    then use unittest.skip(). The latter is supposed to work on test functions
     and classes (probably unittest.TestCase and derivatives, untested).
 
     Examples
     --------
 
     from pwtools.test.tools import skip
-    import unitest
+    import unittest
 
     def test_foo():
         if some_error_condition:
@@ -377,7 +377,7 @@ def skip(msg):
         skip("we're not at the bar, skip ordering beer")
         normal_test_code_here()
 
-    @unitest.skip("disable test b/c we're all out of zonk!")
+    @unittest.skip("disable test b/c we're all out of zonk!")
     def test_baz():
         assert baz == zonk
     """
