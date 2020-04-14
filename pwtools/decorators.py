@@ -32,10 +32,10 @@ def open_and_close(func):
     ...     # fh is a file object
     ...     return fh.read()
     >>> fh = open('my_file.txt')
-    >>> print file_txt_content(fh)
+    >>> print(file_txt_content(fh))
     >>> fh.close()
     >>>
-    >>> print file_txt_content('my_file.txt')
+    >>> print(file_txt_content('my_file.txt'))
     """
     @wraps(func)
     def wrapper(*args, **kwargs):

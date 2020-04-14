@@ -56,9 +56,9 @@ if __name__ == '__main__':
                       symbols=symbols)
 
     ##assert np.allclose(pydist_bigmem(traj), pydist_loop(traj))
-    ##print "... ok"
+    ##print("... ok")
     ##assert np.allclose(pydist_loop(traj), fdist(traj))
-    ##print "... ok"
+    ##print("... ok")
 
     tt = timer.TagTimer()
     nn = 1

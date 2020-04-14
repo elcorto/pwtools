@@ -639,19 +639,19 @@ def conv_table(xx, yy, ffmt="%15.4f", sfmt="%15s", mode='last', orig=False,
     >>> kpoints = ['2 2 2', '4 4 4', '8 8 8']
     >>> etot = [-300.0, -310.0, -312.0]
     >>> forces_rms = [0.3, 0.2, 0.1]
-    >>> print batch.conv_table(kpoints, etot, mode='last')
+    >>> print(batch.conv_table(kpoints, etot, mode='last'))
           2 2 2       -12.0000
           4 4 4        -2.0000
           8 8 8         0.0000
-    >>> print batch.conv_table(kpoints, [etot,forces_rms], mode='last')
+    >>> print(batch.conv_table(kpoints, [etot,forces_rms], mode='last'))
           2 2 2       -12.0000        -0.2000
           4 4 4        -2.0000        -0.1000
           8 8 8         0.0000         0.0000
-    >>> print batch.conv_table(kpoints, [etot,forces_rms], mode='last', orig=True)
+    >>> print(batch.conv_table(kpoints, [etot,forces_rms], mode='last', orig=True))
           2 2 2       -12.0000      -300.0000        -0.2000         0.3000
           4 4 4        -2.0000      -310.0000        -0.1000         0.2000
           8 8 8         0.0000      -312.0000         0.0000         0.1000
-    >>> print batch.conv_table(kpoints, np.array([etot,forces_rms]), mode='next')
+    >>> print(batch.conv_table(kpoints, np.array([etot,forces_rms]), mode='next'))
           2 2 2       -10.0000        -0.1000
           4 4 4        -2.0000        -0.1000
           8 8 8         0.0000         0.0000
@@ -753,9 +753,10 @@ class Case(object):
 
     Examples
     --------
+    >>> from pwtools.batch import Case
     >>> case1 = Case(x=1, y=2)
     >>> case2 = Case(x=11, y=22)
-    >>> for case in [case1, case2]: print case.x, case.y
+    >>> for case in [case1, case2]: print(case.x, case.y)
     """
     def __init__(self, **kwds):
         for k,v in kwds.items():

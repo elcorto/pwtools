@@ -291,7 +291,7 @@ def str_arr(arr, fmt='%.16e', delim=' '*4, zero_eps=None, eps=EPS):
     >>> a=rand(2,3)
     >>> str_arr(a, fmt='%.2f')
     '0.13 0.75 0.39\\n0.54 0.22 0.66'
-    >>> print str_arr(a, fmt='%.2f')
+    >>> print(str_arr(a, fmt='%.2f'))
     0.13 0.75 0.39
     0.54 0.22 0.66
     """

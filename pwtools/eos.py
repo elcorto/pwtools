@@ -131,12 +131,12 @@ class EosFit(Fit1D):
     >>> vv = linspace(V.min(), V.max(), 200)
     >>> plot(vv, f(vv), 'r-')
     >>> v0 = f.params['v0']
-    >>> print "compare fit params and values obtained from methods:"
-    >>> print "V0: %f Ang^3 (%f)" %(v0, f.get_min())
-    >>> print "B0: %f GPa   (%f)" %(f.params['b0']*eV_by_Ang3_to_GPa, f.bulkmod(v0))
-    >>> print "B1: %f           " %f.params['b1']
-    >>> print "E0: %f  eV   (%f)" %(f.params['e0'], f(v0))
-    >>> print "P0: %f GPa       " %f.pressure(v0)
+    >>> print("compare fit params and values obtained from methods:")
+    >>> print("V0: %f Ang^3 (%f)" %(v0, f.get_min()))
+    >>> print("B0: %f GPa   (%f)" %(f.params['b0']*eV_by_Ang3_to_GPa, f.bulkmod(v0)))
+    >>> print("B1: %f           " %f.params['b1'])
+    >>> print("E0: %f  eV   (%f)" %(f.params['e0'], f(v0)))
+    >>> print("P0: %f GPa       " %f.pressure(v0))
     """
 
     def __init__(self, volume, energy, func=Vinet(), splpoints=500):

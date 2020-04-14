@@ -79,10 +79,10 @@ def test_struct():
     # Structure.copy(), apparently b/c they are always automatically copied
     # before in-place operations. Same for float type.
     #
-    # >>> a=10; b=a; print id(a); print id(b)
+    # >>> a=10; b=a; print(id(a)); print(id(b))
     # 36669152
     # 36669152
-    # >>> a*=100; print id(a); print id(b)
+    # >>> a*=100; print(id(a)); print(id(b))
     # 72538264
     # 36669152
     # >>> a
@@ -90,10 +90,10 @@ def test_struct():
     # >>> b
     # 10
     #
-    # >>> a=[1,2,3]; b=a; print id(a); print id(b)
+    # >>> a=[1,2,3]; b=a; print(id(a)); print(id(b))
     # 72624320
     # 72624320
-    # >>> a[0] = 44; print id(a); print id(b)
+    # >>> a[0] = 44; print(id(a)); print(id(b))
     # 72624320
     # 72624320
     # >>> a

@@ -200,11 +200,11 @@ dt, nstep = signal.fftsample(fmax*fmax_extend_fac, df)
 nstep = int(nstep)
 taxis = np.linspace(0, dt*nstep, nstep, endpoint=False)
 
-##print "dt [s]:", dt
-##print "dt [Hartree]:", dt/constants.th
-##print "nstep:", nstep
-##print "fmax [Hz]:", fmax
-##print "nfreq:", nfreq
+##print("dt [s]:", dt)
+##print("dt [Hartree]:", dt/constants.th)
+##print("nstep:", nstep)
+##print("fmax [Hz]:", fmax)
+##print("nfreq:", nfreq)
 
 
 ###############################################################################

@@ -161,11 +161,11 @@ class SQLiteDB(object):
     >>> db.execute("insert into %s ('a', 'b') values (?,?)" %db.table, (2.0, 'huhu'))
     >>> # iterator
     >>> for record in db.execute("select * from calc"):
-    ...     print record
+    ...     print(record)
     (1.0, u'lala')
     (2.0, u'huhu')
     >>> # list
-    >>> print db.execute("select * from calc").fetchall()
+    >>> print(db.execute("select * from calc").fetchall())
     [(1.0, u'lala'), (2.0, u'huhu')]
     >>> db.get_list1d("select a from calc")
     [1.0, 2.0]
@@ -521,7 +521,7 @@ def sql_column_old(key, sqltype, lst, sqlval_func=lambda x: x, fileval_func=lamb
     >>> vals = sql_column('ecutfwc', 'float', _vals,
     ...                   fileval_func=lambda x: 'ecutfwc=%s'%x)
     >>> for v in vals:
-    ...     print v.key, v.sqltype, v.sqlval, v.fileval
+    ...     print(v.key, v.sqltype, v.sqlval, v.fileval)
     ecutfwc float 25 ecutfwc=25
     ecutfwc float 50 ecutfwc=50
     ecutfwc float 75 ecutfwc=75
@@ -563,7 +563,7 @@ def sql_column(key, lst, sqltype=None, sqlval_func=lambda x: x, fileval_func=lam
     >>> vals = sql_column('ecutfwc', [25.0, 50.0, 75.0],
     ...                   fileval_func=lambda x: 'ecutfwc=%s'%x)
     >>> for v in vals:
-    ...     print v.key, v.sqltype, v.sqlval, v.fileval
+    ...     print(v.key, v.sqltype, v.sqlval, v.fileval)
     ecutfwc REAL 25.0 ecutfwc=25.0
     ecutfwc REAL 50.0 ecutfwc=50.0
     ecutfwc REAL 75.0 ecutfwc=75.0
@@ -626,14 +626,14 @@ def sql_matrix(lists, header=None, colnames=None, sqlval_funcs=None, fileval_fun
     >>> # use explicit header
     >>> header=[('col0', 'float'), ('col1', 'text'), ('col2', 'integer')]
     >>> m=sql.sql_matrix(lists, header=header)
-    >>> for row in m: print [(xx.key, xx.fileval, xx.sqltype) for xx in row]
+    >>> for row in m: print([(xx.key, xx.fileval, xx.sqltype)) for xx in row]
     [('col0', 1.0, 'REAL'), ('col1', 'a', 'TEXT'), ('col2', 777, 'INTEGER')]
     [('col0', 1.0, 'REAL'), ('col1', 'a', 'TEXT'), ('col2', 888, 'INTEGER')]
     [('col0', 2.0, 'REAL'), ('col1', 'a', 'TEXT'), ('col2', 777, 'INTEGER')]
     [('col0', 2.0, 'REAL'), ('col1', 'a', 'TEXT'), ('col2', 888, 'INTEGER')]
     >>> # use colnames -> automatic sqltype detected, also use fileval_funcs
     >>> m=sql.sql_matrix(lists, colnames=['col0','col1','col2'], fileval_funcs={'col0': lambda x: x*100})
-    >>> for row in m: print [(xx.key, xx.fileval, xx.sqltype) for xx in row]
+    >>> for row in m: print([(xx.key, xx.fileval, xx.sqltype)) for xx in row]
     [('col0', 100.0, 'REAL'), ('col1', 'a', 'TEXT'), ('col2', 777, 'INTEGER')]
     [('col0', 100.0, 'REAL'), ('col1', 'a', 'TEXT'), ('col2', 888, 'INTEGER')]
     [('col0', 200.0, 'REAL'), ('col1', 'a', 'TEXT'), ('col2', 777, 'INTEGER')]
