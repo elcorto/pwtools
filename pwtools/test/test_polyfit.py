@@ -17,8 +17,9 @@ def make_kwd_lst(*args):
 
 def test_polyfit():
     scale = [{'scale': False}, {'scale': True}]
+    scale_vand = [{'scale_vand': False}, {'scale_vand': True}]
     degs = [{'deg': 2}, {'deg': 3}]
-    kwd_lst = make_kwd_lst(scale, degs)
+    kwd_lst = make_kwd_lst(scale, degs, scale_vand)
     for kwds in kwd_lst:
         print(kwds)
         # 1D
@@ -43,9 +44,8 @@ def test_polyfit():
         fit2 = num.polyfit(x[:,None],y,deg=2)
         assert_all_types_equal(fit1, fit2)
 
-    scale = [{'scale': False}, {'scale': True}]
     degs = [{'deg': 4}]
-    kwd_lst = make_kwd_lst(scale, degs)
+    kwd_lst = make_kwd_lst(scale, degs, scale_vand)
     for kwds in kwd_lst:
         print(kwds)
         # 2D
@@ -70,13 +70,18 @@ def test_polyfit():
         f = num.PolyFit(points, zz, **kwds)
         assert np.allclose(zz, f(points),atol=1e-3)
 
+
 def test_compare_numpy():
     x = np.sort(np.random.rand(10))
     y = np.random.rand(10)
     yy1 = np.polyval(np.polyfit(x, y, 3), x)
-    for scale in [True,False]:
-        yy2 = num.PolyFit1D(x, y, 3, scale=scale)(x)
+    scale = [{'scale': False}, {'scale': True}]
+    scale_vand = [{'scale_vand': False}, {'scale_vand': True}]
+    kwd_lst = make_kwd_lst(scale, scale_vand)
+    for kwds in kwd_lst:
+        yy2 = num.PolyFit1D(x, y, 3, **kwds)(x)
         assert np.allclose(yy1, yy2)
+
 
 def test_scale_get_min():
     # two local minima separated by a max at ~6.5
@@ -84,13 +89,17 @@ def test_scale_get_min():
     y = np.cos(x)+x*.2
     xlo = 2.94080857
     xhi = 9.2237442
-    for scale in [True, False]:
-        f = num.PolyFit(x[:,None], y, deg=9, scale=scale)
+    scale = [{'scale': False}, {'scale': True}]
+    scale_vand = [{'scale_vand': False}, {'scale_vand': True}]
+    kwd_lst = make_kwd_lst(scale, scale_vand)
+    for kwds in kwd_lst:
+        f = num.PolyFit(x[:,None], y, deg=9, **kwds)
         assert np.allclose(f.get_min(x0=4), np.array([xlo]))
         assert np.allclose(f.get_min(x0=8), np.array([xhi]))
-        f = num.PolyFit1D(x, y, deg=9, scale=scale)
+        f = num.PolyFit1D(x, y, deg=9, **kwds)
         assert np.allclose(f.get_min(x0=4), xlo)
         assert np.allclose(f.get_min(x0=8), xhi)
+
 
 def test_api():
     # PolyFit's call method returns a scalar when given a "scalar" input (a
