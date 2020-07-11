@@ -198,7 +198,7 @@ def findroot(x, y):
     return np.array([x0, spl(x0)])
 
 
-class Fit1D(object):
+class Fit1D:
     """Base class for 1D data fit/interpolation classes (:class:`Spline`,
     :class:`PolyFit1D`). It provides :meth:`get_min`, :meth:`get_max`,
     :meth:`get_root`, :meth:`is_mono`.
@@ -710,7 +710,7 @@ def sum(arr, axis=None, keepdims=False, **kwds):
         return _sum(arr, tosum)
 
 
-class Interpol2D(object):
+class Interpol2D:
     """Common 2D interpolator API.
 
     The API is the same as in ``scipy.interpolate``, e.g.
@@ -969,7 +969,7 @@ def distsq(arrx, arry):
 
 
 
-class DataND(object):
+class DataND:
     """
     Transform 2d array `a2` to nd array `an`. The 2d array's last column are
     values on a grid represented by the nd array. The 2d array is the
@@ -1352,7 +1352,7 @@ def polyval(fit, points, der=0):
         return np.dot(vand, fit['coeffs']) * vscale + vmin
 
 
-class PolyFit(object):
+class PolyFit:
     """High level interface to poly{fit,val}, similar to :class:`Spline`
     and :class:`Interpol2D`.
 

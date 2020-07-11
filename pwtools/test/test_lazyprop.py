@@ -2,7 +2,7 @@
 
 from pwtools.decorators import lazyprop
 
-class Foo(object):
+class Foo:
     def __init__(self):
         self.lazy_called = False
 

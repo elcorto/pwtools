@@ -1,6 +1,6 @@
 from time import time
 
-class TagTimer(object):
+class TagTimer:
     """
     Helper class for timimg. It's meant to be used for manually inspecting
     code.

@@ -28,7 +28,7 @@ def stress_pwtools2ase(pwstress):
 
 # Have an idea for an even more useless name for this class? Then send me a
 # mail. Or a patch! :)
-class CalculatorBase(object):
+class CalculatorBase:
     """Base class for creating calculators.
 
     Provides methods to automatically dispatch constructor input keywords."""

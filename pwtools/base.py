@@ -5,7 +5,7 @@ import warnings
 ##warnings.simplefilter('always')
 
 # Most of this class can probably be replaced by decorators.lazyprop .
-class FlexibleGetters(object):
+class FlexibleGetters:
     """The most basic base class -- the mothership!
 
     Implements a mechanism which allows to call getters in

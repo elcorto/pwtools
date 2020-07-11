@@ -56,7 +56,7 @@ def get_path_norm(ks):
     return path_norm
 
 
-class SpecialPointsPath(object):
+class SpecialPointsPath:
     r"""Sequence of special points. Calculate their path norm and store symbols
     such as "K" or "$\\Gamma$"."""
     def __init__(self, ks=None, ks_frac=None, symbols=None):

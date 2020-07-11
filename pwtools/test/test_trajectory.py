@@ -239,7 +239,7 @@ def test_concatenate():
 
 
 def test_populated_attrs():
-    class Dummy(object):
+    class Dummy:
         def __init__(self, **kwds):
             self.attr_lst = ['a','b','c', 'd']
             for name in self.attr_lst:

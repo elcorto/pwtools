@@ -64,7 +64,7 @@ def fix_sql_header(header):
     return [(x[0], fix_sqltype(x[1])) for x in header]
 
 
-class SQLEntry(object):
+class SQLEntry:
     """
     Represent an entry in a SQLite database. An entry is one single
     value of one column and record (record = row).
@@ -148,7 +148,7 @@ class SQLEntry(object):
 # not another implementation. So, lets not add more convenience methods. Things
 # like attach_column() are already as complicated as it gets and almost not
 # used, even though they work!
-class SQLiteDB(object):
+class SQLiteDB:
     """Interface class which wraps the sqlite3 module. It abstacts away the
     connecting to the database and cursor setup and adds some convenience
     methods.

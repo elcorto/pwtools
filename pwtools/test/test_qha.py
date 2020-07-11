@@ -25,7 +25,7 @@ def unpack(fns):
     for fn in fns:
         common.system('gunzip %s' %fn)
 
-class Store(object):
+class Store:
     def __init__(self, arr1, arr2):
         self.arr1 = arr1
         self.arr2 = arr2

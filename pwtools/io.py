@@ -321,7 +321,7 @@ def read_pickle(filename):
     return pickle.load(open(filename, 'rb'))
 
 
-class ReadFactory(object):
+class ReadFactory:
     """Factory class to construct callables to parse files."""
     def __init__(self, parser=None, struct_or_traj=None, doc=''):
         """

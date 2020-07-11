@@ -12,7 +12,7 @@ class RandomStructureFail(Exception):
         return self.msg
 
 
-class RandomStructure(object):
+class RandomStructure:
     """Create a random structure, based on atom number and composition alone
     (`symbols`).
 

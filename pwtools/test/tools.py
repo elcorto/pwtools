@@ -82,7 +82,7 @@ def true_or_false(cond):
 # Factory classes to build more complex comp funcs.
 #-----------------------------------------------------------------------------
 
-class AllTypesFactory(object):
+class AllTypesFactory:
     """Factory for creating functions which compare "any" type.
 
     We need a dict `comp_map` which maps types (result of ``type(foo)``) to a
@@ -138,7 +138,7 @@ class AllTypesFactory(object):
         return comp_func(d1, d2, **kwds)
 
 
-class DictWithAllTypesFactory(object):
+class DictWithAllTypesFactory:
     """Factory for creating functions which can compare dicts with values of
     "any" type, also numpy arrays. Nested dicts are possible."""
     def __init__(self, comp_func=None):
@@ -194,7 +194,7 @@ class DictWithAllTypesFactory(object):
         return ret
 
 
-class AssertFactory(object):
+class AssertFactory:
     """Factory for comparison functions which simply do ``assert
     comp_func(*args, **kwds)``."""
     def __init__(self, comp_func=None):

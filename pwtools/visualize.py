@@ -38,7 +38,7 @@ import os
 from pwtools import io, common
 
 
-class ViewFactory(object):
+class ViewFactory:
     """Factory for creating interface functions to external molecular
     viewers."""
     def __init__(self, cmd=None, assert_cmd=None, suffix='.axsf',

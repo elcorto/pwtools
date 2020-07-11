@@ -23,7 +23,7 @@ if export:
     plt.rcParams['font.size'] = 15
 
 
-class SurfaceData(object):
+class SurfaceData:
     def __init__(self, xlim, ylim, nx, ny, mode):
         self.xlim = xlim
         self.ylim = ylim

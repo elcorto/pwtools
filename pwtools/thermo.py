@@ -11,7 +11,7 @@ def coth(x):
     return 1.0/np.tanh(x)
 
 
-class HarmonicThermo(object):
+class HarmonicThermo:
     """Calculate vibrational internal energy (Evib [eV]), free energy (Fvib
     [eV]), entropy (Svib [R,kb]) and isochoric heat capacity (Cv [R,kb]) in the
     harmonic approximation from a phonon density of states.
@@ -243,7 +243,7 @@ class HarmonicThermo(object):
         return self.vibrational_entropy(*args, **kwargs)
 
 
-class Gibbs(object):
+class Gibbs:
     """
     Calculate thermodynamic properties on a T-P grid in the quasiharmonic
     approximation, given some variation grid of unit cell axes (`axes_flat`) and

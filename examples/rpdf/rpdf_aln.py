@@ -49,7 +49,7 @@ class Struct(crys.Structure):
         np.savetxt(fn_cell, self.cell)
 
 
-class Plot(object):
+class Plot:
     pass
 
 

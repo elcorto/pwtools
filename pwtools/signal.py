@@ -841,7 +841,7 @@ def scale(x, copy=True):
     return xx
 
 
-class FIRFilter(object):
+class FIRFilter:
     """Build and apply a digital FIR filter (low-, high-, band-pass,
     band-stop). Uses firwin() and in some cases kaiserord().
 

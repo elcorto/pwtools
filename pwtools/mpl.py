@@ -118,7 +118,7 @@ def clean_ax3d(ax):
     ax.grid(False)
 
 
-class Plot(object):
+class Plot:
     """Container for a plot figure with (by default one) axis `ax`.
 
     You can add more axes with twinx() etc and operate on them.
@@ -277,7 +277,7 @@ def prepare_plots(names, projection='2d', **kwds):
     return plots
 
 
-class Data2D(object):
+class Data2D:
     """Container which converts between different x-y-z data formats frequently
     used by ``scipy.interpolate.bispl{rep,ev}`` and ``mpl_toolkits.mplot3d``
     fuctions.

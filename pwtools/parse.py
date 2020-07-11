@@ -2043,7 +2043,7 @@ class Cp2kRelaxOutputFile(Cp2kMDOutputFile):
             return None
 
 
-class DcdOutputFile(object):
+class DcdOutputFile:
     """Base class which implements dcd file reading. Used only for
     inheritance."""
     _dcd_convang = False

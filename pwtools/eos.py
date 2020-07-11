@@ -53,7 +53,7 @@ class MaxDerivException(Exception):
         return self.msg
 
 
-class EVFunction(object):
+class EVFunction:
     """Base class for E(V) models, such as the Vinet EOS."""
     def __init__(self):
         self.param_order = ['e0', 'b0', 'b1', 'v0']

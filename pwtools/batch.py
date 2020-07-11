@@ -9,7 +9,7 @@ pj = os.path.join
 # backwd compat
 from pwtools.sql import sql_column, sql_matrix
 
-class Machine(object):
+class Machine:
     """Container for machine-specific stuff.
 
     Most of the machine-specific settings can (and should) be placed in the
@@ -67,7 +67,7 @@ class Machine(object):
         return dct
 
 
-class FileTemplate(object):
+class FileTemplate:
     """Class to represent a template file in parameter studies.
 
     Each template file is supposed to contain a number of placeholder strings
@@ -248,7 +248,7 @@ class FileTemplate(object):
         self.write(sql_record, calc_dir=calc_dir, mode='sql')
 
 
-class Calculation(object):
+class Calculation:
     """Represent a single calculation.
 
     The calculation data will be placed, e.g., in dir calc_foo/0/. A
@@ -324,7 +324,7 @@ class Calculation(object):
             templ.writesql(self.sql_record_write, self.calc_dir)
 
 
-class ParameterStudy(object):
+class ParameterStudy:
     """Class to represent a parameter study (a number of Calculations,
     based on template files).
 
@@ -729,7 +729,7 @@ def default_repl_keys():
     return ret
 
 
-class Case(object):
+class Case:
     """General purpose container class, supporting only keywords in the
     constructor. This is essentially the same as a dictionary, just with
     another syntax for attribute access, i.e. ``case.foo`` instead of

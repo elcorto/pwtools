@@ -94,7 +94,7 @@ def crys_add_doc(func):
     return func
 
 
-class lazyprop(object):
+class lazyprop:
     """Decorator for creating lazy evaluated properties.
     The property should represent non-mutable data, as it replaces itself.
 
