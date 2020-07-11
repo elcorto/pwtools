@@ -1,9 +1,7 @@
+PyCifRW
+ase
+h5py
 matplotlib
-nose
 numpy
 scipy
-h5py
-ase
-numpydoc
-PyCifRW
 spglib
