@@ -53,7 +53,7 @@ you may install::
 
     # pip
     PyCifRW
-    pyspglib  # renamed to spglib after v1.8.x, not supported yet
+    spglib
 
 You can use ``test/check_dependencies.py`` to find out what your system has
 installed.
@@ -77,7 +77,7 @@ The pwextern-free_ package contains add-on tools which we don't want / can ship
 directly with pwtools, such as eos.
 
 .. note:: pwextern-free also contains very old versions of PyCifRW and
-   pyspglib, don't use those, use pip versions! Also, don't use the
+   (py)spglib, don't use those, use pip versions! Also, don't use the
    install.sh script provided there. If needed, only compile eos.x and place it
    somewhere in PATH.
 

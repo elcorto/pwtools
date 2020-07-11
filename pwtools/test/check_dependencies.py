@@ -12,7 +12,7 @@ def check_module(name):
 if __name__ == '__main__':
 
     print("required packages:")
-    for name in ['numpy', 'scipy', 'ase', 'pyspglib', 'CifFile', 'h5py',
+    for name in ['numpy', 'scipy', 'ase', 'spglib', 'CifFile', 'h5py',
                  'nose', 'matplotlib', 'sphinx', 'numpydoc']:
         check_module(name)
 

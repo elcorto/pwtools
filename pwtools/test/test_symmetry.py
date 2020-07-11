@@ -7,7 +7,7 @@ from pwtools.test import tools
 from pwtools.test.utils import rand_container as rc
 
 try:
-    from pyspglib import spglib
+    import spglib
     from pwtools import symmetry
 except ImportError:
     # skip_if_pkg_missing() called below in tests
@@ -15,7 +15,7 @@ except ImportError:
 
 class TestIsSameStruct:
     def __init__(self):
-        tools.skip_if_pkg_missing('pyspglib')
+        tools.skip_if_pkg_missing('spglib')
 
     def test_rand(self):
         st1 = rc.get_rand_struct()
@@ -41,7 +41,7 @@ class TestIsSameStruct:
 
 
 def test_symmetry():
-    tools.skip_if_pkg_missing('pyspglib')
+    tools.skip_if_pkg_missing('spglib')
     st_prim = crys.Structure(
         coords_frac=np.array([[0]*3, [.5]*3]),
         cryst_const=np.array([3.5]*3 + [60]*3),

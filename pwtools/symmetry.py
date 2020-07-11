@@ -1,17 +1,8 @@
 import numpy as np
-from pyspglib import spglib
+import spglib
 
 from pwtools import atomic_data
 from pwtools.crys import Structure
-
-# spglib versions:
-#
-#     $ pip3 search spglib
-#     pyspglib (1.8.3.1)  - This is the pyspglib module.
-#       INSTALLED: 1.8.3.1 (latest)
-#     spglib (1.10.3.14)  - This is the spglib module.
-#
-# The renamed version 1.10.x should have the same API, not tested yet.
 
 
 def is_same_struct(st1, st2):
@@ -66,7 +57,7 @@ def spglib_get_primitive(struct, **kwds):
     If `struct` is irreducible (is already a primitive cell), we return None,
     else a Structure.
 
-    Uses pyspglib.
+    Uses spglib.
 
     Parameters
     ----------
@@ -105,7 +96,7 @@ def spglib_get_primitive(struct, **kwds):
 def spglib_get_spacegroup(struct, **kwds):
     """Find spacegroup for given Structure.
 
-    Uses pyspglib.
+    Uses spglib.
 
     Parameters
     ----------

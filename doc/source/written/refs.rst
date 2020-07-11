@@ -9,8 +9,7 @@
 .. _pwextern-free: https://bitbucket.org/elcorto/pwextern-free
 .. _phonopy: http://phonopy.sourceforge.net
 .. _tfreq: http://www.timteatro.net/2010/09/29/velocity-autocorrelation-and-vibrational-spectrum-calculation
-.. _spglib: http://spglib.sourceforge.net/
-.. _pyspglib: spglib.sourceforge.net/pyspglib.html
+.. _spglib: https://spglib.github.io/spglib
 .. _GPAW: https://wiki.fysik.dtu.dk/gpaw/
 .. _numpy: http://www.numpy.org
 .. _scipy: http://www.scipy.org

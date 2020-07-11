@@ -6,4 +6,4 @@ h5py
 ase
 numpydoc
 PyCifRW
-pyspglib
+spglib
