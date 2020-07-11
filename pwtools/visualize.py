@@ -159,10 +159,17 @@ view_jmol = \
                 writer=io.write_cif,
                 assert_cmd=assert_struct)
 
+avogadro_cmd = r"""
+    __f(){
+        if which avogadro2 > /dev/null; then
+            avogadro2 $@
+        else
+            avogadro $@
+        fi
+        };
+    __f """
 view_avogadro = \
-    ViewFactory(cmd='avogadro',
+    ViewFactory(cmd=avogadro_cmd,
                 suffix='.cif',
                 writer=io.write_cif,
                 assert_cmd=assert_struct)
-
-
