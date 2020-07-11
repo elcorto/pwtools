@@ -4,16 +4,16 @@
 #
 #   $ ./runtests.sh test_mpl.py
 #
-# but if we run the whole test suite, nose does apparently import matplotlib
-# earlier and we get the annoying warning::
+# but if we run the whole test suite, test runners (tested with nose back in
+# the day) does apparently import matplotlib earlier and we get the annoying
+# warning::
 #
 #   $ ./runtests.sh
 #
 #   /usr/lib/pymodules/python2.7/matplotlib/__init__.py:923: UserWarning:  This
-#   call to matplotlib.use() has no effect
-#   because the the backend has already been chosen;
-#   matplotlib.use() must be called *before* pylab, matplotlib.pyplot,
-#   or matplotlib.backends is imported for the first time.
+#   call to matplotlib.use() has no effect because the the backend has already
+#   been chosen; matplotlib.use() must be called *before* pylab,
+#   matplotlib.pyplot, or matplotlib.backends is imported for the first time.
 #
 # This happens over ssh and on localhost, wich is a big PITA!
 #

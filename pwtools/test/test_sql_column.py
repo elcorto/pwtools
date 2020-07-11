@@ -1,5 +1,6 @@
 from pwtools.sql import sql_column
-from nose.tools import raises
+import pytest
+
 
 def test_sql_column():
     x = sql_column(key='foo',
@@ -31,7 +32,7 @@ def test_sql_column():
     for xx in sql_column('foo', [1.0,2.0]):
         assert xx.sqltype == 'REAL'
 
-@raises(AssertionError)
-def test_sql_column_fail_for_mixed_types():
-    s = sql_column('foo', [1,2.0])
 
+def test_sql_column_fail_for_mixed_types():
+    with pytest.raises(AssertionError):
+        s = sql_column('foo', [1,2.0])
