@@ -656,20 +656,18 @@ def asseq(arg):
 def system(call, wait=True):
     """Fire up shell commamd line `call`.
 
-    No exception is raised if the command fails.
+    Shorthand for ``subprocess.run(call, shell=True, check=True)``.
 
     Parameters
     ----------
     call: str (example: 'ls -l')
     wait : bool
-        False: Don't wait for `call` to terminate.
-            This can be used to spawn multiple processes concurrently. This is
-            identical to calling os.system(call) (as opposed to ret=os.system(call).
-        True: This is identical to calling ret=os.system(call).
+        Kept for backward compat. Not used. Only True supported.
     """
-    p = subprocess.Popen(call, shell=True)
-    if wait:
-        os.waitpid(p.pid, 0)
+    if not wait:
+        raise NotImplementedError("wait=False not supported anymore")
+    subprocess.run(call, shell=True, check=True)
+
 
 def permit_sigpipe():
     """Helper for subprocess.Popen(). Handle SIGPIPE. To be used as preexec_fn.
