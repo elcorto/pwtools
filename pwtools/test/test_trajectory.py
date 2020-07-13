@@ -1,14 +1,18 @@
 # We assume all lengths in Angstrom. Only important for ASE comparison.
 #
-import types, copy
+import types
+import copy
+
 import numpy as np
-from scipy.signal import hanning
+from scipy.signal import hann
+
 from pwtools.crys import Trajectory, Structure
 from pwtools import crys, constants
-from pwtools.test.tools import aaae, assert_all_types_equal,\
-    assert_attrs_not_none, assert_dict_with_all_types_equal
+from pwtools.test.tools import (aaae, assert_all_types_equal,
+    assert_attrs_not_none, assert_dict_with_all_types_equal)
 from pwtools.test.utils.rand_container import get_rand_struct, get_rand_traj
 from pwtools import num
+
 rand = np.random.rand
 
 
@@ -293,7 +297,7 @@ def test_mean():
 def test_smooth():
     tr = get_rand_traj()
     assert len(tr.attrs_nstep) > 0
-    trs = crys.smooth(tr, hanning(11))
+    trs = crys.smooth(tr, hann(11))
     assert len(trs.attrs_nstep) > 0
     assert_attrs_not_none(trs, attr_lst=tr.attr_lst)
     for name in tr.attrs_nstep:
@@ -305,14 +309,14 @@ def test_smooth():
     assert trs.nstep == tr.nstep
 
     # reproduce data with kernel [0,1,0]
-    trs = crys.smooth(tr, hanning(3))
+    trs = crys.smooth(tr, hann(3))
     for name in tr.attrs_nstep:
         a1 = getattr(tr, name)
         a2 = getattr(trs, name)
         assert np.allclose(a1, a2)
 
-    trs1 = crys.smooth(tr, hanning(3), method=1)
-    trs2 = crys.smooth(tr, hanning(3), method=2)
+    trs1 = crys.smooth(tr, hann(3), method=1)
+    trs2 = crys.smooth(tr, hann(3), method=2)
     assert len(trs1.attrs_nstep) > 0
     assert len(trs2.attrs_nstep) > 0
     for name in tr.attrs_nstep:
@@ -322,8 +326,8 @@ def test_smooth():
         assert np.allclose(a1, a2)
         assert np.allclose(a1, a3)
 
-    trs1 = crys.smooth(tr, hanning(11), method=1)
-    trs2 = crys.smooth(tr, hanning(11), method=2)
+    trs1 = crys.smooth(tr, hann(11), method=1)
+    trs2 = crys.smooth(tr, hann(11), method=2)
     assert len(trs1.attrs_nstep) > 0
     assert len(trs2.attrs_nstep) > 0
     for name in trs1.attrs_nstep:
