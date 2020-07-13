@@ -1,13 +1,16 @@
-import os, copy, shutil, warnings
+import os
+import copy
+import shutil
+from collections.abc import Callable
+
 import numpy as np
+
 from pwtools import common
 from pwtools.sql import SQLEntry, SQLiteDB
 from pwtools.verbose import verbose
-import collections
+
 pj = os.path.join
 
-# backwd compat
-from pwtools.sql import sql_column, sql_matrix
 
 class Machine:
     """Container for machine-specific stuff.
@@ -762,5 +765,5 @@ class Case:
         for k,v in kwds.items():
             setattr(self, k, v)
 
-        if hasattr(self, 'init') and isinstance(self.init, collections.Callable):
+        if hasattr(self, 'init') and isinstance(self.init, Callable):
             eval('self.init()')
