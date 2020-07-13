@@ -165,7 +165,7 @@ class Rbf:
         assert values.ndim == 1, ("values not 1d array")
 
     def get_distsq(self, points=None):
-        """Matrix of distance values :math:`R_{ij} = |\mathbf x_i - \mathbf
+        r"""Matrix of distance values :math:`R_{ij} = |\mathbf x_i - \mathbf
         c_j|`.
 
             | :math:`\mathbf x_i` : points[i,:]
@@ -210,7 +210,7 @@ class Rbf:
         return self.p, self.r
 
     def fit(self):
-        """Solve linear system for the weights.
+        r"""Solve linear system for the weights.
 
         The weights  `self.w` (:math:`\mathbf w`) are found from: :math:`\mathbf
         G\,\mathbf w = \mathbf z` or if :math:`r` is given :math:`(\mathbf G +
