@@ -1,13 +1,15 @@
 import os
-import numpy as np
 import subprocess as sp
+
+import numpy as np
+
 from pwtools.parse import CifFile
 from pwtools import io
+
 from .testenv import testdir
-from pwtools.test import tools
+
 
 def test_cif_parse():
-    tools.skip_if_pkg_missing('CifFile')
     for filename in ['files/cif_struct.cif', 'files/cif_cart_struct.cif']:
         p1 = CifFile(filename).get_struct()
         assert p1.cell is not None
@@ -28,7 +30,6 @@ def test_cif_parse():
 
 
 def test_cif2any():
-    tools.skip_if_pkg_missing('CifFile')
     exe = os.path.join(os.path.dirname(__file__),
                        '../../bin/cif2any.py')
     cmd = '{e} files/cif_struct.cif > cif2any.log'.format(e=exe)
@@ -36,9 +37,7 @@ def test_cif2any():
 
 
 def test_cif2sgroup():
-    tools.skip_if_pkg_missing('CifFile')
     exe = os.path.join(os.path.dirname(__file__),
                        '../../bin/cif2sgroup.py')
     cmd = '{e} files/cif_struct.cif > cif2sgroup.log'.format(e=exe)
     sp.run(cmd, check=True, shell=True)
-

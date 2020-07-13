@@ -1,11 +1,12 @@
 from itertools import permutations
+
 import numpy as np
+
 from pwtools import crys,io
-from pwtools.test import tools
+
 
 def angles(struct, pbc=False, mask_val=999.0, deg=True):
     """Python implementation of angles."""
-    nang = struct.natoms*(struct.natoms-1)*(struct.natoms-2)
     norm = np.linalg.norm
     anglesijk = np.ones((struct.natoms,)*3, dtype=float)*mask_val
     angleidx = np.array([x for x in permutations(list(range(struct.natoms)),3)])
@@ -38,7 +39,6 @@ def angles(struct, pbc=False, mask_val=999.0, deg=True):
 def test_angle():
     # CaCl struct, the supercell will have 0 and 180 degrees -> check corner
     # cases
-    tools.skip_if_pkg_missing('CifFile')
     st = io.read_cif('files/angle/rs.cif')
     st = crys.scell(st, (2,1,1))
     nang = st.natoms*(st.natoms-1)*(st.natoms-2)
@@ -59,4 +59,3 @@ def test_angle():
             assert (agf < eps).any(), "no zero degree cases"
             assert (agf - 180.0 < eps).any(), "no 180 degree cases"
             assert (agf >= 0.0).all(), "negative angles"
-
