@@ -29,10 +29,9 @@ def spglib2struct(tup):
     """Transform returned tuple from various spglib functions to
     :class:`~pwtools.crys.Structure`.
 
-    This applies to ``spglib.find_primitive()`` and probably some more. Their
-    doc string says it returns an ``ase.Atoms`` object, but what it actually
-    returns is a tuple `(cell,coords_frac,znucl)`. `znucl` is a
-    list of integers with atomic core charge (e.g. 1 for H), see
+    This applies to ``spglib.find_primitive()`` and probably some more. They
+    return a tuple `(cell,coords_frac,znucl)`. `znucl` is a list of integers
+    with atomic core charge (e.g. 1 for H), see
     :data:`pwtools.atomic_data.numbers`.
 
     Parameters
@@ -49,6 +48,13 @@ def spglib2struct(tup):
     symbols = [atomic_data.symbols[ii] for ii in tup[2]]
     st = Structure(coords_frac=tup[1], cell=tup[0], symbols=symbols)
     return st
+
+
+def struct2spglib(st):
+    """Transform :class:`~pwtools.crys.Structure` to spglib input tuple (cell,
+    coords_frac, znucl).
+    """
+    return st.get_spglib()
 
 
 def spglib_get_primitive(struct, **kwds):
@@ -85,7 +91,7 @@ def spglib_get_primitive(struct, **kwds):
     cell which you would expect or get from other tools like Wien2K's sgroup.
     Only things like `natoms` and the spacegroup can be safely compared.
     """
-    candidate = spglib2struct(spglib.find_primitive(struct.get_fake_ase_atoms(),
+    candidate = spglib2struct(spglib.find_primitive(struct.get_spglib(),
                                                     **kwds))
     if is_same_struct(candidate, struct):
         return None
@@ -118,7 +124,7 @@ def spglib_get_spacegroup(struct, **kwds):
     The used function ``spglib.get_spacegroup()`` returns a string, which we
     split into `spg_num` and `spg_sym`.
     """
-    ret = spglib.get_spacegroup(struct.get_fake_ase_atoms(), **kwds)
+    ret = spglib.get_spacegroup(struct.get_spglib(), **kwds)
     spl = ret.split()
     spg_sym = spl[0]
     spg_num = spl[1]

@@ -1,5 +1,9 @@
 from math import acos, pi, sin, cos, sqrt
-import textwrap, time, tempfile, copy, itertools
+import textwrap
+import time
+import tempfile
+import copy
+import itertools
 
 import numpy as np
 from scipy.linalg import inv
@@ -2880,6 +2884,10 @@ class Structure(UnitsHandler):
         tr.set_all()
         return tr
 
+    def get_spglib(self):
+        """Return spglib input tuple (cell, coords_frac, znucl)."""
+        return (self.cell, self.coords_frac, self.znucl)
+
 
 class Trajectory(Structure):
     """Like :class:`Structure`, but all attrs in `attrs_nstep` have a timeaxis
@@ -2978,6 +2986,9 @@ class Trajectory(Structure):
     def get_traj(self):
         raise NotImplementedError("only in Structure")
 
+    def get_spglib(self):
+        raise NotImplementedError("only in Structure")
+
 
 def compress(traj, copy=True, **kwds):
     """Wrapper for :meth:`Trajectory.compress`.
@@ -3025,7 +3036,8 @@ def struct2traj(obj):
 class FakeASEAtoms(Structure):
     """Mimic the basic behavior of ``ase.Atoms``.
 
-    Used for ``spglib``.
+    Used to be used as input for ``spglib`` in symmetry.py, but not anymore as
+    of spglib 1.9.x. Now, we use :meth:`Structure.get_spglib`.
     """
     def __init__(self, scaled_positions=None, cell=None, symbols=None):
         super(FakeASEAtoms, self).__init__(coords_frac=scaled_positions,

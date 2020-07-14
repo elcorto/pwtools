@@ -15,7 +15,6 @@ No problem, use :func:`~pwtools.crys.atoms2struct` and
 For basic ASE compatibility, you may get away with
 :meth:`~pwtools.crys.Structure.get_fake_ase_atoms`. That creates an object
 which behaves like ``ase.Atoms`` without the need to have ASE installed.
-This is used in :mod:`pwtools.symmetry`, for example.
 
 Parse SCF, relax or MD output
 -----------------------------
