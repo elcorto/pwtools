@@ -1,12 +1,24 @@
-import os, types
-import numpy as np
-from pwtools import parse, common, pwscf, crys, io, constants
+import os
 
-# silently fail if ase is missing b/c it is not a dependency
+from pwtools import common, pwscf, crys, io, constants
+
+
+# silently fail at immport if ase is missing b/c it is not a dependency, fail
+# later only when actually used
 try:
     from ase.calculators.calculator import FileIOCalculator, kpts2mp
 except ImportError:
-    pass
+    def _ase_missing():
+        raise NotImplementedError("Failed to import FileIOCalculator, kpts2mp "
+                                  "from ase, not installed?")
+
+    def kpts2mp(*args, **kwds):
+        _ase_missing()
+
+    class FileIOCalculator:
+        def __init__(self, *args, **kwds):
+            _ase_missing()
+
 
 def stress_pwtools2ase(pwstress):
     """

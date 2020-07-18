@@ -1,5 +1,4 @@
 PyCifRW
-ase
 h5py
 matplotlib
 numpy

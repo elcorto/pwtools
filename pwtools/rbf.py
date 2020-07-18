@@ -2,19 +2,22 @@
 Radial Basis Function N-dim fitting. See :ref:`rbf` for details.
 """
 
-import warnings
 import math
-from scipy import optimize
+
 import numpy as np
+from scipy import optimize
 import scipy.linalg as linalg
-from scipy.spatial import distance
+
 from pwtools import num
 
 
 try:
     from sklearn.model_selection import RepeatedKFold
 except ImportError:
-    pass
+    class RepeatedKFold:
+        def __init__(*args, **kwds):
+            raise NotImplementedError("Failed to import RepeatedKFold from "
+                                      "sklearn, not installed?")
 
 
 def rbf_gauss(rsq, p):

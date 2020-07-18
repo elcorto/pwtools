@@ -21,8 +21,8 @@ to install only the package without installing dependencies from pypi::
 
     $ pip install --no-deps .
 
-When using a virtual environment, you can map in the system site-packages (here we use
-virtualenvwrapper_)::
+When using a virtual environment, you can map in the system site-packages (here
+we use virtualenvwrapper_)::
 
     $ mkvirtualenv --system-site-packages -p /usr/bin/python3 pwtools
     (pwtools) $ pip install .
@@ -35,28 +35,60 @@ Alternatively, you may also simply build the extensions and set ``PYTHONPATH``::
 
 Dependencies
 ------------
-See ``requirements.txt`` for packages installable by ``pip``. On a Debian-ish system,
-you may install::
+Python dependencies: see ``requirements*.txt``. You can use
+``test/check_dependencies.py`` to find out what your system has installed::
+
+    $ ./check_dependencies.py
+    requirements_test.txt
+      pytest               ... ok (import)
+      pytest-xdist         ... ok (pip list)
+      pytest-timeout       ... ok (pip list)
+    requirements.txt
+      PyCifRW              ... ok (pip list)
+      h5py                 ... ok (import)
+      matplotlib           ... ok (import)
+      numpy                ... ok (import)
+      scipy                ... ok (import)
+      spglib               ... ok (import)
+    requirements_optional.txt
+      ase                  ... ok (import)
+      sklearn              ... ok (import)
+    requirements_doc.txt
+      numpydoc             ... ok (import)
+      sphinx               ... ok (import)
+    optional executables:
+      eos.x                ... NOT FOUND
+
+Optional packages (``ase``, ``sklearn``) are only used in corner cases and
+therefore not hard dependencies. Importing modules that use them (e.g. ``crys``
+might use ``ase``) won't fail at import time, but later at runtime when e.g.
+``crys.Structure.get_ase_atoms()`` is called. What packages are optional might
+change depending on usage.
+
+You also need the following to compile extensions. On a Debian-ish system::
 
     # apt
-    python3-numpy
-    python3-scipy
-    python3-nose
     python3-dev     # for compiling extensions
-    python3-h5py
-    python3-matplotlib
-    python3-ase
-    python3-numpydoc
-    python3-sphinx
     gfortran        # or ifort, see src/Makefile
     liblapack-dev
 
-    # pip
-    PyCifRW
-    spglib
+Also note that you can get may Python packages via your system's package
+manager::
 
-You can use ``test/check_dependencies.py`` to find out what your system has
-installed.
+    python3-ase
+    python3-h5py
+    python3-matplotlib
+    python3-numpy
+    python3-numpydoc
+    python3-pytest
+    python3-pytest-timeout
+    python3-pytest-xdist
+    python3-scipy
+    python3-sklearn
+    python3-sphinx
+
+But usually not ``PyCifRW`` and ``spglib``.
+
 
 Optional dependencies
 ^^^^^^^^^^^^^^^^^^^^^
@@ -83,7 +115,7 @@ directly with pwtools, such as eos.
 
 .. note:: :class:`~pwtools.eos.ElkEOSFit` is deprecated now, and so you don't
    really need the Elk code's eos tool anymore. It was used for generating
-   refernce EOS fit data once, which is stored in test/files/, but there is no
+   reference EOS fit data once, which is stored in test/files/, but there is no
    use of eos.x in pwtools anymore.
 
 Running tests
@@ -94,11 +126,11 @@ See test/README. Actually, all of these are good examples, too!
 Python versions
 ---------------
 
-Only Python3 is supported, tested: Python 3.6, 3.7
+Only Python3 is supported, tested: Python 3.6, 3.7, 3.8
 
 The package was developed mostly with Python 2.5..2.7 and ported using 2to3 +
 manual changes. Therefore, you might find some crufty Python 2 style code
-fragments in lesser used parts of the codebase.
+fragments in lesser used parts of the code base.
 
 
 Compiling Fortran extensions and OpenMP notes

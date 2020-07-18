@@ -3,6 +3,7 @@
 import os
 import importlib
 import json
+import glob
 
 from pwtools.common import backtick
 
@@ -36,12 +37,11 @@ if __name__ == '__main__':
     pip_list = [x['name'] for x in
                 json.loads(backtick("pip list --format=json"))]
 
-    req_files = ['requirements.txt',
-                 'requirements_test.txt',
-                 'requirements_doc.txt']
+    path = '../../'
+    req_files = glob.fnmatch.filter(os.listdir(path), "requirements*.txt")
     for name in req_files:
         print(name)
-        with open(f'../../{name}') as fd:
+        with open(f'{path}/{name}') as fd:
             for pkg in fd.readlines():
                 check_module(pkg.strip())
 
