@@ -1,41 +1,50 @@
 import numpy as np
+import pytest
+
 from pwtools import rbf
 rand = np.random.rand
 
-def test_interpol_high_dim():
-    # 100 points in 40-dim space
+
+@pytest.mark.parametrize("p", ['mean', 'scipy'])
+@pytest.mark.parametrize("r", [None, 0, 1e-14])
+def test_interpol_high_dim(p, r):
+    # 10 points in 40-dim space
     #
     # Test only API. Interpolating random points makes no sense, of course.
     # However, on the center points (= data points = training points),
-    # interpolation must be "perfect".
+    # interpolation must be "perfect", even for low regularization parameter r.
     X = rand(10,40)
     z = rand(10)
 
-    rbfi = rbf.Rbf(X,z)
+    rbfi = rbf.Rbf(X,z, p=p, r=r)
     assert np.abs(z - rbfi(X)).max() < 1e-13
 
 
-def test_2d():
+@pytest.mark.parametrize("r,lin_solver", [(None,None),
+                                          (1e-12, 'solve'),
+                                          (1e-12, 'dsysv')])
+def test_2d(r, lin_solver):
     # 2d example, y = f(x1,x2) = sin(x1) + cos(x2)
     x1 = np.linspace(-1,1,20)
-    X1,X2 = np.meshgrid(x1,x1)
-    X1 = X1.T
-    X2 = X2.T
+    X1,X2 = np.meshgrid(x1, x1, indexing='ij')
     z = (np.sin(X1)+np.cos(X2)).flatten()
     X = np.array([X1.flatten(), X2.flatten()]).T
-    print(X.shape, z.shape)
-    rbfi = rbf.Rbf(X, z, p=1.5)
+    rbfi = rbf.Rbf(X, z, p=1.5, r=r, lin_solver=lin_solver)
     # test fit at 300 random points within [-1,1]^2
     Xr = -1.0 + 2*np.random.rand(300,2)
     zr = np.sin(Xr[:,0]) + np.cos(Xr[:,1])
     err = np.abs(rbfi(Xr) - zr).max()
-    print(err)
     assert err < 1e-6
-    # Big errors occur only at the domain boundary: -1, 1, errs at the points
-    # should be smaller
+    # Error at center points: big errors occur only at the domain boundary: -1,
+    # 1, errs at the points should be smaller
     err = np.abs(z - rbfi(X)).max()
-    print(err)
-    assert err < 1e-6
+    assert err < 1e-7
+    # derivative at random points
+    dzr_dx = np.cos(Xr[:,0])
+    dzr_dy = -np.sin(Xr[:,1])
+    drbfi = rbfi(Xr, der=1)
+    assert np.allclose(dzr_dx, drbfi[:,0], rtol=0, atol=1e-4)
+    assert np.allclose(dzr_dy, drbfi[:,1], rtol=0, atol=1e-4)
 
 
 def test_api_and_all_types_and_1d_with_deriv():
