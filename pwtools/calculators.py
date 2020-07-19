@@ -53,7 +53,7 @@ class CalculatorBase:
         for k in input_keys:
             if k not in allowed_keys:
                 raise Exception("key '%s' not allowed, only: \n%s" %(k,
-                                    str(allowed_keys)))
+                                str(allowed_keys)))
         self.parameters = self.default_parameters
         self.parameters.update(kwds)
         self.__dict__.update(self.parameters)
@@ -61,7 +61,7 @@ class CalculatorBase:
     def fill_infile_templ(self):
         """Replace all placeholders in ``self.infile_templ``. Use all keys in
         ``self.infile_templ_keys`` as possible placeholders."""
-        return self.infile_templ.format(**dict((key, getattr(self, key)) for key \
+        return self.infile_templ.format(**dict((key, getattr(self, key)) for key
                                         in self.infile_templ_keys))
 
 
@@ -126,7 +126,7 @@ class Pwscf(FileIOCalculator, CalculatorBase):
         pseudo_dir=None,
         smearing=None,
         xc=None,
-        command = "pw.x -input pw.in | tee pw.out",
+        command="pw.x -input pw.in | tee pw.out",
         )
 
     implemented_properties = ['energy', 'forces', 'stress']
@@ -170,6 +170,7 @@ ATOMIC_POSITIONS crystal
 K_POINTS automatic
 {kpoints} 0 0 0
     """
+
     def __init__(self, **kwds):
         """
         Parameters
@@ -217,8 +218,8 @@ K_POINTS automatic
         self.infile = os.path.join(self.directory, self.prefix + '.in')
         self.outfile = os.path.join(self.directory, self.prefix + '.out')
 
-        self.infile_templ_keys = list(self.parameters.keys()) + ['natoms', 'ntyp', 'atpos',
-            'atspec', 'cell', 'kpoints']
+        self.infile_templ_keys = list(self.parameters.keys()) + \
+            ['natoms', 'ntyp', 'atpos', 'atspec', 'cell', 'kpoints']
 
         assert self.pp is not None, "set pp"
         assert self.pseudo_dir is not None, "set pseudo_dir"
@@ -291,7 +292,7 @@ class Lammps(FileIOCalculator, CalculatorBase):
         pair_coeff='* * ./AlN.tersoff Al N',
         pair_style='tersoff',
         backup=False,
-        command = "lammps < lmp.in > lmp.out", # also writes 'log.lammps'
+        command="lammps < lmp.in > lmp.out",  # also writes 'log.lammps'
         )
     implemented_properties = ['energy', 'forces', 'stress']
 
@@ -347,7 +348,7 @@ run 0
         common.file_write(self.infile, self.fill_infile_templ())
         io.write_lammps(self.structfile,
                         crys.atoms2struct(atoms),
-                        symbolsbasename=os.path.basename(self.structfile) + \
+                        symbolsbasename=os.path.basename(self.structfile) +
                             '.symbols')
 
     def read_results(self):

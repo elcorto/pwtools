@@ -88,7 +88,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'pwtools'
-copyright = '2019, Steve Schmerler'
+copyright = '2020, Steve Schmerler'
 author = 'Steve Schmerler'
 
 # The version info for the project you're documenting, acts as replacement for
