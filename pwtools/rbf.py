@@ -68,8 +68,8 @@ rbf_dct = {
 
 class Rbf:
     """Radial basis function network interpolation and fitting."""
-    def __init__(self, points, values, centers=None, rbf='inv_multi',
-                 r=None, p='mean', verbose=False, fit=True):
+    def __init__(self, points, values, rbf='inv_multi',
+                 r=None, p='mean', fit=True, lin_solver='dsysv'):
         """
         Parameters
         ----------
@@ -77,16 +77,18 @@ class Rbf:
             data points : M points in N-dim space, training set points
         values : 1d array, (M,)
             function values at training points
-        centers : 2d array (K,N)
-            K N-dim center vectors, for usual interpolation training points == centers
-            (default)
         rbf : str (see rbf_dct.keys()) or callable rbf(r**2, p)
         r : float or None
             regularization parameter, if None then we use a least squares
             solver
         p : 'mean' or 'scipy' (see :func:`estimate_p`) or float
             the RBF's free parameter
-        verbose : bool
+        lin_solver : str
+            Linear solver method in case `r` is given
+
+            | solve : :func:`scipy.linalg.solve`
+            | dsysv : :func:`scipy.linalg.lapack.dsysv` (symmetric G)
+            | dposv : :func:`scipy.linalg.lapack.dposv` (positive definite G)
         fit : bool
             call self.fit() in __init__
 
@@ -136,11 +138,8 @@ class Rbf:
         """
         self.points = points
         self.values = values
-        self.centers = self.points if centers is None else centers
         self.rbf = rbf_dct[rbf] if isinstance(rbf, str) else rbf
-        self.verbose = verbose
         self._assert_ndim_points(self.points)
-        self._assert_ndim_points(self.centers)
         self._assert_ndim_values(self.values)
         self.distsq = None
         if isinstance(p, str):
@@ -156,12 +155,19 @@ class Rbf:
         else:
             self.p = p
         self.r = r
+        self.lin_solver = lin_solver
+        self._lin_solvers = dict(
+                solve=self._solve_general,
+                dsysv=self._solve_dsysv,
+                dposv=self._solve_dposv,
+                lstsq=self._solve_lstsq,
+                )
         if fit:
             self.fit()
 
     @staticmethod
     def _assert_ndim_points(points):
-        assert points.ndim == 2, ("points or centers not 2d array")
+        assert points.ndim == 2, ("points not 2d array")
 
     @staticmethod
     def _assert_ndim_values(values):
@@ -171,17 +177,17 @@ class Rbf:
         r"""Matrix of distance values :math:`R_{ij} = |\mathbf x_i - \mathbf
         c_j|`.
 
-            | :math:`\mathbf x_i` : points[i,:]
-            | :math:`\mathbf c_i` : centers[i,:]
+            | :math:`\mathbf x_i` : ``points[i,:]``      (points)
+            | :math:`\mathbf c_j` : ``self.points[j,:]`` (centers)
 
         Parameters
         ----------
-        points : array (M,N) with N-dim points, optional
+        points : array (K,N) with N-dim points, optional
             If None then ``self.points`` is used (training points).
 
         Returns
         -------
-        distsq : (M,K), where K = M usually for training
+        distsq : (M,K), where K = M for training
         """
         # pure numpy:
         #     dist = points[:,None,...] - centers[None,...]
@@ -194,22 +200,25 @@ class Rbf:
         # Creates *big* temporary arrays if points is big (~1e4 points).
         #
         # training:
-        #     If points == centers, we could also use pdist(points), which
-        #     would give us a 1d array of all distances. But we need the
-        #     redundant square matrix form for G=rbf(distsq) anyway, so there
-        #     is no real point in special-casing that. These two are the same:
+        #     If points == centers, we could also use
+        #     scipy.spatial.distance.pdist(points), which would give us a 1d
+        #     array of all distances. But we need the redundant square matrix
+        #     form for G=rbf(distsq) anyway, so there is no real point in
+        #     special-casing that. These two are the same:
         #      >>> R = spatial.squareform(spatial.distances.pdist(points))
         #      >>> R = spatial.distances.cdist(points,points)
         #      >>> distsq = R**2
         if points is None:
             if self.distsq is None:
-                return num.distsq(self.points, self.centers)
+                return num.distsq(self.points, self.points)
             else:
                 return self.distsq
         else:
-            return num.distsq(points, self.centers)
+            return num.distsq(points, self.points)
 
     def get_params(self):
+        """Return ``(p,r)``.
+        """
         return self.p, self.r
 
     def fit(self):
@@ -225,7 +234,7 @@ class Rbf:
         Notes
         -----
         ``self.r != None`` : linear system solver
-            Use :func:`scipy.linalg.solve`. For :math:`r=0`, this always yields
+            Use `lin_solver`. For :math:`r=0`, this always yields
             perfect interpolation at the data points. May be numerically
             unstable in that case. Use :math:`r>0` to increase stability (try
             small values such as ``1e-10`` first) or create smooth fitting (generate
@@ -238,22 +247,43 @@ class Rbf:
             direct solver w/o regularization. Will mostly be the same as
             the interpolation result, but will not go thru all points for
             very noisy data. May create small noise in solution (plot fit
-            with high point density).
+            with high point density). Also slower that e.g. ``dsysv``.
         """
-        # this test may be expensive for big data sets
-        assert (self.centers == self.points).all(), "centers == points not fulfilled"
-        # re-use self.distsq if possible
-        if self.distsq is None:
-            self.distsq = self.get_distsq()
-        G = self.rbf(self.distsq, self.p)
+        G = self.rbf(self.get_distsq(), self.p)
+        assert G.shape == (self.points.shape[0],)*2
         if self.r is None:
-            self.w, res, rnk, svs = linalg.lstsq(G, self.values)
+            self.w = self._lin_solvers['lstsq'](G)
         else:
-            self.w = linalg.solve(G + np.identity(G.shape[0])*self.r, self.values)
+            self.w = self._lin_solvers[self.lin_solver](G + np.eye(G.shape[0])*self.r)
+
+    def _solve_lstsq(self, G):
+        x, res, rnk, svs = linalg.lstsq(G, self.values)
+        return x
+
+    # Generally shaped G
+    def _solve_general(self, Gr):
+        return linalg.solve(Gr, self.values)
+
+    # G symmetric
+    def _solve_dsysv(self, Gr):
+        udut,ipiv,x,info = linalg.lapack.dsysv(Gr, self.values)
+        if info > 0:
+            raise Exception(f"info={info}: singular matrix")
+        elif info < 0:
+            raise Exception(f"illegal input for {info}-th argument")
+        return x
+
+    # G positive definite
+    def _solve_dposv(self, Gr):
+        c,x,info = linalg.lapack.dposv(Gr, self.values)
+        if info > 0:
+            raise Exception(f"info={info}: not positive definite")
+        elif info < 0:
+            raise Exception(f"illegal input for {info}-th argument")
+        return x
 
     def interpolate(self, points):
-        """Actually do interpolation. Return interpolated values at each
-        point in points.
+        """Evaluate interpolant at `points`.
 
         Parameters
         ----------
@@ -262,42 +292,38 @@ class Rbf:
         Returns
         -------
         vals : 1d array (points.shape[0],)
-
-        Notes
-        -----
-        Calculates
-            distsq = (points - centers)**2  # squared distance matrix
-            G = rbf(distsq)                 # RBF values
-            zi = dot(G, w)                  # interpolation z_i = Sum_j g_ij w_j
         """
         self._assert_ndim_points(points)
         distsq = self.get_distsq(points=points)
         G = self.rbf(distsq, self.p)
+        assert G.shape[0] == points.shape[0]
         assert G.shape[1] == len(self.w), \
                "shape mismatch between g_ij: %s and w_j: %s, 2nd dim of "\
                "g_ij must match length of w_j" %(str(G.shape),
                                                  str(self.w.shape))
         # normalize w
-        ww = self.w
-        maxw = np.abs(ww).max()*1.0
-        return np.dot(G, ww / maxw) * maxw
+        maxw = np.abs(self.w).max()*1.0
+        return np.dot(G, self.w / maxw) * maxw
 
     def deriv(self, points):
-        """Matrix of partial first derivatives.
+        r"""Matrix of partial first derivatives.
 
         Parameters
         ----------
-        points : see :meth:`__call__`
+        points : 2d array (L,N)
+            See also :meth:`__call__`
 
         Returns
         -------
         2d array (L,N)
-            Each row holds the partial derivatives of one input point ``points[i,:] =
-            [x_0, ..., x_N-1]``. For all points points: (L,N), we get the matrix::
+            Each row holds the gradient vector :math:`\partial f/\partial\mathbf x_i`
+            where :math:`\mathbf x_i = \texttt{points[i,:]
+            = [xi_0, ..., xi_N-1]}`. For all points points (L,N) we get the
+            matrix::
 
-                [[dz/dx0_0,   dz/dx0_1,   ..., dz/dx0_N-1],
+                [[df/dx0_0,   df/dx0_1,   ..., df/dx0_N-1],
                  [...],
-                 [dz/dxL-1_0, dz/dxL-1_1, ..., dz/dxL-1_N-1]]
+                 [df/dxL-1_0, df/dxL-1_1, ..., df/dxL-1_N-1]]
         """
         # For the implemented RBF types, the derivatives w.r.t. to the point
         # coords simplify to nice dot products, which can be evaluated
@@ -328,29 +354,28 @@ class Rbf:
         #         D[ll,kk] = np.dot(vec, self.w)
         self._assert_ndim_points(points)
         L,N = points.shape
-        centers = self.centers
+        centers = self.points
         distsq = self.get_distsq(points=points)
         G = self.rbf(distsq, self.p)
         D = np.empty((L,N), dtype=float)
-        ww = self.w
-        maxw = np.abs(ww).max()*1.0
+        maxw = np.abs(self.w).max()*1.0
         fname = self.rbf.__name__
         if fname == 'rbf_multi':
             for zz in range(L):
-                D[zz,:] = -np.dot(((centers - points[zz,:]) / G[zz,:][:,None]).T, ww / maxw) * maxw
+                D[zz,:] = -np.dot(((centers - points[zz,:]) / G[zz,:][:,None]).T, self.w / maxw) * maxw
         elif fname == 'rbf_inv_multi':
             for zz in range(L):
-                D[zz,:] = np.dot(((centers - points[zz,:]) * (G[zz,:]**3.0)[:,None]).T, ww / maxw) * maxw
+                D[zz,:] = np.dot(((centers - points[zz,:]) * (G[zz,:]**3.0)[:,None]).T, self.w / maxw) * maxw
         elif fname == 'rbf_gauss':
             for zz in range(L):
                 D[zz,:] = 1.0 / self.p**2.0 * \
-                    np.dot(((centers - points[zz,:]) * G[zz,:][:,None]).T, ww / maxw) * maxw
+                    np.dot(((centers - points[zz,:]) * G[zz,:][:,None]).T, self.w / maxw) * maxw
         else:
             raise Exception(f"derivative not implemented for function: {fname}")
         return D
 
     def fit_error(self, points, values):
-        """Sum of squared fit errors with penalty on negative p."""
+        """Sum of squared fit errors with penalty on negative `p`."""
         res = values - self(points)
         err = np.dot(res,res) / len(res)
         return math.exp(abs(err)) if self.p < 0 else err
@@ -361,12 +386,10 @@ class Rbf:
 
         Parameters
         ----------
-        points : 2d array (L,N) or 1d array (N,) or None
-            L data points in N-dim space. If None, then points = self.points, i.e. just
-            evaluate the training set. If 1d, then this is just 1 point, which
-            will be converted to shape (1,N) internally.
+        points : 2d array (L,N)
+            L N-dim points to evaluate the interpolant on.
         der : int
-            If == 1 return matrix of partial derivatives (see :meth"`deriv`), else
+            If == 1 return matrix of partial derivatives (see :meth:`deriv`), else
             interpolated values values (default).
 
         Returns
@@ -417,11 +440,11 @@ class FitError:
 
     examples:
 
-        | r = None (default in :class:`Rbf`) -> :func:`scipy.linalg.lstsq`
+        | r = None (default in :class:`Rbf`) -> linear least squares solver
         |     params = [1.5]
         |     params = [1.5, None]
 
-        | r != None -> :func:`scipy.linalg.solve`
+        | r != None -> normal linear solver
         |     params = [1.5, 0]       -> no regularization (r=0)
         |     params = [1.5, 1e-8]    -> with regularization
 
@@ -436,7 +459,7 @@ class FitError:
             for ``Rbf(points, values, **rbf_kwds)``
         cv_kwds : dict
             cross-validation parameters: `ns` = `n_splits`, `nr` = `n_repeats` (see
-            sklearn.model_selection.RepeatedKFold)
+            :class:`sklearn.model_selection.RepeatedKFold`)
         """
         self.points = points
         self.values = values
@@ -531,9 +554,9 @@ def fit_opt(points, values, method='de', what='pr', cv_kwds=dict(ns=5, nr=1),
     assert method in ['de', 'fmin'], ("unknown `method` value: {}".format(what))
     fit_err = FitError(points, values, cv_kwds=cv_kwds, rbf_kwds=rbf_kwds)
     if cv_kwds is None:
-        func = lambda params: fit_err.err_direct(params)
+        func = fit_err.err_direct
     else:
-        func = lambda params: np.median(fit_err.err_cv(params))
+        func = fit_err.err_cv
     p0 = estimate_p(points)
     disp = opt_kwds.pop('disp', False)
     if method == 'fmin':

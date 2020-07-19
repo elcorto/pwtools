@@ -118,7 +118,7 @@ if __name__ == '__main__':
 
     Z = fu(fu.XY)
 
-    rbfi = rbf.Rbf(fu.XY, Z, rbf='inv_multi', verbose=True)
+    rbfi = rbf.Rbf(fu.XY, Z, rbf='inv_multi')
 
     dati = SurfaceData(fu.xlim, fu.ylim, fu.nx*2, fu.ny*2, 'grid')
 
