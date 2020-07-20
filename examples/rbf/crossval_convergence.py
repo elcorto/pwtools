@@ -34,7 +34,7 @@ if __name__ == '__main__':
         print(rbf_type)
         print("npoints n_repeats n_splits mean median")
         rbf_kwds = dict(rbf=rbf_type)
-        for npoints in [50, 100, 200, 400]:
+        for npoints in [50, 100, 200, 300, 400]:
             x = np.linspace(0, 10, npoints)
             y = np.sin(x) + rnd.rand(npoints)
             print("")
