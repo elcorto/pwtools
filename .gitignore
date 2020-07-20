@@ -12,3 +12,4 @@ doc/sphinx-autodoc
 *.egg-info
 *.bak
 .eggs/
+__pycache__
