@@ -88,11 +88,38 @@ def test_func_api():
 def test_opt_api():
     X = rand(10,3)
     z = rand(10)
-    cv_kwds = dict(ns=5, nr=1)
+    rnd = np.random.RandomState(seed=1234)
+    cv_kwds = dict(n_splits=5, n_repeats=1, random_state=rnd)
     rbf_kwds = dict(rbf='inv_multi')
-    rbf.fit_opt(X, z, method='fmin', opt_kwds=dict(disp=True, x0=5, maxiter=3), what='p',
-                rbf_kwds=rbf_kwds)
-    rbf.fit_opt(X, z, method='fmin', opt_kwds=dict(disp=True, x0=[5, 1e-8], maxiter=3),
-                what='pr', cv_kwds=cv_kwds, rbf_kwds=rbf_kwds)
-    rbf.fit_opt(X, z, method='de', opt_kwds=dict(bounds=[(1,3), (1e-6,1)],
-                maxiter=3))
+    rbf.fit_opt(X, z,
+                method='fmin',
+                opt_kwds=dict(disp=True,
+                              x0=5,
+                              maxiter=3),
+                what='p',
+                rbf_kwds=rbf_kwds,
+                )
+    rbf.fit_opt(X, z,
+                method='fmin',
+                what='pr',
+                cv_kwds=cv_kwds,
+                rbf_kwds=rbf_kwds,
+                opt_kwds=dict(disp=True, x0=[5, 1e-8], maxiter=3),
+                )
+    rbf.fit_opt(X, z,
+                method='de',
+                opt_kwds=dict(bounds=[(1,3), (1e-6,1)],
+                              maxiter=3),
+                )
+    rbf.fit_opt(X, z,
+                method='brute',
+                opt_kwds=dict(ranges=[(1,3), (1e-6,1)],
+                              Ns=5),
+                )
+    rbf.fit_opt(X, z,
+                method='brute',
+                cv_kwds=cv_kwds,
+                rbf_kwds=rbf_kwds,
+                opt_kwds=dict(ranges=[(1,3), (1e-6,1)],
+                              Ns=5),
+                )

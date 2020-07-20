@@ -448,23 +448,33 @@ class FitError:
         |     params = [1.5, 0]       -> no regularization (r=0)
         |     params = [1.5, 1e-8]    -> with regularization
 
-    Use :meth:`err_cv` or :meth:`err_direct` as error metric for `param`.
+    Use :meth:`err_cv` or :meth:`err_direct` as error metric for `param`. Or
+    use :meth:`__call__` which will call one or the other, depending on
+    `params`.
     """
-    def __init__(self, points, values, rbf_kwds=dict(), cv_kwds=dict(ns=5, nr=1)):
+    def __init__(self, points, values, rbf_kwds=dict(),
+                 cv_kwds=dict(n_splits=5, n_repeats=1)):
         """
         Parameters
         ----------
         points, values : see :class:`Rbf`
         rbf_kwds : dict
             for ``Rbf(points, values, **rbf_kwds)``
-        cv_kwds : dict
-            cross-validation parameters: `ns` = `n_splits`, `nr` = `n_repeats` (see
-            :class:`sklearn.model_selection.RepeatedKFold`)
+        cv_kwds : {dict, None}, optional
+            cross-validation parameters for
+            :class:`sklearn.model_selection.RepeatedKFold`), if None then
+            :meth:`__call__` will use :meth:`err_direct`, else :meth:`err_cv`
         """
         self.points = points
         self.values = values
         self.rbf_kwds = rbf_kwds
         self.cv_kwds = cv_kwds
+
+    def __call__(self, params):
+        if self.cv_kwds is None:
+            return self.err_direct(params)
+        else:
+            return self.err_cv(params)
 
     def _get_rbfi(self, params, points=None, values=None):
         points = self.points if points is None else points
@@ -483,12 +493,13 @@ class FitError:
     def cv(self, params):
         """K-fold repeated CV.
 
-        Split data (points, values) randomly into K parts ("folds", K = ``ns``
-        in ``self.cv_kwds``) along axis 0 and use each part once as test set,
-        the rest as training set. For example `ns=5`: split in 5 parts at
-        random indices, use 5 times 4/5 data for train, 1/5 for test (each of
-        the folds), so 5 fits total -> 5 fit errors. Optionally repeat ``nr``
-        times with different random splits. So, `nr` * `ns` fit errors total.
+        Split data (points, values) randomly into K parts ("folds", K =
+        ``n_splits`` in ``self.cv_kwds``) along axis 0 and use each part once
+        as test set, the rest as training set. For example `ns=5`: split in 5
+        parts at random indices, use 5 times 4/5 data for train, 1/5 for test
+        (each of the folds), so 5 fits total -> 5 fit errors. Optionally repeat
+        ``n_repeats`` times with different random splits. So, `n_repeats` *
+        `n_splits` fit errors total.
 
         Each time, build an Rbf interpolator with ``self.rbf_kwds``, fit,
         return the fit error (scalar sum of squares from
@@ -502,14 +513,13 @@ class FitError:
 
         Returns
         -------
-        errs : 1d array (nr*ns,)
+        errs : 1d array (n_repeats * n_splits,)
             direct fit error from each fold
         """
-        ns = self.cv_kwds['ns']
-        nr = self.cv_kwds['nr']
+        ns = self.cv_kwds['n_splits']
+        nr = self.cv_kwds['n_repeats']
         errs = np.empty((ns*nr,), dtype=float)
-        folds = RepeatedKFold(n_splits=ns,
-                              n_repeats=nr)
+        folds = RepeatedKFold(**self.cv_kwds)
         for ii, tup in enumerate(folds.split(self.points)):
             idxs_train, idxs_test = tup
             rbfi = self._get_rbfi(params,
@@ -533,10 +543,12 @@ class FitError:
         return self._get_rbfi(params).fit_error(self.points, self.values)
 
 
-def fit_opt(points, values, method='de', what='pr', cv_kwds=dict(ns=5, nr=1),
-            opt_kwds=dict(), rbf_kwds=dict()):
-    """Optimize :math:`p` or :math:`(p,r)` using a cross validation error
-    metric or the direct fit error if `cv_kwds` is None.
+def fit_opt(points, values, method='de', what='pr', cv_kwds=dict(n_splits=5,
+            n_repeats=1), opt_kwds=dict(), rbf_kwds=dict()):
+    """Optimize :class:`Rbf`'s hyper-parameter :math:`p` or both :math:`(p,r)`.
+
+    Use a cross validation error metric or the direct fit error if `cv_kwds` is
+    None. Uses :class:`FitError`.
 
     Parameters
     ----------
@@ -544,19 +556,21 @@ def fit_opt(points, values, method='de', what='pr', cv_kwds=dict(ns=5, nr=1),
     method : str
         | 'de' : :func:`scipy.optimize.differential_evolution`
         | 'fmin': :func:`scipy.optimize.fmin`
+        | 'brute': :func:`scipy.optimize.brute`
     what : str
-        'p' or 'pr'
+        'p' (optimize only `p` and set `r=None`) or 'pr' (optimize `p` and `r`)
     cv_kwds, rbf_kwds : see :class:`FitError`
     opt_kwds : dict
         kwds for the optimizer (see `method`)
+
+    Returns
+    -------
+    rbfi : :class:`Rbf`
+        Rbf instance initialized with `points`, `values` and found optimal `p` (and `r`).
     """
-    assert what in ['p', 'pr'], ("unknown `what` value: {}".format(what))
-    assert method in ['de', 'fmin'], ("unknown `method` value: {}".format(what))
+    assert what in ['p', 'pr'], (f"unknown `what` value: {what}")
+    assert method in ['de', 'fmin', 'brute'], (f"unknown `method` value: {method}")
     fit_err = FitError(points, values, cv_kwds=cv_kwds, rbf_kwds=rbf_kwds)
-    if cv_kwds is None:
-        func = fit_err.err_direct
-    else:
-        func = fit_err.err_cv
     p0 = estimate_p(points)
     disp = opt_kwds.pop('disp', False)
     if method == 'fmin':
@@ -564,20 +578,26 @@ def fit_opt(points, values, method='de', what='pr', cv_kwds=dict(ns=5, nr=1),
             x0 = opt_kwds.pop('x0', [p0])
         elif what == 'pr':
             x0 = opt_kwds.pop('x0', [p0, 1e-8])
-        xopt = optimize.fmin(func, x0,
+        xopt = optimize.fmin(fit_err, x0,
                              disp=disp, **opt_kwds)
-    elif method == 'de':
+    elif method in ['de', 'brute']:
         if what == 'p':
-            bounds = opt_kwds.pop('bounds', [(0, 5*p0)])
-            assert len(bounds) == 1, "len(bounds) != 1"
+            _bounds = [(0, 5*p0)]
         elif what == 'pr':
-            bounds = opt_kwds.pop('bounds', [(0, 5*p0), (1e-12, 1e-1)])
-            assert len(bounds) == 2, "len(bounds) != 2"
-        ret = optimize.differential_evolution(func,
-                                              bounds=bounds,
-                                              disp=disp,
-                                              **opt_kwds)
-        xopt = ret.x
+            _bounds = [(0, 5*p0), (1e-12, 1e-1)]
+        if method == 'de':
+            bounds = opt_kwds.pop('bounds', _bounds)
+            ret = optimize.differential_evolution(fit_err,
+                                                  bounds=bounds,
+                                                  disp=disp,
+                                                  **opt_kwds)
+            xopt = ret.x
+        elif method == 'brute':
+            bounds = opt_kwds.pop('ranges', _bounds)
+            xopt = optimize.brute(fit_err,
+                                  ranges=bounds,
+                                  disp=disp,
+                                  **opt_kwds)
     if what == 'pr':
         rbfi = Rbf(points, values, p=xopt[0], r=xopt[1])
     else:
