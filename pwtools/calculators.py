@@ -232,7 +232,7 @@ K_POINTS automatic
         struct = crys.atoms2struct(atoms)
         self.cell = common.str_arr(struct.cell)
         self.kpoints = pwscf.kpoints_str_pwin(kpts2mp(atoms, self.kpts))
-        if isinstance(self.pp, bytes):
+        if isinstance(self.pp, str):
             pseudos = ["%s.%s" %(sym, self.pp) for sym in struct.symbols_unique]
         else:
             assert len(self.pp) == struct.ntypat
