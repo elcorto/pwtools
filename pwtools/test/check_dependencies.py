@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
-import os
+import glob
 import importlib
 import json
-import glob
-
-from pwtools.common import backtick
+import os
+import subprocess
 
 
 def check_module(name):
@@ -28,6 +27,25 @@ def check_module(name):
             print(f"  {name:20} ... ok (pip list)")
         else:
             print(f"  {name:20} ... NOT FOUND")
+
+
+def backtick(call):
+    """Version of pwtools.common.backtick() with return code check. Replicate
+    here in order to not import from pwtools here when checking for
+    dependencies before install. Relative import may also not work of
+    extensions are not yet built.
+
+    Examples
+    --------
+    >>> print(backtick('ls -l'))
+    """
+    pp = subprocess.Popen(call, shell=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out,err = pp.communicate()
+    if err.strip() != b'' or pp.returncode != 0:
+        raise Exception(f"Error calling command, retcode={pp.returncode}"
+                        f"\nStdout:\n{out.decode()}\nStderr:\n{err.decode()}")
+    return out.decode()
 
 
 if __name__ == '__main__':
