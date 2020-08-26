@@ -30,5 +30,3 @@ __all__ = [\
     'verbose',
     'visualize',
     ]
-
-
