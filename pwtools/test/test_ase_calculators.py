@@ -1,12 +1,16 @@
 import os, time
 import numpy as np
+
+import pytest
+
 from pwtools import io, constants, common, parse
-from pwtools.calculators import Pwscf, Lammps
-from pwtools.test.tools import skip
+from pwtools.calculators import Pwscf, Lammps, find_exe
 from .testenv import testdir
+
 pj = os.path.join
 
 prefix = 'ase_calculator'
+lammps_exe_names = ['lammps', 'lmp']
 
 
 def have_ase():
@@ -18,17 +22,11 @@ def have_ase():
 
 
 def have_pwx():
-    for path in os.environ['PATH'].split(':'):
-        if os.path.exists("%s/pw.x" %path):
-            return True
-    return False
+    return find_exe('pw.x') is not None
 
 
 def have_lmp():
-    for path in os.environ['PATH'].split(':'):
-        if os.path.exists("%s/lammps" %path):
-            return True
-    return False
+    return find_exe(lammps_exe_names) is not None
 
 
 def get_atoms_with_calc_pwscf(pseudo_dir):
@@ -54,10 +52,12 @@ def get_atoms_with_calc_lammps():
     st_start = io.read_pw_scf('files/ase/pw.scf.out.start.wz-AlN')
     at = st_start.get_ase_atoms(pbc=True)
     label = pj(testdir, prefix, 'calc_dir', 'lmp')
+    exe = find_exe(lammps_exe_names)
+    assert exe is not None
     calc = Lammps(label=label,
                   pair_style='tersoff',
                   pair_coeff='* * AlN.tersoff Al N',
-                  command='lammps < lmp.in > lmp.out 2>&1',
+                  command=f'{exe} < lmp.in > lmp.out 2>&1',
                   backup=True,
                   )
     at.set_calculator(calc)
@@ -65,32 +65,24 @@ def get_atoms_with_calc_lammps():
 
 
 def setup_pwscf():
-    if not have_ase():
-        skip("no ASE found, skipping test")
-    elif not have_pwx():
-        skip("no pw.x found, skipping test")
-    else:
-        pseudo_dir = pj(testdir, prefix, 'pseudo')
-        if not os.path.exists(pseudo_dir):
-            common.backtick(f"mkdir -pv {pseudo_dir}; "
-                            f"cp files/qe_pseudos/*.gz {pseudo_dir}/; "
-                            f"gunzip {pseudo_dir}/*.gz")
-        return get_atoms_with_calc_pwscf(pseudo_dir)
+    pseudo_dir = pj(testdir, prefix, 'pseudo')
+    if not os.path.exists(pseudo_dir):
+        common.backtick(f"mkdir -pv {pseudo_dir}; "
+                        f"cp files/qe_pseudos/*.gz {pseudo_dir}/; "
+                        f"gunzip {pseudo_dir}/*.gz")
+    return get_atoms_with_calc_pwscf(pseudo_dir)
 
 
 def setup_lmp():
-    if not have_ase():
-        skip("no ASE found, skipping test")
-    elif not have_lmp():
-        skip("no lammps found, skipping test")
-    else:
-        at = get_atoms_with_calc_lammps()
-        at.rattle(stdev=0.001, seed=int(time.time()))
-        common.makedirs(at.calc.directory)
-        common.backtick(f"cp -v utils/lammps/AlN.tersoff {at.calc.directory}/")
-        return at
+    at = get_atoms_with_calc_lammps()
+    at.rattle(stdev=0.001, seed=int(time.time()))
+    common.makedirs(at.calc.directory)
+    common.backtick(f"cp -v utils/lammps/AlN.tersoff {at.calc.directory}/")
+    return at
 
 
+@pytest.mark.skipif("not have_ase()")
+@pytest.mark.skipif("not have_pwx()")
 def test_pwscf_calculator_scf():
     at = setup_pwscf()
     # trigger calculation here
@@ -104,6 +96,8 @@ def test_pwscf_calculator_scf():
     assert np.allclose(st.stress, -stress * constants.eV_by_Ang3_to_GPa)
 
 
+@pytest.mark.skipif("not have_ase()")
+@pytest.mark.skipif("not have_pwx()")
 def test_pwscf_calculator_vc_relax():
     at = setup_pwscf()
     # files/ase/pw.scf.out.start is a norm-conserving LDA struct,
@@ -129,6 +123,8 @@ def test_pwscf_calculator_vc_relax():
     assert os.path.exists(at.calc.infile + '.0')
 
 
+@pytest.mark.skipif("not have_ase()")
+@pytest.mark.skipif("not have_lmp()")
 def test_lammps_calculator_single_point():
     at = setup_lmp()
     forces = at.get_forces()
@@ -142,6 +138,8 @@ def test_lammps_calculator_single_point():
                        atol=1e-10)
 
 
+@pytest.mark.skipif("not have_ase()")
+@pytest.mark.skipif("not have_lmp()")
 def test_lammps_calculator_relax():
     at = setup_lmp()
     from ase.optimize import BFGS

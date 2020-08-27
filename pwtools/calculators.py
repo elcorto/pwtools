@@ -1,6 +1,8 @@
 import os
+import shutil
 
 from pwtools import common, pwscf, crys, io, constants
+
 
 
 # silently fail at immport if ase is missing b/c it is not a dependency, fail
@@ -18,6 +20,17 @@ except ImportError:
     class FileIOCalculator:
         def __init__(self, *args, **kwds):
             _ase_missing()
+
+
+def find_exe(names):
+    if isinstance(names, str):
+        _names = [names]
+    else:
+        _names = names
+    for name in _names:
+        path = shutil.which(name)
+        if path is not None:
+            return path
 
 
 def stress_pwtools2ase(pwstress):
@@ -277,7 +290,7 @@ class Lammps(FileIOCalculator, CalculatorBase):
         >>> calc = Lammps(label='/path/to/calculation/dir/lmp',
         ...               pair_style='tersoff',
         ...               pair_coeff='* * /path/to/potential/dir/AlN.tersoff Al N',
-        ...               command='lammps < lmp.in > lmp.out 2>&1',
+        ...               command='lmp < lmp.in > lmp.out 2>&1',
         ...               )
         >>> at=crys.Structure(...).get_ase_atoms(pbc=True)
         >>> at.set_calculator(calc)
@@ -292,7 +305,7 @@ class Lammps(FileIOCalculator, CalculatorBase):
         pair_coeff='* * ./AlN.tersoff Al N',
         pair_style='tersoff',
         backup=False,
-        command="lammps < lmp.in > lmp.out",  # also writes 'log.lammps'
+        command=f"lmp < lmp.in > lmp.out",  # also writes 'log.lammps'
         )
     implemented_properties = ['energy', 'forces', 'stress']
 
@@ -358,4 +371,3 @@ run 0
         self.results['energy'] = st.etot
         self.results['forces'] = st.forces
         self.results['stress'] = stress_pwtools2ase(st.stress)
-
