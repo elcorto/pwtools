@@ -1,8 +1,52 @@
+"""
+Notes on ASE's FileIOCalculator base class. tl;dr: use the `directory` keyword
+and avoid paths in the `label` keyword.
+
+>>> from ase.calculators.calculator import FileIOCalculator
+
+
+The label, directory and prefix situation is convoluted.
+
+>>> c=FileIOCalculator(label='label', directory='/path/to/dir')
+
+>>> c.label
+'/path/to/dir/label'
+
+>>> c.prefix
+'label'
+
+>>> c.directory
+'/path/to/dir'
+
+
+prefix is allowed as input, but it is ignored!
+
+>>> c=FileIOCalculator(label='label', directory='/path/to/dir', prefix='foo')
+
+>>> c.prefix
+'label'
+
+
+A path in label used to work and we used (ASE 3.9 probably) to rely on
+directory=dirname(label), prefix=basename(label). Now (ASE 3.20) there is a bug
+with absolute paths: the leading / is dropped.
+
+>>> c=FileIOCalculator(label='/path/to/dir/label')
+
+>>> c.label
+'path/to/dir/label'
+
+>>> c.prefix
+'label'
+
+>>> c.directory
+'path/to/dir'
+"""
+
 import os
 import shutil
 
 from pwtools import common, pwscf, crys, io, constants
-
 
 
 # silently fail at immport if ase is missing b/c it is not a dependency, fail
@@ -89,7 +133,8 @@ class Pwscf(FileIOCalculator, CalculatorBase):
     --------
     Define a calculator object::
 
-        >>> calc=Pwscf(label='/path/to/calculation/dir/pw',
+        >>> calc=Pwscf(label='pw',
+        ...            directory='/path/to/calculation/dir',
         ...            kpts=1/0.35,
         ...            ecutwfc=80,
         ...            conv_thr=1e-8,
@@ -140,6 +185,7 @@ class Pwscf(FileIOCalculator, CalculatorBase):
         smearing=None,
         xc=None,
         command="pw.x -input pw.in | tee pw.out",
+        directory='.',
         )
 
     implemented_properties = ['energy', 'forces', 'stress']
@@ -190,17 +236,21 @@ K_POINTS automatic
         ----------
         All parameters: ``self.parameters.keys()``
         label : str
-            Basename of input and output files (e.g. 'pw') or a path to the
-            calculation dir *including* the basename ('/path/to/pw', where
-            directory='/path/to' and prefix='pw'). In ``self.command``,
-            '<prefix>.in' and '<prefix>.out' are used.
+            Basename of input and output files (e.g. 'pw'). ASE's
+            FileIOCalculator will then set: ``self.prefix=label``, while
+            ``self.label`` will become ``{self.directory}/{self.prefix}``.
+            Don't ask :) In ``self.command``, we use '{self.prefix}.in' and
+            '{self.prefix}.out' as file names.
+        directory : str
+            Path to a calculation dir where input and output files shall be
+            written, e.g. ``pw.in`` and ``pw.out``.
         kpts : ASE k-points description
             Examples: ``3.5``, ``[6,6,4]``.
             If a float ``x`` is used, then it is the inverse of the
             k-grid spacing `h` per reciprocal axis
             as in ``kpts=pwtools.crys.kgrid(struct.cell, h=1/x)``
         calc_name : str
-            'prefix' in PWscf
+            'prefix' in PWscf input files
         pp : str or sequence
             Definition of the pseudopotential file and thus `xc`. If `pp` is a
             string (e.g. 'pbe-n-kjpaw_psl.0.1.UPF'), then the atom symbols are
@@ -283,11 +333,15 @@ class Lammps(FileIOCalculator, CalculatorBase):
     """
     LAMMPS calculator.
 
+    Only for single-point calculations, no MD, i.e. run a single energy+force
+    calculation for the input structure.
+
     Examples
     --------
     Define a calculator object::
 
-        >>> calc = Lammps(label='/path/to/calculation/dir/lmp',
+        >>> calc = Lammps(label='lmp',
+        >>>               directory='/path/to/calculation/dir',
         ...               pair_style='tersoff',
         ...               pair_coeff='* * /path/to/potential/dir/AlN.tersoff Al N',
         ...               command='lmp < lmp.in > lmp.out 2>&1',
@@ -306,6 +360,7 @@ class Lammps(FileIOCalculator, CalculatorBase):
         pair_style='tersoff',
         backup=False,
         command=f"lmp < lmp.in > lmp.out",  # also writes 'log.lammps'
+        directory='.',
         )
     implemented_properties = ['energy', 'forces', 'stress']
 
