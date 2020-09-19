@@ -32,8 +32,8 @@ def have_lmp():
 def get_atoms_with_calc_pwscf(pseudo_dir):
     st_start = io.read_pw_scf('files/ase/pw.scf.out.start.rs-AlN')
     at = st_start.get_ase_atoms(pbc=True)
-    label = pj(testdir, prefix, 'calc_dir', 'pw')
-    calc = Pwscf(label=label,
+    calc = Pwscf(label='pw',
+                 directory=pj(testdir, prefix, 'calc_dir'),
                  kpts=1/0.9,
                  ecutwfc=30,
                  conv_thr=1e-5,
@@ -51,10 +51,10 @@ def get_atoms_with_calc_pwscf(pseudo_dir):
 def get_atoms_with_calc_lammps():
     st_start = io.read_pw_scf('files/ase/pw.scf.out.start.wz-AlN')
     at = st_start.get_ase_atoms(pbc=True)
-    label = pj(testdir, prefix, 'calc_dir', 'lmp')
     exe = find_exe(lammps_exe_names)
     assert exe is not None
-    calc = Lammps(label=label,
+    calc = Lammps(label='lmp',
+                  directory=pj(testdir, prefix, 'calc_dir'),
                   pair_style='tersoff',
                   pair_coeff='* * AlN.tersoff Al N',
                   command=f'{exe} < lmp.in > lmp.out 2>&1',
@@ -105,8 +105,10 @@ def test_pwscf_calculator_vc_relax():
     # a bit bigger
     from ase.optimize import BFGS
     from ase.constraints import UnitCellFilter
+    traj_fn = f"{at.calc.directory}/test_pwscf_calculator_vc_relax.traj"
+    os.makedirs(os.path.dirname(traj_fn), exist_ok=True)
     opt = BFGS(UnitCellFilter(at),
-               trajectory=f"{testdir}/ase_test_pwscf_calculator_vc_relax.traj")
+               trajectory=traj_fn)
     cell = parse.arr2d_from_txt("""
         -1.97281509  0.          1.97281509
          0.          1.97281509  1.97281509
