@@ -105,17 +105,18 @@ def test_pwscf_calculator_vc_relax():
     # a bit bigger
     from ase.optimize import BFGS
     from ase.constraints import UnitCellFilter
-    opt = BFGS(UnitCellFilter(at))
+    opt = BFGS(UnitCellFilter(at),
+               trajectory=f"{testdir}/ase_test_pwscf_calculator_vc_relax.traj")
     cell = parse.arr2d_from_txt("""
         -1.97281509  0.          1.97281509
          0.          1.97281509  1.97281509
         -1.97281509  1.97281509  0.""")
     assert np.allclose(cell, at.get_cell())
-    opt.run(fmax=0.05) # run only 2 steps
+    opt.run(fmax=0.05) # run only few steps
     cell = parse.arr2d_from_txt("""
-        -2.01837531  0.          2.01837531
-         0.          2.01837531  2.01837531
-        -2.01837531  2.01837531  0""")
+        -2.01841537  0           2.01841537
+        0            2.01841537  2.01841537
+        -2.01841537  2.01841537  0""")
     assert np.allclose(cell, at.get_cell())
 
     # at least 1 backup files must exist: pw.*.0 is the SCF run, backed up
