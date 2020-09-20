@@ -63,8 +63,9 @@ autodoc_default_flags = ['members',             # doc of each method on class pa
 autosummary_generate = True
 
 intersphinx_mapping = {
-    'sklearn':  ('http://scikit-learn.org/stable', None),
+    'sklearn':  ('https://scikit-learn.org/stable', None),
     'scipy': ('https://docs.scipy.org/doc/scipy/reference', None),
+    'numpy': ('https://numpy.org/doc/stable', None),
     }
 
 
