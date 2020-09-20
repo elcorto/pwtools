@@ -440,6 +440,8 @@ def read_matdyn_freq(filename):
     a grid (ldisp=.true., used for phonon dos) or a pre-defined k-path in the
     BZ.
 
+    Used in :file:`bin/plot_dispersion.py`.
+
     In QE 5.x, a file with suffix ".gp" (e.g. "matdyn.freq.gp") is now written,
     where::
     >>> import numpy as np
@@ -498,7 +500,7 @@ def read_matdyn_freq(filename):
 
     See Also
     --------
-    bin/plot_dispersion.py, :func:`pwtools.kpath.plot_dis`,
+    :func:`pwtools.kpath.plot_dis`,
     :func:`pwtools.kpath.get_path_norm`
     """
     lines = file_readlines(filename)

@@ -607,7 +607,7 @@ def extend_array(arr, nstep, axis=0):
 
     See Also
     --------
-    np.repeat()
+    :func:`numpy.repeat`
     """
     # XXX Make more effective by using stride_tricks, see
     # http://thread.gmane.org/gmane.comp.python.numeric.general/48096 .
