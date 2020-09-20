@@ -10,7 +10,6 @@ from pwtools.calculators import Pwscf, Lammps, find_exe
 
 pj = os.path.join
 
-prefix = "ase_calculator"
 lammps_exe_names = ["lammps", "lmp"]
 
 
