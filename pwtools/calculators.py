@@ -1,44 +1,36 @@
 """
-Notes on ASE's FileIOCalculator base class. tl;dr: use the `directory` keyword
+Notes on ASE's ``FileIOCalculator`` base class. tl;dr: use the `directory` keyword
 and avoid paths in the `label` keyword.
 
 >>> from ase.calculators.calculator import FileIOCalculator
 
-
-The label, directory and prefix situation is convoluted.
+The `label`, `directory` and `prefix` situation is convoluted.
 
 >>> c=FileIOCalculator(label='label', directory='/path/to/dir')
-
 >>> c.label
 '/path/to/dir/label'
-
 >>> c.prefix
 'label'
-
 >>> c.directory
 '/path/to/dir'
 
 
-prefix is allowed as input, but it is ignored!
+`prefix` is allowed as input, but it is ignored!
 
 >>> c=FileIOCalculator(label='label', directory='/path/to/dir', prefix='foo')
-
 >>> c.prefix
 'label'
 
-
-A path in label used to work and we used (ASE 3.9 probably) to rely on
-directory=dirname(label), prefix=basename(label). Now (ASE 3.20) there is a bug
-with absolute paths: the leading / is dropped.
+A path in `label` used to work and we used (ASE 3.9 probably) to rely on
+``directory=os.path.dirname(label)``, ``prefix=os.path.basename(label)``. Now
+(ASE 3.20) there seems to be a bug with absolute paths: the leading ``/`` is
+dropped.
 
 >>> c=FileIOCalculator(label='/path/to/dir/label')
-
 >>> c.label
 'path/to/dir/label'
-
 >>> c.prefix
 'label'
-
 >>> c.directory
 'path/to/dir'
 """
