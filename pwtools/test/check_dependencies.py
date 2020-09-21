@@ -31,8 +31,8 @@ def check_module(name):
 
 def backtick(call):
     """Version of pwtools.common.backtick() with return code check. Replicate
-    here in order to not import from pwtools here when checking for
-    dependencies before install. Relative import may also not work of
+    here in order to not import from pwtools when checking for
+    dependencies before install. Relative import may also not work if
     extensions are not yet built.
 
     Examples
