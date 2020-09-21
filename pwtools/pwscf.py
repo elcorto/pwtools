@@ -92,7 +92,7 @@ def atspec_str(symbols, masses, pseudos):
     Parameters
     ----------
     symbols : sequence of strings with atom symbols, (natoms,)
-    masses : sequence if floats (natoms,) w/ atom masses
+    masses : sequence of floats (natoms,) w/ atom masses
     pseudos : sequence of strings (natoms,) w/ pseudopotential file names
 
     Returns
@@ -444,12 +444,13 @@ def read_matdyn_freq(filename):
 
     In QE 5.x, a file with suffix ".gp" (e.g. "matdyn.freq.gp") is now written,
     where::
+
     >>> import numpy as np
     >>> from pwtools import kpath, pwscf
     >>> d = np.loadtxt("matdyn.freq.gp")
     >>> kpoints,freqs = pwscf.read_matdyn_freq("matdyn.freq")
-    >>> allclose(d[:,0], kpath.get_path_norm(kpoints))
-    >>> allclose(d[:,1:], freqs)
+    >>> np.allclose(d[:,0], kpath.get_path_norm(kpoints))
+    >>> np.allclose(d[:,1:], freqs)
 
     Parameters
     ----------
