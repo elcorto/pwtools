@@ -1,27 +1,52 @@
-{% extends "!autosummary/class.rst" %}
+{{ fullname }}
+{{ underline }}
 
-{% block methods %}
-{% if methods %}
-   .. HACK -- the point here is that we don't want this to appear in the output, but the autosummary should still generate the pages.
-      .. autosummary::
-         :toctree:
-      {% for item in all_methods %}
-         {%- if not item.startswith('_') or item in ['__call__'] %}
-         {{ name }}.{{ item }}
-         {%- endif -%}
-      {%- endfor %}
-{% endif %}
-{% endblock %}
+.. currentmodule:: {{ module }}
 
-{% block attributes %}
-{% if attributes %}
-   .. HACK -- the point here is that we don't want this to appear in the output, but the autosummary should still generate the pages.
-      .. autosummary::
-         :toctree:
-      {% for item in all_attributes %}
-         {%- if not item.startswith('_') %}
-         {{ name }}.{{ item }}
-         {%- endif -%}
-      {%- endfor %}
-{% endif %}
-{% endblock %}
+.. autoclass:: {{ objname }}
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  {% block methods %}
+  {% if methods %}
+
+   .. automethod:: __init__
+
+  {% if ('__call__' in all_methods) or ('__call__' in inherited_members) %}
+
+   .. automethod:: __call__
+
+ {% endif %}
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   {% for item in all_methods %}
+      {%- if not item.startswith('_') or item in ['__mul__', '__getitem__', '__len__'] %}
+      ~{{ name }}.{{ item }}
+      {%- endif -%}
+   {%- endfor %}
+   {% for item in inherited_members %}
+      {%- if item in ['__mul__', '__getitem__', '__len__'] %}
+      ~{{ name }}.{{ item }}
+      {%- endif -%}
+   {%- endfor %}
+  {% endif %}
+  {% endblock %}
+
+
+  {% block attributes %}
+  {% if attributes %}
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree:
+   {% for item in all_attributes %}
+      {%- if not item.startswith('_') %}
+      ~{{ name }}.{{ item }}
+      {%- endif -%}
+   {%- endfor %}
+  {% endif %}
+  {% endblock %}

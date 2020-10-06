@@ -28,10 +28,6 @@
 #
 # needs_sphinx = '1.0'
 
-#-----------------------------------------------------------------------------
-# extensions (numpydoc, ...)
-#-----------------------------------------------------------------------------
-
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
@@ -45,20 +41,12 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx.ext.intersphinx',
-    'numpydoc',
+    'sphinx.ext.napoleon',
     ]
-
-numpydoc_show_class_members = True
-numpydoc_class_members_toctree = True
 
 #-----------------------------------------------------------------------------
 # auto stuff
 #-----------------------------------------------------------------------------
-
-autodoc_default_flags = ['members',             # doc of each method on class page
-                         'show-inheritance',
-                         'special-members',     # show __init__
-                        ]
 
 autosummary_generate = True
 
@@ -67,6 +55,21 @@ intersphinx_mapping = {
     'scipy': ('https://docs.scipy.org/doc/scipy/reference', None),
     'numpy': ('https://numpy.org/doc/stable', None),
     }
+
+autodoc_default_options = {
+    'members': True,
+    'show-inheritance': True,
+    # :inherited-members: seems to get applied to all autoXXX directives, not
+    # just autoclass? Need to use :no-inherited-members: in all automodule
+    # directives, else all module content (classes, functions, ...) end up on a
+    # single page. We do that in https://github.com/elcorto/sphinx-autodoc .
+    'inherited-members': True,
+}
+
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True
+
+#-----------------------------------------------------------------------------
 
 
 #-----------------------------------------------------------------------------

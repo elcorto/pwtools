@@ -1,37 +1,50 @@
 #!/bin/sh
 
+set -eu
+
 err(){
     echo "error: $@"
     exit 1
 }
 
-if [ $# -eq 1 ]; then
-    autodoc=$(readlink -f $1)
-    [ -e $autodoc ] || err "not found: $autodoc"
-else
-    local_loc=sphinx-autodoc/sphinx-autodoc.py
-    std_loc=$HOME/soft/git/sphinx-autodoc/sphinx-autodoc.py
-    if which sphinx-autodoc.py; then
-        autodoc=sphinx-autodoc.py
-    elif [ -f $std_loc ]; then
-        autodoc=$std_loc
-    elif [ -f $local_loc ]; then
-        autodoc=$local_loc
-    else
-        git clone https://github.com/elcorto/sphinx-autodoc
-        autodoc=$local_loc
-    fi
-fi
+# We assume
+#   /path/to/package_name
+#   ├── doc                     # <-- here
+#   │   ├── generate-apidoc.sh
+#   │   ├── Makefile
+#   │   └── source
+#   │       ├── conf.py
+#   │       ├── _static
+#   │       └── _templates
+#   ├── setup.py
+#   ...
 
-# ensure a clean generated tree
-rm -v $(find ../ -name "*.pyc" -o -name "__pycache__")
-make clean
-rm -rfv build/ source/generated/
+# /path/to/package_name
+package_dir=$(readlink -f ../)
+
+# package_name
+package_name=$(basename $package_dir)
+
+# /path/to/package_name/source/index.rst
+main_index_file=source/index.rst
+
+##autodoc_extra_opts=--write-doc
+autodoc_extra_opts=
+
+autodoc=sphinx-autodoc
+which $autodoc > /dev/null 2>&1 || err "executable $autodoc not found"
+
+# ensure a clean generated tree, "make clean" only removes build/
+rm -rf $(find $package_dir -name "*.pyc" -o -name "__pycache__")
+rm -rf build/ source/generated/
+
+# If main index doesn't exist, generate, else don't touch it, even though
+# sphinx-autodoc's -i option creates a backup before overwriting, it
+# would still be annoying.
+[ -f $main_index_file ] || autodoc_extra_opts="$autodoc_extra_opts -i"
 
 # generate API doc rst files
-echo "using: $autodoc"
-$autodoc -s source -a generated/api \
-         -X 'test\.(test_|check_dep.*|utils|testenv)' pwtools
+$autodoc $autodoc_extra_opts -s source -a generated/api \
+    -X 'test\.(test_|check_dep.*|utils|testenv)' $package_name
 
-# make heading the same level as in source/written/index.rst
-sed -i -re '/^API.*/,/[-]+/ s/-/=/g' source/generated/api/index.rst
+make html
