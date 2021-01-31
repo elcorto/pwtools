@@ -10,7 +10,7 @@ err(){
 # We assume
 #   /path/to/package_name
 #   ├── doc                     # <-- here
-#   │   ├── generate-apidoc.sh
+#   │   ├── generate-doc.sh
 #   │   ├── Makefile
 #   │   └── source
 #   │       ├── conf.py
@@ -40,7 +40,8 @@ rm -rf build/ source/generated/
 
 # If main index doesn't exist, generate, else don't touch it, even though
 # sphinx-autodoc's -i option creates a backup before overwriting, it
-# would still be annoying.
+# would still be annoying. Thus use -i once to create an initial
+# source/index.rst which can then be tweaked.
 [ -f $main_index_file ] || autodoc_extra_opts="$autodoc_extra_opts -i"
 
 # generate API doc rst files
