@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Parse each lammps output and write results/idx/traj.pk
 

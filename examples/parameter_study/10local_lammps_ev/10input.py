@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Write lammps input files for a E(V) curve calculation.
 

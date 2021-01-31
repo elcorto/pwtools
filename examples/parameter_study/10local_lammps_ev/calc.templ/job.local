@@ -1,2 +1,2 @@
 echo "job: XXXIDX"
-lammps < lmp.in > lmp.out 2>&1
+lmp < lmp.in > lmp.out 2>&1
