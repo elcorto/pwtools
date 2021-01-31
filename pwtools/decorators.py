@@ -94,6 +94,7 @@ def crys_add_doc(func):
     return func
 
 
+# NOTE: can be drop-in replaced by functools.cached_property() as of Python 3.8
 class lazyprop:
     """Decorator for creating lazy evaluated properties.
     The property should represent non-mutable data, as it replaces itself.
@@ -121,6 +122,3 @@ class lazyprop:
 ##            setattr(self, attr_name, fn(self))
 ##        return getattr(self, attr_name)
 ##    return _lazyprop
-
-
-

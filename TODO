@@ -4,6 +4,9 @@ base.py
   be done using lazy evaluation. See decorator.lazyprop, which we currently use
   in eos.EosFit only.
 
+  As of Python 3.8, functools.cached_property() does the same thing as
+  lazyprop.
+
 parse.py
 --------
 * Many classes still call the base classes' __init__ explicitly. We get unbound
