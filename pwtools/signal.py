@@ -175,7 +175,7 @@ def ezfft(y, dt=1.0):
     """
     assert y.ndim == 1
     faxis = np.fft.fftfreq(len(y), dt)
-    split_idx = len(faxis)/2
+    split_idx = len(faxis)//2
     return faxis[:split_idx], fft(y)[:split_idx]
 
 

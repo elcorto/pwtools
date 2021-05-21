@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.signal import hanning, gaussian
-from pwtools.signal import gauss, find_peaks, smooth, fft_1d_loop
+from pwtools.signal import gauss, find_peaks, smooth, fft_1d_loop, ezfft
 from pwtools import signal
 from scipy.fftpack import fft
 from pwtools import num
@@ -87,3 +87,7 @@ def test_odd():
     assert signal.odd(2) == 3
     assert signal.odd(6, add=-1) == 5
 
+
+def test_ezfft():
+    a = rand(10)
+    f,y = ezfft(a, dt=1.234)
