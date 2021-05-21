@@ -1,3 +1,6 @@
+.. image:: https://zenodo.org/badge/51149109.svg
+   :target: https://zenodo.org/badge/latestdoi/51149109
+
 About
 -----
 The pwtools package.
