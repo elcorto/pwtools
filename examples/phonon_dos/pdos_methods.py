@@ -158,7 +158,7 @@ def cut_norm(full_y, dt, area=1.0):
     area : integral area
     """
     full_faxis = np.fft.fftfreq(full_y.shape[0], dt)
-    split_idx = full_faxis.shape[0]/2
+    split_idx = full_faxis.shape[0] // 2
     y_out = full_y[:split_idx]
     faxis = full_faxis[:split_idx]
     return faxis, num.norm_int(y_out, faxis, area=area)
