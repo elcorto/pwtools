@@ -1,5 +1,5 @@
 """
-Radial Basis Function N-dim fitting. See :ref:`rbf` for details.
+Radial Basis Function regression. See :ref:`rbf` for details.
 """
 
 import math
@@ -7,9 +7,7 @@ import math
 import numpy as np
 from scipy import optimize
 import scipy.linalg as linalg
-
-from pwtools import num
-
+from scipy.spatial.distance import cdist
 
 try:
     from sklearn.model_selection import RepeatedKFold
@@ -57,6 +55,14 @@ def rbf_inv_multi(rsq, p):
         width
     """
     return 1/rbf_multi(rsq, p)
+
+
+def squared_dists(aa, bb):
+    return cdist(aa, bb, metric="sqeuclidean")
+
+
+def euclidean_dists(aa, bb):
+    return cdist(aa, bb, metric="euclidean")
 
 
 rbf_dct = {
@@ -189,32 +195,23 @@ class Rbf:
         -------
         distsq : (M,K), where K = M for training
         """
-        # pure numpy:
-        #     dist = points[:,None,...] - centers[None,...]
-        #     distsq = (dist**2.0).sum(axis=-1)
-        # where
-        #     points:  (M,N)
-        #     centers: (K,N)
-        #     dist:    (M,K,N) "matrix" of distance vectors (only for numpy case)
-        #     distsq:  (M,K)    matrix of squared distance values
-        # Creates *big* temporary arrays if points is big (~1e4 points).
-        #
         # training:
         #     If points == centers, we could also use
         #     scipy.spatial.distance.pdist(points), which would give us a 1d
         #     array of all distances. But we need the redundant square matrix
         #     form for G=rbf(distsq) anyway, so there is no real point in
         #     special-casing that. These two are the same:
-        #      >>> R = spatial.squareform(spatial.distances.pdist(points))
-        #      >>> R = spatial.distances.cdist(points,points)
-        #      >>> distsq = R**2
+        #       spatial.squareform(spatial.distances.pdist(points,
+        #                                                  metric="sqeuclidean"))
+        #       spatial.distances.cdist(points, points, metric="sqeuclidean")
+        # speed: see examples/benchmarks/distmat_speed.py
         if points is None:
             if self.distsq is None:
-                return num.distsq(self.points, self.points)
+                return squared_dists(self.points, self.points)
             else:
                 return self.distsq
         else:
-            return num.distsq(points, self.points)
+            return squared_dists(points, self.points)
 
     def get_params(self):
         """Return ``(p,r)``.
@@ -419,7 +416,7 @@ def estimate_p(points, method='mean'):
         | 'scipy' : mean nearest neighbor distance
     """
     if method == 'mean':
-        return np.sqrt(num.distsq(points, points)).mean()
+        return euclidean_dists(points, points).mean()
     elif method == 'scipy':
         xi = points.T
         ximax = np.amax(xi, axis=1)
