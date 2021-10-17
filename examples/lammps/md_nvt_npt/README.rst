@@ -9,11 +9,11 @@ Usage
 -----
 ./run.py nvt | npt
 
-We plot a quantitiy obtained by 3 different ways:
+We plot a quantity obtained by 3 different ways:
 
 txt  = parsed from lmp.out.dump, i.e. the printed value directly from lammps
-calc = set tr.<quantitiy>=None and calculate it by the methods defined in
-       Trajectory (i.e. by calling set_all() -> call get_<quantitiy>())
+calc = set tr.<quantity>=None and calculate it by the methods defined in
+       Trajectory (i.e. by calling set_all() -> call get_<quantity>())
 dcd  = parse dcd file with only coords and cryst_const, rest is calculated in
        Trajectory
 
@@ -55,7 +55,7 @@ Results
 -------
 Everything is the same for NVT.
 
-For NPT we find substabtial(+) and small(-) differences for some quantities:
+For NPT we find substantial(+) and small(-) differences for some quantities:
 
     cell        : txt  = dcd   = calc
     cryst_const : txt  = dcd   = calc
@@ -67,7 +67,7 @@ For NPT we find substabtial(+) and small(-) differences for some quantities:
 => cell(txt)        = cell(dcd)
 => cryst_const(txt) = cryst_const(dcd)
 BUT:
-=> coords_frac(txt), coords(txt) and cell(txt) don't fit togeher! Who is
+=> coords_frac(txt), coords(txt) and cell(txt) don't fit together! Who is
    right? Should we rely on coords(txt) or coords_frac(txt)??
 
 Pragmatic choice: Use only dcd, which is what we need to use anyway for real

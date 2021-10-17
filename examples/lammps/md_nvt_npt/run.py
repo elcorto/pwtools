@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 import numpy as np
@@ -67,7 +67,7 @@ io.write_lammps('lmp.struct', crys.scell(st,(3,3,3)))
 common.file_write('lmp.in', lmp_in_templ.format(ensemble=ens_txt))
 
 # run lammps
-common.system("mpirun -np 2 lammps < lmp.in", wait=True)
+common.system("mpirun -np 2 lmp < lmp.in", wait=True)
 
 # read trajectory
 trtxt_orig = io.read_lammps_md_txt('log.lammps')
