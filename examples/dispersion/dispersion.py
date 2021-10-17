@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 """
 Calculate phonon dispersion with QE's matdyn and plot: example from wz-AlN.
@@ -80,11 +80,11 @@ sp = kpath.SpecialPointsPath(ks=sp_points, ks_frac=sp_points_frac,
 
 # QE 4.x, 5.x
 ks, freqs = pwscf.read_matdyn_freq(matdyn_freq_fn)
-fig,ax = kpath.plot_dis(kpath.get_path_norm(ks_path), freqs, sp, marker='', ls='-', color='k')
+fig,ax,axdos = kpath.plot_dis(kpath.get_path_norm(ks_path), freqs, sp, marker='', ls='-', color='k')
 
 # QE 5.x
 ##d = np.loadtxt(matdyn_freq_fn + '.gp')
-##fig,ax = kpath.plot_dis(d[:,0], d[:,1:], sp, marker='', ls='-', color='k')
+##fig,ax,axdos = kpath.plot_dis(d[:,0], d[:,1:], sp, marker='', ls='-', color='k')
 
 # if needed
 #ax.set_ylim(...)
