@@ -20,7 +20,7 @@
 
 import numpy as np
 from pwtools import mpl
-from scipy.signal import hanning
+from scipy.signal import hann
 from scipy.fftpack import fft
 from pwtools.signal import fftsample, FIRFilter, pad_zeros
 pi = np.pi
@@ -47,12 +47,12 @@ for pad in [True,False]:
     else:
         pl = plots['filt_nopad']
     f = np.fft.fftfreq(len(x), dt)
-    sl = slice(0, len(x)/2, None)
-    win = hanning(len(x))
+    sl = slice(0, len(x)//2, None)
+    win = hann(len(x))
     pl.ax.plot(f[sl], np.abs(fft(x)[sl]), label='fft(x)')
     pl.ax.plot(f[sl], np.abs(fft(filt1(x))[sl]),     label='fft(filt1(x))')
-    pl.ax.plot(f[sl], np.abs(fft(filt1(win*x))[sl]), label='fft(filt1(hanning*x))')
-    pl.ax.plot(f[sl], np.abs(fft(filt2(win*x))[sl]), label='fft(filt2(hanning*x))')
+    pl.ax.plot(f[sl], np.abs(fft(filt1(win*x))[sl]), label='fft(filt1(hann*x))')
+    pl.ax.plot(f[sl], np.abs(fft(filt2(win*x))[sl]), label='fft(filt2(hann*x))')
     pl.ax.set_title('zero pad = %s' %pad)
     pl.ax.legend()
 
