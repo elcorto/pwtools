@@ -73,7 +73,7 @@ rbf_dct = {
 
 
 class Rbf:
-    """Radial basis function network interpolation and fitting."""
+    """Radial basis function network interpolation and regression."""
     def __init__(self, points, values, rbf='inv_multi',
                  r=None, p='mean', fit=True, lin_solver='dsysv'):
         """
@@ -279,8 +279,8 @@ class Rbf:
             raise Exception(f"illegal input for {info}-th argument")
         return x
 
-    def interpolate(self, points):
-        """Evaluate interpolant at `points`.
+    def predict(self, points):
+        """Evaluate model at `points`.
 
         Parameters
         ----------
@@ -379,15 +379,15 @@ class Rbf:
 
     def __call__(self, *args, **kwargs):
         """
-        Call :meth:`interpolate` or :meth:`deriv`.
+        Call :meth:`predict` or :meth:`deriv`.
 
         Parameters
         ----------
         points : 2d array (L,N)
-            L N-dim points to evaluate the interpolant on.
+            L N-dim points to evaluate the model on.
         der : int
             If == 1 return matrix of partial derivatives (see :meth:`deriv`), else
-            interpolated values values (default).
+            model prediction values (default).
 
         Returns
         -------
@@ -403,7 +403,7 @@ class Rbf:
             kwargs.pop('der')
             return self.deriv(*args, **kwargs)
         else:
-            return self.interpolate(*args, **kwargs)
+            return self.predict(*args, **kwargs)
 
 
 def estimate_p(points, method='mean'):
@@ -498,7 +498,7 @@ class FitError:
         ``n_repeats`` times with different random splits. So, `n_repeats` *
         `n_splits` fit errors total.
 
-        Each time, build an Rbf interpolator with ``self.rbf_kwds``, fit,
+        Each time, build an Rbf model with ``self.rbf_kwds``, fit,
         return the fit error (scalar sum of squares from
         :meth:`Rbf.fit_error`).
 
@@ -533,7 +533,7 @@ class FitError:
     def err_direct(self, params):
         """Normal fit error w/o CV. Uses :meth:`Rbf.fit_error`.
 
-        Build and Rbf interpolator with ``self.rbf_kwds``, fit, return the fit
+        Build and Rbf model with ``self.rbf_kwds``, fit, return the fit
         error (scalar, sum of squares). Should be zero for interpolation, i.e. no
         regularization ``r=0``.
         """
