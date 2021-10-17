@@ -34,7 +34,7 @@ numba
 
 * Can't speed up numpy ndarray ops (like our reference code above) that already
   happen in numpy's C layer, but potentially use lots of temp arrays. So numba
-  doesn't "unpack" those operations into their loop equvalents and then compiles
+  doesn't "unpack" those operations into their loop equivalents and then compiles
   those.
 * Instead, for numba (and LLVM) to be effective, one needs to spell out all loops
   C/Fortran style. Don't mix/leave in numpy bits, that actually makes things
@@ -141,9 +141,9 @@ except ModuleNotFoundError:
 
 arr = np.random.rand(1000, 3)
 
-# dict with module-level globl vars passed as context to timeit. That contains,
+# dict with module-level global vars passed as context to timeit. That contains,
 # besides stuff imported (scipy.spatial.distance functions) also the array
-# `arr`, the pre-compiled numbs function `numba_ndarray` as well as the dict
+# `arr`, the pre-compiled numba function `numba_ndarray` as well as the dict
 # `funcs` with pre-compiled numba functions. Cool!
 globs = globals()
 
