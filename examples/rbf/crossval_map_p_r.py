@@ -72,7 +72,6 @@ export = False
 
 
 if export:
-    savefig_opts = dict(bbox_inches='tight', pad_inches=0)
     plt.rcParams['font.size'] = 10
 
 
@@ -149,8 +148,8 @@ if __name__ == '__main__':
 
         if export:
             for ext in ['png']:
-                fig.savefig(f'/tmp/crossval_pr_{name}.{ext}',
-                            **savefig_opts)
+                fig.tight_layout()
+                fig.savefig(f'/tmp/crossval_pr_{name}.{ext}')
 
         print("global opts ...")
         f_de = \
@@ -188,4 +187,6 @@ if __name__ == '__main__':
 
     plots['fit'].legend()
 
+    for pl in plots.values():
+        pl.fig.tight_layout()
     mpl.plt.show()

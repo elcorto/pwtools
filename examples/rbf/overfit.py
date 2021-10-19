@@ -30,8 +30,8 @@ plt = mpl.plt
 
 
 if __name__ == '__main__':
-##    rbf_kwds = dict(rbf='inv_multi', r=1e-11)
-    rbf_kwds = dict(rbf='inv_multi', r=None)
+    rbf_kwds = dict(rbf='gauss', r=1e-11)
+##    rbf_kwds = dict(rbf='gauss', r=None)
 
     fig, axs = plt.subplots(2, 1)
     x = np.linspace(0, 10, 100)
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     ax.plot(xi, rbfi(xi), 'y', label='$p$ big')
 
     rbfi = rbf.Rbf(points, values, p=rbf.estimate_p(points, 'scipy'),
-                      **rbf_kwds)
+                   **rbf_kwds)
     p_scipy = rbfi.get_params()[0]
     ax.plot(xi, rbfi(xi), 'm', label='$p$ scipy')
 
@@ -91,6 +91,6 @@ if __name__ == '__main__':
     ax2.set_ylabel('CV fit error')
     ax.legend(*mpl.collect_legends(ax,ax2), loc='center right')
 
-    plt.subplots_adjust(hspace=0.33)
+    fig.tight_layout()
     plt.show()
 ##    fig.savefig("/tmp/overfit.png")

@@ -19,4 +19,5 @@ if __name__ == '__main__':
     go(15,  axs[0])
     go(100, axs[1])
     axs[1].legend()
+    fig.tight_layout()
     plt.show()

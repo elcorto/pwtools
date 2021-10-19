@@ -16,10 +16,11 @@ npoints>=200, there is no effect. More repeats (n_repeats>1) do not increase
 the error quality at all.
 
 Since sklearn's RepeatedKFold uses random splits, the results of this
-experiment here are a bit different each time (in theory, we would need to
-repeat and average that as well :). Most of the time, the gauss RBF behaves the
-best and often converges for npoints=100 already, while multi and inv_multi
-don't.
+experiment here would a bit different each time (in theory, we would need to
+repeat and average that as well :). But we simply fix
+RepeatedKFold(random_state=...). If we don't, then we observe that most of the
+time, the gauss RBF behaves the best and often converges for npoints=100
+already, while multi and inv_multi don't.
 
 We evaluate the CV error at RBF width parameter p=3, which we know results
 sizable CV error values.
@@ -42,7 +43,8 @@ if __name__ == '__main__':
                 for n_splits in [5, 10, 20]:
                     fe = rbf.FitError(x[:,None], y,
                                       cv_kwds=dict(n_splits=n_splits,
-                                                   n_repeats=n_repeats),
+                                                   n_repeats=n_repeats,
+                                                   random_state=1234),
                                       rbf_kwds=rbf_kwds)
                     cv = fe.cv([3.0])*100
                     mean = np.mean(cv)

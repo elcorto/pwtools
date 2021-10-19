@@ -147,6 +147,7 @@ if __name__ == '__main__':
     ax.set_xlim3d(dati.xlim)
     ax.set_ylim3d(dati.ylim)
     ax.set_zlim3d(zlim)
+    fig.tight_layout()
     if export:
         ax.xaxis.set_ticklabels([])
         ax.yaxis.set_ticklabels([])
@@ -182,6 +183,7 @@ if __name__ == '__main__':
     ax.set_ylim3d(dati.ylim)
     ax.set_zlim3d(zlim)
     ax.legend()
+    fig.tight_layout()
     if export:
         ax.xaxis.set_ticklabels([])
         ax.yaxis.set_ticklabels([])
