@@ -1,10 +1,16 @@
+#!/usr/bin/env python3
+
 """
 About
 =====
 
-Compare various methods for computing distance matrices for N-dim points
-(npoints, ndim). Used in rbf, for example. We calculate *squared* distances
-and skip the sqrt().
+Micro-benchmarks comparing various methods for computing distance matrices for
+N-dim points (npoints, ndim). Used in rbf, for example. We calculate *squared*
+distances and skip the sqrt().
+
+We calculate a square distance matrix (so all pairwise distances) since we also
+want to benchmark scipy.spatial.distance.pdist. For that we use *one* array `arr`
+of shape (npoints, ndim).
 
 Our (slow) reference version is the pure numpy solution
 
@@ -16,7 +22,7 @@ vectors as well. Here we're only interested in collections of N-dim points w/o
 dealing with their basis vectors.
 
 
-observations
+Observations
 ============
 
 serial
@@ -42,7 +48,8 @@ numba
 * But: given that we don't need to write one line of C or Fortran and
   avoid building extensions, it's pretty cool!
 
-measurements
+
+Measurements
 ============
 
 serial
@@ -50,12 +57,13 @@ serial
 
 * numba_loops_parallel_True skipped here, see "parallel" below
 
-100 loops:  2.757 +- 0.0092: ((arr[:,None,:] - arr[None,...])**2.0).sum(-1)
-100 loops:  0.410 +- 0.0071: squareform(pdist(arr, metric='sqeuclidean'))
-100 loops:  0.276 +- 0.0010: cdist(arr, arr, metric='sqeuclidean')
-100 loops:  0.274 +- 0.0011: num.distsq(arr, arr)
-100 loops:  3.154 +- 0.0156: numba_ndarray(arr, arr)
-100 loops:  0.515 +- 0.0011: funcs['numba_loops_parallel_False'](arr, arr)
+mean and std over 5 times 100 executions:
+ 2.757 +- 0.0092: ((arr[:,None,:] - arr[None,...])**2.0).sum(-1)
+ 0.410 +- 0.0071: squareform(pdist(arr, metric='sqeuclidean'))
+ 0.276 +- 0.0010: cdist(arr, arr, metric='sqeuclidean')
+ 0.274 +- 0.0011: num.distsq(arr, arr)
+ 3.154 +- 0.0156: numba_ndarray(arr, arr)
+ 0.515 +- 0.0011: funcs['numba_loops_parallel_False'](arr, arr)
 
 parallel
 --------
@@ -68,8 +76,9 @@ parallel
   before to recompile _flib extension
 * numba: njit(parallel=True), use numba.prange
 
-100 loops:  0.146 +- 0.0017: num.distsq(arr, arr)
-100 loops:  0.282 +- 0.0018: funcs['numba_loops_parallel_True'](arr, arr)
+mean and std over 5 times 100 executions:
+ 0.146 +- 0.0017: num.distsq(arr, arr)
+ 0.282 +- 0.0018: funcs['numba_loops_parallel_True'](arr, arr)
 """
 
 
@@ -137,7 +146,7 @@ try:
 
 except ModuleNotFoundError:
     print("numba not found, skipping related tests ...")
-    pass
+
 
 arr = np.random.rand(1000, 3)
 
@@ -155,9 +164,11 @@ for stmt in statements[1:]:
     assert diff < 1e-15, f"ref={ref_stmt} stmt={stmt} diff={diff}"
 
 print("running bench ...")
+nloops = 100
+nreps = 5
+print(f"mean and std over {nreps} times {nloops} executions:")
 for stmt in statements:
-    number = 100
     times = np.array(
-        timeit.repeat(stmt, globals=globs, number=number, repeat=5)
+        timeit.repeat(stmt, globals=globs, number=nloops, repeat=nreps)
     )
-    print(f"{number} loops: {times.mean():6.3f} +- {times.std():.4f}: {stmt}")
+    print(f"{times.mean():6.3f} +- {times.std():.4f}: {stmt}")

@@ -144,4 +144,8 @@ extenions
 * build extensions and link statically for that to deal w/ dep. on liblapack
   etc which is outside of pip's scope
 
+examples/benchmarks/distmat_speed.py
+------------------------------------
+* also compare against jax-md space.py
+
 # vim:comments=fb\:*
