@@ -19,8 +19,10 @@ instead of setuptools.extension.Extension or
 numpy.distutils.extension.Extension, so we sneak a call to "make" into the
 setup.py build_py phase using build_extensions() and make_cmd_class() below.
 
-pip install seems to trigger setup.py build_py and setup.py install, so adding
-build_extensions() to build_py is sufficient.
+``pip install`` seems to trigger ``setup.py build_py`` and ``setup.py
+install``, so adding build_extensions() to build_py is sufficient. The dev
+install ``pip install -e`` only triggers ``setup.py develop`` as it seems, so
+we need to add that as well.
 """
 
 import os
@@ -28,6 +30,7 @@ import subprocess
 
 from setuptools import setup, find_packages
 from setuptools.command.build_py import build_py
+from setuptools.command.develop import develop
 
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -85,5 +88,6 @@ setup(
     package_data={'pwtools': ['*.so']},
     cmdclass={
         'build_py': make_cmd_class(build_py),
+        'develop': make_cmd_class(develop),
         },
 )

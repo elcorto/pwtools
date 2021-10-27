@@ -8,12 +8,13 @@ To build the extension modules and install all Python dependencies via
 
 or the setuptools "development install" (no copy of files)::
 
-    $ cd src && make clean && make && cd ..
     $ pip install -e .
 
-Note that in this case you need to build the extensions first, which will live
-in ``pwtools/*.so``, since ``pip install -e .`` only sets a link to this repo.
-See samplepkg_ for details.
+In both cases we build the extension modules via::
+
+    $ cd src && make clean && make && cd ..
+
+in the background.
 
 If all dependencies are installed, e.g. by a package manager such as ``apt``,
 then recent ``pip`` versions should pick those up. Alternatively force ``pip``
