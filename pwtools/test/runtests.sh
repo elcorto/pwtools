@@ -83,7 +83,7 @@ fi
 
 runner_opts="$params"
 found_runner=false
-for runner in pytest-3 pytest; do
+for runner in pytest pytest-3; do
     if which $runner > /dev/null; then
         found_runner=true
         break
