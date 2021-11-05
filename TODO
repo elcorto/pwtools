@@ -148,4 +148,27 @@ examples/benchmarks/distmat_speed.py
 ------------------------------------
 * also compare against jax-md space.py
 
+
+data scaling and derivatives
+----------------------------
+Evaluate the possibility to use sklearn data scalers for num.PolyFit and
+rbf.Rbf. In PolyFit we have a working [0,1] scaler that *could* be replaced. In
+Rbf we don't have any scaler and there we could benefit from that. In Rbf we do
+however scale the trained weights internally, which is similar to PolyFit's
+scale_vand, so no data scaling but better than nothing.
+
+Problem is derivatives in connection to scaling. I think we need to diff thru
+the scaler in all cases. In PolyFit1D we coded that manually but support it only
+for the 1D case. PolyFit has no derivs. Rbf has analytic 1st derivs
+but no data scaling.
+
+RBF: When we want to use jax to do diffs, we would need to re-implement the
+sklearn scalers here and use jax.numpy -> np else jax' tracing will fall over
+backwards.
+
+PolyFit: calculating derivatives of polys using autodiff is usually overkill
+since the implementation of analytic derivs is trivial (I hope! :). BUT: when
+we need to diff thru the data scaler as well, it might be worth instead of
+working all that out by hand.
+
 # vim:comments=fb\:*
