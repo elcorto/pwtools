@@ -19,17 +19,14 @@ def test_interpol_high_dim(p, r):
     rbfi = rbf.Rbf(X,z, p=p, r=r)
     assert np.abs(z - rbfi(X)).max() < 1e-13
 
-
-@pytest.mark.parametrize("r,lin_solver", [(None,None),
-                                          (1e-12, 'solve'),
-                                          (1e-12, 'dsysv')])
-def test_2d(r, lin_solver):
+@pytest.mark.parametrize("r", [None, 1e-12])
+def test_2d(r):
     # 2d example, y = f(x1,x2) = sin(x1) + cos(x2)
     x1 = np.linspace(-1,1,20)
     X1,X2 = np.meshgrid(x1, x1, indexing='ij')
     z = (np.sin(X1)+np.cos(X2)).flatten()
     X = np.array([X1.flatten(), X2.flatten()]).T
-    rbfi = rbf.Rbf(X, z, p=1.5, r=r, lin_solver=lin_solver)
+    rbfi = rbf.Rbf(X, z, p=1.5, r=r)
     # test fit at 300 random points within [-1,1]^2
     Xr = -1.0 + 2*np.random.rand(300,2)
     zr = np.sin(Xr[:,0]) + np.cos(Xr[:,1])
@@ -67,6 +64,27 @@ def test_api_and_all_types_and_1d_with_deriv():
             if go:
                 assert np.allclose(rbfi(xx[:,None]), np.sin(xx), rtol=0, atol=1e-4)
                 assert np.allclose(rbfi(xx[:,None], der=1)[:,0], np.cos(xx), rtol=0, atol=1e-3)
+
+
+def test_predict_api():
+    X = rand(100,3)
+    x = X[0,:]
+    z = rand(100)
+    f = rbf.Rbf(X, z)
+    assert f(X).shape == (100,)
+    assert f(x).shape == ()
+    assert f(x[None,:]).shape == (1,)
+
+
+def test_grad_api():
+    X = rand(100,3)
+    x = X[0,:]
+    z = rand(100)
+    f = rbf.Rbf(X, z)
+    f(X, der=1).shape == X.shape
+    f.deriv(X).shape == X.shape
+    f(x, der=1).shape == x.shape
+    f.deriv(x[None,:]).shape == (1,3)
 
 
 def test_p_api():
