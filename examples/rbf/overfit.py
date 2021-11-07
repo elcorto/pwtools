@@ -26,6 +26,7 @@ is not yet converged, but shows the correct trend already.
 
 import numpy as np
 from pwtools import mpl, rbf
+from pwtools.rbf.hyperopt import FitError, fit_opt
 plt = mpl.plt
 
 
@@ -41,7 +42,7 @@ if __name__ == '__main__':
     values = y
     xi = np.linspace(x[0], x[-1], len(x)*4)[:,None]
 
-    fe = rbf.FitError(points, values, rbf_kwds=rbf_kwds)
+    fe = FitError(points, values, rbf_kwds=rbf_kwds)
 
     ax = axs[0]
     ax.plot(x, y, 'o', alpha=0.3)
@@ -50,10 +51,10 @@ if __name__ == '__main__':
     p_pwtools = rbfi.get_params()[0]
     ax.plot(xi, rbfi(xi), 'r', label='$p$ pwtools')
 
-    rbfi = rbf.fit_opt(points, values, method='de', what='p',
-                       opt_kwds=dict(bounds=[(0.1, 10)], maxiter=10),
-                       rbf_kwds=rbf_kwds,
-                       cv_kwds=None)
+    rbfi = fit_opt(points, values, method='de', what='p',
+                   opt_kwds=dict(bounds=[(0.1, 10)], maxiter=10),
+                   rbf_kwds=rbf_kwds,
+                   cv_kwds=None)
     p_opt = rbfi.get_params()[0]
     ax.plot(xi, rbfi(xi), 'g', label='$p$ opt')
 

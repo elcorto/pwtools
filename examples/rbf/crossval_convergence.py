@@ -28,6 +28,7 @@ sizable CV error values.
 
 import numpy as np
 from pwtools import rbf
+from pwtools.rbf.hyperopt import FitError
 
 if __name__ == '__main__':
     rnd = np.random.RandomState(seed=1234)
@@ -41,7 +42,7 @@ if __name__ == '__main__':
             print("")
             for n_repeats in [1, 2]:
                 for n_splits in [5, 10, 20]:
-                    fe = rbf.FitError(x[:,None], y,
+                    fe = FitError(x[:,None], y,
                                       cv_kwds=dict(n_splits=n_splits,
                                                    n_repeats=n_repeats,
                                                    random_state=1234),

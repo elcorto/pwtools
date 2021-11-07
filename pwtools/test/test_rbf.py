@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from pwtools import rbf
+import pwtools.rbf.hyperopt as rbf_hyperopt
 import pwtools.config
 
 rand = np.random.rand
@@ -138,7 +139,7 @@ def test_opt_api():
     rnd = np.random.RandomState(seed=1234)
     cv_kwds = dict(n_splits=5, n_repeats=1, random_state=rnd)
     rbf_kwds = dict(rbf="inv_multi")
-    rbf.fit_opt(
+    rbf_hyperopt.fit_opt(
         X,
         z,
         method="fmin",
@@ -146,7 +147,7 @@ def test_opt_api():
         what="p",
         rbf_kwds=rbf_kwds,
     )
-    rbf.fit_opt(
+    rbf_hyperopt.fit_opt(
         X,
         z,
         method="fmin",
@@ -155,19 +156,19 @@ def test_opt_api():
         rbf_kwds=rbf_kwds,
         opt_kwds=dict(disp=True, x0=[5, 1e-8], maxiter=3),
     )
-    rbf.fit_opt(
+    rbf_hyperopt.fit_opt(
         X,
         z,
         method="de",
         opt_kwds=dict(bounds=[(1, 3), (1e-6, 1)], maxiter=3),
     )
-    rbf.fit_opt(
+    rbf_hyperopt.fit_opt(
         X,
         z,
         method="brute",
         opt_kwds=dict(ranges=[(1, 3), (1e-6, 1)], Ns=5),
     )
-    rbf.fit_opt(
+    rbf_hyperopt.fit_opt(
         X,
         z,
         method="brute",

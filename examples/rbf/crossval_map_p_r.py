@@ -64,6 +64,7 @@ from matplotlib import cm, colors
 import numpy as np
 
 from pwtools import rbf, mpl
+from pwtools.rbf.hyperopt import FitError, fit_opt
 
 
 plt = mpl.plt
@@ -132,7 +133,7 @@ if __name__ == '__main__':
         print(name)
         fig,ax = plots[name].fig, plots[name].ax
         ax.set_title(name)
-        fe = rbf.FitError(x[:,None], y,
+        fe = FitError(x[:,None], y,
                           cv_kwds=get_cv_kwds(seed),
                           rbf_kwds=dict(rbf=name))
         print("p-r map ...")
@@ -153,7 +154,7 @@ if __name__ == '__main__':
 
         print("global opts ...")
         f_de = \
-            rbf.fit_opt(x[:,None], y, method='de', what='pr',
+            fit_opt(x[:,None], y, method='de', what='pr',
                         opt_kwds=dict(disp=True,
                                       maxiter=30,
                                       popsize=50,
@@ -165,7 +166,7 @@ if __name__ == '__main__':
                         rbf_kwds=dict(rbf=name),
                         cv_kwds=get_cv_kwds(seed))
         f_brute = \
-            rbf.fit_opt(x[:,None], y, method='brute', what='pr',
+            fit_opt(x[:,None], y, method='brute', what='pr',
                         opt_kwds=dict(disp=True,
                                       ranges=[(p.min(),p.max()),(r.min(),r.max())],
                                       finish=None,
