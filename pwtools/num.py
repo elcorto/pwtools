@@ -1402,19 +1402,6 @@ class PolyFit:
         self.evalfunc = polyval
         self.fit = self.fitfunc(self.points, self.values, *args, **kwds)
 
-    # XXX why is that here???
-    @staticmethod
-    def _has_keys(dct, keys):
-        """True if at least one key in `keys` is in dct.keys()."""
-        if type(keys) != type([]):
-            keys = [keys]
-        ret = False
-        for k in keys:
-            if k in dct:
-                ret = True
-                break
-        return ret
-
     @staticmethod
     def _fix_shape_init(points):
         return points
