@@ -2,8 +2,18 @@ import numpy as np
 import pytest
 
 from pwtools import rbf
+import pwtools.config
 
 rand = np.random.rand
+
+
+def have_jax():
+    try:
+        import jax
+
+        return True
+    except ImportError:
+        return False
 
 
 @pytest.mark.parametrize("p", ["mean", "scipy"])
@@ -110,6 +120,17 @@ def test_func_api():
     r1 = rbf.Rbf(X, z, rbf="multi")
     r2 = rbf.Rbf(X, z, rbf=rbf.rbf_dct["multi"])
     assert (r1(X) == r2(X)).all()
+
+
+@pytest.mark.skipif("not (have_jax() and pwtools.config.use_jax)")
+@pytest.mark.parametrize("rbf_name", rbf.rbf_dct.keys())
+def test_grad_analytic_vs_jax(rbf_name):
+    X = rand(100, 3)
+    x = X[0, :]
+    z = rand(100)
+    f = rbf.Rbf(X, z, rbf=rbf_name)
+    assert np.allclose(f.deriv(x), f.deriv_jax(x))
+    assert np.allclose(f.deriv(x[None, :]), f.deriv_jax(x[None, :]))
 
 
 def test_opt_api():
