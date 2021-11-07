@@ -25,6 +25,11 @@ dealing with their basis vectors.
 Observations
 ============
 
+tl;dr
+
+Use jit-compiled jax. 2x faster than the runner-up, which is OpenMP-parallel
+num.distsq().
+
 serial
 ------
 * use scipy.spatial.distance.cdist()
@@ -32,7 +37,8 @@ serial
 
 parallel
 --------
-* num.distsq (Fortran OpenMP) beats numba
+* winner is jax jit-compiled pure numpy expression
+* num.distsq (Fortran OpenMP) 2x slower
 * parallel numba = serial cdist
 
 numba
@@ -47,6 +53,18 @@ numba
   worse!
 * But: given that we don't need to write one line of C or Fortran and
   avoid building extensions, it's pretty cool!
+
+jax
+---
+* The XLA compiler used by jax *does* speed up complicated numpy expressions,
+  by a *lot*. In contrast, it takes forever to compile loop-heavy code, so in that
+  sense jax is kind of the opposite of numba. We tried to port the numba_loops
+  function to jax and jit-compile it but failed. Also all in-place ops need to
+  be worked around, etc. This is not how jax is supposed to be used.
+* jax uses multithreading by default and actually turning it off is not really
+  exposed to the user (https://github.com/google/jax/issues/6790). One can
+  force it with "taskset -c0 python script.py" though, if needed. That's why we
+  have no serial measurement for jax.
 
 
 Measurements
@@ -75,10 +93,13 @@ parallel
     make gfortran-omp
   before to recompile _flib extension
 * numba: njit(parallel=True), use numba.prange
+* jax: Eigen library's own threading, see
+  https://github.com/google/jax/issues/743#issuecomment-495031093
 
 mean and std over 5 times 100 executions:
  0.146 +- 0.0017: num.distsq(arr, arr)
  0.282 +- 0.0018: funcs['numba_loops_parallel_True'](arr, arr)
+ 0.072 +- 0.0044: jax_np(arr, arr).block_until_ready()
 """
 
 
@@ -96,6 +117,8 @@ statements = [
     "cdist(arr, arr, metric='sqeuclidean')",
     "num.distsq(arr, arr)",
 ]
+
+
 
 try:
     from numba import float64, njit, prange
@@ -148,6 +171,22 @@ except ModuleNotFoundError:
     print("numba not found, skipping related tests ...")
 
 
+try:
+    from jax import jit, config as jax_config
+
+    # Let's have a fair comparison and use double prec as everybody else.
+    jax_config.update("jax_enable_x64", True)
+
+    @jit
+    def jax_np(aa, bb):
+        return ((aa[:,None,:] - bb[None,...])**2.0).sum(-1)
+
+    statements.append("jax_np(arr, arr).block_until_ready()")
+
+except ModuleNotFoundError:
+    print("jax not found, skipping related tests ...")
+
+
 arr = np.random.rand(1000, 3)
 
 # dict with module-level global vars passed as context to timeit. That contains,
@@ -157,13 +196,19 @@ arr = np.random.rand(1000, 3)
 globs = globals()
 
 
+# Sanity check to make sure all implementations are correct. In the jax case,
+# this also compiles the function *for the specific array types and shapes*
+# because it needs to infer them first. But even if we skip this here,
+# compilation is so fast and only happens once anyway in the many calls below
+# that it actually doesn't change the benchmark results t all.
 ref_stmt = statements[0]
 ref = eval(ref_stmt)
 for stmt in statements[1:]:
+    print(f"sanity check: {stmt}")
     diff = np.abs(ref - eval(stmt)).max()
     assert diff < 1e-15, f"ref={ref_stmt} stmt={stmt} diff={diff}"
 
-print("running bench ...")
+print("\nrunning bench ...")
 nloops = 100
 nreps = 5
 print(f"mean and std over {nreps} times {nloops} executions:")
