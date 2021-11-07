@@ -1294,6 +1294,8 @@ def polyfit(points, values, deg, scale=True, scale_vand=False):
     """
     assert points.ndim == 2, "points must be 2d array"
     assert values.ndim == 1, "values must be 1d array"
+    assert len(values) == points.shape[0], (
+        "points and values must have same length")
     if scale:
         pmin = points.min(axis=0)[None,:]
         vmin = values.min()
@@ -1315,7 +1317,7 @@ def polyfit(points, values, deg, scale=True, scale_vand=False):
         coeffs = coeffs / sv
     return {'coeffs': coeffs,
             'deg': deg, 'pscale': pscale, 'vscale': vscale,
-            'pmin': pmin, 'vmin': vmin}
+            'pmin': pmin, 'vmin': vmin, 'ndim': points.shape[1]}
 
 
 def polyval(fit, points, der=0):
@@ -1339,6 +1341,8 @@ def polyval(fit, points, der=0):
     :class:`PolyFit`, :class:`PolyFit1D`, :func:`polyfit`
     """
     assert points.ndim == 2, "points must be 2d array"
+    assert (p_ndim := points.shape[1]) == (f_ndim := fit['ndim']), (
+        f"points have wrong ndim: {p_ndim}, expect {f_ndim}")
     pscale, pmin = fit['pscale'], fit['pmin']
     vscale, vmin = fit['vscale'], fit['vmin']
     if der > 0:
@@ -1398,6 +1402,7 @@ class PolyFit:
         self.evalfunc = polyval
         self.fit = self.fitfunc(self.points, self.values, *args, **kwds)
 
+    # XXX why is that here???
     @staticmethod
     def _has_keys(dct, keys):
         """True if at least one key in `keys` is in dct.keys()."""
@@ -1416,19 +1421,17 @@ class PolyFit:
 
     @staticmethod
     def _fix_shape_call(points):
+        assert hasattr(points, 'ndim'), "points must be an array with ndim attr"
         # (ndim,) -> (1,ndim) -> 1 point in ndim space
         if points.ndim == 1:
-            return points[None,:]
+            return True, points[None,:]
         else:
-            return points
+            return False, points
 
     def __call__(self, points, **kwds):
-        points = self._fix_shape_call(points)
+        _got_single_point, points = self._fix_shape_call(points)
         ret = self.evalfunc(self.fit, points, **kwds)
-        if points.shape[0] == 1:
-            return ret[0]
-        else:
-            return ret
+        return ret[0] if _got_single_point else ret
 
     def get_min(self, x0=None, **kwds):
         """Minimize fit function by `scipy.optimize.fmin()`.
@@ -1499,15 +1502,34 @@ class PolyFit1D(Fit1D, PolyFit):
         # 1 -> (1,1)
         if pp.ndim == 0:
             return np.array([[pp]])
-        # (N,) -> (N,1)
+        # (M,) -> (M,1)
         elif pp.ndim == 1:
             return pp[:,None]
-        elif  pp.ndim == 2:
+        # (M,N)
+        elif pp.ndim == 2:
+            assert pp.shape[1] == self.fit['ndim'], "points have wrong ndim"
             return pp
         else:
             raise ValueError("points has wrong shape or dim")
 
-    _fix_shape_call = _fix_shape_init
+    def _fix_shape_call(self, points):
+        pp = np.asarray(points)
+        # 1 -> (1,1)
+        if pp.ndim == 0:
+            return True, np.array([[pp]])
+        else:
+            if pp.ndim == 1:
+                if len(pp) == self.fit['ndim']:
+                    # (N,) -> (1,N)
+                    return True, pp[None,:]
+                else:
+                    # (M,) -> (M,1)
+                    return False, pp[:,None]
+            elif pp.ndim == 2:
+                assert pp.shape[1] == self.fit['ndim'], "points have wrong ndim"
+                return False, pp
+            else:
+                raise ValueError("points has wrong shape or dim")
 
 
 def match_mask(arr, values, fullout=False, eps=None):

@@ -4,6 +4,7 @@ import numpy as np
 from pwtools import num
 from pwtools.test.tools import assert_all_types_equal
 
+rand = np.random.rand
 
 def make_kwd_lst(*args):
     kwd_lst = []
@@ -131,7 +132,12 @@ def test_api():
     x = np.linspace(-5,5,20)
     y = x**2
     f = num.PolyFit(x[:,None], y, deg=2)
-    assert type(f.get_min()) == type(np.array([1.0]))
-    assert type(f(f.get_min())) == type(np.array([1.0])[0])
+    assert f.get_min().shape == (1,)
+    assert f(x[:,None]).shape == x.shape
+    assert f(np.array([1.23])).shape == ()
+    assert f(np.array([[1.23]])).shape == (1,)
+
     f = num.PolyFit1D(x, y, deg=2)
-    assert type(f.get_min()) == type(1.0)
+    assert f(1.23).shape == ()
+    # vectorized eval
+    assert f(rand(3)).shape == (3,)
