@@ -244,7 +244,10 @@ class Rbf:
 
     def _rectify_points_shape(self, points):
         ret = np.atleast_2d(points)
-        assert ret.shape[1] == self.ndim, f"{ret.shape[1]=} != {self.ndim}"
+        # fmt: off
+        assert (p_ndim := ret.shape[1]) == (f_ndim := self.ndim), (
+            f"points ndim doesn't match: got {p_ndim}, expect {f_ndim}")
+        # fmt: on
         return ret
 
     def get_distsq(self, points=None):
