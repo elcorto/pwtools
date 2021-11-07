@@ -3,6 +3,8 @@ Radial Basis Function regression. See :ref:`rbf` for details.
 """
 
 from pprint import pformat
+
+##from functools import partial
 import math
 
 from pwtools import config
@@ -21,6 +23,16 @@ if JAX_MODE:
 else:
     import numpy as np
     from scipy.spatial.distance import cdist
+
+    # no-op decorator in case we want to sprinkle @jit around instead of using
+    # the pattern
+    #
+    # if JAX_MODE:
+    #   jax_func = jit(func)
+    #
+    def jit(func, *args, **kwds):
+        return func
+
 
 import scipy.linalg as linalg
 
@@ -111,6 +123,9 @@ def euclidean_dists(aa, bb):
         return cdist(aa, bb, metric="euclidean")
 
 
+# I think this doesn't need to use jax.numpy, but due to circular deps core
+# <-> hyperopt, we need that here. Once we switch to jax-only and drop
+# JAX_MODE, we can use np (=numpy) here and jnp (=jax.numpy) elsewhere.
 def estimate_p(points, method="mean"):
     r"""Estimate :math:`p`.
 
@@ -359,6 +374,11 @@ class Rbf:
             kwds = dict(assume_a="sym")
         return la.solve(Gr, self.values, **kwds)
 
+    # XXX the jit here causes a 3x speed up over numpy but a huge performance
+    # regression in test_rbf.py::test_opt_api, not sure why. Basically, the
+    # test never finishes. W/o the jit, the jax.numpy predict is 4x slower than
+    # numpy.
+    ##@partial(jit, static_argnums=0)
     def predict(self, points):
         """Evaluate model at `points`.
 
