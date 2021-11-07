@@ -56,33 +56,32 @@ def test_2d(r):
     assert np.allclose(dzr_dy, drbfi[:, 1], rtol=0, atol=1e-4)
 
 
-def test_api_and_all_types_and_1d_with_deriv():
+@pytest.mark.parametrize("rbf_name", rbf.rbf_dct.keys())
+def test_api_and_all_types_and_1d_with_deriv(rbf_name):
     # 1d example, deriv test
     x = np.linspace(0, 10, 50)
     z = np.sin(x)
     xx = np.linspace(0, 10, 100)
-    for name in rbf.rbf_dct.keys():
-        print(name)
-        cases = [
-            (True, dict(rbf=name)),
-            (True, dict(p="mean")),
-            (False, dict(p="scipy")),  # not accurate enough, only API test
-            (True, dict(rbf=name, r=1e-11)),
-            (True, dict(rbf=name, p=rbf.estimate_p(x[:, None]))),
-            (True, dict(rbf=name, p=rbf.estimate_p(x[:, None]), r=1e-11)),
-        ]
-        for go, kwds in cases:
-            rbfi = rbf.Rbf(x[:, None], z, **kwds)
-            if go:
-                assert np.allclose(
-                    rbfi(xx[:, None]), np.sin(xx), rtol=0, atol=1e-4
-                )
-                assert np.allclose(
-                    rbfi(xx[:, None], der=1)[:, 0],
-                    np.cos(xx),
-                    rtol=0,
-                    atol=1e-3,
-                )
+    cases = [
+        (True, dict(rbf=rbf_name)),
+        (True, dict(p="mean")),
+        (False, dict(p="scipy")),  # not accurate enough, only API test
+        (True, dict(rbf=rbf_name, r=1e-11)),
+        (True, dict(rbf=rbf_name, p=rbf.estimate_p(x[:, None]))),
+        (True, dict(rbf=rbf_name, p=rbf.estimate_p(x[:, None]), r=1e-11)),
+    ]
+    for go, kwds in cases:
+        rbfi = rbf.Rbf(x[:, None], z, **kwds)
+        if go:
+            assert np.allclose(
+                rbfi(xx[:, None]), np.sin(xx), rtol=0, atol=1e-4
+            )
+            assert np.allclose(
+                rbfi(xx[:, None], der=1)[:, 0],
+                np.cos(xx),
+                rtol=0,
+                atol=1e-3,
+            )
 
 
 def test_predict_api():
