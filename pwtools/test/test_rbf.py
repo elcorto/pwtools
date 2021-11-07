@@ -90,10 +90,10 @@ def test_grad_api():
     x = X[0, :]
     z = rand(100)
     f = rbf.Rbf(X, z)
-    f(X, der=1).shape == X.shape
-    f.deriv(X).shape == X.shape
-    f(x, der=1).shape == x.shape
-    f.deriv(x[None, :]).shape == (1, 3)
+    assert f(X, der=1).shape == X.shape
+    assert f.deriv(X).shape == X.shape
+    assert f(x, der=1).shape == x.shape
+    assert f.deriv(x[None, :]).shape == (1, 3)
 
 
 def test_p_api():
