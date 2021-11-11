@@ -205,7 +205,9 @@ def fit_opt(
                 fit_err, ranges=bounds, disp=disp, **opt_kwds
             )
     if what == "pr":
-        rbfi = Rbf(points, values, p=xopt[0], r=xopt[1])
+        _rbf_kwds = {kk: rbf_kwds[kk] for kk in set(rbf_kwds.keys()) - {"p", "r"}}
+        rbfi = Rbf(points, values, p=xopt[0], r=xopt[1], **_rbf_kwds)
     else:
-        rbfi = Rbf(points, values, p=xopt[0])
+        _rbf_kwds = {kk: rbf_kwds[kk] for kk in set(rbf_kwds.keys()) - {"p"}}
+        rbfi = Rbf(points, values, p=xopt[0], **rbf_kwds)
     return rbfi
