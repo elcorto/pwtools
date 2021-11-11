@@ -2,6 +2,7 @@
 Radial Basis Function regression. See :ref:`rbf` for details.
 """
 
+from pprint import pformat
 import math
 
 from pwtools import config
@@ -251,6 +252,12 @@ class Rbf:
 
         if fit:
             self.fit()
+
+    def __repr__(self):
+        attrs = ["p", "r", "rbf", "ndim"]
+        return "Rbf\n" + pformat(
+            dict([(kk, getattr(self, kk)) for kk in attrs])
+        )
 
     def _rectify_points_shape(self, points):
         ret = np.atleast_2d(points)
