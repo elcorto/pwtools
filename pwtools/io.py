@@ -299,10 +299,11 @@ def read_h5(fn):
     """
     fh = h5py.File(fn, mode='r')
     dct = {}
-    def get(name, obj, dct=dct):
+    def get(name, obj):
         if isinstance(obj, h5py.Dataset):
             _name = name if name.startswith('/') else '/'+name
-            dct[_name] = obj[()]
+            val = obj[()]
+            dct[_name] = obj.asstr()[()] if isinstance(val, bytes) else val
     fh.visititems(get)
     fh.close()
     return dct
