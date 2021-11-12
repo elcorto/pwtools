@@ -161,7 +161,7 @@ class Plot:
             else:
                 raise Exception("unknown projection: %s" %projection)
             self.fig, self.ax = func(**kwds)
-        elif [fig, ax].count(None) == 1:
+        elif (fig is None) or (ax is None):
             raise Exception("one of fig,ax is None")
         else:
             self.fig = fig
