@@ -20,11 +20,15 @@ From http://stackoverflow.com/questions/4761623/changing-the-color-of-the-axis-t
 """
 
 import itertools
-from pwtools import common, num
 import warnings
+from collections import OrderedDict
+
 import matplotlib
 from matplotlib import pyplot as plt
 import numpy as np
+
+from pwtools import common, num
+
 try:
     from mpl_toolkits.axes_grid1.parasite_axes import SubplotHost, \
         ParasiteAxes
@@ -271,10 +275,7 @@ def prepare_plots(names, projection='2d', **kwds):
         func = fig_ax
     elif projection == '3d':
         func = fig_ax3d
-    plots = {}
-    for nn in names:
-        plots[nn] = Plot(*func(**kwds))
-    return plots
+    return OrderedDict([(nn, Plot(*func(**kwds))) for nn in names])
 
 
 class Data2D:
