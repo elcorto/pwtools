@@ -27,79 +27,91 @@ is not yet converged, but shows the correct trend already.
 """
 
 import numpy as np
-from pwtools import mpl, rbf
+from pwtools import mpl, rbf, batch
 from pwtools.rbf.hyperopt import FitError, fit_opt
 
 plt = mpl.plt
 
 
 if __name__ == "__main__":
-    ##rbf_kwds = dict(rbf="gauss", r=1e-11)
-    rbf_kwds = dict(rbf='gauss', r=None)
-
-    fig, axs = plt.subplots(2, 1)
-    x = np.linspace(0, 10, 100)
     rnd = np.random.RandomState(seed=123)
-    y = np.sin(x) + rnd.rand(len(x))
-    points = x[:, None]
-    values = y
-    xi = np.linspace(x[0], x[-1], len(x) * 4)[:, None]
+    cases = [batch.Case(r=None, name="lstsq"), batch.Case(r=1e-11, name="krr")]
+    plots = mpl.prepare_plots([c.name for c in cases], nrows=2)
+    for case in cases:
+        rbf_kwds = dict(rbf="gauss", r=case.r)
 
-    fe = FitError(points, values, rbf_kwds=rbf_kwds)
+        x = np.linspace(0, 10, 100)
+        y = np.sin(x) + rnd.rand(len(x))
+        points = x[:, None]
+        values = y
+        xi = np.linspace(x[0], x[-1], len(x) * 4)[:, None]
 
-    ax = axs[0]
-    ax.plot(x, y, "o", alpha=0.3)
+        fe = FitError(points, values, rbf_kwds=rbf_kwds)
 
-    rbfi = rbf.Rbf(points, values, **rbf_kwds)
-    p_pwtools = rbfi.get_params()[0]
-    ax.plot(xi, rbfi(xi), "r", label="$p$ pwtools")
+        fig = plots[case.name].fig
+        ax_top = plots[case.name].ax[0]
+        ax_top.set_title(f"{case.name}: r={case.r}")
+        ax_top.plot(x, y, "o", alpha=0.3)
 
-    rbfi = fit_opt(
-        points,
-        values,
-        method="de",
-        what="p",
-        opt_kwds=dict(bounds=[(0.1, 10)], maxiter=10),
-        rbf_kwds=rbf_kwds,
-        cv_kwds=None,
-    )
-    p_opt = rbfi.get_params()[0]
-    ax.plot(xi, rbfi(xi), "g", label="$p$ opt")
+        rbfi = rbf.Rbf(points, values, **rbf_kwds)
+        p_pwtools = rbfi.get_params()[0]
+        ax_top.plot(xi, rbfi(xi), "r", label="$p$ pwtools")
 
-    rbfi = rbf.Rbf(points, values, p=10, **rbf_kwds)
-    p_big = rbfi.get_params()[0]
-    ax.plot(xi, rbfi(xi), "y", label="$p$ big")
+        # cv_kwds=None: Use normal MSE fit error, not CV fit error
+        rbfi = fit_opt(
+            points,
+            values,
+            method="de",
+            what="p",
+            opt_kwds=dict(bounds=[(0.1, 20)], maxiter=10),
+            rbf_kwds=rbf_kwds,
+            cv_kwds=None,
+        )
+        p_opt = rbfi.get_params()[0]
+        ax_top.plot(xi, rbfi(xi), "g", label="$p$ opt")
 
-    rbfi = rbf.Rbf(
-        points, values, p=rbf.estimate_p(points, "scipy"), **rbf_kwds
-    )
-    p_scipy = rbfi.get_params()[0]
-    ax.plot(xi, rbfi(xi), "m", label="$p$ scipy")
+        rbfi = rbf.Rbf(points, values, p=10, **rbf_kwds)
+        p_big = rbfi.get_params()[0]
+        ax_top.plot(xi, rbfi(xi), "y", label="$p$ big")
 
-    ax.set_xlabel("x")
-    ax.set_ylabel("y")
-    ax.legend()
+        rbfi = rbf.Rbf(
+            points, values, p=rbf.estimate_p(points, "scipy"), **rbf_kwds
+        )
+        p_scipy = rbfi.get_params()[0]
+        ax_top.plot(xi, rbfi(xi), "m", label="$p$ scipy")
 
-    ax = axs[1]
-    ax2 = ax.twinx()
-    params = np.logspace(np.log10(1e-2), np.log10(100), 100)
-    ax.semilogx(
-        params, [fe.err_direct([px]) for px in params], label="fit error"
-    )
-    ax2.loglog(
-        params, [fe.err_cv([px]) for px in params], "k", label="CV fit error"
-    )
-    ax.semilogx(
-        [p_pwtools], fe.err_direct([p_pwtools]), "ro", label="$p$ pwtools"
-    )
-    ax.semilogx([p_scipy], fe.err_direct([p_scipy]), "mo", label="$p$ scipy")
-    ax.semilogx([p_opt], fe.err_direct([p_opt]), "go", label="$p$ opt")
-    ax.semilogx([p_big], fe.err_direct([p_big]), "yo", label="$p$ big")
-    ax.set_xlabel("$p$")
-    ax.set_ylabel("fit error")
-    ax2.set_ylabel("CV fit error")
-    ax.legend(*mpl.collect_legends(ax, ax2), loc="center right")
+        ax_top.set_xlabel("x")
+        ax_top.set_ylabel("y")
+        ax_top.legend()
 
-    fig.tight_layout()
+        ax_bot = plots[case.name].ax[1]
+        ax_bot2 = ax_bot.twinx()
+        p_range = np.logspace(np.log10(1e-2), np.log10(100), 100)
+        ax_bot.semilogx(
+            p_range, [fe.err_direct([px]) for px in p_range], label="fit error"
+        )
+        ax_bot2.loglog(
+            p_range,
+            [fe.err_cv([px]) for px in p_range],
+            "k",
+            label="CV fit error",
+        )
+        ax_bot.semilogx(
+            [p_pwtools], fe.err_direct([p_pwtools]), "ro", label="$p$ pwtools"
+        )
+        ax_bot.semilogx(
+            [p_scipy], fe.err_direct([p_scipy]), "mo", label="$p$ scipy"
+        )
+        ax_bot.semilogx([p_opt], fe.err_direct([p_opt]), "go", label="$p$ opt")
+        ax_bot.semilogx([p_big], fe.err_direct([p_big]), "yo", label="$p$ big")
+        ax_bot.set_xlabel("$p$")
+        ax_bot.set_ylabel("fit error")
+        ax_bot2.set_ylabel("CV fit error")
+        ax_bot.legend(
+            *mpl.collect_legends(ax_bot, ax_bot2), loc="center right"
+        )
+
+        fig.tight_layout()
+
     plt.show()
 ##    fig.savefig("/tmp/overfit.png")
