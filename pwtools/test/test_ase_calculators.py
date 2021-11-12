@@ -5,7 +5,7 @@ import numpy as np
 
 import pytest
 
-from pwtools import io, constants, common, parse
+from pwtools import io, constants, common, parse, crys
 from pwtools.calculators import Pwscf, Lammps, find_exe
 
 pj = os.path.join
@@ -119,30 +119,58 @@ def test_pwscf_calculator_scf(pwtools_tmpdir):
 @pytest.mark.skipif("not have_pwx()")
 def test_pwscf_calculator_vc_relax(pwtools_tmpdir):
     at = setup_pwscf(pwtools_tmpdir)
-    # files/ase/pw.scf.out.start is a norm-conserving LDA struct,
-    # calculated with pz-vbc.UPF, so the PBE vc-relax will make the cell
-    # a bit bigger
     from ase.optimize import BFGS
     from ase.constraints import UnitCellFilter
+    from ase.io.trajectory import Trajectory
 
     traj_fn = f"{at.calc.directory}/test_pwscf_calculator_vc_relax.traj"
     os.makedirs(os.path.dirname(traj_fn), exist_ok=True)
     opt = BFGS(UnitCellFilter(at), trajectory=traj_fn)
-    cell = parse.arr2d_from_txt(
+
+    # LDA relaxed cell (details see comment below).
+    start_cell = parse.arr2d_from_txt(
         """
         -1.97281509  0.          1.97281509
          0.          1.97281509  1.97281509
         -1.97281509  1.97281509  0."""
     )
-    assert np.allclose(cell, at.get_cell())
-    opt.run(fmax=0.05)  # run only few steps
-    cell = parse.arr2d_from_txt(
-        """
-        -2.01841537  0           2.01841537
-        0            2.01841537  2.01841537
-        -2.01841537  2.01841537  0"""
-    )
-    assert np.allclose(cell, at.get_cell())
+
+    # This effectively checks that parsing the start struct and the conversion
+    # to ASE works.
+    assert np.allclose(start_cell, at.get_cell())
+
+    # Run ASE vc-relax, but only a few steps
+    opt.run(fmax=0.05)
+
+    # This is the relaxed cell obtained by fmax=0.05 with some earlier ASE+QE
+    # combo and our PBE PAW pseudos in files/qe_pseudos/.
+    #
+    # Since we don't pin ASE and QE versions in pwtools so far, and due to that
+    # are the victim of changing defaults as well as the beneficiary of bug
+    # fixes, we give up on adapting this test time and time again by changing
+    # this very cell. Instead we only check if the start and end cell are the
+    # same in the `at` object and the traj (an ASE test really) and else we
+    # only make sure that the volume grows, which it must because
+    # files/ase/pw.scf.out.start is a norm-conserving LDA struct, calculated
+    # with pz-vbc.UPF, so the PBE vc-relax will make the cell a bit bigger.
+    #
+    ##cell = parse.arr2d_from_txt(
+    ##    """
+    ##    -2.01841537  0           2.01841537
+    ##    0            2.01841537  2.01841537
+    ##    -2.01841537  2.01841537  0"""
+    ##)
+    ##assert np.allclose(start_cell, at.get_cell())
+
+    # Can't we obtain the traj directly from the `opt` object instead to going
+    # thru file IO?
+    ase_tr = Trajectory(traj_fn, mode="r")
+    assert np.allclose(start_cell, ase_tr[0].cell)
+
+    # optimizer in-place mods at, make sure that's in line w/ the traj
+    assert np.allclose(at.cell, ase_tr[-1].cell)
+
+    assert crys.volume_cell(ase_tr[0].cell) < crys.volume_cell(ase_tr[-1].cell)
 
     # at least 1 backup files must exist: pw.*.0 is the SCF run, backed up
     # in the first iter of the vc-relax
