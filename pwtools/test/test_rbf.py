@@ -129,8 +129,16 @@ def test_grad_analytic_vs_jax(rbf_name):
     x = X[0, :]
     z = rand(100)
     f = rbf.Rbf(X, z, rbf=rbf_name)
-    assert np.allclose(f.deriv(x), f.deriv_jax(x))
-    assert np.allclose(f.deriv(x[None, :]), f.deriv_jax(x[None, :]))
+
+    d = f.deriv(x)
+    dj = f.deriv_jax(x)
+    assert d.shape == dj.shape
+    assert np.allclose(d, dj)
+
+    d = f.deriv(x[None, :])
+    dj = f.deriv_jax(x[None, :])
+    assert d.shape == dj.shape
+    assert np.allclose(d, dj)
 
 
 def test_opt_api():
