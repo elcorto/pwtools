@@ -36,10 +36,14 @@ Easy, eh? :)
 """
 
 import warnings, copy, tempfile, os, importlib
+
 import numpy as np
+from pytest import skip
+import importlib
+
 from pwtools import num, common
 from pwtools.test.testenv import testdir
-from pytest import skip
+
 ##warnings.simplefilter('always')
 
 #-----------------------------------------------------------------------------
@@ -77,6 +81,11 @@ def true_or_false(cond):
     else:
         print(".. uuhhhh, FAIL!")
         return False
+
+
+def have_pkg(name):
+    return importlib.util.find_spec(name) is not None
+
 
 #-----------------------------------------------------------------------------
 # Factory classes to build more complex comp funcs.
