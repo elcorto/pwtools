@@ -1,3 +1,4 @@
+import warnings
 import numpy as np
 
 from scipy import optimize
@@ -43,7 +44,8 @@ class FitError:
         points,
         values,
         rbf_kwds=dict(),
-        cv_kwds=dict(n_splits=5, n_repeats=1),
+        cv=dict(n_splits=5, n_repeats=1),
+        cv_kwds=None,
     ):
         """
         Parameters
@@ -51,21 +53,37 @@ class FitError:
         points, values : see :class:`Rbf`
         rbf_kwds : dict
             for ``Rbf(points, values, **rbf_kwds)``
-        cv_kwds : {dict, None}, optional
+        cv : {dict, :class:`sklearn.model_selection.BaseCrossValidator` instance
+            or anything with that API, None}, optional, if dict then
             cross-validation parameters for
-            :class:`sklearn.model_selection.RepeatedKFold`), if None then
-            :meth:`__call__` will use :meth:`err_direct`, else :meth:`err_cv`
+            :class:`sklearn.model_selection.RepeatedKFold`, if
+            ``BaseCrossValidator``-like class then this is used to split data,
+            if None then :meth:`__call__` will use :meth:`err_direct`, else
+            :meth:`err_cv`
+        cv_kwds : deprecated: dict of kwds for default RepeatedKFold
         """
         self.points = points
         self.values = values
         self.rbf_kwds = rbf_kwds
-        self.cv_kwds = cv_kwds
+        _default_cv_cls = RepeatedKFold
+
+        self._use_cv = (cv_kwds is not None) or (cv is not None)
+        if cv_kwds is not None:
+            warnings.warn(
+                "use `cv` keyword, `cv_kwds` deprecated", DeprecationWarning
+            )
+            self.cv_cls = _default_cv_cls(**cv_kwds)
+        else:
+            if isinstance(cv, dict):
+                self.cv_cls = _default_cv_cls(**cv)
+            else:
+                self.cv_cls = cv
 
     def __call__(self, params):
-        if self.cv_kwds is None:
-            return self.err_direct(params)
-        else:
+        if self._use_cv:
             return self.err_cv(params)
+        else:
+            return self.err_direct(params)
 
     def _get_rbfi(self, params, points=None, values=None):
         points = self.points if points is None else points
@@ -86,19 +104,19 @@ class FitError:
             )
 
     def cv(self, params):
-        """K-fold repeated CV.
+        """Cross validation fit errors.
 
+        Default is RepeatedKFold (if `cv` is a dict, else `cv` itself is used):
         Split data (points, values) randomly into K parts ("folds", K =
-        ``n_splits`` in ``self.cv_kwds``) along axis 0 and use each part once
-        as test set, the rest as training set. For example `ns=5`: split in 5
-        parts at random indices, use 5 times 4/5 data for train, 1/5 for test
-        (each of the folds), so 5 fits total -> 5 fit errors. Optionally repeat
+        ``n_splits``) along axis 0 and use each part once as test set, the rest
+        as training set. For example `ns=5`: split in 5 parts at random
+        indices, use 5 times 4/5 data for train, 1/5 for test (each of the
+        folds), so 5 fits total -> 5 fit errors. Optionally repeat
         ``n_repeats`` times with different random splits. So, `n_repeats` *
         `n_splits` fit errors total.
 
-        Each time, build an Rbf model with ``self.rbf_kwds``, fit,
-        return the fit error (scalar sum of squares from
-        :meth:`Rbf.fit_error`).
+        Each time, build an Rbf model with ``self.rbf_kwds``, fit, return the
+        fit error (scalar sum of squares from :meth:`Rbf.fit_error`).
 
         Parameters
         ----------
@@ -108,14 +126,11 @@ class FitError:
 
         Returns
         -------
-        errs : 1d array (n_repeats * n_splits,)
-            direct fit error from each fold
+        errs : 1d array
+            direct fit errors on the test set from each split
         """
-        ns = self.cv_kwds["n_splits"]
-        nr = self.cv_kwds["n_repeats"]
-        errs = np.empty((ns * nr,), dtype=float)
-        folds = RepeatedKFold(**self.cv_kwds)
-        for ii, tup in enumerate(folds.split(self.points)):
+        errs = np.empty((self.cv_cls.get_n_splits(self.points),), dtype=float)
+        for ii, tup in enumerate(self.cv_cls.split(self.points)):
             idxs_train, idxs_test = tup
             rbfi = self._get_rbfi(
                 params,
@@ -146,13 +161,14 @@ def fit_opt(
     values,
     method="de",
     what="pr",
-    cv_kwds=dict(n_splits=5, n_repeats=1),
+    cv=dict(n_splits=5, n_repeats=1),
+    cv_kwds=None,
     opt_kwds=dict(),
     rbf_kwds=dict(),
 ):
     """Optimize :class:`Rbf`'s hyper-parameter :math:`p` or both :math:`(p,r)`.
 
-    Use a cross validation error metric or the direct fit error if `cv_kwds` is
+    Use a cross validation error metric or the direct fit error if `cv` is
     None. Uses :class:`FitError`.
 
     Parameters
@@ -164,7 +180,7 @@ def fit_opt(
         | 'brute': :func:`scipy.optimize.brute`
     what : str
         'p' (optimize only `p` and set `r=None`) or 'pr' (optimize `p` and `r`)
-    cv_kwds, rbf_kwds : see :class:`FitError`
+    cv, cv_kwds, rbf_kwds : see :class:`FitError`
     opt_kwds : dict
         kwds for the optimizer (see `method`)
 
@@ -179,7 +195,9 @@ def fit_opt(
         "fmin",
         "brute",
     ], f"unknown `method` value: {method}"
-    fit_err = FitError(points, values, cv_kwds=cv_kwds, rbf_kwds=rbf_kwds)
+    fit_err = FitError(
+        points, values, cv=cv, cv_kwds=cv_kwds, rbf_kwds=rbf_kwds
+    )
     p0 = estimate_p(points)
     disp = opt_kwds.pop("disp", False)
     if method == "fmin":
@@ -205,7 +223,9 @@ def fit_opt(
                 fit_err, ranges=bounds, disp=disp, **opt_kwds
             )
     if what == "pr":
-        _rbf_kwds = {kk: rbf_kwds[kk] for kk in set(rbf_kwds.keys()) - {"p", "r"}}
+        _rbf_kwds = {
+            kk: rbf_kwds[kk] for kk in set(rbf_kwds.keys()) - {"p", "r"}
+        }
         rbfi = Rbf(points, values, p=xopt[0], r=xopt[1], **_rbf_kwds)
     else:
         _rbf_kwds = {kk: rbf_kwds[kk] for kk in set(rbf_kwds.keys()) - {"p"}}
