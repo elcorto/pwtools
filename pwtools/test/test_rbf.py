@@ -4,17 +4,9 @@ import pytest
 from pwtools import rbf
 import pwtools.rbf.hyperopt as rbf_hyperopt
 import pwtools.config
+from .tools import have_pkg
 
 rand = np.random.rand
-
-
-def have_jax():
-    try:
-        import jax
-
-        return True
-    except ImportError:
-        return False
 
 
 @pytest.mark.parametrize("p", ["mean", "scipy"])
@@ -122,7 +114,10 @@ def test_func_api():
     assert (r1(X) == r2(X)).all()
 
 
-@pytest.mark.skipif("not (have_jax() and pwtools.config.use_jax)")
+@pytest.mark.skipif(
+    not (have_pkg("jax") and pwtools.config.use_jax),
+    reason="jax not installed or pwtools.config.use_jax=False",
+)
 @pytest.mark.parametrize("rbf_name", rbf.rbf_dct.keys())
 def test_grad_analytic_vs_jax(rbf_name):
     X = rand(100, 3)
@@ -141,12 +136,14 @@ def test_grad_analytic_vs_jax(rbf_name):
     assert np.allclose(d, dj)
 
 
+@pytest.mark.skipif(not have_pkg("sklearn"), reason="sklearn missing")
 def test_opt_api():
     X = rand(10, 3)
     z = rand(10)
     rnd = np.random.RandomState(seed=1234)
     cv_kwds = dict(n_splits=5, n_repeats=1, random_state=rnd)
     rbf_kwds = dict(rbf="inv_multi")
+
     rbf_hyperopt.fit_opt(
         X,
         z,
@@ -155,32 +152,44 @@ def test_opt_api():
         what="p",
         rbf_kwds=rbf_kwds,
     )
-    rbf_hyperopt.fit_opt(
-        X,
-        z,
-        method="fmin",
-        what="pr",
-        cv_kwds=cv_kwds,
-        rbf_kwds=rbf_kwds,
-        opt_kwds=dict(disp=True, x0=[5, 1e-8], maxiter=3),
-    )
+
     rbf_hyperopt.fit_opt(
         X,
         z,
         method="de",
         opt_kwds=dict(bounds=[(1, 3), (1e-6, 1)], maxiter=3),
     )
+
     rbf_hyperopt.fit_opt(
         X,
         z,
         method="brute",
         opt_kwds=dict(ranges=[(1, 3), (1e-6, 1)], Ns=5),
     )
-    rbf_hyperopt.fit_opt(
-        X,
-        z,
-        method="brute",
-        cv_kwds=cv_kwds,
-        rbf_kwds=rbf_kwds,
-        opt_kwds=dict(ranges=[(1, 3), (1e-6, 1)], Ns=5),
+
+
+@pytest.mark.skipif(not have_pkg("sklearn"), reason="sklearn missing")
+class TestOptAPICVKwds:
+    from sklearn.model_selection import KFold
+
+    rnd = np.random.RandomState(seed=1234)
+    cv_kwds = dict(n_splits=5, n_repeats=1, random_state=rnd)
+
+    @pytest.mark.parametrize(
+        "opt_cv_kwds",
+        [dict(cv_kwds=cv_kwds), dict(cv=cv_kwds), dict(cv=KFold(n_splits=5))],
     )
+    def test(self, opt_cv_kwds):
+        X = rand(10, 3)
+        z = rand(10)
+        rbf_kwds = dict(rbf="inv_multi")
+
+        rbf_hyperopt.fit_opt(
+            X,
+            z,
+            method="fmin",
+            what="pr",
+            rbf_kwds=rbf_kwds,
+            opt_kwds=dict(disp=True, x0=[5, 1e-8], maxiter=3),
+            **opt_cv_kwds,
+        )
