@@ -54,3 +54,12 @@ def test_inner_points_mask():
         a = np.array([x for x in product([0,1,2,3],repeat=ndim)])
         ai = a[num.inner_points_mask(a)]
         assert (ai == np.array([x for x in product([1,2],repeat=ndim)])).all()
+
+
+def test_meshgrid():
+    x = rand(10)
+    y = rand(5)
+    Xp,Yp = num.meshgridt(x, y)
+    Xn,Yn = np.meshgrid(x, y)
+    assert (Xp == Xn.T).all()
+    assert (Yp == Yn.T).all()

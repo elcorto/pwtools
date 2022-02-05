@@ -1691,10 +1691,10 @@ def norm(a):
 
 
 def meshgridt(x, y):
-    """A version of
-        X,Y = numpy.meshgrid(x,y)
-    which returns X and Y transposed, i.e. (nx, ny) instead (ny, nx)
-    where nx,ny = len(x),len(y).
+    """Shortcut for ``numpy.meshgrid(x, y, indexing="ij")``
+
+    A version of ``X,Y = numpy.meshgrid(x,y)`` which returns X and Y
+    transposed, i.e. (nx, ny) instead (ny, nx) where nx,ny = len(x),len(y).
 
     This is useful for dealing with 2D splines in
     scipy.interpolate.bisplev(), which also returns a (nx,ny) array.
@@ -1703,8 +1703,9 @@ def meshgridt(x, y):
     ----------
     x,y : 1d arrays
     """
-    X,Y = np.meshgrid(x,y)
-    return X.T, Y.T
+    ##X,Y = np.meshgrid(x,y)
+    ##return X.T, Y.T
+    return np.meshgrid(x, y, indexing="ij")
 
 
 def euler_matrix(phi, theta, psi, deg=False):
