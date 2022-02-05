@@ -314,7 +314,7 @@ class Data2D:
 
         Examples
         --------
-        >>> from pwtools.mpl import Data2D,
+        >>> from pwtools.mpl import Data2D, fig_ax3d
         >>> from pwtools import num
         >>> from scipy.interpolate import bisplrep, bisplev
         >>> x = linspace(-5,5,10)
@@ -326,7 +326,7 @@ class Data2D:
         >>> yi = linspace(-5,5,50)
         >>> ZI = bisplev(xi,yi,bisplrep(data.xx, data.yy, data.zz))
         >>> spline = Data2D(x=xi, y=yi, Z=ZI)
-        >>> fig,ax3d = mpl.fig_ax3d()
+        >>> fig,ax3d = fig_ax3d()
         >>> ax3d.scatter(data.xx, data.yy, data.zz, color='b')
         >>> ax3d.plot_wireframe(data.X, data.Y, data.Z, color='g')
         >>> ax3d.plot_surface(spline.X, spline.Y, spline.Z, cstride=1,
