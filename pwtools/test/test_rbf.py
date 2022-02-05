@@ -40,7 +40,7 @@ def test_2d(r):
     # Error at center points: big errors occur only at the domain boundary: -1,
     # 1, errs at the points should be smaller
     err = np.abs(z - rbfi(X)).max()
-    assert err < 1e-7
+    assert err < 1e-6
     # derivative at random points
     dzr_dx = np.cos(Xr[:, 0])
     dzr_dy = -np.sin(Xr[:, 1])
