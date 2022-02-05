@@ -1,4 +1,6 @@
 import warnings
+import copy
+
 import numpy as np
 
 from scipy import optimize
@@ -171,6 +173,9 @@ def fit_opt(
     Use a cross validation error metric or the direct fit error if `cv` is
     None. Uses :class:`FitError`.
 
+    Note: While we do have some defaults for initial guess or bounds, depending
+    on the optimizer, you are strongly advised to set your own in `opt_kwds`.
+
     Parameters
     ----------
     points, values : see :class:`Rbf`
@@ -183,34 +188,43 @@ def fit_opt(
     cv, cv_kwds, rbf_kwds : see :class:`FitError`
     opt_kwds : dict
         kwds for the optimizer (see `method`)
+    rbf_kwds : dict
+        Constant params for :class:`Rbf`
 
     Returns
     -------
     rbfi : :class:`Rbf`
         Rbf instance initialized with `points`, `values` and found optimal `p` (and `r`).
     """
-    assert what in ["p", "pr"], f"unknown `what` value: {what}"
+    assert what in (
+        what_ok := ["p", "pr"]
+    ), f"unknown value {what=}, allowed is {what_ok}"
+    what_lst = list(what)
+    for kw in what_lst:
+        assert (
+            kw not in rbf_kwds.keys()
+        ), f"{kw} in {rbf_kwds=} while {kw} should be optimized"
     assert method in [
         "de",
         "fmin",
         "brute",
-    ], f"unknown `method` value: {method}"
+    ], f"unknown {method=}"
     fit_err = FitError(
         points, values, cv=cv, cv_kwds=cv_kwds, rbf_kwds=rbf_kwds
     )
-    p0 = estimate_p(points)
+    _get_p0 = lambda: estimate_p(points)
     disp = opt_kwds.pop("disp", False)
     if method == "fmin":
         if what == "p":
-            x0 = opt_kwds.pop("x0", [p0])
+            x0 = opt_kwds.pop("x0", [_get_p0()])
         elif what == "pr":
-            x0 = opt_kwds.pop("x0", [p0, 1e-8])
+            x0 = opt_kwds.pop("x0", [_get_p0(), 1e-8])
         xopt = optimize.fmin(fit_err, x0, disp=disp, **opt_kwds)
     elif method in ["de", "brute"]:
         if what == "p":
-            _bounds = [(0, 5 * p0)]
+            _bounds = [(0, 5 * _get_p0())]
         elif what == "pr":
-            _bounds = [(0, 5 * p0), (1e-12, 1e-1)]
+            _bounds = [(0, 5 * _get_p0()), (1e-12, 1e-1)]
         if method == "de":
             bounds = opt_kwds.pop("bounds", _bounds)
             ret = optimize.differential_evolution(
@@ -222,12 +236,7 @@ def fit_opt(
             xopt = optimize.brute(
                 fit_err, ranges=bounds, disp=disp, **opt_kwds
             )
-    if what == "pr":
-        _rbf_kwds = {
-            kk: rbf_kwds[kk] for kk in set(rbf_kwds.keys()) - {"p", "r"}
-        }
-        rbfi = Rbf(points, values, p=xopt[0], r=xopt[1], **_rbf_kwds)
-    else:
-        _rbf_kwds = {kk: rbf_kwds[kk] for kk in set(rbf_kwds.keys()) - {"p"}}
-        rbfi = Rbf(points, values, p=xopt[0], **rbf_kwds)
-    return rbfi
+    rbf_kwds_opt = copy.copy(rbf_kwds)
+    for idx, symbol in enumerate(what_lst):
+        rbf_kwds_opt[symbol] = xopt[idx]
+    return Rbf(points, values, **rbf_kwds_opt)
