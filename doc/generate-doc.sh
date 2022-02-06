@@ -46,6 +46,6 @@ rm -rf build/ source/generated/
 
 # generate API doc rst files
 $autodoc $autodoc_extra_opts -s source -a generated/api \
-    -X 'test\.(test_|check_dep.*|utils|testenv)' $package_name
+    -X 'test\.(test_|check_dep.*|utils|testenv|tools|conftest)' $package_name
 
 make html

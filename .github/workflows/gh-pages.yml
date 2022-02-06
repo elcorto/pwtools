@@ -1,0 +1,36 @@
+name: docs
+
+on:
+  push:
+    branches:
+      - master
+      - feature-wip-gh-pages
+
+jobs:
+  pages:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: build
+        run: |
+          # Fortran extensions
+          sudo apt update
+          sudo apt install -y python3-dev gfortran liblapack-dev
+
+          # sphinx related
+          pip install -r requirements_doc.txt
+
+          # sphinx-autodoc needs target package to be installed
+          pip install -e .
+          cd doc
+          sh generate-doc.sh
+
+      - name: deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # base dir is checkout: /path/to/psweep
+          publish_dir: doc/build/html
