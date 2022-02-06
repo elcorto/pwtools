@@ -1,0 +1,6 @@
+pwtools.crys.UnitsHandler.apply\_units
+======================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: UnitsHandler.apply_units

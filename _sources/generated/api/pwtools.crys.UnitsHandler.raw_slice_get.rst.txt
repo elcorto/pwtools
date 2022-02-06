@@ -1,0 +1,6 @@
+pwtools.crys.UnitsHandler.raw\_slice\_get
+=========================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: UnitsHandler.raw_slice_get

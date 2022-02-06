@@ -1,0 +1,6 @@
+﻿pwtools.signal.ezfft
+====================
+
+.. currentmodule:: pwtools.signal
+
+.. autofunction:: ezfft

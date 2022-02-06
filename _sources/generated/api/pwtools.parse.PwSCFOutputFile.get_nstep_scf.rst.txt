@@ -1,0 +1,6 @@
+pwtools.parse.PwSCFOutputFile.get\_nstep\_scf
+=============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwSCFOutputFile.get_nstep_scf

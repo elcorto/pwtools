@@ -1,0 +1,6 @@
+pwtools.parse.PDBFile.set\_all
+==============================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PDBFile.set_all

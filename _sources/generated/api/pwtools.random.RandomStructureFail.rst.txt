@@ -1,0 +1,6 @@
+﻿pwtools.random.RandomStructureFail
+==================================
+
+.. currentmodule:: pwtools.random
+
+.. autoexception:: RandomStructureFail

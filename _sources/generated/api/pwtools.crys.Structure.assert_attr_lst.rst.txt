@@ -1,0 +1,6 @@
+pwtools.crys.Structure.assert\_attr\_lst
+========================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.assert_attr_lst

@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.get\_cell
+=================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.get_cell

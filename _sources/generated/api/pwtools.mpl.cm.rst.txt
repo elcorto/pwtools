@@ -1,0 +1,6 @@
+﻿pwtools.mpl.cm
+==============
+
+.. currentmodule:: pwtools.mpl
+
+.. autodata:: cm

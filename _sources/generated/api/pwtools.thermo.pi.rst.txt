@@ -1,0 +1,6 @@
+﻿pwtools.thermo.pi
+=================
+
+.. currentmodule:: pwtools.thermo
+
+.. autodata:: pi

@@ -1,0 +1,6 @@
+﻿pwtools.visualize.view\_vmd\_xyz
+================================
+
+.. currentmodule:: pwtools.visualize
+
+.. autodata:: view_vmd_xyz

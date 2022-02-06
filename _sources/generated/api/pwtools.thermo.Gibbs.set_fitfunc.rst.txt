@@ -1,0 +1,6 @@
+pwtools.thermo.Gibbs.set\_fitfunc
+=================================
+
+.. currentmodule:: pwtools.thermo
+
+.. automethod:: Gibbs.set_fitfunc

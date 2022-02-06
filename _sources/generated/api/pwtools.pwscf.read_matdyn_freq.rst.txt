@@ -1,0 +1,6 @@
+﻿pwtools.pwscf.read\_matdyn\_freq
+================================
+
+.. currentmodule:: pwtools.pwscf
+
+.. autofunction:: read_matdyn_freq

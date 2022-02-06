@@ -1,0 +1,6 @@
+﻿pwtools.sql.sql\_column\_old
+============================
+
+.. currentmodule:: pwtools.sql
+
+.. autofunction:: sql_column_old

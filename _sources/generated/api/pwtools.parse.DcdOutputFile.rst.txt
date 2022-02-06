@@ -1,0 +1,36 @@
+﻿pwtools.parse.DcdOutputFile
+===========================
+
+.. currentmodule:: pwtools.parse
+
+.. autoclass:: DcdOutputFile
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~DcdOutputFile.get_cell
+      ~DcdOutputFile.get_coords
+      ~DcdOutputFile.get_cryst_const
+      ~DcdOutputFile.get_natoms
+      ~DcdOutputFile.get_nstep
+      ~DcdOutputFile.get_volume
+   
+  
+  
+
+
+  
+  
+  

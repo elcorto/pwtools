@@ -1,0 +1,6 @@
+pwtools.crys.Structure.get\_order
+=================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.get_order

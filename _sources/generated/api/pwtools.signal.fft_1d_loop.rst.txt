@@ -1,0 +1,6 @@
+﻿pwtools.signal.fft\_1d\_loop
+============================
+
+.. currentmodule:: pwtools.signal
+
+.. autofunction:: fft_1d_loop

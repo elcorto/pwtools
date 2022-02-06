@@ -1,0 +1,6 @@
+pwtools.calculators.Lammps.fill\_infile\_templ
+==============================================
+
+.. currentmodule:: pwtools.calculators
+
+.. automethod:: Lammps.fill_infile_templ

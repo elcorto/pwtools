@@ -1,0 +1,6 @@
+pwtools.eos.EVFunction.get\_min
+===============================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: EVFunction.get_min

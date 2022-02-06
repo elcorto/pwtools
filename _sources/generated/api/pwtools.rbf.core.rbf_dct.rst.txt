@@ -1,0 +1,6 @@
+﻿pwtools.rbf.core.rbf\_dct
+=========================
+
+.. currentmodule:: pwtools.rbf.core
+
+.. autodata:: rbf_dct

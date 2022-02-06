@@ -1,0 +1,6 @@
+pwtools.parse.LammpsDcdMDOutputFile.is\_set\_attr
+=================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsDcdMDOutputFile.is_set_attr

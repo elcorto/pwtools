@@ -1,0 +1,6 @@
+pwtools.parse.CpmdSCFOutputFile.get\_struct
+===========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CpmdSCFOutputFile.get_struct

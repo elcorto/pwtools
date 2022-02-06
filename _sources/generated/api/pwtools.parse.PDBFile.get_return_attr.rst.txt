@@ -1,0 +1,6 @@
+pwtools.parse.PDBFile.get\_return\_attr
+=======================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PDBFile.get_return_attr

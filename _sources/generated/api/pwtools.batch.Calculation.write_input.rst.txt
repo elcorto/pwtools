@@ -1,0 +1,6 @@
+pwtools.batch.Calculation.write\_input
+======================================
+
+.. currentmodule:: pwtools.batch
+
+.. automethod:: Calculation.write_input

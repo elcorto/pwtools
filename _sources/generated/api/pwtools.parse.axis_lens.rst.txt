@@ -1,0 +1,6 @@
+﻿pwtools.parse.axis\_lens
+========================
+
+.. currentmodule:: pwtools.parse
+
+.. autofunction:: axis_lens

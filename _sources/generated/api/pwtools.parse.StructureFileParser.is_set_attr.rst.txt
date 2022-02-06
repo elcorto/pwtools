@@ -1,0 +1,6 @@
+pwtools.parse.StructureFileParser.is\_set\_attr
+===============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: StructureFileParser.is_set_attr

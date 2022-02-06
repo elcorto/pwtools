@@ -1,0 +1,26 @@
+
+.. rst file which lists all members of the current module. They will be
+.. handled by the Sphinx autosummary extension.
+
+visualize
+=========
+
+.. Documentation string which may be at the top of the module.
+.. automodule:: pwtools.visualize
+   :no-members:
+   :no-inherited-members:
+
+.. currentmodule:: pwtools.visualize
+
+.. Links to members.
+.. autosummary::
+   :toctree:
+
+   ViewFactory
+   assert_struct
+   avogadro_cmd
+   view_avogadro
+   view_jmol
+   view_vmd_axsf
+   view_vmd_xyz
+   view_xcrysden

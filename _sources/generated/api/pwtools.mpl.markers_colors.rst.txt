@@ -1,0 +1,6 @@
+﻿pwtools.mpl.markers\_colors
+===========================
+
+.. currentmodule:: pwtools.mpl
+
+.. autodata:: markers_colors

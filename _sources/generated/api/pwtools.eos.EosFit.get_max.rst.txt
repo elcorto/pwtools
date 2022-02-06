@@ -1,0 +1,6 @@
+pwtools.eos.EosFit.get\_max
+===========================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: EosFit.get_max

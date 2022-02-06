@@ -1,0 +1,6 @@
+﻿pwtools.common.add\_to\_config
+==============================
+
+.. currentmodule:: pwtools.common
+
+.. autofunction:: add_to_config

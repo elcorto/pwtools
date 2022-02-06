@@ -1,0 +1,6 @@
+pwtools.crys.Structure.timeaxis
+===============================
+
+.. currentmodule:: pwtools.crys
+
+.. autoattribute:: Structure.timeaxis

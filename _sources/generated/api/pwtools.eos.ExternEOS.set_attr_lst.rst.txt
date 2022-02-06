@@ -1,0 +1,6 @@
+pwtools.eos.ExternEOS.set\_attr\_lst
+====================================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: ExternEOS.set_attr_lst

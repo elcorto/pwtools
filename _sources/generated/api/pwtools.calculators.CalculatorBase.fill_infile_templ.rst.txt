@@ -1,0 +1,6 @@
+pwtools.calculators.CalculatorBase.fill\_infile\_templ
+======================================================
+
+.. currentmodule:: pwtools.calculators
+
+.. automethod:: CalculatorBase.fill_infile_templ

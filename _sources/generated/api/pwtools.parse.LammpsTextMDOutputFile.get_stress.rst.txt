@@ -1,0 +1,6 @@
+pwtools.parse.LammpsTextMDOutputFile.get\_stress
+================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsTextMDOutputFile.get_stress

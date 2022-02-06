@@ -1,0 +1,6 @@
+﻿pwtools.arrayio.TXT\_MAXDIM
+===========================
+
+.. currentmodule:: pwtools.arrayio
+
+.. autodata:: TXT_MAXDIM

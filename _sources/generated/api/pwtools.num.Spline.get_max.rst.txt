@@ -1,0 +1,6 @@
+pwtools.num.Spline.get\_max
+===========================
+
+.. currentmodule:: pwtools.num
+
+.. automethod:: Spline.get_max

@@ -1,0 +1,6 @@
+pwtools.eos.ElkEOSFit.load
+==========================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: ElkEOSFit.load

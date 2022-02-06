@@ -1,0 +1,6 @@
+pwtools.parse.PwSCFOutputFile.load
+==================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwSCFOutputFile.load

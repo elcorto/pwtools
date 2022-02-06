@@ -1,0 +1,6 @@
+﻿pwtools.batch.conv\_table
+=========================
+
+.. currentmodule:: pwtools.batch
+
+.. autofunction:: conv_table

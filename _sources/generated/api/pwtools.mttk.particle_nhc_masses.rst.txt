@@ -1,0 +1,6 @@
+﻿pwtools.mttk.particle\_nhc\_masses
+==================================
+
+.. currentmodule:: pwtools.mttk
+
+.. autofunction:: particle_nhc_masses

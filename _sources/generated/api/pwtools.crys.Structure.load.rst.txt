@@ -1,0 +1,6 @@
+pwtools.crys.Structure.load
+===========================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.load

@@ -1,0 +1,6 @@
+﻿pwtools.\_dcd.get\_dcd\_file\_info
+==================================
+
+.. currentmodule:: pwtools._dcd
+
+.. autodata:: get_dcd_file_info

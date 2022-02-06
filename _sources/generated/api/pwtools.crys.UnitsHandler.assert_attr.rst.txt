@@ -1,0 +1,6 @@
+pwtools.crys.UnitsHandler.assert\_attr
+======================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: UnitsHandler.assert_attr

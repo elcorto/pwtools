@@ -1,0 +1,6 @@
+pwtools.parse.LammpsDcdMDOutputFile.get\_nstep
+==============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsDcdMDOutputFile.get_nstep

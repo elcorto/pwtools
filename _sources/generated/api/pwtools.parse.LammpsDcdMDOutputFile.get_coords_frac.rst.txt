@@ -1,0 +1,6 @@
+pwtools.parse.LammpsDcdMDOutputFile.get\_coords\_frac
+=====================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsDcdMDOutputFile.get_coords_frac

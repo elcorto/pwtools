@@ -1,0 +1,6 @@
+pwtools.sql.SQLiteDB.get\_array
+===============================
+
+.. currentmodule:: pwtools.sql
+
+.. automethod:: SQLiteDB.get_array

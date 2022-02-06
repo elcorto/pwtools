@@ -1,0 +1,367 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pwtools.dcd &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../generated/api/index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pwtools.dcd</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf8</span>
+
+<span class="sd">&quot;&quot;&quot;Read dcd files. Some timings (in ipython). Reading lammps files, not using</span>
+<span class="sd">`convang` here, so angles are not converted but this is only a speed test.</span>
+
+<span class="sd">::</span>
+
+<span class="sd">    &gt;&gt;&gt; %timeit cc,co=dcd.read_dcd_data_ref(&#39;lmp.out.dcd&#39;)</span>
+<span class="sd">    100 loops, best of 3: 3.35 ms per loop</span>
+
+<span class="sd">    &gt;&gt;&gt; %timeit cc,co=dcd.read_dcd_data_f(&#39;lmp.out.dcd&#39;)</span>
+<span class="sd">    1000 loops, best of 3: 455 µs per loop</span>
+
+<span class="sd">    &gt;&gt;&gt; %timeit cc,co=dcd.read_dcd_data_f(&#39;lmp.out.dcd&#39;, nstephdr=True)</span>
+<span class="sd">    1000 loops, best of 3: 241 µs per loop</span>
+
+<span class="sd">    &gt;&gt;&gt; # pure numpy wins!</span>
+<span class="sd">    &gt;&gt;&gt; %timeit cc,co=dcd.read_dcd_data(&#39;lmp.out.dcd&#39;)</span>
+<span class="sd">    10000 loops, best of 3: 114 µs per loop</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+
+<span class="c1"># DCD file header. Define structured dtype with field specs</span>
+<span class="c1">#   (name, dtype, shape)</span>
+<span class="c1"># numpy dtypes:</span>
+<span class="c1">#   i4  = int32</span>
+<span class="c1">#   f4  = float32 (single precision)</span>
+<span class="c1">#   f8  = float64 (double precision)</span>
+<span class="c1">#   S80 = string of length 80 (80 chars)</span>
+<span class="c1"># shape:</span>
+<span class="c1">#   old syntax:</span>
+<span class="c1">#       (&#39;foo&#39;, &#39;i4&#39;, 1) -&gt; scalar int32</span>
+<span class="c1">#   new syntax: don&#39;t use just a blank &quot;1&quot;</span>
+<span class="c1">#       (&#39;foo&#39;, &#39;i4&#39;, (1,)) -&gt; array([int32])</span>
+<span class="c1">#       (&#39;foo&#39;, &#39;i4&#39;)       -&gt; scalar int32</span>
+<span class="c1">#   for array fields, both work:</span>
+<span class="c1">#       (&#39;foo&#39;, &#39;i4&#39;,    5) -&gt; array([int32, int32, ...])</span>
+<span class="c1">#       (&#39;foo&#39;, &#39;i4&#39;, (5,)) -&gt; array([int32, int32, ...])</span>
+<span class="c1">#   but to be contistent better use tuple syntax</span>
+<span class="n">HEADER_TYPES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s1">&#39;blk0-0&#39;</span><span class="p">,</span>  <span class="s1">&#39;i4&#39;</span>       <span class="p">),</span>  <span class="c1"># 84 (start of first block, size=84 bytes)</span>
+    <span class="p">(</span><span class="s1">&#39;hdr&#39;</span><span class="p">,</span>     <span class="s1">&#39;S4&#39;</span>       <span class="p">),</span>  <span class="c1"># &#39;CORD&#39;</span>
+    <span class="p">(</span><span class="s1">&#39;9int&#39;</span><span class="p">,</span>    <span class="s1">&#39;i4&#39;</span><span class="p">,</span>  <span class="p">(</span><span class="mi">9</span><span class="p">,)),</span>  <span class="c1"># 9 ints, mostly 0</span>
+    <span class="p">(</span><span class="s1">&#39;timestep&#39;</span><span class="p">,</span><span class="s1">&#39;f4&#39;</span>       <span class="p">),</span>  <span class="c1"># timestep (float32)</span>
+    <span class="p">(</span><span class="s1">&#39;10int&#39;</span><span class="p">,</span>   <span class="s1">&#39;i4&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">10</span><span class="p">,)),</span>  <span class="c1"># 10 ints, mostly 0, last is 24</span>
+    <span class="p">(</span><span class="s1">&#39;blk0-1&#39;</span><span class="p">,</span>  <span class="s1">&#39;i4&#39;</span>       <span class="p">),</span>  <span class="c1"># 84</span>
+    <span class="p">(</span><span class="s1">&#39;blk1-0&#39;</span><span class="p">,</span>  <span class="s1">&#39;i4&#39;</span>       <span class="p">),</span>  <span class="c1"># 164</span>
+    <span class="p">(</span><span class="s1">&#39;ntitle&#39;</span><span class="p">,</span>  <span class="s1">&#39;i4&#39;</span>       <span class="p">),</span>  <span class="c1"># 2</span>
+    <span class="p">(</span><span class="s1">&#39;remark1&#39;</span><span class="p">,</span> <span class="s1">&#39;S80&#39;</span>      <span class="p">),</span>  <span class="c1"># remark1</span>
+    <span class="p">(</span><span class="s1">&#39;remark2&#39;</span><span class="p">,</span> <span class="s1">&#39;S80&#39;</span>      <span class="p">),</span>  <span class="c1"># remark2</span>
+    <span class="p">(</span><span class="s1">&#39;blk1-1&#39;</span><span class="p">,</span>  <span class="s1">&#39;i4&#39;</span>       <span class="p">),</span>  <span class="c1"># 164</span>
+    <span class="p">(</span><span class="s1">&#39;blk2-0&#39;</span><span class="p">,</span>  <span class="s1">&#39;i4&#39;</span>       <span class="p">),</span>  <span class="c1"># 4 (4 bytes = int32)</span>
+    <span class="p">(</span><span class="s1">&#39;natoms&#39;</span><span class="p">,</span>  <span class="s1">&#39;i4&#39;</span>       <span class="p">),</span>  <span class="c1"># natoms (int32)</span>
+    <span class="p">(</span><span class="s1">&#39;blk2-1&#39;</span><span class="p">,</span>  <span class="s1">&#39;i4&#39;</span>       <span class="p">),</span>  <span class="c1"># 4</span>
+    <span class="p">]</span>
+
+<span class="n">HEADER_DTYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">HEADER_TYPES</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="read_dcd_header"><a class="viewcode-back" href="../../generated/api/pwtools.dcd.read_dcd_header.html#pwtools.dcd.read_dcd_header">[docs]</a><span class="k">def</span> <span class="nf">read_dcd_header</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Shortcut function for reading the header from `fn`, using HEADER_DTYPE.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fn : str</span>
+<span class="sd">        filename</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ret : dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fd</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">HEADER_DTYPE</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">fd</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">((</span><span class="n">key</span><span class="p">,</span><span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="read_dcd_data_ref"><a class="viewcode-back" href="../../generated/api/pwtools.dcd.read_dcd_data_ref.html#pwtools.dcd.read_dcd_data_ref">[docs]</a><span class="k">def</span> <span class="nf">read_dcd_data_ref</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">convang</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read dcd file. Pure Python version. Slow, only reference implementation.</span>
+<span class="sd">    Use :func:`read_dcd_data` instead.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fn : str</span>
+<span class="sd">        filename</span>
+<span class="sd">    convang : bool</span>
+<span class="sd">        convert angles from cosine to degree (only useful for lammps style dcd</span>
+<span class="sd">        files)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ret : (cryst_const, coords)</span>
+<span class="sd">        | cryst_const : (nstep,6) float64 array, (a,b,c,alpha,beta,gamma),</span>
+<span class="sd">        |               Angstrom, degrees</span>
+<span class="sd">        | coords : (nstep, natoms, 3) float32 array, cartesian coords Angstrom</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; # default settings read cp2k files</span>
+<span class="sd">    &gt;&gt;&gt; cc,co = read_dcd_data_ref(&#39;cp2k.dcd&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; cc,co = read_dcd_data_ref(&#39;cp2k.dcd&#39;, convang=False)</span>
+<span class="sd">    &gt;&gt;&gt; cc,co = read_dcd_data_ref(&#39;lammps.dcd&#39;, convang=True)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fd</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+    <span class="n">natoms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">HEADER_DTYPE</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;natoms&#39;</span><span class="p">]</span>
+    <span class="c1"># data per timestep</span>
+    <span class="n">data_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">([</span>
+       <span class="p">(</span><span class="s1">&#39;blk0-0&#39;</span><span class="p">,</span>          <span class="s1">&#39;i4&#39;</span>           <span class="p">),</span>   <span class="c1"># 48 = 6*8 bytes = 6*float64</span>
+       <span class="p">(</span><span class="s1">&#39;cryst_const_dcd&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span>      <span class="p">(</span><span class="mi">6</span><span class="p">,)),</span>   <span class="c1"># unit cell (6*float64)</span>
+       <span class="p">(</span><span class="s1">&#39;bkl0-1&#39;</span><span class="p">,</span>          <span class="s1">&#39;i4&#39;</span>           <span class="p">),</span>   <span class="c1"># 48</span>
+       <span class="p">(</span><span class="s1">&#39;blkx-0&#39;</span><span class="p">,</span>          <span class="s1">&#39;i4&#39;</span>           <span class="p">),</span>   <span class="c1"># natoms*4 = natoms*float32</span>
+       <span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span>               <span class="s1">&#39;f4&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">natoms</span><span class="p">,)),</span>   <span class="c1"># x (natoms*float32)</span>
+       <span class="p">(</span><span class="s1">&#39;blkx-1&#39;</span><span class="p">,</span>          <span class="s1">&#39;i4&#39;</span>           <span class="p">),</span>   <span class="c1"># natoms*4</span>
+       <span class="p">(</span><span class="s1">&#39;blky-0&#39;</span><span class="p">,</span>          <span class="s1">&#39;i4&#39;</span>           <span class="p">),</span>   <span class="c1"># natoms*4</span>
+       <span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span>               <span class="s1">&#39;f4&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">natoms</span><span class="p">,)),</span>   <span class="c1"># y</span>
+       <span class="p">(</span><span class="s1">&#39;blky-1&#39;</span><span class="p">,</span>          <span class="s1">&#39;i4&#39;</span>           <span class="p">),</span>   <span class="c1"># natoms*4</span>
+       <span class="p">(</span><span class="s1">&#39;blkz-0&#39;</span><span class="p">,</span>          <span class="s1">&#39;i4&#39;</span>           <span class="p">),</span>   <span class="c1"># natoms*4</span>
+       <span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">,</span>               <span class="s1">&#39;f4&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">natoms</span><span class="p">,)),</span>   <span class="c1"># z</span>
+       <span class="p">(</span><span class="s1">&#39;blkz-1&#39;</span><span class="p">,</span>          <span class="s1">&#39;i4&#39;</span>           <span class="p">),</span>   <span class="c1"># natoms*4</span>
+       <span class="p">])</span>
+    <span class="n">cryst_const</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">tmp_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">natoms</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">tmp_cryst_const</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">6</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">data_dtype</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">tmp_coords</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
+            <span class="n">tmp_coords</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span>
+            <span class="n">tmp_coords</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">]</span>
+            <span class="n">tmp_cryst_const</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;cryst_const_dcd&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">tmp_cryst_const</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;cryst_const_dcd&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">tmp_cryst_const</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;cryst_const_dcd&#39;</span><span class="p">][</span><span class="mi">5</span><span class="p">]</span>
+            <span class="n">tmp_cryst_const</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;cryst_const_dcd&#39;</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span>
+            <span class="n">tmp_cryst_const</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;cryst_const_dcd&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">tmp_cryst_const</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;cryst_const_dcd&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp_coords</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+            <span class="n">cryst_const</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp_cryst_const</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+    <span class="n">fd</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">cryst_const</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cryst_const</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">convang</span><span class="p">:</span>
+        <span class="n">cryst_const</span><span class="p">[:,</span><span class="mi">3</span><span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">cryst_const</span><span class="p">[:,</span><span class="mi">3</span><span class="p">:])</span><span class="o">*</span><span class="mf">180.0</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+    <span class="k">return</span> <span class="n">cryst_const</span><span class="p">,</span> <span class="n">coords</span></div>
+
+
+<div class="viewcode-block" id="read_dcd_data"><a class="viewcode-back" href="../../generated/api/pwtools.dcd.read_dcd_data.html#pwtools.dcd.read_dcd_data">[docs]</a><span class="k">def</span> <span class="nf">read_dcd_data</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">convang</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read dcd file. Fastest version. Calculates nstep from bytes between</span>
+<span class="sd">    end-of-header and EOF.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fn : str</span>
+<span class="sd">        filename</span>
+<span class="sd">    convang : bool</span>
+<span class="sd">        convert angles from cosine to degree (only useful for lammps style dcd</span>
+<span class="sd">        files)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ret : (cryst_const, coords)</span>
+<span class="sd">        | cryst_const : (nstep,6) float64 array, (a,b,c,alpha,beta,gamma),</span>
+<span class="sd">        |               Angstrom, degrees</span>
+<span class="sd">        | coords : (nstep, natoms, 3) float32 array, cartesian coords Angstrom</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; # default settings read cp2k files</span>
+<span class="sd">    &gt;&gt;&gt; cc,co = read_dcd_data(&#39;cp2k.dcd&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; cc,co = read_dcd_data(&#39;cp2k.dcd&#39;, convang=False)</span>
+<span class="sd">    &gt;&gt;&gt; cc,co = read_dcd_data(&#39;lammps.dcd&#39;, convang=True)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fd</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+    <span class="n">natoms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">HEADER_DTYPE</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;natoms&#39;</span><span class="p">]</span>
+    <span class="n">fd_pos</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+    <span class="c1"># seek to end</span>
+    <span class="n">fd</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">SEEK_END</span><span class="p">)</span>
+    <span class="c1"># number of bytes between fd_pos and end</span>
+    <span class="n">fd_rest</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span> <span class="o">-</span> <span class="n">fd_pos</span>
+    <span class="c1"># reset to pos after header</span>
+    <span class="n">fd</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">fd_pos</span><span class="p">)</span>
+    <span class="c1"># calculate nstep: fd_rest / bytes_per_timestep</span>
+    <span class="c1"># 4 - initial 48</span>
+    <span class="c1"># 6*8 - cryst_const_dcd</span>
+    <span class="c1"># 7*4 - markers between x,y,z and at the end of the block</span>
+    <span class="c1"># 3*4*natoms - float32 cartesian coords</span>
+    <span class="n">nstep</span> <span class="o">=</span> <span class="n">fd_rest</span> <span class="o">/</span> <span class="p">(</span><span class="mi">4</span> <span class="o">+</span> <span class="mi">6</span><span class="o">*</span><span class="mi">8</span> <span class="o">+</span> <span class="mi">7</span><span class="o">*</span><span class="mi">4</span> <span class="o">+</span> <span class="mi">3</span><span class="o">*</span><span class="mi">4</span><span class="o">*</span><span class="n">natoms</span><span class="o">*</span><span class="mf">1.0</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">nstep</span> <span class="o">%</span> <span class="mf">1.0</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;calculated nstep is not int, cannot &quot;</span>
+                                <span class="s2">&quot;read file &#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fn</span><span class="p">))</span>
+    <span class="n">nstep</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nstep</span><span class="p">)</span>
+    <span class="c1"># dtype for fromfile: nstep times dtype of a timestep data block</span>
+    <span class="n">dtype</span> <span class="o">=</span> \
+        <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(([(</span><span class="s1">&#39;x0&#39;</span><span class="p">,</span> <span class="s1">&#39;i4&#39;</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s1">&#39;x1&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">6</span><span class="p">,)),</span>
+                   <span class="p">(</span><span class="s1">&#39;x2&#39;</span><span class="p">,</span> <span class="s1">&#39;i4&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,)),</span>
+                   <span class="p">(</span><span class="s1">&#39;x3&#39;</span><span class="p">,</span> <span class="s1">&#39;f4&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">natoms</span><span class="p">,)),</span>
+                   <span class="p">(</span><span class="s1">&#39;x4&#39;</span><span class="p">,</span> <span class="s1">&#39;i4&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,)),</span>
+                   <span class="p">(</span><span class="s1">&#39;x5&#39;</span><span class="p">,</span> <span class="s1">&#39;f4&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">natoms</span><span class="p">,)),</span>
+                   <span class="p">(</span><span class="s1">&#39;x6&#39;</span><span class="p">,</span> <span class="s1">&#39;i4&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,)),</span>
+                   <span class="p">(</span><span class="s1">&#39;x7&#39;</span><span class="p">,</span> <span class="s1">&#39;f4&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">natoms</span><span class="p">,)),</span>
+                   <span class="p">(</span><span class="s1">&#39;x8&#39;</span><span class="p">,</span> <span class="s1">&#39;i4&#39;</span><span class="p">)],</span>
+                   <span class="p">(</span><span class="n">nstep</span><span class="p">,)))</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">fd</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">cryst_const</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">nstep</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">cryst_const</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="s1">&#39;x1&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,:,</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">cryst_const</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="s1">&#39;x1&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,:,</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">cryst_const</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="s1">&#39;x1&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,:,</span><span class="mi">5</span><span class="p">]</span>
+    <span class="n">cryst_const</span><span class="p">[:,</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="s1">&#39;x1&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,:,</span><span class="mi">4</span><span class="p">]</span>
+    <span class="n">cryst_const</span><span class="p">[:,</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="s1">&#39;x1&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,:,</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">cryst_const</span><span class="p">[:,</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="s1">&#39;x1&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,:,</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">nstep</span><span class="p">,</span><span class="n">natoms</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">coords</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="s1">&#39;x3&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,</span><span class="o">...</span><span class="p">]</span>
+    <span class="n">coords</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="s1">&#39;x5&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,</span><span class="o">...</span><span class="p">]</span>
+    <span class="n">coords</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="s1">&#39;x7&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,</span><span class="o">...</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">convang</span><span class="p">:</span>
+        <span class="n">cryst_const</span><span class="p">[:,</span><span class="mi">3</span><span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">cryst_const</span><span class="p">[:,</span><span class="mi">3</span><span class="p">:])</span><span class="o">*</span><span class="mf">180.0</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+    <span class="k">return</span> <span class="n">cryst_const</span><span class="p">,</span> <span class="n">coords</span></div>
+
+
+<div class="viewcode-block" id="read_dcd_data_f"><a class="viewcode-back" href="../../generated/api/pwtools.dcd.read_dcd_data_f.html#pwtools.dcd.read_dcd_data_f">[docs]</a><span class="k">def</span> <span class="nf">read_dcd_data_f</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">convang</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nstephdr</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read dcd file. Wrapper for the Fortran version in ``dcd.f90``.</span>
+<span class="sd">    Deprecated, use :func:`read_dcd_data` instead.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fn : str</span>
+<span class="sd">        filename</span>
+<span class="sd">    convang : bool</span>
+<span class="sd">        See :func:`read_dcd_data`</span>
+<span class="sd">    nstephdr : bool</span>
+<span class="sd">        read nstep from header (lammps) instead of walking the file twice (more</span>
+<span class="sd">        safe but slower, works for all dcd flavors)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ret : See :func:`read_dcd_data`</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; # default settings read cp2k files</span>
+<span class="sd">    &gt;&gt;&gt; cc,co = read_dcd_data_f(&#39;cp2k.dcd&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; cc,co = read_dcd_data_f(&#39;cp2k.dcd&#39;, convang=False, nstephdr=False)</span>
+<span class="sd">    &gt;&gt;&gt; cc,co = read_dcd_data_f(&#39;lammps.dcd&#39;, convang=True, nstephdr=True)</span>
+<span class="sd">    &gt;&gt;&gt; # more safe if you don&#39;t trust nstep from the header</span>
+<span class="sd">    &gt;&gt;&gt; cc,co = read_dcd_data_f(&#39;lammps.dcd&#39;, convang=True, nstephdr=False)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">pwtools</span> <span class="k">import</span> <span class="n">_dcd</span>
+    <span class="n">nstep</span><span class="p">,</span> <span class="n">natoms</span><span class="p">,</span> <span class="n">timestep</span> <span class="o">=</span> <span class="n">_dcd</span><span class="o">.</span><span class="n">get_dcd_file_info</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">nstephdr</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_dcd</span><span class="o">.</span><span class="n">read_dcd_data</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">nstep</span><span class="p">,</span> <span class="n">natoms</span><span class="p">,</span> <span class="n">convang</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

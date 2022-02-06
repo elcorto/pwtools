@@ -1,0 +1,6 @@
+﻿pwtools.calculators.find\_exe
+=============================
+
+.. currentmodule:: pwtools.calculators
+
+.. autofunction:: find_exe

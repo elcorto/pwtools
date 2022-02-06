@@ -1,0 +1,41 @@
+﻿pwtools.rbf.core.Rbf
+====================
+
+.. currentmodule:: pwtools.rbf.core
+
+.. autoclass:: Rbf
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. automethod:: __call__
+
+ 
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~Rbf.deriv
+      ~Rbf.deriv_jax
+      ~Rbf.fit
+      ~Rbf.fit_error
+      ~Rbf.get_distsq
+      ~Rbf.get_params
+      ~Rbf.predict
+   
+  
+  
+
+
+  
+  
+  

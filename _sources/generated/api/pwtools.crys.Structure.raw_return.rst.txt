@@ -1,0 +1,6 @@
+pwtools.crys.Structure.raw\_return
+==================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.raw_return

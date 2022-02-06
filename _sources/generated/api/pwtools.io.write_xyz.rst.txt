@@ -1,0 +1,6 @@
+﻿pwtools.io.write\_xyz
+=====================
+
+.. currentmodule:: pwtools.io
+
+.. autofunction:: write_xyz

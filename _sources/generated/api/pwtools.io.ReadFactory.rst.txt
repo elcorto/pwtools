@@ -1,0 +1,34 @@
+﻿pwtools.io.ReadFactory
+======================
+
+.. currentmodule:: pwtools.io
+
+.. autoclass:: ReadFactory
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. automethod:: __call__
+
+ 
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+   
+  
+  
+
+
+  
+  
+  

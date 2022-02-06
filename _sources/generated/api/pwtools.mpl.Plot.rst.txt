@@ -1,0 +1,33 @@
+﻿pwtools.mpl.Plot
+================
+
+.. currentmodule:: pwtools.mpl
+
+.. autoclass:: Plot
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~Plot.collect_legends
+      ~Plot.legend
+      ~Plot.savefig
+   
+  
+  
+
+
+  
+  
+  

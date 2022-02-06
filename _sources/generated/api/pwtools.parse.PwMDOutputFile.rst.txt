@@ -1,0 +1,79 @@
+﻿pwtools.parse.PwMDOutputFile
+============================
+
+.. currentmodule:: pwtools.parse
+
+.. autoclass:: PwMDOutputFile
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~PwMDOutputFile.apply_units
+      ~PwMDOutputFile.assert_attr
+      ~PwMDOutputFile.assert_attr_lst
+      ~PwMDOutputFile.assert_set_attr
+      ~PwMDOutputFile.assert_set_attr_lst
+      ~PwMDOutputFile.check_set_attr
+      ~PwMDOutputFile.check_set_attr_lst
+      ~PwMDOutputFile.dump
+      ~PwMDOutputFile.get_alat
+      ~PwMDOutputFile.get_cell
+      ~PwMDOutputFile.get_cell_unit
+      ~PwMDOutputFile.get_cont
+      ~PwMDOutputFile.get_coords
+      ~PwMDOutputFile.get_coords_frac
+      ~PwMDOutputFile.get_coords_unit
+      ~PwMDOutputFile.get_ekin
+      ~PwMDOutputFile.get_etot
+      ~PwMDOutputFile.get_forces
+      ~PwMDOutputFile.get_natoms
+      ~PwMDOutputFile.get_nkpoints
+      ~PwMDOutputFile.get_nstep_scf
+      ~PwMDOutputFile.get_return_attr
+      ~PwMDOutputFile.get_scf_converged
+      ~PwMDOutputFile.get_stress
+      ~PwMDOutputFile.get_struct
+      ~PwMDOutputFile.get_symbols
+      ~PwMDOutputFile.get_temperature
+      ~PwMDOutputFile.get_timestep
+      ~PwMDOutputFile.get_traj
+      ~PwMDOutputFile.init_attr_lst
+      ~PwMDOutputFile.is_set_attr
+      ~PwMDOutputFile.is_set_attr_lst
+      ~PwMDOutputFile.load
+      ~PwMDOutputFile.parse
+      ~PwMDOutputFile.raw_return
+      ~PwMDOutputFile.raw_slice_get
+      ~PwMDOutputFile.set_all
+      ~PwMDOutputFile.set_attr_lst
+      ~PwMDOutputFile.try_set_attr
+      ~PwMDOutputFile.try_set_attr_lst
+      ~PwMDOutputFile.update_units
+   
+  
+  
+
+
+  
+  
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree:
+   
+      ~PwMDOutputFile.default_units
+      ~PwMDOutputFile.timeaxis
+  
+  

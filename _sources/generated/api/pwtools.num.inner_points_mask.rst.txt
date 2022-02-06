@@ -1,0 +1,6 @@
+﻿pwtools.num.inner\_points\_mask
+===============================
+
+.. currentmodule:: pwtools.num
+
+.. autofunction:: inner_points_mask

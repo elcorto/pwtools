@@ -1,0 +1,6 @@
+﻿pwtools.\_dcd.read\_dcd\_header\_from\_unit
+===========================================
+
+.. currentmodule:: pwtools._dcd
+
+.. autodata:: read_dcd_header_from_unit

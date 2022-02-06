@@ -1,0 +1,6 @@
+pwtools.base.FlexibleGetters.set\_all
+=====================================
+
+.. currentmodule:: pwtools.base
+
+.. automethod:: FlexibleGetters.set_all

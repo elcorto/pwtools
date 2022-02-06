@@ -1,0 +1,6 @@
+pwtools.parse.PwMDOutputFile.raw\_slice\_get
+============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwMDOutputFile.raw_slice_get

@@ -1,0 +1,6 @@
+pwtools.base.FlexibleGetters.raw\_slice\_get
+============================================
+
+.. currentmodule:: pwtools.base
+
+.. automethod:: FlexibleGetters.raw_slice_get

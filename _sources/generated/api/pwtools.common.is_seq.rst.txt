@@ -1,0 +1,6 @@
+﻿pwtools.common.is\_seq
+======================
+
+.. currentmodule:: pwtools.common
+
+.. autofunction:: is_seq

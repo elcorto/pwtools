@@ -1,0 +1,207 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Pwscf &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Radial Basis Function Networks for interpolation or fitting of N-dim data" href="rbf.html" />
+    <link rel="prev" title="Velocity autocorrelation function and phonon DOS" href="phonon_dos.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../generated/api/index.html">API Reference</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Background, details, special topics</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="ase.html">Relation to ASE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coord_trans.html">Coordinate transformation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="param_study.html">Parameter studies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parsing.html">Parsing code output and using containers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="phonon_dos.html">Velocity autocorrelation function and phonon DOS</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Pwscf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbf.html">Radial Basis Function Networks for interpolation or fitting of N-dim data</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">&lt;no title&gt;</a><ul>
+  <li><a href="index.html">Background, details, special topics</a><ul>
+      <li>Previous: <a href="phonon_dos.html" title="previous chapter">Velocity autocorrelation function and phonon DOS</a></li>
+      <li>Next: <a href="rbf.html" title="next chapter">Radial Basis Function Networks for interpolation or fitting of N-dim data</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="pwscf">
+<h1>Pwscf<a class="headerlink" href="#pwscf" title="Permalink to this headline">¶</a></h1>
+<section id="units">
+<h2>Units<a class="headerlink" href="#units" title="Permalink to this headline">¶</a></h2>
+<p>From <a class="reference external" href="http://www.quantum-espresso.org/input-syntax/INPUT_PW.html">http://www.quantum-espresso.org/input-syntax/INPUT_PW.html</a>:
+“All quantities whose dimensions are not explicitly specified are in
+RYDBERG ATOMIC UNITS”. See also <code class="docutils literal notranslate"><span class="pre">constants.py</span></code>.</p>
+<dl class="simple">
+<dt>matdyn.x and phonon dos:</dt><dd><p>With dos=.true., matdyn.x calculates the phonon density of states. The
+frequency axis in the output file is f in cm^-1. Note that THIS IS NOT THE
+ANGULAR FREQUENCY omega = 2*pi*f!!! Therefore, if you calculate with this
+frequency as in “hbar*omega”, then use f*2*pi!</p>
+</dd>
+</dl>
+</section>
+<section id="atomic-coordinates">
+<h2>Atomic coordinates<a class="headerlink" href="#atomic-coordinates" title="Permalink to this headline">¶</a></h2>
+<p>In PWscf terms, alat = celldm(1) = lattice constant “a” in a.u. . A length in
+a.u. means a unit or Bohr = a0 = 0.52917720859 Angstrom.</p>
+<p>To calculate the PDOS, atomic coordinates from MD trajectories have to be in
+cartesian coordinates. You may have to transform them <em>before</em> using them to
+calculate the PDOS. See</p>
+<p><code class="docutils literal notranslate"><span class="pre">test/test_pdos.py</span></code>
+<code class="docutils literal notranslate"><span class="pre">test/test_pdos_coord_trans.py</span></code></p>
+<p>This is necessary if you have “ATOMIC_POSITIONS crystal”.</p>
+<p>The scale (or unit: Bohr, Angstrom, …, defined by celldm(1) or
+CELL_PARAMETERS) does not matter, b/c currently the integral area under the
+PDOS curve is normalized in pydos.*_pdos(). But coords MUST be cartesian!</p>
+<p>For your convenience, here is a list of all possible formats (from the Pwscf
+help):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">allowed</span> <span class="n">ATOMIC_POSITIONS</span> <span class="n">units</span><span class="p">:</span>
+   <span class="n">alat</span>    <span class="p">:</span> <span class="n">atomic</span> <span class="n">positions</span> <span class="n">are</span> <span class="ow">in</span> <span class="n">cartesian</span> <span class="n">coordinates</span><span class="p">,</span>
+             <span class="ow">in</span> <span class="n">units</span> <span class="n">of</span> <span class="n">the</span> <span class="n">lattice</span> <span class="n">parameter</span> <span class="s2">&quot;a&quot;</span> <span class="p">(</span><span class="n">default</span><span class="p">)</span>
+
+   <span class="n">bohr</span>    <span class="p">:</span> <span class="n">atomic</span> <span class="n">positions</span> <span class="n">are</span> <span class="ow">in</span> <span class="n">cartesian</span> <span class="n">coordinate</span><span class="p">,</span>
+             <span class="ow">in</span> <span class="n">atomic</span> <span class="n">units</span> <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">e</span><span class="o">.</span> <span class="n">Bohr</span><span class="p">)</span>
+
+   <span class="n">angstrom</span><span class="p">:</span> <span class="n">atomic</span> <span class="n">positions</span> <span class="n">are</span> <span class="ow">in</span> <span class="n">cartesian</span> <span class="n">coordinates</span><span class="p">,</span>
+             <span class="ow">in</span> <span class="n">Angstrom</span>
+
+   <span class="n">crystal</span> <span class="p">:</span> <span class="n">atomic</span> <span class="n">positions</span> <span class="n">are</span> <span class="ow">in</span> <span class="n">crystal</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">e</span><span class="o">.</span>
+             <span class="ow">in</span> <span class="n">relative</span> <span class="n">coordinates</span> <span class="n">of</span> <span class="n">the</span> <span class="n">primitive</span> <span class="n">lattice</span> <span class="n">vectors</span>
+</pre></div>
+</div>
+<p>Note: crystal coords are also called fractional coordinates (e.g. in Cif
+files).</p>
+<p>summary:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ATOMIC_POSITIONS</span> <span class="n">angstrom</span>  <span class="o">-&gt;</span> <span class="n">cartesian</span> <span class="n">angstrom</span>
+<span class="n">ATOMIC_POSITIONS</span> <span class="n">bohr</span>      <span class="o">-&gt;</span> <span class="n">cartesian</span> <span class="n">a</span><span class="o">.</span><span class="n">u</span><span class="o">.</span>
+<span class="n">ATOMIC_POSITIONS</span>           <span class="o">-&gt;</span> <span class="n">cartesian</span> <span class="n">alat</span>
+<span class="n">ATOMIC_POSITIONS</span> <span class="n">alat</span>      <span class="o">-&gt;</span> <span class="n">cartesian</span> <span class="n">alat</span>
+<span class="n">ATOMIC_POSITIONS</span> <span class="n">crystal</span>   <span class="o">-&gt;</span> <span class="n">crystal</span> <span class="n">alat</span> <span class="ow">or</span> <span class="n">crystal</span> <span class="n">a</span><span class="o">.</span><span class="n">u</span><span class="o">.</span> <span class="p">(</span><span class="n">see</span> <span class="n">below</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The unit of CELL_PARAMETERS is only important for ATOMIC_POSITIONS crystal:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">celldm</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="n">present</span>  <span class="o">-&gt;</span> <span class="n">CELL_PARAMETERS</span> <span class="ow">in</span> <span class="n">alat</span> <span class="o">-&gt;</span> <span class="n">crystal</span> <span class="n">alat</span>
+    <span class="o">=&gt;</span> <span class="n">CELL_PARAMETERS</span> <span class="o">=</span> <span class="n">real</span> <span class="n">cell</span> <span class="n">parameter</span> <span class="n">divided</span> <span class="n">by</span> <span class="n">alat</span>
+<span class="k">if</span> <span class="ow">not</span>                <span class="o">-&gt;</span> <span class="n">CELL_PARAMETERS</span> <span class="ow">in</span> <span class="n">a</span><span class="o">.</span><span class="n">u</span><span class="o">.</span> <span class="o">-&gt;</span> <span class="n">crystal</span> <span class="n">a</span><span class="o">.</span><span class="n">u</span><span class="o">.</span>
+    <span class="o">=&gt;</span> <span class="n">CELL_PARAMETERS</span> <span class="n">are</span> <span class="ow">in</span> <span class="n">Rydberg</span> <span class="n">atomic</span> <span class="n">units</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">e</span><span class="o">.</span> <span class="ow">in</span> <span class="n">Bohr</span><span class="o">.</span>
+</pre></div>
+</div>
+</section>
+<section id="total-force-on-atoms">
+<h2>Total force on atoms<a class="headerlink" href="#total-force-on-atoms" title="Permalink to this headline">¶</a></h2>
+<p>Pwscf writes a “Total Force” after the “Forces acting on atoms” section . This
+value is kind of an RMS of the force matrix (f_ij, i=1,natoms j=1,2,3) printed.
+According to …/PW/forces.f90, variable “sumfor”, the “Total Force” is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sqrt</span><span class="p">(</span><span class="n">sum_ij</span> <span class="n">f_ij</span><span class="o">^</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>But this is not normalized to the number of atoms. Use crys.rms() or
+crys.rms3d() for MD runs where the RMS of each (f_ij) is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sqrt</span><span class="p">(</span> <span class="p">(</span><span class="n">sum_ij</span> <span class="n">f_ij</span><span class="o">^</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">N</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>with N = 3*natoms or N=natoms.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/written/background/pwscf.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

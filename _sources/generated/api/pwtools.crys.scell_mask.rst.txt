@@ -1,0 +1,6 @@
+﻿pwtools.crys.scell\_mask
+========================
+
+.. currentmodule:: pwtools.crys
+
+.. autofunction:: scell_mask

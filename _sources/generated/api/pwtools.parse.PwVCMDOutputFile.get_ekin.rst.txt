@@ -1,0 +1,6 @@
+pwtools.parse.PwVCMDOutputFile.get\_ekin
+========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwVCMDOutputFile.get_ekin

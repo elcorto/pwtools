@@ -1,0 +1,6 @@
+﻿pwtools.\_dcd.read\_dcd\_data
+=============================
+
+.. currentmodule:: pwtools._dcd
+
+.. autodata:: read_dcd_data

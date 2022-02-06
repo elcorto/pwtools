@@ -1,0 +1,6 @@
+﻿pwtools.rbf.core.\_np\_distsq
+=============================
+
+.. currentmodule:: pwtools.rbf.core
+
+.. autofunction:: _np_distsq

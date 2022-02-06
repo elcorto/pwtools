@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kMDOutputFile.init\_attr\_lst
+==============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kMDOutputFile.init_attr_lst

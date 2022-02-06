@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>pwtools.mpl.new_axis &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="pwtools.mpl.plotlines3d" href="pwtools.mpl.plotlines3d.html" />
+    <link rel="prev" title="pwtools.mpl.meshgridt" href="pwtools.mpl.meshgridt.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API Reference</a><ul>
+  <li><a href="__sphinx_autodoc_module__pwtools.mpl.html">mpl</a><ul>
+      <li>Previous: <a href="pwtools.mpl.meshgridt.html" title="previous chapter">pwtools.mpl.meshgridt</a></li>
+      <li>Next: <a href="pwtools.mpl.plotlines3d.html" title="next chapter">pwtools.mpl.plotlines3d</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="pwtools-mpl-new-axis">
+<h1>pwtools.mpl.new_axis<a class="headerlink" href="#pwtools-mpl-new-axis" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="pwtools.mpl.new_axis">
+<span class="sig-prename descclassname"><span class="pre">pwtools.mpl.</span></span><span class="sig-name descname"><span class="pre">new_axis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hostax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">off</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bottom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ticks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wsadd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sharex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sharey</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/mpl.html#new_axis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.mpl.new_axis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a new axis line using mpl_toolkits.axes_grid’s SubplotHost and
+ParasiteAxes. The new axis line will be an instance of ParasiteAxes
+attached to <cite>hostax</cite>. You can do twinx()/twiny() type axis (off=0) or
+completely free-standing axis lines (off &gt; 0).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fig</strong> (<em>mpl Figure</em>) – </p></li>
+<li><p><strong>hostax</strong> (<em>Instance of matplotlib.axes.HostAxesSubplot. This is the subplot</em>) – of the figure <cite>fig</cite> w.r.t which all new axis lines are placed. See
+make_axes_grid_fig().</p></li>
+<li><p><strong>off</strong> (<em>offset in points</em><em>, </em><em>used with parax.get_grid_helper</em><em>(</em><em>)</em><em>.new_fixed_axis</em>) – </p></li>
+<li><p><strong>loc</strong> (<em>one of 'left'</em><em>, </em><em>'right'</em><em>, </em><em>'top'</em><em>, </em><em>'bottom'</em><em>, </em><em>where to place the new axis</em>) – line</p></li>
+<li><p><strong>ticks</strong> (<em>sequence of ticks</em><em> (</em><em>numbers</em><em>)</em>) – </p></li>
+<li><p><strong>wsadd</strong> (Whitespace to add at the location <cite>loc</cite> to make space for the new) – axis line (only useful if off &gt; 0). The number is a relative unit
+and is used to change the bounding box: hostax.get_position().</p></li>
+<li><p><strong>label</strong> (<em>str</em><em>, </em><em>xlabel</em><em> (</em><em>ylabel</em><em>) </em><em>for 'top'</em><em>,</em><em>'bottom'</em><em> (</em><em>'left'</em><em>, </em><em>'right'</em><em>)</em>) – </p></li>
+<li><p><strong>sharex</strong> (bool, share xaxis (yaxis) with <cite>hostax</cite>) – </p></li>
+<li><p><strong>sharey</strong> (bool, share xaxis (yaxis) with <cite>hostax</cite>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>(fig, hostax, parax)</em></p></li>
+<li><p><strong>fig</strong> (<em>the Figure</em>)</p></li>
+<li><p><strong>hostax</strong> (<em>the hostax</em>)</p></li>
+<li><p><strong>parax</strong> (<em>the new ParasiteAxes instance</em>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The sharex/sharey thing may not work correctly.</p></li>
+</ul>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/generated/api/pwtools.mpl.new_axis.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

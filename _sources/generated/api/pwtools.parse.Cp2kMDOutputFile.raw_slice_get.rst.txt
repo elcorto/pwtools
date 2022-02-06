@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kMDOutputFile.raw\_slice\_get
+==============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kMDOutputFile.raw_slice_get

@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.get\_ase\_atoms
+=======================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.get_ase_atoms

@@ -1,0 +1,6 @@
+pwtools.rbf.core.Rbf.get\_distsq
+================================
+
+.. currentmodule:: pwtools.rbf.core
+
+.. automethod:: Rbf.get_distsq

@@ -1,0 +1,6 @@
+pwtools.parse.PwMDOutputFile.get\_nkpoints
+==========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwMDOutputFile.get_nkpoints

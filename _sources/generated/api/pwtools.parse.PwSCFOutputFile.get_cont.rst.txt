@@ -1,0 +1,6 @@
+pwtools.parse.PwSCFOutputFile.get\_cont
+=======================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwSCFOutputFile.get_cont

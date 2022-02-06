@@ -1,0 +1,24 @@
+
+.. rst file which lists all members of the current module. They will be
+.. handled by the Sphinx autosummary extension.
+
+dcd
+===
+
+.. Documentation string which may be at the top of the module.
+.. automodule:: pwtools.dcd
+   :no-members:
+   :no-inherited-members:
+
+.. currentmodule:: pwtools.dcd
+
+.. Links to members.
+.. autosummary::
+   :toctree:
+
+   HEADER_DTYPE
+   HEADER_TYPES
+   read_dcd_data
+   read_dcd_data_f
+   read_dcd_data_ref
+   read_dcd_header

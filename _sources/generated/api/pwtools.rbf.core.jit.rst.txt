@@ -1,0 +1,6 @@
+﻿pwtools.rbf.core.jit
+====================
+
+.. currentmodule:: pwtools.rbf.core
+
+.. autofunction:: jit

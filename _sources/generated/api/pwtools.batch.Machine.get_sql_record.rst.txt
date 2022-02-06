@@ -1,0 +1,6 @@
+pwtools.batch.Machine.get\_sql\_record
+======================================
+
+.. currentmodule:: pwtools.batch
+
+.. automethod:: Machine.get_sql_record

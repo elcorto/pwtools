@@ -1,0 +1,6 @@
+pwtools.parse.CifFile.try\_set\_attr
+====================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CifFile.try_set_attr

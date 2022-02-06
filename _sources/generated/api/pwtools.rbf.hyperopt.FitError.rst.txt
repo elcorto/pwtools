@@ -1,0 +1,37 @@
+﻿pwtools.rbf.hyperopt.FitError
+=============================
+
+.. currentmodule:: pwtools.rbf.hyperopt
+
+.. autoclass:: FitError
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. automethod:: __call__
+
+ 
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~FitError.cv
+      ~FitError.err_cv
+      ~FitError.err_direct
+   
+  
+  
+
+
+  
+  
+  

@@ -1,0 +1,6 @@
+﻿pwtools.rbf.hyperopt.fit\_opt
+=============================
+
+.. currentmodule:: pwtools.rbf.hyperopt
+
+.. autofunction:: fit_opt

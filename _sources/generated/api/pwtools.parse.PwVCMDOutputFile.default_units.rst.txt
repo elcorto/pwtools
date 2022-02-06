@@ -1,0 +1,6 @@
+pwtools.parse.PwVCMDOutputFile.default\_units
+=============================================
+
+.. currentmodule:: pwtools.parse
+
+.. autoattribute:: PwVCMDOutputFile.default_units

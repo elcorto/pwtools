@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.raw\_return
+===================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.raw_return

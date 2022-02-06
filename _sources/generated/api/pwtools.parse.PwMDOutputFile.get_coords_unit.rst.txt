@@ -1,0 +1,6 @@
+pwtools.parse.PwMDOutputFile.get\_coords\_unit
+==============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwMDOutputFile.get_coords_unit

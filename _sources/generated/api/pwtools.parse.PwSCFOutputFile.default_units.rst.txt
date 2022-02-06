@@ -1,0 +1,6 @@
+pwtools.parse.PwSCFOutputFile.default\_units
+============================================
+
+.. currentmodule:: pwtools.parse
+
+.. autoattribute:: PwSCFOutputFile.default_units

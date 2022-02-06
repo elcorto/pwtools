@@ -1,0 +1,6 @@
+pwtools.num.Fit1D.is\_mono
+==========================
+
+.. currentmodule:: pwtools.num
+
+.. automethod:: Fit1D.is_mono

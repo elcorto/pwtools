@@ -1,0 +1,6 @@
+﻿pwtools.num.EPS
+===============
+
+.. currentmodule:: pwtools.num
+
+.. autodata:: EPS

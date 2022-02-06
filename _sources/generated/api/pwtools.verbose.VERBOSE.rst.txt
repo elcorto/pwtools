@@ -1,0 +1,6 @@
+﻿pwtools.verbose.VERBOSE
+=======================
+
+.. currentmodule:: pwtools.verbose
+
+.. autodata:: VERBOSE

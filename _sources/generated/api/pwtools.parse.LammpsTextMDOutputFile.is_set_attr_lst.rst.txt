@@ -1,0 +1,6 @@
+pwtools.parse.LammpsTextMDOutputFile.is\_set\_attr\_lst
+=======================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsTextMDOutputFile.is_set_attr_lst

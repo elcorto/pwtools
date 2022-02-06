@@ -1,0 +1,6 @@
+pwtools.parse.LammpsTextMDOutputFile.get\_etot
+==============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsTextMDOutputFile.get_etot

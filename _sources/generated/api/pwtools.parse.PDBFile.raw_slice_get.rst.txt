@@ -1,0 +1,6 @@
+pwtools.parse.PDBFile.raw\_slice\_get
+=====================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PDBFile.raw_slice_get

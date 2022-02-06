@@ -1,0 +1,6 @@
+pwtools.eos.ExternEOS.calc\_bv
+==============================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: ExternEOS.calc_bv

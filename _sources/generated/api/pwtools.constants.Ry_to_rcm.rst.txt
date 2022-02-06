@@ -1,0 +1,6 @@
+﻿pwtools.constants.Ry\_to\_rcm
+=============================
+
+.. currentmodule:: pwtools.constants
+
+.. autodata:: Ry_to_rcm

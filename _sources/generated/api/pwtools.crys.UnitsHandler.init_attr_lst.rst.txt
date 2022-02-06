@@ -1,0 +1,6 @@
+pwtools.crys.UnitsHandler.init\_attr\_lst
+=========================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: UnitsHandler.init_attr_lst

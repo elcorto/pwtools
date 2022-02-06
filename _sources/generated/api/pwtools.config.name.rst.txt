@@ -1,0 +1,6 @@
+﻿pwtools.config.name
+===================
+
+.. currentmodule:: pwtools.config
+
+.. autodata:: name

@@ -1,0 +1,6 @@
+﻿pwtools.common.asseq
+====================
+
+.. currentmodule:: pwtools.common
+
+.. autofunction:: asseq

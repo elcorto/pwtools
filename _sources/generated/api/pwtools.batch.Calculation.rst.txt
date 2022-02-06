@@ -1,0 +1,32 @@
+﻿pwtools.batch.Calculation
+=========================
+
+.. currentmodule:: pwtools.batch
+
+.. autoclass:: Calculation
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~Calculation.get_sql_record
+      ~Calculation.write_input
+   
+  
+  
+
+
+  
+  
+  

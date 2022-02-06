@@ -1,0 +1,240 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pwtools.timer &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../generated/api/index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pwtools.timer</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">time</span>
+
+<div class="viewcode-block" id="TagTimer"><a class="viewcode-back" href="../../generated/api/pwtools.timer.TagTimer.html#pwtools.timer.TagTimer">[docs]</a><span class="k">class</span> <span class="nc">TagTimer</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper class for timimg. It&#39;s meant to be used for manually inspecting</span>
+<span class="sd">    code.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">        tt = TagTimer()</span>
+
+<span class="sd">        # print some message</span>
+<span class="sd">        tt.p(&#39;start profiling part 1&#39;)</span>
+<span class="sd">        # set start time for tag &#39;outer-loop&#39;</span>
+<span class="sd">        tt.t(&#39;outer-loop&#39;)</span>
+<span class="sd">        for i ...</span>
+<span class="sd">            &lt;code&gt;</span>
+<span class="sd">            # set start time for tag &#39;inner-loop&#39;</span>
+<span class="sd">            tt.t(&#39;inner-loop&#39;)</span>
+<span class="sd">            for j ...</span>
+<span class="sd">                &lt;code&gt;</span>
+<span class="sd">            # use case 1: get stop time and print timing (stop - start) for tag</span>
+<span class="sd">            # &#39;inner-loop&#39; immediately</span>
+<span class="sd">            tt.pt(&#39;inner-loop&#39;)</span>
+<span class="sd">        # use case 2: get stop time and store it</span>
+<span class="sd">        tt.t(&#39;outer-loop&#39;)</span>
+<span class="sd">        &lt;some_more_code&gt;</span>
+<span class="sd">        # print timing (stop - start) for tag &#39;outer-loop&#39; later (maybe in some</span>
+<span class="sd">        # summary statistic or so)</span>
+<span class="sd">        tt.pt(&#39;outer-loop&#39;)</span>
+
+<span class="sd">        # it&#39;s possible to re-use tags</span>
+<span class="sd">        tt.p(&#39;start profiling part 2&#39;)</span>
+<span class="sd">        tt.t(&#39;outer-loop&#39;)</span>
+<span class="sd">        for i ...</span>
+<span class="sd">            &lt;code&gt;</span>
+<span class="sd">            tt.t(&#39;inner-loop&#39;)</span>
+<span class="sd">        ....</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="TagTimer.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.timer.TagTimer.html#pwtools.timer.TagTimer.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">silence</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">none_ar</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="c1"># {&#39;tag0&#39;: array([val0, val1]), &#39;tag1&#39;: array([val2, val3]), ...}</span>
+        <span class="c1"># Every `val` can be None or a float (= a time value). `tag` is a tag</span>
+        <span class="c1"># string like &#39;outer-loop&#39;.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_ar_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">silence</span> <span class="o">=</span> <span class="n">silence</span></div>
+
+<div class="viewcode-block" id="TagTimer.t"><a class="viewcode-back" href="../../generated/api/pwtools.timer.TagTimer.t.html#pwtools.timer.TagTimer.t">[docs]</a>    <span class="k">def</span> <span class="nf">t</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Assign and save a numeric value (a time value) in a storage array</span>
+<span class="sd">        associated with `tag`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tag : anything hashable</span>
+<span class="sd">            a tag (most likely a string) associated with a storage array</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        After initialization, self.time_ar_dict[tag] == [None, None].</span>
+
+<span class="sd">        | The 1st call assings self.time_ar_dict[tag][0] = &lt;time&gt;.</span>
+<span class="sd">        | The 2nd call assings self.time_ar_dict[tag][1] = &lt;time&gt;.</span>
+<span class="sd">        | The 3rd call resets self.time_ar_dict[tag] = [None, None]</span>
+<span class="sd">        | and recursively calls t(), which then does the the same as the 1st.</span>
+<span class="sd">        | ...</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Init a new array for a new tag.</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_ar_dict</span><span class="p">:</span>
+            <span class="c1"># numpy arrays:</span>
+            <span class="c1">#   Use array method copy(), otherwise, we would use the exact same</span>
+            <span class="c1">#   array everytime, since &#39;a = numpy.array(...); b = a&#39; only creates</span>
+            <span class="c1">#   a *view* of `a` (like a pointer).</span>
+            <span class="c1"># lists:</span>
+            <span class="c1">#   Behave like numpy arrays (b = a is view of a). Must also copy:</span>
+            <span class="c1">#   b = a[:] (use slicing).</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">time_ar_dict</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">none_ar</span><span class="p">[:]</span>
+
+        <span class="c1"># array is [None, None], assign the 1st time value.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_ar_dict</span><span class="p">[</span><span class="n">tag</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">time_ar_dict</span><span class="p">[</span><span class="n">tag</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+        <span class="c1"># The second time value.</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_ar_dict</span><span class="p">[</span><span class="n">tag</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">time_ar_dict</span><span class="p">[</span><span class="n">tag</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+        <span class="c1"># array is [&lt;val&gt;, &lt;val&gt;], so reset to [None, None] and</span>
+        <span class="c1"># assign the 1st time value.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">time_ar_dict</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">none_ar</span><span class="p">[:]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TagTimer.pt"><a class="viewcode-back" href="../../generated/api/pwtools.timer.TagTimer.pt.html#pwtools.timer.TagTimer.pt">[docs]</a>    <span class="k">def</span> <span class="nf">pt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Print time difference since last ``t(tag)`` call for `tag`, which is</span>
+<span class="sd">        ``self.time_ar_dict[tag][1] - self.time_ar_dict[tag][0]``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tag : anything hashable</span>
+<span class="sd">            a tag (most likely a string) associated with a storage array</span>
+<span class="sd">        msg : string</span>
+<span class="sd">            Extra string to be printed along with the time difference.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_ar_dict</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;array for tag &#39;</span><span class="si">%s</span><span class="s2">&#39; not jet initialized; &quot;</span> <span class="o">%</span><span class="n">tag</span>\
+                <span class="o">+</span> <span class="s2">&quot;you have to call t() first.&quot;</span><span class="p">)</span>
+        <span class="c1"># hmm ... array is [None, None] .. shouldn&#39;t be</span>
+        <span class="c1"># list test: [a, a] == [a, a] -&gt; True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">none_ar</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_ar_dict</span><span class="p">[</span><span class="n">tag</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;time array for tag &#39;</span><span class="si">%s</span><span class="s2">&#39; or none_ar is wrong:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;time array: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;none_ar: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="o">%</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_ar_dict</span><span class="p">[</span><span class="n">tag</span><span class="p">]),</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">none_ar</span><span class="p">)))</span>
+        <span class="c1"># array is [&lt;val&gt;, None] (use case 1) or [&lt;val&gt;, &lt;val&gt;] (use case 2)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_ar_dict</span><span class="p">[</span><span class="n">tag</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># [&lt;val&gt;, None], assign second time</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_ar_dict</span><span class="p">[</span><span class="n">tag</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2"> time: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span>\
+                <span class="bp">self</span><span class="o">.</span><span class="n">time_ar_dict</span><span class="p">[</span><span class="n">tag</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_ar_dict</span><span class="p">[</span><span class="n">tag</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;illegal array content for tag &#39;</span><span class="si">%s</span><span class="s2">&#39; &quot;</span> <span class="o">%</span><span class="n">tag</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TagTimer.p"><a class="viewcode-back" href="../../generated/api/pwtools.timer.TagTimer.p.html#pwtools.timer.TagTimer.p">[docs]</a>    <span class="k">def</span> <span class="nf">p</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Simply print `msg`. &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">silence</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;--TagTimer--: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span></div></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

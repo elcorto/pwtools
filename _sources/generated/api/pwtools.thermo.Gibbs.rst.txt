@@ -1,0 +1,34 @@
+﻿pwtools.thermo.Gibbs
+====================
+
+.. currentmodule:: pwtools.thermo
+
+.. autoclass:: Gibbs
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~Gibbs.calc_F
+      ~Gibbs.calc_G
+      ~Gibbs.calc_H
+      ~Gibbs.set_fitfunc
+   
+  
+  
+
+
+  
+  
+  

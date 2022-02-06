@@ -1,0 +1,6 @@
+pwtools.parse.StructureFileParser.get\_return\_attr
+===================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: StructureFileParser.get_return_attr

@@ -1,0 +1,6 @@
+﻿pwtools.common.permit\_sigpipe
+==============================
+
+.. currentmodule:: pwtools.common
+
+.. autofunction:: permit_sigpipe

@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.apply\_units
+====================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.apply_units

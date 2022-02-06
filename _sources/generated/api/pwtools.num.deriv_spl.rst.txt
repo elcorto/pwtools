@@ -1,0 +1,6 @@
+﻿pwtools.num.deriv\_spl
+======================
+
+.. currentmodule:: pwtools.num
+
+.. autofunction:: deriv_spl

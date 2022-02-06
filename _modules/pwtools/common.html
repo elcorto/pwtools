@@ -1,0 +1,848 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pwtools.common &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../generated/api/index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pwtools.common</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">signal</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="c1">##warnings.simplefilter(&#39;always&#39;)</span>
+
+<span class="kn">from</span> <span class="nn">pwtools.verbose</span> <span class="k">import</span> <span class="n">verbose</span>
+<span class="kn">from</span> <span class="nn">pwtools.num</span> <span class="k">import</span> <span class="n">EPS</span>
+
+<div class="viewcode-block" id="assert_cond"><a class="viewcode-back" href="../../generated/api/pwtools.common.assert_cond.html#pwtools.common.assert_cond">[docs]</a><span class="k">def</span> <span class="nf">assert_cond</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="n">string</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Use this instead of `assert cond, string`. It&#39;s been said on</span>
+<span class="sd">    numpy-discussions that the assert statement shouldn&#39;t be used to test user</span>
+<span class="sd">    input in functions b/c with `python ... -O0` or __debug__ not beeing</span>
+<span class="sd">    defined, the statement is not tested.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cond : bool</span>
+<span class="sd">        True : None is returned</span>
+<span class="sd">        False : exception is raised</span>
+<span class="sd">    string : str</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    assert_cond(1==1, &#39;lala&#39;) -&gt; ok</span>
+<span class="sd">    assert_cond(1==2, &#39;lala&#39;) -&gt; exception is raised</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">cond</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="n">string</span><span class="p">)</span></div>
+
+
+<span class="c1">#-----------------------------------------------------------------------------</span>
+<span class="c1"># Config file stuff</span>
+<span class="c1">#-----------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="add_to_config"><a class="viewcode-back" href="../../generated/api/pwtools.common.add_to_config.html#pwtools.common.add_to_config">[docs]</a><span class="k">def</span> <span class="nf">add_to_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Add sections and key-val paris in `info` to `config`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    config : configparser.ConfigParser object</span>
+<span class="sd">    info : dict of dicts, see io.writearr()</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    modified config</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">sec</span><span class="p">,</span> <span class="n">dct</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">add_section</span><span class="p">(</span><span class="n">sec</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">dct</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">sec</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">config</span></div>
+
+
+<span class="c1">#-----------------------------------------------------------------------------</span>
+<span class="c1"># Type converters / light numerical stuff</span>
+<span class="c1">#-----------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="toslice"><a class="viewcode-back" href="../../generated/api/pwtools.common.toslice.html#pwtools.common.toslice">[docs]</a><span class="k">def</span> <span class="nf">toslice</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A simple wrapper around numpy.s_() taking strings as argument.</span>
+<span class="sd">    Convert strings representing Python/numpy slice to slice</span>
+<span class="sd">    objects.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    val : string</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &#39;3&#39;     -&gt; 3</span>
+<span class="sd">    &#39;3:&#39;    -&gt; slice(3, None, None)</span>
+<span class="sd">    &#39;-2:&#39;   -&gt; slice(-2, None, None)</span>
+<span class="sd">    &#39;3:7&#39;   -&gt; slice(3, 7, None)</span>
+<span class="sd">    &#39;3:7:2&#39; -&gt; slice(3, 7, 2)</span>
+<span class="sd">    &#39;3::2&#39;  -&gt; slice(3, None, 2)</span>
+<span class="sd">    &#39;::2&#39;   -&gt; slice(None, None, 2)</span>
+<span class="sd">    &#39;::-1&#39;  -&gt; slice(None, None, -1)</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; np.s_[1:5]</span>
+<span class="sd">    slice(1, 5, None)</span>
+<span class="sd">    &gt;&gt;&gt; toslice(&#39;1:5&#39;)</span>
+<span class="sd">    slice(1, 5, None)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">assert_cond</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">),</span> <span class="s2">&quot;input must be string&quot;</span><span class="p">)</span>
+    <span class="c1"># XXX This is fixed in numpy 1.5.1:</span>
+    <span class="c1">#   https://github.com/numpy/numpy/commit/9089036b</span>
+    <span class="c1"># np.s_ doesn&#39;t work for slices starting at end, like</span>
+    <span class="c1"># &gt;&gt;&gt; a = array([1,2,3,4,5,6])</span>
+    <span class="c1"># &gt;&gt;&gt; a[-2:]</span>
+    <span class="c1"># array([5, 6])</span>
+    <span class="c1"># &gt;&gt;&gt; a[np.s_[-2:]]</span>
+    <span class="c1"># array([], dtype=int64)</span>
+    <span class="c1"># &gt;&gt;&gt; np.s_[-2:]</span>
+    <span class="c1"># slice(9223372036854775805, None, None)</span>
+    <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">s_</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span> <span class="o">!=</span> <span class="nb">slice</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Some minus slices (e.g -2:) not supported &quot;</span>
+                <span class="s2">&quot;by your numpy (probably old version). Use &quot;</span>
+                <span class="s2">&quot;[&lt;start&gt;[:&lt;step&gt;]:&lt;end&gt;] as workaround.&quot;</span><span class="p">)</span>
+    <span class="c1"># This eval() trick works but seems hackish. Better ideas, anyone?</span>
+    <span class="k">return</span> <span class="nb">eval</span><span class="p">(</span><span class="s1">&#39;np.s_[</span><span class="si">%s</span><span class="s1">]&#39;</span> <span class="o">%</span><span class="n">val</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="tobool"><a class="viewcode-back" href="../../generated/api/pwtools.common.tobool.html#pwtools.common.tobool">[docs]</a><span class="k">def</span> <span class="nf">tobool</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert `val` to boolean value True or False.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    val : bool, string, integer</span>
+<span class="sd">        &#39;.true.&#39;, &#39;1&#39;, &#39;true&#39;,  &#39;on&#39;,  &#39;yes&#39;, integers != 0 -&gt; True</span>
+<span class="sd">        &#39;.false.&#39;,&#39;0&#39;, &#39;false&#39;, &#39;off&#39;, &#39;no&#39;,  integers == 0 -&gt; False</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    True or False</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    All string vals are case-insensitive.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">got_str</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">got_int</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="n">got_str</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">got_int</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;input value must be string or integer&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">got_str</span> <span class="ow">and</span> <span class="p">(</span><span class="n">val</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;.true.&#39;</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span><span class="p">,</span> <span class="s1">&#39;on&#39;</span><span class="p">,</span> <span class="s1">&#39;yes&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">]))</span> \
+        <span class="ow">or</span> <span class="p">(</span><span class="n">got_int</span> <span class="ow">and</span> <span class="p">(</span><span class="n">val</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)):</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="n">got_str</span> <span class="ow">and</span> <span class="p">(</span><span class="n">val</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;.false.&#39;</span><span class="p">,</span> <span class="s1">&#39;false&#39;</span><span class="p">,</span> <span class="s1">&#39;off&#39;</span><span class="p">,</span> <span class="s1">&#39;no&#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">]))</span> \
+        <span class="ow">or</span> <span class="p">(</span><span class="n">got_int</span> <span class="ow">and</span> <span class="p">(</span><span class="n">val</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)):</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;illegal input value &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span><span class="n">frepr</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">ret</span></div>
+
+
+<div class="viewcode-block" id="ffloat"><a class="viewcode-back" href="../../generated/api/pwtools.common.ffloat.html#pwtools.common.ffloat">[docs]</a><span class="k">def</span> <span class="nf">ffloat</span><span class="p">(</span><span class="n">st</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert strings representing numbers to Python floats using</span>
+<span class="sd">    float(). The returned value is a double (or whatever the float() of your</span>
+<span class="sd">    Python installation  returns).</span>
+
+<span class="sd">    Especially, strings representing Fortran floats are handled. Fortran Reals</span>
+<span class="sd">    (= single) are converted to doubles. Kind parameters (like &#39;_10&#39; in</span>
+<span class="sd">    &#39;3.0d5_10&#39;) are NOT supported, they are ignored.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    st : string</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">assert_cond</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">),</span> <span class="s2">&quot;`st` must be string&quot;</span><span class="p">)</span>
+    <span class="n">st</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;d&#39;</span> <span class="ow">in</span> <span class="n">st</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">st</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># &gt;&gt;&gt; s=&#39;  40.0d+02_10  &#39;</span>
+        <span class="c1"># &gt;&gt;&gt; m.groups()</span>
+        <span class="c1"># (&#39;40.0&#39;, &#39;+&#39;, &#39;02&#39;, &#39;_10  &#39;)</span>
+        <span class="c1"># &gt;&gt;&gt; s=&#39;  40.0d02  &#39;</span>
+        <span class="c1"># &gt;&gt;&gt; m.groups()</span>
+        <span class="c1"># (&#39;40.0&#39;, &#39;&#39;, &#39;02&#39;, &#39;  &#39;)</span>
+        <span class="c1">#</span>
+        <span class="n">rex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\s*([+-]*[0-9\.]+)d([+-]*)([0-9]+)([_]*.*)&#39;</span><span class="p">)</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">rex</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">st</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;no match on string &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span><span class="n">st</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;[ffloat] WARNING: skipping kind &#39;</span><span class="si">%s</span><span class="s2">&#39; in string &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span>
+                <span class="o">%</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span> <span class="n">st</span><span class="p">))</span>
+        <span class="n">ss</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">e</span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">m</span><span class="o">.</span><span class="n">groups</span><span class="p">()[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="frepr"><a class="viewcode-back" href="../../generated/api/pwtools.common.frepr.html#pwtools.common.frepr">[docs]</a><span class="k">def</span> <span class="nf">frepr</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">ffmt</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%.16e</span><span class="s2">&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Similar to Python&#39;s repr(), but return floats formated with `ffmt` if</span>
+<span class="sd">    `var` is a float.</span>
+
+<span class="sd">    If `var` is a string, e.g. &#39;lala&#39;, it returns &#39;lala&#39; not &quot;&#39;lala&#39;&quot; as</span>
+<span class="sd">    Python&#39;s repr() does.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    var : almost anything (str, None, int, float)</span>
+<span class="sd">    ffmt : format specifier for float values</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; frepr(1)</span>
+<span class="sd">    &#39;1&#39;</span>
+<span class="sd">    &gt;&gt;&gt; frepr(1.0)</span>
+<span class="sd">    &#39;1.000000000000000e+00&#39;</span>
+<span class="sd">    &gt;&gt;&gt; frepr(None)</span>
+<span class="sd">    &#39;None&#39;</span>
+<span class="sd">    &gt;&gt;&gt; # Python&#39;s repr() does: &#39;abc&#39; -&gt; &quot;&#39;abc&#39;&quot;</span>
+<span class="sd">    &gt;&gt;&gt; frepr(&#39;abc&#39;)</span>
+<span class="sd">    &#39;abc&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ffmt</span> <span class="o">%</span><span class="n">var</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">var</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="n">var</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="seq2str"><a class="viewcode-back" href="../../generated/api/pwtools.common.seq2str.html#pwtools.common.seq2str">[docs]</a><span class="k">def</span> <span class="nf">seq2str</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;(1,2,3) -&gt; &quot;1 2 3&quot; &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">seq</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="str2seq"><a class="viewcode-back" href="../../generated/api/pwtools.common.str2seq.html#pwtools.common.str2seq">[docs]</a><span class="k">def</span> <span class="nf">str2seq</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; &quot;1 2 3&quot; -&gt; [func(&#39;1&#39;), func(&#39;2&#39;), func(&#39;3&#39;)]&quot;&quot;&quot;</span>
+    <span class="c1"># XXX check usage of this, check if we need list() at all</span>
+    <span class="k">if</span> <span class="n">sep</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">st</span><span class="o">.</span><span class="n">split</span><span class="p">()))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">st</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">sep</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="str2tup"><a class="viewcode-back" href="../../generated/api/pwtools.common.str2tup.html#pwtools.common.str2tup">[docs]</a><span class="k">def</span> <span class="nf">str2tup</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">str2seq</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="fix_eps"><a class="viewcode-back" href="../../generated/api/pwtools.common.fix_eps.html#pwtools.common.fix_eps">[docs]</a><span class="k">def</span> <span class="nf">fix_eps</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">EPS</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Set values of arr to zero where abs(arr) &lt;= eps.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    arr : numpy nd array</span>
+<span class="sd">    eps : float eps</span>
+<span class="sd">    copy : bool</span>
+<span class="sd">        return copy of arr</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    numpy nd array</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">eps</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;eps must be &gt; 0&quot;</span>
+    <span class="n">_arr</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">if</span> <span class="n">copy</span> <span class="k">else</span> <span class="n">arr</span>
+    <span class="n">_arr</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">_arr</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">eps</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">return</span> <span class="n">_arr</span></div>
+
+
+<div class="viewcode-block" id="str_arr"><a class="viewcode-back" href="../../generated/api/pwtools.common.str_arr.html#pwtools.common.str_arr">[docs]</a><span class="k">def</span> <span class="nf">str_arr</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%.16e</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">delim</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="o">*</span><span class="mi">4</span><span class="p">,</span> <span class="n">zero_eps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">EPS</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert array `arr` to nice string representation for printing.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    arr : array_like</span>
+<span class="sd">        1d or 2d array</span>
+<span class="sd">    fmt : str</span>
+<span class="sd">        format specifier, all entries of arr are formatted with that</span>
+<span class="sd">    delim : str</span>
+<span class="sd">        delimiter</span>
+<span class="sd">    eps : float</span>
+<span class="sd">        Print values as 0.0 where abs(value) &lt; eps. If eps &lt; 0.0, then disable</span>
+<span class="sd">        this.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Essentially, we replicate the core part of np.savetxt.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; a=rand(3)</span>
+<span class="sd">    &gt;&gt;&gt; str_arr(a, fmt=&#39;%.2f&#39;)</span>
+<span class="sd">    &#39;0.26 0.35 0.97&#39;</span>
+<span class="sd">    &gt;&gt;&gt; a=rand(2,3)</span>
+<span class="sd">    &gt;&gt;&gt; str_arr(a, fmt=&#39;%.2f&#39;)</span>
+<span class="sd">    &#39;0.13 0.75 0.39\\n0.54 0.22 0.66&#39;</span>
+<span class="sd">    &gt;&gt;&gt; print(str_arr(a, fmt=&#39;%.2f&#39;))</span>
+<span class="sd">    0.13 0.75 0.39</span>
+<span class="sd">    0.54 0.22 0.66</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">zero_eps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;`zero_eps` is deprecated, use `eps` &gt; 0 instead&quot;</span><span class="p">,</span>
+                      <span class="ne">DeprecationWarning</span><span class="p">)</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+    <span class="n">_arr</span> <span class="o">=</span> <span class="n">fix_eps</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span> <span class="k">if</span> <span class="n">eps</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="n">arr</span>
+    <span class="k">if</span> <span class="n">_arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">delim</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">fmt</span><span class="p">]</span><span class="o">*</span><span class="n">_arr</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">_arr</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">_arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="c1"># slightly faster:</span>
+        <span class="c1">#   nrows = _arr.shape[0]</span>
+        <span class="c1">#   ncols = _arr.shape[1]</span>
+        <span class="c1">#   return (delim.join([fmt]*ncols) + &#39;\n&#39;)*nrows % tuple(_arr.flatten())</span>
+        <span class="n">_fmt</span> <span class="o">=</span> <span class="n">delim</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">fmt</span><span class="p">]</span><span class="o">*</span><span class="n">_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">lst</span> <span class="o">=</span> <span class="p">[</span><span class="n">_fmt</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">_arr</span><span class="p">]</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;rank &gt; 2 arrays not supported&#39;</span><span class="p">)</span></div>
+
+
+<span class="c1">#-----------------------------------------------------------------------------</span>
+<span class="c1"># Some handy file operations.</span>
+<span class="c1">#-----------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="makedirs"><a class="viewcode-back" href="../../generated/api/pwtools.common.makedirs.html#pwtools.common.makedirs">[docs]</a><span class="k">def</span> <span class="nf">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Same as os.makedirs() but silently skips empty paths.</span>
+
+<span class="sd">    The common use case is when we always create a path for a file w/o knowing</span>
+<span class="sd">    beforehand whether we actually have a path.</span>
+
+<span class="sd">    &gt;&gt;&gt; fn = &#39;foo.pk&#39;</span>
+<span class="sd">    &gt;&gt;&gt; makedirs(os.path.dirname(fn))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_filename"><a class="viewcode-back" href="../../generated/api/pwtools.common.get_filename.html#pwtools.common.get_filename">[docs]</a><span class="k">def</span> <span class="nf">get_filename</span><span class="p">(</span><span class="n">fh</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Try to get the `name` attribute from file-like objects. If it fails</span>
+<span class="sd">    (fh=cStringIO.StringIO(), fh=StringIO.StringIO(), fh=gzip.open(), ...),</span>
+<span class="sd">    then return a dummy name.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">name</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;object_</span><span class="si">%s</span><span class="s1">_pwtools_dummy_filename&#39;</span> <span class="o">%</span><span class="nb">str</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">name</span></div>
+
+
+<div class="viewcode-block" id="file_read"><a class="viewcode-back" href="../../generated/api/pwtools.common.file_read.html#pwtools.common.file_read">[docs]</a><span class="k">def</span> <span class="nf">file_read</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Open file with name `fn`, return open(fn).read().&quot;&quot;&quot;</span>
+    <span class="n">fd</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">txt</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">fd</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">txt</span></div>
+
+
+<div class="viewcode-block" id="file_write"><a class="viewcode-back" href="../../generated/api/pwtools.common.file_write.html#pwtools.common.file_write">[docs]</a><span class="k">def</span> <span class="nf">file_write</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">txt</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Write string `txt` to file with name `fn`. No check is made wether the</span>
+<span class="sd">    file exists and/or is nonempty. Yah shalleth know whath thy is doingth.</span>
+<span class="sd">    shell$ echo $string &gt; $file &quot;&quot;&quot;</span>
+    <span class="n">fd</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+    <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">txt</span><span class="p">)</span>
+    <span class="n">fd</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="file_readlines"><a class="viewcode-back" href="../../generated/api/pwtools.common.file_readlines.html#pwtools.common.file_readlines">[docs]</a><span class="k">def</span> <span class="nf">file_readlines</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Open file with name `fn`, return open(fn).readlines().&quot;&quot;&quot;</span>
+    <span class="n">fd</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">lst</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+    <span class="n">fd</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">lst</span></div>
+
+
+<div class="viewcode-block" id="fullpath"><a class="viewcode-back" href="../../generated/api/pwtools.common.fullpath.html#pwtools.common.fullpath">[docs]</a><span class="k">def</span> <span class="nf">fullpath</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Complete path: absolute path + $HOME expansion.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">s</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="fullpathjoin"><a class="viewcode-back" href="../../generated/api/pwtools.common.fullpathjoin.html#pwtools.common.fullpathjoin">[docs]</a><span class="k">def</span> <span class="nf">fullpathjoin</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">fullpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">))</span></div>
+
+
+<span class="c1"># XXX remove dict mode</span>
+<div class="viewcode-block" id="template_replace"><a class="viewcode-back" href="../../generated/api/pwtools.common.template_replace.html#pwtools.common.template_replace">[docs]</a><span class="k">def</span> <span class="nf">template_replace</span><span class="p">(</span><span class="n">txt</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">conv</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">warn_mult_found</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                     <span class="n">warn_not_found</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">disp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;dct&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Replace placeholders dct.keys() with string values dct.values() in a</span>
+<span class="sd">    text string. This function adds some bells and whistles such as warnings</span>
+<span class="sd">    in case of not-found placeholders and whatnot.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    txt : string with placeholders</span>
+<span class="sd">    dct : dictionary with placeholders (keys) and values to replace them</span>
+<span class="sd">    conv : bool, convert values dct.values() to strings with frepr()</span>
+<span class="sd">    warn_mult_found : bool, warning if a key is found multiple times in `txt`</span>
+<span class="sd">    warn_not_found : bool, warning if a key is NOT found in `txt`</span>
+<span class="sd">    disp : tell which keys have been replaced</span>
+<span class="sd">    mode: str, {&#39;dct&#39;, &#39;txt&#39;}, placeholder mode</span>
+<span class="sd">        &#39;dct&#39; : Dictionary mode. Placeholders are of special Python dictionary</span>
+<span class="sd">            string replacement form: &#39;%(&lt;name&gt;)&lt;format_str&gt;&#39;, e.g. &#39;%(foo)s&#39;</span>
+<span class="sd">            and dct.keys() must be normal strings, e.g. &#39;foo&#39;.</span>
+<span class="sd">            dct.values() can be anything. The conversion to a string is done at</span>
+<span class="sd">            replacement time and determined by the &lt;format_str&gt;. This</span>
+<span class="sd">            effectively does `txt % dct`. This method is faster, uses Python</span>
+<span class="sd">            standard syntax and is therefore default.</span>
+<span class="sd">        &#39;txt&#39; : Text mode. Placeholders in `txt` and keys in `dct` are the</span>
+<span class="sd">            exact same arbitrary string (e.g. &#39;XXXFOO&#39; in both). Here,</span>
+<span class="sd">            dct.values() must be strings. If not, use conv=True to</span>
+<span class="sd">            automatically convert them to strings, but note that this is</span>
+<span class="sd">            limited since only frepr(&lt;val&gt;) is used.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    new string</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; txt = &#39;XXXONE  XXXPI&#39;</span>
+<span class="sd">    &gt;&gt;&gt; dct = {&#39;XXXONE&#39;: 1, &#39;XXXPI&#39;: math.pi}</span>
+<span class="sd">    &gt;&gt;&gt; template_replace(txt, dct, conv=True, mode=&#39;txt&#39;)</span>
+<span class="sd">    &#39;1  3.1415926535897931e+00&#39;</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; dct = {&#39;XXXONE&#39;: &#39;1&#39;, &#39;XXXPI&#39;: &#39;%.16e&#39; %math.pi}</span>
+<span class="sd">    &gt;&gt;&gt; template_replace(txt, dct, mode=&#39;txt&#39;)</span>
+<span class="sd">    &#39;1  3.1415926535897931e+00&#39;</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; txt = &#39;%(one)s  %(pi).16e&#39;; dct = {&#39;one&#39;: 1, &#39;pi&#39;: math.pi}</span>
+<span class="sd">    &gt;&gt;&gt; template_replace(txt, dct)</span>
+<span class="sd">    &#39;1  3.1415926535897931e+00&#39;</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; txt % dct</span>
+<span class="sd">    &#39;1  3.1415926535897931e+00&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">txt</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;1st arg is a dict. You probably use the old syntax. &quot;</span>
+                         <span class="s2">&quot;The new syntax in func(txt, dct) instead of &quot;</span>
+                         <span class="s2">&quot;func(dct, txt)&quot;</span><span class="p">)</span>
+    <span class="n">is_txt_mode</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">is_dct_mode</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;dct&#39;</span><span class="p">:</span>
+        <span class="n">is_dct_mode</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">conv</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;template_replace: Warning: `conv=True` is ignored if &quot;</span>
+                  <span class="s2">&quot;mode==&#39;dct&#39;, instead use proper format strings in your &quot;</span>
+                  <span class="s2">&quot;placeholders&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;txt&#39;</span><span class="p">:</span>
+        <span class="n">is_txt_mode</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;mode must be &#39;txt&#39; or &#39;dct&#39;&quot;</span><span class="p">)</span>
+
+    <span class="c1"># This is a copy. Each txt.replace() returns an additional copy. We need</span>
+    <span class="c1"># that if we loop over dct.iteritems() and sucessively replace averything.</span>
+    <span class="k">if</span> <span class="n">is_txt_mode</span><span class="p">:</span>
+        <span class="n">new_txt</span> <span class="o">=</span> <span class="n">txt</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">dct</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">is_dct_mode</span><span class="p">:</span>
+            <span class="c1"># The key is &#39;%(foo)s&#39;, but searching for &#39;%(foo)&#39; must suffice,</span>
+            <span class="c1"># since we don&#39;t know the format string, in this case &#39;s&#39;, in</span>
+            <span class="c1"># `txt`.</span>
+            <span class="n">tst_key</span> <span class="o">=</span> <span class="s1">&#39;%&#39;</span><span class="o">+</span> <span class="s1">&#39;(</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span><span class="n">key</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tst_key</span> <span class="o">=</span> <span class="n">key</span>
+        <span class="k">if</span> <span class="n">tst_key</span> <span class="ow">in</span> <span class="n">txt</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_txt_mode</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">conv</span><span class="p">:</span>
+                    <span class="n">val</span> <span class="o">=</span> <span class="n">frepr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">ffmt</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%.16e</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;dict vals must be strings: &quot;</span>
+                                        <span class="s2">&quot;key: &#39;</span><span class="si">%s</span><span class="s2">&#39;, val: &quot;</span> <span class="o">%</span><span class="n">key</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)))</span>
+            <span class="k">if</span> <span class="n">warn_mult_found</span><span class="p">:</span>
+                <span class="n">cnt</span> <span class="o">=</span> <span class="n">txt</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">tst_key</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">cnt</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;template_replace: warning: key &#39;</span><span class="si">%s</span><span class="s2">&#39; found </span><span class="si">%i</span><span class="s2"> times&quot;</span>
+                    <span class="o">%</span><span class="p">(</span><span class="n">tst_key</span><span class="p">,</span> <span class="n">cnt</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">is_txt_mode</span><span class="p">:</span>
+                <span class="n">new_txt</span> <span class="o">=</span> <span class="n">new_txt</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">disp</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;template_replace: </span><span class="si">%s</span><span class="s2"> -&gt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">warn_not_found</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;template_replace: key not found: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">tst_key</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">is_dct_mode</span><span class="p">:</span>
+        <span class="n">new_txt</span> <span class="o">=</span> <span class="n">txt</span> <span class="o">%</span> <span class="n">dct</span>
+    <span class="k">return</span> <span class="n">new_txt</span></div>
+
+
+<div class="viewcode-block" id="file_template_replace"><a class="viewcode-back" href="../../generated/api/pwtools.common.file_template_replace.html#pwtools.common.file_template_replace">[docs]</a><span class="k">def</span> <span class="nf">file_template_replace</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">bak</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Replace placeholders in file `fn`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fn : str</span>
+<span class="sd">        Filename</span>
+<span class="sd">    dct : dict</span>
+<span class="sd">        Replacement rules</span>
+<span class="sd">    bak : str</span>
+<span class="sd">        &#39;&#39; : no backup is done</span>
+<span class="sd">        &#39;&lt;str&gt;&#39; : `fn` is backed up to &quot;fn&lt;str&gt;&quot;</span>
+<span class="sd">    kwargs : kwargs to template_replace()</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    dct = {&#39;xxx&#39;: &#39;foo&#39;, &#39;yyy&#39;: &#39;bar&#39;}</span>
+<span class="sd">    fn = &#39;bla.txt&#39;</span>
+<span class="sd">    file_template_replace(fn, dct, &#39;.bak&#39;, mode=&#39;txt&#39;)</span>
+
+<span class="sd">    This the same as:</span>
+<span class="sd">    shell$ sed -i.bak -r -e &#39;s/xxx/foo/g -e &#39;s/yyy/bar/g&#39; bla.txt&quot;&quot;&quot;</span>
+    <span class="n">txt</span> <span class="o">=</span> <span class="n">template_replace</span><span class="p">(</span><span class="n">file_read</span><span class="p">(</span><span class="n">fn</span><span class="p">),</span> <span class="n">dct</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">bak</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">fn</span> <span class="o">+</span> <span class="n">bak</span><span class="p">)</span>
+    <span class="n">file_write</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">txt</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="backup"><a class="viewcode-back" href="../../generated/api/pwtools.common.backup.html#pwtools.common.backup">[docs]</a><span class="k">def</span> <span class="nf">backup</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Backup (copy) `src` to &lt;src&gt;&lt;prefix&gt;&lt;num&gt;, where &lt;num&gt; is an integer</span>
+<span class="sd">    starting at 0 which is incremented until there is no destination with that</span>
+<span class="sd">    name.</span>
+
+<span class="sd">    Symlinks are handled by shutil.copy() for files and shutil.copytree() for</span>
+<span class="sd">    dirs. In both cases, the content of the file/dir pointed to by the link is</span>
+<span class="sd">    copied.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    src : str</span>
+<span class="sd">        name of file/dir to be copied</span>
+<span class="sd">    prefix : str, optional</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">src</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">src</span><span class="p">):</span>
+            <span class="n">copy</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span>
+        <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">src</span><span class="p">):</span>
+            <span class="n">copy</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">copytree</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;source &#39;</span><span class="si">%s</span><span class="s2">&#39; is not file or dir&quot;</span> <span class="o">%</span><span class="n">src</span><span class="p">)</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">dst</span> <span class="o">=</span> <span class="n">src</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span><span class="n">idx</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dst</span><span class="p">):</span>
+            <span class="n">idx</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">dst</span> <span class="o">=</span> <span class="n">src</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span><span class="n">idx</span><span class="p">)</span>
+        <span class="c1"># sanity check</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dst</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;destination &#39;</span><span class="si">%s</span><span class="s2">&#39; exists&quot;</span> <span class="o">%</span><span class="n">dst</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">copy</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span></div>
+
+<span class="c1">#-----------------------------------------------------------------------------</span>
+<span class="c1"># Dictionary tricks</span>
+<span class="c1">#-----------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="dict2str"><a class="viewcode-back" href="../../generated/api/pwtools.common.dict2str.html#pwtools.common.dict2str">[docs]</a><span class="k">def</span> <span class="nf">dict2str</span><span class="p">(</span><span class="n">dct</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Nicer than simply __repr__.&quot;&quot;&quot;</span>
+    <span class="n">st</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">dct</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">st</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">st</span></div>
+
+<span class="c1"># backward compat only</span>
+<div class="viewcode-block" id="print_dct"><a class="viewcode-back" href="../../generated/api/pwtools.common.print_dct.html#pwtools.common.print_dct">[docs]</a><span class="k">def</span> <span class="nf">print_dct</span><span class="p">(</span><span class="n">dct</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">dict2str</span><span class="p">(</span><span class="n">dct</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="dict2class"><a class="viewcode-back" href="../../generated/api/pwtools.common.dict2class.html#pwtools.common.dict2class">[docs]</a><span class="k">def</span> <span class="nf">dict2class</span><span class="p">(</span><span class="n">dct</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Dummy&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert a dict to a class.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; dct={&#39;a&#39;:1, &#39;b&#39;:2}</span>
+<span class="sd">    &gt;&gt;&gt; dct2class(dct, &#39;Foo&#39;)</span>
+<span class="sd">    &lt;Foo instance at 0x3615ab8&gt;</span>
+<span class="sd">    &gt;&gt;&gt; dct2class(dct, &#39;Bar&#39;)</span>
+<span class="sd">    &lt;Bar instance at 0x3615b48&gt;</span>
+<span class="sd">    &gt;&gt;&gt; dct2class(dct, &#39;Bar&#39;).__dict__</span>
+<span class="sd">    {&#39;a&#39;:1, &#39;b&#39;:2}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">class</span> <span class="nc">Dummy</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="n">cl</span> <span class="o">=</span> <span class="n">Dummy</span><span class="p">()</span>
+    <span class="n">cl</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">dct</span><span class="p">)</span>
+    <span class="n">cl</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">name</span>
+    <span class="k">return</span> <span class="n">cl</span></div>
+
+
+<span class="c1">#-----------------------------------------------------------------------------</span>
+<span class="c1"># Sequence tricks</span>
+<span class="c1">#-----------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="is_seq"><a class="viewcode-back" href="../../generated/api/pwtools.common.is_seq.html#pwtools.common.is_seq">[docs]</a><span class="k">def</span> <span class="nf">is_seq</span><span class="p">(</span><span class="n">seq</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Test if `seq` is some kind of sequence, based on calling iter(seq), i.e.</span>
+<span class="sd">    if the object is iterable.</span>
+
+<span class="sd">    Exclude cases which are iterable but that we still don&#39;t like (string, file</span>
+<span class="sd">    object). In fact, we wish to catch list, tuple, numpy array.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    seq : (nested) sequence of arbitrary objects</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> \
+       <span class="nb">isinstance</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">IOBase</span><span class="p">):</span>
+       <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">x</span><span class="o">=</span><span class="nb">iter</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="iflatten"><a class="viewcode-back" href="../../generated/api/pwtools.common.iflatten.html#pwtools.common.iflatten">[docs]</a><span class="k">def</span> <span class="nf">iflatten</span><span class="p">(</span><span class="n">seq</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Flatten a sequence. After matplotlib.cbook.flatten(). Returns an</span>
+<span class="sd">    generator object.&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">seq</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_seq</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">item</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">subitem</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">subitem</span></div>
+
+
+<div class="viewcode-block" id="flatten"><a class="viewcode-back" href="../../generated/api/pwtools.common.flatten.html#pwtools.common.flatten">[docs]</a><span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="n">seq</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Same as iflatten(), but returns a list.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">iflatten</span><span class="p">(</span><span class="n">seq</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="pop_from_list"><a class="viewcode-back" href="../../generated/api/pwtools.common.pop_from_list.html#pwtools.common.pop_from_list">[docs]</a><span class="k">def</span> <span class="nf">pop_from_list</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">items</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Pop all `items` from `lst` and return a shorter copy of</span>
+<span class="sd">    `lst`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    lst: list</span>
+<span class="sd">    items : sequence</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    lst2 : list</span>
+<span class="sd">        Copy of `lst` with `items` removed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">lst2</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+        <span class="n">lst2</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">lst2</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">lst2</span></div>
+
+
+<div class="viewcode-block" id="asseq"><a class="viewcode-back" href="../../generated/api/pwtools.common.asseq.html#pwtools.common.asseq">[docs]</a><span class="k">def</span> <span class="nf">asseq</span><span class="p">(</span><span class="n">arg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Assert `arg` to be a sequence. If it already is one (see ``is_seq``)</span>
+<span class="sd">    then return it, else return a length 1 list.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">is_seq</span><span class="p">(</span><span class="n">arg</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">arg</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">arg</span><span class="p">]</span></div>
+
+<span class="c1">#-----------------------------------------------------------------------------</span>
+<span class="c1"># Child processes &amp; shell calls</span>
+<span class="c1">#-----------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="system"><a class="viewcode-back" href="../../generated/api/pwtools.common.system.html#pwtools.common.system">[docs]</a><span class="k">def</span> <span class="nf">system</span><span class="p">(</span><span class="n">call</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Fire up shell commamd line `call`.</span>
+
+<span class="sd">    Shorthand for ``subprocess.run(call, shell=True, check=True)``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    call: str (example: &#39;ls -l&#39;)</span>
+<span class="sd">    wait : bool</span>
+<span class="sd">        Kept for backward compat. Not used. Only True supported.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">wait</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;wait=False not supported anymore&quot;</span><span class="p">)</span>
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">call</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="permit_sigpipe"><a class="viewcode-back" href="../../generated/api/pwtools.common.permit_sigpipe.html#pwtools.common.permit_sigpipe">[docs]</a><span class="k">def</span> <span class="nf">permit_sigpipe</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Helper for subprocess.Popen(). Handle SIGPIPE. To be used as preexec_fn.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Things like::</span>
+
+<span class="sd">        &gt;&gt;&gt; cmd = r&quot;grep pattern /path/to/very_big_file | head -n1&quot;</span>
+<span class="sd">        &gt;&gt;&gt; pp = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,</span>
+<span class="sd">        ...                       stderr=subprocess.PIPE)</span>
+<span class="sd">        &gt;&gt;&gt; out,err = pp.communicate()</span>
+
+<span class="sd">    sometimes end with a broken pipe error: &quot;grep: writing output: Broken</span>
+<span class="sd">    pipe&quot;. They run fine at the bash prompt, while failing with Popen. The</span>
+<span class="sd">    reason is that they actually &quot;kind of&quot; fail in the shell too, namely,</span>
+<span class="sd">    SIGPIPE [1,2]. This can be seen by runing the call in strace &quot;$ strace grep</span>
+<span class="sd">    ...&quot;. Popen chokes on that. The solution is to ignore SIGPIPE.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] http://mail.python.org/pipermail/tutor/2007-October/058042.html</span>
+<span class="sd">    .. [2] http://article.gmane.org/gmane.comp.python.devel/88798/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGPIPE</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIG_DFL</span><span class="p">)</span></div>
+
+
+<span class="c1"># XXX The error handling is not safe since we raise the exception only when</span>
+<span class="c1"># stderr is not empty w/o checking the retcode. This fails if we do</span>
+<span class="c1"># backtick(&#39;dhwjqdhwjwqdk 2&gt;/dev/null&#39;). This may have been a design decision</span>
+<span class="c1"># in order to deal with flaky shell commands. But we should never use that in</span>
+<span class="c1"># tests.</span>
+<div class="viewcode-block" id="backtick"><a class="viewcode-back" href="../../generated/api/pwtools.common.backtick.html#pwtools.common.backtick">[docs]</a><span class="k">def</span> <span class="nf">backtick</span><span class="p">(</span><span class="n">call</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convenient shell backtick replacement. Raise exception if stderr is not</span>
+<span class="sd">    empty.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; print(backtick(&#39;ls -l&#39;))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pp</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">call</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+            <span class="n">preexec_fn</span><span class="o">=</span><span class="n">permit_sigpipe</span><span class="p">)</span>
+    <span class="n">out</span><span class="p">,</span><span class="n">err</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">err</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">!=</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Error calling command: &#39;</span><span class="si">%s</span><span class="s2">&#39;</span><span class="se">\n</span><span class="s2">Error message &quot;</span>
+            <span class="s2">&quot;follows:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">call</span><span class="p">,</span> <span class="n">err</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span></div>
+
+<span class="c1">#-----------------------------------------------------------------------------</span>
+<span class="c1"># pickle</span>
+<span class="c1">#-----------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="cpickle_load"><a class="viewcode-back" href="../../generated/api/pwtools.common.cpickle_load.html#pwtools.common.cpickle_load">[docs]</a><span class="k">def</span> <span class="nf">cpickle_load</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Load object written by ``cPickle.dump()``. Deprecated, use</span>
+<span class="sd">    :func:`~pwtools.io.read_pickle` instead.&quot;&quot;&quot;</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;cpickle_load() is deprcated, use io.read_pickle() instead&quot;</span><span class="p">,</span>
+                   <span class="ne">DeprecationWarning</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">))</span></div>
+
+<span class="c1">#-----------------------------------------------------------------------------</span>
+<span class="c1"># aliases</span>
+<span class="c1">#-----------------------------------------------------------------------------</span>
+
+<span class="n">fpj</span> <span class="o">=</span> <span class="n">fullpathjoin</span>
+<span class="n">pj</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span>
+<span class="n">tup2str</span> <span class="o">=</span> <span class="n">seq2str</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

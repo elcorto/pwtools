@@ -1,0 +1,6 @@
+pwtools.parse.CpmdMDOutputFile.get\_cont
+========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CpmdMDOutputFile.get_cont

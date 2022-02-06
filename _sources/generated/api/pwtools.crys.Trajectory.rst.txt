@@ -1,0 +1,92 @@
+﻿pwtools.crys.Trajectory
+=======================
+
+.. currentmodule:: pwtools.crys
+
+.. autoclass:: Trajectory
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~Trajectory.__getitem__
+      ~Trajectory.apply_units
+      ~Trajectory.assert_attr
+      ~Trajectory.assert_attr_lst
+      ~Trajectory.assert_set_attr
+      ~Trajectory.assert_set_attr_lst
+      ~Trajectory.check_set_attr
+      ~Trajectory.check_set_attr_lst
+      ~Trajectory.compress
+      ~Trajectory.copy
+      ~Trajectory.dump
+      ~Trajectory.get_ase_atoms
+      ~Trajectory.get_cell
+      ~Trajectory.get_coords
+      ~Trajectory.get_coords_frac
+      ~Trajectory.get_cryst_const
+      ~Trajectory.get_ekin
+      ~Trajectory.get_etot
+      ~Trajectory.get_fake_ase_atoms
+      ~Trajectory.get_forces
+      ~Trajectory.get_mass
+      ~Trajectory.get_mass_unique
+      ~Trajectory.get_natoms
+      ~Trajectory.get_nspecies
+      ~Trajectory.get_nstep
+      ~Trajectory.get_ntypat
+      ~Trajectory.get_order
+      ~Trajectory.get_pressure
+      ~Trajectory.get_return_attr
+      ~Trajectory.get_spglib
+      ~Trajectory.get_stress
+      ~Trajectory.get_symbols
+      ~Trajectory.get_symbols_unique
+      ~Trajectory.get_temperature
+      ~Trajectory.get_time
+      ~Trajectory.get_timestep
+      ~Trajectory.get_traj
+      ~Trajectory.get_typat
+      ~Trajectory.get_velocity
+      ~Trajectory.get_volume
+      ~Trajectory.get_znucl
+      ~Trajectory.get_znucl_unique
+      ~Trajectory.init_attr_lst
+      ~Trajectory.is_set_attr
+      ~Trajectory.is_set_attr_lst
+      ~Trajectory.load
+      ~Trajectory.raw_return
+      ~Trajectory.raw_slice_get
+      ~Trajectory.set_all
+      ~Trajectory.set_attr_lst
+      ~Trajectory.try_set_attr
+      ~Trajectory.try_set_attr_lst
+      ~Trajectory.update_units
+   
+  
+  
+
+
+  
+  
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree:
+   
+      ~Trajectory.is_struct
+      ~Trajectory.is_traj
+      ~Trajectory.timeaxis
+  
+  

@@ -1,0 +1,52 @@
+
+.. rst file which lists all members of the current module. They will be
+.. handled by the Sphinx autosummary extension.
+
+parse
+=====
+
+.. Documentation string which may be at the top of the module.
+.. automodule:: pwtools.parse
+   :no-members:
+   :no-inherited-members:
+
+.. currentmodule:: pwtools.parse
+
+.. Links to members.
+.. autosummary::
+   :toctree:
+
+   AWK
+   Ang
+   Angstrom
+   Bohr
+   CifFile
+   Cp2kDcdMDOutputFile
+   Cp2kMDOutputFile
+   Cp2kRelaxOutputFile
+   Cp2kSCFOutputFile
+   CpmdMDOutputFile
+   CpmdSCFOutputFile
+   DcdOutputFile
+   Ha
+   LammpsDcdMDOutputFile
+   LammpsTextMDOutputFile
+   PDBFile
+   PwMDOutputFile
+   PwSCFOutputFile
+   PwVCMDOutputFile
+   Ry
+   StructureFileParser
+   TrajectoryFileParser
+   arr1d_from_txt
+   arr2d_from_txt
+   axis_lens
+   eV
+   float_from_txt
+   fs
+   int_from_txt
+   nstep_from_txt
+   pi
+   ps
+   thart
+   traj_from_txt

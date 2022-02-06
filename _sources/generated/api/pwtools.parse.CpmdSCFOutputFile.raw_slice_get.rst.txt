@@ -1,0 +1,6 @@
+pwtools.parse.CpmdSCFOutputFile.raw\_slice\_get
+===============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CpmdSCFOutputFile.raw_slice_get

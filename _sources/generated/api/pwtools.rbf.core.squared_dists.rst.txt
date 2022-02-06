@@ -1,0 +1,6 @@
+﻿pwtools.rbf.core.squared\_dists
+===============================
+
+.. currentmodule:: pwtools.rbf.core
+
+.. autofunction:: squared_dists

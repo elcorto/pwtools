@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.dump
+============================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.dump

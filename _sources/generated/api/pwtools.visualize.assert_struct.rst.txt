@@ -1,0 +1,6 @@
+﻿pwtools.visualize.assert\_struct
+================================
+
+.. currentmodule:: pwtools.visualize
+
+.. autofunction:: assert_struct

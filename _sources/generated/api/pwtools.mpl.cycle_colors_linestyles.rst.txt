@@ -1,0 +1,6 @@
+﻿pwtools.mpl.cycle\_colors\_linestyles
+=====================================
+
+.. currentmodule:: pwtools.mpl
+
+.. autodata:: cycle_colors_linestyles

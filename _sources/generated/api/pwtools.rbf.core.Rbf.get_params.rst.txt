@@ -1,0 +1,6 @@
+pwtools.rbf.core.Rbf.get\_params
+================================
+
+.. currentmodule:: pwtools.rbf.core
+
+.. automethod:: Rbf.get_params

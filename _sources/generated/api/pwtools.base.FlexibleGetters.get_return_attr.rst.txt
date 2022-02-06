@@ -1,0 +1,6 @@
+pwtools.base.FlexibleGetters.get\_return\_attr
+==============================================
+
+.. currentmodule:: pwtools.base
+
+.. automethod:: FlexibleGetters.get_return_attr

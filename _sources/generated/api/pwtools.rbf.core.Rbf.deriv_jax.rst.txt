@@ -1,0 +1,6 @@
+pwtools.rbf.core.Rbf.deriv\_jax
+===============================
+
+.. currentmodule:: pwtools.rbf.core
+
+.. automethod:: Rbf.deriv_jax

@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.set\_all
+================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.set_all

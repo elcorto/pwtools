@@ -1,0 +1,6 @@
+﻿pwtools.num.norm\_int
+=====================
+
+.. currentmodule:: pwtools.num
+
+.. autofunction:: norm_int

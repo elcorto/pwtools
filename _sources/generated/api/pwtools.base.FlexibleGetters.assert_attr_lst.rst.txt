@@ -1,0 +1,6 @@
+pwtools.base.FlexibleGetters.assert\_attr\_lst
+==============================================
+
+.. currentmodule:: pwtools.base
+
+.. automethod:: FlexibleGetters.assert_attr_lst

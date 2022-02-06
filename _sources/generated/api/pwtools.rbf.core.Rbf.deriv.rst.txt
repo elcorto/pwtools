@@ -1,0 +1,6 @@
+pwtools.rbf.core.Rbf.deriv
+==========================
+
+.. currentmodule:: pwtools.rbf.core
+
+.. automethod:: Rbf.deriv

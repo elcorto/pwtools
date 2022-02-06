@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kDcdMDOutputFile.dump
+======================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kDcdMDOutputFile.dump

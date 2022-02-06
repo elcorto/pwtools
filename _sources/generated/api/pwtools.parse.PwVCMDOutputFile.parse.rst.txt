@@ -1,0 +1,6 @@
+pwtools.parse.PwVCMDOutputFile.parse
+====================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwVCMDOutputFile.parse

@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kRelaxOutputFile.default\_units
+================================================
+
+.. currentmodule:: pwtools.parse
+
+.. autoattribute:: Cp2kRelaxOutputFile.default_units

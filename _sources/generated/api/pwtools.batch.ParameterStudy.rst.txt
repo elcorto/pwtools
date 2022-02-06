@@ -1,0 +1,31 @@
+﻿pwtools.batch.ParameterStudy
+============================
+
+.. currentmodule:: pwtools.batch
+
+.. autoclass:: ParameterStudy
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~ParameterStudy.write_input
+   
+  
+  
+
+
+  
+  
+  

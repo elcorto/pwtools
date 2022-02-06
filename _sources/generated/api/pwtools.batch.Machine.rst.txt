@@ -1,0 +1,32 @@
+﻿pwtools.batch.Machine
+=====================
+
+.. currentmodule:: pwtools.batch
+
+.. autoclass:: Machine
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~Machine.get_jobfile_basename
+      ~Machine.get_sql_record
+   
+  
+  
+
+
+  
+  
+  

@@ -1,0 +1,6 @@
+pwtools.parse.CpmdMDOutputFile.get\_nstep\_scf
+==============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CpmdMDOutputFile.get_nstep_scf

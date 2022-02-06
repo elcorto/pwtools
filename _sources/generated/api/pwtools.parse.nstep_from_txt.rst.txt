@@ -1,0 +1,6 @@
+﻿pwtools.parse.nstep\_from\_txt
+==============================
+
+.. currentmodule:: pwtools.parse
+
+.. autofunction:: nstep_from_txt

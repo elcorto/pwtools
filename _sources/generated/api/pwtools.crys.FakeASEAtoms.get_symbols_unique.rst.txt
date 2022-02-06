@@ -1,0 +1,6 @@
+pwtools.crys.FakeASEAtoms.get\_symbols\_unique
+==============================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: FakeASEAtoms.get_symbols_unique

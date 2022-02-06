@@ -1,0 +1,30 @@
+﻿pwtools.sql.SQLEntry
+====================
+
+.. currentmodule:: pwtools.sql
+
+.. autoclass:: SQLEntry
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+   
+  
+  
+
+
+  
+  
+  

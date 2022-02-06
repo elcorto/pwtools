@@ -1,0 +1,6 @@
+pwtools.parse.LammpsDcdMDOutputFile.get\_forces
+===============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsDcdMDOutputFile.get_forces

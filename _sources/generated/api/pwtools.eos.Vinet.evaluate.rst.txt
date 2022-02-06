@@ -1,0 +1,6 @@
+pwtools.eos.Vinet.evaluate
+==========================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: Vinet.evaluate

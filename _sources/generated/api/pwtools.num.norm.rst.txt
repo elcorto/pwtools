@@ -1,0 +1,6 @@
+﻿pwtools.num.norm
+================
+
+.. currentmodule:: pwtools.num
+
+.. autofunction:: norm

@@ -1,0 +1,6 @@
+pwtools.crys.FakeASEAtoms.compress
+==================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: FakeASEAtoms.compress

@@ -1,0 +1,6 @@
+pwtools.parse.PwVCMDOutputFile.init\_attr\_lst
+==============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwVCMDOutputFile.init_attr_lst

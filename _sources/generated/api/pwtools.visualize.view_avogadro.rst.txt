@@ -1,0 +1,6 @@
+﻿pwtools.visualize.view\_avogadro
+================================
+
+.. currentmodule:: pwtools.visualize
+
+.. autodata:: view_avogadro

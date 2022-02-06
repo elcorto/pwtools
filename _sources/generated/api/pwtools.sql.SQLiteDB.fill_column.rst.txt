@@ -1,0 +1,6 @@
+pwtools.sql.SQLiteDB.fill\_column
+=================================
+
+.. currentmodule:: pwtools.sql
+
+.. automethod:: SQLiteDB.fill_column

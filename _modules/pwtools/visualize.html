@@ -1,0 +1,286 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pwtools.visualize &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../generated/api/index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pwtools.visualize</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Interfaces for molecular viewers</span>
+<span class="sd">================================</span>
+
+<span class="sd">The viewers defined here are meant to be used for quick interactive structure</span>
+<span class="sd">and trajectory display. All viewer functions are actually callable instances of</span>
+<span class="sd">:class:`ViewFactory`, and thus have the same call signature:</span>
+
+<span class="sd">.. automethod:: ViewFactory.__call__</span>
+
+<span class="sd">VMD</span>
+<span class="sd">---</span>
+
+<span class="sd">Use :func:`view_vmd_xyz` or :func:`view_vmd_axsf`. To execute a tcl script</span>
+<span class="sd">after the struct has loaded (in the shell: ``vmd -e script.tcl foo.xyz``), use::</span>
+
+<span class="sd">&gt;&gt;&gt; tr = crys.Trajectory(...)</span>
+<span class="sd">&gt;&gt;&gt; view_vmd_axsf(tr, options=&#39;-e script.tcl&#39;)</span>
+
+<span class="sd">Note that the viewer (in this case VMD) is simply called like ``vmd</span>
+<span class="sd">structfile``, which can take very long for big MD data b/c the VMD default</span>
+<span class="sd">is to use smth like ``mol new ... waitfor 1``, which is slow. In that case you</span>
+<span class="sd">want to call VMD directly::</span>
+
+<span class="sd">    $ vmd</span>
+<span class="sd">    vmd &gt; mol new /tmp/foo.axsf type xsf waitfor all</span>
+<span class="sd">    vmd &gt; set molid 0</span>
+<span class="sd">    vmd &gt; source ~/work/vmd/ca_salt.tcl</span>
+
+<span class="sd">The trick here is ``... waitfor all``. See the VMD manual for the ``mol``</span>
+<span class="sd">command. Or you place these lines in a script and use::</span>
+
+<span class="sd">    $ vmd script_to_execute.tcl</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="k">import</span> <span class="n">mkstemp</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">pwtools</span> <span class="k">import</span> <span class="n">io</span><span class="p">,</span> <span class="n">common</span>
+
+
+<div class="viewcode-block" id="ViewFactory"><a class="viewcode-back" href="../../generated/api/pwtools.visualize.ViewFactory.html#pwtools.visualize.ViewFactory">[docs]</a><span class="k">class</span> <span class="nc">ViewFactory</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Factory for creating interface functions to external molecular</span>
+<span class="sd">    viewers.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ViewFactory.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.visualize.ViewFactory.html#pwtools.visualize.ViewFactory.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">assert_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.axsf&#39;</span><span class="p">,</span>
+                 <span class="n">writer</span><span class="o">=</span><span class="n">io</span><span class="o">.</span><span class="n">write_axsf</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        cmd : str</span>
+<span class="sd">            Shell command to call the viewer. Used as ``&lt;cmd&gt;</span>
+<span class="sd">            &lt;structfile&gt;``. Example: &#39;jmol&#39;, &#39;xcrysden --axsf&#39;.</span>
+<span class="sd">        assert_cmd : callable</span>
+<span class="sd">            Function which accepts a single arg. Called as ``assert_cmd(obj)``</span>
+<span class="sd">            where `obj` = Structure or Trajectory instance usually). Will be</span>
+<span class="sd">            called early. Use to make additional tests on `obj`.</span>
+<span class="sd">        suffix : str</span>
+<span class="sd">            File end for written structure file.</span>
+<span class="sd">        writer : callable</span>
+<span class="sd">            Called as ``writer(obj, structfile)``. Write struct file to read by</span>
+<span class="sd">            viewer.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; viewer = ViewFactory(...)</span>
+<span class="sd">        &gt;&gt;&gt; viewer(struct)</span>
+<span class="sd">        &gt;&gt;&gt; # To start more than one viewer, use bg=True to send the spawned</span>
+<span class="sd">        &gt;&gt;&gt; # process to the background. Will leave temp files on disk.</span>
+<span class="sd">        &gt;&gt;&gt; viewer(struct1, bg=True)</span>
+<span class="sd">        &gt;&gt;&gt; viewer(struct2, bg=True)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assert_cmd</span> <span class="o">=</span> <span class="n">assert_cmd</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">suffix</span> <span class="o">=</span> <span class="n">suffix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writer</span> <span class="o">=</span> <span class="n">writer</span></div>
+
+<div class="viewcode-block" id="ViewFactory.__call__"><a class="viewcode-back" href="../../generated/api/pwtools.visualize.ViewFactory.html#pwtools.visualize.ViewFactory.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">logfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">structfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">disp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">keepfiles</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tmpdir</span><span class="o">=</span><span class="s1">&#39;/tmp&#39;</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">options</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Call viewer.</span>
+
+<span class="sd">        The executed shell command is::</span>
+
+<span class="sd">            &lt;cmd&gt; &lt;options&gt; &lt;structfile&gt; &gt; &lt;logfile&gt;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obj : Structure or Trajectory</span>
+<span class="sd">        logfile : str, optional</span>
+<span class="sd">            Filename of a logfile for the viewer&#39;s text output.</span>
+<span class="sd">        structfile : str, optional</span>
+<span class="sd">            Filename of a file to write the structure to.</span>
+<span class="sd">        disp : bool</span>
+<span class="sd">            Display text output (i.e. `logfile`&#39;s content).</span>
+<span class="sd">        keepfiles : bool</span>
+<span class="sd">            Keep `structfile` and `logfile` on disk.</span>
+<span class="sd">        tmpdir : str, optional</span>
+<span class="sd">            Directory where temp files are written to.</span>
+<span class="sd">        wait : bool, optional</span>
+<span class="sd">            `wait` passed to common.system(), wait (or not) for command to exit</span>
+<span class="sd">        bg : bool</span>
+<span class="sd">            Background mode. If True then this is an alias for `wait=False` +</span>
+<span class="sd">            `keepfiles=True`. The latter is needed b/c with just `wait=False`,</span>
+<span class="sd">            temp files will be deleted right after the shell call and the</span>
+<span class="sd">            viewer program may complain.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">bg</span><span class="p">:</span>
+            <span class="n">wait</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">keepfiles</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">assert_cmd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assert_cmd</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_dummy_symbols</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">structfile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fd1</span><span class="p">,</span><span class="n">structfile</span> <span class="o">=</span> <span class="n">mkstemp</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="n">tmpdir</span><span class="p">,</span>
+                                     <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;pwtools_view_struct_&#39;</span><span class="p">,</span>
+                                     <span class="n">suffix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">suffix</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">logfile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fd2</span><span class="p">,</span><span class="n">logfile</span> <span class="o">=</span> <span class="n">mkstemp</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="n">tmpdir</span><span class="p">,</span>
+                                  <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;pwtools_view_log_&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">structfile</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">disp</span><span class="p">:</span>
+            <span class="n">cmd_str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> 2&gt;&amp;1 | tee </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">structfile</span><span class="p">,</span> <span class="n">logfile</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cmd_str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> &gt; </span><span class="si">%s</span><span class="s2"> 2&gt;&amp;1&quot;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">structfile</span><span class="p">,</span> <span class="n">logfile</span><span class="p">)</span>
+        <span class="n">common</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">cmd_str</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="n">wait</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">keepfiles</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">structfile</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">logfile</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_set_dummy_symbols</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">symbols</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;object has no symbols, setting all to &#39;H&#39;&quot;</span><span class="p">)</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">symbols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;H&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">obj</span><span class="o">.</span><span class="n">natoms</span></div>
+
+
+<div class="viewcode-block" id="assert_struct"><a class="viewcode-back" href="../../generated/api/pwtools.visualize.assert_struct.html#pwtools.visualize.assert_struct">[docs]</a><span class="k">def</span> <span class="nf">assert_struct</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_struct</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;input is not Structure instance&quot;</span><span class="p">)</span></div>
+
+
+<span class="n">view_xcrysden</span> <span class="o">=</span> \
+    <span class="n">ViewFactory</span><span class="p">(</span><span class="n">cmd</span><span class="o">=</span><span class="s1">&#39;xcrysden --axsf&#39;</span><span class="p">,</span>
+                <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.axsf&#39;</span><span class="p">,</span>
+                <span class="n">writer</span><span class="o">=</span><span class="n">io</span><span class="o">.</span><span class="n">write_axsf</span><span class="p">)</span>
+
+<span class="n">view_vmd_axsf</span> <span class="o">=</span> \
+    <span class="n">ViewFactory</span><span class="p">(</span><span class="n">cmd</span><span class="o">=</span><span class="s1">&#39;vmd&#39;</span><span class="p">,</span>
+                <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.axsf&#39;</span><span class="p">,</span>
+                <span class="n">writer</span><span class="o">=</span><span class="n">io</span><span class="o">.</span><span class="n">write_axsf</span><span class="p">)</span>
+
+<span class="n">view_vmd_xyz</span> <span class="o">=</span> \
+    <span class="n">ViewFactory</span><span class="p">(</span><span class="n">cmd</span><span class="o">=</span><span class="s1">&#39;vmd&#39;</span><span class="p">,</span>
+                <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.xyz&#39;</span><span class="p">,</span>
+                <span class="n">writer</span><span class="o">=</span><span class="n">io</span><span class="o">.</span><span class="n">write_xyz</span><span class="p">)</span>
+
+<span class="n">view_jmol</span> <span class="o">=</span> \
+    <span class="n">ViewFactory</span><span class="p">(</span><span class="n">cmd</span><span class="o">=</span><span class="s1">&#39;jmol&#39;</span><span class="p">,</span>
+                <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.cif&#39;</span><span class="p">,</span>
+                <span class="n">writer</span><span class="o">=</span><span class="n">io</span><span class="o">.</span><span class="n">write_cif</span><span class="p">,</span>
+                <span class="n">assert_cmd</span><span class="o">=</span><span class="n">assert_struct</span><span class="p">)</span>
+
+<span class="n">avogadro_cmd</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    __f(){</span>
+<span class="s2">        if which avogadro2 &gt; /dev/null; then</span>
+<span class="s2">            avogadro2 $@</span>
+<span class="s2">        else</span>
+<span class="s2">            avogadro $@</span>
+<span class="s2">        fi</span>
+<span class="s2">        };</span>
+<span class="s2">    __f &quot;&quot;&quot;</span>
+<span class="n">view_avogadro</span> <span class="o">=</span> \
+    <span class="n">ViewFactory</span><span class="p">(</span><span class="n">cmd</span><span class="o">=</span><span class="n">avogadro_cmd</span><span class="p">,</span>
+                <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.cif&#39;</span><span class="p">,</span>
+                <span class="n">writer</span><span class="o">=</span><span class="n">io</span><span class="o">.</span><span class="n">write_cif</span><span class="p">,</span>
+                <span class="n">assert_cmd</span><span class="o">=</span><span class="n">assert_struct</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

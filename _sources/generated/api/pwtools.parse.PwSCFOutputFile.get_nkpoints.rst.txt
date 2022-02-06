@@ -1,0 +1,6 @@
+pwtools.parse.PwSCFOutputFile.get\_nkpoints
+===========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwSCFOutputFile.get_nkpoints

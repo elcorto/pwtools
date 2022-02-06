@@ -1,0 +1,32 @@
+﻿pwtools.calculators.CalculatorBase
+==================================
+
+.. currentmodule:: pwtools.calculators
+
+.. autoclass:: CalculatorBase
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~CalculatorBase.fill_infile_templ
+      ~CalculatorBase.init_params_from_input
+   
+  
+  
+
+
+  
+  
+  

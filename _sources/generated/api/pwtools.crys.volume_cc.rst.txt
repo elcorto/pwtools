@@ -1,0 +1,6 @@
+﻿pwtools.crys.volume\_cc
+=======================
+
+.. currentmodule:: pwtools.crys
+
+.. autofunction:: volume_cc

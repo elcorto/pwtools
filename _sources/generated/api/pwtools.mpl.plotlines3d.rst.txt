@@ -1,0 +1,6 @@
+﻿pwtools.mpl.plotlines3d
+=======================
+
+.. currentmodule:: pwtools.mpl
+
+.. autofunction:: plotlines3d

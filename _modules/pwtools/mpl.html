@@ -1,0 +1,915 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pwtools.mpl &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../generated/api/index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pwtools.mpl</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Example for changing axis color (pure matplotlib, just as reference)</span>
+<span class="sd">---------------------------------------------------------------------</span>
+<span class="sd">From http://stackoverflow.com/questions/4761623/changing-the-color-of-the-axis-ticks-and-labels-for-a-plot-in-matplotlib</span>
+
+<span class="sd">&gt;&gt;&gt; import matplotlib.pyplot as plt</span>
+<span class="sd">&gt;&gt;&gt; fig = plt.figure()</span>
+<span class="sd">&gt;&gt;&gt; ax = fig.add_subplot(111)</span>
+
+<span class="sd">&gt;&gt;&gt; ax.plot(range(10))</span>
+<span class="sd">&gt;&gt;&gt; ax.set_xlabel(&#39;X-axis&#39;)</span>
+<span class="sd">&gt;&gt;&gt; ax.set_ylabel(&#39;Y-axis&#39;)</span>
+
+<span class="sd">&gt;&gt;&gt; ax.spines[&#39;bottom&#39;].set_color(&#39;red&#39;)</span>
+<span class="sd">&gt;&gt;&gt; ax.spines[&#39;top&#39;].set_color(&#39;red&#39;)</span>
+<span class="sd">&gt;&gt;&gt; ax.xaxis.label.set_color(&#39;red&#39;)</span>
+<span class="sd">&gt;&gt;&gt; ax.tick_params(axis=&#39;x&#39;, colors=&#39;red&#39;)</span>
+
+<span class="sd">&gt;&gt;&gt; plt.show()</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">pwtools</span> <span class="k">import</span> <span class="n">common</span><span class="p">,</span> <span class="n">num</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">mpl_toolkits.axes_grid1.parasite_axes</span> <span class="k">import</span> <span class="n">SubplotHost</span><span class="p">,</span> \
+        <span class="n">ParasiteAxes</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;cannot import from mpl_toolkits.axes_grid&quot;</span><span class="p">)</span>
+<span class="c1"># This is with mpl &lt; 1.0</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="k">import</span> <span class="n">Axes3D</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;cannot import from mpl_toolkits.mplot3d&quot;</span><span class="p">)</span>
+
+<span class="c1">#----------------------------------------------------------------------------</span>
+<span class="c1"># mpl helpers, boilerplate stuff</span>
+<span class="c1">#----------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="plotlines3d"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.plotlines3d.html#pwtools.mpl.plotlines3d">[docs]</a><span class="k">def</span> <span class="nf">plotlines3d</span><span class="p">(</span><span class="n">ax3d</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Plot x-z curves stacked along y.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ax3d : Axes3D instance</span>
+<span class="sd">    x : nd array</span>
+<span class="sd">        1d (x-axis) or 2d (x-axes are the columns)</span>
+<span class="sd">    y : 1d array</span>
+<span class="sd">    z : nd array with &quot;y&quot;-values</span>
+<span class="sd">        1d : the same curve will be plotted len(y) times against x (1d) or</span>
+<span class="sd">             x[:,i] (2d)</span>
+<span class="sd">        2d : each column z[:,i] will be plotted against x (1d) or each x[:,i]</span>
+<span class="sd">             (2d)</span>
+<span class="sd">    *args, **kwargs : additional args and keywords args passed to ax3d.plot()</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ax3d</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; x = linspace(0,5,100)</span>
+<span class="sd">    &gt;&gt;&gt; y = arange(1.0,5) # len(y) = 4</span>
+<span class="sd">    &gt;&gt;&gt; z = np.repeat(sin(x)[:,None], 4, axis=1)/y # make 2d</span>
+<span class="sd">    &gt;&gt;&gt; fig,ax = fig_ax3d()</span>
+<span class="sd">    &gt;&gt;&gt; plotlines3d(ax, x, y, z)</span>
+<span class="sd">    &gt;&gt;&gt; show()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">y</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">z</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">zz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">z</span><span class="p">[:,</span><span class="kc">None</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">zz</span> <span class="o">=</span> <span class="n">z</span>
+    <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">xx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">x</span><span class="p">[:,</span><span class="kc">None</span><span class="p">],</span> <span class="n">zz</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">xx</span> <span class="o">=</span> <span class="n">x</span>
+    <span class="k">assert</span> <span class="n">xx</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">zz</span><span class="o">.</span><span class="n">shape</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">==</span> <span class="n">xx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">zz</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">xx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="n">ax3d</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xx</span><span class="p">[:,</span><span class="n">j</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">xx</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">*</span><span class="n">y</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">z</span><span class="p">[:,</span><span class="n">j</span><span class="p">],</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ax3d</span></div>
+
+
+<div class="viewcode-block" id="fig_ax"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.fig_ax.html#pwtools.mpl.fig_ax">[docs]</a><span class="k">def</span> <span class="nf">fig_ax</span><span class="p">(</span><span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;``fig,ax = fig_ax()``&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="fig_ax3d"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.fig_ax3d.html#pwtools.mpl.fig_ax3d">[docs]</a><span class="k">def</span> <span class="nf">fig_ax3d</span><span class="p">(</span><span class="n">clean</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;``fig,ax3d = fig_ax()``</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    clean : bool</span>
+<span class="sd">        see :func:`clean_ax3d`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="c1"># mpl &lt; 1.0.0</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">Axes3D</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">clean</span><span class="p">:</span>
+        <span class="n">clean_ax3d</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span></div>
+
+
+<div class="viewcode-block" id="clean_ax3d"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.clean_ax3d.html#pwtools.mpl.clean_ax3d">[docs]</a><span class="k">def</span> <span class="nf">clean_ax3d</span><span class="p">(</span><span class="n">ax</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;On ``Axes3DSubplot`` `ax`, set x,y,z pane color to white and remove</span>
+<span class="sd">    grid.&quot;&quot;&quot;</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">w_xaxis</span><span class="o">.</span><span class="n">set_pane_color</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">w_yaxis</span><span class="o">.</span><span class="n">set_pane_color</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">w_zaxis</span><span class="o">.</span><span class="n">set_pane_color</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Plot"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.Plot.html#pwtools.mpl.Plot">[docs]</a><span class="k">class</span> <span class="nc">Plot</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Container for a plot figure with (by default one) axis `ax`.</span>
+
+<span class="sd">    You can add more axes with twinx() etc and operate on them.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    # same as Plot(*mpl.fig_ax()), i.e. default is 2d plot</span>
+<span class="sd">    &gt;&gt;&gt; pp = mpl.Plot()</span>
+<span class="sd">    &gt;&gt;&gt; pp.ax.plot([1,2,3], label=&#39;ax&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; pp.ax2 = pp.ax.twinx()</span>
+<span class="sd">    &gt;&gt;&gt; pp.ax2.plot([3,2,1], &#39;r&#39;, label=&#39;ax2&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; # legend on `ax` (default legaxname=&#39;ax&#39;) with all lines from `ax` and</span>
+<span class="sd">    &gt;&gt;&gt; # `ax2`</span>
+<span class="sd">    &gt;&gt;&gt; pp.legend([&#39;ax&#39;, &#39;ax2&#39;], loc=&#39;lower left&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; pp.fig.savefig(&#39;lala.png&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; pp.fig.savefig(&#39;lala.pdf&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; # or</span>
+<span class="sd">    &gt;&gt;&gt; pp.savefig(&#39;lala&#39;, ext=[&#39;png&#39;, &#39;pdf&#39;])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Plot.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.Plot.html#pwtools.mpl.Plot.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;2d&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fig, ax : Figure + Axis instance (e.g. from fig_ax())</span>
+<span class="sd">        projection : str, optional</span>
+<span class="sd">            If fig+ax not given, use this to call fig_ax() or fig_ax3d(), else</span>
+<span class="sd">            ignored.</span>
+<span class="sd">        kwds : keywords passed to fig_ax() or fig_ax3d() if `fig=None` and</span>
+<span class="sd">            `ax=None`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">[</span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span><span class="p">]</span> <span class="o">==</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">projection</span> <span class="o">==</span> <span class="s1">&#39;2d&#39;</span><span class="p">:</span>
+                <span class="n">func</span> <span class="o">=</span> <span class="n">fig_ax</span>
+            <span class="k">elif</span> <span class="n">projection</span> <span class="o">==</span> <span class="s1">&#39;3d&#39;</span><span class="p">:</span>
+                <span class="n">func</span> <span class="o">=</span> <span class="n">fig_ax3d</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;unknown projection: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">projection</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ax</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">fig</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;one of fig,ax is None&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fig</span> <span class="o">=</span> <span class="n">fig</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ax</span> <span class="o">=</span> <span class="n">ax</span></div>
+
+<div class="viewcode-block" id="Plot.collect_legends"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.Plot.collect_legends.html#pwtools.mpl.Plot.collect_legends">[docs]</a>    <span class="k">def</span> <span class="nf">collect_legends</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ax&#39;</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;If self has more then one axis object attached, then collect legends</span>
+<span class="sd">        from all axes specified in axnames. Useful for handling legend entries</span>
+<span class="sd">        of lines on differend axes (in case of twinx, for instance).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        axnames : sequence of strings</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple of lines and labels</span>
+<span class="sd">            ([line1, line2, ...], [&#39;foo&#39;, &#39;bar&#39;, ...])</span>
+<span class="sd">        where lines and labels are taken from all axes. Use this as input for</span>
+<span class="sd">        any axis&#39;s legend() method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">collect_legends</span><span class="p">(</span><span class="o">*</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axname</span><span class="p">)</span> <span class="k">for</span> <span class="n">axname</span> <span class="ow">in</span>
+                                      <span class="n">axnames</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Plot.legend"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.Plot.legend.html#pwtools.mpl.Plot.legend">[docs]</a>    <span class="k">def</span> <span class="nf">legend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axnames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">legaxname</span><span class="o">=</span><span class="s1">&#39;ax&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Collect legend entries from all axes in `axnames` and place legend on</span>
+<span class="sd">        the axis named with `legaxname`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        axnames : None or list of axes names, optional</span>
+<span class="sd">            e.g. [&#39;ax&#39;] or [&#39;ax&#39;, &#39;ax2&#39;]. If None (default) then ax.legend() is</span>
+<span class="sd">            called directly (if legaxname=&#39;ax&#39;).</span>
+<span class="sd">        legaxname : string, optional</span>
+<span class="sd">            The name of the axis where the legend is placed on. If you use</span>
+<span class="sd">            things like twinx(), then you may want to choose top most the axis,</span>
+<span class="sd">            i.e. the one in the foreground. For example:</span>
+<span class="sd">            &gt;&gt;&gt; pp = Plot(...)</span>
+<span class="sd">            &gt;&gt;&gt; pp.ax.plot(...)</span>
+<span class="sd">            &gt;&gt;&gt; pp.ax2 = pp.ax.twinx()</span>
+<span class="sd">            &gt;&gt;&gt; pp.ax2.plot(...)</span>
+<span class="sd">            &gt;&gt;&gt; pp.legend(axnames=[&#39;ax&#39;, &#39;ax2&#39;], legaxname=&#39;ax2&#39;)</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This is not completly transparent. This:</span>
+<span class="sd">            &gt;&gt;&gt; plot = Plot(...)</span>
+<span class="sd">            &gt;&gt;&gt; plot.ax.plot(...)</span>
+<span class="sd">            &gt;&gt;&gt; plot.legend(...)</span>
+<span class="sd">        does only behave as ax.legend() if only kwargs are used. For anything</span>
+<span class="sd">        else, use</span>
+<span class="sd">            &gt;&gt;&gt; plot.ax.legend()</span>
+<span class="sd">        directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">legaxname</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">axnames</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">leg</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">leg</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">collect_legends</span><span class="p">(</span><span class="n">axnames</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">leg</span></div>
+
+<div class="viewcode-block" id="Plot.savefig"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.Plot.savefig.html#pwtools.mpl.Plot.savefig">[docs]</a>    <span class="k">def</span> <span class="nf">savefig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;png&#39;</span><span class="p">],</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">ex</span> <span class="ow">in</span> <span class="n">ext</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">base</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">ex</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="collect_legends"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.collect_legends.html#pwtools.mpl.collect_legends">[docs]</a><span class="k">def</span> <span class="nf">collect_legends</span><span class="p">(</span><span class="o">*</span><span class="n">axs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Collect legend data from multiple axes, return input for legend().</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from pwtools import mpl</span>
+<span class="sd">    &gt;&gt;&gt; from numpy.random import rand</span>
+<span class="sd">    &gt;&gt;&gt; fig, ax = mpl.fig_ax()</span>
+<span class="sd">    &gt;&gt;&gt; ax.plot([1,2,3], label=&#39;ax line&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; ax.bar([1,2,3], rand(3), label=&#39;ax bar&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; ax2 = ax.twinx()</span>
+<span class="sd">    &gt;&gt;&gt; ax2.plot([3,2,1], &#39;r&#39;, label=&#39;ax2&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; ax.legend(*mpl.collect_legends(ax, ax2))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">axhls</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">get_legend_handles_labels</span><span class="p">()</span> <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span>
+                  <span class="n">axs</span><span class="p">)</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="p">[</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">axhls</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">ret</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ret</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="prepare_plots"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.prepare_plots.html#pwtools.mpl.prepare_plots">[docs]</a><span class="k">def</span> <span class="nf">prepare_plots</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;2d&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a dict of Plot instances.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    names : sequence</span>
+<span class="sd">        keys for the dict, e.g. [1,2] or [&#39;plot1&#39;, &#39;plot2&#39;]</span>
+<span class="sd">    projection : str</span>
+<span class="sd">        type of plot; {&#39;2d&#39;,&#39;3d&#39;}</span>
+<span class="sd">    kwds : keywords passed to fig_ax() or fig_ax3d() which are internally used</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; plots = prepare_plots([&#39;etot&#39;, &#39;ekin&#39;])</span>
+<span class="sd">    &gt;&gt;&gt; plots[&#39;etot&#39;].ax.plot(etot)</span>
+<span class="sd">    &gt;&gt;&gt; plots[&#39;ekin&#39;].ax.plot(ekin)</span>
+<span class="sd">    &gt;&gt;&gt; for key,pp in plots.iteritems():</span>
+<span class="sd">    ...     pp.ax.set_title(key)</span>
+<span class="sd">    ...     pp.fig.savefig(key+&#39;.png&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">projection</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;2d&#39;</span><span class="p">,</span> <span class="s1">&#39;3d&#39;</span><span class="p">],</span> <span class="p">(</span><span class="s2">&quot;unknown projection, allowed: &quot;</span>
+        <span class="s2">&quot;&#39;2d&#39;, &#39;3d&#39;&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">projection</span> <span class="o">==</span> <span class="s1">&#39;2d&#39;</span><span class="p">:</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">fig_ax</span>
+    <span class="k">elif</span> <span class="n">projection</span> <span class="o">==</span> <span class="s1">&#39;3d&#39;</span><span class="p">:</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">fig_ax3d</span>
+    <span class="k">return</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="n">nn</span><span class="p">,</span> <span class="n">Plot</span><span class="p">(</span><span class="o">*</span><span class="n">func</span><span class="p">(</span><span class="o">**</span><span class="n">kwds</span><span class="p">)))</span> <span class="k">for</span> <span class="n">nn</span> <span class="ow">in</span> <span class="n">names</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="Data2D"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.Data2D.html#pwtools.mpl.Data2D">[docs]</a><span class="k">class</span> <span class="nc">Data2D</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Container which converts between different x-y-z data formats frequently</span>
+<span class="sd">    used by ``scipy.interpolate.bispl{rep,ev}`` and ``mpl_toolkits.mplot3d``</span>
+<span class="sd">    fuctions.</span>
+
+<span class="sd">    2D because the data is a 2D scalar field, i.e. `z(x,y)`. See</span>
+<span class="sd">    also :class:`~pwtools.num.Interpol2D`.</span>
+
+<span class="sd">    Naming conventions:</span>
+<span class="sd">    * lowercase: 1d array</span>
+<span class="sd">    * uppercase: 2d array</span>
+
+<span class="sd">    num.Interpol2D.points = num.PolyFit.points = mpl.Data2D.XY</span>
+<span class="sd">    num.Interpol2D.values = num.PolyFit.values = mpl.Data2D.zz</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Data2D.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.Data2D.html#pwtools.mpl.Data2D.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">yy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">zz</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">X</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">Y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Z</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">XY</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use either `x`, `y` or `xx`, `yy` or `X`, `Y` or `XY` to define the x-y</span>
+<span class="sd">        data. z-data is optional. For that, use `Z` or `zz`. Conversion to all</span>
+<span class="sd">        forms is done automatically.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x,y : 1d arrays, (nx,) and (ny,)</span>
+<span class="sd">            These are the raw x and y &quot;axes&quot;.</span>
+<span class="sd">        X,Y,Z : 2d arrays (nx, ny)</span>
+<span class="sd">            Like ``np.meshgrid`` but transposed to have shape (nx,ny), see also</span>
+<span class="sd">            :func:`~pwtools.num.meshgridt`</span>
+<span class="sd">        xx,yy,zz : 1d arrays (nx*ny)</span>
+<span class="sd">            &quot;Double-loop&quot; versions of x,y,Z, input for ax3d.scatter() or</span>
+<span class="sd">            bisplrep().</span>
+<span class="sd">        XY : np.array([xx,yy]).T</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from pwtools.mpl import Data2D,</span>
+<span class="sd">        &gt;&gt;&gt; from pwtools import num</span>
+<span class="sd">        &gt;&gt;&gt; from scipy.interpolate import bisplrep, bisplev</span>
+<span class="sd">        &gt;&gt;&gt; x = linspace(-5,5,10)</span>
+<span class="sd">        &gt;&gt;&gt; y = linspace(-5,5,10)</span>
+<span class="sd">        &gt;&gt;&gt; X,Y = num.meshgridt(x,y)</span>
+<span class="sd">        &gt;&gt;&gt; Z = X**2+Y**2</span>
+<span class="sd">        &gt;&gt;&gt; data = Data2D(x=x,y=y,Z=Z)</span>
+<span class="sd">        &gt;&gt;&gt; xi = linspace(-5,5,50)</span>
+<span class="sd">        &gt;&gt;&gt; yi = linspace(-5,5,50)</span>
+<span class="sd">        &gt;&gt;&gt; ZI = bisplev(xi,yi,bisplrep(data.xx, data.yy, data.zz))</span>
+<span class="sd">        &gt;&gt;&gt; spline = Data2D(x=xi, y=yi, Z=ZI)</span>
+<span class="sd">        &gt;&gt;&gt; fig,ax3d = mpl.fig_ax3d()</span>
+<span class="sd">        &gt;&gt;&gt; ax3d.scatter(data.xx, data.yy, data.zz, color=&#39;b&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ax3d.plot_wireframe(data.X, data.Y, data.Z, color=&#39;g&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; ax3d.plot_surface(spline.X, spline.Y, spline.Z, cstride=1,</span>
+<span class="sd">        ...                   rstride=1, color=&#39;r&#39;)</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        ``X,Y = num.meshgridt(x,y)`` are the *transposed* versions of ``X,Y =</span>
+<span class="sd">        numpy.meshgrid()`` which returns shape (ny,nx). The shape (nx,ny),</span>
+<span class="sd">        which we use, is more intuitive and also used in ``ax3d.plot_surface``</span>
+<span class="sd">        etc. The output of ``scipy.interpolate.bisplev`` is also (nx,ny).</span>
+
+<span class="sd">        ::</span>
+
+<span class="sd">            nx = 10</span>
+<span class="sd">            ny = 5</span>
+<span class="sd">            x = linspace(...,nx)</span>
+<span class="sd">            y = linspace(...,ny)</span>
+
+<span class="sd">        To calculate z=f(x,y) on the x,y-grid, use num.meshgridt() or X.T, Y.T</span>
+<span class="sd">        from numpy.meshgrid()::</span>
+
+<span class="sd">            X,Y = num.meshgridt(x,y)</span>
+<span class="sd">            Z = X**2 + Y**2</span>
+
+<span class="sd">        X,Y,Z are good for data generation and plotting (ax3d.plot_wireframe()). But</span>
+<span class="sd">        the input to bisplrep() must be flat X,Y,Z (xx,yy,zz) like so::</span>
+
+<span class="sd">            xx = X.flatten()</span>
+<span class="sd">            yy = Y.flatten()</span>
+<span class="sd">            zz = Z.flatten()</span>
+
+<span class="sd">        The same, as explicit loops::</span>
+
+<span class="sd">            xx = np.empty((nx*ny), dtype=float)</span>
+<span class="sd">            yy = np.empty((nx*ny), dtype=float)</span>
+<span class="sd">            zz = np.empty((nx*ny), dtype=float)</span>
+<span class="sd">            for ii in range(nx):</span>
+<span class="sd">                for jj in range(ny):</span>
+<span class="sd">                    idx = ii*ny+jj</span>
+<span class="sd">                    xx[idx] = x[ii]</span>
+<span class="sd">                    yy[idx] = y[jj]</span>
+<span class="sd">                    zz[idx] = x[ii]**2 + y[jj]**2</span>
+
+<span class="sd">        or::</span>
+
+<span class="sd">            XY = np.array([k for k in itertools.product(x,y)])</span>
+<span class="sd">            xx = XY[:,0]</span>
+<span class="sd">            yy = XY[:,1]</span>
+<span class="sd">            zz = xx**2 + yy**2</span>
+
+<span class="sd">        Construct the spline and evaluate::</span>
+
+<span class="sd">            spl = bisplrep(xx,yy,zz,...)</span>
+<span class="sd">            ZI = bisplev(x,y)</span>
+
+<span class="sd">        `ZI` has the correct shape: (nx, ny), which is the shape of</span>
+<span class="sd">        ``np.outer(x,y)``.</span>
+
+<span class="sd">        The &quot;inverse meshgrid&quot; operation to transform `xx`, `yy` to `x`, `y` is</span>
+<span class="sd">        done by using ``numpy.unique``. We assumes that ``xx`` and ``yy`` are</span>
+<span class="sd">        generated like in the nested loop above. For otherwise ordered `xx`,</span>
+<span class="sd">        `yy` this will fail.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attr_lst</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;xx&#39;</span><span class="p">,</span> <span class="s1">&#39;yy&#39;</span><span class="p">,</span> <span class="s1">&#39;zz&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;XY&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xx</span> <span class="o">=</span> <span class="n">xx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">yy</span> <span class="o">=</span> <span class="n">yy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zz</span> <span class="o">=</span> <span class="n">zz</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">X</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Y</span> <span class="o">=</span> <span class="n">Y</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Z</span> <span class="o">=</span> <span class="n">Z</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">XY</span> <span class="o">=</span> <span class="n">XY</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update</span><span class="p">()</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_unique</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="c1"># numpy.unique(x) with preserved order</span>
+        <span class="c1"># http://stackoverflow.com/questions/15637336/numpy-unique-with-order-preserved</span>
+        <span class="c1">#</span>
+        <span class="c1"># &gt;&gt;&gt; y=array([1,3,-3,-7,-8])</span>
+        <span class="c1"># &gt;&gt;&gt; unique(y)</span>
+        <span class="c1"># array([-8, -7, -3,  1,  3])</span>
+        <span class="c1"># &gt;&gt;&gt; mpl.Data2D._unique(y)</span>
+        <span class="c1"># array([ 1,  3, -3, -7, -8])</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">return_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">1</span><span class="p">])]</span>
+
+    <span class="k">def</span> <span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">Y</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">meshgridt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">yy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">XY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">xx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yy</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">Y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">yy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">XY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">xx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yy</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">xx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">yy</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unique</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xx</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unique</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yy</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">Y</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">meshgridt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">XY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">xx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yy</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">XY</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">XY</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">yy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">XY</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unique</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xx</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unique</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yy</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">Y</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">meshgridt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;cannot determine x and y from input&quot;</span><span class="p">)</span>
+        <span class="c1"># by now, we have all forms of x and y: x,y; xx,yy; X,Y; XY</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ny</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+        <span class="c1"># Z is optional</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">zz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">zz</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">zz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Data2D.update"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.Data2D.update.html#pwtools.mpl.Data2D.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update object with new or more input data. Input args are the same</span>
+<span class="sd">        as in the constructor, i.e. `x`, `y`, `xx`, ...&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">val</span> <span class="ow">in</span> <span class="n">kwds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">assert</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr_lst</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39; not allowed&quot;</span> <span class="o">%</span><span class="n">key</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Data2D.copy"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.Data2D.copy.html#pwtools.mpl.Data2D.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Copy object. numpy arrays are real copies, not views.&quot;&quot;&quot;</span>
+        <span class="n">kwds</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr_lst</span><span class="p">:</span>
+            <span class="n">attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">attr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">kwds</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">kwds</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">Data2D</span><span class="p">(</span><span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div></div>
+
+<span class="c1"># XXX needed??</span>
+<span class="c1"># backwd compat</span>
+<span class="n">Data3D</span> <span class="o">=</span> <span class="n">Data2D</span>
+
+<div class="viewcode-block" id="get_2d_testdata"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.get_2d_testdata.html#pwtools.mpl.get_2d_testdata">[docs]</a><span class="k">def</span> <span class="nf">get_2d_testdata</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;2D sin + cos data.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ret : :class:`Data2D`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+    <span class="n">X</span><span class="p">,</span><span class="n">Y</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">meshgridt</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Data2D</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="o">=</span><span class="n">Z</span><span class="p">)</span></div>
+
+
+<span class="c1">#----------------------------------------------------------------------------</span>
+<span class="c1"># color and marker iterators</span>
+<span class="c1">#----------------------------------------------------------------------------</span>
+
+<span class="c1"># Typical matplotlib line/marker colors and marker styles. See help(plot).</span>
+<span class="c1"># The naming is convention is foo_bar for</span>
+<span class="c1">#</span>
+<span class="c1"># lst_of_plot_styles = []</span>
+<span class="c1"># foo = [&#39;b&#39;, &#39;r&#39;]</span>
+<span class="c1"># bar = [&#39;-&#39;, &#39;--&#39;]</span>
+<span class="c1"># for x in foo:</span>
+<span class="c1">#     for y in bar:</span>
+<span class="c1">#         lst_of_plot_styles.append(x+y)</span>
+<span class="c1">#</span>
+<span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;k&#39;</span><span class="p">]</span>
+<span class="n">markers</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="s1">&#39;^&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="s1">&#39;p&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;D&#39;</span><span class="p">]</span>
+<span class="n">linestyles</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="s1">&#39;-.&#39;</span><span class="p">]</span>
+<span class="n">colors_markers</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">colors</span><span class="p">,</span><span class="n">markers</span><span class="p">)]</span>
+<span class="n">colors_linestyles</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">colors</span><span class="p">,</span><span class="n">linestyles</span><span class="p">)]</span>
+<span class="n">markers_colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">markers</span><span class="p">,</span><span class="n">colors</span><span class="p">)]</span>
+<span class="n">linestyles_colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">linestyles</span><span class="p">,</span><span class="n">colors</span><span class="p">)]</span>
+
+<span class="c1"># Iterators which raise StopIteration</span>
+<span class="n">iter_colors</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span>
+<span class="n">iter_markers</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">markers</span><span class="p">)</span>
+<span class="n">iter_linestyles</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">linestyles</span><span class="p">)</span>
+<span class="n">iter_colors_markers</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">colors_markers</span><span class="p">)</span>
+<span class="n">iter_colors_linestyles</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">colors_linestyles</span><span class="p">)</span>
+<span class="n">iter_markers_colors</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">markers_colors</span><span class="p">)</span>
+<span class="n">iter_linestyles_colors</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">linestyles_colors</span><span class="p">)</span>
+
+<span class="c1"># Iterators which infinitely repeat each sequence.</span>
+<span class="n">cycle_colors</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">cycle</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span>
+<span class="n">cycle_markers</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">cycle</span><span class="p">(</span><span class="n">markers</span><span class="p">)</span>
+<span class="n">cycle_colors_markers</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">cycle</span><span class="p">(</span><span class="n">colors_markers</span><span class="p">)</span>
+<span class="n">cycle_colors_linestyles</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">cycle</span><span class="p">(</span><span class="n">colors_linestyles</span><span class="p">)</span>
+<span class="n">cycle_markers_colors</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">cycle</span><span class="p">(</span><span class="n">markers_colors</span><span class="p">)</span>
+<span class="n">cycle_linestyles_colors</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">cycle</span><span class="p">(</span><span class="n">linestyles_colors</span><span class="p">)</span>
+
+<span class="c1"># shortcuts</span>
+<span class="n">cc</span> <span class="o">=</span> <span class="n">cycle_colors</span>
+<span class="n">cm</span> <span class="o">=</span> <span class="n">cycle_markers</span>
+<span class="n">ccm</span> <span class="o">=</span> <span class="n">cycle_colors_markers</span>
+<span class="n">ccl</span> <span class="o">=</span> <span class="n">cycle_colors_linestyles</span>
+<span class="n">cmc</span> <span class="o">=</span> <span class="n">cycle_markers_colors</span>
+<span class="n">clc</span> <span class="o">=</span> <span class="n">cycle_linestyles_colors</span>
+
+<span class="n">ic</span> <span class="o">=</span> <span class="n">iter_colors</span>
+<span class="n">im</span> <span class="o">=</span> <span class="n">iter_markers</span>
+<span class="n">icm</span> <span class="o">=</span> <span class="n">iter_colors_markers</span>
+<span class="n">icl</span> <span class="o">=</span> <span class="n">iter_colors_linestyles</span>
+<span class="n">imc</span> <span class="o">=</span> <span class="n">iter_markers_colors</span>
+<span class="n">ilc</span> <span class="o">=</span> <span class="n">iter_linestyles_colors</span>
+
+
+<div class="viewcode-block" id="smooth_color"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.smooth_color.html#pwtools.mpl.smooth_color">[docs]</a><span class="k">def</span> <span class="nf">smooth_color</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">niter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper for creating color transitions in loops.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; # change color smoothly blue -&gt; red</span>
+<span class="sd">    &gt;&gt;&gt; from pwtools import mpl</span>
+<span class="sd">    &gt;&gt;&gt; N = 10</span>
+<span class="sd">    &gt;&gt;&gt; for ii in range(N):</span>
+<span class="sd">    ...     z = mpl.smooth_color(ii,N)</span>
+<span class="sd">    ...     plot(rand(20)+ii, color=(z,0,1-z))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">niter</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="smooth_color_func"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.smooth_color_func.html#pwtools.mpl.smooth_color_func">[docs]</a><span class="k">def</span> <span class="nf">smooth_color_func</span><span class="p">(</span><span class="n">niter</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Version of :func:`smooth_color` that accepts a function.</span>
+
+<span class="sd">    Can be used to pre-calculate a color list outside of a loop.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    niter : int</span>
+<span class="sd">        number of iterations</span>
+<span class="sd">    func : callable</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from pwtools import mpl</span>
+<span class="sd">    &gt;&gt;&gt; mpl.smooth_color_func(3, lambda z: (z,0,1-z))</span>
+<span class="sd">    [(0.0, 0, 1.0), (0.5, 0, 0.5), (1.0, 0, 0.0)]</span>
+
+<span class="sd">    &gt;&gt;&gt; for ii,color in enumerate(mpl.smooth_color_func(10, lambda z: (z,0,1-z))):</span>
+<span class="sd">    ...     plot(rand(20)+ii, color=color)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">col</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">fniter</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">niter</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">niter</span><span class="p">):</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">ii</span><span class="p">)</span> <span class="o">/</span> <span class="n">fniter</span>
+        <span class="n">col</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="n">z</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">col</span></div>
+
+<span class="c1">#----------------------------------------------------------------------------</span>
+<span class="c1"># new axis line</span>
+<span class="c1">#----------------------------------------------------------------------------</span>
+
+<span class="c1"># works with mpl 0.99</span>
+<span class="c1">#</span>
+<span class="c1"># XXX This is probably superseded by ax.spine or gridspec (in 1.0) now. Have</span>
+<span class="c1">#     not tested both, but looks good.</span>
+<div class="viewcode-block" id="new_axis"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.new_axis.html#pwtools.mpl.new_axis">[docs]</a><span class="k">def</span> <span class="nf">new_axis</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">hostax</span><span class="p">,</span> <span class="n">off</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span> <span class="n">ticks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wsadd</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+             <span class="n">label</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make a new axis line using mpl_toolkits.axes_grid&#39;s SubplotHost and</span>
+<span class="sd">    ParasiteAxes. The new axis line will be an instance of ParasiteAxes</span>
+<span class="sd">    attached to `hostax`. You can do twinx()/twiny() type axis (off=0) or</span>
+<span class="sd">    completely free-standing axis lines (off &gt; 0).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fig : mpl Figure</span>
+<span class="sd">    hostax : Instance of matplotlib.axes.HostAxesSubplot. This is the subplot</span>
+<span class="sd">        of the figure `fig` w.r.t which all new axis lines are placed. See</span>
+<span class="sd">        make_axes_grid_fig().</span>
+<span class="sd">    off : offset in points, used with parax.get_grid_helper().new_fixed_axis</span>
+<span class="sd">    loc : one of &#39;left&#39;, &#39;right&#39;, &#39;top&#39;, &#39;bottom&#39;, where to place the new axis</span>
+<span class="sd">        line</span>
+<span class="sd">    ticks : sequence of ticks (numbers)</span>
+<span class="sd">    wsadd : Whitespace to add at the location `loc` to make space for the new</span>
+<span class="sd">        axis line (only useful if off &gt; 0). The number is a relative unit</span>
+<span class="sd">        and is used to change the bounding box: hostax.get_position().</span>
+<span class="sd">    label : str, xlabel (ylabel) for &#39;top&#39;,&#39;bottom&#39; (&#39;left&#39;, &#39;right&#39;)</span>
+<span class="sd">    sharex, sharey : bool, share xaxis (yaxis) with `hostax`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    (fig, hostax, parax)</span>
+<span class="sd">    fig : the Figure</span>
+<span class="sd">    hostax : the hostax</span>
+<span class="sd">    parax : the new ParasiteAxes instance</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    * The sharex/sharey thing may not work correctly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Create ParasiteAxes, an ax which overlays hostax.</span>
+    <span class="k">if</span> <span class="n">sharex</span> <span class="ow">and</span> <span class="n">sharey</span><span class="p">:</span>
+        <span class="n">parax</span> <span class="o">=</span> <span class="n">ParasiteAxes</span><span class="p">(</span><span class="n">hostax</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="n">hostax</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="n">hostax</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">sharex</span><span class="p">:</span>
+        <span class="n">parax</span> <span class="o">=</span> <span class="n">ParasiteAxes</span><span class="p">(</span><span class="n">hostax</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="n">hostax</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">sharey</span><span class="p">:</span>
+        <span class="n">parax</span> <span class="o">=</span> <span class="n">ParasiteAxes</span><span class="p">(</span><span class="n">hostax</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="n">hostax</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">parax</span> <span class="o">=</span> <span class="n">ParasiteAxes</span><span class="p">(</span><span class="n">hostax</span><span class="p">)</span>
+    <span class="n">hostax</span><span class="o">.</span><span class="n">parasites</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">parax</span><span class="p">)</span>
+
+    <span class="c1"># If off != 0, the new axis line will be detached from hostax, i.e.</span>
+    <span class="c1"># completely &quot;free standing&quot; below (above, left or right of) the main ax</span>
+    <span class="c1"># (hostax), so we don&#39;t need anything visilbe from it b/c we create a</span>
+    <span class="c1"># new_fixed_axis from this one with an offset anyway. We only need to</span>
+    <span class="c1"># activate the label.</span>
+    <span class="k">for</span> <span class="n">_loc</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="s1">&#39;bottom&#39;</span><span class="p">]:</span>
+        <span class="n">parax</span><span class="o">.</span><span class="n">axis</span><span class="p">[</span><span class="n">_loc</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">parax</span><span class="o">.</span><span class="n">axis</span><span class="p">[</span><span class="n">_loc</span><span class="p">]</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Create axis line. Free-standing if off != 0, else overlaying one of hostax&#39;s</span>
+    <span class="c1"># axis lines. In fact, with off=0, one simulates twinx/y().</span>
+    <span class="n">new_axisline</span> <span class="o">=</span> <span class="n">parax</span><span class="o">.</span><span class="n">get_grid_helper</span><span class="p">()</span><span class="o">.</span><span class="n">new_fixed_axis</span>
+    <span class="k">if</span> <span class="n">loc</span> <span class="o">==</span> <span class="s1">&#39;top&#39;</span><span class="p">:</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">off</span><span class="p">)</span>
+        <span class="n">parax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">loc</span> <span class="o">==</span> <span class="s1">&#39;bottom&#39;</span><span class="p">:</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">off</span><span class="p">)</span>
+        <span class="n">parax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">loc</span> <span class="o">==</span> <span class="s1">&#39;left&#39;</span><span class="p">:</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">off</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">parax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">loc</span> <span class="o">==</span> <span class="s1">&#39;right&#39;</span><span class="p">:</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="p">(</span><span class="n">off</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">parax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+    <span class="n">newax</span> <span class="o">=</span> <span class="n">new_axisline</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="n">offset</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="n">parax</span><span class="p">)</span>
+    <span class="c1"># name axis lines: bottom2, bottom3, ...</span>
+    <span class="n">n</span><span class="o">=</span><span class="mi">2</span>
+    <span class="k">while</span> <span class="n">loc</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="ow">in</span> <span class="n">parax</span><span class="o">.</span><span class="n">axis</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">parax</span><span class="o">.</span><span class="n">axis</span><span class="p">[</span><span class="n">loc</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span> <span class="o">=</span> <span class="n">newax</span>
+
+    <span class="c1"># set ticks</span>
+    <span class="k">if</span> <span class="n">ticks</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">newax</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">set_ticks</span><span class="p">(</span><span class="n">ticks</span><span class="p">)</span>
+
+    <span class="c1"># Read out whitespace at the location (loc = &#39;top&#39;, &#39;bottom&#39;, &#39;left&#39;,</span>
+    <span class="c1"># &#39;right&#39;) and adjust whitespace.</span>
+    <span class="c1">#</span>
+    <span class="c1"># indices of the values in the array returned by ax.get_position()</span>
+    <span class="n">bbox_idx</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">bottom</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">right</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">top</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">old_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">hostax</span><span class="o">.</span><span class="n">get_position</span><span class="p">())[</span><span class="n">bbox_idx</span><span class="p">[</span><span class="n">loc</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">bbox_idx</span><span class="p">[</span><span class="n">loc</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="k">if</span> <span class="n">loc</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">]:</span>
+        <span class="n">new_ws</span> <span class="o">=</span> <span class="n">old_pos</span> <span class="o">-</span> <span class="n">wsadd</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">new_ws</span> <span class="o">=</span> <span class="n">old_pos</span> <span class="o">+</span> <span class="n">wsadd</span>
+    <span class="c1"># hack ...</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;fig.subplots_adjust(</span><span class="si">%s</span><span class="s2">=</span><span class="si">%f</span><span class="s2">)&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">loc</span><span class="p">,</span> <span class="n">new_ws</span><span class="p">)</span>
+    <span class="nb">eval</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">hostax</span><span class="p">,</span> <span class="n">parax</span></div>
+
+
+<div class="viewcode-block" id="make_axes_grid_fig"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.make_axes_grid_fig.html#pwtools.mpl.make_axes_grid_fig">[docs]</a><span class="k">def</span> <span class="nf">make_axes_grid_fig</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create an mpl Figure and add to it an axes_grid.SubplotHost subplot</span>
+<span class="sd">    (`hostax`).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    fig, hostax</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">num</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="n">hostax</span> <span class="o">=</span> <span class="n">SubplotHost</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="mi">111</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">(</span><span class="n">hostax</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">hostax</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="c1">#-------------------------------------------------------------------------</span>
+    <span class="c1"># colors and markers</span>
+    <span class="c1">#-------------------------------------------------------------------------</span>
+
+    <span class="n">fig0</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1"># All combinations of color and marker</span>
+    <span class="k">for</span> <span class="n">col_mark</span> <span class="ow">in</span> <span class="n">colors_markers</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span> <span class="n">col_mark</span><span class="o">+</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+        <span class="c1"># The same</span>
+        <span class="c1">## plot(rand(10), col_mark, linestyle=&#39;-&#39;)</span>
+
+    <span class="n">fig1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># Now use one of those iterators</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span> <span class="mi">14</span><span class="p">):</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">f</span><span class="o">*</span><span class="n">t</span><span class="p">)</span><span class="o">+</span><span class="mi">10</span><span class="o">*</span><span class="n">f</span><span class="p">,</span> <span class="nb">next</span><span class="p">(</span><span class="n">ccm</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+
+    <span class="c1">#-------------------------------------------------------------------------</span>
+    <span class="c1"># new axis lines, works with mpl 0.99</span>
+    <span class="c1">#-------------------------------------------------------------------------</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">pwtools.common</span> <span class="k">import</span> <span class="n">flatten</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">matplotlib.cbook</span> <span class="k">import</span> <span class="n">flatten</span>
+
+    <span class="c1"># Demo w/ all possible axis lines.</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="n">fig3</span><span class="p">,</span> <span class="n">hostax</span> <span class="o">=</span> <span class="n">make_axes_grid_fig</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="n">hostax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;hostax bottom&#39;</span><span class="p">)</span>
+    <span class="n">hostax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;hostax left&#39;</span><span class="p">)</span>
+
+    <span class="c1"># {&#39;left&#39;: (off, wsadd),</span>
+    <span class="c1"># ...}</span>
+    <span class="n">off_dct</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">),</span>
+                   <span class="n">right</span><span class="o">=</span><span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">),</span>
+                   <span class="n">top</span><span class="o">=</span><span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="o">.</span><span class="mi">15</span><span class="p">),</span>
+                   <span class="n">bottom</span><span class="o">=</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="o">.</span><span class="mi">15</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">off_dct</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="n">loc</span><span class="p">,</span> <span class="n">off</span><span class="p">,</span> <span class="n">wsadd</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+        <span class="n">fig3</span><span class="p">,</span> <span class="n">hostax</span><span class="p">,</span> <span class="n">parax</span> <span class="o">=</span> <span class="n">new_axis</span><span class="p">(</span><span class="n">fig3</span><span class="p">,</span> <span class="n">hostax</span><span class="o">=</span><span class="n">hostax</span><span class="p">,</span>
+                                       <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">off</span><span class="o">=</span><span class="n">off</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span>
+                                       <span class="n">wsadd</span><span class="o">=</span><span class="n">wsadd</span><span class="p">)</span>
+        <span class="n">parax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">n</span><span class="p">,</span> <span class="n">y</span><span class="o">**</span><span class="n">n</span><span class="p">)</span>
+
+    <span class="n">new_axis</span><span class="p">(</span><span class="n">fig3</span><span class="p">,</span> <span class="n">hostax</span><span class="o">=</span><span class="n">hostax</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="n">off</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">wsadd</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+             <span class="n">label</span><span class="o">=</span><span class="s2">&quot;hostax right, I&#39;m like twinx()&quot;</span><span class="p">)</span>
+
+    <span class="n">new_axis</span><span class="p">(</span><span class="n">fig3</span><span class="p">,</span> <span class="n">hostax</span><span class="o">=</span><span class="n">hostax</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="n">off</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">wsadd</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+             <span class="n">label</span><span class="o">=</span><span class="s2">&quot;hostax top, I&#39;m like twiny()&quot;</span><span class="p">)</span>
+
+
+    <span class="c1"># many lines</span>
+
+    <span class="n">fig4</span><span class="p">,</span> <span class="n">hostax</span> <span class="o">=</span> <span class="n">make_axes_grid_fig</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">off</span><span class="o">=</span><span class="mi">40</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">):</span>
+        <span class="n">fig4</span><span class="p">,</span> <span class="n">hostax</span><span class="p">,</span> <span class="n">parax</span> <span class="o">=</span> <span class="n">new_axis</span><span class="p">(</span><span class="n">fig4</span><span class="p">,</span>
+                                       <span class="n">hostax</span><span class="o">=</span><span class="n">hostax</span><span class="p">,</span>
+                                       <span class="n">off</span><span class="o">=</span><span class="n">n</span><span class="o">*</span><span class="n">off</span><span class="p">,</span>
+                                       <span class="n">ticks</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="o">*</span><span class="n">n</span><span class="p">,</span><span class="mi">11</span><span class="p">),</span>
+                                       <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">)</span>
+    <span class="n">hostax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;l1&#39;</span><span class="p">)</span>
+    <span class="n">hostax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;many axis lines yeah yeah&#39;</span><span class="p">)</span>
+
+    <span class="n">hostax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+
+    <span class="c1">#-------------------------------------------------------------------------</span>
+    <span class="c1"># plotlines3d</span>
+    <span class="c1">#-------------------------------------------------------------------------</span>
+
+    <span class="n">fig4</span><span class="p">,</span> <span class="n">ax3d</span> <span class="o">=</span> <span class="n">fig_ax3d</span><span class="p">()</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span> <span class="c1"># len(y) = 4</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)[:,</span><span class="kc">None</span><span class="p">],</span> <span class="mi">4</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">y</span> <span class="c1"># make 2d</span>
+    <span class="n">plotlines3d</span><span class="p">(</span><span class="n">ax3d</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+    <span class="n">ax3d</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+    <span class="n">ax3d</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+    <span class="n">ax3d</span><span class="o">.</span><span class="n">set_zlabel</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># deprecation warnings</span>
+<div class="viewcode-block" id="meshgridt"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.meshgridt.html#pwtools.mpl.meshgridt">[docs]</a><span class="k">def</span> <span class="nf">meshgridt</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+<span class="c1">##    warnings.simplefilter(&#39;always&#39;)</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;mpl.meshgridt is deprecated, use num.meshgridt&quot;</span><span class="p">,</span>
+                  <span class="ne">DeprecationWarning</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">meshgridt</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

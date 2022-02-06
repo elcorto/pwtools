@@ -1,0 +1,6 @@
+﻿pwtools.parse.int\_from\_txt
+============================
+
+.. currentmodule:: pwtools.parse
+
+.. autofunction:: int_from_txt

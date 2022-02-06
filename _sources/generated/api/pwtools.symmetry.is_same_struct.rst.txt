@@ -1,0 +1,6 @@
+﻿pwtools.symmetry.is\_same\_struct
+=================================
+
+.. currentmodule:: pwtools.symmetry
+
+.. autofunction:: is_same_struct

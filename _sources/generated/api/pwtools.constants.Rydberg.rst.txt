@@ -1,0 +1,6 @@
+﻿pwtools.constants.Rydberg
+=========================
+
+.. currentmodule:: pwtools.constants
+
+.. autodata:: Rydberg

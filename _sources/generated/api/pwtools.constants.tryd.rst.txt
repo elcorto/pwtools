@@ -1,0 +1,6 @@
+﻿pwtools.constants.tryd
+======================
+
+.. currentmodule:: pwtools.constants
+
+.. autodata:: tryd

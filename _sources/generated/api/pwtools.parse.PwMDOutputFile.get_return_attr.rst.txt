@@ -1,0 +1,6 @@
+pwtools.parse.PwMDOutputFile.get\_return\_attr
+==============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwMDOutputFile.get_return_attr

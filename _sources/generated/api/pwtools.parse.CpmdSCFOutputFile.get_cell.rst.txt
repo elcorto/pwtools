@@ -1,0 +1,6 @@
+pwtools.parse.CpmdSCFOutputFile.get\_cell
+=========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CpmdSCFOutputFile.get_cell

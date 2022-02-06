@@ -1,0 +1,6 @@
+pwtools.parse.PwVCMDOutputFile.get\_coords
+==========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwVCMDOutputFile.get_coords

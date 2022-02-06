@@ -1,0 +1,38 @@
+﻿pwtools.num.PolyFit1D
+=====================
+
+.. currentmodule:: pwtools.num
+
+.. autoclass:: PolyFit1D
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. automethod:: __call__
+
+ 
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~PolyFit1D.get_max
+      ~PolyFit1D.get_min
+      ~PolyFit1D.get_root
+      ~PolyFit1D.is_mono
+   
+  
+  
+
+
+  
+  
+  

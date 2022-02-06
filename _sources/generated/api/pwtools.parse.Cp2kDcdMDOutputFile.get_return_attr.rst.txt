@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kDcdMDOutputFile.get\_return\_attr
+===================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kDcdMDOutputFile.get_return_attr

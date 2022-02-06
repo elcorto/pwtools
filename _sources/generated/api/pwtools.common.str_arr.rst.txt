@@ -1,0 +1,6 @@
+﻿pwtools.common.str\_arr
+=======================
+
+.. currentmodule:: pwtools.common
+
+.. autofunction:: str_arr

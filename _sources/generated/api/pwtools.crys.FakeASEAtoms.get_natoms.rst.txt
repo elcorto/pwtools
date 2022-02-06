@@ -1,0 +1,6 @@
+pwtools.crys.FakeASEAtoms.get\_natoms
+=====================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: FakeASEAtoms.get_natoms

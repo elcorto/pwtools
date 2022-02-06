@@ -1,0 +1,50 @@
+﻿pwtools.crys.UnitsHandler
+=========================
+
+.. currentmodule:: pwtools.crys
+
+.. autoclass:: UnitsHandler
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~UnitsHandler.apply_units
+      ~UnitsHandler.assert_attr
+      ~UnitsHandler.assert_attr_lst
+      ~UnitsHandler.assert_set_attr
+      ~UnitsHandler.assert_set_attr_lst
+      ~UnitsHandler.check_set_attr
+      ~UnitsHandler.check_set_attr_lst
+      ~UnitsHandler.dump
+      ~UnitsHandler.get_return_attr
+      ~UnitsHandler.init_attr_lst
+      ~UnitsHandler.is_set_attr
+      ~UnitsHandler.is_set_attr_lst
+      ~UnitsHandler.load
+      ~UnitsHandler.raw_return
+      ~UnitsHandler.raw_slice_get
+      ~UnitsHandler.set_all
+      ~UnitsHandler.set_attr_lst
+      ~UnitsHandler.try_set_attr
+      ~UnitsHandler.try_set_attr_lst
+      ~UnitsHandler.update_units
+   
+  
+  
+
+
+  
+  
+  

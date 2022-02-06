@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kRelaxOutputFile.timeaxis
+==========================================
+
+.. currentmodule:: pwtools.parse
+
+.. autoattribute:: Cp2kRelaxOutputFile.timeaxis

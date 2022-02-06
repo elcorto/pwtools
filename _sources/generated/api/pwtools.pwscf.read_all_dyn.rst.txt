@@ -1,0 +1,6 @@
+﻿pwtools.pwscf.read\_all\_dyn
+============================
+
+.. currentmodule:: pwtools.pwscf
+
+.. autofunction:: read_all_dyn

@@ -1,0 +1,163 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Welcome to the pwtools documentation &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Reference" href="generated/api/index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="#">
+    <img class="logo" src="_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="generated/api/index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="generated/api/index.html" title="next chapter">API Reference</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="welcome-to-the-pwtools-documentation">
+<h1>Welcome to the pwtools documentation<a class="headerlink" href="#welcome-to-the-pwtools-documentation" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">pwtools</span></code> is a Python package for pre- and postprocessing of atomistic
+calculations, mostly targeted to <a class="reference external" href="http://www.quantum-espresso.org">Quantum Espresso</a>, <a class="reference external" href="http://www.cpmd.org">CPMD</a>, <a class="reference external" href="http://cp2k.org">CP2K</a> and
+<a class="reference external" href="http://lammps.sandia.gov">LAMMPS</a>. It is almost, but not quite, entirely unlike <a class="reference external" href="https://wiki.fysik.dtu.dk/ase">ASE</a>, with some tools
+extending <a class="reference external" href="http://www.numpy.org">numpy</a>/<a class="reference external" href="http://www.scipy.org">scipy</a>. It has a set of powerful parsers and data types for
+storing calculation data. See the <a class="reference internal" href="written/features.html#features"><span class="std std-ref">feature overview</span></a> for more.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="generated/api/index.html">API Reference</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="written/install.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="written/install.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="written/install.html#running-tests">Running tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="written/install.html#python-versions">Python versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="written/install.html#compiling-fortran-extensions-and-openmp-notes">Compiling Fortran extensions and OpenMP notes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="written/tutorial.html">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="written/tutorial.html#using-ase">Using ASE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="written/tutorial.html#parse-scf-relax-or-md-output">Parse SCF, relax or MD output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="written/tutorial.html#binary-io">Binary IO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="written/tutorial.html#view-a-structure-or-trajectory">View a structure or trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="written/tutorial.html#find-monkhorst-pack-k-grid-sampling-for-a-given-unit-cell">Find Monkhorst-Pack k-grid sampling for a given unit cell</a></li>
+<li class="toctree-l2"><a class="reference internal" href="written/tutorial.html#find-spacegroup">Find spacegroup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="written/tutorial.html#smoothing-a-signal-or-a-trajectory">Smoothing a signal or a Trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="written/tutorial.html#interpolation-and-fitting">Interpolation and fitting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="written/tutorial.html#avoid-auto-calculation-for-big-md-data">Avoid auto-calculation for big MD data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="written/tutorial.html#work-with-sqlite-databases">Work with SQLite databases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="written/tutorial.html#more">More</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="written/background/index.html">Background, details, special topics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="written/background/ase.html">Relation to ASE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="written/background/coord_trans.html">Coordinate transformation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="written/background/param_study.html">Parameter studies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="written/background/parsing.html">Parsing code output and using containers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="written/background/phonon_dos.html">Velocity autocorrelation function and phonon DOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="written/background/pwscf.html">Pwscf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="written/background/rbf.html">Radial Basis Function Networks for interpolation or fitting of N-dim data</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

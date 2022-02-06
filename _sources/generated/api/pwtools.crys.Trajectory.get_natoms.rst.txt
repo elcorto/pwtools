@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.get\_natoms
+===================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.get_natoms

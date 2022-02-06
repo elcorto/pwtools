@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.is\_struct
+==================================
+
+.. currentmodule:: pwtools.crys
+
+.. autoattribute:: Trajectory.is_struct

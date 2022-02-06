@@ -1,0 +1,6 @@
+﻿pwtools.rbf.core.estimate\_p
+============================
+
+.. currentmodule:: pwtools.rbf.core
+
+.. autofunction:: estimate_p

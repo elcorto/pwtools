@@ -1,0 +1,6 @@
+﻿pwtools.io.read\_pw\_vcmd
+=========================
+
+.. currentmodule:: pwtools.io
+
+.. autodata:: read_pw_vcmd

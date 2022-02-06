@@ -1,0 +1,6 @@
+pwtools.crys.Structure.init\_attr\_lst
+======================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.init_attr_lst

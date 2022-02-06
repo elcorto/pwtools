@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.get\_nstep
+==================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.get_nstep

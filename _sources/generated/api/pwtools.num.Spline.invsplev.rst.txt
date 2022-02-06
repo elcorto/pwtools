@@ -1,0 +1,6 @@
+pwtools.num.Spline.invsplev
+===========================
+
+.. currentmodule:: pwtools.num
+
+.. automethod:: Spline.invsplev

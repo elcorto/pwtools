@@ -1,0 +1,39 @@
+﻿pwtools.eos.EVFunction
+======================
+
+.. currentmodule:: pwtools.eos
+
+.. autoclass:: EVFunction
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. automethod:: __call__
+
+ 
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~EVFunction.dct2lst
+      ~EVFunction.deriv
+      ~EVFunction.evaluate
+      ~EVFunction.get_min
+      ~EVFunction.lst2dct
+   
+  
+  
+
+
+  
+  
+  

@@ -1,0 +1,6 @@
+pwtools.thermo.HarmonicThermo.evib
+==================================
+
+.. currentmodule:: pwtools.thermo
+
+.. automethod:: HarmonicThermo.evib

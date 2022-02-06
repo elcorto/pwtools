@@ -1,0 +1,6 @@
+pwtools.parse.LammpsDcdMDOutputFile.get\_cryst\_const
+=====================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsDcdMDOutputFile.get_cryst_const

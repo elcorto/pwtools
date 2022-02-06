@@ -1,0 +1,6 @@
+pwtools.batch.Machine.get\_jobfile\_basename
+============================================
+
+.. currentmodule:: pwtools.batch
+
+.. automethod:: Machine.get_jobfile_basename

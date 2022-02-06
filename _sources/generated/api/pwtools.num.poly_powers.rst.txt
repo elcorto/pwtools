@@ -1,0 +1,6 @@
+﻿pwtools.num.poly\_powers
+========================
+
+.. currentmodule:: pwtools.num
+
+.. autofunction:: poly_powers

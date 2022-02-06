@@ -1,0 +1,6 @@
+pwtools.parse.CpmdSCFOutputFile.apply\_units
+============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CpmdSCFOutputFile.apply_units

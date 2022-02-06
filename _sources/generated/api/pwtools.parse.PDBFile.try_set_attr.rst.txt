@@ -1,0 +1,6 @@
+pwtools.parse.PDBFile.try\_set\_attr
+====================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PDBFile.try_set_attr

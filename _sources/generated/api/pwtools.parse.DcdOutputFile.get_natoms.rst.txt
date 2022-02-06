@@ -1,0 +1,6 @@
+pwtools.parse.DcdOutputFile.get\_natoms
+=======================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: DcdOutputFile.get_natoms

@@ -1,0 +1,6 @@
+pwtools.crys.FakeASEAtoms.get\_return\_attr
+===========================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: FakeASEAtoms.get_return_attr

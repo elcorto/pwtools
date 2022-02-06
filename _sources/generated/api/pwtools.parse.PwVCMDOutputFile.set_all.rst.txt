@@ -1,0 +1,6 @@
+pwtools.parse.PwVCMDOutputFile.set\_all
+=======================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwVCMDOutputFile.set_all

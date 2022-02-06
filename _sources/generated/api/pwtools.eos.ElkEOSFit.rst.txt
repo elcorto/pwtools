@@ -1,0 +1,55 @@
+﻿pwtools.eos.ElkEOSFit
+=====================
+
+.. currentmodule:: pwtools.eos
+
+.. autoclass:: ElkEOSFit
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~ElkEOSFit.assert_attr
+      ~ElkEOSFit.assert_attr_lst
+      ~ElkEOSFit.assert_set_attr
+      ~ElkEOSFit.assert_set_attr_lst
+      ~ElkEOSFit.calc_bv
+      ~ElkEOSFit.check_set_attr
+      ~ElkEOSFit.check_set_attr_lst
+      ~ElkEOSFit.dump
+      ~ElkEOSFit.fit
+      ~ElkEOSFit.get_min
+      ~ElkEOSFit.get_return_attr
+      ~ElkEOSFit.get_spl_bv
+      ~ElkEOSFit.get_spl_ev
+      ~ElkEOSFit.get_spl_pv
+      ~ElkEOSFit.init_attr_lst
+      ~ElkEOSFit.is_set_attr
+      ~ElkEOSFit.is_set_attr_lst
+      ~ElkEOSFit.load
+      ~ElkEOSFit.raw_return
+      ~ElkEOSFit.raw_slice_get
+      ~ElkEOSFit.set_all
+      ~ElkEOSFit.set_attr_lst
+      ~ElkEOSFit.set_bv_method
+      ~ElkEOSFit.try_set_attr
+      ~ElkEOSFit.try_set_attr_lst
+   
+  
+  
+
+
+  
+  
+  

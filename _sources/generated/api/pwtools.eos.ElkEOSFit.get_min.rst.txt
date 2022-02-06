@@ -1,0 +1,6 @@
+pwtools.eos.ElkEOSFit.get\_min
+==============================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: ElkEOSFit.get_min

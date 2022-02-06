@@ -1,0 +1,6 @@
+pwtools.parse.PwVCMDOutputFile.get\_alat
+========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwVCMDOutputFile.get_alat

@@ -1,0 +1,6 @@
+﻿pwtools.sql.sql\_matrix
+=======================
+
+.. currentmodule:: pwtools.sql
+
+.. autofunction:: sql_matrix

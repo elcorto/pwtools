@@ -1,0 +1,37 @@
+
+.. rst file which lists all members of the current module. They will be
+.. handled by the Sphinx autosummary extension.
+
+pwscf
+=====
+
+.. Documentation string which may be at the top of the module.
+.. automodule:: pwtools.pwscf
+   :no-members:
+   :no-inherited-members:
+
+.. currentmodule:: pwtools.pwscf
+
+.. Links to members.
+.. autosummary::
+   :toctree:
+
+   EPS
+   atpos_str
+   atpos_str_fast
+   atspec_str
+   bool2str
+   ibrav2cell
+   kpoints_str
+   kpoints_str_pwin
+   kpoints_str_pwin_full
+   kpointstr
+   kpointstr_pwin
+   kpointstr_pwin2
+   read_all_dyn
+   read_dyn
+   read_dynmat
+   read_dynmat_ir_raman
+   read_dynmat_out
+   read_matdyn_freq
+   read_matdyn_modes

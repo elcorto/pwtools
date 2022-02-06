@@ -1,0 +1,6 @@
+﻿pwtools.rbf.core.JAX\_MODE
+==========================
+
+.. currentmodule:: pwtools.rbf.core
+
+.. autodata:: JAX_MODE

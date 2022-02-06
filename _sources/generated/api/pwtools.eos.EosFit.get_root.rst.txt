@@ -1,0 +1,6 @@
+pwtools.eos.EosFit.get\_root
+============================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: EosFit.get_root

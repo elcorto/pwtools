@@ -1,0 +1,6 @@
+﻿pwtools.\_flib.frac2cart
+========================
+
+.. currentmodule:: pwtools._flib
+
+.. autodata:: frac2cart

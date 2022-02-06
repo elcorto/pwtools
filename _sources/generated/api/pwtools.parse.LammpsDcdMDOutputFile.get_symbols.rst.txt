@@ -1,0 +1,6 @@
+pwtools.parse.LammpsDcdMDOutputFile.get\_symbols
+================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsDcdMDOutputFile.get_symbols

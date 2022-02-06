@@ -1,0 +1,6 @@
+﻿pwtools.io.write\_wien\_sgroup
+==============================
+
+.. currentmodule:: pwtools.io
+
+.. autofunction:: write_wien_sgroup

@@ -1,0 +1,261 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>pwtools.num.Interpol2D &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="pwtools.num.Interpol2D.get_min" href="pwtools.num.Interpol2D.get_min.html" />
+    <link rel="prev" title="pwtools.num.Fit1D.is_mono" href="pwtools.num.Fit1D.is_mono.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API Reference</a><ul>
+  <li><a href="__sphinx_autodoc_module__pwtools.num.html">num</a><ul>
+      <li>Previous: <a href="pwtools.num.Fit1D.is_mono.html" title="previous chapter">pwtools.num.Fit1D.is_mono</a></li>
+      <li>Next: <a href="pwtools.num.Interpol2D.get_min.html" title="next chapter">pwtools.num.Interpol2D.get_min</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="pwtools-num-interpol2d">
+<h1>pwtools.num.Interpol2D<a class="headerlink" href="#pwtools-num-interpol2d" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="pwtools.num.Interpol2D">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pwtools.num.</span></span><span class="sig-name descname"><span class="pre">Interpol2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">what</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rbf_inv_multi'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">initkwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/num.html#Interpol2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.num.Interpol2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Common 2D interpolator API.</p>
+<p>The API is the same as in <code class="docutils literal notranslate"><span class="pre">scipy.interpolate</span></code>, e.g.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inter</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">SomeInterpolatorClass</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">new_values</span> <span class="o">=</span> <span class="n">inter</span><span class="p">(</span><span class="n">new_points</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This is for easy testing of multiple interpolators on a surface z = f(x,y),
+which is given as an unordered set of points.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pwtools.num.Interpol2D.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">what</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rbf_inv_multi'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">initkwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/num.html#Interpol2D.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.num.Interpol2D.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>points</strong> (<em>(</em><em>npoints</em><em>, </em><em>2</em><em>)</em>) – </p></li>
+<li><p><strong>values</strong> (<em>(</em><em>npoints</em><em>, </em><em>1</em><em>)</em>) – </p></li>
+<li><p><strong>xx</strong> (<em>(</em><em>npoints</em><em>, </em><em>1</em><em>)</em>) – Use either <cite>points</cite> + <cite>values</cite> or <cite>xx</cite> + <cite>yy</cite> + <cite>values</cite> or <cite>dd</cite>.</p></li>
+<li><p><strong>yy</strong> (<em>(</em><em>npoints</em><em>, </em><em>1</em><em>)</em>) – Use either <cite>points</cite> + <cite>values</cite> or <cite>xx</cite> + <cite>yy</cite> + <cite>values</cite> or <cite>dd</cite>.</p></li>
+<li><p><strong>dd</strong> (<em>pwtools.mpl.Data2D instance</em>) – </p></li>
+<li><p><strong>what</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>which interpolator to use</p>
+<div class="line-block">
+<div class="line">’rbf_multi’ : RBFN w/ multiquadric rbf, see <code class="xref py py-class docutils literal notranslate"><span class="pre">Rbf</span></code></div>
+<div class="line">’rbf_inv_multi’ : RBFN w/ inverse multiquadric rbf</div>
+<div class="line">’rbf_gauss’ : RBFN w/ gaussian rbf</div>
+<div class="line">’poly’      : <a class="reference internal" href="pwtools.num.PolyFit.html#pwtools.num.PolyFit" title="pwtools.num.PolyFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">PolyFit</span></code></a></div>
+<div class="line">’bispl’     : scipy.interpolate.bispl{rep,ev}</div>
+<div class="line">’ct’        : scipy.interpolate.CloughTocher2DInterpolator</div>
+<div class="line">’linear’    : scipy.interpolate.LinearNDInterpolator</div>
+<div class="line">’nearest’   : scipy.interpolate.NearestNDInterpolator</div>
+</div>
+</p></li>
+<li><p><strong>**initkwds</strong> (<em>keywords passed on to the interpolator's constructor or</em>) – fit() method (RBF case)</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Despite the name “Interpol2D”, the RBF methods ‘rbf_*’ as well as ‘poly’ are
+actually fits (least squares regression). You can force interpolation with
+the RBF methods using the <code class="docutils literal notranslate"><span class="pre">r=0</span></code> keyword (see
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">pwtools.rbf.Rbf.fit()</span></code>), which will use <code class="docutils literal notranslate"><span class="pre">scipy.linalg.solve</span></code>
+without regularization.</p>
+<p>The methods ‘ct’, ‘linear’ and of course ‘nearest’ can be inaccurate
+(see also <code class="docutils literal notranslate"><span class="pre">test/test_interpol.py</span></code>). Use only for plotting, not for
+data evaluation, i.e. accurate minimas etc.</p>
+<p>Except for ‘bispl’, all interpolators do actually work in ND as well, as
+does <a class="reference internal" href="pwtools.num.Interpol2D.get_min.html#pwtools.num.Interpol2D.get_min" title="pwtools.num.Interpol2D.get_min"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_min()</span></code></a>.</p>
+<p>Possible keywords (examples):</p>
+<div class="line-block">
+<div class="line">rbf :</div>
+<div class="line-block">
+<div class="line">p=’mean’ [,r=None] (default)    # linalg.lstsq</div>
+<div class="line">p=’scipy’, r=1e-8               # linalg.solve w/ regularization</div>
+<div class="line">p=3.5, r=0                      # linalg.solve w/o regularization</div>
+</div>
+<div class="line">ct :</div>
+<div class="line-block">
+<div class="line">tol = 1e-6 (default)</div>
+</div>
+<div class="line">bispl :</div>
+<div class="line-block">
+<div class="line">s = 1e-4</div>
+<div class="line">kx = 3, ky = 3 (default)</div>
+<div class="line">nxest, nyest</div>
+</div>
+<div class="line">poly :</div>
+<div class="line-block">
+<div class="line">deg = 5</div>
+</div>
+</div>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pwtools</span> <span class="k">import</span> <span class="n">num</span><span class="p">,</span> <span class="n">mpl</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">20</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="o">=</span><span class="n">x</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">);</span> <span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">;</span> <span class="n">Y</span><span class="o">=</span><span class="n">Y</span><span class="o">.</span><span class="n">T</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Z</span><span class="o">=</span><span class="p">(</span><span class="n">X</span><span class="o">+</span><span class="mi">3</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="p">(</span><span class="n">Y</span><span class="o">+</span><span class="mi">4</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dd</span><span class="o">=</span><span class="n">mpl</span><span class="o">.</span><span class="n">Data2D</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="o">=</span><span class="n">Y</span><span class="p">,</span><span class="n">Z</span><span class="o">=</span><span class="n">Z</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;what: </span><span class="si">{:15}</span><span class="s2"> target: [5,30] result: </span><span class="si">{}</span><span class="s2">&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;rbf_multi&#39;</span><span class="p">,</span> <span class="s1">&#39;rbf_inv_multi&#39;</span><span class="p">,</span>
+<span class="gp">... </span>               <span class="s1">&#39;rbf_gauss&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;poly&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;deg&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}),</span>
+<span class="gp">... </span>               <span class="s1">&#39;ct&#39;</span><span class="p">,</span> <span class="s1">&#39;bispl&#39;</span><span class="p">,</span> <span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="s1">&#39;nearest&#39;</span><span class="p">]:</span>
+<span class="gp">... </span>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="n">what</span> <span class="o">=</span> <span class="n">method</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">... </span>        <span class="n">kwds</span> <span class="o">=</span> <span class="n">method</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">what</span> <span class="o">=</span> <span class="n">method</span>
+<span class="gp">... </span>        <span class="n">kwds</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="gp">... </span>    <span class="n">inter</span><span class="o">=</span><span class="n">num</span><span class="o">.</span><span class="n">Interpol2D</span><span class="p">(</span><span class="n">dd</span><span class="o">=</span><span class="n">dd</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="n">what</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">what</span><span class="p">,</span> <span class="n">inter</span><span class="p">([[</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span><span class="o">-</span><span class="mi">4</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]])))</span>
+<span class="go">what: rbf_multi       target: [5,30] result: [  5.00000005  29.99999959]</span>
+<span class="go">what: rbf_inv_multi   target: [5,30] result: [  4.99999808  29.99999798]</span>
+<span class="go">what: rbf_gauss       target: [5,30] result: [  5.00000051  30.00000352]</span>
+<span class="go">what: poly            target: [5,30] result: [  5.  30.]</span>
+<span class="go">what: ct              target: [5,30] result: [  4.99762256  30.010856  ]</span>
+<span class="go">what: bispl           target: [5,30] result: [  5.  30.]</span>
+<span class="go">what: linear          target: [5,30] result: [  5.06925208  30.13850416]</span>
+<span class="go">what: nearest         target: [5,30] result: [  5.01385042  33.82271468]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pwtools.num.Interpol2D.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">callkwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/num.html#Interpol2D.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.num.Interpol2D.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>points</strong> (<em>2d</em><em> (</em><em>M</em><em>,</em><em>2</em><em>) or </em><em>1d</em><em> (</em><em>N</em><em>,</em><em>)</em>) – M points in 2-dim space where to evalutae the interpolator
+(only one in 1d case)</p></li>
+<li><p><strong>**callkwds</strong> (<em>keywords passed to the interpolator's __call__ method</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>Y</strong> – interpolated values</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>1d array (M,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Methods</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.num.Interpol2D.get_min.html#pwtools.num.Interpol2D.get_min" title="pwtools.num.Interpol2D.get_min"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_min</span></code></a>([x0])</p></td>
+<td><p>Return [x,y] where z(x,y) = min(z) by minimizing z(x,y) w/ scipy.optimize.fmin().</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/generated/api/pwtools.num.Interpol2D.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,6 @@
+pwtools.parse.CifFile.set\_all
+==============================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CifFile.set_all

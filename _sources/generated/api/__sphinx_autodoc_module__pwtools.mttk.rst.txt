@@ -1,0 +1,26 @@
+
+.. rst file which lists all members of the current module. They will be
+.. handled by the Sphinx autosummary extension.
+
+mttk
+====
+
+.. Documentation string which may be at the top of the module.
+.. automodule:: pwtools.mttk
+   :no-members:
+   :no-inherited-members:
+
+.. currentmodule:: pwtools.mttk
+
+.. Links to members.
+.. autosummary::
+   :toctree:
+
+   a0
+   add_doc
+   barostat_mass_w
+   barostat_mass_wg
+   barostat_nhc_masses
+   kb
+   m0
+   particle_nhc_masses

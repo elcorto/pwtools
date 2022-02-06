@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.get\_ekin
+=================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.get_ekin

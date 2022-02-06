@@ -1,0 +1,6 @@
+pwtools.crys.Structure.get\_traj
+================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.get_traj

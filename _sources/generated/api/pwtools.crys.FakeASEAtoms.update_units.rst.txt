@@ -1,0 +1,6 @@
+pwtools.crys.FakeASEAtoms.update\_units
+=======================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: FakeASEAtoms.update_units

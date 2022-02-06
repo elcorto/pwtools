@@ -1,0 +1,6 @@
+pwtools.eos.EVFunction.evaluate
+===============================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: EVFunction.evaluate

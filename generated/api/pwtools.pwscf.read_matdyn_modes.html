@@ -1,0 +1,189 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>pwtools.pwscf.read_matdyn_modes &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="pydos" href="__sphinx_autodoc_module__pwtools.pydos.html" />
+    <link rel="prev" title="pwtools.pwscf.read_matdyn_freq" href="pwtools.pwscf.read_matdyn_freq.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API Reference</a><ul>
+  <li><a href="__sphinx_autodoc_module__pwtools.pwscf.html">pwscf</a><ul>
+      <li>Previous: <a href="pwtools.pwscf.read_matdyn_freq.html" title="previous chapter">pwtools.pwscf.read_matdyn_freq</a></li>
+      <li>Next: <a href="__sphinx_autodoc_module__pwtools.pydos.html" title="next chapter">pydos</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="pwtools-pwscf-read-matdyn-modes">
+<h1>pwtools.pwscf.read_matdyn_modes<a class="headerlink" href="#pwtools-pwscf-read-matdyn-modes" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="pwtools.pwscf.read_matdyn_modes">
+<span class="sig-prename descclassname"><span class="pre">pwtools.pwscf.</span></span><span class="sig-name descname"><span class="pre">read_matdyn_modes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">natoms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/pwscf.html#read_matdyn_modes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.pwscf.read_matdyn_modes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse modes file produced by QE’s matdyn.x.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – File to parse (usually “matdyn.modes”)</p></li>
+<li><p><strong>natoms</strong> (<em>int</em>) – Number of atoms.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>qpoints, freqs, vecs</em></p></li>
+<li><p><strong>qpoints</strong> (<em>2d array (nqpoints, 3)</em>) – All qpoints on the grid.</p></li>
+<li><p><strong>freqs</strong> (<em>2d array, (nqpoints, nmodes) where nmodes = 3*natoms</em>) – Each row: 3*natoms phonon frequencies in [cm^-1] at each q-point.</p></li>
+<li><p><strong>vecs</strong> (<em>4d complex array (nqpoints, nmodes, natoms, 3)</em>) – Complex eigenvectors of the dynamical matrix for each q-point.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">qpoints</span><span class="p">,</span><span class="n">freqs</span><span class="p">,</span><span class="n">vecs</span><span class="o">=</span><span class="n">read_matdyn_modes</span><span class="p">(</span><span class="s1">&#39;matdyn.modes&#39;</span><span class="p">,</span><span class="n">natoms</span><span class="o">=</span><span class="mi">27</span><span class="p">)</span>
+<span class="go"># how many q-points? -&gt; 8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qpoints</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(8,3)</span>
+<span class="go"># 1st q-point in file, mode #3 (out of 3*27) -&gt; vectors on all 27 atoms</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vecs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="o">...</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(27,3)</span>
+<span class="go"># 1st q-point in file, mode #3, vector on atom #15</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vecs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">14</span><span class="p">,:]</span><span class="o">.</span><span class="n">real</span>
+<span class="go">array([-0.010832,  0.026063, -0.089511])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vecs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">14</span><span class="p">,:]</span><span class="o">.</span><span class="n">imag</span>
+<span class="go">array([ 0.,  0.,  0.])</span>
+</pre></div>
+</div>
+<p class="rubric">Notes</p>
+<p>The file to be parsed looks like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>     <span class="n">diagonalizing</span> <span class="n">the</span> <span class="n">dynamical</span> <span class="n">matrix</span> <span class="o">...</span>
+
+ <span class="n">q</span> <span class="o">=</span>       <span class="mf">0.0000</span>      <span class="mf">0.0000</span>      <span class="mf">0.0000</span>
+ <span class="o">**************************************************************************</span>
+     <span class="n">omega</span><span class="p">(</span> <span class="mi">1</span><span class="p">)</span> <span class="o">=</span>     <span class="o">-</span><span class="mf">26.663631</span> <span class="p">[</span><span class="n">THz</span><span class="p">]</span> <span class="o">=</span>    <span class="o">-</span><span class="mf">889.402992</span> <span class="p">[</span><span class="n">cm</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+ <span class="p">(</span> <span class="o">-</span><span class="mf">0.218314</span>   <span class="mf">0.000000</span>    <span class="o">-</span><span class="mf">0.025643</span>   <span class="mf">0.000000</span>    <span class="o">-</span><span class="mf">0.116601</span>   <span class="mf">0.000000</span>   <span class="p">)</span>
+ <span class="p">(</span> <span class="o">-</span><span class="mf">0.086633</span>   <span class="mf">0.000000</span>     <span class="mf">0.108966</span>   <span class="mf">0.000000</span>    <span class="o">-</span><span class="mf">0.066513</span>   <span class="mf">0.000000</span>   <span class="p">)</span>
+<span class="p">[</span><span class="o">...</span> <span class="n">natoms</span> <span class="n">lines</span><span class="p">:</span> <span class="n">x_real</span> <span class="n">x_imag</span> <span class="n">y_real</span> <span class="n">y_imag</span> <span class="n">z_real</span> <span class="n">z_imag</span> <span class="o">...</span> <span class="n">until</span>
+ <span class="nb">next</span> <span class="n">omega</span> <span class="o">...</span><span class="p">]</span>
+     <span class="n">omega</span><span class="p">(</span> <span class="mi">2</span><span class="p">)</span> <span class="o">=</span>     <span class="o">-</span><span class="mf">16.330246</span> <span class="p">[</span><span class="n">THz</span><span class="p">]</span> <span class="o">=</span>    <span class="o">-</span><span class="mf">544.718372</span> <span class="p">[</span><span class="n">cm</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+ <span class="p">(</span>  <span class="mf">0.172149</span>   <span class="mf">0.000000</span>     <span class="mf">0.008336</span>   <span class="mf">0.000000</span>    <span class="o">-</span><span class="mf">0.121991</span>   <span class="mf">0.000000</span>   <span class="p">)</span>
+ <span class="p">(</span> <span class="o">-</span><span class="mf">0.061497</span>   <span class="mf">0.000000</span>     <span class="mf">0.003782</span>   <span class="mf">0.000000</span>    <span class="o">-</span><span class="mf">0.018304</span>   <span class="mf">0.000000</span>   <span class="p">)</span>
+<span class="p">[</span><span class="o">...</span> <span class="n">until</span> <span class="n">omega</span><span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="n">natoms</span><span class="p">)</span> <span class="o">...</span><span class="p">]</span>
+ <span class="o">**************************************************************************</span>
+     <span class="n">diagonalizing</span> <span class="n">the</span> <span class="n">dynamical</span> <span class="n">matrix</span> <span class="o">...</span>
+
+<span class="p">[</span><span class="o">...</span> <span class="n">until</span> <span class="nb">next</span> <span class="n">q</span><span class="o">-</span><span class="n">point</span> <span class="o">...</span><span class="p">]</span>
+ <span class="n">q</span> <span class="o">=</span>       <span class="mf">0.0000</span>      <span class="mf">0.0000</span>     <span class="o">-</span><span class="mf">0.5000</span>
+ <span class="o">**************************************************************************</span>
+     <span class="n">omega</span><span class="p">(</span> <span class="mi">1</span><span class="p">)</span> <span class="o">=</span>     <span class="o">-</span><span class="mf">24.881828</span> <span class="p">[</span><span class="n">THz</span><span class="p">]</span> <span class="o">=</span>    <span class="o">-</span><span class="mf">829.968443</span> <span class="p">[</span><span class="n">cm</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+ <span class="p">(</span> <span class="o">-</span><span class="mf">0.225020</span>   <span class="mf">0.000464</span>    <span class="o">-</span><span class="mf">0.031584</span>   <span class="mf">0.000061</span>    <span class="o">-</span><span class="mf">0.130217</span>   <span class="mf">0.000202</span>   <span class="p">)</span>
+ <span class="p">(</span> <span class="o">-</span><span class="mf">0.085499</span>   <span class="mf">0.000180</span>     <span class="mf">0.107383</span>  <span class="o">-</span><span class="mf">0.000238</span>    <span class="o">-</span><span class="mf">0.086854</span>   <span class="mf">0.000096</span>   <span class="p">)</span>
+<span class="p">[</span><span class="o">...</span><span class="p">]</span>
+ <span class="o">**************************************************************************</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/generated/api/pwtools.pwscf.read_matdyn_modes.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

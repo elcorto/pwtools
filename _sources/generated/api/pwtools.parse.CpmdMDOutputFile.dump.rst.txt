@@ -1,0 +1,6 @@
+pwtools.parse.CpmdMDOutputFile.dump
+===================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CpmdMDOutputFile.dump

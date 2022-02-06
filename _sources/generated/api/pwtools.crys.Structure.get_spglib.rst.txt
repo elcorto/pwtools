@@ -1,0 +1,6 @@
+pwtools.crys.Structure.get\_spglib
+==================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.get_spglib

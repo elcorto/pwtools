@@ -1,0 +1,6 @@
+pwtools.crys.Structure.get\_cryst\_const
+========================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.get_cryst_const

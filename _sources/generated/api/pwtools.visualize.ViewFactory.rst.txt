@@ -1,0 +1,34 @@
+﻿pwtools.visualize.ViewFactory
+=============================
+
+.. currentmodule:: pwtools.visualize
+
+.. autoclass:: ViewFactory
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. automethod:: __call__
+
+ 
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+   
+  
+  
+
+
+  
+  
+  

@@ -1,0 +1,6 @@
+﻿pwtools.mttk.kb
+===============
+
+.. currentmodule:: pwtools.mttk
+
+.. autodata:: kb

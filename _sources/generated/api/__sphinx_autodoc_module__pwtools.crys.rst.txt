@@ -1,0 +1,74 @@
+
+.. rst file which lists all members of the current module. They will be
+.. handled by the Sphinx autosummary extension.
+
+crys
+====
+
+.. Documentation string which may be at the top of the module.
+.. automodule:: pwtools.crys
+   :no-members:
+   :no-inherited-members:
+
+.. currentmodule:: pwtools.crys
+
+.. Links to members.
+.. autosummary::
+   :toctree:
+
+   Angstrom
+   FakeASEAtoms
+   Structure
+   Trajectory
+   UnitsHandler
+   _trans
+   align_cart
+   angle
+   angles
+   atoms2struct
+   call_vmd_measure_gofr
+   cc2cell
+   cc2cell3d
+   cc2celldm
+   cell2cc
+   cell2cc3d
+   celldm2cc
+   center_on_atom
+   compress
+   concatenate
+   coord_trans
+   coord_trans3d
+   distances
+   distances_traj
+   grid_in_cell
+   kgrid
+   mean
+   min_image_convention
+   mix
+   nearest_neighbors
+   nearest_neighbors_from_dists
+   nearest_neighbors_struct
+   pbc_wrap
+   pbc_wrap_coords
+   pi
+   populated_attrs
+   recip_cell
+   rmax_smith
+   rmsd
+   rpdf
+   scell
+   scell3d
+   scell_mask
+   smooth
+   struct2atoms
+   struct2traj
+   tensor2voigt
+   tensor2voigt3d
+   velocity_traj
+   vmd_measure_gofr
+   voigt2tensor
+   voigt2tensor3d
+   volume_cc
+   volume_cc3d
+   volume_cell
+   volume_cell3d

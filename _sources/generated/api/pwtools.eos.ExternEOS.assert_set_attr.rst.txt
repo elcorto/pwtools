@@ -1,0 +1,6 @@
+pwtools.eos.ExternEOS.assert\_set\_attr
+=======================================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: ExternEOS.assert_set_attr

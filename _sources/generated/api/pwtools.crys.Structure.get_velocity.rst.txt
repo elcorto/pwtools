@@ -1,0 +1,6 @@
+pwtools.crys.Structure.get\_velocity
+====================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.get_velocity

@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.get\_volume
+===================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.get_volume

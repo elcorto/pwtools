@@ -1,0 +1,34 @@
+﻿pwtools.signal.FIRFilter
+========================
+
+.. currentmodule:: pwtools.signal
+
+.. autoclass:: FIRFilter
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. automethod:: __call__
+
+ 
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+   
+  
+  
+
+
+  
+  
+  

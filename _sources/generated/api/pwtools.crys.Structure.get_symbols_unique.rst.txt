@@ -1,0 +1,6 @@
+pwtools.crys.Structure.get\_symbols\_unique
+===========================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.get_symbols_unique

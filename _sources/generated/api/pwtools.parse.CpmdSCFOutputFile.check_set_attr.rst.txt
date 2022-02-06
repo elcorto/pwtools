@@ -1,0 +1,6 @@
+pwtools.parse.CpmdSCFOutputFile.check\_set\_attr
+================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CpmdSCFOutputFile.check_set_attr

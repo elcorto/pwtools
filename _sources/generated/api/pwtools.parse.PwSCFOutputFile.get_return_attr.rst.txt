@@ -1,0 +1,6 @@
+pwtools.parse.PwSCFOutputFile.get\_return\_attr
+===============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwSCFOutputFile.get_return_attr

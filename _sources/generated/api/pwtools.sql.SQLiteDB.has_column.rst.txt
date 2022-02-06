@@ -1,0 +1,6 @@
+pwtools.sql.SQLiteDB.has\_column
+================================
+
+.. currentmodule:: pwtools.sql
+
+.. automethod:: SQLiteDB.has_column

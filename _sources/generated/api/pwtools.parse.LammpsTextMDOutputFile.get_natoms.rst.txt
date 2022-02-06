@@ -1,0 +1,6 @@
+pwtools.parse.LammpsTextMDOutputFile.get\_natoms
+================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsTextMDOutputFile.get_natoms

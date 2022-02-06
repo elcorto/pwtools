@@ -1,0 +1,6 @@
+﻿pwtools.crys.rmax\_smith
+========================
+
+.. currentmodule:: pwtools.crys
+
+.. autofunction:: rmax_smith

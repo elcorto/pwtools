@@ -1,0 +1,6 @@
+pwtools.parse.PwVCMDOutputFile.get\_etot
+========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwVCMDOutputFile.get_etot

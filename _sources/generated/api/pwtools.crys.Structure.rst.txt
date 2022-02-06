@@ -1,0 +1,91 @@
+﻿pwtools.crys.Structure
+======================
+
+.. currentmodule:: pwtools.crys
+
+.. autoclass:: Structure
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~Structure.apply_units
+      ~Structure.assert_attr
+      ~Structure.assert_attr_lst
+      ~Structure.assert_set_attr
+      ~Structure.assert_set_attr_lst
+      ~Structure.check_set_attr
+      ~Structure.check_set_attr_lst
+      ~Structure.compress
+      ~Structure.copy
+      ~Structure.dump
+      ~Structure.get_ase_atoms
+      ~Structure.get_cell
+      ~Structure.get_coords
+      ~Structure.get_coords_frac
+      ~Structure.get_cryst_const
+      ~Structure.get_ekin
+      ~Structure.get_etot
+      ~Structure.get_fake_ase_atoms
+      ~Structure.get_forces
+      ~Structure.get_mass
+      ~Structure.get_mass_unique
+      ~Structure.get_natoms
+      ~Structure.get_nspecies
+      ~Structure.get_nstep
+      ~Structure.get_ntypat
+      ~Structure.get_order
+      ~Structure.get_pressure
+      ~Structure.get_return_attr
+      ~Structure.get_spglib
+      ~Structure.get_stress
+      ~Structure.get_symbols
+      ~Structure.get_symbols_unique
+      ~Structure.get_temperature
+      ~Structure.get_time
+      ~Structure.get_timestep
+      ~Structure.get_traj
+      ~Structure.get_typat
+      ~Structure.get_velocity
+      ~Structure.get_volume
+      ~Structure.get_znucl
+      ~Structure.get_znucl_unique
+      ~Structure.init_attr_lst
+      ~Structure.is_set_attr
+      ~Structure.is_set_attr_lst
+      ~Structure.load
+      ~Structure.raw_return
+      ~Structure.raw_slice_get
+      ~Structure.set_all
+      ~Structure.set_attr_lst
+      ~Structure.try_set_attr
+      ~Structure.try_set_attr_lst
+      ~Structure.update_units
+   
+  
+  
+
+
+  
+  
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree:
+   
+      ~Structure.is_struct
+      ~Structure.is_traj
+      ~Structure.timeaxis
+  
+  

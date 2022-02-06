@@ -1,0 +1,170 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>pwtools.batch.Calculation &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="pwtools.batch.Calculation.get_sql_record" href="pwtools.batch.Calculation.get_sql_record.html" />
+    <link rel="prev" title="batch" href="__sphinx_autodoc_module__pwtools.batch.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API Reference</a><ul>
+  <li><a href="__sphinx_autodoc_module__pwtools.batch.html">batch</a><ul>
+      <li>Previous: <a href="__sphinx_autodoc_module__pwtools.batch.html" title="previous chapter">batch</a></li>
+      <li>Next: <a href="pwtools.batch.Calculation.get_sql_record.html" title="next chapter">pwtools.batch.Calculation.get_sql_record</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="pwtools-batch-calculation">
+<h1>pwtools.batch.Calculation<a class="headerlink" href="#pwtools-batch-calculation" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="pwtools.batch.Calculation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pwtools.batch.</span></span><span class="sig-name descname"><span class="pre">Calculation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">machine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">templates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'calc_dir'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/batch.html#Calculation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.batch.Calculation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Represent a single calculation.</p>
+<p>The calculation data will be placed, e.g., in dir calc_foo/0/. A
+Calculation is bound to one Machine. This class is usually not used on it’s
+own, but only by ParameterStudy.</p>
+<p>The dir where file templates live is defined in the FileTemplates (usually
+‘calc.templ’).</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pwtools.batch.Calculation.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">machine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">templates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'calc_dir'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/batch.html#Calculation.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.batch.Calculation.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>machine</strong> (<a class="reference internal" href="pwtools.batch.Machine.html#pwtools.batch.Machine" title="pwtools.batch.Machine"><em>Machine</em></a><em>, </em><em>optional</em>) – Used to add machine specific attributes. Pulled from
+Machine.get_sql_record(). Used for FileTemplate replacement.</p></li>
+<li><p><strong>templates</strong> (<em>sequence</em>) – Sequence of FileTemplate instances.</p></li>
+<li><p><strong>params</strong> (<em>sequence of SQLEntry instances</em>) – A single “parameter set”. The <cite>key</cite> attribute (=sql column name) of
+each SQLEntry will be converted to a placeholder in each
+FileTemplate and an attempt to replacement in the template files is
+made.</p></li>
+<li><p><strong>calc_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Calculation directory to which input files are written (e.g.
+‘calc_foo/0/’)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Methods</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.batch.Calculation.get_sql_record.html#pwtools.batch.Calculation.get_sql_record" title="pwtools.batch.Calculation.get_sql_record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sql_record</span></code></a>()</p></td>
+<td><p>Return a dict of SQLEntry instances.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.batch.Calculation.write_input.html#pwtools.batch.Calculation.write_input" title="pwtools.batch.Calculation.write_input"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_input</span></code></a>()</p></td>
+<td><p>For each template in <code class="docutils literal notranslate"><span class="pre">self.templates</span></code>, write an input file to <code class="docutils literal notranslate"><span class="pre">self.calc_dir</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/generated/api/pwtools.batch.Calculation.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

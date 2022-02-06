@@ -1,0 +1,6 @@
+﻿pwtools.visualize.view\_vmd\_axsf
+=================================
+
+.. currentmodule:: pwtools.visualize
+
+.. autodata:: view_vmd_axsf

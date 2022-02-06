@@ -1,0 +1,6 @@
+pwtools.crys.FakeASEAtoms.is\_set\_attr\_lst
+============================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: FakeASEAtoms.is_set_attr_lst

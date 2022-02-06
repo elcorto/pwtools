@@ -1,0 +1,6 @@
+pwtools.crys.Structure.set\_all
+===============================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.set_all

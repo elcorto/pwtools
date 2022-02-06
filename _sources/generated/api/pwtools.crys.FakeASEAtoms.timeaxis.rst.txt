@@ -1,0 +1,6 @@
+pwtools.crys.FakeASEAtoms.timeaxis
+==================================
+
+.. currentmodule:: pwtools.crys
+
+.. autoattribute:: FakeASEAtoms.timeaxis

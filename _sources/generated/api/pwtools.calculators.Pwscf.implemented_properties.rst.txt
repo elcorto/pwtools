@@ -1,0 +1,6 @@
+pwtools.calculators.Pwscf.implemented\_properties
+=================================================
+
+.. currentmodule:: pwtools.calculators
+
+.. autoattribute:: Pwscf.implemented_properties

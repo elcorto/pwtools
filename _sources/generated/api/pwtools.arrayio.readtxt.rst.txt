@@ -1,0 +1,6 @@
+﻿pwtools.arrayio.readtxt
+=======================
+
+.. currentmodule:: pwtools.arrayio
+
+.. autofunction:: readtxt

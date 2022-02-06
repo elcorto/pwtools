@@ -1,0 +1,6 @@
+﻿pwtools.parse.thart
+===================
+
+.. currentmodule:: pwtools.parse
+
+.. autodata:: thart

@@ -1,0 +1,6 @@
+﻿pwtools.arrayio.\_write\_header\_config
+=======================================
+
+.. currentmodule:: pwtools.arrayio
+
+.. autofunction:: _write_header_config

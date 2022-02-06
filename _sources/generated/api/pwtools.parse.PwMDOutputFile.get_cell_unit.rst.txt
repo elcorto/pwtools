@@ -1,0 +1,6 @@
+pwtools.parse.PwMDOutputFile.get\_cell\_unit
+============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwMDOutputFile.get_cell_unit

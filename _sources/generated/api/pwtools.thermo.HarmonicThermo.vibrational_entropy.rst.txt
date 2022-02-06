@@ -1,0 +1,6 @@
+pwtools.thermo.HarmonicThermo.vibrational\_entropy
+==================================================
+
+.. currentmodule:: pwtools.thermo
+
+.. automethod:: HarmonicThermo.vibrational_entropy

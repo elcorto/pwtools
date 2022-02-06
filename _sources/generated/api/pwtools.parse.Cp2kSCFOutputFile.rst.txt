@@ -1,0 +1,65 @@
+﻿pwtools.parse.Cp2kSCFOutputFile
+===============================
+
+.. currentmodule:: pwtools.parse
+
+.. autoclass:: Cp2kSCFOutputFile
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~Cp2kSCFOutputFile.apply_units
+      ~Cp2kSCFOutputFile.assert_attr
+      ~Cp2kSCFOutputFile.assert_attr_lst
+      ~Cp2kSCFOutputFile.assert_set_attr
+      ~Cp2kSCFOutputFile.assert_set_attr_lst
+      ~Cp2kSCFOutputFile.check_set_attr
+      ~Cp2kSCFOutputFile.check_set_attr_lst
+      ~Cp2kSCFOutputFile.dump
+      ~Cp2kSCFOutputFile.get_cont
+      ~Cp2kSCFOutputFile.get_etot
+      ~Cp2kSCFOutputFile.get_forces
+      ~Cp2kSCFOutputFile.get_natoms
+      ~Cp2kSCFOutputFile.get_return_attr
+      ~Cp2kSCFOutputFile.get_stress
+      ~Cp2kSCFOutputFile.get_struct
+      ~Cp2kSCFOutputFile.get_symbols
+      ~Cp2kSCFOutputFile.init_attr_lst
+      ~Cp2kSCFOutputFile.is_set_attr
+      ~Cp2kSCFOutputFile.is_set_attr_lst
+      ~Cp2kSCFOutputFile.load
+      ~Cp2kSCFOutputFile.parse
+      ~Cp2kSCFOutputFile.raw_return
+      ~Cp2kSCFOutputFile.raw_slice_get
+      ~Cp2kSCFOutputFile.set_all
+      ~Cp2kSCFOutputFile.set_attr_lst
+      ~Cp2kSCFOutputFile.try_set_attr
+      ~Cp2kSCFOutputFile.try_set_attr_lst
+      ~Cp2kSCFOutputFile.update_units
+   
+  
+  
+
+
+  
+  
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree:
+   
+      ~Cp2kSCFOutputFile.default_units
+  
+  

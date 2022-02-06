@@ -1,0 +1,6 @@
+pwtools.sql.SQLiteDB.executemany
+================================
+
+.. currentmodule:: pwtools.sql
+
+.. automethod:: SQLiteDB.executemany

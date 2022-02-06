@@ -1,0 +1,6 @@
+pwtools.parse.PDBFile.is\_set\_attr\_lst
+========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PDBFile.is_set_attr_lst

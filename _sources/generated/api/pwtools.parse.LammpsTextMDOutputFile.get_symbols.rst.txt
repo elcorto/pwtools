@@ -1,0 +1,6 @@
+pwtools.parse.LammpsTextMDOutputFile.get\_symbols
+=================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsTextMDOutputFile.get_symbols

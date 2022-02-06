@@ -1,0 +1,6 @@
+pwtools.crys.UnitsHandler.is\_set\_attr
+=======================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: UnitsHandler.is_set_attr

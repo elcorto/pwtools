@@ -1,0 +1,6 @@
+pwtools.parse.LammpsTextMDOutputFile.default\_units
+===================================================
+
+.. currentmodule:: pwtools.parse
+
+.. autoattribute:: LammpsTextMDOutputFile.default_units

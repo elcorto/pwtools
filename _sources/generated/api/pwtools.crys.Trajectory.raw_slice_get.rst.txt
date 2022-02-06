@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.raw\_slice\_get
+=======================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.raw_slice_get

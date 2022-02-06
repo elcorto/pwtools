@@ -1,0 +1,6 @@
+pwtools.parse.CifFile.update\_units
+===================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CifFile.update_units

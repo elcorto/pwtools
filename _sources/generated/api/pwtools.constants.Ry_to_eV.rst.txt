@@ -1,0 +1,6 @@
+﻿pwtools.constants.Ry\_to\_eV
+============================
+
+.. currentmodule:: pwtools.constants
+
+.. autodata:: Ry_to_eV

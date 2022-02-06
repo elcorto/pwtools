@@ -1,0 +1,6 @@
+pwtools.thermo.HarmonicThermo.cv
+================================
+
+.. currentmodule:: pwtools.thermo
+
+.. automethod:: HarmonicThermo.cv

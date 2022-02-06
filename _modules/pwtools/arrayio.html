@@ -1,0 +1,358 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pwtools.arrayio &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../generated/api/index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pwtools.arrayio</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Array text file IO. Some tools to write and read MD-like 3D arrays.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">StringIO</span>
+<span class="kn">from</span> <span class="nn">configparser</span> <span class="k">import</span> <span class="n">ConfigParser</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">pwtools</span> <span class="k">import</span> <span class="n">common</span>
+<span class="kn">from</span> <span class="nn">pwtools.decorators</span> <span class="k">import</span> <span class="n">open_and_close</span>
+<span class="kn">from</span> <span class="nn">pwtools.verbose</span> <span class="k">import</span> <span class="n">verbose</span>
+
+<span class="c1"># globals</span>
+<span class="n">HEADER_MAXLINES</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="n">HEADER_COMMENT</span> <span class="o">=</span> <span class="s1">&#39;#&#39;</span>
+<span class="n">TXT_MAXDIM</span> <span class="o">=</span> <span class="mi">3</span>
+
+
+<div class="viewcode-block" id="_read_header_config"><a class="viewcode-back" href="../../generated/api/pwtools.arrayio._read_header_config.html#pwtools.arrayio._read_header_config">[docs]</a><span class="nd">@open_and_close</span>
+<span class="k">def</span> <span class="nf">_read_header_config</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">header_maxlines</span><span class="o">=</span><span class="n">HEADER_MAXLINES</span><span class="p">,</span>
+                        <span class="n">header_comment</span><span class="o">=</span><span class="n">HEADER_COMMENT</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read a ini-style file from the header of a text file. Return a</span>
+<span class="sd">    ConfigParser object.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fh : file handle, readable</span>
+<span class="sd">    header_maxlines : max lines to read down from top of the file</span>
+<span class="sd">    header_comment : comment sign w/ which the header must be prefixed</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ConfigParser object</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; !cat foo.txt</span>
+<span class="sd">    # [array]</span>
+<span class="sd">    # shape = 3</span>
+<span class="sd">    # axis = -1</span>
+<span class="sd">    1</span>
+<span class="sd">    2</span>
+<span class="sd">    3</span>
+<span class="sd">    &gt;&gt;&gt; _get_header_config(&#39;foo.txt&#39;)</span>
+<span class="sd">    &lt;pwtools.common.ConfigParser instance at 0x2c52320&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fn</span> <span class="o">=</span> <span class="n">common</span><span class="o">.</span><span class="n">get_filename</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+    <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;[_read_header_config]: reading header from &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span><span class="n">fn</span><span class="p">)</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">header_maxlines</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">header_comment</span><span class="p">):</span>
+            <span class="n">header</span> <span class="o">+=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">header_comment</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+    <span class="c1"># Read one more line to see if the header is bigger than header_maxlines.</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">next</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">header_comment</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;header seems to be &gt; header_maxlines (</span><span class="si">%i</span><span class="s2">)&quot;</span>
+                <span class="o">%</span><span class="n">header_maxlines</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="p">()</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">header</span><span class="p">))</span>
+    <span class="c1"># If header_maxlines &gt; header size, we read beyond the header into the data. That</span>
+    <span class="c1"># causes havoc for all functions that read fh afterwards.</span>
+    <span class="n">fh</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">c</span></div>
+
+
+<span class="c1"># the open_and_close decorator cannot be used here b/c it only opens</span>
+<span class="c1"># files in read mode, not for writing</span>
+<span class="c1"># XXX really? can&#39;t decorator take arguments as well</span>
+<div class="viewcode-block" id="_write_header_config"><a class="viewcode-back" href="../../generated/api/pwtools.arrayio._write_header_config.html#pwtools.arrayio._write_header_config">[docs]</a><span class="k">def</span> <span class="nf">_write_header_config</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">header_comment</span><span class="o">=</span><span class="n">HEADER_COMMENT</span><span class="p">,</span>
+                         <span class="n">header_maxlines</span><span class="o">=</span><span class="n">HEADER_MAXLINES</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Write ini-style config file from `config` prefixed with `header_comment` to</span>
+<span class="sd">    file handle `fh`.&quot;&quot;&quot;</span>
+    <span class="n">fn</span> <span class="o">=</span> <span class="n">common</span><span class="o">.</span><span class="n">get_filename</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+    <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;[_write_header_config]: writing header to &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span><span class="n">fn</span><span class="p">)</span>
+    <span class="c1"># write config to dummy file</span>
+    <span class="n">ftmp</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ftmp</span><span class="p">)</span>
+    <span class="c1"># write with comment signs to actual file</span>
+    <span class="n">ftmp</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">ftmp</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+    <span class="n">common</span><span class="o">.</span><span class="n">assert_cond</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">header_maxlines</span><span class="p">,</span>
+                <span class="s2">&quot;header has more then header_maxlines (</span><span class="si">%i</span><span class="s2">) lines&quot;</span> \
+                <span class="o">%</span><span class="n">header_maxlines</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">((</span><span class="n">header_comment</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">line</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+    <span class="n">ftmp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<span class="c1"># XXX same here, what about an argument for the decorator</span>
+<div class="viewcode-block" id="writetxt"><a class="viewcode-back" href="../../generated/api/pwtools.arrayio.writetxt.html#pwtools.arrayio.writetxt">[docs]</a><span class="k">def</span> <span class="nf">writetxt</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">arr</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">maxdim</span><span class="o">=</span><span class="n">TXT_MAXDIM</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Write 1d, 2d or 3d arrays to txt file.</span>
+
+<span class="sd">    If 3d, write as 2d chunks. Take the 2d chunks along `axis`. Write a</span>
+<span class="sd">    commented out ini-style header in the file with infos needed by readtxt()</span>
+<span class="sd">    to restore the right shape.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fn : filename</span>
+<span class="sd">    arr : nd array</span>
+<span class="sd">    axis : axis along which 2d chunks are written</span>
+<span class="sd">    maxdim : highest number of dims that `arr` is allowed to have</span>
+<span class="sd">    header : bool</span>
+<span class="sd">        Write ini style header. Can be used by readtxt().</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;[writetxt] writing: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">fn</span><span class="p">)</span>
+    <span class="n">common</span><span class="o">.</span><span class="n">assert_cond</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&lt;=</span> <span class="n">maxdim</span><span class="p">,</span> <span class="s1">&#39;no rank &gt; </span><span class="si">%i</span><span class="s1"> arrays supported&#39;</span> <span class="o">%</span><span class="n">maxdim</span><span class="p">)</span>
+    <span class="n">fh</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s1">&#39;wb+&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">header</span><span class="p">:</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="p">()</span>
+        <span class="n">sec</span> <span class="o">=</span> <span class="s1">&#39;array&#39;</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">add_section</span><span class="p">(</span><span class="n">sec</span><span class="p">)</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">sec</span><span class="p">,</span> <span class="s1">&#39;shape&#39;</span><span class="p">,</span> <span class="n">common</span><span class="o">.</span><span class="n">seq2str</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">sec</span><span class="p">,</span> <span class="s1">&#39;axis&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">axis</span><span class="p">))</span>
+        <span class="n">_write_header_config</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+    <span class="c1"># 1d and 2d case</span>
+    <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&lt;</span> <span class="n">maxdim</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span>
+    <span class="c1"># 3d</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># TODO get rid of loop?</span>
+        <span class="c1"># write 2d arrays, one by one</span>
+        <span class="n">sl</span> <span class="o">=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)]</span><span class="o">*</span><span class="n">arr</span><span class="o">.</span><span class="n">ndim</span>
+        <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">axis</span><span class="p">]):</span>
+            <span class="n">sl</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">ind</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">arr</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">sl</span><span class="p">)])</span>
+    <span class="n">fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="readtxt"><a class="viewcode-back" href="../../generated/api/pwtools.arrayio.readtxt.html#pwtools.arrayio.readtxt">[docs]</a><span class="nd">@open_and_close</span>
+<span class="k">def</span> <span class="nf">readtxt</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">header_maxlines</span><span class="o">=</span><span class="n">HEADER_MAXLINES</span><span class="p">,</span>
+            <span class="n">header_comment</span><span class="o">=</span><span class="n">HEADER_COMMENT</span><span class="p">,</span> <span class="n">maxdim</span><span class="o">=</span><span class="n">TXT_MAXDIM</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read arrays from .txt file using np.loadtxt().</span>
+
+<span class="sd">    If the file stores a 3d array as consecutive 2d arrays (e.g. output from</span>
+<span class="sd">    molecular dynamics code) the file header (see writetxt()) is used to</span>
+<span class="sd">    determine the shape of the original 3d array and the array is reshaped</span>
+<span class="sd">    accordingly.</span>
+
+<span class="sd">    If `axis` or `shape` is not None, then these are used instead and</span>
+<span class="sd">    the header, if existing, will be ignored. This has the potential to shoot</span>
+<span class="sd">    yourself in the foot. Use with care.</span>
+
+<span class="sd">    If `axis` and `shape` are None, then this function does not work with</span>
+<span class="sd">    normal text files which have no special header. Use np.loadtxt() in this</span>
+<span class="sd">    case.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fh : file_like</span>
+<span class="sd">    axis : int</span>
+<span class="sd">    shape : tuple</span>
+<span class="sd">    **kwargs : keyword args passed to numpy.loadtxt(), e.g. comments=&#39;@@&#39; to</span>
+<span class="sd">        ignore weird lines etc.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    nd array</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fn</span> <span class="o">=</span> <span class="n">common</span><span class="o">.</span><span class="n">get_filename</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+    <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;[readtxt] reading: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">fn</span><span class="p">)</span>
+    <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;[readtxt]    axis: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="nb">str</span><span class="p">(</span><span class="n">axis</span><span class="p">))</span>
+    <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;[readtxt]    shape: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="nb">str</span><span class="p">(</span><span class="n">shape</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">shape</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">axis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">_read_header_config</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+        <span class="n">sec</span> <span class="o">=</span> <span class="s1">&#39;array&#39;</span>
+        <span class="k">if</span> <span class="n">shape</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="n">common</span><span class="o">.</span><span class="n">str2tup</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sec</span><span class="p">,</span> <span class="s1">&#39;shape&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">axis</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sec</span><span class="p">,</span> <span class="s1">&#39;axis&#39;</span><span class="p">))</span>
+    <span class="n">ndim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">common</span><span class="o">.</span><span class="n">assert_cond</span><span class="p">(</span><span class="n">ndim</span> <span class="o">&lt;=</span> <span class="n">maxdim</span><span class="p">,</span> <span class="s1">&#39;no rank &gt; </span><span class="si">%i</span><span class="s1"> arrays supported&#39;</span> <span class="o">%</span><span class="n">maxdim</span><span class="p">)</span>
+    <span class="c1"># axis = -1 means the last dim</span>
+    <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">axis</span> <span class="o">=</span> <span class="n">ndim</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="c1"># handle empty files (no data, only special header or nothing at all)</span>
+    <span class="n">header_lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">header_maxlines</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">header_comment</span><span class="p">)</span> <span class="ow">and</span> <span class="n">line</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">header_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+            <span class="k">break</span>
+    <span class="n">fh</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">header_lines</span> <span class="o">==</span> <span class="p">[]:</span>
+        <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;[readtxt] WARNING: empty file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">fn</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fh</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">read_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="c1"># 1d and 2d</span>
+    <span class="k">if</span> <span class="n">ndim</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">read_arr</span>
+    <span class="c1"># 3d</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">arr2d_to_3d</span><span class="p">(</span><span class="n">read_arr</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+    <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;[readtxt]    returning shape: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="nb">str</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">arr</span></div>
+
+
+<div class="viewcode-block" id="arr2d_to_3d"><a class="viewcode-back" href="../../generated/api/pwtools.arrayio.arr2d_to_3d.html#pwtools.arrayio.arr2d_to_3d">[docs]</a><span class="k">def</span> <span class="nf">arr2d_to_3d</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Reshape 2d array `arr` to 3d array of `shape`, with 2d chunks aligned</span>
+<span class="sd">    along `axis`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    arr : 2d array</span>
+<span class="sd">    shape : tuple</span>
+<span class="sd">        Target shape of 3d array</span>
+<span class="sd">    axis : int</span>
+<span class="sd">        Axis of 3d arr along which 2d chunks are placed.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    arr3d : 3d array</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; axis = 1</span>
+<span class="sd">    &gt;&gt;&gt; shape = (50, 1000, 3)</span>
+<span class="sd">    &gt;&gt;&gt; shape_2d_chunk =  (50, 3)</span>
+<span class="sd">    &gt;&gt;&gt; arr.shape = (1000*50,3)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;input must be 2d array&quot;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="n">TXT_MAXDIM</span>
+    <span class="n">shape_2d_chunk</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[:</span><span class="n">axis</span><span class="p">]</span> <span class="o">+</span> <span class="n">shape</span><span class="p">[(</span><span class="n">axis</span><span class="o">+</span><span class="mi">1</span><span class="p">):]</span>
+    <span class="c1"># arr:   (50*1000, 3)</span>
+    <span class="c1"># arr3d: (50, 1000, 3) : natoms = 50, nstep = 1000, 3 = x,y,z</span>
+    <span class="n">expect_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">shape_2d_chunk</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">shape</span><span class="p">[</span><span class="n">axis</span><span class="p">],)</span> <span class="o">+</span> <span class="p">(</span><span class="n">shape_2d_chunk</span><span class="p">[</span><span class="mi">1</span><span class="p">],)</span>
+    <span class="n">common</span><span class="o">.</span><span class="n">assert_cond</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">expect_shape</span><span class="p">,</span>
+                <span class="s2">&quot;input 2d array has not the correct &quot;</span>
+                <span class="s2">&quot;shape, got </span><span class="si">%s</span><span class="s2">, expect </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span>
+                                             <span class="nb">str</span><span class="p">(</span><span class="n">expect_shape</span><span class="p">)))</span>
+    <span class="n">arr3d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">sl</span> <span class="o">=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)]</span><span class="o">*</span><span class="mi">3</span>
+    <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="n">axis</span><span class="p">]):</span>
+        <span class="n">sl</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">ind</span>
+        <span class="n">arr3d</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">sl</span><span class="p">)]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">ind</span><span class="o">*</span><span class="n">shape_2d_chunk</span><span class="p">[</span><span class="mi">0</span><span class="p">]:(</span><span class="n">ind</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">shape_2d_chunk</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">:]</span>
+    <span class="k">return</span> <span class="n">arr3d</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

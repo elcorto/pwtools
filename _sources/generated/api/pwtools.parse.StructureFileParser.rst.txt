@@ -1,0 +1,60 @@
+﻿pwtools.parse.StructureFileParser
+=================================
+
+.. currentmodule:: pwtools.parse
+
+.. autoclass:: StructureFileParser
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~StructureFileParser.apply_units
+      ~StructureFileParser.assert_attr
+      ~StructureFileParser.assert_attr_lst
+      ~StructureFileParser.assert_set_attr
+      ~StructureFileParser.assert_set_attr_lst
+      ~StructureFileParser.check_set_attr
+      ~StructureFileParser.check_set_attr_lst
+      ~StructureFileParser.dump
+      ~StructureFileParser.get_cont
+      ~StructureFileParser.get_return_attr
+      ~StructureFileParser.get_struct
+      ~StructureFileParser.init_attr_lst
+      ~StructureFileParser.is_set_attr
+      ~StructureFileParser.is_set_attr_lst
+      ~StructureFileParser.load
+      ~StructureFileParser.parse
+      ~StructureFileParser.raw_return
+      ~StructureFileParser.raw_slice_get
+      ~StructureFileParser.set_all
+      ~StructureFileParser.set_attr_lst
+      ~StructureFileParser.try_set_attr
+      ~StructureFileParser.try_set_attr_lst
+      ~StructureFileParser.update_units
+   
+  
+  
+
+
+  
+  
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree:
+   
+      ~StructureFileParser.default_units
+  
+  

@@ -1,0 +1,6 @@
+pwtools.crys.Structure.try\_set\_attr
+=====================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.try_set_attr

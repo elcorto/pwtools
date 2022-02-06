@@ -1,0 +1,6 @@
+﻿pwtools.\_flib.solve
+====================
+
+.. currentmodule:: pwtools._flib
+
+.. autodata:: solve

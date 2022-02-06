@@ -1,0 +1,262 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>pwtools.crys.rpdf &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="pwtools.crys.scell" href="pwtools.crys.scell.html" />
+    <link rel="prev" title="pwtools.crys.rmsd" href="pwtools.crys.rmsd.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API Reference</a><ul>
+  <li><a href="__sphinx_autodoc_module__pwtools.crys.html">crys</a><ul>
+      <li>Previous: <a href="pwtools.crys.rmsd.html" title="previous chapter">pwtools.crys.rmsd</a></li>
+      <li>Next: <a href="pwtools.crys.scell.html" title="next chapter">pwtools.crys.scell</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="pwtools-crys-rpdf">
+<h1>pwtools.crys.rpdf<a class="headerlink" href="#pwtools-crys-rpdf" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="pwtools.crys.rpdf">
+<span class="sig-prename descclassname"><span class="pre">pwtools.crys.</span></span><span class="sig-name descname"><span class="pre">rpdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dmask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pbc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_vmd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxmem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/crys.html#rpdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.crys.rpdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Radial pair distribution (pair correlation) function for Structures and
+Trajectories. In case of trajectories, the time-averaged RPDF is returned.
+Can also handle non-orthorhombic unit cells (simulation boxes).
+Only fixed-cell MD at the moment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>trajs</strong> (<a class="reference internal" href="pwtools.crys.Structure.html#pwtools.crys.Structure" title="pwtools.crys.Structure"><em>Structure</em></a><em> or </em><a class="reference internal" href="pwtools.crys.Trajectory.html#pwtools.crys.Trajectory" title="pwtools.crys.Trajectory"><em>Trajectory</em></a><em> or </em><em>list of one</em><em> or </em><em>two such objects</em>) – The case <code class="docutils literal notranslate"><span class="pre">len(trajs)==1</span></code> is the same as providing the object directly
+(most common case). Internally we expand the input to <code class="docutils literal notranslate"><span class="pre">[trajs,</span>
+<span class="pre">trajs]</span></code>, i.e. the RPDF of the 2nd coord set w.r.t. to the first is
+calculated – the order matters! This is like selection 1 and 2 in VMD,
+but nornmally you would use <cite>amask</cite> instead. The option to provide a
+list of two Trajectory objects exists for cases where you don’t want to
+use <cite>amask</cite>, but create two different Trajectory objects outside.</p></li>
+<li><p><strong>dr</strong> (<em>float</em><em>, </em><em>optional</em>) – Radius spacing. Must have the same unit as <cite>cell</cite>, e.g. Angstrom.</p></li>
+<li><p><strong>rmax</strong> (<em>{'auto'</em><em>, </em><em>float}</em><em>, </em><em>optional</em>) – <p>Max. radius up to which minimum image nearest neighbors are counted.
+For cubic boxes of side length L, this is L/2 [AT,MD].</p>
+<div class="line-block">
+<div class="line">’auto’ : the method of [Smith] is used to calculate the max. sphere</div>
+<div class="line-block">
+<div class="line">raduis for any cell shape</div>
+</div>
+<div class="line">float : set value yourself</div>
+</div>
+</p></li>
+<li><p><strong>amask</strong> (<em>None</em><em>, </em><em>list of one</em><em> or </em><em>two bool 1d arrays</em><em>, </em><em>list of one</em><em> or </em><em>two strings</em>) – Optional atom mask. This is the complementary functionality to
+<cite>sel</cite> in <a class="reference internal" href="pwtools.crys.vmd_measure_gofr.html#pwtools.crys.vmd_measure_gofr" title="pwtools.crys.vmd_measure_gofr"><code class="xref py py-func docutils literal notranslate"><span class="pre">vmd_measure_gofr()</span></code></a>. If <code class="docutils literal notranslate"><span class="pre">len(amask)==1</span></code>, then we expand
+to <code class="docutils literal notranslate"><span class="pre">[amask,</span> <span class="pre">amask]</span></code> internally, which would calculate the RPDF
+between the same atom selection. If two masks are given, then the first
+is applied to <code class="docutils literal notranslate"><span class="pre">trajs[0]</span></code> and the second to <code class="docutils literal notranslate"><span class="pre">trajs[1]</span></code>. Use this to
+select only certain atoms in each Trajectory. The default is to provide
+bool arrays. If you provide strings, they are assumed to be atom names
+and we create a bool array <code class="docutils literal notranslate"><span class="pre">np.array(symbols)</span> <span class="pre">==</span> <span class="pre">amask[i]</span></code>.</p></li>
+<li><p><strong>tmask</strong> (<em>None</em><em> or </em><em>slice object</em><em>, </em><em>optional</em>) – Time mask. Slice for the time axis, e.g. to use only every 100th step,
+starting from step 2000 to the end, use <code class="docutils literal notranslate"><span class="pre">tmask=slice(2000,None,100)</span></code>,
+which is the same as <code class="docutils literal notranslate"><span class="pre">np.s_[2000::100]</span></code>.</p></li>
+<li><p><strong>dmask</strong> (<em>None</em><em> or </em><em>string</em><em>, </em><em>optional</em>) – <p>Distance mask. Restrict to certain distances using numpy syntax for
+creating bool arrays:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;&gt;=1.0&#39;</span>
+<span class="s1">&#39;</span><span class="si">{d}</span><span class="s1"> &gt;=1.0&#39;</span> <span class="c1"># the same</span>
+<span class="s1">&#39;(</span><span class="si">{d}</span><span class="s1"> &gt; 1.0) &amp; (</span><span class="si">{d}</span><span class="s1"> &lt; 3.0)&#39;</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">{d}</span></code> is a placeholder for the distance array (you really have to
+use <code class="docutils literal notranslate"><span class="pre">{d}</span></code>). The placeholder is optional in some pattern. This is similar
+to VMD’s “within” (<code class="docutils literal notranslate"><span class="pre">pbc=False</span></code>) or “pbwithin” (<code class="docutils literal notranslate"><span class="pre">pbc=True</span></code>) syntax.</p>
+</p></li>
+<li><p><strong>pbc</strong> (<em>bool</em><em>, </em><em>optional</em>) – apply minimum image convention to distances</p></li>
+<li><p><strong>norm_vmd</strong> (<em>bool</em><em>, </em><em>optional</em>) – Normalize <cite>g(r)</cite> like in VMD by counting duplicate atoms and normalize to
+<code class="docutils literal notranslate"><span class="pre">natoms0</span> <span class="pre">*</span> <span class="pre">natoms1</span> <span class="pre">-</span> <span class="pre">duplicates</span></code> instead of <code class="docutils literal notranslate"><span class="pre">natoms0*natoms1</span></code>. Affects
+all-all correlations only. <cite>num_int</cite> is not affected. Use this only for
+testing.</p></li>
+<li><p><strong>maxmem</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximal allowed memory to use, in GB.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>array (len(rad), 3), the columns are</em></p></li>
+<li><p><strong>rad</strong> (<em>1d array</em>) – radius (x-axis) with spacing <cite>dr</cite>, each value r[i] is the middle of a
+histogram bin</p></li>
+<li><p><strong>hist</strong> (<em>1d array, (len(rad),)</em>) – the function values <cite>g(r)</cite></p></li>
+<li><p><strong>num_int</strong> (<em>1d array, (len(rad),)</em>) – the (averaged) number integral <code class="docutils literal notranslate"><span class="pre">number_density*hist*4*pi*r**2.0*dr</span></code></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p><cite>rmax</cite> : The maximal <cite>rmax</cite> for which g(r) is correctly normalized is the
+result of <a class="reference internal" href="pwtools.crys.rmax_smith.html#pwtools.crys.rmax_smith" title="pwtools.crys.rmax_smith"><code class="xref py py-func docutils literal notranslate"><span class="pre">rmax_smith()</span></code></a>, i.e. the radius if the biggest sphere which
+fits entirely into the cell. This is simply L/2 for cubic boxes of side
+length L and volume L**3, for instance. We do explicitely allow <cite>rmax</cite> &gt;
+<cite>rmax_smith</cite> for testing, but be aware that <cite>g(r)</cite> and the number integral
+are <em>wrong</em> for <cite>rmax</cite> &gt; <cite>rmax_smith</cite>.</p>
+<p>Even though the number integral will always converge to the number of all
+neighbors for r -&gt; infinity, the integral value (the number of neigbors) is
+correct only up to <cite>rmax_smith</cite>.</p>
+<p>See <code class="docutils literal notranslate"><span class="pre">examples/rpdf/</span></code> for educational evidence. For notes on how VMD does
+this, see comments in the code below.</p>
+<p>selection : The selection mechanism with <cite>amask</cite> is in principle as capable
+as VMD’s, but relies completely on the user’s ability to create bool arrays
+to filter the atoms. In practice, anything more complicated than
+<code class="docutils literal notranslate"><span class="pre">array(symbols)=='O'</span></code> (“name O” in VMD) is much more difficult than VMD’s
+powerful selection syntax.</p>
+<p>Curently, the atom distances are calculated by using numpy fancy indexing.
+That creates (big) arrays in memory. For data from long MDs, you may run
+into trouble here. For a 20000 step MD, start by using every 200th step or
+so (use <code class="docutils literal notranslate"><span class="pre">tmask=slice(None,None,200)</span></code>) and look at the histogram, as you
+take more and more points into account (every 100th, 50th step, …).
+Especially for Car Parrinello, where time steps are small and the structure
+doesn’t change much, there is no need to use every step. See also <cite>maxmem</cite>.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># simple all-all RPDF, time-averaged over all MD steps</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">rpdf</span><span class="p">(</span><span class="n">traj</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># the same as rpdf(traj,...)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">rpdf</span><span class="p">([</span><span class="n">traj</span><span class="p">],</span> <span class="o">...</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">rpdf</span><span class="p">([</span><span class="n">traj</span><span class="p">,</span> <span class="n">traj</span><span class="p">],</span> <span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># 2 selections: RPDF of all H&#39;s around all O&#39;s, average time step 3000 to</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># end, take every 50th step</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">traj</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">read_cp2k_md</span><span class="p">(</span><span class="s1">&#39;cp2k.out&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">rpdf</span><span class="p">(</span><span class="n">traj</span><span class="p">,</span> <span class="n">dr</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">amask</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;H&#39;</span><span class="p">],</span><span class="n">tmask</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">s_</span><span class="p">[</span><span class="mi">3000</span><span class="p">::</span><span class="mi">50</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">d</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;g(r)&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">twinx</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">d</span><span class="p">[:,</span><span class="mi">2</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;number integral&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># use bool arrays for `amask`, need this for more complicated pattern</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">traj</span><span class="o">.</span><span class="n">symbols</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># VMD: sel1=&#39;name O&#39;, sel2=&#39;name H&#39;, same as amask=[&#39;O&#39;, &#39;H&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">rpdf</span><span class="p">(</span><span class="n">traj</span><span class="p">,</span> <span class="n">dr</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">amask</span><span class="o">=</span><span class="p">[</span><span class="n">sy</span><span class="o">==</span><span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="n">sy</span><span class="o">==</span><span class="s1">&#39;H&#39;</span><span class="p">],</span><span class="n">tmask</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">s_</span><span class="p">[</span><span class="mi">3000</span><span class="p">::</span><span class="mi">50</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># VMD: sel1=&#39;name O&#39;, sel2=&#39;name H Cl&#39;, note that the bool arrays must</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># be logically OR&#39;ed (| operator) to get the ffect of &quot;H and Cl&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">rpdf</span><span class="p">(</span><span class="n">traj</span><span class="p">,</span> <span class="n">dr</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">amask</span><span class="o">=</span><span class="p">[</span><span class="n">sy</span><span class="o">==</span><span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">sy</span><span class="o">==</span><span class="s1">&#39;H&#39;</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">sy</span><span class="o">==</span><span class="s1">&#39;Cl&#39;</span><span class="p">)],</span><span class="n">tmask</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">s_</span><span class="p">[</span><span class="mi">3000</span><span class="p">::</span><span class="mi">50</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># skip distances &gt;1 Ang</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">rpdf</span><span class="p">(</span><span class="n">traj</span><span class="p">,</span> <span class="n">dr</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">amask</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;H&#39;</span><span class="p">],</span><span class="n">tmask</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">s_</span><span class="p">[</span><span class="mi">3000</span><span class="p">::</span><span class="mi">50</span><span class="p">]</span>
+<span class="gp">... </span>         <span class="n">dmask</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">{d}</span><span class="s1">&gt;1.0&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<dl class="simple">
+<dt>[AT] M. P. Allen, D. J. Tildesley, Computer Simulation of Liquids,</dt><dd><p>Clarendon Press, 1989</p>
+</dd>
+<dt>[MD] R. Haberlandt, S. Fritzsche, G. Peinel, K. Heinzinger,</dt><dd><p>Molekulardynamik - Grundlagen und Anwendungen,
+Friedrich Vieweg &amp; Sohn Verlagsgesellschaft 1995</p>
+</dd>
+<dt>[Smith] W. Smith, The Minimum Image Convention in Non-Cubic MD Cells,</dt><dd><p><a class="reference external" href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.57.1696">http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.57.1696</a>
+1989</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/generated/api/pwtools.crys.rpdf.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

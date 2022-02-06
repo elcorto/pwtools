@@ -1,0 +1,6 @@
+﻿pwtools.config.use\_jax
+=======================
+
+.. currentmodule:: pwtools.config
+
+.. autodata:: use_jax

@@ -1,0 +1,6 @@
+pwtools.parse.CifFile.load
+==========================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CifFile.load

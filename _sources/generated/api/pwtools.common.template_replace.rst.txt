@@ -1,0 +1,6 @@
+﻿pwtools.common.template\_replace
+================================
+
+.. currentmodule:: pwtools.common
+
+.. autofunction:: template_replace

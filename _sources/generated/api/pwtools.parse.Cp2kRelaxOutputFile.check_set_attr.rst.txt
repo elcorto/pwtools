@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kRelaxOutputFile.check\_set\_attr
+==================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kRelaxOutputFile.check_set_attr

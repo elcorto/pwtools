@@ -1,0 +1,6 @@
+pwtools.crys.Structure.get\_return\_attr
+========================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.get_return_attr

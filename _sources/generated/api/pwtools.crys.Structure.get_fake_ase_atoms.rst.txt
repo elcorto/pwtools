@@ -1,0 +1,6 @@
+pwtools.crys.Structure.get\_fake\_ase\_atoms
+============================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.get_fake_ase_atoms

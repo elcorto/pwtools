@@ -1,0 +1,29 @@
+
+.. rst file which lists all members of the current module. They will be
+.. handled by the Sphinx autosummary extension.
+
+rbf.core
+========
+
+.. Documentation string which may be at the top of the module.
+.. automodule:: pwtools.rbf.core
+   :no-members:
+   :no-inherited-members:
+
+.. currentmodule:: pwtools.rbf.core
+
+.. Links to members.
+.. autosummary::
+   :toctree:
+
+   JAX_MODE
+   Rbf
+   _np_distsq
+   estimate_p
+   euclidean_dists
+   jit
+   rbf_dct
+   rbf_gauss
+   rbf_inv_multi
+   rbf_multi
+   squared_dists

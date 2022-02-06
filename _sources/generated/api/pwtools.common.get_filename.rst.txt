@@ -1,0 +1,6 @@
+﻿pwtools.common.get\_filename
+============================
+
+.. currentmodule:: pwtools.common
+
+.. autofunction:: get_filename

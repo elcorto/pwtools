@@ -1,0 +1,6 @@
+﻿pwtools.io.wien\_sgroup\_input
+==============================
+
+.. currentmodule:: pwtools.io
+
+.. autofunction:: wien_sgroup_input

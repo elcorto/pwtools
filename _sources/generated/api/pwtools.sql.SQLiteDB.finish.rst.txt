@@ -1,0 +1,6 @@
+pwtools.sql.SQLiteDB.finish
+===========================
+
+.. currentmodule:: pwtools.sql
+
+.. automethod:: SQLiteDB.finish

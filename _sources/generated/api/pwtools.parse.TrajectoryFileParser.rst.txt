@@ -1,0 +1,62 @@
+﻿pwtools.parse.TrajectoryFileParser
+==================================
+
+.. currentmodule:: pwtools.parse
+
+.. autoclass:: TrajectoryFileParser
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~TrajectoryFileParser.apply_units
+      ~TrajectoryFileParser.assert_attr
+      ~TrajectoryFileParser.assert_attr_lst
+      ~TrajectoryFileParser.assert_set_attr
+      ~TrajectoryFileParser.assert_set_attr_lst
+      ~TrajectoryFileParser.check_set_attr
+      ~TrajectoryFileParser.check_set_attr_lst
+      ~TrajectoryFileParser.dump
+      ~TrajectoryFileParser.get_cont
+      ~TrajectoryFileParser.get_return_attr
+      ~TrajectoryFileParser.get_struct
+      ~TrajectoryFileParser.get_traj
+      ~TrajectoryFileParser.init_attr_lst
+      ~TrajectoryFileParser.is_set_attr
+      ~TrajectoryFileParser.is_set_attr_lst
+      ~TrajectoryFileParser.load
+      ~TrajectoryFileParser.parse
+      ~TrajectoryFileParser.raw_return
+      ~TrajectoryFileParser.raw_slice_get
+      ~TrajectoryFileParser.set_all
+      ~TrajectoryFileParser.set_attr_lst
+      ~TrajectoryFileParser.try_set_attr
+      ~TrajectoryFileParser.try_set_attr_lst
+      ~TrajectoryFileParser.update_units
+   
+  
+  
+
+
+  
+  
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree:
+   
+      ~TrajectoryFileParser.default_units
+      ~TrajectoryFileParser.timeaxis
+  
+  

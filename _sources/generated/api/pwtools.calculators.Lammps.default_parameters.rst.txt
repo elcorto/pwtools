@@ -1,0 +1,6 @@
+pwtools.calculators.Lammps.default\_parameters
+==============================================
+
+.. currentmodule:: pwtools.calculators
+
+.. autoattribute:: Lammps.default_parameters

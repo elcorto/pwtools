@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kMDOutputFile.timeaxis
+=======================================
+
+.. currentmodule:: pwtools.parse
+
+.. autoattribute:: Cp2kMDOutputFile.timeaxis

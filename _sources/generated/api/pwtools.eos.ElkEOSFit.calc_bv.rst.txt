@@ -1,0 +1,6 @@
+pwtools.eos.ElkEOSFit.calc\_bv
+==============================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: ElkEOSFit.calc_bv

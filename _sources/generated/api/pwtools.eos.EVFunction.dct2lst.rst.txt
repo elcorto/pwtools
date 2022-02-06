@@ -1,0 +1,6 @@
+pwtools.eos.EVFunction.dct2lst
+==============================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: EVFunction.dct2lst

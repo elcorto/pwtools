@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kSCFOutputFile.update\_units
+=============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kSCFOutputFile.update_units

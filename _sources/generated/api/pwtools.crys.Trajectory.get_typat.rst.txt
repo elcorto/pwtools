@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.get\_typat
+==================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.get_typat

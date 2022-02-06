@@ -1,0 +1,6 @@
+pwtools.parse.LammpsDcdMDOutputFile.raw\_return
+===============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsDcdMDOutputFile.raw_return

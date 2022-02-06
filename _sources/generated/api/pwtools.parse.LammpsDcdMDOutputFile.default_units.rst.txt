@@ -1,0 +1,6 @@
+pwtools.parse.LammpsDcdMDOutputFile.default\_units
+==================================================
+
+.. currentmodule:: pwtools.parse
+
+.. autoattribute:: LammpsDcdMDOutputFile.default_units

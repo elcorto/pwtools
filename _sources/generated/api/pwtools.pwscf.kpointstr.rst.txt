@@ -1,0 +1,6 @@
+﻿pwtools.pwscf.kpointstr
+=======================
+
+.. currentmodule:: pwtools.pwscf
+
+.. autofunction:: kpointstr

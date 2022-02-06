@@ -1,0 +1,75 @@
+﻿pwtools.parse.Cp2kRelaxOutputFile
+=================================
+
+.. currentmodule:: pwtools.parse
+
+.. autoclass:: Cp2kRelaxOutputFile
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~Cp2kRelaxOutputFile.apply_units
+      ~Cp2kRelaxOutputFile.assert_attr
+      ~Cp2kRelaxOutputFile.assert_attr_lst
+      ~Cp2kRelaxOutputFile.assert_set_attr
+      ~Cp2kRelaxOutputFile.assert_set_attr_lst
+      ~Cp2kRelaxOutputFile.check_set_attr
+      ~Cp2kRelaxOutputFile.check_set_attr_lst
+      ~Cp2kRelaxOutputFile.dump
+      ~Cp2kRelaxOutputFile.get_cell
+      ~Cp2kRelaxOutputFile.get_cont
+      ~Cp2kRelaxOutputFile.get_coords
+      ~Cp2kRelaxOutputFile.get_econst
+      ~Cp2kRelaxOutputFile.get_ekin
+      ~Cp2kRelaxOutputFile.get_etot
+      ~Cp2kRelaxOutputFile.get_forces
+      ~Cp2kRelaxOutputFile.get_natoms
+      ~Cp2kRelaxOutputFile.get_return_attr
+      ~Cp2kRelaxOutputFile.get_stress
+      ~Cp2kRelaxOutputFile.get_struct
+      ~Cp2kRelaxOutputFile.get_symbols
+      ~Cp2kRelaxOutputFile.get_temperature
+      ~Cp2kRelaxOutputFile.get_timestep
+      ~Cp2kRelaxOutputFile.get_traj
+      ~Cp2kRelaxOutputFile.get_velocity
+      ~Cp2kRelaxOutputFile.get_volume
+      ~Cp2kRelaxOutputFile.init_attr_lst
+      ~Cp2kRelaxOutputFile.is_set_attr
+      ~Cp2kRelaxOutputFile.is_set_attr_lst
+      ~Cp2kRelaxOutputFile.load
+      ~Cp2kRelaxOutputFile.parse
+      ~Cp2kRelaxOutputFile.raw_return
+      ~Cp2kRelaxOutputFile.raw_slice_get
+      ~Cp2kRelaxOutputFile.set_all
+      ~Cp2kRelaxOutputFile.set_attr_lst
+      ~Cp2kRelaxOutputFile.try_set_attr
+      ~Cp2kRelaxOutputFile.try_set_attr_lst
+      ~Cp2kRelaxOutputFile.update_units
+   
+  
+  
+
+
+  
+  
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree:
+   
+      ~Cp2kRelaxOutputFile.default_units
+      ~Cp2kRelaxOutputFile.timeaxis
+  
+  

@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.compress
+================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.compress

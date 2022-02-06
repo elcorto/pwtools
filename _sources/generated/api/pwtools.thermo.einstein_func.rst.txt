@@ -1,0 +1,6 @@
+﻿pwtools.thermo.einstein\_func
+=============================
+
+.. currentmodule:: pwtools.thermo
+
+.. autofunction:: einstein_func

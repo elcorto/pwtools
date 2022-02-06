@@ -1,0 +1,6 @@
+pwtools.parse.PwSCFOutputFile.update\_units
+===========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwSCFOutputFile.update_units

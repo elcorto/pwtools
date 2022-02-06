@@ -1,0 +1,6 @@
+﻿pwtools.parse.arr1d\_from\_txt
+==============================
+
+.. currentmodule:: pwtools.parse
+
+.. autofunction:: arr1d_from_txt

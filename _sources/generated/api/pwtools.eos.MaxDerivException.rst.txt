@@ -1,0 +1,6 @@
+﻿pwtools.eos.MaxDerivException
+=============================
+
+.. currentmodule:: pwtools.eos
+
+.. autoexception:: MaxDerivException

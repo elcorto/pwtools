@@ -1,0 +1,6 @@
+pwtools.calculators.Lammps.init\_params\_from\_input
+====================================================
+
+.. currentmodule:: pwtools.calculators
+
+.. automethod:: Lammps.init_params_from_input

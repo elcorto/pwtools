@@ -1,0 +1,6 @@
+pwtools.calculators.Pwscf.infile\_templ
+=======================================
+
+.. currentmodule:: pwtools.calculators
+
+.. autoattribute:: Pwscf.infile_templ

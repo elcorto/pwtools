@@ -1,0 +1,6 @@
+﻿pwtools.regex.float\_re
+=======================
+
+.. currentmodule:: pwtools.regex
+
+.. autodata:: float_re

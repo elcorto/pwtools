@@ -1,0 +1,6 @@
+pwtools.parse.LammpsTextMDOutputFile.get\_timestep
+==================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsTextMDOutputFile.get_timestep

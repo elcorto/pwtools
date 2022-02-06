@@ -1,0 +1,6 @@
+pwtools.parse.CifFile.default\_units
+====================================
+
+.. currentmodule:: pwtools.parse
+
+.. autoattribute:: CifFile.default_units

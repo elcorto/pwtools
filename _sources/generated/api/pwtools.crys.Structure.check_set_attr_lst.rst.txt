@@ -1,0 +1,6 @@
+pwtools.crys.Structure.check\_set\_attr\_lst
+============================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.check_set_attr_lst

@@ -1,0 +1,6 @@
+pwtools.crys.FakeASEAtoms.set\_all
+==================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: FakeASEAtoms.set_all

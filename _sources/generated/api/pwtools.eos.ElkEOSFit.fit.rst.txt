@@ -1,0 +1,6 @@
+pwtools.eos.ElkEOSFit.fit
+=========================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: ElkEOSFit.fit

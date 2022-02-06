@@ -1,0 +1,6 @@
+pwtools.calculators.Lammps.implemented\_properties
+==================================================
+
+.. currentmodule:: pwtools.calculators
+
+.. autoattribute:: Lammps.implemented_properties

@@ -1,0 +1,32 @@
+﻿pwtools.mpl.Data3D
+==================
+
+.. currentmodule:: pwtools.mpl
+
+.. autoclass:: Data3D
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~Data3D.copy
+      ~Data3D.update
+   
+  
+  
+
+
+  
+  
+  

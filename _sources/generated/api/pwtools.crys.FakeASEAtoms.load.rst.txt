@@ -1,0 +1,6 @@
+pwtools.crys.FakeASEAtoms.load
+==============================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: FakeASEAtoms.load

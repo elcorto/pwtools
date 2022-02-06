@@ -1,0 +1,6 @@
+﻿pwtools.crys.volume\_cell3d
+===========================
+
+.. currentmodule:: pwtools.crys
+
+.. autofunction:: volume_cell3d

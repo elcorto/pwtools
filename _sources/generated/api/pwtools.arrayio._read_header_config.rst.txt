@@ -1,0 +1,6 @@
+﻿pwtools.arrayio.\_read\_header\_config
+======================================
+
+.. currentmodule:: pwtools.arrayio
+
+.. autofunction:: _read_header_config

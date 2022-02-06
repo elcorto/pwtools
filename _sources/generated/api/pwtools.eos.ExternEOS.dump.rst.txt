@@ -1,0 +1,6 @@
+pwtools.eos.ExternEOS.dump
+==========================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: ExternEOS.dump

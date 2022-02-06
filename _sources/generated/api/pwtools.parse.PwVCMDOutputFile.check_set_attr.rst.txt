@@ -1,0 +1,6 @@
+pwtools.parse.PwVCMDOutputFile.check\_set\_attr
+===============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwVCMDOutputFile.check_set_attr

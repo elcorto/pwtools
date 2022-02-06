@@ -1,0 +1,6 @@
+pwtools.eos.ElkEOSFit.dump
+==========================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: ElkEOSFit.dump

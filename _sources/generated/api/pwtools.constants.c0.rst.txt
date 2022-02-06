@@ -1,0 +1,6 @@
+﻿pwtools.constants.c0
+====================
+
+.. currentmodule:: pwtools.constants
+
+.. autodata:: c0

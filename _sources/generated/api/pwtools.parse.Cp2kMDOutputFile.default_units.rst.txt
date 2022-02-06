@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kMDOutputFile.default\_units
+=============================================
+
+.. currentmodule:: pwtools.parse
+
+.. autoattribute:: Cp2kMDOutputFile.default_units

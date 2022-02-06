@@ -1,0 +1,6 @@
+﻿pwtools.num.distsq
+==================
+
+.. currentmodule:: pwtools.num
+
+.. autofunction:: distsq

@@ -1,0 +1,6 @@
+﻿pwtools.rbf.core.rbf\_gauss
+===========================
+
+.. currentmodule:: pwtools.rbf.core
+
+.. autofunction:: rbf_gauss

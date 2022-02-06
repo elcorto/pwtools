@@ -1,0 +1,6 @@
+﻿pwtools.num.rms3d
+=================
+
+.. currentmodule:: pwtools.num
+
+.. autofunction:: rms3d

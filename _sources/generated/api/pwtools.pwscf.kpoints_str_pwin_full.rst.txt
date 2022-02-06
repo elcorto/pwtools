@@ -1,0 +1,6 @@
+﻿pwtools.pwscf.kpoints\_str\_pwin\_full
+======================================
+
+.. currentmodule:: pwtools.pwscf
+
+.. autofunction:: kpoints_str_pwin_full

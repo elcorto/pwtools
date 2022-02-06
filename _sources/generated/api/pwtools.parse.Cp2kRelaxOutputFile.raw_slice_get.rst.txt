@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kRelaxOutputFile.raw\_slice\_get
+=================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kRelaxOutputFile.raw_slice_get

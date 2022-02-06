@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kRelaxOutputFile.dump
+======================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kRelaxOutputFile.dump

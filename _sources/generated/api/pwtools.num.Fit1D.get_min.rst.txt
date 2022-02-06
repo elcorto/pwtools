@@ -1,0 +1,6 @@
+pwtools.num.Fit1D.get\_min
+==========================
+
+.. currentmodule:: pwtools.num
+
+.. automethod:: Fit1D.get_min

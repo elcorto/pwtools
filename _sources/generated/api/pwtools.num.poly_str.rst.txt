@@ -1,0 +1,6 @@
+﻿pwtools.num.poly\_str
+=====================
+
+.. currentmodule:: pwtools.num
+
+.. autofunction:: poly_str

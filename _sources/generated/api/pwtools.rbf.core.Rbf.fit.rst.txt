@@ -1,0 +1,6 @@
+pwtools.rbf.core.Rbf.fit
+========================
+
+.. currentmodule:: pwtools.rbf.core
+
+.. automethod:: Rbf.fit

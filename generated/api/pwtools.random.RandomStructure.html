@@ -1,0 +1,185 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>pwtools.random.RandomStructure &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="pwtools.random.RandomStructure.get_random_cryst_const" href="pwtools.random.RandomStructure.get_random_cryst_const.html" />
+    <link rel="prev" title="random" href="__sphinx_autodoc_module__pwtools.random.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API Reference</a><ul>
+  <li><a href="__sphinx_autodoc_module__pwtools.random.html">random</a><ul>
+      <li>Previous: <a href="__sphinx_autodoc_module__pwtools.random.html" title="previous chapter">random</a></li>
+      <li>Next: <a href="pwtools.random.RandomStructure.get_random_cryst_const.html" title="next chapter">pwtools.random.RandomStructure.get_random_cryst_const</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="pwtools-random-randomstructure">
+<h1>pwtools.random.RandomStructure<a class="headerlink" href="#pwtools-random-randomstructure" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="pwtools.random.RandomStructure">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pwtools.random.</span></span><span class="sig-name descname"><span class="pre">RandomStructure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vol_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[60.0,</span> <span class="pre">120.0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vol_range_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.7,</span> <span class="pre">1.3]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length_range_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.7,</span> <span class="pre">1.3]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">close_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_maxtry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_maxtry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/random.html#RandomStructure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.random.RandomStructure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Create a random structure, based on atom number and composition alone
+(<cite>symbols</cite>).</p>
+<p>The mean target cell volume and cell side lengths are determined from covalent
+radii of all atoms (see pwtools.atomic_data.covalent_radii).</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rs</span> <span class="o">=</span> <span class="n">crys</span><span class="o">.</span><span class="n">RandomStructure</span><span class="p">([</span><span class="s1">&#39;Si&#39;</span><span class="p">]</span><span class="o">*</span><span class="mi">50</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">st</span> <span class="o">=</span> <span class="n">rs</span><span class="o">.</span><span class="n">get_random_struct</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>For many atoms (~ 200), the creation takes a while b/c as more and more
+atoms are already present, we need many more tries to get another random
+atom into the struct. Then, _atoms_too_close() is called a lot, which is the
+bottleneck. Hint: <code class="docutils literal notranslate"><span class="pre">plot(rs.counters['coords'])</span></code>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pwtools.random.RandomStructure.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vol_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[60.0,</span> <span class="pre">120.0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vol_range_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.7,</span> <span class="pre">1.3]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length_range_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.7,</span> <span class="pre">1.3]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">close_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_maxtry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_maxtry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/random.html#RandomStructure.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.random.RandomStructure.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>symbols</strong> (<em>list of strings</em>) – Atom symbols. Defines number of atoms and composition.</p></li>
+<li><p><strong>vol_scale</strong> (<em>float</em>) – Scale volume estimated from sum of covalent spheres (lower bound
+for volume). Only values &gt; 1 make sense. This is used
+to get the mean target volume (increase “the holes” between spheres).
+Large values will create large cells with much space between atoms.</p></li>
+<li><p><strong>angle_range</strong> (<em>sequence of 2 floats</em><em> [</em><em>min</em><em>, </em><em>max</em><em>]</em>) – Range of allowed random cell angles.</p></li>
+<li><p><strong>vol_range_scale</strong> (<em>sequence of 2 floats</em><em> [</em><em>min</em><em>, </em><em>max</em><em>]</em>) – Scale estimated mean volume by <cite>min</cite> and <cite>max</cite> to get allowed
+volume range.</p></li>
+<li><p><strong>length_range_scale</strong> (<em>sequence of 2 floats</em><em> [</em><em>min</em><em>, </em><em>max</em><em>]</em>) – Scale estimated mean cell side length (3rd root of mean volume)
+by <cite>min</cite> and <cite>max</cite> to get allowed cell side range.</p></li>
+<li><p><strong>close_scale</strong> (<em>float</em>) – Scale allowed distance between atoms (from sum of covalent radii).
+Use &lt; 1.0 to make tightly packed structures, i.e. small values will
+allow close atoms, large values make big spaces but will also
+make the structure generation more likely to fail.</p></li>
+<li><p><strong>atom_maxtry</strong> (<em>cell_maxtry /</em>) – Maximal attempts to create a random cell / insert random atom into
+cell before RandomStructureFail is raised.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Print stuff while trying to generate structs.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Methods</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.random.RandomStructure.get_random_cryst_const.html#pwtools.random.RandomStructure.get_random_cryst_const" title="pwtools.random.RandomStructure.get_random_cryst_const"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_random_cryst_const</span></code></a>()</p></td>
+<td><p>Create random cryst_const.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.random.RandomStructure.get_random_struct.html#pwtools.random.RandomStructure.get_random_struct" title="pwtools.random.RandomStructure.get_random_struct"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_random_struct</span></code></a>([fail])</p></td>
+<td><p>Generate random cryst_const and atom coords.</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/generated/api/pwtools.random.RandomStructure.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

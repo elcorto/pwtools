@@ -1,0 +1,6 @@
+﻿pwtools.crys.struct2traj
+========================
+
+.. currentmodule:: pwtools.crys
+
+.. autofunction:: struct2traj

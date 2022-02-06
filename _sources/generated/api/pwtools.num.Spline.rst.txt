@@ -1,0 +1,40 @@
+﻿pwtools.num.Spline
+==================
+
+.. currentmodule:: pwtools.num
+
+.. autoclass:: Spline
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. automethod:: __call__
+
+ 
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~Spline.get_max
+      ~Spline.get_min
+      ~Spline.get_root
+      ~Spline.invsplev
+      ~Spline.is_mono
+      ~Spline.splev
+   
+  
+  
+
+
+  
+  
+  

@@ -1,0 +1,6 @@
+pwtools.num.PolyFit.get\_min
+============================
+
+.. currentmodule:: pwtools.num
+
+.. automethod:: PolyFit.get_min

@@ -1,0 +1,6 @@
+﻿pwtools.num.polyval
+===================
+
+.. currentmodule:: pwtools.num
+
+.. autofunction:: polyval

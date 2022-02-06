@@ -1,0 +1,6 @@
+pwtools.eos.Vinet.lst2dct
+=========================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: Vinet.lst2dct

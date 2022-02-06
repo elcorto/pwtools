@@ -1,0 +1,35 @@
+﻿pwtools.num.Interpol2D
+======================
+
+.. currentmodule:: pwtools.num
+
+.. autoclass:: Interpol2D
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. automethod:: __call__
+
+ 
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~Interpol2D.get_min
+   
+  
+  
+
+
+  
+  
+  

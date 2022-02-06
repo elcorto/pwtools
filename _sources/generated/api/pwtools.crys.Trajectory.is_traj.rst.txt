@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.is\_traj
+================================
+
+.. currentmodule:: pwtools.crys
+
+.. autoattribute:: Trajectory.is_traj

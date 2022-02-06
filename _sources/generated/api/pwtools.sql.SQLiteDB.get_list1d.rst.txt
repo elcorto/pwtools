@@ -1,0 +1,6 @@
+pwtools.sql.SQLiteDB.get\_list1d
+================================
+
+.. currentmodule:: pwtools.sql
+
+.. automethod:: SQLiteDB.get_list1d

@@ -1,0 +1,6 @@
+pwtools.parse.CpmdMDOutputFile.get\_econst
+==========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CpmdMDOutputFile.get_econst

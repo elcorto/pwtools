@@ -1,0 +1,6 @@
+﻿pwtools.thermo.hplanck
+======================
+
+.. currentmodule:: pwtools.thermo
+
+.. autodata:: hplanck

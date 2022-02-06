@@ -1,0 +1,6 @@
+pwtools.parse.PwMDOutputFile.timeaxis
+=====================================
+
+.. currentmodule:: pwtools.parse
+
+.. autoattribute:: PwMDOutputFile.timeaxis

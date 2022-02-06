@@ -1,0 +1,6 @@
+pwtools.parse.LammpsDcdMDOutputFile.get\_volume
+===============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsDcdMDOutputFile.get_volume

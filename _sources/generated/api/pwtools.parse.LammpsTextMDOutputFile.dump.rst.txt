@@ -1,0 +1,6 @@
+pwtools.parse.LammpsTextMDOutputFile.dump
+=========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsTextMDOutputFile.dump

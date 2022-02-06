@@ -1,0 +1,6 @@
+pwtools.crys.FakeASEAtoms.raw\_return
+=====================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: FakeASEAtoms.raw_return

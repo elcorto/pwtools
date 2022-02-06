@@ -1,0 +1,6 @@
+﻿pwtools.symmetry.spglib\_get\_primitive
+=======================================
+
+.. currentmodule:: pwtools.symmetry
+
+.. autofunction:: spglib_get_primitive

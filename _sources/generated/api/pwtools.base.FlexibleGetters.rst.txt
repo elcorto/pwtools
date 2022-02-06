@@ -1,0 +1,48 @@
+﻿pwtools.base.FlexibleGetters
+============================
+
+.. currentmodule:: pwtools.base
+
+.. autoclass:: FlexibleGetters
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~FlexibleGetters.assert_attr
+      ~FlexibleGetters.assert_attr_lst
+      ~FlexibleGetters.assert_set_attr
+      ~FlexibleGetters.assert_set_attr_lst
+      ~FlexibleGetters.check_set_attr
+      ~FlexibleGetters.check_set_attr_lst
+      ~FlexibleGetters.dump
+      ~FlexibleGetters.get_return_attr
+      ~FlexibleGetters.init_attr_lst
+      ~FlexibleGetters.is_set_attr
+      ~FlexibleGetters.is_set_attr_lst
+      ~FlexibleGetters.load
+      ~FlexibleGetters.raw_return
+      ~FlexibleGetters.raw_slice_get
+      ~FlexibleGetters.set_all
+      ~FlexibleGetters.set_attr_lst
+      ~FlexibleGetters.try_set_attr
+      ~FlexibleGetters.try_set_attr_lst
+   
+  
+  
+
+
+  
+  
+  

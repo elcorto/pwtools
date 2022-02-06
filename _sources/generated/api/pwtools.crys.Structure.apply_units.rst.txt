@@ -1,0 +1,6 @@
+pwtools.crys.Structure.apply\_units
+===================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.apply_units

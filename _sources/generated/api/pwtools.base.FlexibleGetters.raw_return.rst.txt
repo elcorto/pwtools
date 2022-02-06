@@ -1,0 +1,6 @@
+pwtools.base.FlexibleGetters.raw\_return
+========================================
+
+.. currentmodule:: pwtools.base
+
+.. automethod:: FlexibleGetters.raw_return

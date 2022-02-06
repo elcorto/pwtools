@@ -1,0 +1,6 @@
+pwtools.crys.Structure.get\_pressure
+====================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.get_pressure

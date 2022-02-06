@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kSCFOutputFile.load
+====================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kSCFOutputFile.load

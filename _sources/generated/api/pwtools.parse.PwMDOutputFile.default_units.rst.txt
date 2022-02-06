@@ -1,0 +1,6 @@
+pwtools.parse.PwMDOutputFile.default\_units
+===========================================
+
+.. currentmodule:: pwtools.parse
+
+.. autoattribute:: PwMDOutputFile.default_units

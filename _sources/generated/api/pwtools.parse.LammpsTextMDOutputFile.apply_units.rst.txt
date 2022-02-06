@@ -1,0 +1,6 @@
+pwtools.parse.LammpsTextMDOutputFile.apply\_units
+=================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsTextMDOutputFile.apply_units

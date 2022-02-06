@@ -1,0 +1,6 @@
+﻿pwtools.crys.volume\_cc3d
+=========================
+
+.. currentmodule:: pwtools.crys
+
+.. autofunction:: volume_cc3d

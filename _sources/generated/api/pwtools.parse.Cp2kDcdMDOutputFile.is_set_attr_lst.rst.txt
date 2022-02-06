@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kDcdMDOutputFile.is\_set\_attr\_lst
+====================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kDcdMDOutputFile.is_set_attr_lst

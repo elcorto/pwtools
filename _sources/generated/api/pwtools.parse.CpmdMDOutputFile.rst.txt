@@ -1,0 +1,83 @@
+﻿pwtools.parse.CpmdMDOutputFile
+==============================
+
+.. currentmodule:: pwtools.parse
+
+.. autoclass:: CpmdMDOutputFile
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~CpmdMDOutputFile.apply_units
+      ~CpmdMDOutputFile.assert_attr
+      ~CpmdMDOutputFile.assert_attr_lst
+      ~CpmdMDOutputFile.assert_set_attr
+      ~CpmdMDOutputFile.assert_set_attr_lst
+      ~CpmdMDOutputFile.check_set_attr
+      ~CpmdMDOutputFile.check_set_attr_lst
+      ~CpmdMDOutputFile.dump
+      ~CpmdMDOutputFile.get_cell
+      ~CpmdMDOutputFile.get_cont
+      ~CpmdMDOutputFile.get_coords
+      ~CpmdMDOutputFile.get_coords_frac
+      ~CpmdMDOutputFile.get_econst
+      ~CpmdMDOutputFile.get_ekin
+      ~CpmdMDOutputFile.get_ekin_cell
+      ~CpmdMDOutputFile.get_ekin_elec
+      ~CpmdMDOutputFile.get_ekinc
+      ~CpmdMDOutputFile.get_ekinh
+      ~CpmdMDOutputFile.get_etot
+      ~CpmdMDOutputFile.get_forces
+      ~CpmdMDOutputFile.get_natoms
+      ~CpmdMDOutputFile.get_nkpoints
+      ~CpmdMDOutputFile.get_nstep_scf
+      ~CpmdMDOutputFile.get_return_attr
+      ~CpmdMDOutputFile.get_scf_converged
+      ~CpmdMDOutputFile.get_stress
+      ~CpmdMDOutputFile.get_struct
+      ~CpmdMDOutputFile.get_symbols
+      ~CpmdMDOutputFile.get_temperature
+      ~CpmdMDOutputFile.get_temperature_cell
+      ~CpmdMDOutputFile.get_timestep
+      ~CpmdMDOutputFile.get_traj
+      ~CpmdMDOutputFile.get_velocity
+      ~CpmdMDOutputFile.init_attr_lst
+      ~CpmdMDOutputFile.is_set_attr
+      ~CpmdMDOutputFile.is_set_attr_lst
+      ~CpmdMDOutputFile.load
+      ~CpmdMDOutputFile.parse
+      ~CpmdMDOutputFile.raw_return
+      ~CpmdMDOutputFile.raw_slice_get
+      ~CpmdMDOutputFile.set_all
+      ~CpmdMDOutputFile.set_attr_lst
+      ~CpmdMDOutputFile.try_set_attr
+      ~CpmdMDOutputFile.try_set_attr_lst
+      ~CpmdMDOutputFile.update_units
+   
+  
+  
+
+
+  
+  
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree:
+   
+      ~CpmdMDOutputFile.default_units
+      ~CpmdMDOutputFile.timeaxis
+  
+  

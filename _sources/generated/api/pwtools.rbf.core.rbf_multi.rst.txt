@@ -1,0 +1,6 @@
+﻿pwtools.rbf.core.rbf\_multi
+===========================
+
+.. currentmodule:: pwtools.rbf.core
+
+.. autofunction:: rbf_multi

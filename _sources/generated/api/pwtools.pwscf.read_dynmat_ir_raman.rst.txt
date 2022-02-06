@@ -1,0 +1,6 @@
+﻿pwtools.pwscf.read\_dynmat\_ir\_raman
+=====================================
+
+.. currentmodule:: pwtools.pwscf
+
+.. autofunction:: read_dynmat_ir_raman

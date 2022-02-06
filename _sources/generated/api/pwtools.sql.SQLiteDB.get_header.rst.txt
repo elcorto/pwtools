@@ -1,0 +1,6 @@
+pwtools.sql.SQLiteDB.get\_header
+================================
+
+.. currentmodule:: pwtools.sql
+
+.. automethod:: SQLiteDB.get_header

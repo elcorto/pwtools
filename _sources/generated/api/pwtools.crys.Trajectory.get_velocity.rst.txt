@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.get\_velocity
+=====================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.get_velocity

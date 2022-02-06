@@ -1,0 +1,6 @@
+pwtools.parse.LammpsTextMDOutputFile.get\_traj
+==============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsTextMDOutputFile.get_traj

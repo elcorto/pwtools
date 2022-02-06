@@ -1,0 +1,6 @@
+pwtools.parse.CpmdMDOutputFile.get\_timestep
+============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CpmdMDOutputFile.get_timestep

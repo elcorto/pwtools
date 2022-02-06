@@ -1,0 +1,6 @@
+pwtools.parse.TrajectoryFileParser.get\_struct
+==============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: TrajectoryFileParser.get_struct

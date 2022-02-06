@@ -1,0 +1,6 @@
+pwtools.parse.PwVCMDOutputFile.get\_cell
+========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwVCMDOutputFile.get_cell

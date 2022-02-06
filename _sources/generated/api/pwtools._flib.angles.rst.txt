@@ -1,0 +1,6 @@
+﻿pwtools.\_flib.angles
+=====================
+
+.. currentmodule:: pwtools._flib
+
+.. autodata:: angles

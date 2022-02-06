@@ -1,0 +1,6 @@
+pwtools.parse.PwSCFOutputFile.apply\_units
+==========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwSCFOutputFile.apply_units

@@ -1,0 +1,6 @@
+pwtools.parse.CpmdMDOutputFile.get\_temperature\_cell
+=====================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CpmdMDOutputFile.get_temperature_cell

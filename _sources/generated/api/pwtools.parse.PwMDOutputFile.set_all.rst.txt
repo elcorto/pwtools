@@ -1,0 +1,6 @@
+pwtools.parse.PwMDOutputFile.set\_all
+=====================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwMDOutputFile.set_all

@@ -1,0 +1,6 @@
+﻿pwtools.io.read\_cif
+====================
+
+.. currentmodule:: pwtools.io
+
+.. autodata:: read_cif

@@ -1,0 +1,6 @@
+﻿pwtools.common.frepr
+====================
+
+.. currentmodule:: pwtools.common
+
+.. autofunction:: frepr

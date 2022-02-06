@@ -1,0 +1,6 @@
+pwtools.crys.Structure.get\_stress
+==================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.get_stress

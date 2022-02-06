@@ -1,0 +1,6 @@
+pwtools.parse.StructureFileParser.apply\_units
+==============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: StructureFileParser.apply_units

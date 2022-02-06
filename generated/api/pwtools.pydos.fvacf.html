@@ -1,0 +1,180 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>pwtools.pydos.fvacf &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="pwtools.pydos.pdos" href="pwtools.pydos.pdos.html" />
+    <link rel="prev" title="pwtools.pydos.direct_pdos" href="pwtools.pydos.direct_pdos.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API Reference</a><ul>
+  <li><a href="__sphinx_autodoc_module__pwtools.pydos.html">pydos</a><ul>
+      <li>Previous: <a href="pwtools.pydos.direct_pdos.html" title="previous chapter">pwtools.pydos.direct_pdos</a></li>
+      <li>Next: <a href="pwtools.pydos.pdos.html" title="next chapter">pwtools.pydos.pdos</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="pwtools-pydos-fvacf">
+<h1>pwtools.pydos.fvacf<a class="headerlink" href="#pwtools-pydos-fvacf" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="pwtools.pydos.fvacf">
+<span class="sig-prename descclassname"><span class="pre">pwtools.pydos.</span></span><span class="sig-name descname"><span class="pre">fvacf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nthreads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/pydos.html#fvacf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.pydos.fvacf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interface to Fortran function _flib.vacf(). Otherwise same
+functionallity as pyvacf(). Use this for production calculations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vel</strong> (<em>3d array</em><em>, </em><em>(</em><em>nstep</em><em>, </em><em>natoms</em><em>, </em><em>3</em><em>)</em>) – Atomic velocities.</p></li>
+<li><p><strong>m</strong> (<em>1d array</em><em> (</em><em>natoms</em><em>,</em><em>)</em>) – Atomic masses.</p></li>
+<li><p><strong>method</strong> (<em>int</em>) – <div class="line-block">
+<div class="line">1 : loops</div>
+<div class="line">2 : vectorized loops</div>
+</div>
+</p></li>
+<li><p><strong>nthreads</strong> (<em>int ot None</em>) – If int, then use this many OpenMP threads in the Fortran extension.
+Only useful if the extension was compiled with OpenMP support, of
+course.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>c</strong> – VACF</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>1d array (nstep,)</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Fortran extension:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python -c &quot;import _flib; print(_flib.vacf.__doc__)&quot;
+vacf - Function signature:
+  c = vacf(v,m,c,method,use_m,[nthreads,natoms,nstep])
+Required arguments:
+  v : input rank-3 array(&#39;d&#39;) with bounds (natoms,3,nstep)
+  m : input rank-1 array(&#39;d&#39;) with bounds (natoms)
+  c : input rank-1 array(&#39;d&#39;) with bounds (nstep)
+  method : input int
+  use_m : input int
+Optional arguments:
+  nthreads : input int
+  natoms := shape(v,0) input int
+  nstep := shape(v,2) input int
+Return objects:
+  c : rank-1 array(&#39;d&#39;) with bounds (nstep)
+</pre></div>
+</div>
+<dl class="simple">
+<dt>Shape of <cite>vel</cite>: The old array shapes were (natoms, 3, nstep), the new is</dt><dd><p>(nstep,natoms,3). B/c we don’t want to adapt flib.f90, we change
+vel’s shape before passing it to the extension.</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="__sphinx_autodoc_module__pwtools._flib.html#module-pwtools._flib" title="pwtools._flib"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pwtools._flib</span></code></a>, <a class="reference internal" href="pwtools.pydos.vacf_pdos.html#pwtools.pydos.vacf_pdos" title="pwtools.pydos.vacf_pdos"><code class="xref py py-func docutils literal notranslate"><span class="pre">vacf_pdos()</span></code></a></p>
+</div>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/generated/api/pwtools.pydos.fvacf.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

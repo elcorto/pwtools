@@ -1,0 +1,6 @@
+pwtools.calculators.Lammps.read\_results
+========================================
+
+.. currentmodule:: pwtools.calculators
+
+.. automethod:: Lammps.read_results

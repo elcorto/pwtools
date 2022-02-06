@@ -1,0 +1,6 @@
+﻿pwtools.signal.find\_peaks
+==========================
+
+.. currentmodule:: pwtools.signal
+
+.. autofunction:: find_peaks

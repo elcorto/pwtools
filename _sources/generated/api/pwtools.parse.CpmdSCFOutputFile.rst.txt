@@ -1,0 +1,70 @@
+﻿pwtools.parse.CpmdSCFOutputFile
+===============================
+
+.. currentmodule:: pwtools.parse
+
+.. autoclass:: CpmdSCFOutputFile
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~CpmdSCFOutputFile.apply_units
+      ~CpmdSCFOutputFile.assert_attr
+      ~CpmdSCFOutputFile.assert_attr_lst
+      ~CpmdSCFOutputFile.assert_set_attr
+      ~CpmdSCFOutputFile.assert_set_attr_lst
+      ~CpmdSCFOutputFile.check_set_attr
+      ~CpmdSCFOutputFile.check_set_attr_lst
+      ~CpmdSCFOutputFile.dump
+      ~CpmdSCFOutputFile.get_cell
+      ~CpmdSCFOutputFile.get_cont
+      ~CpmdSCFOutputFile.get_coords_frac
+      ~CpmdSCFOutputFile.get_etot
+      ~CpmdSCFOutputFile.get_forces
+      ~CpmdSCFOutputFile.get_natoms
+      ~CpmdSCFOutputFile.get_nkpoints
+      ~CpmdSCFOutputFile.get_nstep_scf
+      ~CpmdSCFOutputFile.get_return_attr
+      ~CpmdSCFOutputFile.get_scf_converged
+      ~CpmdSCFOutputFile.get_stress
+      ~CpmdSCFOutputFile.get_struct
+      ~CpmdSCFOutputFile.get_symbols
+      ~CpmdSCFOutputFile.init_attr_lst
+      ~CpmdSCFOutputFile.is_set_attr
+      ~CpmdSCFOutputFile.is_set_attr_lst
+      ~CpmdSCFOutputFile.load
+      ~CpmdSCFOutputFile.parse
+      ~CpmdSCFOutputFile.raw_return
+      ~CpmdSCFOutputFile.raw_slice_get
+      ~CpmdSCFOutputFile.set_all
+      ~CpmdSCFOutputFile.set_attr_lst
+      ~CpmdSCFOutputFile.try_set_attr
+      ~CpmdSCFOutputFile.try_set_attr_lst
+      ~CpmdSCFOutputFile.update_units
+   
+  
+  
+
+
+  
+  
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree:
+   
+      ~CpmdSCFOutputFile.default_units
+  
+  

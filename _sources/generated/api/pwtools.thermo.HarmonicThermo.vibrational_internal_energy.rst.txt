@@ -1,0 +1,6 @@
+pwtools.thermo.HarmonicThermo.vibrational\_internal\_energy
+===========================================================
+
+.. currentmodule:: pwtools.thermo
+
+.. automethod:: HarmonicThermo.vibrational_internal_energy

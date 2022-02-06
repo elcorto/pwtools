@@ -1,0 +1,6 @@
+pwtools.crys.FakeASEAtoms.get\_volume
+=====================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: FakeASEAtoms.get_volume

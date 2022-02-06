@@ -1,0 +1,6 @@
+pwtools.crys.FakeASEAtoms.get\_spglib
+=====================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: FakeASEAtoms.get_spglib

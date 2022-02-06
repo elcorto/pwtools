@@ -1,0 +1,6 @@
+﻿pwtools.constants.R
+===================
+
+.. currentmodule:: pwtools.constants
+
+.. autodata:: R

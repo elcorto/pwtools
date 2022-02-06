@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kMDOutputFile.is\_set\_attr
+============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kMDOutputFile.is_set_attr

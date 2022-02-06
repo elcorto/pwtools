@@ -1,0 +1,6 @@
+pwtools.parse.LammpsDcdMDOutputFile.raw\_slice\_get
+===================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsDcdMDOutputFile.raw_slice_get

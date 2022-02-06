@@ -1,0 +1,239 @@
+Installation
+============
+
+To build the extension modules and install all Python dependencies via
+``pip``::
+
+    $ pip install .
+
+or the setuptools "development install" (no copy of files)::
+
+    $ pip install -e .
+
+In both cases we build the extension modules via::
+
+    $ cd src && make clean && make && cd ..
+
+in the background.
+
+If all dependencies are installed, e.g. by a package manager such as ``apt``,
+then recent ``pip`` versions should pick those up. Alternatively force ``pip``
+to install only the package without installing dependencies from pypi::
+
+    $ pip install --no-deps .
+
+When using a virtual environment, you can map in the system site-packages (here
+we use virtualenvwrapper_)::
+
+    $ mkvirtualenv --system-site-packages -p /usr/bin/python3 pwtools
+    (pwtools) $ pip install .
+
+Alternatively, you may also simply build the extensions and set ``PYTHONPATH``::
+
+    $ cd src && make clean && make && cd ..
+    $ [ -n "$PYTHONPATH" ] && pp=$(pwd):$PYTHONPATH || pp=$(pwd)
+    $ export PYTHONPATH=$pp
+
+Dependencies
+------------
+Python dependencies: see ``requirements*.txt``. You can use
+``test/check_dependencies.py`` to find out what your system has installed::
+
+    $ ./check_dependencies.py
+    requirements_test.txt
+      pytest               ... ok (import)
+      pytest-xdist         ... ok (pip list)
+      pytest-timeout       ... ok (pip list)
+    requirements.txt
+      PyCifRW              ... ok (pip list)
+      h5py                 ... ok (import)
+      matplotlib           ... ok (import)
+      numpy                ... ok (import)
+      scipy                ... ok (import)
+      spglib               ... ok (import)
+    requirements_optional.txt
+      ase                  ... ok (import)
+      sklearn              ... ok (import)
+    requirements_doc.txt
+      numpydoc             ... ok (import)
+      sphinx               ... ok (import)
+    optional executables:
+      eos.x                ... NOT FOUND
+
+Optional packages (``ase``, ``sklearn``) are only used in corner cases and
+therefore not hard dependencies. Importing modules that use them (e.g. ``crys``
+might use ``ase``) won't fail at import time, but later at runtime when e.g.
+``crys.Structure.get_ase_atoms()`` is called. What packages are optional might
+change depending on usage.
+
+You also need the following to compile extensions. On a Debian-ish system::
+
+    # apt
+    python3-dev     # for compiling extensions
+    gfortran        # or ifort, see src/Makefile
+    liblapack-dev
+
+Also note that you can get may Python packages via your system's package
+manager::
+
+    python3-ase
+    python3-h5py
+    python3-matplotlib
+    python3-numpy
+    python3-numpydoc
+    python3-pytest
+    python3-pytest-timeout
+    python3-pytest-xdist
+    python3-scipy
+    python3-sklearn
+    python3-sphinx
+
+But usually not ``PyCifRW`` and ``spglib``.
+
+
+Optional dependencies
+^^^^^^^^^^^^^^^^^^^^^
+
+* VMD_ (``examples/rpdf/``, :func:`~pwtools.crys.call_vmd_measure_gofr`,
+  :func:`~pwtools.visualize.view_vmd_axsf`,
+  :func:`~pwtools.visualize.view_vmd_xyz`), must register before download
+
+* The ``fourier.x`` tool from the CPMD_ contrib sources (for
+  ``examples/``). Need to register before download.
+
+* eos (for :mod:`~pwtools.eos`): The tool "eos" from the Elk_ code must
+  be on your path. Note that the executable is assumed to be named ``eos.x``
+  instead of the default name "eos". See :class:`~pwtools.eos.ElkEOSFit` for
+  usage. Can be installed directly from Elk or pwextern-free_.
+
+The pwextern-free_ package contains add-on tools which we don't want / can ship
+directly with pwtools, such as eos.
+
+.. note:: pwextern-free also contains very old versions of PyCifRW and
+   (py)spglib, don't use those, use pip versions! Also, don't use the
+   install.sh script provided there. If needed, only compile eos.x and place it
+   somewhere in PATH.
+
+.. note:: :class:`~pwtools.eos.ElkEOSFit` is deprecated now, and so you don't
+   really need the Elk code's eos tool anymore. It was used for generating
+   reference EOS fit data once, which is stored in test/files/, but there is no
+   use of eos.x in pwtools anymore.
+
+Running tests
+-------------
+
+See test/README. Actually, all of these are good examples, too!
+
+Python versions
+---------------
+
+Only Python3 is supported, tested: Python 3.6, 3.7, 3.8
+
+The package was developed mostly with Python 2.5..2.7 and ported using 2to3 +
+manual changes. Therefore, you might find some crufty Python 2 style code
+fragments in lesser used parts of the code base.
+
+
+Compiling Fortran extensions and OpenMP notes
+---------------------------------------------
+
+Use ``src/Makefile``:
+
+.. code-block:: shell
+
+    $ make help
+    make gfortran            # gfortran, default
+    make gfortran-omp        # gfortran + OpenMP
+    make gfortran-mkl        # gfortran, Intel MKL lapack, set MKL_LIB
+    make ifort               # ifort
+    make ifort-omp           # ifort + OpenMP
+    make ifort-mkl           # ifort, Intel MKL lapack, set MKL_LIB
+
+Generates ``*.so`` and ``*.pyf`` (f2py interface) files.
+
+You need:
+
+* numpy for f2py
+* a Fortran compiler
+* Python headers (Debian/Ubuntu: python-dev)
+* Lapack (Debian: liblapack3)
+
+The module is compiled with f2py (currently part of numpy, tested with numpy
+1.1.0 .. 1.13.x).
+
+Compiler / f2py
+^^^^^^^^^^^^^^^
+Instead of letting numpy.distutils pick a compiler + special flags, which is
+not trivial and therefore almost never works, it is much easier to simply
+define the compiler to use + architecture-specific flags. See F90 and ARCH in
+the Makefile.
+
+Also, numpy.distutils has default -03 for fcompiler. ``--f90flags="-02"`` does NOT
+override this. We get ``-O3 -O2`` and a compiler warning. We have to use f2py's
+``--opt=`` flag.
+
+On some systems (Debian), you may have:
+
+.. code-block:: shell
+
+  /usr/bin/f2py -> f2py2.6
+  /usr/bin/f2py2.5
+  /usr/bin/f2py2.6
+
+and such. But usually ``F2PY=f2py`` is fine.
+
+OpenMP
+^^^^^^
+We managed to speed up the calculations by sprinkling some OpenMP
+pragmas in ``*.f90``. Use ``make ifort-omp`` or ``make gfortran-omp`` in that
+case.
+
+If all went well, ``_flib.so`` should be linked to ``libgomp`` (or ``libiomp``
+for ``ifort``). Check with:
+
+.. code-block:: shell
+
+    $ ldd _flib.so
+
+Setting the number of threads:
+
+.. code-block:: shell
+
+    $ export OMP_NUM_THREADS=2
+    $ python -c "import numpy as np; from pwtools.pydos import fvacf; \
+                 fvacf(np.random.rand(5000,1000,3))"
+
+If this env var is NOT set, then OpenMP uses all available cores (e.g. 4 on a
+quad-core box).
+
+IMPORTANT:
+    Note that we may have found a f2py bug (see test/test_f2py_flib_openmp.py)
+    re. OMP_NUM_THREADS. We have a workaround for that in pydos.fvacf().
+
+There is also an optional arg 'nthreads' to _flib.vacf(). If this is
+supplied, then it will override OMP_NUM_THREADS. Currently, this is the
+safest way to set the number of threads.
+
+Tests
+^^^^^
+When developing OpenMP code, you may find that code doesn't produce correct
+results, even if it runs, if OpenMP is used incorrectly :) The test script
+``test/runtests.sh`` calls `make gfortran-omp`, so if code is broken by OpenMP,
+all test using the Fortran extensions might fail. To run tests with other
+builds, use one of
+
+.. code-block:: shell
+
+    $ make gfortran
+    $ make ifort
+    $ make ifort-omp
+
+and
+
+.. code-block:: shell
+
+    $ cd test
+    $ ./runtests.sh --nobuild
+
+
+.. include:: refs.rst

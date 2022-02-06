@@ -1,0 +1,6 @@
+pwtools.crys.Structure.is\_traj
+===============================
+
+.. currentmodule:: pwtools.crys
+
+.. autoattribute:: Structure.is_traj

@@ -1,0 +1,6 @@
+﻿pwtools.mpl.smooth\_color\_func
+===============================
+
+.. currentmodule:: pwtools.mpl
+
+.. autofunction:: smooth_color_func

@@ -1,0 +1,6 @@
+pwtools.parse.PwVCMDOutputFile.get\_forces
+==========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwVCMDOutputFile.get_forces

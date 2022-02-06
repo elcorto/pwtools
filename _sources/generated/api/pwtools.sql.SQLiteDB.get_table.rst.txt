@@ -1,0 +1,6 @@
+pwtools.sql.SQLiteDB.get\_table
+===============================
+
+.. currentmodule:: pwtools.sql
+
+.. automethod:: SQLiteDB.get_table

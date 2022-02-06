@@ -1,0 +1,6 @@
+pwtools.num.DataND.a2\_to\_an
+=============================
+
+.. currentmodule:: pwtools.num
+
+.. automethod:: DataND.a2_to_an

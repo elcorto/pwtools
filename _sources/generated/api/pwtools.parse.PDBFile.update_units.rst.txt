@@ -1,0 +1,6 @@
+pwtools.parse.PDBFile.update\_units
+===================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PDBFile.update_units

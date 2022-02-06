@@ -1,0 +1,6 @@
+pwtools.parse.PwMDOutputFile.get\_traj
+======================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwMDOutputFile.get_traj

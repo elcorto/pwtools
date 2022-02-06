@@ -1,0 +1,6 @@
+﻿pwtools.pydos.direct\_pdos
+==========================
+
+.. currentmodule:: pwtools.pydos
+
+.. autofunction:: direct_pdos

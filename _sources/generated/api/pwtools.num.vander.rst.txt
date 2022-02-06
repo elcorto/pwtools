@@ -1,0 +1,6 @@
+﻿pwtools.num.vander
+==================
+
+.. currentmodule:: pwtools.num
+
+.. autofunction:: vander

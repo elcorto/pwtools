@@ -1,0 +1,6 @@
+pwtools.parse.CpmdMDOutputFile.is\_set\_attr
+============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CpmdMDOutputFile.is_set_attr

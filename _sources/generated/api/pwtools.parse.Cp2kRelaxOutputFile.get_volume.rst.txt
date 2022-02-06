@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kRelaxOutputFile.get\_volume
+=============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kRelaxOutputFile.get_volume

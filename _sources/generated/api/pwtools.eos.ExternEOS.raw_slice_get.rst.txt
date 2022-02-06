@@ -1,0 +1,6 @@
+pwtools.eos.ExternEOS.raw\_slice\_get
+=====================================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: ExternEOS.raw_slice_get

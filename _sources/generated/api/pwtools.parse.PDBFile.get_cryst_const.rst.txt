@@ -1,0 +1,6 @@
+pwtools.parse.PDBFile.get\_cryst\_const
+=======================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PDBFile.get_cryst_const

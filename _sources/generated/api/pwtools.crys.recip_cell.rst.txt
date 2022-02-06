@@ -1,0 +1,6 @@
+﻿pwtools.crys.recip\_cell
+========================
+
+.. currentmodule:: pwtools.crys
+
+.. autofunction:: recip_cell

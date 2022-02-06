@@ -1,0 +1,6 @@
+﻿pwtools.io.read\_h5
+===================
+
+.. currentmodule:: pwtools.io
+
+.. autofunction:: read_h5

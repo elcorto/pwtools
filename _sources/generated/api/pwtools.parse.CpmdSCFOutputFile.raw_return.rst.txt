@@ -1,0 +1,6 @@
+pwtools.parse.CpmdSCFOutputFile.raw\_return
+===========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CpmdSCFOutputFile.raw_return

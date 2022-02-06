@@ -1,0 +1,30 @@
+
+.. rst file which lists all members of the current module. They will be
+.. handled by the Sphinx autosummary extension.
+
+_flib
+=====
+
+.. Documentation string which may be at the top of the module.
+.. automodule:: pwtools._flib
+   :no-members:
+   :no-inherited-members:
+
+.. currentmodule:: pwtools._flib
+
+.. Links to members.
+.. autosummary::
+   :toctree:
+
+   acorr
+   angles
+   cart2frac
+   cart2frac_traj
+   distances_traj
+   distsq
+   distsq_frac
+   frac2cart
+   frac2cart_traj
+   solve
+   vacf
+   vect_loops

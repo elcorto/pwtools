@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.load
+============================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.load

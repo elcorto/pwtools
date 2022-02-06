@@ -1,0 +1,6 @@
+﻿pwtools.mpl.iter\_linestyles
+============================
+
+.. currentmodule:: pwtools.mpl
+
+.. autodata:: iter_linestyles

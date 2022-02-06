@@ -1,0 +1,6 @@
+pwtools.eos.ExternEOS.set\_all
+==============================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: ExternEOS.set_all

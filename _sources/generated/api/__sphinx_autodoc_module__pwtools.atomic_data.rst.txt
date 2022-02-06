@@ -1,0 +1,24 @@
+
+.. rst file which lists all members of the current module. They will be
+.. handled by the Sphinx autosummary extension.
+
+atomic_data
+===========
+
+.. Documentation string which may be at the top of the module.
+.. automodule:: pwtools.atomic_data
+   :no-members:
+   :no-inherited-members:
+
+.. currentmodule:: pwtools.atomic_data
+
+.. Links to members.
+.. autosummary::
+   :toctree:
+
+   covalent_radii
+   masses
+   missing
+   numbers
+   pt
+   symbols

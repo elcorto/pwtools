@@ -1,0 +1,6 @@
+﻿pwtools.io.write\_h5
+====================
+
+.. currentmodule:: pwtools.io
+
+.. autofunction:: write_h5

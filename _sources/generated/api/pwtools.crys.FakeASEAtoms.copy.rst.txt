@@ -1,0 +1,6 @@
+pwtools.crys.FakeASEAtoms.copy
+==============================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: FakeASEAtoms.copy

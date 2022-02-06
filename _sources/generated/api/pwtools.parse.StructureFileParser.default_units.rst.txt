@@ -1,0 +1,6 @@
+pwtools.parse.StructureFileParser.default\_units
+================================================
+
+.. currentmodule:: pwtools.parse
+
+.. autoattribute:: StructureFileParser.default_units

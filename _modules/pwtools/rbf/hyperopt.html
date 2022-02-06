@@ -1,0 +1,344 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pwtools.rbf.hyperopt &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../generated/api/index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for pwtools.rbf.hyperopt</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">optimize</span>
+
+<span class="kn">from</span> <span class="nn">pwtools.rbf.core</span> <span class="k">import</span> <span class="n">Rbf</span><span class="p">,</span> <span class="n">estimate_p</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="k">import</span> <span class="n">RepeatedKFold</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+
+<div class="viewcode-block" id="RepeatedKFold"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.hyperopt.RepeatedKFold.html#pwtools.rbf.hyperopt.RepeatedKFold">[docs]</a>    <span class="k">class</span> <span class="nc">RepeatedKFold</span><span class="p">:</span>
+<div class="viewcode-block" id="RepeatedKFold.__init__"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.hyperopt.RepeatedKFold.html#pwtools.rbf.hyperopt.RepeatedKFold.__init__">[docs]</a>        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;Failed to import RepeatedKFold from &quot;</span>
+                <span class="s2">&quot;sklearn, not installed?&quot;</span>
+            <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="FitError"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.hyperopt.FitError.html#pwtools.rbf.hyperopt.FitError">[docs]</a><span class="k">class</span> <span class="nc">FitError</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Direct or cross-validation (CV) fit error of :class:`Rbf` for a</span>
+<span class="sd">    parameter set ``[p,r]`` or just ``[p]``.</span>
+
+<span class="sd">    All methods accept a sequence `params` with either only `p` (length 1) or</span>
+<span class="sd">    `p` and `r` (length 2) to build a :class:`Rbf` model and fit it.</span>
+
+<span class="sd">    examples:</span>
+
+<span class="sd">        | r = None (default in :class:`Rbf`) -&gt; linear least squares solver</span>
+<span class="sd">        |     params = [1.5]</span>
+<span class="sd">        |     params = [1.5, None]</span>
+
+<span class="sd">        | r != None -&gt; normal linear solver</span>
+<span class="sd">        |     params = [1.5, 0]       -&gt; no regularization (r=0)</span>
+<span class="sd">        |     params = [1.5, 1e-8]    -&gt; with regularization</span>
+
+<span class="sd">    Use :meth:`err_cv` or :meth:`err_direct` as error metric for `param`. Or</span>
+<span class="sd">    use :meth:`__call__` which will call one or the other, depending on</span>
+<span class="sd">    `params`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="FitError.__init__"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.hyperopt.FitError.html#pwtools.rbf.hyperopt.FitError.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">points</span><span class="p">,</span>
+        <span class="n">values</span><span class="p">,</span>
+        <span class="n">rbf_kwds</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
+        <span class="n">cv</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">n_splits</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">n_repeats</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+        <span class="n">cv_kwds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        points, values : see :class:`Rbf`</span>
+<span class="sd">        rbf_kwds : dict</span>
+<span class="sd">            for ``Rbf(points, values, **rbf_kwds)``</span>
+<span class="sd">        cv : {dict, :class:`sklearn.model_selection.BaseCrossValidator` instance</span>
+<span class="sd">            or anything with that API, None}, optional, if dict then</span>
+<span class="sd">            cross-validation parameters for</span>
+<span class="sd">            :class:`sklearn.model_selection.RepeatedKFold`, if</span>
+<span class="sd">            ``BaseCrossValidator``-like class then this is used to split data,</span>
+<span class="sd">            if None then :meth:`__call__` will use :meth:`err_direct`, else</span>
+<span class="sd">            :meth:`err_cv`</span>
+<span class="sd">        cv_kwds : deprecated: dict of kwds for default RepeatedKFold</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">points</span> <span class="o">=</span> <span class="n">points</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rbf_kwds</span> <span class="o">=</span> <span class="n">rbf_kwds</span>
+        <span class="n">_default_cv_cls</span> <span class="o">=</span> <span class="n">RepeatedKFold</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_use_cv</span> <span class="o">=</span> <span class="p">(</span><span class="n">cv_kwds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">cv</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cv_kwds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;use `cv` keyword, `cv_kwds` deprecated&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cv_cls</span> <span class="o">=</span> <span class="n">_default_cv_cls</span><span class="p">(</span><span class="o">**</span><span class="n">cv_kwds</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cv</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cv_cls</span> <span class="o">=</span> <span class="n">_default_cv_cls</span><span class="p">(</span><span class="o">**</span><span class="n">cv</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cv_cls</span> <span class="o">=</span> <span class="n">cv</span></div>
+
+<div class="viewcode-block" id="FitError.__call__"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.hyperopt.FitError.html#pwtools.rbf.hyperopt.FitError.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_cv</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">err_cv</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">err_direct</span><span class="p">(</span><span class="n">params</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_rbfi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span> <span class="k">if</span> <span class="n">points</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">points</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">values</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="s2">&quot;p&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rbf_kwds</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="s2">&quot;&#39;p&#39; in kwds&quot;</span>
+            <span class="k">return</span> <span class="n">Rbf</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">rbf_kwds</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">kw</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">]:</span>
+                <span class="k">assert</span> <span class="n">kw</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rbf_kwds</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">f</span><span class="s2">&quot;&#39;</span><span class="si">{kw}</span><span class="s2">&#39; in kwds&quot;</span>
+            <span class="k">return</span> <span class="n">Rbf</span><span class="p">(</span>
+                <span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">r</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">rbf_kwds</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                <span class="s2">&quot;length of params can only be 1 or 2, got &quot;</span>
+                <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">))</span>
+            <span class="p">)</span>
+
+<div class="viewcode-block" id="FitError.cv"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.hyperopt.FitError.cv.html#pwtools.rbf.hyperopt.FitError.cv">[docs]</a>    <span class="k">def</span> <span class="nf">cv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Cross validation fit errors.</span>
+
+<span class="sd">        Default is RepeatedKFold (if `cv` is a dict, else `cv` itself is used):</span>
+<span class="sd">        Split data (points, values) randomly into K parts (&quot;folds&quot;, K =</span>
+<span class="sd">        ``n_splits``) along axis 0 and use each part once as test set, the rest</span>
+<span class="sd">        as training set. For example `ns=5`: split in 5 parts at random</span>
+<span class="sd">        indices, use 5 times 4/5 data for train, 1/5 for test (each of the</span>
+<span class="sd">        folds), so 5 fits total -&gt; 5 fit errors. Optionally repeat</span>
+<span class="sd">        ``n_repeats`` times with different random splits. So, `n_repeats` *</span>
+<span class="sd">        `n_splits` fit errors total.</span>
+
+<span class="sd">        Each time, build an Rbf model with ``self.rbf_kwds``, fit, return the</span>
+<span class="sd">        fit error (scalar sum of squares from :meth:`Rbf.fit_error`).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        params : seq length 1 or 2</span>
+<span class="sd">            | params[0] = p</span>
+<span class="sd">            | params[1] = r (optional)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        errs : 1d array</span>
+<span class="sd">            direct fit errors on the test set from each split</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">errs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">cv_cls</span><span class="o">.</span><span class="n">get_n_splits</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">),),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">tup</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cv_cls</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">)):</span>
+            <span class="n">idxs_train</span><span class="p">,</span> <span class="n">idxs_test</span> <span class="o">=</span> <span class="n">tup</span>
+            <span class="n">rbfi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_rbfi</span><span class="p">(</span>
+                <span class="n">params</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="n">idxs_train</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">idxs_train</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="n">errs</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="n">rbfi</span><span class="o">.</span><span class="n">fit_error</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="n">idxs_test</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">idxs_test</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">errs</span></div>
+
+<div class="viewcode-block" id="FitError.err_cv"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.hyperopt.FitError.err_cv.html#pwtools.rbf.hyperopt.FitError.err_cv">[docs]</a>    <span class="k">def</span> <span class="nf">err_cv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Median of :meth:`cv`.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cv</span><span class="p">(</span><span class="n">params</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="FitError.err_direct"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.hyperopt.FitError.err_direct.html#pwtools.rbf.hyperopt.FitError.err_direct">[docs]</a>    <span class="k">def</span> <span class="nf">err_direct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Normal fit error w/o CV. Uses :meth:`Rbf.fit_error`.</span>
+
+<span class="sd">        Build and Rbf model with ``self.rbf_kwds``, fit, return the fit</span>
+<span class="sd">        error (scalar, sum of squares). Should be zero for interpolation, i.e. no</span>
+<span class="sd">        regularization ``r=0``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_rbfi</span><span class="p">(</span><span class="n">params</span><span class="p">)</span><span class="o">.</span><span class="n">fit_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="fit_opt"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.hyperopt.fit_opt.html#pwtools.rbf.hyperopt.fit_opt">[docs]</a><span class="k">def</span> <span class="nf">fit_opt</span><span class="p">(</span>
+    <span class="n">points</span><span class="p">,</span>
+    <span class="n">values</span><span class="p">,</span>
+    <span class="n">method</span><span class="o">=</span><span class="s2">&quot;de&quot;</span><span class="p">,</span>
+    <span class="n">what</span><span class="o">=</span><span class="s2">&quot;pr&quot;</span><span class="p">,</span>
+    <span class="n">cv</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">n_splits</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">n_repeats</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">cv_kwds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">opt_kwds</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
+    <span class="n">rbf_kwds</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Optimize :class:`Rbf`&#39;s hyper-parameter :math:`p` or both :math:`(p,r)`.</span>
+
+<span class="sd">    Use a cross validation error metric or the direct fit error if `cv` is</span>
+<span class="sd">    None. Uses :class:`FitError`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    points, values : see :class:`Rbf`</span>
+<span class="sd">    method : str</span>
+<span class="sd">        | &#39;de&#39; : :func:`scipy.optimize.differential_evolution`</span>
+<span class="sd">        | &#39;fmin&#39;: :func:`scipy.optimize.fmin`</span>
+<span class="sd">        | &#39;brute&#39;: :func:`scipy.optimize.brute`</span>
+<span class="sd">    what : str</span>
+<span class="sd">        &#39;p&#39; (optimize only `p` and set `r=None`) or &#39;pr&#39; (optimize `p` and `r`)</span>
+<span class="sd">    cv, cv_kwds, rbf_kwds : see :class:`FitError`</span>
+<span class="sd">    opt_kwds : dict</span>
+<span class="sd">        kwds for the optimizer (see `method`)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    rbfi : :class:`Rbf`</span>
+<span class="sd">        Rbf instance initialized with `points`, `values` and found optimal `p` (and `r`).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">what</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;pr&quot;</span><span class="p">],</span> <span class="n">f</span><span class="s2">&quot;unknown `what` value: </span><span class="si">{what}</span><span class="s2">&quot;</span>
+    <span class="k">assert</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">[</span>
+        <span class="s2">&quot;de&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;fmin&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;brute&quot;</span><span class="p">,</span>
+    <span class="p">],</span> <span class="n">f</span><span class="s2">&quot;unknown `method` value: </span><span class="si">{method}</span><span class="s2">&quot;</span>
+    <span class="n">fit_err</span> <span class="o">=</span> <span class="n">FitError</span><span class="p">(</span>
+        <span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="n">cv</span><span class="p">,</span> <span class="n">cv_kwds</span><span class="o">=</span><span class="n">cv_kwds</span><span class="p">,</span> <span class="n">rbf_kwds</span><span class="o">=</span><span class="n">rbf_kwds</span>
+    <span class="p">)</span>
+    <span class="n">p0</span> <span class="o">=</span> <span class="n">estimate_p</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+    <span class="n">disp</span> <span class="o">=</span> <span class="n">opt_kwds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;disp&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;fmin&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">what</span> <span class="o">==</span> <span class="s2">&quot;p&quot;</span><span class="p">:</span>
+            <span class="n">x0</span> <span class="o">=</span> <span class="n">opt_kwds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;x0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">p0</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">what</span> <span class="o">==</span> <span class="s2">&quot;pr&quot;</span><span class="p">:</span>
+            <span class="n">x0</span> <span class="o">=</span> <span class="n">opt_kwds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;x0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">p0</span><span class="p">,</span> <span class="mf">1e-8</span><span class="p">])</span>
+        <span class="n">xopt</span> <span class="o">=</span> <span class="n">optimize</span><span class="o">.</span><span class="n">fmin</span><span class="p">(</span><span class="n">fit_err</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">disp</span><span class="o">=</span><span class="n">disp</span><span class="p">,</span> <span class="o">**</span><span class="n">opt_kwds</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;de&quot;</span><span class="p">,</span> <span class="s2">&quot;brute&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">what</span> <span class="o">==</span> <span class="s2">&quot;p&quot;</span><span class="p">:</span>
+            <span class="n">_bounds</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">p0</span><span class="p">)]</span>
+        <span class="k">elif</span> <span class="n">what</span> <span class="o">==</span> <span class="s2">&quot;pr&quot;</span><span class="p">:</span>
+            <span class="n">_bounds</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">p0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1e-12</span><span class="p">,</span> <span class="mf">1e-1</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;de&quot;</span><span class="p">:</span>
+            <span class="n">bounds</span> <span class="o">=</span> <span class="n">opt_kwds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;bounds&quot;</span><span class="p">,</span> <span class="n">_bounds</span><span class="p">)</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="n">optimize</span><span class="o">.</span><span class="n">differential_evolution</span><span class="p">(</span>
+                <span class="n">fit_err</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span> <span class="n">disp</span><span class="o">=</span><span class="n">disp</span><span class="p">,</span> <span class="o">**</span><span class="n">opt_kwds</span>
+            <span class="p">)</span>
+            <span class="n">xopt</span> <span class="o">=</span> <span class="n">ret</span><span class="o">.</span><span class="n">x</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;brute&quot;</span><span class="p">:</span>
+            <span class="n">bounds</span> <span class="o">=</span> <span class="n">opt_kwds</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;ranges&quot;</span><span class="p">,</span> <span class="n">_bounds</span><span class="p">)</span>
+            <span class="n">xopt</span> <span class="o">=</span> <span class="n">optimize</span><span class="o">.</span><span class="n">brute</span><span class="p">(</span>
+                <span class="n">fit_err</span><span class="p">,</span> <span class="n">ranges</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span> <span class="n">disp</span><span class="o">=</span><span class="n">disp</span><span class="p">,</span> <span class="o">**</span><span class="n">opt_kwds</span>
+            <span class="p">)</span>
+    <span class="k">if</span> <span class="n">what</span> <span class="o">==</span> <span class="s2">&quot;pr&quot;</span><span class="p">:</span>
+        <span class="n">_rbf_kwds</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">kk</span><span class="p">:</span> <span class="n">rbf_kwds</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span> <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">rbf_kwds</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">-</span> <span class="p">{</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">}</span>
+        <span class="p">}</span>
+        <span class="n">rbfi</span> <span class="o">=</span> <span class="n">Rbf</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">xopt</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">r</span><span class="o">=</span><span class="n">xopt</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">**</span><span class="n">_rbf_kwds</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_rbf_kwds</span> <span class="o">=</span> <span class="p">{</span><span class="n">kk</span><span class="p">:</span> <span class="n">rbf_kwds</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span> <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">rbf_kwds</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">-</span> <span class="p">{</span><span class="s2">&quot;p&quot;</span><span class="p">}}</span>
+        <span class="n">rbfi</span> <span class="o">=</span> <span class="n">Rbf</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">xopt</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">**</span><span class="n">rbf_kwds</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rbfi</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

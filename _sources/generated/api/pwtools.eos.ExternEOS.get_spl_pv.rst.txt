@@ -1,0 +1,6 @@
+pwtools.eos.ExternEOS.get\_spl\_pv
+==================================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: ExternEOS.get_spl_pv

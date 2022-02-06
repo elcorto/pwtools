@@ -1,0 +1,6 @@
+﻿pwtools.decorators.crys\_add\_doc
+=================================
+
+.. currentmodule:: pwtools.decorators
+
+.. autofunction:: crys_add_doc

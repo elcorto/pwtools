@@ -1,0 +1,6 @@
+pwtools.parse.LammpsTextMDOutputFile.get\_return\_attr
+======================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsTextMDOutputFile.get_return_attr

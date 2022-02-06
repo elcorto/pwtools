@@ -1,0 +1,6 @@
+pwtools.parse.CifFile.cif\_clear\_atom\_symbol
+==============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CifFile.cif_clear_atom_symbol

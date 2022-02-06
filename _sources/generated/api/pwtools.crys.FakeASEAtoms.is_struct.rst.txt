@@ -1,0 +1,6 @@
+pwtools.crys.FakeASEAtoms.is\_struct
+====================================
+
+.. currentmodule:: pwtools.crys
+
+.. autoattribute:: FakeASEAtoms.is_struct

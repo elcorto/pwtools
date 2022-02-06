@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kDcdMDOutputFile.get\_velocity
+===============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kDcdMDOutputFile.get_velocity

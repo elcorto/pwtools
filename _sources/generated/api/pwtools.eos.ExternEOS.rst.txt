@@ -1,0 +1,55 @@
+﻿pwtools.eos.ExternEOS
+=====================
+
+.. currentmodule:: pwtools.eos
+
+.. autoclass:: ExternEOS
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~ExternEOS.assert_attr
+      ~ExternEOS.assert_attr_lst
+      ~ExternEOS.assert_set_attr
+      ~ExternEOS.assert_set_attr_lst
+      ~ExternEOS.calc_bv
+      ~ExternEOS.check_set_attr
+      ~ExternEOS.check_set_attr_lst
+      ~ExternEOS.dump
+      ~ExternEOS.fit
+      ~ExternEOS.get_min
+      ~ExternEOS.get_return_attr
+      ~ExternEOS.get_spl_bv
+      ~ExternEOS.get_spl_ev
+      ~ExternEOS.get_spl_pv
+      ~ExternEOS.init_attr_lst
+      ~ExternEOS.is_set_attr
+      ~ExternEOS.is_set_attr_lst
+      ~ExternEOS.load
+      ~ExternEOS.raw_return
+      ~ExternEOS.raw_slice_get
+      ~ExternEOS.set_all
+      ~ExternEOS.set_attr_lst
+      ~ExternEOS.set_bv_method
+      ~ExternEOS.try_set_attr
+      ~ExternEOS.try_set_attr_lst
+   
+  
+  
+
+
+  
+  
+  

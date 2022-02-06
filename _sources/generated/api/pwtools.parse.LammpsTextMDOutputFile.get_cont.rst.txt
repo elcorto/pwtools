@@ -1,0 +1,6 @@
+pwtools.parse.LammpsTextMDOutputFile.get\_cont
+==============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsTextMDOutputFile.get_cont

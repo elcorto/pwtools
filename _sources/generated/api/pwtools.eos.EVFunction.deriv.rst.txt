@@ -1,0 +1,6 @@
+pwtools.eos.EVFunction.deriv
+============================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: EVFunction.deriv

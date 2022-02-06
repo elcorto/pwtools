@@ -1,0 +1,6 @@
+pwtools.parse.PwSCFOutputFile.init\_attr\_lst
+=============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwSCFOutputFile.init_attr_lst

@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kDcdMDOutputFile.get\_coords
+=============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kDcdMDOutputFile.get_coords

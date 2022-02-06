@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>sql &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="pwtools.sql.SQLEntry" href="pwtools.sql.SQLEntry.html" />
+    <link rel="prev" title="pwtools.signal.welch" href="pwtools.signal.welch.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API Reference</a><ul>
+      <li>Previous: <a href="pwtools.signal.welch.html" title="previous chapter">pwtools.signal.welch</a></li>
+      <li>Next: <a href="pwtools.sql.SQLEntry.html" title="next chapter">pwtools.sql.SQLEntry</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="sql">
+<h1>sql<a class="headerlink" href="#sql" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-pwtools.sql"></span><table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.sql.SQLEntry.html#pwtools.sql.SQLEntry" title="pwtools.sql.SQLEntry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SQLEntry</span></code></a>([sqlval, sqltype, fileval, key])</p></td>
+<td><p>Represent an entry in a SQLite database.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.sql.SQLiteDB.html#pwtools.sql.SQLiteDB" title="pwtools.sql.SQLiteDB"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SQLiteDB</span></code></a>(db_fn[, table])</p></td>
+<td><p>Interface class which wraps the sqlite3 module.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.sql.find_sqltype.html#pwtools.sql.find_sqltype" title="pwtools.sql.find_sqltype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_sqltype</span></code></a>(val)</p></td>
+<td><p>Find sqlite data type which matches the type of <cite>val</cite>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.sql.fix_sql_header.html#pwtools.sql.fix_sql_header" title="pwtools.sql.fix_sql_header"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fix_sql_header</span></code></a>(header)</p></td>
+<td><p>fix_sqltype() applied to any sqltype in <cite>header</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.sql.fix_sqltype.html#pwtools.sql.fix_sqltype" title="pwtools.sql.fix_sqltype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fix_sqltype</span></code></a>(sqltype)</p></td>
+<td><p>Fix <cite>sqltype</cite> string.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.sql.get_test_db.html#pwtools.sql.get_test_db" title="pwtools.sql.get_test_db"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_test_db</span></code></a>()</p></td>
+<td><p>Return in-memory database for playing around.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.sql.makedb.html#pwtools.sql.makedb" title="pwtools.sql.makedb"><code class="xref py py-obj docutils literal notranslate"><span class="pre">makedb</span></code></a>(filename, lists, colnames[, table, ...])</p></td>
+<td><p>Create sqlite db <cite>filename</cite> (mode='w') or append to existing db (mode='a').</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.sql.sql_column.html#pwtools.sql.sql_column" title="pwtools.sql.sql_column"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sql_column</span></code></a>(key, lst[, sqltype, sqlval_func, ...])</p></td>
+<td><p>Convert a list <cite>lst</cite> of values of the same type (i.e.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.sql.sql_column_old.html#pwtools.sql.sql_column_old" title="pwtools.sql.sql_column_old"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sql_column_old</span></code></a>(key, sqltype, lst[, ...])</p></td>
+<td><p><p class="rubric">Examples</p>
+</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.sql.sql_matrix.html#pwtools.sql.sql_matrix" title="pwtools.sql.sql_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sql_matrix</span></code></a>(lists[, header, colnames, ...])</p></td>
+<td><p>Convert each entry in a list of lists (&quot;matrix&quot; = sql table) to an SQLEntry based on <cite>header</cite>.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/generated/api/__sphinx_autodoc_module__pwtools.sql.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

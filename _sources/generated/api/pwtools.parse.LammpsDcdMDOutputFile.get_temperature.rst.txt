@@ -1,0 +1,6 @@
+pwtools.parse.LammpsDcdMDOutputFile.get\_temperature
+====================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsDcdMDOutputFile.get_temperature

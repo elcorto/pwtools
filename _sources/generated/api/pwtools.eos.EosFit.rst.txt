@@ -1,0 +1,48 @@
+﻿pwtools.eos.EosFit
+==================
+
+.. currentmodule:: pwtools.eos
+
+.. autoclass:: EosFit
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. automethod:: __call__
+
+ 
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~EosFit.bulkmod
+      ~EosFit.fit
+      ~EosFit.get_max
+      ~EosFit.get_min
+      ~EosFit.get_root
+      ~EosFit.is_mono
+      ~EosFit.pressure
+   
+  
+  
+
+
+  
+  
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree:
+   
+      ~EosFit.spl
+  
+  

@@ -1,0 +1,6 @@
+pwtools.parse.PwSCFOutputFile.check\_set\_attr
+==============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwSCFOutputFile.check_set_attr

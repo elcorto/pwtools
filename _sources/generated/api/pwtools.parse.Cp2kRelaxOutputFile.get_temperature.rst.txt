@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kRelaxOutputFile.get\_temperature
+==================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kRelaxOutputFile.get_temperature

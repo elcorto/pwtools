@@ -1,0 +1,6 @@
+pwtools.eos.ElkEOSFit.is\_set\_attr
+===================================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: ElkEOSFit.is_set_attr

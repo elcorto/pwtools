@@ -1,0 +1,6 @@
+pwtools.parse.PwMDOutputFile.get\_stress
+========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwMDOutputFile.get_stress

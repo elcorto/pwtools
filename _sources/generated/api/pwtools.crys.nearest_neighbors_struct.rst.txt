@@ -1,0 +1,6 @@
+﻿pwtools.crys.nearest\_neighbors\_struct
+=======================================
+
+.. currentmodule:: pwtools.crys
+
+.. autofunction:: nearest_neighbors_struct

@@ -1,0 +1,71 @@
+﻿pwtools.parse.PwSCFOutputFile
+=============================
+
+.. currentmodule:: pwtools.parse
+
+.. autoclass:: PwSCFOutputFile
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~PwSCFOutputFile.apply_units
+      ~PwSCFOutputFile.assert_attr
+      ~PwSCFOutputFile.assert_attr_lst
+      ~PwSCFOutputFile.assert_set_attr
+      ~PwSCFOutputFile.assert_set_attr_lst
+      ~PwSCFOutputFile.check_set_attr
+      ~PwSCFOutputFile.check_set_attr_lst
+      ~PwSCFOutputFile.dump
+      ~PwSCFOutputFile.get_alat
+      ~PwSCFOutputFile.get_cell
+      ~PwSCFOutputFile.get_cont
+      ~PwSCFOutputFile.get_coords
+      ~PwSCFOutputFile.get_etot
+      ~PwSCFOutputFile.get_forces
+      ~PwSCFOutputFile.get_natoms
+      ~PwSCFOutputFile.get_nkpoints
+      ~PwSCFOutputFile.get_nstep_scf
+      ~PwSCFOutputFile.get_return_attr
+      ~PwSCFOutputFile.get_scf_converged
+      ~PwSCFOutputFile.get_stress
+      ~PwSCFOutputFile.get_struct
+      ~PwSCFOutputFile.get_symbols
+      ~PwSCFOutputFile.init_attr_lst
+      ~PwSCFOutputFile.is_set_attr
+      ~PwSCFOutputFile.is_set_attr_lst
+      ~PwSCFOutputFile.load
+      ~PwSCFOutputFile.parse
+      ~PwSCFOutputFile.raw_return
+      ~PwSCFOutputFile.raw_slice_get
+      ~PwSCFOutputFile.set_all
+      ~PwSCFOutputFile.set_attr_lst
+      ~PwSCFOutputFile.try_set_attr
+      ~PwSCFOutputFile.try_set_attr_lst
+      ~PwSCFOutputFile.update_units
+   
+  
+  
+
+
+  
+  
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree:
+   
+      ~PwSCFOutputFile.default_units
+  
+  

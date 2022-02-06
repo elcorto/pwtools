@@ -1,0 +1,6 @@
+pwtools.parse.PDBFile.parse
+===========================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PDBFile.parse

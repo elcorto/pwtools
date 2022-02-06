@@ -1,0 +1,6 @@
+﻿pwtools.crys.struct2atoms
+=========================
+
+.. currentmodule:: pwtools.crys
+
+.. autofunction:: struct2atoms

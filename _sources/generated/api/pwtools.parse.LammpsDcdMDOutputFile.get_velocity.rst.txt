@@ -1,0 +1,6 @@
+pwtools.parse.LammpsDcdMDOutputFile.get\_velocity
+=================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsDcdMDOutputFile.get_velocity

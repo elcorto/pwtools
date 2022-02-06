@@ -1,0 +1,158 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>pwtools.crys.Trajectory.get_ase_atoms &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="pwtools.crys.Trajectory.get_cell" href="pwtools.crys.Trajectory.get_cell.html" />
+    <link rel="prev" title="pwtools.crys.Trajectory.dump" href="pwtools.crys.Trajectory.dump.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API Reference</a><ul>
+  <li><a href="__sphinx_autodoc_module__pwtools.crys.html">crys</a><ul>
+  <li><a href="pwtools.crys.Trajectory.html">pwtools.crys.Trajectory</a><ul>
+      <li>Previous: <a href="pwtools.crys.Trajectory.dump.html" title="previous chapter">pwtools.crys.Trajectory.dump</a></li>
+      <li>Next: <a href="pwtools.crys.Trajectory.get_cell.html" title="next chapter">pwtools.crys.Trajectory.get_cell</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="pwtools-crys-trajectory-get-ase-atoms">
+<h1>pwtools.crys.Trajectory.get_ase_atoms<a class="headerlink" href="#pwtools-crys-trajectory-get-ase-atoms" title="Permalink to this headline">¶</a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="pwtools.crys.Trajectory.get_ase_atoms">
+<span class="sig-prename descclassname"><span class="pre">Trajectory.</span></span><span class="sig-name descname"><span class="pre">get_ase_atoms</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/crys.html#Trajectory.get_ase_atoms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.crys.Trajectory.get_ase_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return ASE Atoms object.</p>
+<p>Obviously, you must have ASE installed. We use
+<code class="docutils literal notranslate"><span class="pre">scaled_positions=self.coords_frac</span></code>, so only <code class="docutils literal notranslate"><span class="pre">self.cell</span></code> must be in
+[Ang].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>**kwds</strong> – additional keywords passed to the Atoms() constructor.</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="pwtools.crys.Trajectory.get_fake_ase_atoms.html#pwtools.crys.Trajectory.get_fake_ase_atoms" title="pwtools.crys.Trajectory.get_fake_ase_atoms"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_fake_ase_atoms()</span></code></a></p>
+</div>
+<p class="rubric">Notes</p>
+<p>By default, we use <code class="docutils literal notranslate"><span class="pre">Atoms(...,pbc=False)</span></code> to avoid pbc-wrapping
+<code class="docutils literal notranslate"><span class="pre">atoms.scaled_positions</span></code> (we don’t want that for MD structures, for
+instance). If you need the pbc flag in your Atoms object, then use:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Note that the `pbc` flag is passed to ase.Atoms, so you can use</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># whatever that accepts, like pbc=[1,1,1] etc.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">atoms</span><span class="o">=</span><span class="n">struct</span><span class="o">.</span><span class="n">get_ase_atoms</span><span class="p">(</span><span class="n">pbc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># or</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">atoms</span><span class="o">=</span><span class="n">struct</span><span class="o">.</span><span class="n">get_ase_atoms</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">atoms</span><span class="o">.</span><span class="n">set_pbc</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>but then, <code class="docutils literal notranslate"><span class="pre">scaled_positions</span></code> will be wrapped by ASE and I’m not sure
+if <code class="docutils literal notranslate"><span class="pre">atoms.positions</span></code> is updated in that case. Please test that – I
+don’t use ASE much.</p>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/generated/api/pwtools.crys.Trajectory.get_ase_atoms.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

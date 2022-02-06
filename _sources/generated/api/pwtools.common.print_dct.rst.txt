@@ -1,0 +1,6 @@
+﻿pwtools.common.print\_dct
+=========================
+
+.. currentmodule:: pwtools.common
+
+.. autofunction:: print_dct

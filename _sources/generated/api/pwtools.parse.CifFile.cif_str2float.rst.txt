@@ -1,0 +1,6 @@
+pwtools.parse.CifFile.cif\_str2float
+====================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CifFile.cif_str2float

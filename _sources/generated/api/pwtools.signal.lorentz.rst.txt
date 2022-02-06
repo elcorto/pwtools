@@ -1,0 +1,6 @@
+﻿pwtools.signal.lorentz
+======================
+
+.. currentmodule:: pwtools.signal
+
+.. autofunction:: lorentz

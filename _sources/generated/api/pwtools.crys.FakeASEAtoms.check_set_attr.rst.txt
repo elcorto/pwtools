@@ -1,0 +1,6 @@
+pwtools.crys.FakeASEAtoms.check\_set\_attr
+==========================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: FakeASEAtoms.check_set_attr

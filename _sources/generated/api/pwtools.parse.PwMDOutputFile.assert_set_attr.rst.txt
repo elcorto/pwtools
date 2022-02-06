@@ -1,0 +1,6 @@
+pwtools.parse.PwMDOutputFile.assert\_set\_attr
+==============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwMDOutputFile.assert_set_attr

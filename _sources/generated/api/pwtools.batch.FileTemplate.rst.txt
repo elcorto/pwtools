@@ -1,0 +1,32 @@
+﻿pwtools.batch.FileTemplate
+==========================
+
+.. currentmodule:: pwtools.batch
+
+.. autoclass:: FileTemplate
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~FileTemplate.write
+      ~FileTemplate.writesql
+   
+  
+  
+
+
+  
+  
+  

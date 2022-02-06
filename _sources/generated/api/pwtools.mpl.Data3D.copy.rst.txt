@@ -1,0 +1,6 @@
+pwtools.mpl.Data3D.copy
+=======================
+
+.. currentmodule:: pwtools.mpl
+
+.. automethod:: Data3D.copy

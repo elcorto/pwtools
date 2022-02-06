@@ -1,0 +1,6 @@
+pwtools.parse.StructureFileParser.check\_set\_attr\_lst
+=======================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: StructureFileParser.check_set_attr_lst

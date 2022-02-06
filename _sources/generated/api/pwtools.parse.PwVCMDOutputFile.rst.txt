@@ -1,0 +1,80 @@
+﻿pwtools.parse.PwVCMDOutputFile
+==============================
+
+.. currentmodule:: pwtools.parse
+
+.. autoclass:: PwVCMDOutputFile
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~PwVCMDOutputFile.apply_units
+      ~PwVCMDOutputFile.assert_attr
+      ~PwVCMDOutputFile.assert_attr_lst
+      ~PwVCMDOutputFile.assert_set_attr
+      ~PwVCMDOutputFile.assert_set_attr_lst
+      ~PwVCMDOutputFile.check_set_attr
+      ~PwVCMDOutputFile.check_set_attr_lst
+      ~PwVCMDOutputFile.dump
+      ~PwVCMDOutputFile.get_alat
+      ~PwVCMDOutputFile.get_cell
+      ~PwVCMDOutputFile.get_cell_unit
+      ~PwVCMDOutputFile.get_cont
+      ~PwVCMDOutputFile.get_coords
+      ~PwVCMDOutputFile.get_coords_frac
+      ~PwVCMDOutputFile.get_coords_unit
+      ~PwVCMDOutputFile.get_econst
+      ~PwVCMDOutputFile.get_ekin
+      ~PwVCMDOutputFile.get_etot
+      ~PwVCMDOutputFile.get_forces
+      ~PwVCMDOutputFile.get_natoms
+      ~PwVCMDOutputFile.get_nkpoints
+      ~PwVCMDOutputFile.get_nstep_scf
+      ~PwVCMDOutputFile.get_return_attr
+      ~PwVCMDOutputFile.get_scf_converged
+      ~PwVCMDOutputFile.get_stress
+      ~PwVCMDOutputFile.get_struct
+      ~PwVCMDOutputFile.get_symbols
+      ~PwVCMDOutputFile.get_temperature
+      ~PwVCMDOutputFile.get_timestep
+      ~PwVCMDOutputFile.get_traj
+      ~PwVCMDOutputFile.init_attr_lst
+      ~PwVCMDOutputFile.is_set_attr
+      ~PwVCMDOutputFile.is_set_attr_lst
+      ~PwVCMDOutputFile.load
+      ~PwVCMDOutputFile.parse
+      ~PwVCMDOutputFile.raw_return
+      ~PwVCMDOutputFile.raw_slice_get
+      ~PwVCMDOutputFile.set_all
+      ~PwVCMDOutputFile.set_attr_lst
+      ~PwVCMDOutputFile.try_set_attr
+      ~PwVCMDOutputFile.try_set_attr_lst
+      ~PwVCMDOutputFile.update_units
+   
+  
+  
+
+
+  
+  
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree:
+   
+      ~PwVCMDOutputFile.default_units
+      ~PwVCMDOutputFile.timeaxis
+  
+  

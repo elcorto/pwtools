@@ -1,0 +1,26 @@
+
+.. rst file which lists all members of the current module. They will be
+.. handled by the Sphinx autosummary extension.
+
+arrayio
+=======
+
+.. Documentation string which may be at the top of the module.
+.. automodule:: pwtools.arrayio
+   :no-members:
+   :no-inherited-members:
+
+.. currentmodule:: pwtools.arrayio
+
+.. Links to members.
+.. autosummary::
+   :toctree:
+
+   HEADER_COMMENT
+   HEADER_MAXLINES
+   TXT_MAXDIM
+   _read_header_config
+   _write_header_config
+   arr2d_to_3d
+   readtxt
+   writetxt

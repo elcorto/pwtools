@@ -1,0 +1,6 @@
+pwtools.parse.TrajectoryFileParser.init\_attr\_lst
+==================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: TrajectoryFileParser.init_attr_lst

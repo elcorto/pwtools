@@ -1,0 +1,39 @@
+﻿pwtools.eos.Vinet
+=================
+
+.. currentmodule:: pwtools.eos
+
+.. autoclass:: Vinet
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. automethod:: __call__
+
+ 
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~Vinet.dct2lst
+      ~Vinet.deriv
+      ~Vinet.evaluate
+      ~Vinet.get_min
+      ~Vinet.lst2dct
+   
+  
+  
+
+
+  
+  
+  

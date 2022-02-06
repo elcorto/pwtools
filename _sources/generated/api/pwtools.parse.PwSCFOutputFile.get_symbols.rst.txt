@@ -1,0 +1,6 @@
+pwtools.parse.PwSCFOutputFile.get\_symbols
+==========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwSCFOutputFile.get_symbols

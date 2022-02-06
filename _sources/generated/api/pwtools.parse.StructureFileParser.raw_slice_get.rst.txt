@@ -1,0 +1,6 @@
+pwtools.parse.StructureFileParser.raw\_slice\_get
+=================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: StructureFileParser.raw_slice_get

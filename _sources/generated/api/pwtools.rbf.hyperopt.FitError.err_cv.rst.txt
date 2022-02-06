@@ -1,0 +1,6 @@
+pwtools.rbf.hyperopt.FitError.err\_cv
+=====================================
+
+.. currentmodule:: pwtools.rbf.hyperopt
+
+.. automethod:: FitError.err_cv

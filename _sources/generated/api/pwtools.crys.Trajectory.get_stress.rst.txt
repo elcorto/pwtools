@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.get\_stress
+===================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.get_stress

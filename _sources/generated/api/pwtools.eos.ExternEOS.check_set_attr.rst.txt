@@ -1,0 +1,6 @@
+pwtools.eos.ExternEOS.check\_set\_attr
+======================================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: ExternEOS.check_set_attr

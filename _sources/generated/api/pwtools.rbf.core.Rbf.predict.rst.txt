@@ -1,0 +1,6 @@
+pwtools.rbf.core.Rbf.predict
+============================
+
+.. currentmodule:: pwtools.rbf.core
+
+.. automethod:: Rbf.predict

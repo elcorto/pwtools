@@ -1,0 +1,6 @@
+pwtools.crys.FakeASEAtoms.is\_traj
+==================================
+
+.. currentmodule:: pwtools.crys
+
+.. autoattribute:: FakeASEAtoms.is_traj

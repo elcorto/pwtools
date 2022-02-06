@@ -1,0 +1,6 @@
+﻿pwtools.num.euler\_matrix
+=========================
+
+.. currentmodule:: pwtools.num
+
+.. autofunction:: euler_matrix

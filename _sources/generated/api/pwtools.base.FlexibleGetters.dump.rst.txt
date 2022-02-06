@@ -1,0 +1,6 @@
+pwtools.base.FlexibleGetters.dump
+=================================
+
+.. currentmodule:: pwtools.base
+
+.. automethod:: FlexibleGetters.dump

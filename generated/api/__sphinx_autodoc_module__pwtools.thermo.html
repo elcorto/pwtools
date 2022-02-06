@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>thermo &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="pwtools.thermo.Gibbs" href="pwtools.thermo.Gibbs.html" />
+    <link rel="prev" title="pwtools.symmetry.struct2spglib" href="pwtools.symmetry.struct2spglib.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API Reference</a><ul>
+      <li>Previous: <a href="pwtools.symmetry.struct2spglib.html" title="previous chapter">pwtools.symmetry.struct2spglib</a></li>
+      <li>Next: <a href="pwtools.thermo.Gibbs.html" title="next chapter">pwtools.thermo.Gibbs</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="thermo">
+<h1>thermo<a class="headerlink" href="#thermo" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-pwtools.thermo"></span><p>(Quasi)harmonic approximation. Thermal expansion tools.</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.thermo.Gibbs.html#pwtools.thermo.Gibbs" title="pwtools.thermo.Gibbs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Gibbs</span></code></a>([T, P, etot, phdos, axes_flat, ...])</p></td>
+<td><p>Calculate thermodynamic properties on a T-P grid in the quasiharmonic approximation, given some variation grid of unit cell axes (<cite>axes_flat</cite>) and corresponding phonon DOS data for each grid point.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.thermo.HarmonicThermo.html#pwtools.thermo.HarmonicThermo" title="pwtools.thermo.HarmonicThermo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HarmonicThermo</span></code></a>(freq, dos[, temp, skipfreq, ...])</p></td>
+<td><p>Calculate vibrational internal energy (Evib [eV]), free energy (Fvib [eV]), entropy (Svib [R,kb]) and isochoric heat capacity (Cv [R,kb]) in the harmonic approximation from a phonon density of states.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.thermo.R.html#pwtools.thermo.R" title="pwtools.thermo.R"><code class="xref py py-obj docutils literal notranslate"><span class="pre">R</span></code></a></p></td>
+<td><p>Convert a string or number to a floating point number, if possible.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.thermo.Ry_to_J.html#pwtools.thermo.Ry_to_J" title="pwtools.thermo.Ry_to_J"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Ry_to_J</span></code></a></p></td>
+<td><p>Convert a string or number to a floating point number, if possible.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.thermo.c0.html#pwtools.thermo.c0" title="pwtools.thermo.c0"><code class="xref py py-obj docutils literal notranslate"><span class="pre">c0</span></code></a></p></td>
+<td><p>Convert a string or number to a floating point number, if possible.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.thermo.coth.html#pwtools.thermo.coth" title="pwtools.thermo.coth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coth</span></code></a>(x)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.thermo.debye_func.html#pwtools.thermo.debye_func" title="pwtools.thermo.debye_func"><code class="xref py py-obj docutils literal notranslate"><span class="pre">debye_func</span></code></a>(x[, nstep, zero])</p></td>
+<td><p>Debye function</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.thermo.eV.html#pwtools.thermo.eV" title="pwtools.thermo.eV"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eV</span></code></a></p></td>
+<td><p>Convert a string or number to a floating point number, if possible.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.thermo.eV_by_Ang3_to_GPa.html#pwtools.thermo.eV_by_Ang3_to_GPa" title="pwtools.thermo.eV_by_Ang3_to_GPa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eV_by_Ang3_to_GPa</span></code></a></p></td>
+<td><p>Convert a string or number to a floating point number, if possible.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.thermo.einstein_func.html#pwtools.thermo.einstein_func" title="pwtools.thermo.einstein_func"><code class="xref py py-obj docutils literal notranslate"><span class="pre">einstein_func</span></code></a>(x)</p></td>
+<td><p>Einstein function</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.thermo.expansion.html#pwtools.thermo.expansion" title="pwtools.thermo.expansion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">expansion</span></code></a>(temp, alpha, theta[, x0, func])</p></td>
+<td><p>Calculate thermal expansion according to the model in <cite>func</cite>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.thermo.hplanck.html#pwtools.thermo.hplanck" title="pwtools.thermo.hplanck"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hplanck</span></code></a></p></td>
+<td><p>Convert a string or number to a floating point number, if possible.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.thermo.kb.html#pwtools.thermo.kb" title="pwtools.thermo.kb"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kb</span></code></a></p></td>
+<td><p>Convert a string or number to a floating point number, if possible.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.thermo.pi.html#pwtools.thermo.pi" title="pwtools.thermo.pi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pi</span></code></a></p></td>
+<td><p>Convert a string or number to a floating point number, if possible.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/generated/api/__sphinx_autodoc_module__pwtools.thermo.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

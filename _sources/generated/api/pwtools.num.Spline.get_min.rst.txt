@@ -1,0 +1,6 @@
+pwtools.num.Spline.get\_min
+===========================
+
+.. currentmodule:: pwtools.num
+
+.. automethod:: Spline.get_min

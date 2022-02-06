@@ -1,0 +1,6 @@
+pwtools.crys.FakeASEAtoms.get\_time
+===================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: FakeASEAtoms.get_time

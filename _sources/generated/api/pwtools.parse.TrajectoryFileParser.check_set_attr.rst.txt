@@ -1,0 +1,6 @@
+pwtools.parse.TrajectoryFileParser.check\_set\_attr
+===================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: TrajectoryFileParser.check_set_attr

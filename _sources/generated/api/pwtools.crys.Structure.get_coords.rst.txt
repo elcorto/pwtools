@@ -1,0 +1,6 @@
+pwtools.crys.Structure.get\_coords
+==================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.get_coords

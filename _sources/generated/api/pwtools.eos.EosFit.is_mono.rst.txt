@@ -1,0 +1,6 @@
+pwtools.eos.EosFit.is\_mono
+===========================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: EosFit.is_mono

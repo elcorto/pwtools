@@ -1,0 +1,6 @@
+pwtools.crys.Structure.dump
+===========================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.dump

@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.copy
+============================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.copy

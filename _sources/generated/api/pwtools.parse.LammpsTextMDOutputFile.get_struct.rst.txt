@@ -1,0 +1,6 @@
+pwtools.parse.LammpsTextMDOutputFile.get\_struct
+================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsTextMDOutputFile.get_struct

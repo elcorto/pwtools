@@ -1,0 +1,6 @@
+pwtools.parse.PwVCMDOutputFile.get\_cont
+========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwVCMDOutputFile.get_cont

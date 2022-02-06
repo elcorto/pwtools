@@ -1,0 +1,6 @@
+pwtools.parse.PwSCFOutputFile.get\_etot
+=======================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwSCFOutputFile.get_etot

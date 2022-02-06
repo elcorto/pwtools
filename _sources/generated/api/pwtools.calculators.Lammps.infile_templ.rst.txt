@@ -1,0 +1,6 @@
+pwtools.calculators.Lammps.infile\_templ
+========================================
+
+.. currentmodule:: pwtools.calculators
+
+.. autoattribute:: Lammps.infile_templ

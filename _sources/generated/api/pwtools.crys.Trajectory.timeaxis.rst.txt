@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.timeaxis
+================================
+
+.. currentmodule:: pwtools.crys
+
+.. autoattribute:: Trajectory.timeaxis

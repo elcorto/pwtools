@@ -1,0 +1,6 @@
+pwtools.parse.PDBFile.assert\_attr\_lst
+=======================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PDBFile.assert_attr_lst

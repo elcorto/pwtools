@@ -1,0 +1,6 @@
+pwtools.eos.ElkEOSFit.get\_return\_attr
+=======================================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: ElkEOSFit.get_return_attr

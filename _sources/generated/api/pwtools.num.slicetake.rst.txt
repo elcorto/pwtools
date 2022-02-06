@@ -1,0 +1,6 @@
+﻿pwtools.num.slicetake
+=====================
+
+.. currentmodule:: pwtools.num
+
+.. autofunction:: slicetake

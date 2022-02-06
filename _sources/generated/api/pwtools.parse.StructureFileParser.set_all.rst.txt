@@ -1,0 +1,6 @@
+pwtools.parse.StructureFileParser.set\_all
+==========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: StructureFileParser.set_all

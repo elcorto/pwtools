@@ -1,0 +1,6 @@
+﻿pwtools.signal.welch
+====================
+
+.. currentmodule:: pwtools.signal
+
+.. autofunction:: welch

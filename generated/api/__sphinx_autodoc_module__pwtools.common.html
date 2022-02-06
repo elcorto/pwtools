@@ -1,0 +1,237 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>common &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="pwtools.common.EPS" href="pwtools.common.EPS.html" />
+    <link rel="prev" title="pwtools.comb.unique2d" href="pwtools.comb.unique2d.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API Reference</a><ul>
+      <li>Previous: <a href="pwtools.comb.unique2d.html" title="previous chapter">pwtools.comb.unique2d</a></li>
+      <li>Next: <a href="pwtools.common.EPS.html" title="next chapter">pwtools.common.EPS</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="common">
+<h1>common<a class="headerlink" href="#common" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-pwtools.common"></span><table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.common.EPS.html#pwtools.common.EPS" title="pwtools.common.EPS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EPS</span></code></a></p></td>
+<td><p>Double-precision floating-point number type, compatible with Python <cite>float</cite> and C <code class="docutils literal notranslate"><span class="pre">double</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.common.add_to_config.html#pwtools.common.add_to_config" title="pwtools.common.add_to_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_to_config</span></code></a>(config, info)</p></td>
+<td><p>Add sections and key-val paris in <cite>info</cite> to <cite>config</cite>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.common.asseq.html#pwtools.common.asseq" title="pwtools.common.asseq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asseq</span></code></a>(arg)</p></td>
+<td><p>Assert <cite>arg</cite> to be a sequence.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.common.assert_cond.html#pwtools.common.assert_cond" title="pwtools.common.assert_cond"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assert_cond</span></code></a>(cond[, string])</p></td>
+<td><p>Use this instead of <cite>assert cond, string</cite>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.common.backtick.html#pwtools.common.backtick" title="pwtools.common.backtick"><code class="xref py py-obj docutils literal notranslate"><span class="pre">backtick</span></code></a>(call)</p></td>
+<td><p>Convenient shell backtick replacement.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.common.backup.html#pwtools.common.backup" title="pwtools.common.backup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">backup</span></code></a>(src[, prefix])</p></td>
+<td><p>Backup (copy) <cite>src</cite> to &lt;src&gt;&lt;prefix&gt;&lt;num&gt;, where &lt;num&gt; is an integer starting at 0 which is incremented until there is no destination with that name.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.common.cpickle_load.html#pwtools.common.cpickle_load" title="pwtools.common.cpickle_load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cpickle_load</span></code></a>(filename)</p></td>
+<td><p>Load object written by <code class="docutils literal notranslate"><span class="pre">cPickle.dump()</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.common.dict2class.html#pwtools.common.dict2class" title="pwtools.common.dict2class"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict2class</span></code></a>(dct[, name])</p></td>
+<td><p>Convert a dict to a class.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.common.dict2str.html#pwtools.common.dict2str" title="pwtools.common.dict2str"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict2str</span></code></a>(dct)</p></td>
+<td><p>Nicer than simply __repr__.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.common.ffloat.html#pwtools.common.ffloat" title="pwtools.common.ffloat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ffloat</span></code></a>(st)</p></td>
+<td><p>Convert strings representing numbers to Python floats using float().</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.common.file_read.html#pwtools.common.file_read" title="pwtools.common.file_read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">file_read</span></code></a>(fn)</p></td>
+<td><p>Open file with name <cite>fn</cite>, return open(fn).read().</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.common.file_readlines.html#pwtools.common.file_readlines" title="pwtools.common.file_readlines"><code class="xref py py-obj docutils literal notranslate"><span class="pre">file_readlines</span></code></a>(fn)</p></td>
+<td><p>Open file with name <cite>fn</cite>, return open(fn).readlines().</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.common.file_template_replace.html#pwtools.common.file_template_replace" title="pwtools.common.file_template_replace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">file_template_replace</span></code></a>(fn, dct[, bak])</p></td>
+<td><p>Replace placeholders in file <cite>fn</cite>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.common.file_write.html#pwtools.common.file_write" title="pwtools.common.file_write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">file_write</span></code></a>(fn, txt)</p></td>
+<td><p>Write string <cite>txt</cite> to file with name <cite>fn</cite>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.common.fix_eps.html#pwtools.common.fix_eps" title="pwtools.common.fix_eps"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fix_eps</span></code></a>(arr[, eps, copy])</p></td>
+<td><p>Set values of arr to zero where abs(arr) &lt;= eps.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.common.flatten.html#pwtools.common.flatten" title="pwtools.common.flatten"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flatten</span></code></a>(seq)</p></td>
+<td><p>Same as iflatten(), but returns a list.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.common.fpj.html#pwtools.common.fpj" title="pwtools.common.fpj"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fpj</span></code></a>(*args)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.common.frepr.html#pwtools.common.frepr" title="pwtools.common.frepr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frepr</span></code></a>(var[, ffmt])</p></td>
+<td><p>Similar to Python's repr(), but return floats formated with <cite>ffmt</cite> if <cite>var</cite> is a float.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.common.fullpath.html#pwtools.common.fullpath" title="pwtools.common.fullpath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fullpath</span></code></a>(s)</p></td>
+<td><p>Complete path: absolute path + $HOME expansion.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.common.fullpathjoin.html#pwtools.common.fullpathjoin" title="pwtools.common.fullpathjoin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fullpathjoin</span></code></a>(*args)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.common.get_filename.html#pwtools.common.get_filename" title="pwtools.common.get_filename"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_filename</span></code></a>(fh)</p></td>
+<td><p>Try to get the <cite>name</cite> attribute from file-like objects.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.common.iflatten.html#pwtools.common.iflatten" title="pwtools.common.iflatten"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iflatten</span></code></a>(seq)</p></td>
+<td><p>Flatten a sequence.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.common.is_seq.html#pwtools.common.is_seq" title="pwtools.common.is_seq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_seq</span></code></a>(seq)</p></td>
+<td><p>Test if <cite>seq</cite> is some kind of sequence, based on calling iter(seq), i.e. if the object is iterable.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.common.makedirs.html#pwtools.common.makedirs" title="pwtools.common.makedirs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">makedirs</span></code></a>(path)</p></td>
+<td><p>Same as os.makedirs() but silently skips empty paths.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.common.permit_sigpipe.html#pwtools.common.permit_sigpipe" title="pwtools.common.permit_sigpipe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">permit_sigpipe</span></code></a>()</p></td>
+<td><p>Helper for subprocess.Popen().</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.common.pop_from_list.html#pwtools.common.pop_from_list" title="pwtools.common.pop_from_list"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pop_from_list</span></code></a>(lst, items)</p></td>
+<td><p>Pop all <cite>items</cite> from <cite>lst</cite> and return a shorter copy of <cite>lst</cite>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.common.print_dct.html#pwtools.common.print_dct" title="pwtools.common.print_dct"><code class="xref py py-obj docutils literal notranslate"><span class="pre">print_dct</span></code></a>(dct)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.common.seq2str.html#pwtools.common.seq2str" title="pwtools.common.seq2str"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seq2str</span></code></a>(seq[, func, sep])</p></td>
+<td><p>(1,2,3) -&gt; &quot;1 2 3&quot;</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.common.str2seq.html#pwtools.common.str2seq" title="pwtools.common.str2seq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str2seq</span></code></a>(st[, func, sep])</p></td>
+<td><p>&quot;1 2 3&quot; -&gt; [func('1'), func('2'), func('3')]</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.common.str2tup.html#pwtools.common.str2tup" title="pwtools.common.str2tup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str2tup</span></code></a>(*args, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.common.str_arr.html#pwtools.common.str_arr" title="pwtools.common.str_arr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str_arr</span></code></a>(arr[, fmt, delim, zero_eps, eps])</p></td>
+<td><p>Convert array <cite>arr</cite> to nice string representation for printing.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.common.system.html#pwtools.common.system" title="pwtools.common.system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">system</span></code></a>(call[, wait])</p></td>
+<td><p>Fire up shell commamd line <cite>call</cite>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.common.template_replace.html#pwtools.common.template_replace" title="pwtools.common.template_replace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">template_replace</span></code></a>(txt, dct[, conv, ...])</p></td>
+<td><p>Replace placeholders dct.keys() with string values dct.values() in a text string.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.common.tobool.html#pwtools.common.tobool" title="pwtools.common.tobool"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tobool</span></code></a>(val)</p></td>
+<td><p>Convert <cite>val</cite> to boolean value True or False.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.common.toslice.html#pwtools.common.toslice" title="pwtools.common.toslice"><code class="xref py py-obj docutils literal notranslate"><span class="pre">toslice</span></code></a>(val)</p></td>
+<td><p>A simple wrapper around numpy.s_() taking strings as argument.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.common.tup2str.html#pwtools.common.tup2str" title="pwtools.common.tup2str"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tup2str</span></code></a>(seq[, func, sep])</p></td>
+<td><p>(1,2,3) -&gt; &quot;1 2 3&quot;</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/generated/api/__sphinx_autodoc_module__pwtools.common.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

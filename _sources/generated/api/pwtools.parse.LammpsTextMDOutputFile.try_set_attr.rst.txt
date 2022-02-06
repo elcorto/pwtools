@@ -1,0 +1,6 @@
+pwtools.parse.LammpsTextMDOutputFile.try\_set\_attr
+===================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsTextMDOutputFile.try_set_attr

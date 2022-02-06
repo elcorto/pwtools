@@ -1,0 +1,6 @@
+﻿pwtools.constants.hbar
+======================
+
+.. currentmodule:: pwtools.constants
+
+.. autodata:: hbar

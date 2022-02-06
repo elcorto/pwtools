@@ -1,0 +1,21 @@
+
+.. rst file which lists all members of the current module. They will be
+.. handled by the Sphinx autosummary extension.
+
+comb
+====
+
+.. Documentation string which may be at the top of the module.
+.. automodule:: pwtools.comb
+   :no-members:
+   :no-inherited-members:
+
+.. currentmodule:: pwtools.comb
+
+.. Links to members.
+.. autosummary::
+   :toctree:
+
+   _ensure_list
+   nested_loops
+   unique2d

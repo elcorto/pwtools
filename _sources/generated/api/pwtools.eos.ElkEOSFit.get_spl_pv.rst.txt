@@ -1,0 +1,6 @@
+pwtools.eos.ElkEOSFit.get\_spl\_pv
+==================================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: ElkEOSFit.get_spl_pv

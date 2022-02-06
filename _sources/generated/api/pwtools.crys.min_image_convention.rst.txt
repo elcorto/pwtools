@@ -1,0 +1,6 @@
+﻿pwtools.crys.min\_image\_convention
+===================================
+
+.. currentmodule:: pwtools.crys
+
+.. autofunction:: min_image_convention

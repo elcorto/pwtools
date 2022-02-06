@@ -1,0 +1,6 @@
+pwtools.parse.PwSCFOutputFile.assert\_attr
+==========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwSCFOutputFile.assert_attr

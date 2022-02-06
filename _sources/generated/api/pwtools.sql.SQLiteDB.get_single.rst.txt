@@ -1,0 +1,6 @@
+pwtools.sql.SQLiteDB.get\_single
+================================
+
+.. currentmodule:: pwtools.sql
+
+.. automethod:: SQLiteDB.get_single

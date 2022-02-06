@@ -1,0 +1,32 @@
+﻿pwtools.random.RandomStructure
+==============================
+
+.. currentmodule:: pwtools.random
+
+.. autoclass:: RandomStructure
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~RandomStructure.get_random_cryst_const
+      ~RandomStructure.get_random_struct
+   
+  
+  
+
+
+  
+  
+  

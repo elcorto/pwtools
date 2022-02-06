@@ -1,0 +1,6 @@
+pwtools.sql.SQLiteDB.add\_columns
+=================================
+
+.. currentmodule:: pwtools.sql
+
+.. automethod:: SQLiteDB.add_columns

@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.get\_spglib
+===================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.get_spglib

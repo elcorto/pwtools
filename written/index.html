@@ -1,0 +1,193 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>&lt;no title&gt; &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Features" href="features.html" />
+    <link rel="prev" title="pwtools.visualize.view_xcrysden" href="../generated/api/pwtools.visualize.view_xcrysden.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../generated/api/index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../generated/api/pwtools.visualize.view_xcrysden.html" title="previous chapter">pwtools.visualize.view_xcrysden</a></li>
+      <li>Next: <a href="features.html" title="next chapter">Features</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="install.html#dependencies">Dependencies</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="install.html#optional-dependencies">Optional dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#running-tests">Running tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#python-versions">Python versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#compiling-fortran-extensions-and-openmp-notes">Compiling Fortran extensions and OpenMP notes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="install.html#compiler-f2py">Compiler / f2py</a></li>
+<li class="toctree-l3"><a class="reference internal" href="install.html#openmp">OpenMP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="install.html#tests">Tests</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#using-ase">Using ASE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#parse-scf-relax-or-md-output">Parse SCF, relax or MD output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#binary-io">Binary IO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#view-a-structure-or-trajectory">View a structure or trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#find-monkhorst-pack-k-grid-sampling-for-a-given-unit-cell">Find Monkhorst-Pack k-grid sampling for a given unit cell</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#find-spacegroup">Find spacegroup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#smoothing-a-signal-or-a-trajectory">Smoothing a signal or a Trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#interpolation-and-fitting">Interpolation and fitting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#avoid-auto-calculation-for-big-md-data">Avoid auto-calculation for big MD data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#work-with-sqlite-databases">Work with SQLite databases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#more">More</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="background/index.html">Background, details, special topics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="background/ase.html">Relation to ASE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="background/coord_trans.html">Coordinate transformation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="background/coord_trans.html#notation">Notation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="background/coord_trans.html#row-vs-column-form">Row vs. column form</a></li>
+<li class="toctree-l3"><a class="reference internal" href="background/coord_trans.html#theory">Theory</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="background/coord_trans.html#notes-for-the-special-case-fractional-cartesian">Notes for the special case fractional &lt;-&gt; cartesian</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="background/coord_trans.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="background/param_study.html">Parameter studies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="background/parsing.html">Parsing code output and using containers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="background/parsing.html#available-parsers">Available parsers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="background/parsing.html#container-classes-structure-and-trajectory">Container classes <code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code> and <code class="xref py py-class docutils literal notranslate"><span class="pre">Trajectory</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="background/parsing.html#high-level-parsing-functions">High-level parsing functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="background/parsing.html#units">Units</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="background/phonon_dos.html">Velocity autocorrelation function and phonon DOS</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="background/phonon_dos.html#correlation-and-power-spectrum">Correlation and power spectrum</a></li>
+<li class="toctree-l3"><a class="reference internal" href="background/phonon_dos.html#padding-and-smoothing">Padding and smoothing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="background/phonon_dos.html#calculation-of-the-phonon-dos-from-md-data">Calculation of the phonon DOS from MD data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="background/pwscf.html">Pwscf</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="background/pwscf.html#units">Units</a></li>
+<li class="toctree-l3"><a class="reference internal" href="background/pwscf.html#atomic-coordinates">Atomic coordinates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="background/pwscf.html#total-force-on-atoms">Total force on atoms</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="background/rbf.html">Radial Basis Function Networks for interpolation or fitting of N-dim data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="background/rbf.html#theory">Theory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="background/rbf.html#rbf-parameter-p">RBF parameter <span class="math notranslate nohighlight">\(p\)</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="background/rbf.html#interpolation-vs-fitting-regularization-and-numerical-stability">Interpolation vs. fitting, regularization and numerical stability</a></li>
+<li class="toctree-l3"><a class="reference internal" href="background/rbf.html#how-to-determine-p-and-r">How to determine <span class="math notranslate nohighlight">\(p\)</span> and <span class="math notranslate nohighlight">\(r\)</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="background/rbf.html#data-scaling">Data scaling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="background/rbf.html#other-implementations">Other implementations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/written/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

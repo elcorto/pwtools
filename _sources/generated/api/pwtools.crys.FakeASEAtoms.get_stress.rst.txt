@@ -1,0 +1,6 @@
+pwtools.crys.FakeASEAtoms.get\_stress
+=====================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: FakeASEAtoms.get_stress

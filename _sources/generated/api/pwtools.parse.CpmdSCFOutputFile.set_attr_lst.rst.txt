@@ -1,0 +1,6 @@
+pwtools.parse.CpmdSCFOutputFile.set\_attr\_lst
+==============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CpmdSCFOutputFile.set_attr_lst

@@ -1,0 +1,6 @@
+pwtools.parse.TrajectoryFileParser.apply\_units
+===============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: TrajectoryFileParser.apply_units

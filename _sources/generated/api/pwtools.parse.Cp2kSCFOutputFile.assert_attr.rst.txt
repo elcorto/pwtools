@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kSCFOutputFile.assert\_attr
+============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kSCFOutputFile.assert_attr

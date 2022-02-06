@@ -1,0 +1,6 @@
+pwtools.parse.LammpsTextMDOutputFile.get\_volume
+================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsTextMDOutputFile.get_volume

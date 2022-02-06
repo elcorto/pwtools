@@ -1,0 +1,33 @@
+﻿pwtools.timer.TagTimer
+======================
+
+.. currentmodule:: pwtools.timer
+
+.. autoclass:: TagTimer
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~TagTimer.p
+      ~TagTimer.pt
+      ~TagTimer.t
+   
+  
+  
+
+
+  
+  
+  

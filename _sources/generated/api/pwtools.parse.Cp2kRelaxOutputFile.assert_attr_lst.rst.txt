@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kRelaxOutputFile.assert\_attr\_lst
+===================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kRelaxOutputFile.assert_attr_lst

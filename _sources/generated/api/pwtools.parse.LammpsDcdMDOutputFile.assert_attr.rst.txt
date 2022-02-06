@@ -1,0 +1,6 @@
+pwtools.parse.LammpsDcdMDOutputFile.assert\_attr
+================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsDcdMDOutputFile.assert_attr

@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Relation to ASE &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Coordinate transformation" href="coord_trans.html" />
+    <link rel="prev" title="Background, details, special topics" href="index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../generated/api/index.html">API Reference</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Background, details, special topics</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Relation to ASE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coord_trans.html">Coordinate transformation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="param_study.html">Parameter studies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parsing.html">Parsing code output and using containers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="phonon_dos.html">Velocity autocorrelation function and phonon DOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pwscf.html">Pwscf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbf.html">Radial Basis Function Networks for interpolation or fitting of N-dim data</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">&lt;no title&gt;</a><ul>
+  <li><a href="index.html">Background, details, special topics</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Background, details, special topics</a></li>
+      <li>Next: <a href="coord_trans.html" title="next chapter">Coordinate transformation</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="relation-to-ase">
+<h1>Relation to ASE<a class="headerlink" href="#relation-to-ase" title="Permalink to this headline">¶</a></h1>
+<p>The very nice <a class="reference external" href="https://wiki.fysik.dtu.dk/ase">ASE</a> project is in some way related. It also stores atomic
+structure data in Python objects for further manipulation. If needed, one can
+convert a <a class="reference internal" href="../../generated/api/pwtools.crys.Structure.html#pwtools.crys.Structure" title="pwtools.crys.Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code></a> to an ASE Atoms object. The design
+goal of ASE is, however, different from pwtools. ASE provides interfaces to a
+large pile of ab initio codes (“calculators”). MD and structure optimization in
+ASE is coded in Python, using only the calculator’s SCF engine in every step to
+get energy and forces. This is a very good idea, but only structure
+optimization is really developed and tested, as it seems. MD not so much.
+Better use a special MD code here. I’m not sure if ASE provides wave function
+extrapolation for Born-Oppenheimer MD [*]. Phonon calculations based on density
+functional perturbation theory like PWscf/PH or Abinit are not implemented
+(maybe in <a class="reference external" href="https://wiki.fysik.dtu.dk/gpaw/">GPAW</a>?). However, the supercell method can be used with the related
+<a class="reference external" href="http://phonopy.sourceforge.net">phonopy</a> package. The focus of the pwtools package is to be a handy pre- and
+postprocessor providing pythonic access to all input and output quantities of
+the used ab initio codes. In ASE, the calculator abtracts the backend code’s
+input away. With pwtools, you need to know the input file syntax of your
+backend code. Once you know that, you use only template files to set up
+calculations. Regarding visualization, ASE has some kind of GUI. We have
+<a class="reference internal" href="../../generated/api/__sphinx_autodoc_module__pwtools.visualize.html#module-pwtools.visualize" title="pwtools.visualize"><code class="xref py py-mod docutils literal notranslate"><span class="pre">visualize</span></code></a>, which is best used in an interactive Ipython
+session.</p>
+<p>In fact, appart from <a class="reference internal" href="../../generated/api/__sphinx_autodoc_module__pwtools.parse.html#module-pwtools.parse" title="pwtools.parse"><code class="xref py py-mod docutils literal notranslate"><span class="pre">parse</span></code></a>, which implements parsers for ab
+initio code output and <a class="reference internal" href="../../generated/api/__sphinx_autodoc_module__pwtools.pwscf.html#module-pwtools.pwscf" title="pwtools.pwscf"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pwscf</span></code></a>, all other parts of the package
+are completely independent from any external simulation code’s output.
+Especially the parameter study tools in <a class="reference internal" href="../../generated/api/__sphinx_autodoc_module__pwtools.batch.html#module-pwtools.batch" title="pwtools.batch"><code class="xref py py-mod docutils literal notranslate"><span class="pre">batch</span></code></a> can be used for
+any kind of (computational) study, since only user-supplied template files are
+used.</p>
+<p>[*] Last time I checked, I stumbled over a <a class="reference external" href="https://listserv.fysik.dtu.dk/pipermail/gpaw-users/2013-April/002044.html">mailing list thread</a> where they said
+that in LCAO mode, the density would be re-used between steps.</p>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/written/background/ase.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,6 @@
+pwtools.parse.PwSCFOutputFile.get\_coords
+=========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwSCFOutputFile.get_coords

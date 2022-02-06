@@ -1,0 +1,6 @@
+pwtools.parse.PwMDOutputFile.get\_symbols
+=========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwMDOutputFile.get_symbols

@@ -1,0 +1,6 @@
+﻿pwtools.mpl.make\_axes\_grid\_fig
+=================================
+
+.. currentmodule:: pwtools.mpl
+
+.. autofunction:: make_axes_grid_fig

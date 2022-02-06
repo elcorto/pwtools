@@ -1,0 +1,6 @@
+pwtools.sql.SQLiteDB.attach\_column
+===================================
+
+.. currentmodule:: pwtools.sql
+
+.. automethod:: SQLiteDB.attach_column

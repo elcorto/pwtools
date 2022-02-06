@@ -1,0 +1,6 @@
+﻿pwtools.constants.J\_to\_eV
+===========================
+
+.. currentmodule:: pwtools.constants
+
+.. autodata:: J_to_eV

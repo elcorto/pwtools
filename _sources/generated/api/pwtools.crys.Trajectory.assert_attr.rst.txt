@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.assert\_attr
+====================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.assert_attr

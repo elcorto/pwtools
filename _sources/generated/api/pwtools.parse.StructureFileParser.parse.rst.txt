@@ -1,0 +1,6 @@
+pwtools.parse.StructureFileParser.parse
+=======================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: StructureFileParser.parse

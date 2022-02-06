@@ -1,0 +1,6 @@
+pwtools.eos.ExternEOS.get\_min
+==============================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: ExternEOS.get_min

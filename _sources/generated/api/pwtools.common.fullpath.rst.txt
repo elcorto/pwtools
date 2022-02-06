@@ -1,0 +1,6 @@
+﻿pwtools.common.fullpath
+=======================
+
+.. currentmodule:: pwtools.common
+
+.. autofunction:: fullpath

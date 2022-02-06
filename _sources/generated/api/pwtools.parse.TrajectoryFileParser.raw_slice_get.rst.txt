@@ -1,0 +1,6 @@
+pwtools.parse.TrajectoryFileParser.raw\_slice\_get
+==================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: TrajectoryFileParser.raw_slice_get

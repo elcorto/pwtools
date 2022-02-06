@@ -1,0 +1,6 @@
+pwtools.parse.CpmdMDOutputFile.init\_attr\_lst
+==============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CpmdMDOutputFile.init_attr_lst

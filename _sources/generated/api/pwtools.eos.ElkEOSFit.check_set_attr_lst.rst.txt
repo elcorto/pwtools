@@ -1,0 +1,6 @@
+pwtools.eos.ElkEOSFit.check\_set\_attr\_lst
+===========================================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: ElkEOSFit.check_set_attr_lst

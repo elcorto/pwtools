@@ -1,0 +1,6 @@
+﻿pwtools.mpl.clean\_ax3d
+=======================
+
+.. currentmodule:: pwtools.mpl
+
+.. autofunction:: clean_ax3d

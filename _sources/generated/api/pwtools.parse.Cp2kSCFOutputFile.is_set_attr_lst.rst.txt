@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kSCFOutputFile.is\_set\_attr\_lst
+==================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kSCFOutputFile.is_set_attr_lst

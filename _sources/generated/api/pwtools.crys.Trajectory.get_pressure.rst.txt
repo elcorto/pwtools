@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.get\_pressure
+=====================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.get_pressure

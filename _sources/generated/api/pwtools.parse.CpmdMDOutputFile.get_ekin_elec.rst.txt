@@ -1,0 +1,6 @@
+pwtools.parse.CpmdMDOutputFile.get\_ekin\_elec
+==============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CpmdMDOutputFile.get_ekin_elec

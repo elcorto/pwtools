@@ -1,0 +1,6 @@
+﻿pwtools.dcd.HEADER\_DTYPE
+=========================
+
+.. currentmodule:: pwtools.dcd
+
+.. autodata:: HEADER_DTYPE

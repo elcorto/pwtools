@@ -1,0 +1,6 @@
+﻿pwtools.thermo.Ry\_to\_J
+========================
+
+.. currentmodule:: pwtools.thermo
+
+.. autodata:: Ry_to_J

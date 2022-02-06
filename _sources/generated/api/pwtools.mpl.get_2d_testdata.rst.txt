@@ -1,0 +1,6 @@
+﻿pwtools.mpl.get\_2d\_testdata
+=============================
+
+.. currentmodule:: pwtools.mpl
+
+.. autofunction:: get_2d_testdata

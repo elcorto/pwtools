@@ -1,0 +1,32 @@
+﻿pwtools.mpl.Data2D
+==================
+
+.. currentmodule:: pwtools.mpl
+
+.. autoclass:: Data2D
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~Data2D.copy
+      ~Data2D.update
+   
+  
+  
+
+
+  
+  
+  

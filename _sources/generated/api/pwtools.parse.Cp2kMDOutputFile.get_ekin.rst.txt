@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kMDOutputFile.get\_ekin
+========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kMDOutputFile.get_ekin

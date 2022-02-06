@@ -1,0 +1,6 @@
+﻿pwtools.num.match\_mask
+=======================
+
+.. currentmodule:: pwtools.num
+
+.. autofunction:: match_mask

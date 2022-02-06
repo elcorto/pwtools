@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kDcdMDOutputFile.get\_cryst\_const
+===================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kDcdMDOutputFile.get_cryst_const

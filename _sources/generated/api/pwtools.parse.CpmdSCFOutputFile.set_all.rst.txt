@@ -1,0 +1,6 @@
+pwtools.parse.CpmdSCFOutputFile.set\_all
+========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CpmdSCFOutputFile.set_all

@@ -1,0 +1,6 @@
+pwtools.calculators.Pwscf.write\_input
+======================================
+
+.. currentmodule:: pwtools.calculators
+
+.. automethod:: Pwscf.write_input

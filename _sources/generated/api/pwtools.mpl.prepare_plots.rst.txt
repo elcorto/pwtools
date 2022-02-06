@@ -1,0 +1,6 @@
+﻿pwtools.mpl.prepare\_plots
+==========================
+
+.. currentmodule:: pwtools.mpl
+
+.. autofunction:: prepare_plots

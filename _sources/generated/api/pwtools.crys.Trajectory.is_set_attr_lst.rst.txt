@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.is\_set\_attr\_lst
+==========================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.is_set_attr_lst

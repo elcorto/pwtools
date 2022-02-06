@@ -1,0 +1,6 @@
+pwtools.num.Fit1D.get\_root
+===========================
+
+.. currentmodule:: pwtools.num
+
+.. automethod:: Fit1D.get_root

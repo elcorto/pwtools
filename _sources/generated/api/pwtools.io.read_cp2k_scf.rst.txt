@@ -1,0 +1,6 @@
+﻿pwtools.io.read\_cp2k\_scf
+==========================
+
+.. currentmodule:: pwtools.io
+
+.. autodata:: read_cp2k_scf

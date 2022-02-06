@@ -1,0 +1,176 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>atomic_data &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="pwtools.atomic_data.covalent_radii" href="pwtools.atomic_data.covalent_radii.html" />
+    <link rel="prev" title="pwtools.arrayio.writetxt" href="pwtools.arrayio.writetxt.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API Reference</a><ul>
+      <li>Previous: <a href="pwtools.arrayio.writetxt.html" title="previous chapter">pwtools.arrayio.writetxt</a></li>
+      <li>Next: <a href="pwtools.atomic_data.covalent_radii.html" title="next chapter">pwtools.atomic_data.covalent_radii</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="atomic-data">
+<h1>atomic_data<a class="headerlink" href="#atomic-data" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-pwtools.atomic_data"></span><section id="the-periodic-table">
+<h2>The periodic table<a class="headerlink" href="#the-periodic-table" title="Permalink to this headline">¶</a></h2>
+<dl>
+<dt>symbols<span class="classifier">list of chemical symbols</span></dt><dd><p>The list index is also the atomic number in the periodic table. index=0 is
+set but not used. <code class="docutils literal notranslate"><span class="pre">symbols[1]</span> <span class="pre">==</span> <span class="pre">'H'</span></code>, …</p>
+</dd>
+<dt>masses<span class="classifier">1d array (len(symbols,))</span></dt><dd><p>Atomic masses in amu.</p>
+</dd>
+<dt>covalent_radii<span class="classifier">1d array (len(symbols,))</span></dt><dd><p>Covalent radii in Angsttom.</p>
+</dd>
+<dt>numbers<span class="classifier">dict</span></dt><dd><p>Mapping of symbols to numbers: <code class="docutils literal notranslate"><span class="pre">numbers['H']</span> <span class="pre">=</span> <span class="pre">1</span></code>.</p>
+</dd>
+<dt>pt<span class="classifier">dict</span></dt><dd><p>The periodic table. Maping of symbol to a dict of other quantities:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">atomic_data</span><span class="o">.</span><span class="n">pt</span><span class="p">[</span><span class="s1">&#39;H&#39;</span><span class="p">]</span>
+<span class="go">{&#39;cov_rad&#39;: 0.31, &#39;mass&#39;: 1.0079400000000001, &#39;number&#39;: 1}</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Got that from <a class="reference external" href="http://chemistry.about.com/od/elementfacts/a/atomicweights.htm">here</a>. Finding such a list on the net is not as easy as you might
+think. Search for “list of chemical elements”.</p>
+<p>Replaced masses like</p>
+<div class="line-block">
+<div class="line">9.012182(3) -&gt; 9.012182</div>
+<div class="line">[227]       -&gt; 227</div>
+</div>
+<p>Covalent radii shamelessly stolen from <a class="reference external" href="https://wiki.fysik.dtu.dk/ase/ase/data.html#module-data">ase</a>.</p>
+</section>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.atomic_data.covalent_radii.html#pwtools.atomic_data.covalent_radii" title="pwtools.atomic_data.covalent_radii"><code class="xref py py-obj docutils literal notranslate"><span class="pre">covalent_radii</span></code></a></p></td>
+<td><p>ndarray(shape, dtype=float, buffer=None, offset=0,</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.atomic_data.masses.html#pwtools.atomic_data.masses" title="pwtools.atomic_data.masses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">masses</span></code></a></p></td>
+<td><p>ndarray(shape, dtype=float, buffer=None, offset=0,</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.atomic_data.missing.html#pwtools.atomic_data.missing" title="pwtools.atomic_data.missing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">missing</span></code></a></p></td>
+<td><p>int([x]) -&gt; integer int(x, base=10) -&gt; integer</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.atomic_data.numbers.html#pwtools.atomic_data.numbers" title="pwtools.atomic_data.numbers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numbers</span></code></a></p></td>
+<td><p>dict() -&gt; new empty dictionary dict(mapping) -&gt; new dictionary initialized from a mapping object's     (key, value) pairs dict(iterable) -&gt; new dictionary initialized as if via:     d = {}     for k, v in iterable:         d[k] = v dict(<a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs) -&gt; new dictionary initialized with the name=value pairs     in the keyword argument list. For example:  dict(one=1, two=2).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.atomic_data.pt.html#pwtools.atomic_data.pt" title="pwtools.atomic_data.pt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pt</span></code></a></p></td>
+<td><p>dict() -&gt; new empty dictionary dict(mapping) -&gt; new dictionary initialized from a mapping object's     (key, value) pairs dict(iterable) -&gt; new dictionary initialized as if via:     d = {}     for k, v in iterable:         d[k] = v dict(<a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs) -&gt; new dictionary initialized with the name=value pairs     in the keyword argument list. For example:  dict(one=1, two=2).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.atomic_data.symbols.html#pwtools.atomic_data.symbols" title="pwtools.atomic_data.symbols"><code class="xref py py-obj docutils literal notranslate"><span class="pre">symbols</span></code></a></p></td>
+<td><p>Built-in mutable sequence.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/generated/api/__sphinx_autodoc_module__pwtools.atomic_data.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

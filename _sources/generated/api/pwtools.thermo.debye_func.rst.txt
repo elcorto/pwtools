@@ -1,0 +1,6 @@
+﻿pwtools.thermo.debye\_func
+==========================
+
+.. currentmodule:: pwtools.thermo
+
+.. autofunction:: debye_func

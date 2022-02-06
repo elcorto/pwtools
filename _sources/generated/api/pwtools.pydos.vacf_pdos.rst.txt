@@ -1,0 +1,6 @@
+﻿pwtools.pydos.vacf\_pdos
+========================
+
+.. currentmodule:: pwtools.pydos
+
+.. autofunction:: vacf_pdos

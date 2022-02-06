@@ -1,0 +1,6 @@
+pwtools.parse.PDBFile.get\_coords
+=================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PDBFile.get_coords

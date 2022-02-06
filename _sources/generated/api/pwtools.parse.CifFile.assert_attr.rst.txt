@@ -1,0 +1,6 @@
+pwtools.parse.CifFile.assert\_attr
+==================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CifFile.assert_attr

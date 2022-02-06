@@ -1,0 +1,6 @@
+﻿pwtools.batch.default\_repl\_keys
+=================================
+
+.. currentmodule:: pwtools.batch
+
+.. autofunction:: default_repl_keys

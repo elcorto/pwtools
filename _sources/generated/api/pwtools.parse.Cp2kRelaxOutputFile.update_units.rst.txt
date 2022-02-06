@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kRelaxOutputFile.update\_units
+===============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kRelaxOutputFile.update_units

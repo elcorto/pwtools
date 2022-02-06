@@ -1,0 +1,6 @@
+﻿pwtools.lammps.struct\_str
+==========================
+
+.. currentmodule:: pwtools.lammps
+
+.. autofunction:: struct_str

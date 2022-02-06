@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.get\_znucl\_unique
+==========================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.get_znucl_unique

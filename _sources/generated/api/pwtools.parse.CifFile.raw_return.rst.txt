@@ -1,0 +1,6 @@
+pwtools.parse.CifFile.raw\_return
+=================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CifFile.raw_return

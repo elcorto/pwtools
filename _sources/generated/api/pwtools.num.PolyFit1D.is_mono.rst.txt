@@ -1,0 +1,6 @@
+pwtools.num.PolyFit1D.is\_mono
+==============================
+
+.. currentmodule:: pwtools.num
+
+.. automethod:: PolyFit1D.is_mono

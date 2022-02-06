@@ -1,0 +1,6 @@
+pwtools.eos.ExternEOS.fit
+=========================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: ExternEOS.fit

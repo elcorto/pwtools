@@ -1,0 +1,6 @@
+pwtools.crys.FakeASEAtoms.get\_znucl\_unique
+============================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: FakeASEAtoms.get_znucl_unique

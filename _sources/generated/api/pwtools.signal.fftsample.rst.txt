@@ -1,0 +1,6 @@
+﻿pwtools.signal.fftsample
+========================
+
+.. currentmodule:: pwtools.signal
+
+.. autofunction:: fftsample

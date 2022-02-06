@@ -1,0 +1,43 @@
+﻿pwtools.calculators.Pwscf
+=========================
+
+.. currentmodule:: pwtools.calculators
+
+.. autoclass:: Pwscf
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~Pwscf.fill_infile_templ
+      ~Pwscf.init_params_from_input
+      ~Pwscf.read_results
+      ~Pwscf.write_input
+   
+  
+  
+
+
+  
+  
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree:
+   
+      ~Pwscf.default_parameters
+      ~Pwscf.implemented_properties
+      ~Pwscf.infile_templ
+  
+  

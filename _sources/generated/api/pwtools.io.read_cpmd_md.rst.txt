@@ -1,0 +1,6 @@
+﻿pwtools.io.read\_cpmd\_md
+=========================
+
+.. currentmodule:: pwtools.io
+
+.. autodata:: read_cpmd_md

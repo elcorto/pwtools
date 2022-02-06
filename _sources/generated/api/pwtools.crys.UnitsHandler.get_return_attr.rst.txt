@@ -1,0 +1,6 @@
+pwtools.crys.UnitsHandler.get\_return\_attr
+===========================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: UnitsHandler.get_return_attr

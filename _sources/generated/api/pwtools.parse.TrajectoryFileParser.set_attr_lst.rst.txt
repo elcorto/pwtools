@@ -1,0 +1,6 @@
+pwtools.parse.TrajectoryFileParser.set\_attr\_lst
+=================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: TrajectoryFileParser.set_attr_lst

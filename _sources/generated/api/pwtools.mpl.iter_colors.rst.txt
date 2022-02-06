@@ -1,0 +1,6 @@
+﻿pwtools.mpl.iter\_colors
+========================
+
+.. currentmodule:: pwtools.mpl
+
+.. autodata:: iter_colors

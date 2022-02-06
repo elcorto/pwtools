@@ -1,0 +1,6 @@
+﻿pwtools.pwscf.atpos\_str\_fast
+==============================
+
+.. currentmodule:: pwtools.pwscf
+
+.. autofunction:: atpos_str_fast

@@ -1,0 +1,44 @@
+
+.. rst file which lists all members of the current module. They will be
+.. handled by the Sphinx autosummary extension.
+
+io
+==
+
+.. Documentation string which may be at the top of the module.
+.. automodule:: pwtools.io
+   :no-members:
+   :no-inherited-members:
+
+.. currentmodule:: pwtools.io
+
+.. Links to members.
+.. autosummary::
+   :toctree:
+
+   Ha
+   ReadFactory
+   eV
+   load_h5
+   read_cif
+   read_cp2k_md
+   read_cp2k_md_dcd
+   read_cp2k_relax
+   read_cp2k_scf
+   read_cpmd_md
+   read_cpmd_scf
+   read_h5
+   read_lammps_md_dcd
+   read_lammps_md_txt
+   read_pdb
+   read_pickle
+   read_pw_md
+   read_pw_scf
+   read_pw_vcmd
+   wien_sgroup_input
+   write_axsf
+   write_cif
+   write_h5
+   write_lammps
+   write_wien_sgroup
+   write_xyz

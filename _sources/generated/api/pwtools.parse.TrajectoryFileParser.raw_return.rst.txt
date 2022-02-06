@@ -1,0 +1,6 @@
+pwtools.parse.TrajectoryFileParser.raw\_return
+==============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: TrajectoryFileParser.raw_return

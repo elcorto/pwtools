@@ -1,0 +1,6 @@
+pwtools.sql.SQLiteDB.has\_table
+===============================
+
+.. currentmodule:: pwtools.sql
+
+.. automethod:: SQLiteDB.has_table

@@ -1,0 +1,6 @@
+﻿pwtools.constants.alpha
+=======================
+
+.. currentmodule:: pwtools.constants
+
+.. autodata:: alpha

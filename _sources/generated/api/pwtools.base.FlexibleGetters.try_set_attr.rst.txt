@@ -1,0 +1,6 @@
+pwtools.base.FlexibleGetters.try\_set\_attr
+===========================================
+
+.. currentmodule:: pwtools.base
+
+.. automethod:: FlexibleGetters.try_set_attr

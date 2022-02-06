@@ -1,0 +1,6 @@
+﻿pwtools.atomic\_data.covalent\_radii
+====================================
+
+.. currentmodule:: pwtools.atomic_data
+
+.. autodata:: covalent_radii

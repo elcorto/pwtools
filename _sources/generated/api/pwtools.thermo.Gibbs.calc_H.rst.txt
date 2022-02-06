@@ -1,0 +1,6 @@
+pwtools.thermo.Gibbs.calc\_H
+============================
+
+.. currentmodule:: pwtools.thermo
+
+.. automethod:: Gibbs.calc_H

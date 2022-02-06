@@ -1,0 +1,6 @@
+pwtools.parse.CifFile.get\_coords
+=================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CifFile.get_coords

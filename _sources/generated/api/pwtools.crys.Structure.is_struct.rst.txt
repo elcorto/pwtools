@@ -1,0 +1,6 @@
+pwtools.crys.Structure.is\_struct
+=================================
+
+.. currentmodule:: pwtools.crys
+
+.. autoattribute:: Structure.is_struct

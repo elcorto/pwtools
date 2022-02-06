@@ -1,0 +1,6 @@
+﻿pwtools.parse.traj\_from\_txt
+=============================
+
+.. currentmodule:: pwtools.parse
+
+.. autofunction:: traj_from_txt

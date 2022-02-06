@@ -1,0 +1,6 @@
+pwtools.parse.TrajectoryFileParser.parse
+========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: TrajectoryFileParser.parse

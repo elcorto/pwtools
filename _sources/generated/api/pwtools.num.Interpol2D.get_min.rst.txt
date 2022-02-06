@@ -1,0 +1,6 @@
+pwtools.num.Interpol2D.get\_min
+===============================
+
+.. currentmodule:: pwtools.num
+
+.. automethod:: Interpol2D.get_min

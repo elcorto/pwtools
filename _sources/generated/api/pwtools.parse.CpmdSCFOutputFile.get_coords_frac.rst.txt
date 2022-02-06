@@ -1,0 +1,6 @@
+pwtools.parse.CpmdSCFOutputFile.get\_coords\_frac
+=================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CpmdSCFOutputFile.get_coords_frac

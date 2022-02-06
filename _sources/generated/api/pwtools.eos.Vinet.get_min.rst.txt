@@ -1,0 +1,6 @@
+pwtools.eos.Vinet.get\_min
+==========================
+
+.. currentmodule:: pwtools.eos
+
+.. automethod:: Vinet.get_min

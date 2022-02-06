@@ -1,0 +1,6 @@
+﻿pwtools.crys.velocity\_traj
+===========================
+
+.. currentmodule:: pwtools.crys
+
+.. autofunction:: velocity_traj

@@ -1,0 +1,6 @@
+﻿pwtools.parse.Ry
+================
+
+.. currentmodule:: pwtools.parse
+
+.. autodata:: Ry

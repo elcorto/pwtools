@@ -1,0 +1,6 @@
+﻿pwtools.symmetry.spglib\_get\_spacegroup
+========================================
+
+.. currentmodule:: pwtools.symmetry
+
+.. autofunction:: spglib_get_spacegroup

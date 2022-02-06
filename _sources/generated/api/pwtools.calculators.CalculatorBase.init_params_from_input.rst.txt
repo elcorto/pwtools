@@ -1,0 +1,6 @@
+pwtools.calculators.CalculatorBase.init\_params\_from\_input
+============================================================
+
+.. currentmodule:: pwtools.calculators
+
+.. automethod:: CalculatorBase.init_params_from_input

@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kSCFOutputFile.set\_all
+========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kSCFOutputFile.set_all

@@ -1,0 +1,6 @@
+pwtools.parse.CifFile.raw\_slice\_get
+=====================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CifFile.raw_slice_get

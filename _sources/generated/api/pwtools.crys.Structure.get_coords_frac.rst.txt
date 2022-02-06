@@ -1,0 +1,6 @@
+pwtools.crys.Structure.get\_coords\_frac
+========================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.get_coords_frac

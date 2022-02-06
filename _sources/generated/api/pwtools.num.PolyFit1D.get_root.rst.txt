@@ -1,0 +1,6 @@
+pwtools.num.PolyFit1D.get\_root
+===============================
+
+.. currentmodule:: pwtools.num
+
+.. automethod:: PolyFit1D.get_root

@@ -1,0 +1,6 @@
+pwtools.parse.CpmdMDOutputFile.get\_scf\_converged
+==================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CpmdMDOutputFile.get_scf_converged

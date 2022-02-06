@@ -1,0 +1,6 @@
+pwtools.sql.SQLiteDB.create\_table
+==================================
+
+.. currentmodule:: pwtools.sql
+
+.. automethod:: SQLiteDB.create_table

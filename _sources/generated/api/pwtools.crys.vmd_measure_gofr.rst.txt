@@ -1,0 +1,6 @@
+﻿pwtools.crys.vmd\_measure\_gofr
+===============================
+
+.. currentmodule:: pwtools.crys
+
+.. autofunction:: vmd_measure_gofr

@@ -1,0 +1,6 @@
+﻿pwtools.decorators.open\_and\_close
+===================================
+
+.. currentmodule:: pwtools.decorators
+
+.. autofunction:: open_and_close

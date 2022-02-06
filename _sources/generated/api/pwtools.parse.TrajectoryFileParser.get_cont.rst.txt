@@ -1,0 +1,6 @@
+pwtools.parse.TrajectoryFileParser.get\_cont
+============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: TrajectoryFileParser.get_cont

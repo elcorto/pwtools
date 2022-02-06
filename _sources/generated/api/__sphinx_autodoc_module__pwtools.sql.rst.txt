@@ -1,0 +1,28 @@
+
+.. rst file which lists all members of the current module. They will be
+.. handled by the Sphinx autosummary extension.
+
+sql
+===
+
+.. Documentation string which may be at the top of the module.
+.. automodule:: pwtools.sql
+   :no-members:
+   :no-inherited-members:
+
+.. currentmodule:: pwtools.sql
+
+.. Links to members.
+.. autosummary::
+   :toctree:
+
+   SQLEntry
+   SQLiteDB
+   find_sqltype
+   fix_sql_header
+   fix_sqltype
+   get_test_db
+   makedb
+   sql_column
+   sql_column_old
+   sql_matrix

@@ -1,0 +1,6 @@
+﻿pwtools.calculators.kpts2mp
+===========================
+
+.. currentmodule:: pwtools.calculators
+
+.. autofunction:: kpts2mp

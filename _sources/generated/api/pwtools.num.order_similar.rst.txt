@@ -1,0 +1,6 @@
+﻿pwtools.num.order\_similar
+==========================
+
+.. currentmodule:: pwtools.num
+
+.. autofunction:: order_similar

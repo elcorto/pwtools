@@ -1,0 +1,6 @@
+﻿pwtools.parse.float\_from\_txt
+==============================
+
+.. currentmodule:: pwtools.parse
+
+.. autofunction:: float_from_txt

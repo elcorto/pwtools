@@ -1,0 +1,6 @@
+﻿pwtools.visualize.view\_jmol
+============================
+
+.. currentmodule:: pwtools.visualize
+
+.. autodata:: view_jmol

@@ -1,0 +1,6 @@
+pwtools.parse.StructureFileParser.get\_struct
+=============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: StructureFileParser.get_struct

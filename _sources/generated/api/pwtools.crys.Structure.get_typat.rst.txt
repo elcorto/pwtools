@@ -1,0 +1,6 @@
+pwtools.crys.Structure.get\_typat
+=================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.get_typat

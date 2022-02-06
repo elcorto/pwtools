@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kMDOutputFile.raw\_return
+==========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kMDOutputFile.raw_return

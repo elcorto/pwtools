@@ -1,0 +1,65 @@
+
+.. rst file which lists all members of the current module. They will be
+.. handled by the Sphinx autosummary extension.
+
+mpl
+===
+
+.. Documentation string which may be at the top of the module.
+.. automodule:: pwtools.mpl
+   :no-members:
+   :no-inherited-members:
+
+.. currentmodule:: pwtools.mpl
+
+.. Links to members.
+.. autosummary::
+   :toctree:
+
+   Data2D
+   Data3D
+   Plot
+   cc
+   ccl
+   ccm
+   clc
+   clean_ax3d
+   cm
+   cmc
+   collect_legends
+   colors
+   colors_linestyles
+   colors_markers
+   cycle_colors
+   cycle_colors_linestyles
+   cycle_colors_markers
+   cycle_linestyles_colors
+   cycle_markers
+   cycle_markers_colors
+   fig_ax
+   fig_ax3d
+   get_2d_testdata
+   ic
+   icl
+   icm
+   ilc
+   im
+   imc
+   iter_colors
+   iter_colors_linestyles
+   iter_colors_markers
+   iter_linestyles
+   iter_linestyles_colors
+   iter_markers
+   iter_markers_colors
+   linestyles
+   linestyles_colors
+   make_axes_grid_fig
+   markers
+   markers_colors
+   meshgridt
+   new_axis
+   plotlines3d
+   prepare_plots
+   smooth_color
+   smooth_color_func

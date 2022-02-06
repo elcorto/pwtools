@@ -1,0 +1,240 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>pwtools.batch.ParameterStudy &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="pwtools.batch.ParameterStudy.write_input" href="pwtools.batch.ParameterStudy.write_input.html" />
+    <link rel="prev" title="pwtools.batch.Machine.get_sql_record" href="pwtools.batch.Machine.get_sql_record.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API Reference</a><ul>
+  <li><a href="__sphinx_autodoc_module__pwtools.batch.html">batch</a><ul>
+      <li>Previous: <a href="pwtools.batch.Machine.get_sql_record.html" title="previous chapter">pwtools.batch.Machine.get_sql_record</a></li>
+      <li>Next: <a href="pwtools.batch.ParameterStudy.write_input.html" title="next chapter">pwtools.batch.ParameterStudy.write_input</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="pwtools-batch-parameterstudy">
+<h1>pwtools.batch.ParameterStudy<a class="headerlink" href="#pwtools-batch-parameterstudy" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="pwtools.batch.ParameterStudy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pwtools.batch.</span></span><span class="sig-name descname"><span class="pre">ParameterStudy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">machines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">templates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params_lst</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">study_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'calc'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'calc.db'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'calc'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_dir_prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'calc'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/batch.html#ParameterStudy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.batch.ParameterStudy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class to represent a parameter study (a number of Calculations,
+based on template files).</p>
+<p>The basic idea is to assemble all to-be-varied parameters in a script
+outside (<cite>params_lst</cite>) and pass these to this class along with a list of
+<cite>templates</cite> files, usually software input files. Then, a simple loop over
+the parameter sets is done and input files are written.</p>
+<p>Calculation dirs are numbered automatically. The default is</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">calc_dir</span> <span class="pre">=</span> <span class="pre">&lt;calc_root&gt;/&lt;calc_dir_prefix&gt;_&lt;machine.hostname&gt;</span></code>, e.g.
+<code class="docutils literal notranslate"><span class="pre">./calc_foo</span></code></p>
+</div></blockquote>
+<p>and each calculation for each parameter set</p>
+<blockquote>
+<div><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">./calc_foo/0</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">./calc_foo/1</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">./calc_foo/2</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">...</span></code></div>
+</div>
+</div></blockquote>
+<p>A sqlite database <code class="docutils literal notranslate"><span class="pre">calc_dir_root/&lt;db_name&gt;</span></code> is written. If this class
+operates on a <cite>calc_dir_root</cite> where such a database already exists, then
+the default is to append new calculations. The numbering of calc dirs
+continues at the end. This can be changed with the <cite>mode</cite> kwarg of
+<a class="reference internal" href="pwtools.batch.ParameterStudy.write_input.html#pwtools.batch.ParameterStudy.write_input" title="pwtools.batch.ParameterStudy.write_input"><code class="xref py py-meth docutils literal notranslate"><span class="pre">write_input()</span></code></a>. By default, a sql column “revision” is
+added which numbers each addition.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Here are some examples for constructing `params_lst`.</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Vary two (three, ...) parameters on a 2d (3d, ...) grid: In fact, the</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># way you are constructing params_lst is only a matter of zip() and</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># comb.nested_loops()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">par1</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">sql_column</span><span class="p">(</span><span class="s1">&#39;par1&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">par2</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">sql_column</span><span class="p">(</span><span class="s1">&#39;par2&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span><span class="s1">&#39;b&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">par3</span> <span class="o">=</span> <span class="o">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># 3d grid</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">params_lst</span> <span class="o">=</span> <span class="n">comb</span><span class="o">.</span><span class="n">nested_loops</span><span class="p">([</span><span class="n">par1</span><span class="p">,</span> <span class="n">par2</span><span class="p">,</span> <span class="n">par3</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># which is the same as:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">params_lst</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">par1</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]:</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">par2</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span><span class="s1">&#39;b&#39;</span><span class="p">]:</span>
+<span class="gp">... </span>        <span class="k">for</span> <span class="n">par3</span> <span class="ow">in</span> <span class="p">[</span><span class="o">...</span><span class="p">]:</span>
+<span class="gp">... </span>            <span class="n">params_lst</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">sql</span><span class="o">.</span><span class="n">SQLEntry</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s1">&#39;par1&#39;</span><span class="p">,</span> <span class="n">sqlval</span><span class="o">=</span><span class="n">par1</span><span class="p">),</span>
+<span class="gp">... </span>                               <span class="n">sql</span><span class="o">.</span><span class="n">SQLEntry</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s1">&#39;par2&#39;</span><span class="p">,</span> <span class="n">sqlval</span><span class="o">=</span><span class="n">par2</span><span class="p">),</span>
+<span class="gp">... </span>                               <span class="n">sql</span><span class="o">.</span><span class="n">SQLEntry</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s1">&#39;par3&#39;</span><span class="p">,</span> <span class="n">sqlval</span><span class="o">=</span><span class="n">par3</span><span class="p">),</span>
+<span class="gp">... </span>                               <span class="p">])</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># vary par1 and par2 together, and par3 -&gt; 2d grid w/ par1+par2 on one</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># axis and par3 on the other</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">params_lst</span> <span class="o">=</span> <span class="n">comb</span><span class="o">.</span><span class="n">nested_loops</span><span class="p">([</span><span class="nb">zip</span><span class="p">(</span><span class="n">par1</span><span class="p">,</span> <span class="n">par2</span><span class="p">),</span> <span class="n">par3</span><span class="p">],</span> <span class="n">flatten</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>See <code class="docutils literal notranslate"><span class="pre">examples/parameter_study/</span></code> for complete examples, as well as
+<code class="docutils literal notranslate"><span class="pre">test/test_parameter_study.py</span></code>.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">itertools.product</span></code>, <a class="reference internal" href="pwtools.comb.nested_loops.html#pwtools.comb.nested_loops" title="pwtools.comb.nested_loops"><code class="xref py py-func docutils literal notranslate"><span class="pre">pwtools.comb.nested_loops()</span></code></a>, <a class="reference internal" href="pwtools.sql.sql_column.html#pwtools.sql.sql_column" title="pwtools.sql.sql_column"><code class="xref py py-func docutils literal notranslate"><span class="pre">pwtools.sql.sql_column()</span></code></a></p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="pwtools.batch.ParameterStudy.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">machines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">templates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params_lst</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">study_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'calc'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'calc.db'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'calc'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc_dir_prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'calc'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/batch.html#ParameterStudy.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.batch.ParameterStudy.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>machines</strong> (<em>sequence</em><em> or </em><a class="reference internal" href="pwtools.batch.Machine.html#pwtools.batch.Machine" title="pwtools.batch.Machine"><em>Machine</em></a>) – List of Machine instances or a single Machine</p></li>
+<li><p><strong>templates</strong> (<em>see Calculation</em>) – </p></li>
+<li><p><strong>params_lst</strong> (<em>list of lists</em>) – <p>The “parameter sets”. Each sublist is a set of calculation
+parameters as SQLEntry instances:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[[</span><span class="n">SQLEntry</span><span class="p">(</span><span class="o">...</span><span class="p">),</span> <span class="n">SQLEntry</span><span class="p">(</span><span class="o">...</span><span class="p">),</span> <span class="o">...</span><span class="p">],</span> <span class="c1"># calc_foo/0</span>
+ <span class="p">[</span><span class="n">SQLEntry</span><span class="p">(</span><span class="o">...</span><span class="p">),</span> <span class="n">SQLEntry</span><span class="p">(</span><span class="o">...</span><span class="p">),</span> <span class="o">...</span><span class="p">],</span> <span class="c1"># calc_foo/1</span>
+ <span class="o">...</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>For each sublist, a separate calculation dir is created and
+populated with files based on <cite>templates</cite>. The <cite>key</cite> attribute of
+each SQLEntry will be converted to a placeholder in each
+FileTemplate and an attempt to replacement in the template files is
+made. Thus, the way placeholders are created is defined in
+FileTemplate, not here!
+Note: Each sublist (parameter set) is flattened, so that it
+can in fact be a nested list, e.g. params_lst = the result of a
+complex comb.nested_loops() call. Also, sublists need not have the
+same length or <cite>key</cite> attributes per entry (“incomplete parameter
+sets”). The sqlite table header is compiled from all distinct
+<a href="#id1"><span class="problematic" id="id2">`</span></a>key`s found.</p>
+</p></li>
+<li><p><strong>study_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Name for the parameter study. From this, the <cite>calc_name</cite> for input
+files and job name etc. will be built. By default, a string
+“_run&lt;idx&gt;” is appended to create a unique name.</p></li>
+<li><p><strong>db_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Basename of the sqlite database.</p></li>
+<li><p><strong>db_table</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the sqlite database table.</p></li>
+<li><p><strong>calc_root</strong> (<em>str</em><em>, </em><em>optional</em>) – Root of all calc dirs.</p></li>
+<li><p><strong>calc_dir_prefix</strong> (<em>str</em><em>, </em><em>optional</em>) – Prefix for the top calculation dir (e.g. ‘calc’ for ‘calc_foo’).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Methods</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.batch.ParameterStudy.write_input.html#pwtools.batch.ParameterStudy.write_input" title="pwtools.batch.ParameterStudy.write_input"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_input</span></code></a>([mode, backup, sleep, excl])</p></td>
+<td><p>Create calculation dir(s) for each parameter set and write input files based on <code class="docutils literal notranslate"><span class="pre">templates</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/generated/api/pwtools.batch.ParameterStudy.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

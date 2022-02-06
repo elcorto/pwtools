@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kSCFOutputFile.get\_etot
+=========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: Cp2kSCFOutputFile.get_etot

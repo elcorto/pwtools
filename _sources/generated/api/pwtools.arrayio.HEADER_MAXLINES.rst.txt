@@ -1,0 +1,6 @@
+﻿pwtools.arrayio.HEADER\_MAXLINES
+================================
+
+.. currentmodule:: pwtools.arrayio
+
+.. autodata:: HEADER_MAXLINES

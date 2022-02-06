@@ -1,0 +1,6 @@
+pwtools.parse.PwSCFOutputFile.raw\_return
+=========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwSCFOutputFile.raw_return

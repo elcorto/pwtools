@@ -1,0 +1,6 @@
+﻿pwtools.common.seq2str
+======================
+
+.. currentmodule:: pwtools.common
+
+.. autofunction:: seq2str

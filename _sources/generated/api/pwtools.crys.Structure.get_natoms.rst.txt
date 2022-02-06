@@ -1,0 +1,6 @@
+pwtools.crys.Structure.get\_natoms
+==================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.get_natoms

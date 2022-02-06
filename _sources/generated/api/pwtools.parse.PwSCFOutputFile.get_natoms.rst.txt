@@ -1,0 +1,6 @@
+pwtools.parse.PwSCFOutputFile.get\_natoms
+=========================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PwSCFOutputFile.get_natoms

@@ -1,0 +1,6 @@
+pwtools.parse.CpmdSCFOutputFile.default\_units
+==============================================
+
+.. currentmodule:: pwtools.parse
+
+.. autoattribute:: CpmdSCFOutputFile.default_units

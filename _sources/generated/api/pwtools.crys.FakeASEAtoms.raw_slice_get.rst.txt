@@ -1,0 +1,6 @@
+pwtools.crys.FakeASEAtoms.raw\_slice\_get
+=========================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: FakeASEAtoms.raw_slice_get

@@ -1,0 +1,6 @@
+pwtools.base.FlexibleGetters.set\_attr\_lst
+===========================================
+
+.. currentmodule:: pwtools.base
+
+.. automethod:: FlexibleGetters.set_attr_lst

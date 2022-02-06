@@ -1,0 +1,6 @@
+pwtools.crys.Structure.update\_units
+====================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Structure.update_units

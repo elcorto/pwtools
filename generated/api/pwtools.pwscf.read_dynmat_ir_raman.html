@@ -1,0 +1,167 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>pwtools.pwscf.read_dynmat_ir_raman &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="pwtools.pwscf.read_dynmat_out" href="pwtools.pwscf.read_dynmat_out.html" />
+    <link rel="prev" title="pwtools.pwscf.read_dynmat" href="pwtools.pwscf.read_dynmat.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../written/features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../written/background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">API Reference</a><ul>
+  <li><a href="__sphinx_autodoc_module__pwtools.pwscf.html">pwscf</a><ul>
+      <li>Previous: <a href="pwtools.pwscf.read_dynmat.html" title="previous chapter">pwtools.pwscf.read_dynmat</a></li>
+      <li>Next: <a href="pwtools.pwscf.read_dynmat_out.html" title="next chapter">pwtools.pwscf.read_dynmat_out</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="pwtools-pwscf-read-dynmat-ir-raman">
+<h1>pwtools.pwscf.read_dynmat_ir_raman<a class="headerlink" href="#pwtools-pwscf-read-dynmat-ir-raman" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="pwtools.pwscf.read_dynmat_ir_raman">
+<span class="sig-prename descclassname"><span class="pre">pwtools.pwscf.</span></span><span class="sig-name descname"><span class="pre">read_dynmat_ir_raman</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dynmat.out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">natoms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{1:</span> <span class="pre">'freqs',</span> <span class="pre">3:</span> <span class="pre">'ir',</span> <span class="pre">4:</span> <span class="pre">'raman',</span> <span class="pre">5:</span> <span class="pre">'depol'}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/pwscf.html#read_dynmat_ir_raman"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.pwscf.read_dynmat_ir_raman" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read <code class="docutils literal notranslate"><span class="pre">dynmat.x</span></code> text output file and extract IR and Raman
+intensities.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – dynmat.x text output file (e.g. from <code class="docutils literal notranslate"><span class="pre">dynmat.x</span> <span class="pre">&lt;</span> <span class="pre">dynmat.in</span> <span class="pre">&gt;</span>
+<span class="pre">dynmat.out</span></code>)</p></li>
+<li><p><strong>natoms</strong> (<em>int</em>) – number of atoms in the cell</p></li>
+<li><p><strong>cols</strong> (<em>dict</em>) – column numbers of the text block</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>cols = None</em> – Return the parsed array as found in the file</p></li>
+<li><p><em>cols = dict</em> – Return dict with keys from <cite>cols</cite> and 1d arrays <code class="docutils literal notranslate"><span class="pre">{'freqs':</span> <span class="pre">&lt;array&gt;,</span>
+<span class="pre">'ir':</span> <span class="pre">&lt;array&gt;,</span> <span class="pre">'raman':</span> <span class="pre">&lt;array&gt;,</span> <span class="pre">'depol':</span> <span class="pre">&lt;array&gt;}</span></code>. If a column is
+not present, the array is None.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The parsed textblock looks like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># mode   [cm-1]    [THz]      IR          Raman   depol.fact</span>
+    <span class="mi">1</span>      <span class="mf">0.00</span>    <span class="mf">0.0000</span>    <span class="mf">0.0000</span>         <span class="mf">0.0005</span>    <span class="mf">0.7414</span>
+    <span class="mi">2</span>      <span class="mf">0.00</span>    <span class="mf">0.0000</span>    <span class="mf">0.0000</span>         <span class="mf">0.0005</span>    <span class="mf">0.7465</span>
+    <span class="mi">3</span>      <span class="mf">0.00</span>    <span class="mf">0.0000</span>    <span class="mf">0.0000</span>         <span class="mf">0.0018</span>    <span class="mf">0.2647</span>
+    <span class="mi">4</span>    <span class="mf">252.27</span>    <span class="mf">7.5627</span>    <span class="mf">0.0000</span>         <span class="mf">0.0073</span>    <span class="mf">0.7500</span>
+    <span class="mi">5</span>    <span class="mf">252.27</span>    <span class="mf">7.5627</span>    <span class="mf">0.0000</span>         <span class="mf">0.0073</span>    <span class="mf">0.7500</span>
+    <span class="mi">6</span>    <span class="mf">548.44</span>   <span class="mf">16.4419</span>    <span class="mf">0.0000</span>         <span class="mf">0.0000</span>    <span class="mf">0.7434</span>
+    <span class="mi">7</span>    <span class="mf">603.32</span>   <span class="mf">18.0872</span>   <span class="mf">35.9045</span>        <span class="mf">18.9075</span>    <span class="mf">0.7366</span>
+    <span class="mi">8</span>    <span class="mf">656.82</span>   <span class="mf">19.6910</span>    <span class="mf">0.0000</span>         <span class="mf">7.9317</span>    <span class="mf">0.7500</span>
+    <span class="mi">9</span>    <span class="mf">656.82</span>   <span class="mf">19.6910</span>    <span class="mf">0.0000</span>         <span class="mf">7.9317</span>    <span class="mf">0.7500</span>
+   <span class="mi">10</span>    <span class="mf">669.67</span>   <span class="mf">20.0762</span>   <span class="mf">31.5712</span>         <span class="mf">5.0265</span>    <span class="mf">0.7500</span>
+   <span class="mi">11</span>    <span class="mf">738.22</span>   <span class="mf">22.1311</span>    <span class="mf">0.0000</span>         <span class="mf">0.0000</span>    <span class="mf">0.7306</span>
+   <span class="mi">12</span>    <span class="mf">922.64</span>   <span class="mf">27.6600</span>   <span class="mf">31.5712</span>         <span class="mf">5.0265</span>    <span class="mf">0.7500</span>
+</pre></div>
+</div>
+<p>Some columns (e.g. IR, Raman) may be missing.</p>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2021, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/generated/api/pwtools.pwscf.read_dynmat_ir_raman.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

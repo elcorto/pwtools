@@ -1,0 +1,6 @@
+pwtools.parse.LammpsDcdMDOutputFile.timeaxis
+============================================
+
+.. currentmodule:: pwtools.parse
+
+.. autoattribute:: LammpsDcdMDOutputFile.timeaxis

@@ -1,0 +1,6 @@
+pwtools.parse.CifFile.get\_struct
+=================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CifFile.get_struct

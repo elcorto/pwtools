@@ -1,0 +1,6 @@
+pwtools.calculators.Pwscf.default\_parameters
+=============================================
+
+.. currentmodule:: pwtools.calculators
+
+.. autoattribute:: Pwscf.default_parameters

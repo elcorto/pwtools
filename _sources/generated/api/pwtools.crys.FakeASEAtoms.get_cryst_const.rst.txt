@@ -1,0 +1,6 @@
+pwtools.crys.FakeASEAtoms.get\_cryst\_const
+===========================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: FakeASEAtoms.get_cryst_const

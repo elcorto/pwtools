@@ -1,0 +1,6 @@
+pwtools.calculators.Lammps.write\_input
+=======================================
+
+.. currentmodule:: pwtools.calculators
+
+.. automethod:: Lammps.write_input

@@ -1,0 +1,6 @@
+﻿pwtools.crys.grid\_in\_cell
+===========================
+
+.. currentmodule:: pwtools.crys
+
+.. autofunction:: grid_in_cell

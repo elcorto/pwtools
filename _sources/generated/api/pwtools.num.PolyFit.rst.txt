@@ -1,0 +1,35 @@
+﻿pwtools.num.PolyFit
+===================
+
+.. currentmodule:: pwtools.num
+
+.. autoclass:: PolyFit
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. automethod:: __call__
+
+ 
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~PolyFit.get_min
+   
+  
+  
+
+
+  
+  
+  

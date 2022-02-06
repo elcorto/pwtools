@@ -1,0 +1,6 @@
+pwtools.parse.CpmdMDOutputFile.get\_return\_attr
+================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: CpmdMDOutputFile.get_return_attr

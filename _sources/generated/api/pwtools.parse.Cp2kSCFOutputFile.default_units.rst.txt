@@ -1,0 +1,6 @@
+pwtools.parse.Cp2kSCFOutputFile.default\_units
+==============================================
+
+.. currentmodule:: pwtools.parse
+
+.. autoattribute:: Cp2kSCFOutputFile.default_units

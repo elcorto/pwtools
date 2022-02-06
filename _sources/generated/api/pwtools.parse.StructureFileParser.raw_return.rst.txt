@@ -1,0 +1,6 @@
+pwtools.parse.StructureFileParser.raw\_return
+=============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: StructureFileParser.raw_return

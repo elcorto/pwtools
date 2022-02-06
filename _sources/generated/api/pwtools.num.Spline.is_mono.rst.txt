@@ -1,0 +1,6 @@
+pwtools.num.Spline.is\_mono
+===========================
+
+.. currentmodule:: pwtools.num
+
+.. automethod:: Spline.is_mono

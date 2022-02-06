@@ -1,0 +1,93 @@
+﻿pwtools.crys.FakeASEAtoms
+=========================
+
+.. currentmodule:: pwtools.crys
+
+.. autoclass:: FakeASEAtoms
+   :no-members:
+   :no-inherited-members:
+   :no-special-members:
+
+  
+  
+
+   .. automethod:: __init__
+
+  
+
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      ~FakeASEAtoms.apply_units
+      ~FakeASEAtoms.assert_attr
+      ~FakeASEAtoms.assert_attr_lst
+      ~FakeASEAtoms.assert_set_attr
+      ~FakeASEAtoms.assert_set_attr_lst
+      ~FakeASEAtoms.check_set_attr
+      ~FakeASEAtoms.check_set_attr_lst
+      ~FakeASEAtoms.compress
+      ~FakeASEAtoms.copy
+      ~FakeASEAtoms.dump
+      ~FakeASEAtoms.get_ase_atoms
+      ~FakeASEAtoms.get_atomic_numbers
+      ~FakeASEAtoms.get_cell
+      ~FakeASEAtoms.get_coords
+      ~FakeASEAtoms.get_coords_frac
+      ~FakeASEAtoms.get_cryst_const
+      ~FakeASEAtoms.get_ekin
+      ~FakeASEAtoms.get_etot
+      ~FakeASEAtoms.get_fake_ase_atoms
+      ~FakeASEAtoms.get_forces
+      ~FakeASEAtoms.get_magnetic_moments
+      ~FakeASEAtoms.get_mass
+      ~FakeASEAtoms.get_mass_unique
+      ~FakeASEAtoms.get_natoms
+      ~FakeASEAtoms.get_nspecies
+      ~FakeASEAtoms.get_nstep
+      ~FakeASEAtoms.get_ntypat
+      ~FakeASEAtoms.get_order
+      ~FakeASEAtoms.get_pressure
+      ~FakeASEAtoms.get_return_attr
+      ~FakeASEAtoms.get_spglib
+      ~FakeASEAtoms.get_stress
+      ~FakeASEAtoms.get_symbols
+      ~FakeASEAtoms.get_symbols_unique
+      ~FakeASEAtoms.get_temperature
+      ~FakeASEAtoms.get_time
+      ~FakeASEAtoms.get_timestep
+      ~FakeASEAtoms.get_traj
+      ~FakeASEAtoms.get_typat
+      ~FakeASEAtoms.get_velocity
+      ~FakeASEAtoms.get_volume
+      ~FakeASEAtoms.get_znucl
+      ~FakeASEAtoms.get_znucl_unique
+      ~FakeASEAtoms.init_attr_lst
+      ~FakeASEAtoms.is_set_attr
+      ~FakeASEAtoms.is_set_attr_lst
+      ~FakeASEAtoms.load
+      ~FakeASEAtoms.raw_return
+      ~FakeASEAtoms.raw_slice_get
+      ~FakeASEAtoms.set_all
+      ~FakeASEAtoms.set_attr_lst
+      ~FakeASEAtoms.try_set_attr
+      ~FakeASEAtoms.try_set_attr_lst
+      ~FakeASEAtoms.update_units
+   
+  
+  
+
+
+  
+  
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree:
+   
+      ~FakeASEAtoms.is_struct
+      ~FakeASEAtoms.is_traj
+      ~FakeASEAtoms.timeaxis
+  
+  

@@ -1,0 +1,6 @@
+pwtools.timer.TagTimer.t
+========================
+
+.. currentmodule:: pwtools.timer
+
+.. automethod:: TagTimer.t

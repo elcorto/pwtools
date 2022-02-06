@@ -1,0 +1,6 @@
+pwtools.mpl.Data2D.copy
+=======================
+
+.. currentmodule:: pwtools.mpl
+
+.. automethod:: Data2D.copy

@@ -1,0 +1,6 @@
+pwtools.parse.PDBFile.get\_symbols
+==================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: PDBFile.get_symbols

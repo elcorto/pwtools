@@ -1,0 +1,6 @@
+pwtools.parse.LammpsTextMDOutputFile.set\_all
+=============================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: LammpsTextMDOutputFile.set_all

@@ -1,0 +1,6 @@
+pwtools.sql.SQLiteDB.get\_max\_rowid
+====================================
+
+.. currentmodule:: pwtools.sql
+
+.. automethod:: SQLiteDB.get_max_rowid

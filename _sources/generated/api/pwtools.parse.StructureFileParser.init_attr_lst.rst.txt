@@ -1,0 +1,6 @@
+pwtools.parse.StructureFileParser.init\_attr\_lst
+=================================================
+
+.. currentmodule:: pwtools.parse
+
+.. automethod:: StructureFileParser.init_attr_lst

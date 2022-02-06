@@ -1,0 +1,6 @@
+pwtools.crys.Trajectory.get\_order
+==================================
+
+.. currentmodule:: pwtools.crys
+
+.. automethod:: Trajectory.get_order
