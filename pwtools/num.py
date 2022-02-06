@@ -924,7 +924,7 @@ class Interpol2D:
         xopt = optimize.fmin(self, x0, **_kwds)
         return xopt
 
-def fempty(shape, dtype=np.float):
+def fempty(shape, dtype=np.float64):
     return np.empty(shape, dtype=dtype, order='F')
 
 

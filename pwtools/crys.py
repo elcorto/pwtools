@@ -464,8 +464,8 @@ def cc2celldm(cryst_const, fac=1.0):
     %(celldm)s
     """
     assert len(cryst_const) == 6, ("cryst_const has length != 6")
-    celldm = np.empty((6,), dtype=np.float)
-    a,b,c,alpha,beta,gamma = np.asarray(cryst_const, dtype=np.float)
+    celldm = np.empty((6,), dtype=np.float64)
+    a,b,c,alpha,beta,gamma = np.asarray(cryst_const, dtype=np.float64)
     celldm[0] = a*fac
     celldm[1] = b/a
     celldm[2] = c/a
@@ -486,8 +486,8 @@ def celldm2cc(celldm, fac=1.0):
         conversion a[Bohr] -> a[any unit]
     """
     assert len(celldm) == 6, ("celldm has length != 6")
-    cryst_const = np.empty((6,), dtype=np.float)
-    a,ba,ca,cos_alpha,cos_beta,cos_gamma = np.asarray(celldm, dtype=np.float)
+    cryst_const = np.empty((6,), dtype=np.float64)
+    a,ba,ca,cos_alpha,cos_beta,cos_gamma = np.asarray(celldm, dtype=np.float64)
     a = a*fac
     cryst_const[0] = a
     cryst_const[1] = ba * a

@@ -170,7 +170,7 @@ def nstep_from_txt(txt):
     else:
         return int(txt)
 
-def traj_from_txt(txt, shape, axis=0, dtype=np.float, sep=' '):
+def traj_from_txt(txt, shape, axis=0, dtype=np.float64, sep=' '):
     """Used for 3d trajectories where the exact shape of the array as written
     by the MD code must be known, e.g. (nstep,N,3) where N=3 (cell, stress) or
     N=natoms (coords, forces, ...).
@@ -206,14 +206,14 @@ def traj_from_txt(txt, shape, axis=0, dtype=np.float, sep=' '):
         # (nstep,natoms,3)
         return np.fromstring(txt, sep=sep, dtype=dtype).reshape(shape)
 
-def arr1d_from_txt(txt, dtype=np.float):
+def arr1d_from_txt(txt, dtype=np.float64):
     if txt.strip() == '':
         return None
     else:
         ret = np.atleast_1d(np.loadtxt(StringIO(txt), dtype=dtype))
         return ret
 
-def arr2d_from_txt(txt, dtype=np.float):
+def arr2d_from_txt(txt, dtype=np.float64):
     if txt.strip() == '':
         return None
     else:
@@ -1255,7 +1255,7 @@ class CpmdSCFOutputFile(StructureFileParser):
             cmd = "grep -A%i 'SCALED ATOMIC COORDINATES' %s | tail -n%i" \
                   %(self.natoms, fn, self.natoms)
             arr = arr2d_from_txt(com.backtick(cmd), dtype=str)
-            coords_frac = arr[:,:3].astype(np.float)
+            coords_frac = arr[:,:3].astype(np.float64)
             symbols = arr[:,3].tolist()
             return {'coords_frac': coords_frac,
                     'symbols': symbols,
