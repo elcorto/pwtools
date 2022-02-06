@@ -2,8 +2,8 @@
 
 .. _rbf:
 
-Radial Basis Function interpolation and regression
-==================================================
+Radial Basis Function Networks for interpolation or fitting of N-dim data
+=========================================================================
 
 Some background information on the method implemented in :mod:`~pwtools.rbf`.
 For code examples, see the doc string of :class:`~pwtools.rbf.Rbf`.
