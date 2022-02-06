@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# NOTE: This script, or at least the part where we copy the source tree to a temp
+# location and run there, should be removed once all tests have been migrated to using
+# random temp directories.
+
 usage(){
     cat << EOF
 Prepare package for testing and call pytest.
@@ -49,7 +53,7 @@ Notes
 * For test_f2py_flib_openmp.py, we set OMP_NUM_THREADS=3. This will
   oversubscribe any CPU with less than 3 cores, but should run fine.
 
-* test_rbf.py may seldomly fail if the generated random data is not good. Just
+* test_rbf.py may occasionally fail if the generated random data is not good. Just
   re-run the test in that case.
 EOF
 }
@@ -81,7 +85,7 @@ else
     params=$@
 fi
 
-runner_opts="$params"
+runner_opts="$params --color=yes"
 found_runner=false
 for runner in pytest pytest-3; do
     if which $runner > /dev/null; then
@@ -125,15 +129,26 @@ cd $tgtdir/pwtools/test
 #   >>> filename = os.path.join(testdir, 'foo_tmp.txt')
 #   >>> ...
 #
-# ATM tests write temp data as they please, into testdir. Think about using
-# more modern temp dir tools such as pytest's tmpdir fixture or the stdlib
-# tempfile.TemporaryDirectory and friends.
+# ATM some tests still write temp data as they please, into testdir. We should
+# update to better temp dir tools such as pytest's tmpdir fixture or the stdlib
+# tempfile.TemporaryDirectory
 echo "testdir='$testdir'" > testenv.py
 
+# logfile: We could use another pytest plugin
+# https://pypi.org/project/pytest-reportlog/ to write a logfile. But in order
+# to not bloat the list of dependencies, we use shell tools instead. When
+# pytest is used in a pipe, it disables terminal color output. However we want
+# colored output there, so we need to use pytest --color=yes (default is
+# --color=auto). Then we just remove the color sequences from the logfile.
 prnt "running tests ..."
+
 eval "PYTHONPATH=$testdir:$PYTHONPATH \
       OMP_NUM_THREADS=3 $runner \
       $runner_opts" 2>&1 | tee -a $logfile
+
+# Remove color sequences.
+sed -i -re "s/[[:cntrl:]]\[[0-9]{1,3}m//g" $logfile
+
 prnt "... ready"
 
 echo "logfile: $logfile"
