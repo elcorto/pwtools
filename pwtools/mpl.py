@@ -1,24 +1,3 @@
-"""
-Example for changing axis color (pure matplotlib, just as reference)
----------------------------------------------------------------------
-From http://stackoverflow.com/questions/4761623/changing-the-color-of-the-axis-ticks-and-labels-for-a-plot-in-matplotlib
-
->>> import matplotlib.pyplot as plt
->>> fig = plt.figure()
->>> ax = fig.add_subplot(111)
-
->>> ax.plot(range(10))
->>> ax.set_xlabel('X-axis')
->>> ax.set_ylabel('Y-axis')
-
->>> ax.spines['bottom'].set_color('red')
->>> ax.spines['top'].set_color('red')
->>> ax.xaxis.label.set_color('red')
->>> ax.tick_params(axis='x', colors='red')
-
->>> plt.show()
-"""
-
 import itertools
 import warnings
 from collections import OrderedDict
@@ -39,6 +18,7 @@ try:
     from mpl_toolkits.mplot3d import Axes3D
 except ImportError:
     warnings.warn("cannot import from mpl_toolkits.mplot3d")
+
 
 #----------------------------------------------------------------------------
 # mpl helpers, boilerplate stuff
@@ -120,6 +100,56 @@ def clean_ax3d(ax):
     ax.w_yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
     ax.w_zaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
     ax.grid(False)
+
+
+def color_ax(ax, color, axis="y", spine_loc="left", spine_invisible=None):
+    """
+    Change ax color.
+
+    Parameters
+    ----------
+    ax : AxesSubplot
+    color : whatever matplotlib accepts as color, e.g. "b", "tab:green"
+    axis : "x",  "y" or "both"
+    spine_loc : index for ``ax.spines``, ``['left', 'right', 'bottom', 'top']``
+    spine_invisible : index for ``ax.spines`` or None
+        Make this spine invsible, e.g. to uncover underlying spine. Useful in
+        twinx() settings (see example below).
+
+    Examples
+    --------
+    >>> color_left = "tab:red"
+    >>> color_right = "tab:green"
+
+    >>> fig,ax = plt.subplots()
+    >>> ax.plot(rand(10), color=color_left)
+    >>> ax.set_ylabel("left")
+
+    >>> ax2 = ax.twinx()
+    >>> ax2.plot(rand(10), color=color_right)
+    >>> ax2.set_ylabel("right")
+
+    >>> mpl.color_ax(ax, color_left)
+    >>> mpl.color_ax(ax2, color_right, spine_loc="right",
+    ...              spine_invisible="left")
+
+    Notes
+    -----
+    * https://stackoverflow.com/a/4762002
+    * https://stackoverflow.com/a/53186403
+    """
+    # ax.xaxis
+    # ax.yaxis
+    _axis = getattr(ax, f"{axis}axis")
+    _axis.label.set_color(color)
+    # both: major and minor ticks
+    ax.tick_params(axis=axis, colors=color, which="both")
+    if spine_loc is not None:
+        ax.spines[spine_loc].set_color(color)
+    if spine_invisible is not None:
+        # ax.spines[...].set_visible("False") doesn't do anything to uncover
+        # the underlying spine
+        ax.spines[spine_invisible].set_color("None")
 
 
 class Plot:
