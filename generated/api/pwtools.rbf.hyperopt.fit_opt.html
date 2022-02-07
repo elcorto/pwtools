@@ -102,6 +102,8 @@
 <dd><p>Optimize <code class="xref py py-class docutils literal notranslate"><span class="pre">Rbf</span></code>’s hyper-parameter <span class="math notranslate nohighlight">\(p\)</span> or both <span class="math notranslate nohighlight">\((p,r)\)</span>.</p>
 <p>Use a cross validation error metric or the direct fit error if <cite>cv</cite> is
 None. Uses <a class="reference internal" href="pwtools.rbf.hyperopt.FitError.html#pwtools.rbf.hyperopt.FitError" title="pwtools.rbf.hyperopt.FitError"><code class="xref py py-class docutils literal notranslate"><span class="pre">FitError</span></code></a>.</p>
+<p>Note: While we do have some defaults for initial guess or bounds, depending
+on the optimizer, you are strongly advised to set your own in <cite>opt_kwds</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -116,8 +118,9 @@ None. Uses <a class="reference internal" href="pwtools.rbf.hyperopt.FitError.htm
 <li><p><strong>what</strong> (<em>str</em>) – ‘p’ (optimize only <cite>p</cite> and set <cite>r=None</cite>) or ‘pr’ (optimize <cite>p</cite> and <cite>r</cite>)</p></li>
 <li><p><strong>cv</strong> (see <a class="reference internal" href="pwtools.rbf.hyperopt.FitError.html#pwtools.rbf.hyperopt.FitError" title="pwtools.rbf.hyperopt.FitError"><code class="xref py py-class docutils literal notranslate"><span class="pre">FitError</span></code></a>) – </p></li>
 <li><p><strong>cv_kwds</strong> (see <a class="reference internal" href="pwtools.rbf.hyperopt.FitError.html#pwtools.rbf.hyperopt.FitError" title="pwtools.rbf.hyperopt.FitError"><code class="xref py py-class docutils literal notranslate"><span class="pre">FitError</span></code></a>) – </p></li>
-<li><p><strong>rbf_kwds</strong> (see <a class="reference internal" href="pwtools.rbf.hyperopt.FitError.html#pwtools.rbf.hyperopt.FitError" title="pwtools.rbf.hyperopt.FitError"><code class="xref py py-class docutils literal notranslate"><span class="pre">FitError</span></code></a>) – </p></li>
+<li><p><strong>rbf_kwds</strong> (<em>dict</em>) – </p></li>
 <li><p><strong>opt_kwds</strong> (<em>dict</em>) – kwds for the optimizer (see <cite>method</cite>)</p></li>
+<li><p><strong>rbf_kwds</strong> – Constant params for <code class="xref py py-class docutils literal notranslate"><span class="pre">Rbf</span></code></p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>

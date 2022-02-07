@@ -1013,7 +1013,7 @@
         <span class="n">xopt</span> <span class="o">=</span> <span class="n">optimize</span><span class="o">.</span><span class="n">fmin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwds</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">xopt</span></div></div>
 
-<div class="viewcode-block" id="fempty"><a class="viewcode-back" href="../../generated/api/pwtools.num.fempty.html#pwtools.num.fempty">[docs]</a><span class="k">def</span> <span class="nf">fempty</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">):</span>
+<div class="viewcode-block" id="fempty"><a class="viewcode-back" href="../../generated/api/pwtools.num.fempty.html#pwtools.num.fempty">[docs]</a><span class="k">def</span> <span class="nf">fempty</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span></div>
 
 
@@ -1780,10 +1780,10 @@
 
 
 <div class="viewcode-block" id="meshgridt"><a class="viewcode-back" href="../../generated/api/pwtools.num.meshgridt.html#pwtools.num.meshgridt">[docs]</a><span class="k">def</span> <span class="nf">meshgridt</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A version of</span>
-<span class="sd">        X,Y = numpy.meshgrid(x,y)</span>
-<span class="sd">    which returns X and Y transposed, i.e. (nx, ny) instead (ny, nx)</span>
-<span class="sd">    where nx,ny = len(x),len(y).</span>
+    <span class="sd">&quot;&quot;&quot;Shortcut for ``numpy.meshgrid(x, y, indexing=&quot;ij&quot;)``</span>
+
+<span class="sd">    A version of ``X,Y = numpy.meshgrid(x,y)`` which returns X and Y</span>
+<span class="sd">    transposed, i.e. (nx, ny) instead (ny, nx) where nx,ny = len(x),len(y).</span>
 
 <span class="sd">    This is useful for dealing with 2D splines in</span>
 <span class="sd">    scipy.interpolate.bisplev(), which also returns a (nx,ny) array.</span>
@@ -1792,8 +1792,9 @@
 <span class="sd">    ----------</span>
 <span class="sd">    x,y : 1d arrays</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">X</span><span class="p">,</span><span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">Y</span><span class="o">.</span><span class="n">T</span></div>
+    <span class="c1">##X,Y = np.meshgrid(x,y)</span>
+    <span class="c1">##return X.T, Y.T</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="euler_matrix"><a class="viewcode-back" href="../../generated/api/pwtools.num.euler_matrix.html#pwtools.num.euler_matrix">[docs]</a><span class="k">def</span> <span class="nf">euler_matrix</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">psi</span><span class="p">,</span> <span class="n">deg</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>

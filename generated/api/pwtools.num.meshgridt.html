@@ -98,12 +98,9 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="pwtools.num.meshgridt">
 <span class="sig-prename descclassname"><span class="pre">pwtools.num.</span></span><span class="sig-name descname"><span class="pre">meshgridt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/num.html#meshgridt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.num.meshgridt" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>A version of</dt><dd><p>X,Y = numpy.meshgrid(x,y)</p>
-</dd>
-</dl>
-<p>which returns X and Y transposed, i.e. (nx, ny) instead (ny, nx)
-where nx,ny = len(x),len(y).</p>
+<dd><p>Shortcut for <code class="docutils literal notranslate"><span class="pre">numpy.meshgrid(x,</span> <span class="pre">y,</span> <span class="pre">indexing=&quot;ij&quot;)</span></code></p>
+<p>A version of <code class="docutils literal notranslate"><span class="pre">X,Y</span> <span class="pre">=</span> <span class="pre">numpy.meshgrid(x,y)</span></code> which returns X and Y
+transposed, i.e. (nx, ny) instead (ny, nx) where nx,ny = len(x),len(y).</p>
 <p>This is useful for dealing with 2D splines in
 scipy.interpolate.bisplev(), which also returns a (nx,ny) array.</p>
 <dl class="field-list simple">
