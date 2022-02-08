@@ -93,30 +93,7 @@
             
   <section id="mpl">
 <h1>mpl<a class="headerlink" href="#mpl" title="Permalink to this headline">¶</a></h1>
-<span class="target" id="module-pwtools.mpl"></span><section id="example-for-changing-axis-color-pure-matplotlib-just-as-reference">
-<h2>Example for changing axis color (pure matplotlib, just as reference)<a class="headerlink" href="#example-for-changing-axis-color-pure-matplotlib-just-as-reference" title="Permalink to this headline">¶</a></h2>
-<p>From <a class="reference external" href="http://stackoverflow.com/questions/4761623/changing-the-color-of-the-axis-ticks-and-labels-for-a-plot-in-matplotlib">http://stackoverflow.com/questions/4761623/changing-the-color-of-the-axis-ticks-and-labels-for-a-plot-in-matplotlib</a></p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;X-axis&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Y-axis&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;bottom&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;top&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</section>
-<table class="longtable docutils align-default">
+<span class="target" id="module-pwtools.mpl"></span><table class="longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
 <col style="width: 90%" />
@@ -155,112 +132,115 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.collect_legends.html#pwtools.mpl.collect_legends" title="pwtools.mpl.collect_legends"><code class="xref py py-obj docutils literal notranslate"><span class="pre">collect_legends</span></code></a>(*axs)</p></td>
 <td><p>Collect legend data from multiple axes, return input for legend().</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.colors.html#pwtools.mpl.colors" title="pwtools.mpl.colors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">colors</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.color_ax.html#pwtools.mpl.color_ax" title="pwtools.mpl.color_ax"><code class="xref py py-obj docutils literal notranslate"><span class="pre">color_ax</span></code></a>(ax, color[, axis, spine_loc, ...])</p></td>
+<td><p>Change ax color.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.colors.html#pwtools.mpl.colors" title="pwtools.mpl.colors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">colors</span></code></a></p></td>
 <td><p>Built-in mutable sequence.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.colors_linestyles.html#pwtools.mpl.colors_linestyles" title="pwtools.mpl.colors_linestyles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">colors_linestyles</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.colors_linestyles.html#pwtools.mpl.colors_linestyles" title="pwtools.mpl.colors_linestyles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">colors_linestyles</span></code></a></p></td>
 <td><p>Built-in mutable sequence.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.colors_markers.html#pwtools.mpl.colors_markers" title="pwtools.mpl.colors_markers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">colors_markers</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.colors_markers.html#pwtools.mpl.colors_markers" title="pwtools.mpl.colors_markers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">colors_markers</span></code></a></p></td>
 <td><p>Built-in mutable sequence.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.cycle_colors.html#pwtools.mpl.cycle_colors" title="pwtools.mpl.cycle_colors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cycle_colors</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.cycle_colors.html#pwtools.mpl.cycle_colors" title="pwtools.mpl.cycle_colors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cycle_colors</span></code></a></p></td>
 <td><p>Return elements from the iterable until it is exhausted.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.cycle_colors_linestyles.html#pwtools.mpl.cycle_colors_linestyles" title="pwtools.mpl.cycle_colors_linestyles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cycle_colors_linestyles</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.cycle_colors_linestyles.html#pwtools.mpl.cycle_colors_linestyles" title="pwtools.mpl.cycle_colors_linestyles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cycle_colors_linestyles</span></code></a></p></td>
 <td><p>Return elements from the iterable until it is exhausted.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.cycle_colors_markers.html#pwtools.mpl.cycle_colors_markers" title="pwtools.mpl.cycle_colors_markers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cycle_colors_markers</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.cycle_colors_markers.html#pwtools.mpl.cycle_colors_markers" title="pwtools.mpl.cycle_colors_markers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cycle_colors_markers</span></code></a></p></td>
 <td><p>Return elements from the iterable until it is exhausted.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.cycle_linestyles_colors.html#pwtools.mpl.cycle_linestyles_colors" title="pwtools.mpl.cycle_linestyles_colors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cycle_linestyles_colors</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.cycle_linestyles_colors.html#pwtools.mpl.cycle_linestyles_colors" title="pwtools.mpl.cycle_linestyles_colors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cycle_linestyles_colors</span></code></a></p></td>
 <td><p>Return elements from the iterable until it is exhausted.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.cycle_markers.html#pwtools.mpl.cycle_markers" title="pwtools.mpl.cycle_markers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cycle_markers</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.cycle_markers.html#pwtools.mpl.cycle_markers" title="pwtools.mpl.cycle_markers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cycle_markers</span></code></a></p></td>
 <td><p>Return elements from the iterable until it is exhausted.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.cycle_markers_colors.html#pwtools.mpl.cycle_markers_colors" title="pwtools.mpl.cycle_markers_colors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cycle_markers_colors</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.cycle_markers_colors.html#pwtools.mpl.cycle_markers_colors" title="pwtools.mpl.cycle_markers_colors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cycle_markers_colors</span></code></a></p></td>
 <td><p>Return elements from the iterable until it is exhausted.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.fig_ax.html#pwtools.mpl.fig_ax" title="pwtools.mpl.fig_ax"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fig_ax</span></code></a>(**kwds)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.fig_ax.html#pwtools.mpl.fig_ax" title="pwtools.mpl.fig_ax"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fig_ax</span></code></a>(**kwds)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">fig,ax</span> <span class="pre">=</span> <span class="pre">fig_ax()</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.fig_ax3d.html#pwtools.mpl.fig_ax3d" title="pwtools.mpl.fig_ax3d"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fig_ax3d</span></code></a>([clean])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.fig_ax3d.html#pwtools.mpl.fig_ax3d" title="pwtools.mpl.fig_ax3d"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fig_ax3d</span></code></a>([clean])</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">fig,ax3d</span> <span class="pre">=</span> <span class="pre">fig_ax()</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.get_2d_testdata.html#pwtools.mpl.get_2d_testdata" title="pwtools.mpl.get_2d_testdata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_2d_testdata</span></code></a>([n])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.get_2d_testdata.html#pwtools.mpl.get_2d_testdata" title="pwtools.mpl.get_2d_testdata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_2d_testdata</span></code></a>([n])</p></td>
 <td><p>2D sin + cos data.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.ic.html#pwtools.mpl.ic" title="pwtools.mpl.ic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ic</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.ic.html#pwtools.mpl.ic" title="pwtools.mpl.ic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ic</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.icl.html#pwtools.mpl.icl" title="pwtools.mpl.icl"><code class="xref py py-obj docutils literal notranslate"><span class="pre">icl</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.icl.html#pwtools.mpl.icl" title="pwtools.mpl.icl"><code class="xref py py-obj docutils literal notranslate"><span class="pre">icl</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.icm.html#pwtools.mpl.icm" title="pwtools.mpl.icm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">icm</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.icm.html#pwtools.mpl.icm" title="pwtools.mpl.icm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">icm</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.ilc.html#pwtools.mpl.ilc" title="pwtools.mpl.ilc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ilc</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.ilc.html#pwtools.mpl.ilc" title="pwtools.mpl.ilc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ilc</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.im.html#pwtools.mpl.im" title="pwtools.mpl.im"><code class="xref py py-obj docutils literal notranslate"><span class="pre">im</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.im.html#pwtools.mpl.im" title="pwtools.mpl.im"><code class="xref py py-obj docutils literal notranslate"><span class="pre">im</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.imc.html#pwtools.mpl.imc" title="pwtools.mpl.imc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imc</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.imc.html#pwtools.mpl.imc" title="pwtools.mpl.imc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imc</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.iter_colors.html#pwtools.mpl.iter_colors" title="pwtools.mpl.iter_colors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_colors</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.iter_colors.html#pwtools.mpl.iter_colors" title="pwtools.mpl.iter_colors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_colors</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.iter_colors_linestyles.html#pwtools.mpl.iter_colors_linestyles" title="pwtools.mpl.iter_colors_linestyles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_colors_linestyles</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.iter_colors_linestyles.html#pwtools.mpl.iter_colors_linestyles" title="pwtools.mpl.iter_colors_linestyles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_colors_linestyles</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.iter_colors_markers.html#pwtools.mpl.iter_colors_markers" title="pwtools.mpl.iter_colors_markers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_colors_markers</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.iter_colors_markers.html#pwtools.mpl.iter_colors_markers" title="pwtools.mpl.iter_colors_markers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_colors_markers</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.iter_linestyles.html#pwtools.mpl.iter_linestyles" title="pwtools.mpl.iter_linestyles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_linestyles</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.iter_linestyles.html#pwtools.mpl.iter_linestyles" title="pwtools.mpl.iter_linestyles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_linestyles</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.iter_linestyles_colors.html#pwtools.mpl.iter_linestyles_colors" title="pwtools.mpl.iter_linestyles_colors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_linestyles_colors</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.iter_linestyles_colors.html#pwtools.mpl.iter_linestyles_colors" title="pwtools.mpl.iter_linestyles_colors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_linestyles_colors</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.iter_markers.html#pwtools.mpl.iter_markers" title="pwtools.mpl.iter_markers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_markers</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.iter_markers.html#pwtools.mpl.iter_markers" title="pwtools.mpl.iter_markers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_markers</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.iter_markers_colors.html#pwtools.mpl.iter_markers_colors" title="pwtools.mpl.iter_markers_colors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_markers_colors</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.iter_markers_colors.html#pwtools.mpl.iter_markers_colors" title="pwtools.mpl.iter_markers_colors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_markers_colors</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.linestyles.html#pwtools.mpl.linestyles" title="pwtools.mpl.linestyles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">linestyles</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.linestyles.html#pwtools.mpl.linestyles" title="pwtools.mpl.linestyles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">linestyles</span></code></a></p></td>
 <td><p>Built-in mutable sequence.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.linestyles_colors.html#pwtools.mpl.linestyles_colors" title="pwtools.mpl.linestyles_colors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">linestyles_colors</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.linestyles_colors.html#pwtools.mpl.linestyles_colors" title="pwtools.mpl.linestyles_colors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">linestyles_colors</span></code></a></p></td>
 <td><p>Built-in mutable sequence.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.make_axes_grid_fig.html#pwtools.mpl.make_axes_grid_fig" title="pwtools.mpl.make_axes_grid_fig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_axes_grid_fig</span></code></a>([num])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.make_axes_grid_fig.html#pwtools.mpl.make_axes_grid_fig" title="pwtools.mpl.make_axes_grid_fig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_axes_grid_fig</span></code></a>([num])</p></td>
 <td><p>Create an mpl Figure and add to it an axes_grid.SubplotHost subplot (<cite>hostax</cite>).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.markers.html#pwtools.mpl.markers" title="pwtools.mpl.markers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">markers</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.markers.html#pwtools.mpl.markers" title="pwtools.mpl.markers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">markers</span></code></a></p></td>
 <td><p>Built-in mutable sequence.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.markers_colors.html#pwtools.mpl.markers_colors" title="pwtools.mpl.markers_colors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">markers_colors</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.markers_colors.html#pwtools.mpl.markers_colors" title="pwtools.mpl.markers_colors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">markers_colors</span></code></a></p></td>
 <td><p>Built-in mutable sequence.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.meshgridt.html#pwtools.mpl.meshgridt" title="pwtools.mpl.meshgridt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">meshgridt</span></code></a>(*args, **kwds)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.meshgridt.html#pwtools.mpl.meshgridt" title="pwtools.mpl.meshgridt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">meshgridt</span></code></a>(*args, **kwds)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.new_axis.html#pwtools.mpl.new_axis" title="pwtools.mpl.new_axis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">new_axis</span></code></a>(fig, hostax[, off, loc, ticks, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.new_axis.html#pwtools.mpl.new_axis" title="pwtools.mpl.new_axis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">new_axis</span></code></a>(fig, hostax[, off, loc, ticks, ...])</p></td>
 <td><p>Make a new axis line using mpl_toolkits.axes_grid's SubplotHost and ParasiteAxes.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.plotlines3d.html#pwtools.mpl.plotlines3d" title="pwtools.mpl.plotlines3d"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plotlines3d</span></code></a>(ax3d, x, y, z, *args, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.plotlines3d.html#pwtools.mpl.plotlines3d" title="pwtools.mpl.plotlines3d"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plotlines3d</span></code></a>(ax3d, x, y, z, *args, **kwargs)</p></td>
 <td><p>Plot x-z curves stacked along y.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.prepare_plots.html#pwtools.mpl.prepare_plots" title="pwtools.mpl.prepare_plots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">prepare_plots</span></code></a>(names[, projection])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.prepare_plots.html#pwtools.mpl.prepare_plots" title="pwtools.mpl.prepare_plots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">prepare_plots</span></code></a>(names[, projection])</p></td>
 <td><p>Return a dict of Plot instances.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.smooth_color.html#pwtools.mpl.smooth_color" title="pwtools.mpl.smooth_color"><code class="xref py py-obj docutils literal notranslate"><span class="pre">smooth_color</span></code></a>(idx, niter)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.smooth_color.html#pwtools.mpl.smooth_color" title="pwtools.mpl.smooth_color"><code class="xref py py-obj docutils literal notranslate"><span class="pre">smooth_color</span></code></a>(idx, niter)</p></td>
 <td><p>Helper for creating color transitions in loops.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mpl.smooth_color_func.html#pwtools.mpl.smooth_color_func" title="pwtools.mpl.smooth_color_func"><code class="xref py py-obj docutils literal notranslate"><span class="pre">smooth_color_func</span></code></a>(niter, func)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="pwtools.mpl.smooth_color_func.html#pwtools.mpl.smooth_color_func" title="pwtools.mpl.smooth_color_func"><code class="xref py py-obj docutils literal notranslate"><span class="pre">smooth_color_func</span></code></a>(niter, func)</p></td>
 <td><p>Version of <a class="reference internal" href="pwtools.mpl.smooth_color.html#pwtools.mpl.smooth_color" title="pwtools.mpl.smooth_color"><code class="xref py py-func docutils literal notranslate"><span class="pre">smooth_color()</span></code></a> that accepts a function.</p></td>
 </tr>
 </tbody>
@@ -275,7 +255,7 @@
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;2021, Steve Schmerler.
+      &copy;2022, Steve Schmerler.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>

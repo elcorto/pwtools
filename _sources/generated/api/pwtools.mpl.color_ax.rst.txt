@@ -1,0 +1,6 @@
+﻿pwtools.mpl.color\_ax
+=====================
+
+.. currentmodule:: pwtools.mpl
+
+.. autofunction:: color_ax

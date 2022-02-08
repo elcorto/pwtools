@@ -27,6 +27,7 @@ mpl
    cm
    cmc
    collect_legends
+   color_ax
    colors
    colors_linestyles
    colors_markers

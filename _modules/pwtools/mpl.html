@@ -87,28 +87,7 @@
           <div class="body" role="main">
             
   <h1>Source code for pwtools.mpl</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Example for changing axis color (pure matplotlib, just as reference)</span>
-<span class="sd">---------------------------------------------------------------------</span>
-<span class="sd">From http://stackoverflow.com/questions/4761623/changing-the-color-of-the-axis-ticks-and-labels-for-a-plot-in-matplotlib</span>
-
-<span class="sd">&gt;&gt;&gt; import matplotlib.pyplot as plt</span>
-<span class="sd">&gt;&gt;&gt; fig = plt.figure()</span>
-<span class="sd">&gt;&gt;&gt; ax = fig.add_subplot(111)</span>
-
-<span class="sd">&gt;&gt;&gt; ax.plot(range(10))</span>
-<span class="sd">&gt;&gt;&gt; ax.set_xlabel(&#39;X-axis&#39;)</span>
-<span class="sd">&gt;&gt;&gt; ax.set_ylabel(&#39;Y-axis&#39;)</span>
-
-<span class="sd">&gt;&gt;&gt; ax.spines[&#39;bottom&#39;].set_color(&#39;red&#39;)</span>
-<span class="sd">&gt;&gt;&gt; ax.spines[&#39;top&#39;].set_color(&#39;red&#39;)</span>
-<span class="sd">&gt;&gt;&gt; ax.xaxis.label.set_color(&#39;red&#39;)</span>
-<span class="sd">&gt;&gt;&gt; ax.tick_params(axis=&#39;x&#39;, colors=&#39;red&#39;)</span>
-
-<span class="sd">&gt;&gt;&gt; plt.show()</span>
-<span class="sd">&quot;&quot;&quot;</span>
-
-<span class="kn">import</span> <span class="nn">itertools</span>
+<span></span><span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 
@@ -128,6 +107,7 @@
     <span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="k">import</span> <span class="n">Axes3D</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;cannot import from mpl_toolkits.mplot3d&quot;</span><span class="p">)</span>
+
 
 <span class="c1">#----------------------------------------------------------------------------</span>
 <span class="c1"># mpl helpers, boilerplate stuff</span>
@@ -209,6 +189,56 @@
     <span class="n">ax</span><span class="o">.</span><span class="n">w_yaxis</span><span class="o">.</span><span class="n">set_pane_color</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">w_zaxis</span><span class="o">.</span><span class="n">set_pane_color</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="color_ax"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.color_ax.html#pwtools.mpl.color_ax">[docs]</a><span class="k">def</span> <span class="nf">color_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">spine_loc</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">spine_invisible</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Change ax color.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ax : AxesSubplot</span>
+<span class="sd">    color : whatever matplotlib accepts as color, e.g. &quot;b&quot;, &quot;tab:green&quot;</span>
+<span class="sd">    axis : &quot;x&quot;,  &quot;y&quot; or &quot;both&quot;</span>
+<span class="sd">    spine_loc : index for ``ax.spines``, ``[&#39;left&#39;, &#39;right&#39;, &#39;bottom&#39;, &#39;top&#39;]``</span>
+<span class="sd">    spine_invisible : index for ``ax.spines`` or None</span>
+<span class="sd">        Make this spine invsible, e.g. to uncover underlying spine. Useful in</span>
+<span class="sd">        twinx() settings (see example below).</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; color_left = &quot;tab:red&quot;</span>
+<span class="sd">    &gt;&gt;&gt; color_right = &quot;tab:green&quot;</span>
+
+<span class="sd">    &gt;&gt;&gt; fig,ax = plt.subplots()</span>
+<span class="sd">    &gt;&gt;&gt; ax.plot(rand(10), color=color_left)</span>
+<span class="sd">    &gt;&gt;&gt; ax.set_ylabel(&quot;left&quot;)</span>
+
+<span class="sd">    &gt;&gt;&gt; ax2 = ax.twinx()</span>
+<span class="sd">    &gt;&gt;&gt; ax2.plot(rand(10), color=color_right)</span>
+<span class="sd">    &gt;&gt;&gt; ax2.set_ylabel(&quot;right&quot;)</span>
+
+<span class="sd">    &gt;&gt;&gt; mpl.color_ax(ax, color_left)</span>
+<span class="sd">    &gt;&gt;&gt; mpl.color_ax(ax2, color_right, spine_loc=&quot;right&quot;,</span>
+<span class="sd">    ...              spine_invisible=&quot;left&quot;)</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    * https://stackoverflow.com/a/4762002</span>
+<span class="sd">    * https://stackoverflow.com/a/53186403</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># ax.xaxis</span>
+    <span class="c1"># ax.yaxis</span>
+    <span class="n">_axis</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{axis}</span><span class="s2">axis&quot;</span><span class="p">)</span>
+    <span class="n">_axis</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+    <span class="c1"># both: major and minor ticks</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">spine_loc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="n">spine_loc</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">spine_invisible</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># ax.spines[...].set_visible(&quot;False&quot;) doesn&#39;t do anything to uncover</span>
+        <span class="c1"># the underlying spine</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="n">spine_invisible</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s2">&quot;None&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Plot"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.Plot.html#pwtools.mpl.Plot">[docs]</a><span class="k">class</span> <span class="nc">Plot</span><span class="p">:</span>
@@ -900,7 +930,7 @@
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;2021, Steve Schmerler.
+      &copy;2022, Steve Schmerler.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
