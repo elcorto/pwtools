@@ -356,7 +356,10 @@ class Rbf:
         if self.r is None:
             self.w = self._solve_lstsq(G)
         else:
-            self.w = self._solve(G + np.eye(G.shape[0]) * self.r)
+            if self.r == 0:
+                self.w = self._solve(G)
+            else:
+                self.w = self._solve(G + np.eye(G.shape[0]) * self.r)
 
     def _solve_lstsq(self, G):
         x, res, rnk, svs = linalg.lstsq(G, self.values)
