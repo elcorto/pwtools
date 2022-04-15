@@ -117,7 +117,7 @@ functions with higher <cite>r</cite>). Behaves similar to <code class="docutils 
 appears to be numerically more stable (no small noise in solution)
 .. but <cite>r</cite> it is another parameter that needs to be tuned.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">self.r</span> <span class="pre">=</span> <span class="pre">None</span></code><span class="classifier">least squares solver</span></dt><dd><p>Use <code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.linalg.lstsq()</span></code>. Numerically more stable than
+<dt><code class="docutils literal notranslate"><span class="pre">self.r</span> <span class="pre">=</span> <span class="pre">None</span></code><span class="classifier">least squares solver</span></dt><dd><p>Use <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.lstsq.html#scipy.linalg.lstsq" title="(in SciPy v1.8.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.linalg.lstsq()</span></code></a>. Numerically more stable than
 direct solver w/o regularization. Will mostly be the same as
 the interpolation result, but will not go thru all points for
 very noisy data. May create small noise in solution (plot fit
@@ -140,7 +140,7 @@ linear solver when <code class="docutils literal notranslate"><span class="pre">
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
