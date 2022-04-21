@@ -58,6 +58,8 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="features.html">Features</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#tl-dr">tl;dr</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#full-instructions">Full instructions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#running-tests">Running tests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#python-versions">Python versions</a></li>
@@ -99,9 +101,24 @@
             
   <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<section id="tl-dr">
+<h2>tl;dr<a class="headerlink" href="#tl-dr" title="Permalink to this headline">¶</a></h2>
+<p>Debian and derivatives: Fortran compiler, Python headers, lapack</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo apt install python3-dev gfortran liblapack-dev
+</pre></div>
+</div>
+<p>Then</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ &lt;&lt;probably make a venv&gt;&gt;
+$ pip install git+https://github.com/elcorto/pwtools
+</pre></div>
+</div>
+</section>
+<section id="full-instructions">
+<h2>Full instructions<a class="headerlink" href="#full-instructions" title="Permalink to this headline">¶</a></h2>
 <p>To build the extension modules and install all Python dependencies via
 <code class="docutils literal notranslate"><span class="pre">pip</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pip install .
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone ...
+$ pip install .
 </pre></div>
 </div>
 <p>or the setuptools “development install” (no copy of files):</p>
@@ -131,6 +148,7 @@ $ [ -n &quot;$PYTHONPATH&quot; ] &amp;&amp; pp=$(pwd):$PYTHONPATH || pp=$(pwd)
 $ export PYTHONPATH=$pp
 </pre></div>
 </div>
+</section>
 <section id="dependencies">
 <h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
 <p>Python dependencies: see <code class="docutils literal notranslate"><span class="pre">requirements*.txt</span></code>. You can use
@@ -151,13 +169,12 @@ requirements_optional.txt
   ase                  ... ok (import)
   sklearn              ... ok (import)
 requirements_doc.txt
-  numpydoc             ... ok (import)
   sphinx               ... ok (import)
 optional executables:
   eos.x                ... NOT FOUND
 </pre></div>
 </div>
-<p>Optional packages (<code class="docutils literal notranslate"><span class="pre">ase</span></code>, <code class="docutils literal notranslate"><span class="pre">sklearn</span></code>) are only used in corner cases and
+<p>Optional packages (<code class="docutils literal notranslate"><span class="pre">ase</span></code>, <code class="docutils literal notranslate"><span class="pre">sklearn</span></code>) are only used in corner cases and are
 therefore not hard dependencies. Importing modules that use them (e.g. <code class="docutils literal notranslate"><span class="pre">crys</span></code>
 might use <code class="docutils literal notranslate"><span class="pre">ase</span></code>) won’t fail at import time, but later at runtime when e.g.
 <code class="docutils literal notranslate"><span class="pre">crys.Structure.get_ase_atoms()</span></code> is called. What packages are optional might
@@ -175,7 +192,6 @@ manager:</p>
 <span class="n">python3</span><span class="o">-</span><span class="n">h5py</span>
 <span class="n">python3</span><span class="o">-</span><span class="n">matplotlib</span>
 <span class="n">python3</span><span class="o">-</span><span class="n">numpy</span>
-<span class="n">python3</span><span class="o">-</span><span class="n">numpydoc</span>
 <span class="n">python3</span><span class="o">-</span><span class="n">pytest</span>
 <span class="n">python3</span><span class="o">-</span><span class="n">pytest</span><span class="o">-</span><span class="n">timeout</span>
 <span class="n">python3</span><span class="o">-</span><span class="n">pytest</span><span class="o">-</span><span class="n">xdist</span>
@@ -222,8 +238,8 @@ use of eos.x in pwtools anymore.</p>
 </section>
 <section id="python-versions">
 <h2>Python versions<a class="headerlink" href="#python-versions" title="Permalink to this headline">¶</a></h2>
-<p>Only Python3 is supported, tested: Python 3.6, 3.7, 3.8</p>
-<p>The package was developed mostly with Python 2.5..2.7 and ported using 2to3 +
+<p>Only Python3 is supported, tested: Python 3.6-3.9</p>
+<p>The package was developed mostly with Python 2.5-2.7 and ported using 2to3 +
 manual changes. Therefore, you might find some crufty Python 2 style code
 fragments in lesser used parts of the code base.</p>
 </section>

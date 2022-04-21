@@ -1,9 +1,30 @@
 Installation
 ============
 
+tl;dr
+-----
+
+Debian and derivatives: Fortran compiler, Python headers, lapack
+
+::
+
+    $ sudo apt install python3-dev gfortran liblapack-dev
+
+Then
+
+::
+
+    $ <<probably make a venv>>
+    $ pip install git+https://github.com/elcorto/pwtools
+
+
+Full instructions
+-----------------
+
 To build the extension modules and install all Python dependencies via
 ``pip``::
 
+    $ git clone ...
     $ pip install .
 
 or the setuptools "development install" (no copy of files)::
@@ -55,12 +76,11 @@ Python dependencies: see ``requirements*.txt``. You can use
       ase                  ... ok (import)
       sklearn              ... ok (import)
     requirements_doc.txt
-      numpydoc             ... ok (import)
       sphinx               ... ok (import)
     optional executables:
       eos.x                ... NOT FOUND
 
-Optional packages (``ase``, ``sklearn``) are only used in corner cases and
+Optional packages (``ase``, ``sklearn``) are only used in corner cases and are
 therefore not hard dependencies. Importing modules that use them (e.g. ``crys``
 might use ``ase``) won't fail at import time, but later at runtime when e.g.
 ``crys.Structure.get_ase_atoms()`` is called. What packages are optional might
@@ -80,7 +100,6 @@ manager::
     python3-h5py
     python3-matplotlib
     python3-numpy
-    python3-numpydoc
     python3-pytest
     python3-pytest-timeout
     python3-pytest-xdist
@@ -127,9 +146,9 @@ See test/README. Actually, all of these are good examples, too!
 Python versions
 ---------------
 
-Only Python3 is supported, tested: Python 3.6, 3.7, 3.8
+Only Python3 is supported, tested: Python 3.6-3.9
 
-The package was developed mostly with Python 2.5..2.7 and ported using 2to3 +
+The package was developed mostly with Python 2.5-2.7 and ported using 2to3 +
 manual changes. Therefore, you might find some crufty Python 2 style code
 fragments in lesser used parts of the code base.
 
