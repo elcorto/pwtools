@@ -1,8 +1,8 @@
 Installation
 ============
 
-tl;dr
------
+Quick start
+-----------
 
 Debian and derivatives: Fortran compiler, Python headers, lapack
 
@@ -18,8 +18,8 @@ Then
     $ pip install git+https://github.com/elcorto/pwtools
 
 
-Full instructions
------------------
+Detailed instructions
+---------------------
 
 To build the extension modules and install all Python dependencies via
 ``pip``::
@@ -57,6 +57,7 @@ Alternatively, you may also simply build the extensions and set ``PYTHONPATH``::
 
 Dependencies
 ------------
+
 Python dependencies: see ``requirements*.txt``. You can use
 ``test/check_dependencies.py`` to find out what your system has installed::
 
