@@ -208,16 +208,6 @@ Care for some surface data? Here we fit with a 2D polynomial::
 
 .. image:: ../_static/interpol_2d.png
 
-Example result from a 1D fit of noisy data (``examples/rbf/noise.py``) using
-:class:`~pwtools.rbf.Rbf`. Without all plot commands and only one data set::
-
-    >>> N = # number of points
-    >>> x = np.linspace(0, 10, N)
-    >>> y = np.sin(x) + rand(N)
-    >>> f = rbf.Rbf(x[:,None], y)
-
-.. image:: ../_static/rbf_1d_opt_False.png
-
 2D interpolation of samples of a "mexican hat" function :math:`\sin(r)/r`
 (``examples/rbf/surface.py``), also using :class:`~pwtools.rbf.Rbf`. See
 :ref:`rbf` for more. Similar to the :class:`~pwtools.num.PolyFit` example above::
