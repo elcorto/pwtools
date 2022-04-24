@@ -217,7 +217,7 @@ Care for some surface data? Here we fit with a 2D polynomial::
     >>> #   num.Interpol2D(dd.XY, dd.zz, what='rbf_multi')
     >>> f=rbf.Rbf(dd.XY, dd.zz)
 
-.. image:: ../_static/rbf_2d_surface_opt_False.png
+.. image:: ../_static/rbf_2d_surface.png
 
 See also
 
