@@ -6,6 +6,7 @@ __all__ = [\
     'calculators',
     'comb',
     'common',
+    'config',
     'constants',
     'crys',
     'dcd',
