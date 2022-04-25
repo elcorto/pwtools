@@ -758,23 +758,24 @@ class Interpol2D:
         what : str, optional
             which interpolator to use
 
-            | 'rbf_multi' : RBFN w/ multiquadric rbf, see :class:`~pwtools.rbf.Rbf`
-            | 'rbf_inv_multi' : RBFN w/ inverse multiquadric rbf
-            | 'rbf_gauss' : RBFN w/ gaussian rbf
-            | 'poly'      : :class:`PolyFit`
-            | 'bispl'     : scipy.interpolate.bispl{rep,ev}
-            | 'ct'        : scipy.interpolate.CloughTocher2DInterpolator
-            | 'linear'    : scipy.interpolate.LinearNDInterpolator
-            | 'nearest'   : scipy.interpolate.NearestNDInterpolator
-        **initkwds : keywords passed on to the interpolator's constructor or
+            * 'rbf_multi' : RBFN w/ multiquadric rbf, see :class:`~pwtools.rbf.Rbf`
+            * 'rbf_inv_multi' : RBFN w/ inverse multiquadric rbf
+            * 'rbf_gauss' : RBFN w/ gaussian rbf
+            * 'poly'      : :class:`PolyFit`
+            * 'bispl'     : scipy.interpolate.bispl{rep,ev}
+            * 'ct'        : scipy.interpolate.CloughTocher2DInterpolator
+            * 'linear'    : scipy.interpolate.LinearNDInterpolator
+            * 'nearest'   : scipy.interpolate.NearestNDInterpolator
+        **initkwds :
+            keywords passed on to the interpolator's constructor or
             fit() method (RBF case)
 
         Notes
         -----
-        Despite the name "Interpol2D", the RBF methods 'rbf_*' as well as 'poly' are
-        actually fits (least squares regression). You can force interpolation with
-        the RBF methods using the ``r=0`` keyword (see
-        :meth:`pwtools.rbf.Rbf.fit`), which will use ``scipy.linalg.solve``
+        Despite the name "Interpol2D", the RBF methods 'rbf_*' as well as
+        'poly' are actually regression methods. You can force interpolation
+        with the RBF methods using the ``r=0`` keyword (see
+        :class:`~pwtools.rbf.core.Rbf`), which will use ``scipy.linalg.solve``
         without regularization.
 
         The methods 'ct', 'linear' and of course 'nearest' can be inaccurate
@@ -786,18 +787,25 @@ class Interpol2D:
 
         Possible keywords (examples):
 
-        | rbf :
-        |     p='mean' [,r=None] (default)    # linalg.lstsq
-        |     p='scipy', r=1e-8               # linalg.solve w/ regularization
-        |     p=3.5, r=0                      # linalg.solve w/o regularization
-        | ct :
-        |     tol = 1e-6 (default)
-        | bispl :
-        |     s = 1e-4
-        |     kx = 3, ky = 3 (default)
-        |     nxest, nyest
-        | poly :
-        |     deg = 5
+        * rbf
+
+          * p='mean', r=0 (default)    # linalg.solve w/o regularization
+          * p=3.5, r=0                 # linalg.solve w/o regularization
+          * p='scipy', r=1e-8          # linalg.solve w/ regularization
+
+        * ct
+
+          * tol = 1e-6 (default)
+
+        * bispl
+
+            * kx = 3, ky = 3 (default)
+            * s = 1e-4
+            * nxest, nyest
+
+        * poly
+
+          * deg = 5
 
         Examples
         --------
@@ -808,8 +816,10 @@ class Interpol2D:
         >>> Z=(X+3)**2+(Y+4)**2 + 5
         >>> dd=mpl.Data2D(X=X,Y=Y,Z=Z)
         >>> fmt="what: {:15} target: [5,30] result: {}"
-        >>> for method in ['rbf_multi', 'rbf_inv_multi',
-        ...                'rbf_gauss', ('poly', {'deg': 5}),
+        >>> for method in [('rbf_multi', dict(r=1e-10)),
+        ...                ('rbf_inv_multi', dict(r=1e-10)),
+        ...                ('rbf_gauss', dict(r=1e-10)),
+        ...                ('poly', {'deg': 5}),
         ...                'ct', 'bispl', 'linear', 'nearest']:
         ...     if isinstance(method, tuple):
         ...         what = method[0]
@@ -849,7 +859,8 @@ class Interpol2D:
             )
 
         # need to import here b/c of circular dependency rbf.py <-> num.py
-        from pwtools import rbf
+        if what.startswith("rbf_"):
+            from pwtools import rbf
 
         if what == "rbf_multi":
             self.inter = rbf.Rbf(
