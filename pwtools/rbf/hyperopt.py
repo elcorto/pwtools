@@ -178,14 +178,18 @@ def fit_opt(
 
     Parameters
     ----------
-    points, values : see :class:`Rbf`
+    points, values :
+        see :class:`Rbf`
     method : str
-        | 'de' : :func:`scipy.optimize.differential_evolution`
-        | 'fmin': :func:`scipy.optimize.fmin`
-        | 'brute': :func:`scipy.optimize.brute`
+        * 'de' : :func:`scipy.optimize.differential_evolution`
+        * 'fmin': :func:`scipy.optimize.fmin`
+        * 'brute': :func:`scipy.optimize.brute`
     what : str
-        'p' (optimize only `p` and set `r=None`) or 'pr' (optimize `p` and `r`)
-    cv, cv_kwds, rbf_kwds : see :class:`FitError`
+        * 'p' : optimize only `p`, set fixed `r` in `rbf_kwds` in this case, else
+          we'll use :class:`Rbf`'s default)
+        * 'pr' : optimize `p` and `r`
+    cv, rbf_kwds :
+        see :class:`FitError`
     opt_kwds : dict
         kwds for the optimizer (see `method`)
     rbf_kwds : dict

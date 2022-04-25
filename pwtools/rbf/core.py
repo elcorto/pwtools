@@ -368,10 +368,36 @@ class Rbf:
     def _solve(self, Gr):
         if JAX_MODE:
             la = jax_linalg
-            # jax.scipy.linalg.solve() doesn't have assume_a kwd, but is still
-            # ~3 times faster than scipy.linalg.solve(..., assume_a="sym")
-            # which calls scipy.linalg.lapack.dsysv()
-            kwds = {}
+            # jax.scipy.linalg.solve() doesn't have the `assume_a` kwd, only
+            # `sym_pos` which is deprecated in scipy. According to scipy's
+            # docs, sym_pos=True is equal to assume_a="pos". However that is
+            # 2x slower than assume_a="sym", so we use the latter wheh using
+            # scipy. With that, scipy and jax are equally fast (CPU, single
+            # core).
+            #
+            # >>> import pwtools.rbf.core
+            # >>> X=rand(1000,3); y=rand(1000)
+            #
+            # >>> pwtools.config.use_jax=True; c=reload(pwtools.rbf.core)
+            # >>> c.Rbf(X, y, r=1e-10)
+            # Rbf
+            # {'ndim': 3,
+            #  'p': DeviceArray(0.67460831, dtype=float64),
+            #  'r': 1e-10,
+            #  'rbf': <function rbf_gauss at 0x7fe77c5ba820>}
+            # >>> %timeit c.Rbf(X, y, r=1e-10)
+            # 60.7 ms ± 684 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
+            #
+            # >>> pwtools.config.use_jax=False; c=reload(pwtools.rbf.core)
+            # >>> c.Rbf(X, y, r=1e-10)
+            # Rbf
+            # {'ndim': 3,
+            #  'p': 0.6746083082988632,
+            #  'r': 1e-10,
+            #  'rbf': <function rbf_gauss at 0x7fe7918f9550>}
+            # >>> %timeit c.Rbf(X, y, r=1e-10)
+            # 59.7 ms ± 170 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
+            kwds = dict(sym_pos=True)
         else:
             la = linalg
             kwds = dict(assume_a="sym")
