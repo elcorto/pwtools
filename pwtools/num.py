@@ -1549,9 +1549,7 @@ class PolyFit1D(Fit1D, PolyFit):
         # set self.x, self.y, need that in Fit1D._findroot()
         Fit1D.__init__(self, self.points[:, 0], self.values)
 
-
-    @staticmethod
-    def _fix_shape_init(points):
+    def _fix_shape_init(self, points):
         pp = np.asarray(points)
         # 1 -> (1,1)
         if pp.ndim == 0:
