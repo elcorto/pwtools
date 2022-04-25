@@ -145,8 +145,8 @@ class FitError:
         return errs
 
     def err_cv(self, params):
-        """Median of :meth:`cv`."""
-        return np.median(self.cv(params))
+        """Mean of :meth:`cv`."""
+        return self.cv(params).mean()
 
     def err_direct(self, params):
         """Normal fit error w/o CV. Uses :meth:`Rbf.fit_error`.
