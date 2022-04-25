@@ -1,20 +1,21 @@
-import os, copy
-import types
 import itertools
 import numpy as np
 from math import sqrt, sin, cos, radians, pi
 import scipy.optimize as optimize
-from scipy.interpolate import bisplrep, \
-    bisplev, splev, splrep
-from scipy.integrate import simps, trapz
+from scipy.interpolate import bisplrep, bisplev, splev, splrep
+from scipy.integrate import simps
 from pwtools import _flib
 import warnings
+
 ##warnings.simplefilter('always')
 
 # Hack for older scipy versions.
 try:
-    from scipy.interpolate import CloughTocher2DInterpolator, \
-        NearestNDInterpolator, LinearNDInterpolator
+    from scipy.interpolate import (
+        CloughTocher2DInterpolator,
+        NearestNDInterpolator,
+        LinearNDInterpolator,
+    )
 except ImportError:
     # Don't throw a warning here b/c (1) this module is imported often and that
     # would annoy anyone to no end and (2) this interpolator isn't used much,
@@ -26,6 +27,7 @@ except ImportError:
 
 # constants
 EPS = np.finfo(float).eps
+
 
 def normalize(a):
     """Normalize array by it's max value. Works also for complex arrays.
@@ -41,6 +43,7 @@ def normalize(a):
     array([ 0.75609756+0.19512195j,  1.00000000+0.j ])
     """
     return a / a.max()
+
 
 def vlinspace(a, b, num, endpoint=True):
     """Like numpy.linspace, but for 1d arrays. Generate uniformly spaced points
@@ -59,15 +62,15 @@ def vlinspace(a, b, num, endpoint=True):
     assert len(a) == len(b), "`a` and `b` must have equal length"
     assert num >= 1, "`num` must be >= 1"
     # distance vec connecting a and b
-    dv = b-a
+    dv = b - a
     if endpoint:
         # If num == 1, then the value of `ddv` doesn't matter b/c ret == a.
-        ddv = 0 if (num == 1) else dv/float(num-1)
+        ddv = 0 if (num == 1) else dv / float(num - 1)
     else:
-        ddv = dv/float(num)
+        ddv = dv / float(num)
     ret = np.empty((num, len(dv)), dtype=float)
     ret[...] = ddv
-    ret[0,:] = a
+    ret[0, :] = a
     return np.cumsum(ret, axis=0)
 
 
@@ -105,7 +108,7 @@ def norm_int(y, x, area=1.0, scale=True, func=simps):
         sx, sy = x, y
     # Area under unscaled y(x).
     _area = func(sy, sx) * fx * fy
-    return y*area/_area
+    return y * area / _area
 
 
 def deriv_spl(y, x=None, xnew=None, n=1, fullout=False, **splrep_kwargs):
@@ -144,7 +147,7 @@ def deriv_spl(y, x=None, xnew=None, n=1, fullout=False, **splrep_kwargs):
         x = np.arange(len(y))
     if xnew is None:
         xnew = x
-    for key, val in {'s':0, 'k':3}.items():
+    for key, val in {"s": 0, "k": 3}.items():
         if key not in splrep_kwargs:
             splrep_kwargs[key] = val
     yd = splev(xnew, splrep(x, y, **splrep_kwargs), der=n)
@@ -171,7 +174,7 @@ def findmin(x, y):
     array([x0, y(x0)])
     """
     warnings.warn("use Spline(x,y).get_min()", DeprecationWarning)
-    spl = Spline(x,y)
+    spl = Spline(x, y)
     x0 = spl.get_min()
     return np.array([x0, spl(x0)])
 
@@ -193,7 +196,7 @@ def findroot(x, y):
     array([x0, y(x0)])
     """
     warnings.warn("use Spline(x,y).get_root()", DeprecationWarning)
-    spl = Spline(x,y)
+    spl = Spline(x, y)
     x0 = spl.get_root()
     return np.array([x0, spl(x0)])
 
@@ -206,6 +209,7 @@ class Fit1D:
     The assumed API is that the ``__call__`` method has a kwd `der` which
     causes it to calculate derivatives, i.e. ``__call__(x, der=1)`` is the
     first deriv."""
+
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -267,7 +271,9 @@ class Fit1D:
     def get_max(self, x0=None, xab=None, **kwds):
         """Convenience method. Same as :meth:`get_min`, just for local maxima,
         simply using ``-self(x, der=1)``."""
-        return self._findroot(lambda x: -self(x, der=1), x0=x0, xab=xab, **kwds)
+        return self._findroot(
+            lambda x: -self(x, der=1), x0=x0, xab=xab, **kwds
+        )
 
     def get_root(self, x0=None, xab=None, **kwds):
         """Return x where y(x) = 0 by calculating the root of the fit function.
@@ -320,6 +326,7 @@ class Spline(Fit1D):
     >>> print("the root is at x=%f" %sp.invsplev(0.0))
     >>> legend()
     """
+
     def __init__(self, x, y, eps=1e-10, checkeps=True, **splrep_kwargs):
         """
         Parameters
@@ -333,18 +340,21 @@ class Spline(Fit1D):
             Whether to use `eps` to ckeck interpolation accuracy.
         **splrep_kwargs : keywords args to splrep(), default: k=3, s=0
         """
-        super(Spline, self).__init__(x,y)
+        super(Spline, self).__init__(x, y)
         self.arr_zero_dim_t = type(np.array(1.0))
         self.eps = eps
-        assert (np.diff(self.x) >= 0.0).all(), ("x wronly ordered")
-        self.splrep_kwargs = {'s':0, 'k':3}
+        assert (np.diff(self.x) >= 0.0).all(), "x wronly ordered"
+        self.splrep_kwargs = {"s": 0, "k": 3}
         self.splrep_kwargs.update(splrep_kwargs)
         self.tck = splrep(self.x, self.y, **self.splrep_kwargs)
         if checkeps:
             err = np.abs(self(self.x) - self.y)
-            assert (err < self.eps).all(), \
-                    ("spline not accurate to eps=%e, max(error)=%e, raise eps"\
-                    %(self.eps, err.max()))
+            assert (
+                err < self.eps
+            ).all(), "spline not accurate to eps=%e, max(error)=%e, raise eps" % (
+                self.eps,
+                err.max(),
+            )
 
     def __call__(self, x, *args, **kwargs):
         ret = splev(x, self.tck, *args, **kwargs)
@@ -356,7 +366,10 @@ class Spline(Fit1D):
             return ret
 
     def splev(self, x, *args, **kwds):
-        warnings.warn("use Spline(x,y)(new_x) instead of Spline.splev()", DeprecationWarning)
+        warnings.warn(
+            "use Spline(x,y)(new_x) instead of Spline.splev()",
+            DeprecationWarning,
+        )
         return self(x, *args, **kwds)
 
     def invsplev(self, y0, x0=None, xab=None):
@@ -394,8 +407,11 @@ class Spline(Fit1D):
         # is not unique. Here, the user is responsible for providing a
         # meaningful x0 / xab, which is more flexible and generic.
         ymn, ymx = self.y.min(), self.y.max()
-        assert (ymn <= y0 <= ymx), ("y0 (%e) outside y data range [%e, %e]"
-                                    %(y0, ymn, ymx))
+        assert ymn <= y0 <= ymx, "y0 (%e) outside y data range [%e, %e]" % (
+            y0,
+            ymn,
+            ymx,
+        )
         func = lambda x: self(x) - y0
         return self._findroot(func, x0=x0, xab=xab)
 
@@ -504,7 +520,7 @@ def slicetake(a, sl, axis=None, copy=False):
         #   a[slice(None)]
         #   a[slice(None, None, None)]
         #   a[slice(0, None, None)]
-        slices = [slice(None)]*a.ndim
+        slices = [slice(None)] * a.ndim
         slices[axis] = sl
     # a[...] can take a tuple or list of slice objects
     # a[x:y:z, i:j:k] is the same as
@@ -555,7 +571,7 @@ def sliceput(a, b, sl, axis=None):
         tmp = sl
     else:
         # [slice(...), slice(...), ...]
-        tmp = [slice(None)]*len(a.shape)
+        tmp = [slice(None)] * len(a.shape)
         tmp[axis] = sl
     a[tmp] = b
     return a
@@ -619,7 +635,7 @@ def extend_array(arr, nstep, axis=0):
     # (3,3) -> max_axis = 2
     max_axis = arr.ndim
     assert -1 <= axis <= max_axis, "axis out of bound"
-    sl = [slice(None)]*(max_axis + 1)
+    sl = [slice(None)] * (max_axis + 1)
     # e.g: [:,:,np.newaxis,...]
     sl[axis] = None
     return np.repeat(arr[tuple(sl)], nstep, axis=axis)
@@ -683,13 +699,13 @@ def sum(arr, axis=None, keepdims=False, **kwds):
             axis = tosum.pop(0)
             _arr = arr.sum(axis=axis)
             # arr has one dim less now. Rename remaining axes accordingly.
-            _tosum = [xx-1 if xx > axis else xx for xx in tosum]
+            _tosum = [xx - 1 if xx > axis else xx for xx in tosum]
             return _sum(_arr, _tosum)
         else:
             return arr
 
     axis_is_int = isinstance(axis, int)
-    if (axis is None):
+    if axis is None:
         if keepdims:
             raise Exception("axis=None + keepdims=True makes no sense")
         else:
@@ -699,11 +715,10 @@ def sum(arr, axis=None, keepdims=False, **kwds):
     else:
         if axis_is_int:
             tosum = [axis]
-        elif isinstance(axis, tuple) or \
-            isinstance(axis, list):
+        elif isinstance(axis, tuple) or isinstance(axis, list):
             tosum = list(axis)
         else:
-            raise Exception("illegal type for axis: %s" %str(type(axis)))
+            raise Exception("illegal type for axis: %s" % str(type(axis)))
         if keepdims:
             alldims = range(arr.ndim)
             tosum = [xx for xx in alldims if xx not in tosum]
@@ -721,8 +736,17 @@ class Interpol2D:
     This is for easy testing of multiple interpolators on a surface z = f(x,y),
     which is given as an unordered set of points.
     """
-    def __init__(self, points=None, values=None, xx=None, yy=None,  dd=None,
-                 what='rbf_inv_multi', **initkwds):
+
+    def __init__(
+        self,
+        points=None,
+        values=None,
+        xx=None,
+        yy=None,
+        dd=None,
+        what="rbf_inv_multi",
+        **initkwds,
+    ):
         """
         Parameters
         ----------
@@ -806,76 +830,100 @@ class Interpol2D:
         """
         if dd is None:
             if xx is None and yy is None:
-                self.xx = points[:,0]
-                self.yy = points[:,1]
+                self.xx = points[:, 0]
+                self.yy = points[:, 1]
                 self.points = points
             elif points is None:
                 self.xx = xx
                 self.yy = yy
-                self.points = np.array([xx,yy]).T
+                self.points = np.array([xx, yy]).T
             else:
                 raise Exception("use points+values or xx+yy+values as input")
             self.values = values
         else:
-            self.xx, self.yy, self.values, self.points = dd.xx, dd.yy, dd.zz, dd.XY
+            self.xx, self.yy, self.values, self.points = (
+                dd.xx,
+                dd.yy,
+                dd.zz,
+                dd.XY,
+            )
 
         # need to import here b/c of circular dependency rbf.py <-> num.py
         from pwtools import rbf
-        if what == 'rbf_multi':
-            self.inter = rbf.Rbf(self.points, self.values,
-                                 rbf='multi', **initkwds)
+
+        if what == "rbf_multi":
+            self.inter = rbf.Rbf(
+                self.points, self.values, rbf="multi", **initkwds
+            )
             self.call = self.inter
-        elif what == 'rbf_inv_multi':
-            self.inter = rbf.Rbf(self.points, self.values,
-                                 rbf='inv_multi', **initkwds)
+        elif what == "rbf_inv_multi":
+            self.inter = rbf.Rbf(
+                self.points, self.values, rbf="inv_multi", **initkwds
+            )
             self.call = self.inter
-        elif what == 'rbf_gauss':
-            self.inter = rbf.Rbf(self.points, self.values, rbf='gauss', **initkwds)
+        elif what == "rbf_gauss":
+            self.inter = rbf.Rbf(
+                self.points, self.values, rbf="gauss", **initkwds
+            )
             self.call = self.inter
-        elif what == 'poly':
-            self.inter = PolyFit(self.points, self.values, scale=True, **initkwds)
+        elif what == "poly":
+            self.inter = PolyFit(
+                self.points, self.values, scale=True, **initkwds
+            )
             self.call = self.inter
             self.call = self._poly_format_return
-        elif what == 'ct':
+        elif what == "ct":
             if CloughTocher2DInterpolator is None:
-                raise ImportError("could not import "
-                    "scipy.interpolate.CloughTocher2DInterpolator")
+                raise ImportError(
+                    "could not import "
+                    "scipy.interpolate.CloughTocher2DInterpolator"
+                )
             else:
-                self.inter = CloughTocher2DInterpolator(self.points,
-                                                        self.values,
-                                                        **initkwds)
+                self.inter = CloughTocher2DInterpolator(
+                    self.points, self.values, **initkwds
+                )
                 self.call = self.inter
-        elif what == 'nearest':
+        elif what == "nearest":
             if NearestNDInterpolator is None:
-                raise ImportError("could not import "
-                    "scipy.interpolate.NearestNDInterpolator")
+                raise ImportError(
+                    "could not import "
+                    "scipy.interpolate.NearestNDInterpolator"
+                )
             else:
-                self.inter = NearestNDInterpolator(self.points, self.values,
-                                               **initkwds)
+                self.inter = NearestNDInterpolator(
+                    self.points, self.values, **initkwds
+                )
                 self.call = self.inter
-        elif what == 'linear':
+        elif what == "linear":
             if LinearNDInterpolator is None:
-                raise ImportError("could not import "
-                    "scipy.interpolate.LinearNDInterpolator")
+                raise ImportError(
+                    "could not import "
+                    "scipy.interpolate.LinearNDInterpolator"
+                )
             else:
-                self.inter = LinearNDInterpolator(self.points, self.values,
-                                                   **initkwds)
+                self.inter = LinearNDInterpolator(
+                    self.points, self.values, **initkwds
+                )
                 self.call = self.inter
-        elif what == 'bispl':
+        elif what == "bispl":
             nx = min(len(np.unique(self.xx)), int(sqrt(len(self.xx))))
             ny = min(len(np.unique(self.yy)), int(sqrt(len(self.yy))))
-            _initkwds = {'kx': 3, 'ky': 3, 'nxest': 10*nx, 'nyest': 10*ny}
+            _initkwds = {"kx": 3, "ky": 3, "nxest": 10 * nx, "nyest": 10 * ny}
             _initkwds.update(initkwds)
             bispl = bisplrep(self.xx, self.yy, self.values, **_initkwds)
+
             def _call(points, bispl=bispl, **callkwds):
                 # For unordered points, we need to loop.
-                ret = [bisplev(points[ii,0], points[ii,1], bispl, **callkwds) for
-                    ii in range(points.shape[0])]
+                ret = [
+                    bisplev(points[ii, 0], points[ii, 1], bispl, **callkwds)
+                    for ii in range(points.shape[0])
+                ]
                 return np.array(ret)
+
             self.inter = _call
             self.call = _call
         else:
-            raise Exception("unknown interpolator type: %s" %what)
+            raise Exception("unknown interpolator type: %s" % what)
 
     # See pwtools.test.test_polyfit.test_api: work around subtle PolyFit API
     # difference to all other interpolators w/o breaking neither Interpol2D's
@@ -899,7 +947,7 @@ class Interpol2D:
         """
         points = np.asarray(points)
         if len(points.shape) == 1:
-            points = points[None,:]
+            points = points[None, :]
         return self.call(points, **callkwds)
 
     def get_min(self, x0=None, **kwds):
@@ -924,8 +972,9 @@ class Interpol2D:
         xopt = optimize.fmin(self, x0, **_kwds)
         return xopt
 
+
 def fempty(shape, dtype=np.float64):
-    return np.empty(shape, dtype=dtype, order='F')
+    return np.empty(shape, dtype=dtype, order="F")
 
 
 def distsq(arrx, arry):
@@ -955,18 +1004,18 @@ def distsq(arrx, arry):
     nx, ny = arrx.shape[0], arry.shape[0]
     ndim = arrx.shape[1]
     ndimx, ndimy = arrx.shape[1], arry.shape[1]
-    assert ndimx == ndimy, ("ndimx (%s, shape: %s) != ndimy (%s, shape: %s)" \
-                           %(str(ndimx),
-                             str(arrx.shape),
-                             str(ndimy),
-                             str(arry.shape)))
+    assert ndimx == ndimy, "ndimx (%s, shape: %s) != ndimy (%s, shape: %s)" % (
+        str(ndimx),
+        str(arrx.shape),
+        str(ndimy),
+        str(arry.shape),
+    )
     # Allocating in F-order is essential for speed! For many points, this step
     # is actually the bottleneck, NOT the Fortran code! This is b/c if `dist`
     # is order='C' (numpy default), then the f2py wrapper makes a copy of the
     # array before starting to crunch numbers.
-    dist = np.empty((nx, ny), dtype=arrx.dtype, order='F')
+    dist = np.empty((nx, ny), dtype=arrx.dtype, order="F")
     return _flib.distsq(arrx, arry, dist, nx, ny, ndim)
-
 
 
 class DataND:
@@ -1033,20 +1082,20 @@ class DataND:
     def a2_to_an(self):
         axes = []
         dims = []
-        for colidx in range(self.a2.shape[1]-1):
-            a = np.unique(self.a2[:,colidx])
+        for colidx in range(self.a2.shape[1] - 1):
+            a = np.unique(self.a2[:, colidx])
             axes.append(a)
             dims.append(len(a))
         assert np.product(dims) == self.a2.shape[0]
         idx = itertools.product(*tuple(map(range, dims)))
         an = np.empty(dims, dtype=self.a2.dtype)
         # an[1,2,3] == an[(1,2,3)], need way to eliminate loop over index array
-        for ii,_idx in enumerate(idx):
-            an[tuple(_idx)] = self.a2[ii,-1]
+        for ii, _idx in enumerate(idx):
+            an[tuple(_idx)] = self.a2[ii, -1]
         return an, axes
 
 
-def rms(arr, nitems='all'):
+def rms(arr, nitems="all"):
     """RMS of all elements in a ndarray.
 
     Parameters
@@ -1061,7 +1110,7 @@ def rms(arr, nitems='all'):
     -------
     rms : scalar
     """
-    if nitems == 'all':
+    if nitems == "all":
         nitems = float(arr.nbytes / arr.itemsize)
     else:
         nitems = float(nitems)
@@ -1069,7 +1118,7 @@ def rms(arr, nitems='all'):
     return rms
 
 
-def rms3d(arr, axis=0, nitems='all'):
+def rms3d(arr, axis=0, nitems="all"):
     """RMS of 3d array along `axis`. Sum all elements of all axes != axis.
 
     Parameters
@@ -1093,18 +1142,18 @@ def rms3d(arr, axis=0, nitems='all'):
     assert arr.ndim == 3, "arr must be 3d array"
     if axis == -1:
         axis = arr.ndim - 1
-    if nitems == 'all':
-        sl = [slice(None)]*arr.ndim
-        sl[axis] = 0 # pick out 1st sub-array along axis
+    if nitems == "all":
+        sl = [slice(None)] * arr.ndim
+        sl[axis] = 0  # pick out 1st sub-array along axis
         nitems = float(arr[tuple(sl)].nbytes / arr.itemsize)
     else:
         nitems = float(nitems)
     if axis == 0:
-        rms =  np.sqrt((arr**2.0).sum(1).sum(1) / nitems)
+        rms = np.sqrt((arr**2.0).sum(1).sum(1) / nitems)
     elif axis == 1:
-        rms =  np.sqrt((arr**2.0).sum(0).sum(1) / nitems)
+        rms = np.sqrt((arr**2.0).sum(0).sum(1) / nitems)
     elif axis == 2:
-        rms =  np.sqrt((arr**2.0).sum(0).sum(0) / nitems)
+        rms = np.sqrt((arr**2.0).sum(0).sum(0) / nitems)
     return rms
 
 
@@ -1125,11 +1174,12 @@ def inner_points_mask(points):
     """
     msk = np.ones((points.shape[0],), dtype=bool)
     if points.shape[1] == 1:
-        assert (np.diff(points[:,0]) >= 0.0).all(), ("points not monotonic")
+        assert (np.diff(points[:, 0]) >= 0.0).all(), "points not monotonic"
         msk[0] = False
         msk[-1] = False
     else:
         from scipy.spatial import Delaunay
+
         tri = Delaunay(points)
         edge_idx = np.unique(tri.convex_hull)
         msk.put(edge_idx, False)
@@ -1138,14 +1188,14 @@ def inner_points_mask(points):
 
 def poly_str(ndim, deg):
     """String representation of a `ndim`-poly of degree `deg`."""
-    st = ''
-    for ii,pwr in enumerate(poly_powers(ndim,deg)):
-        xx = '*'.join('x%i^%i'%(i,n) for i,n in enumerate(pwr))
-        term = 'a%i*' %ii + xx
-        if st == '':
+    st = ""
+    for ii, pwr in enumerate(poly_powers(ndim, deg)):
+        xx = "*".join("x%i^%i" % (i, n) for i, n in enumerate(pwr))
+        term = "a%i*" % ii + xx
+        if st == "":
             st = term
         else:
-            st += ' + %s' %term
+            st += " + %s" % term
     return st
 
 
@@ -1219,7 +1269,7 @@ def poly_powers(ndim, deg):
         [1,2] -> x0^1*x1^2
         ...
     """
-    return np.array(list(itertools.product(range(deg+1), repeat=ndim)))
+    return np.array(list(itertools.product(range(deg + 1), repeat=ndim)))
 
 
 def vander(points, deg):
@@ -1242,7 +1292,7 @@ def vander(points, deg):
     ##vand = np.empty((npoints, (deg+1)**ndim), dtype=float)
     ##for ipoint in range(npoints):
     ##    vand[ipoint,:] = (points[ipoint]**powers).prod(axis=1)
-    tmp = (points[...,None] ** np.swapaxes(powers, 0, 1)[None,...])
+    tmp = points[..., None] ** np.swapaxes(powers, 0, 1)[None, ...]
     return tmp.prod(axis=1)
 
 
@@ -1294,30 +1344,37 @@ def polyfit(points, values, deg, scale=True, scale_vand=False):
     """
     assert points.ndim == 2, "points must be 2d array"
     assert values.ndim == 1, "values must be 1d array"
-    assert len(values) == points.shape[0], (
-        "points and values must have same length")
+    assert (
+        len(values) == points.shape[0]
+    ), "points and values must have same length"
     if scale:
-        pmin = points.min(axis=0)[None,:]
+        pmin = points.min(axis=0)[None, :]
         vmin = values.min()
-        pscale = np.abs(points).max(axis=0)[None,:] - pmin
+        pscale = np.abs(points).max(axis=0)[None, :] - pmin
         vscale = np.abs(values).max() - vmin
     else:
-        pscale = np.ones((points.shape[1],), dtype=float)[None,:]
+        pscale = np.ones((points.shape[1],), dtype=float)[None, :]
         vscale = 1.0
-        pmin = np.zeros((points.shape[1],), dtype=float)[None,:]
+        pmin = np.zeros((points.shape[1],), dtype=float)[None, :]
         vmin = 0.0
     vand = vander((points - pmin) / pscale, deg)
     if scale_vand:
-        sv = np.sqrt((vand*vand).sum(axis=0))
-        vv = vand / sv[None,:]
+        sv = np.sqrt((vand * vand).sum(axis=0))
+        vv = vand / sv[None, :]
     else:
         vv = vand
     coeffs = np.linalg.lstsq(vv, (values - vmin) / vscale, rcond=None)[0]
     if scale_vand:
         coeffs = coeffs / sv
-    return {'coeffs': coeffs,
-            'deg': deg, 'pscale': pscale, 'vscale': vscale,
-            'pmin': pmin, 'vmin': vmin, 'ndim': points.shape[1]}
+    return {
+        "coeffs": coeffs,
+        "deg": deg,
+        "pscale": pscale,
+        "vscale": vscale,
+        "pmin": pmin,
+        "vmin": vmin,
+        "ndim": points.shape[1],
+    }
 
 
 def polyval(fit, points, der=0):
@@ -1341,19 +1398,23 @@ def polyval(fit, points, der=0):
     :class:`PolyFit`, :class:`PolyFit1D`, :func:`polyfit`
     """
     assert points.ndim == 2, "points must be 2d array"
-    assert (p_ndim := points.shape[1]) == (f_ndim := fit['ndim']), (
-        f"points have wrong ndim: {p_ndim}, expect {f_ndim}")
-    pscale, pmin = fit['pscale'], fit['pmin']
-    vscale, vmin = fit['vscale'], fit['vmin']
+    assert (p_ndim := points.shape[1]) == (
+        f_ndim := fit["ndim"]
+    ), f"points have wrong ndim: {p_ndim}, expect {f_ndim}"
+    pscale, pmin = fit["pscale"], fit["pmin"]
+    vscale, vmin = fit["vscale"], fit["vmin"]
     if der > 0:
         assert points.shape[1] == 1, "deriv only for 1d poly (ndim=1)"
         # ::-1 b/c numpy stores poly coeffs in reversed order
-        dcoeffs = np.polyder(fit['coeffs'][::-1], m=der)
-        return np.polyval(dcoeffs, (points[:,0] - pmin[0,0]) / pscale[0,0]) / \
-            pscale[0,0]**der * vscale
+        dcoeffs = np.polyder(fit["coeffs"][::-1], m=der)
+        return (
+            np.polyval(dcoeffs, (points[:, 0] - pmin[0, 0]) / pscale[0, 0])
+            / pscale[0, 0] ** der
+            * vscale
+        )
     else:
-        vand = vander((points - pmin) / pscale, fit['deg'])
-        return np.dot(vand, fit['coeffs']) * vscale + vmin
+        vand = vander((points - pmin) / pscale, fit["deg"])
+        return np.dot(vand, fit["coeffs"]) * vscale + vmin
 
 
 class PolyFit:
@@ -1387,6 +1448,7 @@ class PolyFit:
     >>> # the same
     >>> f1=PolyFit(points, values, 3); f1(new_points)
     """
+
     def __init__(self, points, values, *args, **kwds):
         """
         Parameters
@@ -1408,10 +1470,12 @@ class PolyFit:
 
     @staticmethod
     def _fix_shape_call(points):
-        assert hasattr(points, 'ndim'), "points must be an array with ndim attr"
+        assert hasattr(
+            points, "ndim"
+        ), "points must be an array with ndim attr"
         # (ndim,) -> (1,ndim) -> 1 point in ndim space
         if points.ndim == 1:
-            return True, points[None,:]
+            return True, points[None, :]
         else:
             return False, points
 
@@ -1438,7 +1502,7 @@ class PolyFit:
         _kwds.update(kwds)
         if x0 is None:
             idx = self.values.argmin()
-            x0 = self.points[idx,...]
+            x0 = self.points[idx, ...]
         xopt = optimize.fmin(self, x0, **_kwds)
         return xopt
 
@@ -1467,6 +1531,7 @@ class PolyFit1D(Fit1D, PolyFit):
     >>> plot(xx, f(xx,der=1), label='d(poly)/dx')
     >>> legend()
     """
+
     def __init__(self, *args, **kwds):
         """
         Parameters
@@ -1476,11 +1541,13 @@ class PolyFit1D(Fit1D, PolyFit):
         # We need to exec PolyFit.__init__() here expliclity. Using super(...)
         # would call Fit1D.__init__().
         PolyFit.__init__(self, *args, **kwds)
-        assert self.points.ndim == 2 and self.points.shape[1] == 1, \
-            ("points has wrong shape: %s, expect (npoints,1)" \
-            %str(self.points.shape))
+        assert (
+            self.points.ndim == 2 and self.points.shape[1] == 1
+        ), "points has wrong shape: %s, expect (npoints,1)" % str(
+            self.points.shape
+        )
         # set self.x, self.y, need that in Fit1D._findroot()
-        Fit1D.__init__(self, self.points[:,0], self.values)
+        Fit1D.__init__(self, self.points[:, 0], self.values)
 
 
     @staticmethod
@@ -1491,10 +1558,10 @@ class PolyFit1D(Fit1D, PolyFit):
             return np.array([[pp]])
         # (M,) -> (M,1)
         elif pp.ndim == 1:
-            return pp[:,None]
+            return pp[:, None]
         # (M,N)
         elif pp.ndim == 2:
-            assert pp.shape[1] == self.fit['ndim'], "points have wrong ndim"
+            assert pp.shape[1] == self.fit["ndim"], "points have wrong ndim"
             return pp
         else:
             raise ValueError("points has wrong shape or dim")
@@ -1506,14 +1573,16 @@ class PolyFit1D(Fit1D, PolyFit):
             return True, np.array([[pp]])
         else:
             if pp.ndim == 1:
-                if len(pp) == self.fit['ndim']:
+                if len(pp) == self.fit["ndim"]:
                     # (N,) -> (1,N)
-                    return True, pp[None,:]
+                    return True, pp[None, :]
                 else:
                     # (M,) -> (M,1)
-                    return False, pp[:,None]
+                    return False, pp[:, None]
             elif pp.ndim == 2:
-                assert pp.shape[1] == self.fit['ndim'], "points have wrong ndim"
+                assert (
+                    pp.shape[1] == self.fit["ndim"]
+                ), "points have wrong ndim"
                 return False, pp
             else:
                 raise ValueError("points has wrong shape or dim")
@@ -1569,12 +1638,12 @@ def match_mask(arr, values, fullout=False, eps=None):
     --------
     numpy.in1d
     """
-    assert arr.ndim == 1, ("arr must be 1d array")
+    assert arr.ndim == 1, "arr must be 1d array"
     if eps is None:
         # assume integer array
-        idx_lst = ((arr[None,:] - values[:,None]) == 0).nonzero()[1]
+        idx_lst = ((arr[None, :] - values[:, None]) == 0).nonzero()[1]
     else:
-        idx_lst = (np.abs(arr[None,:] - values[:,None]) < eps).nonzero()[1]
+        idx_lst = (np.abs(arr[None, :] - values[:, None]) < eps).nonzero()[1]
     idx_lst = np.unique(idx_lst)
     ret = np.zeros((arr.shape[0],), dtype=bool)
     ret.put(idx_lst, True)
@@ -1646,32 +1715,32 @@ def order_similar(arr, repeat=1, order=2):
     if order == 2:
         _o_two = True
     if repeat == 1:
-        ni,nj = arr.shape
+        ni, nj = arr.shape
         arr2 = np.empty_like(arr)
-        arr2[0,:] = arr[0,:]
-        for ii in range(ni-1):
+        arr2[0, :] = arr[0, :]
+        for ii in range(ni - 1):
             for jj in range(nj):
                 if (ii == 0) and _o_zero:
                     # 1st row: choose next similar point
-                    ref = arr2[ii,jj]
+                    ref = arr2[ii, jj]
                 elif (ii == 1) and _o_one:
                     # 2 rows: linear extrapolation
-                    ref = 2*arr2[ii,jj] - arr2[ii-1,jj]
+                    ref = 2 * arr2[ii, jj] - arr2[ii - 1, jj]
                 elif (ii >= 2) and _o_two:
                     # > 2 rows: quadradic extrapolation
                     #
                     # Calling polyfit is pretty slow and could be
                     # optimized. For 3 points in x,y, we can write the
                     # expressions for the coeffs by hand, yes?
-                    x = np.array([0,1,2])
-                    y = arr2[ii-2:ii+1,jj]
-                    p = np.polyfit(x,y,2)
-                    ref = np.polyval(p,3)
-                dif = np.abs(arr[ii+1,:] - ref)
+                    x = np.array([0, 1, 2])
+                    y = arr2[ii - 2 : ii + 1, jj]
+                    p = np.polyfit(x, y, 2)
+                    ref = np.polyval(p, 3)
+                dif = np.abs(arr[ii + 1, :] - ref)
                 idx = np.argmin(dif)
-                arr2[ii+1,jj] = arr[ii+1,idx]
+                arr2[ii + 1, jj] = arr[ii + 1, idx]
     else:
-        arr2 = order_similar(arr, repeat=repeat-1)
+        arr2 = order_similar(arr, repeat=repeat - 1)
     return arr2
 
 
@@ -1679,15 +1748,16 @@ def round_up_next_multiple(x, mult):
     """Round integer `x` up to the next possible multiple of `mult`."""
     rem = x % mult
     if rem > 0:
-        return x - rem  + mult
+        return x - rem + mult
     else:
         return x
+
 
 def norm(a):
     """2-norm for real vectors."""
     assert len(a.shape) == 1, "input must be 1d array"
     # math.sqrt is faster than np.sqrt for scalar args
-    return sqrt(np.dot(a,a))
+    return sqrt(np.dot(a, a))
 
 
 def meshgridt(x, y):
@@ -1735,15 +1805,16 @@ def euler_matrix(phi, theta, psi, deg=False):
         phi = radians(phi)
         theta = radians(theta)
         psi = radians(psi)
-    assert abs(phi) <= 2*pi
+    assert abs(phi) <= 2 * pi
     assert abs(theta) <= pi
-    assert abs(psi) <= 2*pi
+    assert abs(psi) <= 2 * pi
     sin_a = sin(phi)
     sin_b = sin(theta)
     sin_c = sin(psi)
     cos_a = cos(phi)
     cos_b = cos(theta)
     cos_c = cos(psi)
+    # fmt: off
     D = np.array([[ cos_a,  sin_a,      0],
                   [-sin_a,  cos_a,      0],
                   [     0,      0,      1]])*1.0
@@ -1755,5 +1826,5 @@ def euler_matrix(phi, theta, psi, deg=False):
     B = np.array([[ cos_c,  sin_c,      0],
                   [-sin_c,  cos_c,      0],
                   [     0,      0,      1]])*1.0
+    # fmt: on
     return np.dot(B, np.dot(C, D))
-
