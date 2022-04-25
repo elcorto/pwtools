@@ -229,6 +229,7 @@ class Plot:
             The name of the axis where the legend is placed on. If you use
             things like twinx(), then you may want to choose top most the axis,
             i.e. the one in the foreground. For example:
+
             >>> pp = Plot(...)
             >>> pp.ax.plot(...)
             >>> pp.ax2 = pp.ax.twinx()
@@ -238,12 +239,16 @@ class Plot:
         Notes
         -----
         This is not completly transparent. This:
+
             >>> plot = Plot(...)
             >>> plot.ax.plot(...)
             >>> plot.legend(...)
+
         does only behave as ax.legend() if only kwargs are used. For anything
         else, use
+
             >>> plot.ax.legend()
+
         directly.
         """
         ax = getattr(self, legaxname)

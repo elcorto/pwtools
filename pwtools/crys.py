@@ -577,9 +577,10 @@ def scell(obj, dims, method=1, **kwds):
     times according to the mask pattern, independently of how the pattern looks
     like (e.g. the `direc` parameter in :func:`scell_mask`). So, just as rows
     in np.repeat(), we have:
-        | original:     symbols=[A,B,C,D]
-        | 2 x 1 x 1:    symbols=[A,A,B,B,C,C,D,D]
-        | nx x ny x nz: symbols=[(nx*ny*nz) x A, (nx*ny*nz) x B, ...]
+
+    | original:     symbols=[A,B,C,D]
+    | 2 x 1 x 1:    symbols=[A,A,B,B,C,C,D,D]
+    | nx x ny x nz: symbols=[(nx*ny*nz) x A, (nx*ny*nz) x B, ...]
 
 
     Returns
@@ -3285,13 +3286,17 @@ def align_cart(obj, x=None, y=None, vecs=None, indices=None, cart=None,
         Indices of atoms in `obj` with positions `v0,v1,v2`. Length 4 for
         obj=Trajectory: ``indices=[time_step, idx0, idx1, idx2]`` and length 3
         for obj=Structure: ``[idx0, idx1, idx2]`` with
-           | ``v0 = obj.coords[time_step, idx0, ...]`` (Trajectory)
-           | ``v1 = obj.coords[time_step, idx1, ...]``
-           | ``v2 = obj.coords[time_step, idx2, ...]``
+
+        | ``v0 = obj.coords[time_step, idx0, ...]`` (Trajectory)
+        | ``v1 = obj.coords[time_step, idx1, ...]``
+        | ``v2 = obj.coords[time_step, idx2, ...]``
+
         or
-           | ``v0 = obj.coords[idx0, ...]`` (Structure)
-           | ``v1 = obj.coords[idx1, ...]``
-           | ``v2 = obj.coords[idx2, ...]``
+
+        | ``v0 = obj.coords[idx0, ...]`` (Structure)
+        | ``v1 = obj.coords[idx1, ...]``
+        | ``v2 = obj.coords[idx2, ...]``
+
     cart : (3,3)
         new cartesian coord sys ``[x,y,z]``, matrix must be orthogonal
     eps : float

@@ -78,8 +78,9 @@ def nested_loops(lists, flatten=False):
     >>> comb.nested_loops([[1,2],['a','b']])
     [[1, 'a'], [1, 'b'], [2, 'a'], [2, 'b']]
 
-    # If values of different lists should be varied together, use zip(). Note
-    # that you get nested lists back. Use flatten=True to get flattened lists.
+    If values of different lists should be varied together, use zip(). Note
+    that you get nested lists back. Use flatten=True to get flattened lists.
+
     >>> comb.nested_loops([(1,2), zip(['a','b'],(np.sin,np.cos))])
     [[1, ['a', <ufunc 'sin'>]],
      [1, ['b', <ufunc 'cos'>]],

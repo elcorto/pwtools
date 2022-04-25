@@ -34,38 +34,40 @@ def wien_sgroup_input(struct, lat_symbol='P'):
 
     Notes
     -----
-    From sgroup's README:
+    From sgroup's README
 
-    / ------------------------------------------------------------
-    / in input file symbol "/" means a comment
-    / and trailing characters are ignored by the program
+    .. code-block:: text
 
-    / empty lines are allowed
+        / ------------------------------------------------------------
+        / in input file symbol "/" means a comment
+        / and trailing characters are ignored by the program
 
-    P  /type of lattice; choices are P,F,I,C,A
+        / empty lines are allowed
 
-    /  parameters of cell:
-    /  lengths of the basis vectors and
-    /  angles (degree unit is used)  alpha=b^c  beta=a^c  gamma=a^b
-    /   |a|  |b|   |c|               alpha  beta  gamma
+        P  /type of lattice; choices are P,F,I,C,A
 
-       1.0   1.1   1.2                90.   91.    92.
+        /  parameters of cell:
+        /  lengths of the basis vectors and
+        /  angles (degree unit is used)  alpha=b^c  beta=a^c  gamma=a^b
+        /   |a|  |b|   |c|               alpha  beta  gamma
 
-    /Number of atoms in the cell
-    4
+           1.0   1.1   1.2                90.   91.    92.
 
-    /List of atoms
-    0.1 0.2 0.3  / <-- Atom positions in units of the vectors a b c
-    Al           / <-- name of this atom
+        /Number of atoms in the cell
+        4
 
-    0.1 0.2 0.4  /....
-    Al1
+        /List of atoms
+        0.1 0.2 0.3  / <-- Atom positions in units of the vectors a b c
+        Al           / <-- name of this atom
 
-    0.2 0.2 0.3
-    Fe
+        0.1 0.2 0.4  /....
+        Al1
 
-    0.1 0.3 0.3
-    Fe
+        0.2 0.2 0.3
+        Fe
+
+        0.1 0.3 0.3
+        Fe
 
     / ------------------------------------------------------------------
     """

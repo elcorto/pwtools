@@ -251,8 +251,8 @@ K_POINTS automatic
             a file of that name in `pseudo_dir`. If `pp` is a list, e.g.
             ``['Al.pbe-n-kjpaw_psl.0.1.UPF', 'N.pbe-n-kjpaw_psl.0.1.UPF']``,
             then this is used for each atom type.
-        outdir, pseudo_dir, ecutwfc, ecutrho, diagonalization, mixing_mode,
-        mixing_beta, electron_maxstep, conv_thr : as in PWscf, see
+        outdir, pseudo_dir, ecutwfc, ecutrho, diagonalization, mixing_mode, mixing_beta, electron_maxstep, conv_thr :
+            as in PWscf, see
             http://www.quantum-espresso.org/wp-content/uploads/Doc/INPUT_PW.html
         backup : bool
             make backup of old pw.in and pw.out if found, uses

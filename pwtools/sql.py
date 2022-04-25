@@ -553,10 +553,12 @@ def sql_column(key, lst, sqltype=None, sqlval_func=lambda x: x, fileval_func=lam
     fileval_func : callable, optional
         Function to transform each entry lst[i] to SQLEntry.fileval
         Default is fileval = lst[i].
+
         example:
-            lst[i] = '23'
-            fileval = 'value = 23'
-            fileval_func = lambda x: "value = %s" %str(x)
+
+        >>> lst[i] = '23'
+        >>> fileval = 'value = 23'
+        >>> fileval_func = lambda x: "value = %s" %str(x)
 
     Examples
     --------

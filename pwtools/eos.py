@@ -479,15 +479,14 @@ class ElkEOSFit(ExternEOS):
         """
         Parameters
         ----------
-        see ExternEOS.__init__()
-
-        natoms : number of atoms in the unit cell, this is (I think) only used
+        natoms : int
+            number of atoms in the unit cell, this is (I think) only used
             for normalization and can be set to 1 if not needed
         name : str
             some dummy name for the input file
         etype : int
             type of EOS to fit (see below)
-        npoints : integer, optional
+        npoints : int, optional
             number of E-V and P-V points of the fitted curves (`nvplt` in
             eos.x)
 
@@ -503,6 +502,10 @@ class ElkEOSFit(ExternEOS):
             Planet Int. 109, p1 (1998))
          6. Natural strain 4th-order EOS
          7. Cubic polynomial in (V-V0)
+
+        See also
+        --------
+        :class:`EosFit`
         """
         ExternEOS.__init__(self, app=app, **kwargs)
         self.name = name
