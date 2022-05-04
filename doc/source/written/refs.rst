@@ -6,7 +6,6 @@
 .. _pycifrw_orig: https://bitbucket.org/jamesrhester/pycifrw
 .. _Elk: http://elk.sourceforge.net
 .. _VMD: http://www.ks.uiuc.edu/Research/vmd/
-.. _pwextern-free: https://bitbucket.org/elcorto/pwextern-free
 .. _phonopy: http://phonopy.sourceforge.net
 .. _tfreq: http://www.timteatro.net/2010/09/29/velocity-autocorrelation-and-vibrational-spectrum-calculation
 .. _spglib: https://spglib.github.io/spglib

@@ -124,20 +124,12 @@ Optional dependencies
 * eos (for :mod:`~pwtools.eos`): The tool "eos" from the Elk_ code must
   be on your path. Note that the executable is assumed to be named ``eos.x``
   instead of the default name "eos". See :class:`~pwtools.eos.ElkEOSFit` for
-  usage. Can be installed directly from Elk or pwextern-free_.
+  usage.
 
-The pwextern-free_ package contains add-on tools which we don't want / can ship
-directly with pwtools, such as eos.
-
-.. note:: pwextern-free also contains very old versions of PyCifRW and
-   (py)spglib, don't use those, use pip versions! Also, don't use the
-   install.sh script provided there. If needed, only compile eos.x and place it
-   somewhere in PATH.
-
-.. note:: :class:`~pwtools.eos.ElkEOSFit` is deprecated now, and so you don't
-   really need the Elk code's eos tool anymore. It was used for generating
-   reference EOS fit data once, which is stored in test/files/, but there is no
-   use of eos.x in pwtools anymore.
+.. note:: :class:`~pwtools.eos.ElkEOSFit` is deprecated, you don't
+   really need the Elk code's eos tool anymore. It was used to generate
+   reference EOS fit data for unit tests, which is stored in test/files/, but
+   there is no use of eos.x in pwtools anymore.
 
 Running tests
 -------------
