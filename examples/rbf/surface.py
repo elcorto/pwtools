@@ -15,12 +15,14 @@ from pwtools import mpl, rbf, num
 plt = mpl.plt
 rand = np.random.rand
 
+plt.rcParams["figure.autolayout"] = True
+
 # create shiny polished plot for documentation
 export = False
 ##export = True
 if export:
     savefig_opts = dict(bbox_inches='tight', pad_inches=0)
-    plt.rcParams['font.size'] = 15
+    plt.rcParams['font.size'] = 10
 
 
 class SurfaceData:

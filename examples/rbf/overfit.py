@@ -30,7 +30,10 @@ from pwtools import mpl, rbf, batch
 from pwtools.rbf.hyperopt import FitError, fit_opt
 
 plt = mpl.plt
+plt.rcParams["figure.autolayout"] = True
 
+export = True
+##export = False
 
 if __name__ == "__main__":
     seed = 123
@@ -140,7 +143,7 @@ if __name__ == "__main__":
             spine_invisible="left",
         )
 
-        fig.tight_layout()
-        ##fig.savefig(f"/tmp/overfit_{case.name}.png")
+        if export:
+            fig.savefig(f"/tmp/overfit_{case.name}.png")
 
     plt.show()

@@ -4,6 +4,7 @@ import numpy as np
 
 from pwtools import rbf, mpl
 plt = mpl.plt
+plt.rcParams["figure.autolayout"] = True
 
 fig,ax = plt.subplots()
 colors = plt.rcParams['axes.prop_cycle'].by_key()['color']

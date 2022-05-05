@@ -162,6 +162,8 @@ from pwtools.rbf import Rbf, estimate_p
 from pwtools.rbf.hyperopt import fit_opt, FitError
 from pwtools import mpl
 
+plt.rcParams["figure.autolayout"] = True
+
 
 def gt_func(x):
     """Ground truth"""

@@ -68,7 +68,9 @@ from pwtools.rbf.hyperopt import FitError, fit_opt
 
 
 plt = mpl.plt
+plt.rcParams["figure.autolayout"] = True
 color_cycler = iter(colors.TABLEAU_COLORS.values())
+##export = True
 export = False
 
 
