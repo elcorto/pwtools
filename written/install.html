@@ -212,23 +212,14 @@ manager:</p>
 <li><p>eos (for <a class="reference internal" href="../generated/api/__sphinx_autodoc_module__pwtools.eos.html#module-pwtools.eos" title="pwtools.eos"><code class="xref py py-mod docutils literal notranslate"><span class="pre">eos</span></code></a>): The tool “eos” from the <a class="reference external" href="http://elk.sourceforge.net">Elk</a> code must
 be on your path. Note that the executable is assumed to be named <code class="docutils literal notranslate"><span class="pre">eos.x</span></code>
 instead of the default name “eos”. See <a class="reference internal" href="../generated/api/pwtools.eos.ElkEOSFit.html#pwtools.eos.ElkEOSFit" title="pwtools.eos.ElkEOSFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">ElkEOSFit</span></code></a> for
-usage. Can be installed directly from Elk or <a class="reference external" href="https://bitbucket.org/elcorto/pwextern-free">pwextern-free</a>.</p></li>
+usage.</p></li>
 </ul>
-<p>The <a class="reference external" href="https://bitbucket.org/elcorto/pwextern-free">pwextern-free</a> package contains add-on tools which we don’t want / can ship
-directly with pwtools, such as eos.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>pwextern-free also contains very old versions of PyCifRW and
-(py)spglib, don’t use those, use pip versions! Also, don’t use the
-install.sh script provided there. If needed, only compile eos.x and place it
-somewhere in PATH.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p><a class="reference internal" href="../generated/api/pwtools.eos.ElkEOSFit.html#pwtools.eos.ElkEOSFit" title="pwtools.eos.ElkEOSFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">ElkEOSFit</span></code></a> is deprecated now, and so you don’t
-really need the Elk code’s eos tool anymore. It was used for generating
-reference EOS fit data once, which is stored in test/files/, but there is no
-use of eos.x in pwtools anymore.</p>
+<p><a class="reference internal" href="../generated/api/pwtools.eos.ElkEOSFit.html#pwtools.eos.ElkEOSFit" title="pwtools.eos.ElkEOSFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">ElkEOSFit</span></code></a> is deprecated, you don’t
+really need the Elk code’s eos tool anymore. It was used to generate
+reference EOS fit data for unit tests, which is stored in test/files/, but
+there is no use of eos.x in pwtools anymore.</p>
 </div>
 </section>
 </section>

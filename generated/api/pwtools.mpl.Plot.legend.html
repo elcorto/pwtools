@@ -107,26 +107,27 @@ the axis named with <cite>legaxname</cite>.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>axnames</strong> (<em>None</em><em> or </em><em>list of axes names</em><em>, </em><em>optional</em>) – e.g. [‘ax’] or [‘ax’, ‘ax2’]. If None (default) then ax.legend() is
 called directly (if legaxname=’ax’).</p></li>
-<li><p><strong>legaxname</strong> (<em>string</em><em>, </em><em>optional</em>) – The name of the axis where the legend is placed on. If you use
+<li><p><strong>legaxname</strong> (<em>string</em><em>, </em><em>optional</em>) – <p>The name of the axis where the legend is placed on. If you use
 things like twinx(), then you may want to choose top most the axis,
-i.e. the one in the foreground. For example:
-&gt;&gt;&gt; pp = Plot(…)
-&gt;&gt;&gt; pp.ax.plot(…)
-&gt;&gt;&gt; pp.ax2 = pp.ax.twinx()
-&gt;&gt;&gt; pp.ax2.plot(…)
-&gt;&gt;&gt; pp.legend(axnames=[‘ax’, ‘ax2’], legaxname=’ax2’)</p></li>
+i.e. the one in the foreground. For example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span> <span class="o">=</span> <span class="n">Plot</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span><span class="o">.</span><span class="n">ax2</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span><span class="o">.</span><span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">axnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ax&#39;</span><span class="p">,</span> <span class="s1">&#39;ax2&#39;</span><span class="p">],</span> <span class="n">legaxname</span><span class="o">=</span><span class="s1">&#39;ax2&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</p></li>
 </ul>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
-<dl>
-<dt>This is not completly transparent. This:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span> <span class="o">=</span> <span class="n">Plot</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<p>This is not completly transparent. This:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span> <span class="o">=</span> <span class="n">Plot</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
 </pre></div>
 </div>
-</dd>
-</dl>
 <p>does only behave as ax.legend() if only kwargs are used. For anything
 else, use</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>

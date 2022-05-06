@@ -138,7 +138,9 @@ function.</p>
 weights <span class="math notranslate nohighlight">\(\mathbf w = (w_j)\)</span> are found by solving the linear system
 <span class="math notranslate nohighlight">\(\mathbf K\,\mathbf w = \mathbf z\)</span>.</p>
 <p>Note that for certain values of <span class="math notranslate nohighlight">\(p\)</span>, <span class="math notranslate nohighlight">\(\mathbf K\)</span> may become
-singular. Then one should solve a regression problem instead (see below).</p>
+singular, esp. large ones with the limit being
+<span class="math notranslate nohighlight">\(p\rightarrow\infty\Rightarrow\phi\rightarrow\text{const}\)</span>. Then one
+should solve a regression problem instead (see below).</p>
 </section>
 <section id="rbf-parameter-p">
 <h2>RBF parameter <span class="math notranslate nohighlight">\(p\)</span><a class="headerlink" href="#rbf-parameter-p" title="Permalink to this headline">¶</a></h2>
@@ -148,7 +150,7 @@ attribute <code class="docutils literal notranslate"><span class="pre">Rbf.p</sp
 between points is determined by <span class="math notranslate nohighlight">\(p\)</span> where e.g. very narrow functions
 <span class="math notranslate nohighlight">\(\phi\)</span> can lead to oscillations between points. Therefore <span class="math notranslate nohighlight">\(p\)</span> must
 be optimized for the data set at hand, which should be done by cross-validation
-as explained below.</p>
+as will be explained below.</p>
 <p>Nevertheless we provide two methods to estimate reasonable start values.</p>
 <p>The scipy implementation <span class="math notranslate nohighlight">\(p_{\text{scipy}}\)</span> in
 <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Rbf.html#scipy.interpolate.Rbf" title="(in SciPy v1.8.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.Rbf</span></code></a> uses something like the mean nearest neighbor
@@ -169,38 +171,41 @@ regularization in <a class="reference external" href="https://docs.scipy.org/doc
 version of the linear system</p>
 <div class="math notranslate nohighlight">
 \[(\mathbf K + r\,\mathbf I)\,\mathbf w = \mathbf z\]</div>
-<p>using, for instance, <code class="docutils literal notranslate"><span class="pre">Rbf(points,</span> <span class="pre">values,</span> <span class="pre">r=1e-8)</span></code> (attribute <code class="docutils literal notranslate"><span class="pre">Rbf.r</span></code>).
-This creates a more “stiff” (low curvature) function <span class="math notranslate nohighlight">\(f(\mathbf x)\)</span> which
-does not necessarily interpolate all points. If the RBF happens to imply a
-Mercer kernel (which the Gaussian one does), then this is equal to Kernel Ridge
-Regression.</p>
+<p>using, for instance, <code class="docutils literal notranslate"><span class="pre">Rbf(points,</span> <span class="pre">values,</span> <span class="pre">r=1e-8)</span></code> (attribute <code class="docutils literal notranslate"><span class="pre">Rbf.r</span></code>). The
+default however is <span class="math notranslate nohighlight">\(r=0\)</span> (interpolation). <span class="math notranslate nohighlight">\(r&gt;0\)</span> creates a more
+“stiff” (low curvature) function <span class="math notranslate nohighlight">\(f(\mathbf x)\)</span> which does not
+interpolate all points and where <code class="docutils literal notranslate"><span class="pre">r</span></code> is a measure of the assumed noise. If
+the RBF happens to imply a Mercer kernel (which the Gaussian one does), then
+this is equal to kernel ridge regression (KRR).</p>
 <p>Apart from smoothing, the regularization also deals with the numerical
 instability of <span class="math notranslate nohighlight">\(\mathbf K\,\mathbf w = \mathbf z\)</span>.</p>
 <p>One can also switch from <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.solve.html#scipy.linalg.solve" title="(in SciPy v1.8.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.linalg.solve()</span></code></a> to
 <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.lstsq.html#scipy.linalg.lstsq" title="(in SciPy v1.8.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.linalg.lstsq()</span></code></a> and solve the system in a least squares sense
-without regularization. You can do that by setting <code class="docutils literal notranslate"><span class="pre">Rbf(...,</span> <span class="pre">r=None</span></code>) which
-is also the default, since we don’t like to set a specific value for
-<span class="math notranslate nohighlight">\(r&gt;0\)</span> because that depends entirely on the data set. In
-<a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.kernel_ridge.KernelRidge.html#sklearn.kernel_ridge.KernelRidge" title="(in scikit-learn v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">sklearn.kernel_ridge.KernelRidge</span></code></a> the switch to least squares is done
-automatically when a singular <span class="math notranslate nohighlight">\(\mathbf K\)</span> is detected. However, we
-observed that in some cases this results in small numerical noise in the
-solution, so test before using and maybe switch to regularization in that case.</p>
+without regularization. You can do that by setting <code class="docutils literal notranslate"><span class="pre">Rbf(...,</span> <span class="pre">r=None</span></code>). In
+<a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.kernel_ridge.KernelRidge.html#sklearn.kernel_ridge.KernelRidge" title="(in scikit-learn v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">sklearn.kernel_ridge.KernelRidge</span></code></a> there is an automatic switch to least
+squares when a singular <span class="math notranslate nohighlight">\(\mathbf K\)</span> is detected. However, we observed
+that in many cases this results in numerical noise in the solution, esp. when
+<span class="math notranslate nohighlight">\(\mathbf K\)</span> is (near) singular (see also
+<code class="docutils literal notranslate"><span class="pre">examples/rbf/least_squares_numerical_noise.py</span></code>). So while we provide that
+feature for experimentation, we actually recommend not using it in production
+and instead use a KRR setup and properly determine <span class="math notranslate nohighlight">\(p\)</span> and <span class="math notranslate nohighlight">\(r\)</span> as
+described below.</p>
 </section>
 <section id="how-to-determine-p-and-r">
 <h2>How to determine <span class="math notranslate nohighlight">\(p\)</span> and <span class="math notranslate nohighlight">\(r\)</span><a class="headerlink" href="#how-to-determine-p-and-r" title="Permalink to this headline">¶</a></h2>
 <p><span class="math notranslate nohighlight">\(p\)</span> (and <span class="math notranslate nohighlight">\(r\)</span>) should always be tuned to the data set at hand by
 minimization of a cross validation (CV) score. You can do this with
 <a class="reference internal" href="../../generated/api/pwtools.rbf.hyperopt.fit_opt.html#pwtools.rbf.hyperopt.fit_opt" title="pwtools.rbf.hyperopt.fit_opt"><code class="xref py py-func docutils literal notranslate"><span class="pre">pwtools.rbf.hyperopt.fit_opt()</span></code></a>. Here is an example where we optimize only
-<span class="math notranslate nohighlight">\(p\)</span>, with <span class="math notranslate nohighlight">\(r\)</span> constant and very small such as <code class="docutils literal notranslate"><span class="pre">1e-11</span></code> or
-<code class="docutils literal notranslate"><span class="pre">r=None</span></code> (least squares solver). See <code class="docutils literal notranslate"><span class="pre">examples/rbf/overfit.py</span></code>.</p>
+<span class="math notranslate nohighlight">\(p\)</span>, with <span class="math notranslate nohighlight">\(r\)</span> constant and very small such as <code class="docutils literal notranslate"><span class="pre">1e-11</span></code>. See
+<code class="docutils literal notranslate"><span class="pre">examples/rbf/overfit.py</span></code>.</p>
 <img alt="../../_images/overfit_reg.png" src="../../_images/overfit_reg.png" />
 <p>We observe a flat CV score above <span class="math notranslate nohighlight">\(p&gt;1\)</span> without a pronounced global
 minimimum, even though we find a shallow one at around <span class="math notranslate nohighlight">\(p=13\)</span>, while the
 MSE loss (fit error) would suggest a very small <span class="math notranslate nohighlight">\(p\)</span> value (i.e.
 interpolation or “zero training loss” in ML terms).</p>
 <p>Now we investigate <span class="math notranslate nohighlight">\(p\)</span> and <span class="math notranslate nohighlight">\(r\)</span> (see
-<code class="docutils literal notranslate"><span class="pre">examples/rbf/crossval_map_p_r.py</span></code>) by plotting the CV score as function both.
-This is the result for the Gaussian RBF.</p>
+<code class="docutils literal notranslate"><span class="pre">examples/rbf/crossval_map_p_r.py</span></code>) by plotting the CV score as function of
+both. This is the result for the Gaussian RBF.</p>
 <img alt="../../_images/crossval_pr_gauss.png" src="../../_images/crossval_pr_gauss.png" />
 <p>When <span class="math notranslate nohighlight">\(r &lt; 10^{-6}\)</span>, it basically doesn’t matter which <span class="math notranslate nohighlight">\(p\)</span> we use,
 as long as it is big enough to not overfit, i.e. <span class="math notranslate nohighlight">\(p&gt;1\)</span>. In these regions,

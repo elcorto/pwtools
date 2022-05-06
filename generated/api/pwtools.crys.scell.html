@@ -118,13 +118,11 @@ each atom in <cite>obj</cite> one after another, i.e. each atom is repeated nx*n
 times according to the mask pattern, independently of how the pattern looks
 like (e.g. the <cite>direc</cite> parameter in <a class="reference internal" href="pwtools.crys.scell_mask.html#pwtools.crys.scell_mask" title="pwtools.crys.scell_mask"><code class="xref py py-func docutils literal notranslate"><span class="pre">scell_mask()</span></code></a>). So, just as rows
 in np.repeat(), we have:</p>
-<blockquote>
-<div><div class="line-block">
+<div class="line-block">
 <div class="line">original:     symbols=[A,B,C,D]</div>
 <div class="line">2 x 1 x 1:    symbols=[A,A,B,B,C,C,D,D]</div>
 <div class="line">nx x ny x nz: symbols=[(nx*ny*nz) x A, (nx*ny*nz) x B, …]</div>
 </div>
-</div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><strong>scell</strong></p>

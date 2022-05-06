@@ -167,8 +167,9 @@
 <span class="sd">    &gt;&gt;&gt; comb.nested_loops([[1,2],[&#39;a&#39;,&#39;b&#39;]])</span>
 <span class="sd">    [[1, &#39;a&#39;], [1, &#39;b&#39;], [2, &#39;a&#39;], [2, &#39;b&#39;]]</span>
 
-<span class="sd">    # If values of different lists should be varied together, use zip(). Note</span>
-<span class="sd">    # that you get nested lists back. Use flatten=True to get flattened lists.</span>
+<span class="sd">    If values of different lists should be varied together, use zip(). Note</span>
+<span class="sd">    that you get nested lists back. Use flatten=True to get flattened lists.</span>
+
 <span class="sd">    &gt;&gt;&gt; comb.nested_loops([(1,2), zip([&#39;a&#39;,&#39;b&#39;],(np.sin,np.cos))])</span>
 <span class="sd">    [[1, [&#39;a&#39;, &lt;ufunc &#39;sin&#39;&gt;]],</span>
 <span class="sd">     [1, [&#39;b&#39;, &lt;ufunc &#39;cos&#39;&gt;]],</span>

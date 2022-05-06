@@ -112,11 +112,11 @@ differences for derivatives.</p>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ExternEOS.__init__</strong><strong>(</strong><strong>)</strong> (<em>see</em>) – </p></li>
-<li><p><strong>natoms</strong> (<em>number of atoms in the unit cell</em><em>, </em><em>this is</em><em> (</em><em>I think</em><em>) </em><em>only used</em>) – for normalization and can be set to 1 if not needed</p></li>
+<li><p><strong>natoms</strong> (<em>int</em>) – number of atoms in the unit cell, this is (I think) only used
+for normalization and can be set to 1 if not needed</p></li>
 <li><p><strong>name</strong> (<em>str</em>) – some dummy name for the input file</p></li>
 <li><p><strong>etype</strong> (<em>int</em>) – type of EOS to fit (see below)</p></li>
-<li><p><strong>npoints</strong> (<em>integer</em><em>, </em><em>optional</em>) – number of E-V and P-V points of the fitted curves (<cite>nvplt</cite> in
+<li><p><strong>npoints</strong> (<em>int</em><em>, </em><em>optional</em>) – number of E-V and P-V points of the fitted curves (<cite>nvplt</cite> in
 eos.x)</p></li>
 </ul>
 </dd>
@@ -136,6 +136,10 @@ Planet Int. 109, p1 (1998))</p></li>
 <li><p>Cubic polynomial in (V-V0)</p></li>
 </ol>
 </div></blockquote>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="pwtools.eos.EosFit.html#pwtools.eos.EosFit" title="pwtools.eos.EosFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">EosFit</span></code></a></p>
+</div>
 </dd></dl>
 
 <p class="rubric">Methods</p>

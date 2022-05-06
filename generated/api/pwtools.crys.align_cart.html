@@ -113,21 +113,17 @@ z=cross(x,y).</p>
 <li><p><strong>indices</strong> (<em>sequence</em><em> (</em><em>4</em><em>,</em><em>) or </em><em>(</em><em>3</em><em>,</em><em>)</em>) – <p>Indices of atoms in <cite>obj</cite> with positions <cite>v0,v1,v2</cite>. Length 4 for
 obj=Trajectory: <code class="docutils literal notranslate"><span class="pre">indices=[time_step,</span> <span class="pre">idx0,</span> <span class="pre">idx1,</span> <span class="pre">idx2]</span></code> and length 3
 for obj=Structure: <code class="docutils literal notranslate"><span class="pre">[idx0,</span> <span class="pre">idx1,</span> <span class="pre">idx2]</span></code> with</p>
-<blockquote>
-<div><div class="line-block">
+<div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">v0</span> <span class="pre">=</span> <span class="pre">obj.coords[time_step,</span> <span class="pre">idx0,</span> <span class="pre">...]</span></code> (Trajectory)</div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">v1</span> <span class="pre">=</span> <span class="pre">obj.coords[time_step,</span> <span class="pre">idx1,</span> <span class="pre">...]</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">v2</span> <span class="pre">=</span> <span class="pre">obj.coords[time_step,</span> <span class="pre">idx2,</span> <span class="pre">...]</span></code></div>
 </div>
-</div></blockquote>
-<dl>
-<dt>or</dt><dd><div class="line-block">
+<p>or</p>
+<div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">v0</span> <span class="pre">=</span> <span class="pre">obj.coords[idx0,</span> <span class="pre">...]</span></code> (Structure)</div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">v1</span> <span class="pre">=</span> <span class="pre">obj.coords[idx1,</span> <span class="pre">...]</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">v2</span> <span class="pre">=</span> <span class="pre">obj.coords[idx2,</span> <span class="pre">...]</span></code></div>
 </div>
-</dd>
-</dl>
 </p></li>
 <li><p><strong>cart</strong> (<em>(</em><em>3</em><em>,</em><em>3</em><em>)</em>) – new cartesian coord sys <code class="docutils literal notranslate"><span class="pre">[x,y,z]</span></code>, matrix must be orthogonal</p></li>
 <li><p><strong>eps</strong> (<em>float</em>) – Threshold for orthogonality check. Use <cite>eps &lt;= 0</cite> to disable the check.</p></li>

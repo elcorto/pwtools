@@ -136,7 +136,7 @@
 <span class="sd">    p : float</span>
 <span class="sd">        width</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span> <span class="o">/</span> <span class="n">p</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span> <span class="o">/</span> <span class="n">p</span><span class="o">**</span><span class="mf">2.0</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="rbf_multi"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.rbf_multi.html#pwtools.rbf.core.rbf_multi">[docs]</a><span class="k">def</span> <span class="nf">rbf_multi</span><span class="p">(</span><span class="n">rsq</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
@@ -149,7 +149,7 @@
 <span class="sd">    p : float</span>
 <span class="sd">        width</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">rsq</span> <span class="o">+</span> <span class="n">p</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">rsq</span> <span class="o">+</span> <span class="n">p</span><span class="o">**</span><span class="mf">2.0</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="rbf_inv_multi"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.rbf_inv_multi.html#pwtools.rbf.core.rbf_inv_multi">[docs]</a><span class="k">def</span> <span class="nf">rbf_inv_multi</span><span class="p">(</span><span class="n">rsq</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
@@ -274,7 +274,7 @@
 <span class="sd">    &gt;&gt;&gt; fig,ax = mpl.fig_ax()</span>
 <span class="sd">    &gt;&gt;&gt; x=linspace(0,10,20)     # shape (M,), M=20 points</span>
 <span class="sd">    &gt;&gt;&gt; z=sin(x)                # shape (M,)</span>
-<span class="sd">    &gt;&gt;&gt; rbfi=rbf.Rbf(x[:,None],z)</span>
+<span class="sd">    &gt;&gt;&gt; rbfi=rbf.Rbf(x[:,None], z, r=1e-10)</span>
 <span class="sd">    &gt;&gt;&gt; xi=linspace(0,10,100)   # shape (M,), M=100 points</span>
 <span class="sd">    &gt;&gt;&gt; ax.plot(x,z,&#39;o&#39;, label=&#39;data&#39;)</span>
 <span class="sd">    &gt;&gt;&gt; ax.plot(xi, sin(xi), label=&#39;sin(x)&#39;)</span>
@@ -286,7 +286,7 @@
 <span class="sd">    &gt;&gt;&gt; x = np.linspace(-3,3,10)</span>
 <span class="sd">    &gt;&gt;&gt; dd = mpl.Data2D(x=x, y=x)</span>
 <span class="sd">    &gt;&gt;&gt; dd.update(Z=np.sin(dd.X)+np.cos(dd.Y))</span>
-<span class="sd">    &gt;&gt;&gt; rbfi=rbf.Rbf(dd.XY, dd.zz)</span>
+<span class="sd">    &gt;&gt;&gt; rbfi=rbf.Rbf(dd.XY, dd.zz, r=1e-10)</span>
 <span class="sd">    &gt;&gt;&gt; xi=linspace(-3,3,50)</span>
 <span class="sd">    &gt;&gt;&gt; ddi = mpl.Data2D(x=xi, y=xi)</span>
 <span class="sd">    &gt;&gt;&gt; fig1,ax1 = mpl.fig_ax3d()</span>
@@ -309,9 +309,7 @@
 <span class="sd">    &gt;&gt;&gt; ax2.legend()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Rbf.__init__"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.html#pwtools.rbf.core.Rbf.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">rbf</span><span class="o">=</span><span class="s2">&quot;inv_multi&quot;</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="n">fit</span><span class="o">=</span><span class="kc">True</span>
-    <span class="p">):</span>
+<div class="viewcode-block" id="Rbf.__init__"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.html#pwtools.rbf.core.Rbf.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">rbf</span><span class="o">=</span><span class="s2">&quot;gauss&quot;</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="n">fit</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -457,10 +455,36 @@
     <span class="k">def</span> <span class="nf">_solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Gr</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">JAX_MODE</span><span class="p">:</span>
             <span class="n">la</span> <span class="o">=</span> <span class="n">jax_linalg</span>
-            <span class="c1"># jax.scipy.linalg.solve() doesn&#39;t have assume_a kwd, but is still</span>
-            <span class="c1"># ~3 times faster than scipy.linalg.solve(..., assume_a=&quot;sym&quot;)</span>
-            <span class="c1"># which calls scipy.linalg.lapack.dsysv()</span>
-            <span class="n">kwds</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="c1"># jax.scipy.linalg.solve() doesn&#39;t have the `assume_a` kwd, only</span>
+            <span class="c1"># `sym_pos` which is deprecated in scipy. According to scipy&#39;s</span>
+            <span class="c1"># docs, sym_pos=True is equal to assume_a=&quot;pos&quot;. However that is</span>
+            <span class="c1"># 2x slower than assume_a=&quot;sym&quot;, so we use the latter wheh using</span>
+            <span class="c1"># scipy. With that, scipy and jax are equally fast (CPU, single</span>
+            <span class="c1"># core).</span>
+            <span class="c1">#</span>
+            <span class="c1"># &gt;&gt;&gt; import pwtools.rbf.core</span>
+            <span class="c1"># &gt;&gt;&gt; X=rand(1000,3); y=rand(1000)</span>
+            <span class="c1">#</span>
+            <span class="c1"># &gt;&gt;&gt; pwtools.config.use_jax=True; c=reload(pwtools.rbf.core)</span>
+            <span class="c1"># &gt;&gt;&gt; c.Rbf(X, y, r=1e-10)</span>
+            <span class="c1"># Rbf</span>
+            <span class="c1"># {&#39;ndim&#39;: 3,</span>
+            <span class="c1">#  &#39;p&#39;: DeviceArray(0.67460831, dtype=float64),</span>
+            <span class="c1">#  &#39;r&#39;: 1e-10,</span>
+            <span class="c1">#  &#39;rbf&#39;: &lt;function rbf_gauss at 0x7fe77c5ba820&gt;}</span>
+            <span class="c1"># &gt;&gt;&gt; %timeit c.Rbf(X, y, r=1e-10)</span>
+            <span class="c1"># 60.7 ms ± 684 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)</span>
+            <span class="c1">#</span>
+            <span class="c1"># &gt;&gt;&gt; pwtools.config.use_jax=False; c=reload(pwtools.rbf.core)</span>
+            <span class="c1"># &gt;&gt;&gt; c.Rbf(X, y, r=1e-10)</span>
+            <span class="c1"># Rbf</span>
+            <span class="c1"># {&#39;ndim&#39;: 3,</span>
+            <span class="c1">#  &#39;p&#39;: 0.6746083082988632,</span>
+            <span class="c1">#  &#39;r&#39;: 1e-10,</span>
+            <span class="c1">#  &#39;rbf&#39;: &lt;function rbf_gauss at 0x7fe7918f9550&gt;}</span>
+            <span class="c1"># &gt;&gt;&gt; %timeit c.Rbf(X, y, r=1e-10)</span>
+            <span class="c1"># 59.7 ms ± 170 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)</span>
+            <span class="n">kwds</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">sym_pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">la</span> <span class="o">=</span> <span class="n">linalg</span>
             <span class="n">kwds</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">assume_a</span><span class="o">=</span><span class="s2">&quot;sym&quot;</span><span class="p">)</span>

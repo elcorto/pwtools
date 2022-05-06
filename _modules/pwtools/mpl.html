@@ -318,6 +318,7 @@
 <span class="sd">            The name of the axis where the legend is placed on. If you use</span>
 <span class="sd">            things like twinx(), then you may want to choose top most the axis,</span>
 <span class="sd">            i.e. the one in the foreground. For example:</span>
+
 <span class="sd">            &gt;&gt;&gt; pp = Plot(...)</span>
 <span class="sd">            &gt;&gt;&gt; pp.ax.plot(...)</span>
 <span class="sd">            &gt;&gt;&gt; pp.ax2 = pp.ax.twinx()</span>
@@ -327,12 +328,16 @@
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
 <span class="sd">        This is not completly transparent. This:</span>
+
 <span class="sd">            &gt;&gt;&gt; plot = Plot(...)</span>
 <span class="sd">            &gt;&gt;&gt; plot.ax.plot(...)</span>
 <span class="sd">            &gt;&gt;&gt; plot.legend(...)</span>
+
 <span class="sd">        does only behave as ax.legend() if only kwargs are used. For anything</span>
 <span class="sd">        else, use</span>
+
 <span class="sd">            &gt;&gt;&gt; plot.ax.legend()</span>
+
 <span class="sd">        directly.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">legaxname</span><span class="p">)</span>

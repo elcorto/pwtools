@@ -107,18 +107,22 @@ on the optimizer, you are strongly advised to set your own in <cite>opt_kwds</ci
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>points</strong> (see <code class="xref py py-class docutils literal notranslate"><span class="pre">Rbf</span></code>) – </p></li>
-<li><p><strong>values</strong> (see <code class="xref py py-class docutils literal notranslate"><span class="pre">Rbf</span></code>) – </p></li>
-<li><p><strong>method</strong> (<em>str</em>) – <div class="line-block">
-<div class="line">‘de’ : <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.differential_evolution.html#scipy.optimize.differential_evolution" title="(in SciPy v1.8.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.differential_evolution()</span></code></a></div>
-<div class="line">’fmin’: <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.fmin.html#scipy.optimize.fmin" title="(in SciPy v1.8.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.fmin()</span></code></a></div>
-<div class="line">’brute’: <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.brute.html#scipy.optimize.brute" title="(in SciPy v1.8.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.brute()</span></code></a></div>
-</div>
+<li><p><strong>points</strong> – see <code class="xref py py-class docutils literal notranslate"><span class="pre">Rbf</span></code></p></li>
+<li><p><strong>values</strong> – see <code class="xref py py-class docutils literal notranslate"><span class="pre">Rbf</span></code></p></li>
+<li><p><strong>method</strong> (<em>str</em>) – <ul>
+<li><p>‘de’ : <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.differential_evolution.html#scipy.optimize.differential_evolution" title="(in SciPy v1.8.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.differential_evolution()</span></code></a></p></li>
+<li><p>’fmin’: <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.fmin.html#scipy.optimize.fmin" title="(in SciPy v1.8.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.fmin()</span></code></a></p></li>
+<li><p>’brute’: <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.brute.html#scipy.optimize.brute" title="(in SciPy v1.8.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.brute()</span></code></a></p></li>
+</ul>
 </p></li>
-<li><p><strong>what</strong> (<em>str</em>) – ‘p’ (optimize only <cite>p</cite> and set <cite>r=None</cite>) or ‘pr’ (optimize <cite>p</cite> and <cite>r</cite>)</p></li>
-<li><p><strong>cv</strong> (see <a class="reference internal" href="pwtools.rbf.hyperopt.FitError.html#pwtools.rbf.hyperopt.FitError" title="pwtools.rbf.hyperopt.FitError"><code class="xref py py-class docutils literal notranslate"><span class="pre">FitError</span></code></a>) – </p></li>
-<li><p><strong>cv_kwds</strong> (see <a class="reference internal" href="pwtools.rbf.hyperopt.FitError.html#pwtools.rbf.hyperopt.FitError" title="pwtools.rbf.hyperopt.FitError"><code class="xref py py-class docutils literal notranslate"><span class="pre">FitError</span></code></a>) – </p></li>
-<li><p><strong>rbf_kwds</strong> (<em>dict</em>) – </p></li>
+<li><p><strong>what</strong> (<em>str</em>) – <ul>
+<li><p>‘p’ : optimize only <cite>p</cite>, set fixed <cite>r</cite> in <cite>rbf_kwds</cite> in this case, else
+we’ll use <code class="xref py py-class docutils literal notranslate"><span class="pre">Rbf</span></code>’s default)</p></li>
+<li><p>’pr’ : optimize <cite>p</cite> and <cite>r</cite></p></li>
+</ul>
+</p></li>
+<li><p><strong>cv</strong> – see <a class="reference internal" href="pwtools.rbf.hyperopt.FitError.html#pwtools.rbf.hyperopt.FitError" title="pwtools.rbf.hyperopt.FitError"><code class="xref py py-class docutils literal notranslate"><span class="pre">FitError</span></code></a></p></li>
+<li><p><strong>rbf_kwds</strong> (<em>dict</em>) – see <a class="reference internal" href="pwtools.rbf.hyperopt.FitError.html#pwtools.rbf.hyperopt.FitError" title="pwtools.rbf.hyperopt.FitError"><code class="xref py py-class docutils literal notranslate"><span class="pre">FitError</span></code></a></p></li>
 <li><p><strong>opt_kwds</strong> (<em>dict</em>) – kwds for the optimizer (see <cite>method</cite>)</p></li>
 <li><p><strong>rbf_kwds</strong> – Constant params for <code class="xref py py-class docutils literal notranslate"><span class="pre">Rbf</span></code></p></li>
 </ul>

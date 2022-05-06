@@ -2,6 +2,7 @@
 
 .. _rbf:
 
+
 Radial Basis Function interpolation an regression
 =================================================
 
@@ -53,7 +54,9 @@ weights :math:`\mathbf w = (w_j)` are found by solving the linear system
 :math:`\mathbf K\,\mathbf w = \mathbf z`.
 
 Note that for certain values of :math:`p`, :math:`\mathbf K` may become
-singular. Then one should solve a regression problem instead (see below).
+singular, esp. large ones with the limit being
+:math:`p\rightarrow\infty\Rightarrow\phi\rightarrow\text{const}`. Then one
+should solve a regression problem instead (see below).
 
 
 RBF parameter :math:`p`
@@ -65,7 +68,7 @@ attribute ``Rbf.p``). While :math:`f(\mathbf x)` goes through all points
 between points is determined by :math:`p` where e.g. very narrow functions
 :math:`\phi` can lead to oscillations between points. Therefore :math:`p` must
 be optimized for the data set at hand, which should be done by cross-validation
-as explained below.
+as will be explained below.
 
 Nevertheless we provide two methods to estimate reasonable start values.
 
@@ -94,24 +97,27 @@ version of the linear system
 .. math::
         (\mathbf K + r\,\mathbf I)\,\mathbf w = \mathbf z
 
-using, for instance, ``Rbf(points, values, r=1e-8)`` (attribute ``Rbf.r``).
-This creates a more "stiff" (low curvature) function :math:`f(\mathbf x)` which
-does not necessarily interpolate all points. If the RBF happens to imply a
-Mercer kernel (which the Gaussian one does), then this is equal to Kernel Ridge
-Regression.
+using, for instance, ``Rbf(points, values, r=1e-8)`` (attribute ``Rbf.r``). The
+default however is :math:`r=0` (interpolation). :math:`r>0` creates a more
+"stiff" (low curvature) function :math:`f(\mathbf x)` which does not
+interpolate all points and where ``r`` is a measure of the assumed noise. If
+the RBF happens to imply a Mercer kernel (which the Gaussian one does), then
+this is equal to kernel ridge regression (KRR).
 
 Apart from smoothing, the regularization also deals with the numerical
 instability of :math:`\mathbf K\,\mathbf w = \mathbf z`.
 
 One can also switch from :func:`scipy.linalg.solve` to
 :func:`scipy.linalg.lstsq` and solve the system in a least squares sense
-without regularization. You can do that by setting ``Rbf(..., r=None``) which
-is also the default, since we don't like to set a specific value for
-:math:`r>0` because that depends entirely on the data set. In
-:class:`sklearn.kernel_ridge.KernelRidge` the switch to least squares is done
-automatically when a singular :math:`\mathbf K` is detected. However, we
-observed that in some cases this results in small numerical noise in the
-solution, so test before using and maybe switch to regularization in that case.
+without regularization. You can do that by setting ``Rbf(..., r=None``). In
+:class:`sklearn.kernel_ridge.KernelRidge` there is an automatic switch to least
+squares when a singular :math:`\mathbf K` is detected. However, we observed
+that in many cases this results in numerical noise in the solution, esp. when
+:math:`\mathbf K` is (near) singular (see also
+``examples/rbf/least_squares_numerical_noise.py``). So while we provide that
+feature for experimentation, we actually recommend not using it in production
+and instead use a KRR setup and properly determine :math:`p` and :math:`r` as
+described below.
 
 How to determine :math:`p` and :math:`r`
 ----------------------------------------
@@ -119,8 +125,8 @@ How to determine :math:`p` and :math:`r`
 :math:`p` (and :math:`r`) should always be tuned to the data set at hand by
 minimization of a cross validation (CV) score. You can do this with
 :func:`pwtools.rbf.hyperopt.fit_opt`. Here is an example where we optimize only
-:math:`p`, with :math:`r` constant and very small such as ``1e-11`` or
-``r=None`` (least squares solver). See ``examples/rbf/overfit.py``.
+:math:`p`, with :math:`r` constant and very small such as ``1e-11``. See
+``examples/rbf/overfit.py``.
 
 
 .. image:: ../../_static/overfit_reg.png
@@ -131,8 +137,8 @@ MSE loss (fit error) would suggest a very small :math:`p` value (i.e.
 interpolation or "zero training loss" in ML terms).
 
 Now we investigate :math:`p` and :math:`r` (see
-``examples/rbf/crossval_map_p_r.py``) by plotting the CV score as function both.
-This is the result for the Gaussian RBF.
+``examples/rbf/crossval_map_p_r.py``) by plotting the CV score as function of
+both. This is the result for the Gaussian RBF.
 
 .. image:: ../../_static/crossval_pr_gauss.png
 

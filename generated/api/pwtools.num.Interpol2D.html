@@ -119,26 +119,27 @@ which is given as an unordered set of points.</p>
 <li><p><strong>yy</strong> (<em>(</em><em>npoints</em><em>, </em><em>1</em><em>)</em>) – Use either <cite>points</cite> + <cite>values</cite> or <cite>xx</cite> + <cite>yy</cite> + <cite>values</cite> or <cite>dd</cite>.</p></li>
 <li><p><strong>dd</strong> (<em>pwtools.mpl.Data2D instance</em>) – </p></li>
 <li><p><strong>what</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>which interpolator to use</p>
-<div class="line-block">
-<div class="line">’rbf_multi’ : RBFN w/ multiquadric rbf, see <code class="xref py py-class docutils literal notranslate"><span class="pre">Rbf</span></code></div>
-<div class="line">’rbf_inv_multi’ : RBFN w/ inverse multiquadric rbf</div>
-<div class="line">’rbf_gauss’ : RBFN w/ gaussian rbf</div>
-<div class="line">’poly’      : <a class="reference internal" href="pwtools.num.PolyFit.html#pwtools.num.PolyFit" title="pwtools.num.PolyFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">PolyFit</span></code></a></div>
-<div class="line">’bispl’     : scipy.interpolate.bispl{rep,ev}</div>
-<div class="line">’ct’        : scipy.interpolate.CloughTocher2DInterpolator</div>
-<div class="line">’linear’    : scipy.interpolate.LinearNDInterpolator</div>
-<div class="line">’nearest’   : scipy.interpolate.NearestNDInterpolator</div>
-</div>
+<ul>
+<li><p>’rbf_multi’ : RBFN w/ multiquadric rbf, see <code class="xref py py-class docutils literal notranslate"><span class="pre">Rbf</span></code></p></li>
+<li><p>’rbf_inv_multi’ : RBFN w/ inverse multiquadric rbf</p></li>
+<li><p>’rbf_gauss’ : RBFN w/ gaussian rbf</p></li>
+<li><p>’poly’      : <a class="reference internal" href="pwtools.num.PolyFit.html#pwtools.num.PolyFit" title="pwtools.num.PolyFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">PolyFit</span></code></a></p></li>
+<li><p>’bispl’     : scipy.interpolate.bispl{rep,ev}</p></li>
+<li><p>’ct’        : scipy.interpolate.CloughTocher2DInterpolator</p></li>
+<li><p>’linear’    : scipy.interpolate.LinearNDInterpolator</p></li>
+<li><p>’nearest’   : scipy.interpolate.NearestNDInterpolator</p></li>
+</ul>
 </p></li>
-<li><p><strong>**initkwds</strong> (<em>keywords passed on to the interpolator's constructor or</em>) – fit() method (RBF case)</p></li>
+<li><p><strong>**initkwds</strong> – keywords passed on to the interpolator’s constructor or
+fit() method (RBF case)</p></li>
 </ul>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
-<p>Despite the name “Interpol2D”, the RBF methods ‘rbf_*’ as well as ‘poly’ are
-actually fits (least squares regression). You can force interpolation with
-the RBF methods using the <code class="docutils literal notranslate"><span class="pre">r=0</span></code> keyword (see
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">pwtools.rbf.Rbf.fit()</span></code>), which will use <code class="docutils literal notranslate"><span class="pre">scipy.linalg.solve</span></code>
+<p>Despite the name “Interpol2D”, the RBF methods ‘rbf_*’ as well as
+‘poly’ are actually regression methods. You can force interpolation
+with the RBF methods using the <code class="docutils literal notranslate"><span class="pre">r=0</span></code> keyword (see
+<a class="reference internal" href="pwtools.rbf.core.Rbf.html#pwtools.rbf.core.Rbf" title="pwtools.rbf.core.Rbf"><code class="xref py py-class docutils literal notranslate"><span class="pre">Rbf</span></code></a>), which will use <code class="docutils literal notranslate"><span class="pre">scipy.linalg.solve</span></code>
 without regularization.</p>
 <p>The methods ‘ct’, ‘linear’ and of course ‘nearest’ can be inaccurate
 (see also <code class="docutils literal notranslate"><span class="pre">test/test_interpol.py</span></code>). Use only for plotting, not for
@@ -146,28 +147,34 @@ data evaluation, i.e. accurate minimas etc.</p>
 <p>Except for ‘bispl’, all interpolators do actually work in ND as well, as
 does <a class="reference internal" href="pwtools.num.Interpol2D.get_min.html#pwtools.num.Interpol2D.get_min" title="pwtools.num.Interpol2D.get_min"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_min()</span></code></a>.</p>
 <p>Possible keywords (examples):</p>
-<div class="line-block">
-<div class="line">rbf :</div>
-<div class="line-block">
-<div class="line">p=’mean’ [,r=None] (default)    # linalg.lstsq</div>
-<div class="line">p=’scipy’, r=1e-8               # linalg.solve w/ regularization</div>
-<div class="line">p=3.5, r=0                      # linalg.solve w/o regularization</div>
-</div>
-<div class="line">ct :</div>
-<div class="line-block">
-<div class="line">tol = 1e-6 (default)</div>
-</div>
-<div class="line">bispl :</div>
-<div class="line-block">
-<div class="line">s = 1e-4</div>
-<div class="line">kx = 3, ky = 3 (default)</div>
-<div class="line">nxest, nyest</div>
-</div>
-<div class="line">poly :</div>
-<div class="line-block">
-<div class="line">deg = 5</div>
-</div>
-</div>
+<ul>
+<li><p>rbf</p>
+<ul class="simple">
+<li><p>p=’mean’, r=0 (default)    # linalg.solve w/o regularization</p></li>
+<li><p>p=3.5, r=0                 # linalg.solve w/o regularization</p></li>
+<li><p>p=’scipy’, r=1e-8          # linalg.solve w/ regularization</p></li>
+</ul>
+</li>
+<li><p>ct</p>
+<ul class="simple">
+<li><p>tol = 1e-6 (default)</p></li>
+</ul>
+</li>
+<li><p>bispl</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>kx = 3, ky = 3 (default)</p></li>
+<li><p>s = 1e-4</p></li>
+<li><p>nxest, nyest</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>poly</p>
+<ul class="simple">
+<li><p>deg = 5</p></li>
+</ul>
+</li>
+</ul>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pwtools</span> <span class="k">import</span> <span class="n">num</span><span class="p">,</span> <span class="n">mpl</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">20</span><span class="p">)</span>
@@ -176,8 +183,10 @@ does <a class="reference internal" href="pwtools.num.Interpol2D.get_min.html#pwt
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Z</span><span class="o">=</span><span class="p">(</span><span class="n">X</span><span class="o">+</span><span class="mi">3</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="p">(</span><span class="n">Y</span><span class="o">+</span><span class="mi">4</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">5</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dd</span><span class="o">=</span><span class="n">mpl</span><span class="o">.</span><span class="n">Data2D</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="o">=</span><span class="n">Y</span><span class="p">,</span><span class="n">Z</span><span class="o">=</span><span class="n">Z</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;what: </span><span class="si">{:15}</span><span class="s2"> target: [5,30] result: </span><span class="si">{}</span><span class="s2">&quot;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;rbf_multi&#39;</span><span class="p">,</span> <span class="s1">&#39;rbf_inv_multi&#39;</span><span class="p">,</span>
-<span class="gp">... </span>               <span class="s1">&#39;rbf_gauss&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;poly&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;deg&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}),</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">[(</span><span class="s1">&#39;rbf_multi&#39;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">r</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">)),</span>
+<span class="gp">... </span>               <span class="p">(</span><span class="s1">&#39;rbf_inv_multi&#39;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">r</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">)),</span>
+<span class="gp">... </span>               <span class="p">(</span><span class="s1">&#39;rbf_gauss&#39;</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">r</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">)),</span>
+<span class="gp">... </span>               <span class="p">(</span><span class="s1">&#39;poly&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;deg&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}),</span>
 <span class="gp">... </span>               <span class="s1">&#39;ct&#39;</span><span class="p">,</span> <span class="s1">&#39;bispl&#39;</span><span class="p">,</span> <span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="s1">&#39;nearest&#39;</span><span class="p">]:</span>
 <span class="gp">... </span>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
 <span class="gp">... </span>        <span class="n">what</span> <span class="o">=</span> <span class="n">method</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>

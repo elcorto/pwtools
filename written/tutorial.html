@@ -297,15 +297,6 @@ Trajectory, which is just a “time series” of Structures. See
 </pre></div>
 </div>
 <img alt="../_images/interpol_2d.png" src="../_images/interpol_2d.png" />
-<p>Example result from a 1D fit of noisy data (<code class="docutils literal notranslate"><span class="pre">examples/rbf/noise.py</span></code>) using
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Rbf</span></code>. Without all plot commands and only one data set:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">N</span> <span class="o">=</span> <span class="c1"># number of points</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">rand</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">rbf</span><span class="o">.</span><span class="n">Rbf</span><span class="p">(</span><span class="n">x</span><span class="p">[:,</span><span class="kc">None</span><span class="p">],</span> <span class="n">y</span><span class="p">)</span>
-</pre></div>
-</div>
-<img alt="../_images/rbf_1d_opt_False.png" src="../_images/rbf_1d_opt_False.png" />
 <p>2D interpolation of samples of a “mexican hat” function <span class="math notranslate nohighlight">\(\sin(r)/r\)</span>
 (<code class="docutils literal notranslate"><span class="pre">examples/rbf/surface.py</span></code>), also using <code class="xref py py-class docutils literal notranslate"><span class="pre">Rbf</span></code>. See
 <a class="reference internal" href="background/rbf.html#rbf"><span class="std std-ref">Radial Basis Function interpolation an regression</span></a> for more. Similar to the <a class="reference internal" href="../generated/api/pwtools.num.PolyFit.html#pwtools.num.PolyFit" title="pwtools.num.PolyFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">PolyFit</span></code></a> example above:</p>
@@ -315,7 +306,7 @@ Trajectory, which is just a “time series” of Structures. See
 <span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">=</span><span class="n">rbf</span><span class="o">.</span><span class="n">Rbf</span><span class="p">(</span><span class="n">dd</span><span class="o">.</span><span class="n">XY</span><span class="p">,</span> <span class="n">dd</span><span class="o">.</span><span class="n">zz</span><span class="p">)</span>
 </pre></div>
 </div>
-<img alt="../_images/rbf_2d_surface_opt_False.png" src="../_images/rbf_2d_surface_opt_False.png" />
+<img alt="../_images/rbf_2d_surface.png" src="../_images/rbf_2d_surface.png" />
 <p>See also</p>
 <p><a class="reference internal" href="../generated/api/pwtools.num.PolyFit.html#pwtools.num.PolyFit" title="pwtools.num.PolyFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">PolyFit</span></code></a>
 <a class="reference internal" href="../generated/api/pwtools.num.PolyFit1D.html#pwtools.num.PolyFit1D" title="pwtools.num.PolyFit1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">PolyFit1D</span></code></a>

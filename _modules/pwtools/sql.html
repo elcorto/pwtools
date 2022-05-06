@@ -642,10 +642,12 @@
 <span class="sd">    fileval_func : callable, optional</span>
 <span class="sd">        Function to transform each entry lst[i] to SQLEntry.fileval</span>
 <span class="sd">        Default is fileval = lst[i].</span>
+
 <span class="sd">        example:</span>
-<span class="sd">            lst[i] = &#39;23&#39;</span>
-<span class="sd">            fileval = &#39;value = 23&#39;</span>
-<span class="sd">            fileval_func = lambda x: &quot;value = %s&quot; %str(x)</span>
+
+<span class="sd">        &gt;&gt;&gt; lst[i] = &#39;23&#39;</span>
+<span class="sd">        &gt;&gt;&gt; fileval = &#39;value = 23&#39;</span>
+<span class="sd">        &gt;&gt;&gt; fileval_func = lambda x: &quot;value = %s&quot; %str(x)</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>

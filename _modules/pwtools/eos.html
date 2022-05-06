@@ -568,15 +568,14 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        see ExternEOS.__init__()</span>
-
-<span class="sd">        natoms : number of atoms in the unit cell, this is (I think) only used</span>
+<span class="sd">        natoms : int</span>
+<span class="sd">            number of atoms in the unit cell, this is (I think) only used</span>
 <span class="sd">            for normalization and can be set to 1 if not needed</span>
 <span class="sd">        name : str</span>
 <span class="sd">            some dummy name for the input file</span>
 <span class="sd">        etype : int</span>
 <span class="sd">            type of EOS to fit (see below)</span>
-<span class="sd">        npoints : integer, optional</span>
+<span class="sd">        npoints : int, optional</span>
 <span class="sd">            number of E-V and P-V points of the fitted curves (`nvplt` in</span>
 <span class="sd">            eos.x)</span>
 
@@ -592,6 +591,10 @@
 <span class="sd">            Planet Int. 109, p1 (1998))</span>
 <span class="sd">         6. Natural strain 4th-order EOS</span>
 <span class="sd">         7. Cubic polynomial in (V-V0)</span>
+
+<span class="sd">        See also</span>
+<span class="sd">        --------</span>
+<span class="sd">        :class:`EosFit`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ExternEOS</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="o">=</span><span class="n">app</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>

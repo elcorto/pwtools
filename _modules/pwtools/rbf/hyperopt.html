@@ -110,20 +110,21 @@
 
 <div class="viewcode-block" id="FitError"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.hyperopt.FitError.html#pwtools.rbf.hyperopt.FitError">[docs]</a><span class="k">class</span> <span class="nc">FitError</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Direct or cross-validation (CV) fit error of :class:`Rbf` for a</span>
-<span class="sd">    parameter set ``[p,r]`` or just ``[p]``.</span>
+<span class="sd">    parameter set ``[p,r]`` or just ``[p]`` for `r` constant.</span>
 
 <span class="sd">    All methods accept a sequence `params` with either only `p` (length 1) or</span>
 <span class="sd">    `p` and `r` (length 2) to build a :class:`Rbf` model and fit it.</span>
 
 <span class="sd">    examples:</span>
 
-<span class="sd">        | r = None (default in :class:`Rbf`) -&gt; linear least squares solver</span>
-<span class="sd">        |     params = [1.5]</span>
-<span class="sd">        |     params = [1.5, None]</span>
-
 <span class="sd">        | r != None -&gt; normal linear solver</span>
 <span class="sd">        |     params = [1.5, 0]       -&gt; no regularization (r=0)</span>
 <span class="sd">        |     params = [1.5, 1e-8]    -&gt; with regularization</span>
+
+<span class="sd">        | r = None -&gt; linear least squares solver (only for testing, not</span>
+<span class="sd">        |             recommended for production)</span>
+<span class="sd">        |     params = [1.5]</span>
+<span class="sd">        |     params = [1.5, None]</span>
 
 <span class="sd">    Use :meth:`err_cv` or :meth:`err_direct` as error metric for `param`. Or</span>
 <span class="sd">    use :meth:`__call__` which will call one or the other, depending on</span>
@@ -234,8 +235,8 @@
         <span class="k">return</span> <span class="n">errs</span></div>
 
 <div class="viewcode-block" id="FitError.err_cv"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.hyperopt.FitError.err_cv.html#pwtools.rbf.hyperopt.FitError.err_cv">[docs]</a>    <span class="k">def</span> <span class="nf">err_cv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Median of :meth:`cv`.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cv</span><span class="p">(</span><span class="n">params</span><span class="p">))</span></div>
+        <span class="sd">&quot;&quot;&quot;Mean of :meth:`cv`.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cv</span><span class="p">(</span><span class="n">params</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="FitError.err_direct"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.hyperopt.FitError.err_direct.html#pwtools.rbf.hyperopt.FitError.err_direct">[docs]</a>    <span class="k">def</span> <span class="nf">err_direct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Normal fit error w/o CV. Uses :meth:`Rbf.fit_error`.</span>
@@ -267,14 +268,18 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    points, values : see :class:`Rbf`</span>
+<span class="sd">    points, values :</span>
+<span class="sd">        see :class:`Rbf`</span>
 <span class="sd">    method : str</span>
-<span class="sd">        | &#39;de&#39; : :func:`scipy.optimize.differential_evolution`</span>
-<span class="sd">        | &#39;fmin&#39;: :func:`scipy.optimize.fmin`</span>
-<span class="sd">        | &#39;brute&#39;: :func:`scipy.optimize.brute`</span>
+<span class="sd">        * &#39;de&#39; : :func:`scipy.optimize.differential_evolution`</span>
+<span class="sd">        * &#39;fmin&#39;: :func:`scipy.optimize.fmin`</span>
+<span class="sd">        * &#39;brute&#39;: :func:`scipy.optimize.brute`</span>
 <span class="sd">    what : str</span>
-<span class="sd">        &#39;p&#39; (optimize only `p` and set `r=None`) or &#39;pr&#39; (optimize `p` and `r`)</span>
-<span class="sd">    cv, cv_kwds, rbf_kwds : see :class:`FitError`</span>
+<span class="sd">        * &#39;p&#39; : optimize only `p`, set fixed `r` in `rbf_kwds` in this case, else</span>
+<span class="sd">          we&#39;ll use :class:`Rbf`&#39;s default)</span>
+<span class="sd">        * &#39;pr&#39; : optimize `p` and `r`</span>
+<span class="sd">    cv, rbf_kwds :</span>
+<span class="sd">        see :class:`FitError`</span>
 <span class="sd">    opt_kwds : dict</span>
 <span class="sd">        kwds for the optimizer (see `method`)</span>
 <span class="sd">    rbf_kwds : dict</span>

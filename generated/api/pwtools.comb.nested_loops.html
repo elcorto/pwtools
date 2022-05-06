@@ -122,15 +122,15 @@ different types/objects, e.g. [[‘a’, ‘b’], [Foo(), Bar(), Baz()],
 <span class="go">[[1, &#39;a&#39;], [1, &#39;b&#39;], [2, &#39;a&#39;], [2, &#39;b&#39;]]</span>
 </pre></div>
 </div>
-<p># If values of different lists should be varied together, use zip(). Note
-# that you get nested lists back. Use flatten=True to get flattened lists.
-&gt;&gt;&gt; comb.nested_loops([(1,2), zip([‘a’,’b’],(np.sin,np.cos))])
-[[1, [‘a’, &lt;ufunc ‘sin’&gt;]],</p>
-<blockquote>
-<div><p>[1, [‘b’, &lt;ufunc ‘cos’&gt;]],
-[2, [‘a’, &lt;ufunc ‘sin’&gt;]],
-[2, [‘b’, &lt;ufunc ‘cos’&gt;]]]</p>
-</div></blockquote>
+<p>If values of different lists should be varied together, use zip(). Note
+that you get nested lists back. Use flatten=True to get flattened lists.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">comb</span><span class="o">.</span><span class="n">nested_loops</span><span class="p">([(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="nb">zip</span><span class="p">([</span><span class="s1">&#39;a&#39;</span><span class="p">,</span><span class="s1">&#39;b&#39;</span><span class="p">],(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">))])</span>
+<span class="go">[[1, [&#39;a&#39;, &lt;ufunc &#39;sin&#39;&gt;]],</span>
+<span class="go"> [1, [&#39;b&#39;, &lt;ufunc &#39;cos&#39;&gt;]],</span>
+<span class="go"> [2, [&#39;a&#39;, &lt;ufunc &#39;sin&#39;&gt;]],</span>
+<span class="go"> [2, [&#39;b&#39;, &lt;ufunc &#39;cos&#39;&gt;]]]</span>
+</pre></div>
+</div>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">comb</span><span class="o">.</span><span class="n">nested_loops</span><span class="p">([(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="nb">zip</span><span class="p">([</span><span class="s1">&#39;a&#39;</span><span class="p">,</span><span class="s1">&#39;b&#39;</span><span class="p">],(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">))],</span> <span class="n">flatten</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="go">[[1, &#39;a&#39;, &lt;ufunc &#39;sin&#39;&gt;],</span>
 <span class="go"> [1, &#39;b&#39;, &lt;ufunc &#39;cos&#39;&gt;],</span>

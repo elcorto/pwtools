@@ -666,9 +666,10 @@
 <span class="sd">    times according to the mask pattern, independently of how the pattern looks</span>
 <span class="sd">    like (e.g. the `direc` parameter in :func:`scell_mask`). So, just as rows</span>
 <span class="sd">    in np.repeat(), we have:</span>
-<span class="sd">        | original:     symbols=[A,B,C,D]</span>
-<span class="sd">        | 2 x 1 x 1:    symbols=[A,A,B,B,C,C,D,D]</span>
-<span class="sd">        | nx x ny x nz: symbols=[(nx*ny*nz) x A, (nx*ny*nz) x B, ...]</span>
+
+<span class="sd">    | original:     symbols=[A,B,C,D]</span>
+<span class="sd">    | 2 x 1 x 1:    symbols=[A,A,B,B,C,C,D,D]</span>
+<span class="sd">    | nx x ny x nz: symbols=[(nx*ny*nz) x A, (nx*ny*nz) x B, ...]</span>
 
 
 <span class="sd">    Returns</span>
@@ -3374,13 +3375,17 @@
 <span class="sd">        Indices of atoms in `obj` with positions `v0,v1,v2`. Length 4 for</span>
 <span class="sd">        obj=Trajectory: ``indices=[time_step, idx0, idx1, idx2]`` and length 3</span>
 <span class="sd">        for obj=Structure: ``[idx0, idx1, idx2]`` with</span>
-<span class="sd">           | ``v0 = obj.coords[time_step, idx0, ...]`` (Trajectory)</span>
-<span class="sd">           | ``v1 = obj.coords[time_step, idx1, ...]``</span>
-<span class="sd">           | ``v2 = obj.coords[time_step, idx2, ...]``</span>
+
+<span class="sd">        | ``v0 = obj.coords[time_step, idx0, ...]`` (Trajectory)</span>
+<span class="sd">        | ``v1 = obj.coords[time_step, idx1, ...]``</span>
+<span class="sd">        | ``v2 = obj.coords[time_step, idx2, ...]``</span>
+
 <span class="sd">        or</span>
-<span class="sd">           | ``v0 = obj.coords[idx0, ...]`` (Structure)</span>
-<span class="sd">           | ``v1 = obj.coords[idx1, ...]``</span>
-<span class="sd">           | ``v2 = obj.coords[idx2, ...]``</span>
+
+<span class="sd">        | ``v0 = obj.coords[idx0, ...]`` (Structure)</span>
+<span class="sd">        | ``v1 = obj.coords[idx1, ...]``</span>
+<span class="sd">        | ``v2 = obj.coords[idx2, ...]``</span>
+
 <span class="sd">    cart : (3,3)</span>
 <span class="sd">        new cartesian coord sys ``[x,y,z]``, matrix must be orthogonal</span>
 <span class="sd">    eps : float</span>

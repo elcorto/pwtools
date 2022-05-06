@@ -112,13 +112,13 @@ list of SQLEntry instances of the same column name <cite>key</cite> and <cite>sq
 <li><p><strong>sqlval_func</strong> (<em>callable</em><em>, </em><em>optional</em>) – Function to transform each entry lst[i] to SQLEntry.sqlval
 Default is sqlval = lst[i].</p></li>
 <li><p><strong>fileval_func</strong> (<em>callable</em><em>, </em><em>optional</em>) – <p>Function to transform each entry lst[i] to SQLEntry.fileval
-Default is fileval = lst[i].
-example:</p>
-<blockquote>
-<div><p>lst[i] = ‘23’
-fileval = ‘value = 23’
-fileval_func = lambda x: “value = %s” %str(x)</p>
-</div></blockquote>
+Default is fileval = lst[i].</p>
+<p>example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;23&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fileval</span> <span class="o">=</span> <span class="s1">&#39;value = 23&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fileval_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s2">&quot;value = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
 </p></li>
 </ul>
 </dd>
