@@ -113,11 +113,10 @@ without regularization. You can do that by setting ``Rbf(..., r=None``). In
 :class:`sklearn.kernel_ridge.KernelRidge` there is an automatic switch to least
 squares when a singular :math:`\mathbf K` is detected. However, we observed
 that in many cases this results in numerical noise in the solution, esp. when
-:math:`\mathbf K` is (near) singular (see also
-``examples/rbf/least_squares_numerical_noise.py``). So while we provide that
-feature for experimentation, we actually recommend not using it in production
-and instead use a KRR setup and properly determine :math:`p` and :math:`r` as
-described below.
+:math:`\mathbf K` is (near) singular. So while we provide that feature for
+experimentation, we actually recommend not using it in production and instead
+use a KRR setup and properly determine :math:`p` and :math:`r` as described
+below.
 
 How to determine :math:`p` and :math:`r`
 ----------------------------------------

@@ -185,11 +185,10 @@ without regularization. You can do that by setting <code class="docutils literal
 <a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.kernel_ridge.KernelRidge.html#sklearn.kernel_ridge.KernelRidge" title="(in scikit-learn v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">sklearn.kernel_ridge.KernelRidge</span></code></a> there is an automatic switch to least
 squares when a singular <span class="math notranslate nohighlight">\(\mathbf K\)</span> is detected. However, we observed
 that in many cases this results in numerical noise in the solution, esp. when
-<span class="math notranslate nohighlight">\(\mathbf K\)</span> is (near) singular (see also
-<code class="docutils literal notranslate"><span class="pre">examples/rbf/least_squares_numerical_noise.py</span></code>). So while we provide that
-feature for experimentation, we actually recommend not using it in production
-and instead use a KRR setup and properly determine <span class="math notranslate nohighlight">\(p\)</span> and <span class="math notranslate nohighlight">\(r\)</span> as
-described below.</p>
+<span class="math notranslate nohighlight">\(\mathbf K\)</span> is (near) singular. So while we provide that feature for
+experimentation, we actually recommend not using it in production and instead
+use a KRR setup and properly determine <span class="math notranslate nohighlight">\(p\)</span> and <span class="math notranslate nohighlight">\(r\)</span> as described
+below.</p>
 </section>
 <section id="how-to-determine-p-and-r">
 <h2>How to determine <span class="math notranslate nohighlight">\(p\)</span> and <span class="math notranslate nohighlight">\(r\)</span><a class="headerlink" href="#how-to-determine-p-and-r" title="Permalink to this headline">¶</a></h2>
