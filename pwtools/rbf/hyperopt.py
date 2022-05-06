@@ -21,20 +21,21 @@ except ImportError:
 
 class FitError:
     """Direct or cross-validation (CV) fit error of :class:`Rbf` for a
-    parameter set ``[p,r]`` or just ``[p]``.
+    parameter set ``[p,r]`` or just ``[p]`` for `r` constant.
 
     All methods accept a sequence `params` with either only `p` (length 1) or
     `p` and `r` (length 2) to build a :class:`Rbf` model and fit it.
 
     examples:
 
-        | r = None (default in :class:`Rbf`) -> linear least squares solver
-        |     params = [1.5]
-        |     params = [1.5, None]
-
         | r != None -> normal linear solver
         |     params = [1.5, 0]       -> no regularization (r=0)
         |     params = [1.5, 1e-8]    -> with regularization
+
+        | r = None -> linear least squares solver (only for testing, not
+        |             recommended for production)
+        |     params = [1.5]
+        |     params = [1.5, None]
 
     Use :meth:`err_cv` or :meth:`err_direct` as error metric for `param`. Or
     use :meth:`__call__` which will call one or the other, depending on

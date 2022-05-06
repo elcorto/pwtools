@@ -5,7 +5,7 @@ Show effect of different settings of the length scale parameter p in RBF
 regression.
 
 We use Rbf in Kernel Ridge Regression mode (r > 0 and fixed, so constant weak
-smoothing) or least squares mode (r=None). In any case we vary only p.
+smoothing). In any case we vary only p.
 
 There is a global minimum p_opt_mse of the loss (MSE cost/merit/loss/objective
 function) at very small p (narrow RBFs can fit all points). It turns out that
@@ -38,7 +38,7 @@ export = True
 if __name__ == "__main__":
     seed = 123
     rnd = np.random.default_rng(seed=seed)
-    cases = [batch.Case(r=None, name="lstsq"), batch.Case(r=1e-11, name="reg")]
+    cases = [batch.Case(r=1e-11, name="reg")]
     plots = mpl.prepare_plots([c.name for c in cases], nrows=2)
 
     x = np.linspace(0, 10, 100)

@@ -151,7 +151,6 @@ import multiprocessing as mp
 import numpy as np
 import scipy.optimize as so
 import matplotlib.pyplot as plt
-from matplotlib import cm
 
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, WhiteKernel
@@ -468,9 +467,10 @@ if __name__ == "__main__":
             zz = np.array(pool.map(func, grid))
         zz -= zz.min()
         zz /= zz.max()
-        zz[zz > zmax] = zmax
+        ##zz[zz > zmax] = zmax
+        zz[zz > zmax] = np.nan
         dd = mpl.Data2D(XY=grid, zz=zz)
-        pl = ax.contourf(dd.X, dd.Y, dd.Z, cmap=cm.jet, levels=50)
+        pl = ax.contourf(dd.X, dd.Y, dd.Z, levels=80)
         fig.colorbar(pl)
         ax.plot(*pr_opt, "o", ms=10, color="white")
         ax.set_xlabel(r"$p$")

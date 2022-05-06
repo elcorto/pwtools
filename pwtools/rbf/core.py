@@ -47,7 +47,7 @@ def rbf_gauss(rsq, p):
     p : float
         width
     """
-    return np.exp(-0.5 * rsq / p ** 2.0)
+    return np.exp(-0.5 * rsq / p**2.0)
 
 
 def rbf_multi(rsq, p):
@@ -60,7 +60,7 @@ def rbf_multi(rsq, p):
     p : float
         width
     """
-    return np.sqrt(rsq + p ** 2.0)
+    return np.sqrt(rsq + p**2.0)
 
 
 def rbf_inv_multi(rsq, p):
@@ -185,7 +185,7 @@ class Rbf:
     >>> fig,ax = mpl.fig_ax()
     >>> x=linspace(0,10,20)     # shape (M,), M=20 points
     >>> z=sin(x)                # shape (M,)
-    >>> rbfi=rbf.Rbf(x[:,None],z)
+    >>> rbfi=rbf.Rbf(x[:,None], z, r=1e-10)
     >>> xi=linspace(0,10,100)   # shape (M,), M=100 points
     >>> ax.plot(x,z,'o', label='data')
     >>> ax.plot(xi, sin(xi), label='sin(x)')
@@ -197,7 +197,7 @@ class Rbf:
     >>> x = np.linspace(-3,3,10)
     >>> dd = mpl.Data2D(x=x, y=x)
     >>> dd.update(Z=np.sin(dd.X)+np.cos(dd.Y))
-    >>> rbfi=rbf.Rbf(dd.XY, dd.zz)
+    >>> rbfi=rbf.Rbf(dd.XY, dd.zz, r=1e-10)
     >>> xi=linspace(-3,3,50)
     >>> ddi = mpl.Data2D(x=xi, y=xi)
     >>> fig1,ax1 = mpl.fig_ax3d()
@@ -220,9 +220,7 @@ class Rbf:
     >>> ax2.legend()
     """
 
-    def __init__(
-        self, points, values, rbf="inv_multi", r=None, p="mean", fit=True
-    ):
+    def __init__(self, points, values, rbf="gauss", r=0, p="mean", fit=True):
         r"""
         Parameters
         ----------

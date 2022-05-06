@@ -60,7 +60,7 @@ triangle shape, which may not be optimal for fitting continuous functions.
 import itertools
 import multiprocessing
 
-from matplotlib import cm, colors
+from matplotlib import colors
 import numpy as np
 
 from pwtools import rbf, mpl
@@ -75,18 +75,18 @@ export = False
 
 
 if export:
-    plt.rcParams['font.size'] = 10
+    plt.rcParams["font.size"] = 10
 
 
 def get_cv_kwds(seed):
-    return dict(n_splits=5,
-                n_repeats=1,
-                random_state=np.random.RandomState(seed=seed))
+    return dict(
+        n_splits=5, n_repeats=1, random_state=np.random.RandomState(seed=seed)
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # cut off errors bigger than zmax
-    zmax = 0.2
+    zmax = 0.3
 
     # random seed
     seed = 1234
@@ -112,7 +112,7 @@ if __name__ == '__main__':
     # converge for more points. Still, 100 already gives quite OK error maps
     # which show the essential features. See crossval_convergence.py .
     if export:
-        nsample = 80
+        nsample = 100
         # converged CV:
         #   gauss: npoints >= 200
         #   multi, inv_multi: npoints >= 400
@@ -121,74 +121,100 @@ if __name__ == '__main__':
         nsample = 20
         npoints = 80
 
-
-    rbf_names = ['gauss', 'multi', 'inv_multi']
-##    rbf_names = ['gauss']
-    plots = mpl.prepare_plots(rbf_names + ['fit'])
+    rbf_names = ["gauss", "multi", "inv_multi"]
+    ##rbf_names = ['gauss']
+    plots = mpl.prepare_plots(rbf_names + ["fit"])
     x = np.linspace(0, 10, npoints)
     y = np.sin(x) + rnd.rand(len(x))
-    plots['fit'].ax.plot(x, y, 'o', label='data', color=next(color_cycler))
+    plots["fit"].ax.plot(x, y, "o", label="data", color=next(color_cycler))
     p = np.linspace(0.01, 15, nsample)
     r = np.logspace(-12, 1, nsample)
-    grid = np.array(list(itertools.product(p,r)))
+    grid = np.array(list(itertools.product(p, r)))
     for name in rbf_names:
+        rbf_kwds = dict(rbf=name)
         print(name)
-        fig,ax = plots[name].fig, plots[name].ax
+        fig, ax = plots[name].fig, plots[name].ax
         ax.set_title(name)
-        fe = FitError(x[:,None], y,
-                          cv_kwds=get_cv_kwds(seed),
-                          rbf_kwds=dict(rbf=name))
+        fe = FitError(
+            x[:, None], y, cv_kwds=get_cv_kwds(seed), rbf_kwds=dict(rbf=name)
+        )
         print("p-r map ...")
         with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
             zz = np.array(pool.map(fe, grid))
-        zz[zz > zmax] = zmax
-        ##zz[zz > zmax] = np.nan
-        dd = mpl.Data2D(xx=grid[:,0], yy=np.log10(grid[:,1]), zz=zz)
-        pl = ax.contourf(dd.X, dd.Y, dd.Z, cmap=cm.jet, levels=80)
+        ##zz[zz > zmax] = zmax
+        zz[zz > zmax] = np.nan
+        dd = mpl.Data2D(xx=grid[:, 0], yy=np.log10(grid[:, 1]), zz=zz)
+        pl = ax.contourf(dd.X, dd.Y, dd.Z, levels=80)
         fig.colorbar(pl)
-        ax.set_xlabel(r'$p$')
-        ax.set_ylabel(r'$\log_{10}(r)$')
+        ax.set_xlabel(r"$p$")
+        ax.set_ylabel(r"$\log_{10}(r)$")
 
         if export:
-            for ext in ['png']:
+            for ext in ["png"]:
                 fig.tight_layout()
-                fig.savefig(f'/tmp/crossval_pr_{name}.{ext}')
+                fig.savefig(f"/tmp/crossval_pr_{name}.{ext}")
 
         print("global opts ...")
-        f_de = \
-            fit_opt(x[:,None], y, method='de', what='pr',
-                        opt_kwds=dict(disp=True,
-                                      maxiter=30,
-                                      popsize=50,
-                                      bounds=[(p.min(),p.max()),(r.min(),r.max())],
-                                      polish=False,
-                                      updating='deferred',  # if workers=-1
-                                      workers=-1,
-                                      seed=seed),
-                        rbf_kwds=dict(rbf=name),
-                        cv_kwds=get_cv_kwds(seed))
-        f_brute = \
-            fit_opt(x[:,None], y, method='brute', what='pr',
-                        opt_kwds=dict(disp=True,
-                                      ranges=[(p.min(),p.max()),(r.min(),r.max())],
-                                      finish=None,
-                                      Ns=30,
-                                      workers=-1),
-                        rbf_kwds=dict(rbf=name),
-                        cv_kwds=get_cv_kwds(seed))
+        f_de = fit_opt(
+            x[:, None],
+            y,
+            method="de",
+            what="pr",
+            opt_kwds=dict(
+                disp=True,
+                maxiter=30,
+                popsize=50,
+                bounds=[(p.min(), p.max()), (r.min(), r.max())],
+                polish=False,
+                updating="deferred",  # if workers=-1
+                workers=-1,
+                seed=seed,
+            ),
+            rbf_kwds=rbf_kwds,
+            cv_kwds=get_cv_kwds(seed),
+        )
+        f_brute = fit_opt(
+            x[:, None],
+            y,
+            method="brute",
+            what="pr",
+            opt_kwds=dict(
+                disp=True,
+                ranges=[(p.min(), p.max()), (r.min(), r.max())],
+                finish=None,
+                Ns=30,
+                workers=-1,
+            ),
+            rbf_kwds=rbf_kwds,
+            cv_kwds=get_cv_kwds(seed),
+        )
 
         color = next(color_cycler)
-        for opt_name, f_opt, ls in [('de', f_de, '-'), ('brute', f_brute, '--')]:
+        for opt_name, f_opt, ls in [
+            ("brute", f_brute, "--"),
+            ("de", f_de, "-"),
+        ]:
             popt = f_opt.get_params()
             print(f"  {opt_name}: popt={popt}")
-            ax.text(popt[0], np.log10(popt[1]), opt_name, va='center', ha='center',
-                    bbox=dict(fc='w', ec='k'))
+            ax.text(
+                popt[0],
+                np.log10(popt[1]),
+                opt_name,
+                va="center",
+                ha="center",
+                bbox=dict(fc="w", ec="k"),
+            )
 
-            xx = np.linspace(x[0], x[-1], 5*len(x))
-            plots['fit'].ax.plot(xx, f_opt(xx[:,None]), color=color, ls=ls,
-                                 label=f"{name}-{opt_name}")
+            xx = np.linspace(x[0], x[-1], 5 * len(x))
+            plots["fit"].ax.plot(
+                xx,
+                f_opt(xx[:, None]),
+                color=color,
+                ls=ls,
+                label=f"{name}-{opt_name}",
+            )
 
-    plots['fit'].legend()
+    plots["fit"].legend()
 
     for pl in plots.values():
         pl.fig.tight_layout()
