@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.sql.SQLiteDB.attach_column &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -86,7 +87,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -96,7 +97,7 @@
           <div class="body" role="main">
             
   <section id="pwtools-sql-sqlitedb-attach-column">
-<h1>pwtools.sql.SQLiteDB.attach_column<a class="headerlink" href="#pwtools-sql-sqlitedb-attach-column" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.sql.SQLiteDB.attach_column<a class="headerlink" href="#pwtools-sql-sqlitedb-attach-column" title="Permalink to this heading">¶</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="pwtools.sql.SQLiteDB.attach_column">
 <span class="sig-prename descclassname"><span class="pre">SQLiteDB.</span></span><span class="sig-name descname"><span class="pre">attach_column</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sqltype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/sql.html#SQLiteDB.attach_column"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.sql.SQLiteDB.attach_column" title="Permalink to this definition">¶</a></dt>
@@ -106,7 +107,7 @@ i.e. behave like <a class="reference internal" href="pwtools.sql.SQLiteDB.fill_c
 <p>This is a short-cut method which essentially does
 <code class="docutils literal notranslate"><span class="pre">add_column(...);</span> <span class="pre">fill_column(...)</span></code></p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>col</strong> (<em>str</em>) – Column name.</p></li>
 <li><p><strong>values</strong> (<em>sequence</em>) – Values to be inserted.</p></li>
@@ -132,7 +133,7 @@ default: <cite>start=1, extend=True, overwrite=False</cite></p></li>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>mttk &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -82,7 +83,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -92,9 +93,9 @@
           <div class="body" role="main">
             
   <section id="mttk">
-<h1>mttk<a class="headerlink" href="#mttk" title="Permalink to this headline">¶</a></h1>
+<h1>mttk<a class="headerlink" href="#mttk" title="Permalink to this heading">¶</a></h1>
 <span class="target" id="module-pwtools.mttk"></span><p>Fictitious masses for Nose-Hoover thermostat chains (NHCs) and barostat from
-the MTTK paper <a class="footnote-reference brackets" href="#id2" id="id1">1</a>.</p>
+the MTTK paper <a class="footnote-reference brackets" href="#id2" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
 <p>Atomic units: All fictitious masses have dimension [mass * length**2] = [kg *
 m**2] and are converted to Hartree atomic units: mass[kg] / m0 (electron
 mass), length[m] / a0 (Bohr). We are not totally sure, but we belief that
@@ -103,18 +104,13 @@ really documented anywhere, but we rely of the documentation for “noseinert”
 (ionmov 8), which states that “… the inertia factor WT of the Nose-Hoover
 thermostat (when ionmov=8), in atomic units of weight*length^2, that is
 (electron mass)*(Bohr)^2”.</p>
-<dl class="footnote brackets">
-<dt class="label" id="id2"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
-<dd><p>Glenn J. Martyna and Mark E. Tuckerman and Douglas J. Tobias and Michael
+<aside class="footnote brackets" id="id2" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Glenn J. Martyna and Mark E. Tuckerman and Douglas J. Tobias and Michael
 L. Klein, “Explicit reversible integrators for extended systems
 dynamics”, Mol. Phys. 87(5), pp. 1117, 1996</p>
-</dd>
-</dl>
+</aside>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pwtools.mttk.a0.html#pwtools.mttk.a0" title="pwtools.mttk.a0"><code class="xref py py-obj docutils literal notranslate"><span class="pre">a0</span></code></a></p></td>
 <td><p>Convert a string or number to a floating point number, if possible.</p></td>
@@ -155,7 +151,7 @@ dynamics”, Mol. Phys. 87(5), pp. 1117, 1996</p>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

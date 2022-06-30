@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.crys.grid_in_cell &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -84,7 +85,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,7 +95,7 @@
           <div class="body" role="main">
             
   <section id="pwtools-crys-grid-in-cell">
-<h1>pwtools.crys.grid_in_cell<a class="headerlink" href="#pwtools-crys-grid-in-cell" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.crys.grid_in_cell<a class="headerlink" href="#pwtools-crys-grid-in-cell" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pwtools.crys.grid_in_cell">
 <span class="sig-prename descclassname"><span class="pre">pwtools.crys.</span></span><span class="sig-name descname"><span class="pre">grid_in_cell</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minpoints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">even</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fullout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/crys.html#grid_in_cell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.crys.grid_in_cell" title="Permalink to this definition">¶</a></dt>
@@ -102,7 +103,7 @@
 versa.</p>
 <p>Usually used to calculate k-grids for reciprocal cells. See also <cite>kgrid()</cite>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>cell</strong> (<em>array</em><em> (</em><em>3</em><em>,</em><em>3</em><em>)</em>) – Cell with vectors as rows.</p></li>
 <li><p><strong>h</strong> (<em>float</em>) – 1d target grid spacing along a cell axis. Unit is that of the cell
@@ -117,7 +118,7 @@ creating a grid more dense than requested by <cite>h</cite>.</p></li>
 <li><p><strong>fullout</strong> (<em>bool</em>) – See below.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>size</strong> (if <cite>h != None</cite> + <cite>fullout=False</cite>)</p></li>
 <li><p><strong>size, spacing</strong> (if <cite>h != None</cite> + <cite>fullout=True</cite>)</p></li>
@@ -159,7 +160,7 @@ will mostly be slightly bigger/smaller then <cite>h</cite> (see <cite>fullout</c
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

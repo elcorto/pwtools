@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.batch.ParameterStudy.write_input &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -86,7 +87,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -96,7 +97,7 @@
           <div class="body" role="main">
             
   <section id="pwtools-batch-parameterstudy-write-input">
-<h1>pwtools.batch.ParameterStudy.write_input<a class="headerlink" href="#pwtools-batch-parameterstudy-write-input" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.batch.ParameterStudy.write_input<a class="headerlink" href="#pwtools-batch-parameterstudy-write-input" title="Permalink to this heading">¶</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="pwtools.batch.ParameterStudy.write_input">
 <span class="sig-prename descclassname"><span class="pre">ParameterStudy.</span></span><span class="sig-name descname"><span class="pre">write_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'a'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backup</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sleep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">excl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/batch.html#ParameterStudy.write_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.batch.ParameterStudy.write_input" title="Permalink to this definition">¶</a></dt>
@@ -105,7 +106,7 @@ based on <code class="docutils literal notranslate"><span class="pre">templates<
 parameters. Write (bash) shell script to start all calculations (run
 locally or submitt batch job file, depending on <code class="docutils literal notranslate"><span class="pre">machine.subcmd</span></code>).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>mode</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Fine tune how to write input files (based on <code class="docutils literal notranslate"><span class="pre">templates</span></code>) to calc
 dirs calc_foo/0/, calc_foo/1/, … . Note that this doesn’t change
@@ -156,7 +157,7 @@ calculations to a cluster.</p></li>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

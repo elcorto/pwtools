@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>constants &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -82,7 +83,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -92,9 +93,9 @@
           <div class="body" role="main">
             
   <section id="constants">
-<h1>constants<a class="headerlink" href="#constants" title="Permalink to this headline">¶</a></h1>
+<h1>constants<a class="headerlink" href="#constants" title="Permalink to this heading">¶</a></h1>
 <span class="target" id="module-pwtools.constants"></span><section id="atomic-units-and-constants">
-<h2>Atomic units and constants<a class="headerlink" href="#atomic-units-and-constants" title="Permalink to this headline">¶</a></h2>
+<h2>Atomic units and constants<a class="headerlink" href="#atomic-units-and-constants" title="Permalink to this heading">¶</a></h2>
 <dl class="simple">
 <dt>All constants taken from CODATA:</dt><dd><p><a class="reference external" href="http://physics.nist.gov/cuu/Constants/index.html">http://physics.nist.gov/cuu/Constants/index.html</a></p>
 </dd>
@@ -120,7 +121,7 @@
 </pre></div>
 </div>
 <section id="hartree-units">
-<h3>Hartree units<a class="headerlink" href="#hartree-units" title="Permalink to this headline">¶</a></h3>
+<h3>Hartree units<a class="headerlink" href="#hartree-units" title="Permalink to this heading">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">hbar</span> <span class="o">=</span> <span class="n">m0</span> <span class="o">=</span> <span class="n">e0</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="mi">4</span><span class="o">*</span><span class="n">pi</span><span class="o">*</span><span class="n">eps0</span> <span class="o">=</span> <span class="mi">1</span>
 </pre></div>
@@ -143,7 +144,7 @@
 </div>
 </section>
 <section id="rydberg-units">
-<h3>Rydberg units<a class="headerlink" href="#rydberg-units" title="Permalink to this headline">¶</a></h3>
+<h3>Rydberg units<a class="headerlink" href="#rydberg-units" title="Permalink to this heading">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">hbar</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">m0</span> <span class="o">=</span> <span class="n">e0</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="mi">2</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="mi">4</span><span class="o">*</span><span class="n">pi</span><span class="o">*</span><span class="n">eps0</span> <span class="o">=</span> <span class="mi">1</span>
 </pre></div>
@@ -177,11 +178,11 @@
 </div>
 </section>
 <section id="atomic-mass-unit">
-<h3>Atomic mass unit<a class="headerlink" href="#atomic-mass-unit" title="Permalink to this headline">¶</a></h3>
+<h3>Atomic mass unit<a class="headerlink" href="#atomic-mass-unit" title="Permalink to this heading">¶</a></h3>
 <p>amu = 1/12 * mass of C-12 isotope, mass in periodic table * amu = mass [kg]</p>
 </section>
 <section id="useful-conversions">
-<h3>Useful conversions<a class="headerlink" href="#useful-conversions" title="Permalink to this headline">¶</a></h3>
+<h3>Useful conversions<a class="headerlink" href="#useful-conversions" title="Permalink to this heading">¶</a></h3>
 <p>pressure:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dyn</span> <span class="o">/</span> <span class="n">cm</span><span class="o">**</span><span class="mi">2</span> <span class="o">=</span> <span class="mf">0.1</span> <span class="n">Pa</span>
 <span class="mi">1</span> <span class="n">Mbar</span>      <span class="o">=</span> <span class="mi">100</span> <span class="n">GPa</span>
@@ -195,10 +196,6 @@
 </section>
 </section>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pwtools.constants.Ang.html#pwtools.constants.Ang" title="pwtools.constants.Ang"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Ang</span></code></a></p></td>
 <td><p>Convert a string or number to a floating point number, if possible.</p></td>
@@ -350,7 +347,7 @@
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

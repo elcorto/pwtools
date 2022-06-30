@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Pwscf &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -93,7 +94,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -103,9 +104,9 @@
           <div class="body" role="main">
             
   <section id="pwscf">
-<h1>Pwscf<a class="headerlink" href="#pwscf" title="Permalink to this headline">¶</a></h1>
+<h1>Pwscf<a class="headerlink" href="#pwscf" title="Permalink to this heading">¶</a></h1>
 <section id="units">
-<h2>Units<a class="headerlink" href="#units" title="Permalink to this headline">¶</a></h2>
+<h2>Units<a class="headerlink" href="#units" title="Permalink to this heading">¶</a></h2>
 <p>From <a class="reference external" href="http://www.quantum-espresso.org/input-syntax/INPUT_PW.html">http://www.quantum-espresso.org/input-syntax/INPUT_PW.html</a>:
 “All quantities whose dimensions are not explicitly specified are in
 RYDBERG ATOMIC UNITS”. See also <code class="docutils literal notranslate"><span class="pre">constants.py</span></code>.</p>
@@ -118,7 +119,7 @@ frequency as in “hbar*omega”, then use f*2*pi!</p>
 </dl>
 </section>
 <section id="atomic-coordinates">
-<h2>Atomic coordinates<a class="headerlink" href="#atomic-coordinates" title="Permalink to this headline">¶</a></h2>
+<h2>Atomic coordinates<a class="headerlink" href="#atomic-coordinates" title="Permalink to this heading">¶</a></h2>
 <p>In PWscf terms, alat = celldm(1) = lattice constant “a” in a.u. . A length in
 a.u. means a unit or Bohr = a0 = 0.52917720859 Angstrom.</p>
 <p>To calculate the PDOS, atomic coordinates from MD trajectories have to be in
@@ -165,7 +166,7 @@ files).</p>
 </div>
 </section>
 <section id="total-force-on-atoms">
-<h2>Total force on atoms<a class="headerlink" href="#total-force-on-atoms" title="Permalink to this headline">¶</a></h2>
+<h2>Total force on atoms<a class="headerlink" href="#total-force-on-atoms" title="Permalink to this heading">¶</a></h2>
 <p>Pwscf writes a “Total Force” after the “Forces acting on atoms” section . This
 value is kind of an RMS of the force matrix (f_ij, i=1,natoms j=1,2,3) printed.
 According to …/PW/forces.f90, variable “sumfor”, the “Total Force” is:</p>
@@ -192,7 +193,7 @@ crys.rms3d() for MD runs where the RMS of each (f_ij) is:</p>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

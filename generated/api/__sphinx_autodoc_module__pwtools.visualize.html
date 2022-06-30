@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>visualize &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -82,7 +83,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -92,9 +93,9 @@
           <div class="body" role="main">
             
   <section id="visualize">
-<h1>visualize<a class="headerlink" href="#visualize" title="Permalink to this headline">¶</a></h1>
+<h1>visualize<a class="headerlink" href="#visualize" title="Permalink to this heading">¶</a></h1>
 <span class="target" id="module-pwtools.visualize"></span><section id="interfaces-for-molecular-viewers">
-<h2>Interfaces for molecular viewers<a class="headerlink" href="#interfaces-for-molecular-viewers" title="Permalink to this headline">¶</a></h2>
+<h2>Interfaces for molecular viewers<a class="headerlink" href="#interfaces-for-molecular-viewers" title="Permalink to this heading">¶</a></h2>
 <p>The viewers defined here are meant to be used for quick interactive structure
 and trajectory display. All viewer functions are actually callable instances of
 <a class="reference internal" href="pwtools.visualize.ViewFactory.html#pwtools.visualize.ViewFactory" title="pwtools.visualize.ViewFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">ViewFactory</span></code></a>, and thus have the same call signature:</p>
@@ -107,7 +108,7 @@ and trajectory display. All viewer functions are actually callable instances of
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>obj</strong> (<a class="reference internal" href="pwtools.crys.Structure.html#pwtools.crys.Structure" title="pwtools.crys.Structure"><em>Structure</em></a><em> or </em><a class="reference internal" href="pwtools.crys.Trajectory.html#pwtools.crys.Trajectory" title="pwtools.crys.Trajectory"><em>Trajectory</em></a>) – </p></li>
 <li><p><strong>logfile</strong> (<em>str</em><em>, </em><em>optional</em>) – Filename of a logfile for the viewer’s text output.</p></li>
@@ -126,7 +127,7 @@ viewer program may complain.</p></li>
 </dd></dl>
 
 <section id="vmd">
-<h3>VMD<a class="headerlink" href="#vmd" title="Permalink to this headline">¶</a></h3>
+<h3>VMD<a class="headerlink" href="#vmd" title="Permalink to this heading">¶</a></h3>
 <p>Use <a class="reference internal" href="pwtools.visualize.view_vmd_xyz.html#pwtools.visualize.view_vmd_xyz" title="pwtools.visualize.view_vmd_xyz"><code class="xref py py-func docutils literal notranslate"><span class="pre">view_vmd_xyz()</span></code></a> or <a class="reference internal" href="pwtools.visualize.view_vmd_axsf.html#pwtools.visualize.view_vmd_axsf" title="pwtools.visualize.view_vmd_axsf"><code class="xref py py-func docutils literal notranslate"><span class="pre">view_vmd_axsf()</span></code></a>. To execute a tcl script
 after the struct has loaded (in the shell: <code class="docutils literal notranslate"><span class="pre">vmd</span> <span class="pre">-e</span> <span class="pre">script.tcl</span> <span class="pre">foo.xyz</span></code>), use:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tr</span> <span class="o">=</span> <span class="n">crys</span><span class="o">.</span><span class="n">Trajectory</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
@@ -151,10 +152,6 @@ command. Or you place these lines in a script and use:</p>
 </section>
 </section>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pwtools.visualize.ViewFactory.html#pwtools.visualize.ViewFactory" title="pwtools.visualize.ViewFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ViewFactory</span></code></a>([cmd, assert_cmd, suffix, writer])</p></td>
 <td><p>Factory for creating interface functions to external molecular viewers.</p></td>
@@ -195,7 +192,7 @@ command. Or you place these lines in a script and use:</p>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

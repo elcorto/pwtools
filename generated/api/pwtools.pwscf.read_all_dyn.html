@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.pwscf.read_all_dyn &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -84,7 +85,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,7 +95,7 @@
           <div class="body" role="main">
             
   <section id="pwtools-pwscf-read-all-dyn">
-<h1>pwtools.pwscf.read_all_dyn<a class="headerlink" href="#pwtools-pwscf-read-all-dyn" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.pwscf.read_all_dyn<a class="headerlink" href="#pwtools-pwscf-read-all-dyn" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pwtools.pwscf.read_all_dyn">
 <span class="sig-prename descclassname"><span class="pre">pwtools.pwscf.</span></span><span class="sig-name descname"><span class="pre">read_all_dyn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nqpoints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">natoms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ph.dyn'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/pwscf.html#read_all_dyn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.pwscf.read_all_dyn" title="Permalink to this definition">¶</a></dt>
@@ -102,7 +103,7 @@
 <code class="docutils literal notranslate"><span class="pre">matdyn.modes</span></code> which contains freqs,vecs for all qpoints, we read all
 dynamical matrix files in <cite>path</cite>, one per qpoint.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> (<em>str</em>) – Path where dyn files live.</p></li>
 <li><p><strong>nqpoints</strong> (<em>int</em>) – number of dyn files (e.g. 5 for “ph.dyn1”, …, “ph.dyn5” if
@@ -111,10 +112,10 @@ dynamical matrix files in <cite>path</cite>, one per qpoint.</p>
 <li><p><strong>base</strong> (<em>str</em>) – Basename of the dyn files.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Same as <a class="reference internal" href="pwtools.pwscf.read_matdyn_modes.html#pwtools.pwscf.read_matdyn_modes" title="pwtools.pwscf.read_matdyn_modes"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_matdyn_modes()</span></code></a></p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>(qpoint,freqs,vecs)</p>
 </dd>
 </dl>
@@ -133,7 +134,7 @@ dynamical matrix files in <cite>path</cite>, one per qpoint.</p>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

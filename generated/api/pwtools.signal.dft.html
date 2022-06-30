@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.signal.dft &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -84,7 +85,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,19 +95,19 @@
           <div class="body" role="main">
             
   <section id="pwtools-signal-dft">
-<h1>pwtools.signal.dft<a class="headerlink" href="#pwtools-signal-dft" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.signal.dft<a class="headerlink" href="#pwtools-signal-dft" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pwtools.signal.dft">
 <span class="sig-prename descclassname"><span class="pre">pwtools.signal.</span></span><span class="sig-name descname"><span class="pre">dft</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'loop'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/signal.html#dft"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.signal.dft" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simple straightforward complex DFT algo.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>a</strong> (<em>numpy 1d array</em>) – </p></li>
 <li><p><strong>method</strong> (<em>string</em><em>, </em><em>{'matmul'</em><em>, </em><em>'loop'}</em>) – </p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>(len(a),) array</p>
 </dd>
 </dl>
@@ -132,28 +133,30 @@
 <p>N = len(a)
 sqrt(complex(-1)) = np.sqrt(-1 + 0*j) = 1j</p>
 <dl class="simple">
-<dt>Forward DFT, see <a class="footnote-reference brackets" href="#id6" id="id1">2</a> and <a class="footnote-reference brackets" href="#id7" id="id2">3</a> , scipy.fftpack.fft():</dt><dd><p>y[k] = sum(n=0…N-1) a[n] * exp(-2*pi*n*k*j/N)
+<dt>Forward DFT, see <a class="footnote-reference brackets" href="#id6" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a> and <a class="footnote-reference brackets" href="#id7" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a> , scipy.fftpack.fft():</dt><dd><p>y[k] = sum(n=0…N-1) a[n] * exp(-2*pi*n*k*j/N)
 k = 0 … N-1</p>
 </dd>
-<dt>Backward DFT, see <a class="footnote-reference brackets" href="#id5" id="id3">1</a> eq. 12.1.6, 12.2.2:</dt><dd><p>y[k] = sum(n=0…N-1) a[n] * exp(2*pi*n*k*j/N)
+<dt>Backward DFT, see <a class="footnote-reference brackets" href="#id5" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> eq. 12.1.6, 12.2.2:</dt><dd><p>y[k] = sum(n=0…N-1) a[n] * exp(2*pi*n*k*j/N)
 k = 0 … N-1</p>
 </dd>
 </dl>
-<p>The algo for method==’matmul’ is the matrix mult from <a class="footnote-reference brackets" href="#id5" id="id4">1</a>, but as Forward
+<p>The algo for method==’matmul’ is the matrix mult from <a class="footnote-reference brackets" href="#id5" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>, but as Forward
 DFT for comparison with scipy. The difference between FW and BW DFT is that
 the imaginary parts are mirrored at y=0.</p>
 <p class="rubric">References</p>
-<dl class="footnote brackets">
-<dt class="label" id="id5"><span class="brackets">1</span><span class="fn-backref">(<a href="#id3">1</a>,<a href="#id4">2</a>)</span></dt>
-<dd><p>Numerical Recipes in Fortran, Second Edition, 1992</p>
-</dd>
-<dt class="label" id="id6"><span class="brackets"><a class="fn-backref" href="#id1">2</a></span></dt>
-<dd><p><a class="reference external" href="http://www.fftw.org/doc/The-1d-Real_002ddata-DFT.html">http://www.fftw.org/doc/The-1d-Real_002ddata-DFT.html</a></p>
-</dd>
-<dt class="label" id="id7"><span class="brackets"><a class="fn-backref" href="#id2">3</a></span></dt>
-<dd><p><a class="reference external" href="http://mathworld.wolfram.com/FourierTransform.html">http://mathworld.wolfram.com/FourierTransform.html</a></p>
-</dd>
-</dl>
+<aside class="footnote brackets" id="id5" role="note">
+<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id3">1</a>,<a role="doc-backlink" href="#id4">2</a>)</span>
+<p>Numerical Recipes in Fortran, Second Edition, 1992</p>
+</aside>
+<aside class="footnote brackets" id="id6" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">2</a><span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="http://www.fftw.org/doc/The-1d-Real_002ddata-DFT.html">http://www.fftw.org/doc/The-1d-Real_002ddata-DFT.html</a></p>
+</aside>
+<aside class="footnote brackets" id="id7" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">3</a><span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="http://mathworld.wolfram.com/FourierTransform.html">http://mathworld.wolfram.com/FourierTransform.html</a></p>
+</aside>
 </dd></dl>
 
 </section>
@@ -169,7 +172,7 @@ the imaginary parts are mirrored at y=0.</p>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

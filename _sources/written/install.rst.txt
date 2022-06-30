@@ -6,60 +6,85 @@ Quick start
 
 Debian and derivatives: Fortran compiler, Python headers, lapack
 
-::
+.. code-block:: sh
 
     $ sudo apt install python3-dev gfortran liblapack-dev
 
 Then
 
-::
 
-    $ <<probably make a venv>>
+.. code-block:: sh
+
+    # <<probably make a venv>>
     $ pip install git+https://github.com/elcorto/pwtools
+
+or
+
+.. code-block:: sh
+
+    $ git clone https://github.com/elcorto/pwtools
+    $ cd pwtools
+    $ pip install [-e] .
 
 
 Detailed instructions
 ---------------------
 
 To build the extension modules and install all Python dependencies via
-``pip``::
+``pip``
 
-    $ git clone ...
+.. code-block:: sh
+
+    $ git clone https://github.com/elcorto/pwtools
     $ pip install .
 
-or the setuptools "development install" (no copy of files)::
+or the setuptools "development install" (no copy of files)
+
+.. code-block:: sh
 
     $ pip install -e .
 
-In both cases we build the extension modules via::
+In both cases we build the extension modules via
 
-    $ cd src && make clean && make && cd ..
+.. code-block:: sh
 
-in the background.
+    $ cd src && make clean && make $PWTOOLS_EXT_MAKE_TARGET && cd ..
+
+in the background, where ``$PWTOOLS_EXT_MAKE_TARGET`` is optional (more details
+in the :ref:`extensions` section).
 
 If all dependencies are installed, e.g. by a package manager such as ``apt``,
 then recent ``pip`` versions should pick those up. Alternatively force ``pip``
-to install only the package without installing dependencies from pypi::
+to install only the package without installing dependencies from pypi
+
+.. code-block:: sh
 
     $ pip install --no-deps .
 
 When using a virtual environment, you can map in the system site-packages (here
-we use virtualenvwrapper_)::
+we use virtualenvwrapper_)
+
+.. code-block:: sh
 
     $ mkvirtualenv --system-site-packages -p /usr/bin/python3 pwtools
     (pwtools) $ pip install .
 
-Alternatively, you may also simply build the extensions and set ``PYTHONPATH``::
+Alternatively, you may also simply build the extensions and set ``PYTHONPATH``
+
+.. code-block:: sh
 
     $ cd src && make clean && make && cd ..
     $ [ -n "$PYTHONPATH" ] && pp=$(pwd):$PYTHONPATH || pp=$(pwd)
     $ export PYTHONPATH=$pp
 
+
 Dependencies
 ------------
 
 Python dependencies: see ``requirements*.txt``. You can use
-``test/check_dependencies.py`` to find out what your system has installed::
+``test/check_dependencies.py`` to find out what your system has installed
+
+.. code-block:: sh
 
     $ ./check_dependencies.py
     requirements_test.txt
@@ -87,7 +112,9 @@ might use ``ase``) won't fail at import time, but later at runtime when e.g.
 ``crys.Structure.get_ase_atoms()`` is called. What packages are optional might
 change depending on usage.
 
-You also need the following to compile extensions. On a Debian-ish system::
+You also need the following to compile extensions. On a Debian-ish system
+
+.. code-block:: sh
 
     # apt
     python3-dev     # for compiling extensions
@@ -95,7 +122,9 @@ You also need the following to compile extensions. On a Debian-ish system::
     liblapack-dev
 
 Also note that you can get may Python packages via your system's package
-manager::
+manager
+
+.. code-block:: sh
 
     python3-ase
     python3-h5py
@@ -139,19 +168,21 @@ See test/README. Actually, all of these are good examples, too!
 Python versions
 ---------------
 
-Only Python3 is supported, tested: Python 3.6-3.9
+Only Python3 is supported, tested: Python 3.6-3.10
 
 The package was developed mostly with Python 2.5-2.7 and ported using 2to3 +
 manual changes. Therefore, you might find some crufty Python 2 style code
 fragments in lesser used parts of the code base.
 
 
-Compiling Fortran extensions and OpenMP notes
----------------------------------------------
+.. _extensions:
+
+Fortran extensions and OpenMP notes
+-----------------------------------
 
 Use ``src/Makefile``:
 
-.. code-block:: shell
+.. code-block:: sh
 
     $ make help
     make gfortran            # gfortran, default
@@ -168,10 +199,42 @@ You need:
 * numpy for f2py
 * a Fortran compiler
 * Python headers (Debian/Ubuntu: python-dev)
-* Lapack (Debian: liblapack3)
+* Lapack (Debian: liblapack-dev)
 
 The module is compiled with f2py (currently part of numpy, tested with numpy
-1.1.0 .. 1.13.x).
+1.1.0 .. 1.21.x).
+
+The default ``make`` target is "gfortran" which tries to build a serial version
+using system BLAS and LAPACK (e.g. from ``liblapack-dev``). If you want another
+target (e.g. ``ifort-mkl``), then
+
+   .. code-block:: sh
+
+    $ cd src
+    $ make clean
+    $ make ifort-mkl
+
+or when using ``pip`` (or anything calling ``setup.py``) set
+``$PWTOOLS_EXT_MAKE_TARGET``.
+
+.. code-block:: sh
+
+    $ PWTOOLS_EXT_MAKE_TARGET=ifort-mkl pip install ...
+
+This will use the Intel ``ifort`` compiler instead fo the default ``gfortran`` and
+link against the MKL.
+
+In the MKL case, the Makefile uses the env var ``$MKL_LIB`` which sould point
+to the location where things like ``libmkl_core.so`` live. You may need to set
+this. On a HPC cluster, that could look like this.
+
+.. code-block:: sh
+
+    # module only sets MKL_ROOT=/path/to/intel/20.4/mkl
+    $ module load intel/20.4
+    $ MKL_LIB=$MKL_ROOT/lib/intel64 PWTOOLS_EXT_MAKE_TARGET=ifort-mkl pip install ...
+
+See ``src/Makefile`` for more details.
 
 Compiler / f2py
 ^^^^^^^^^^^^^^^
@@ -186,7 +249,7 @@ override this. We get ``-O3 -O2`` and a compiler warning. We have to use f2py's
 
 On some systems (Debian), you may have:
 
-.. code-block:: shell
+.. code-block:: sh
 
   /usr/bin/f2py -> f2py2.6
   /usr/bin/f2py2.5
@@ -203,13 +266,13 @@ case.
 If all went well, ``_flib.so`` should be linked to ``libgomp`` (or ``libiomp``
 for ``ifort``). Check with:
 
-.. code-block:: shell
+.. code-block:: sh
 
     $ ldd _flib.so
 
 Setting the number of threads:
 
-.. code-block:: shell
+.. code-block:: sh
 
     $ export OMP_NUM_THREADS=2
     $ python -c "import numpy as np; from pwtools.pydos import fvacf; \
@@ -234,7 +297,7 @@ results, even if it runs, if OpenMP is used incorrectly :) The test script
 all test using the Fortran extensions might fail. To run tests with other
 builds, use one of
 
-.. code-block:: shell
+.. code-block:: sh
 
     $ make gfortran
     $ make ifort
@@ -242,7 +305,7 @@ builds, use one of
 
 and
 
-.. code-block:: shell
+.. code-block:: sh
 
     $ cd test
     $ ./runtests.sh --nobuild

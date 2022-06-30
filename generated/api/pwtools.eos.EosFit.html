@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.eos.EosFit &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -84,7 +85,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,11 +95,11 @@
           <div class="body" role="main">
             
   <section id="pwtools-eos-eosfit">
-<h1>pwtools.eos.EosFit<a class="headerlink" href="#pwtools-eos-eosfit" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.eos.EosFit<a class="headerlink" href="#pwtools-eos-eosfit" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pwtools.eos.EosFit">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pwtools.eos.</span></span><span class="sig-name descname"><span class="pre">EosFit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">volume</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func=&lt;pwtools.eos.Vinet</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splpoints=500</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/eos.html#EosFit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.eos.EosFit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="pwtools.num.Fit1D.html#pwtools.num.Fit1D" title="pwtools.num.Fit1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">pwtools.num.Fit1D</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="pwtools.num.Fit1D.html#pwtools.num.Fit1D" title="pwtools.num.Fit1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fit1D</span></code></a></p>
 <p>E(V) fit class.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pwtools.eos</span> <span class="k">import</span> <span class="n">EosFit</span>
@@ -122,7 +123,7 @@
 <dt class="sig sig-object py" id="pwtools.eos.EosFit.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">volume</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func=&lt;pwtools.eos.Vinet</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splpoints=500</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/eos.html#EosFit.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.eos.EosFit.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>volume</strong> (<em>1d array</em>) – volume per atom [Ang^3]</p></li>
 <li><p><strong>energy</strong> (<em>1d array</em>) – total energy per atom [eV]</p></li>
@@ -137,7 +138,7 @@
 <dt class="sig sig-object py" id="pwtools.eos.EosFit.__call__">
 <span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">volume</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">der</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/eos.html#EosFit.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.eos.EosFit.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>volume</strong> (<em>scalar</em><em>, </em><em>1d array</em>) – volume per atom [Ang^3]</p></li>
 <li><p><strong>der</strong> (<em>int</em>) – derivative order</p></li>
@@ -148,10 +149,6 @@
 
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pwtools.eos.EosFit.bulkmod.html#pwtools.eos.EosFit.bulkmod" title="pwtools.eos.EosFit.bulkmod"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bulkmod</span></code></a>(volume)</p></td>
 <td><p>B(V) [GPa]</p></td>
@@ -178,10 +175,6 @@
 </table>
 <p class="rubric">Attributes</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pwtools.eos.EosFit.spl.html#pwtools.eos.EosFit.spl" title="pwtools.eos.EosFit.spl"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spl</span></code></a></p></td>
 <td><p></p></td>
@@ -203,7 +196,7 @@
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

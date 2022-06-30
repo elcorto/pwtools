@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>parse &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -82,7 +83,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -92,9 +93,9 @@
           <div class="body" role="main">
             
   <section id="parse">
-<h1>parse<a class="headerlink" href="#parse" title="Permalink to this headline">¶</a></h1>
+<h1>parse<a class="headerlink" href="#parse" title="Permalink to this heading">¶</a></h1>
 <span class="target" id="module-pwtools.parse"></span><section id="parser-classes-for-different-file-formats-input-and-output-files">
-<h2>Parser classes for different file formats. Input- and output files.<a class="headerlink" href="#parser-classes-for-different-file-formats-input-and-output-files" title="Permalink to this headline">¶</a></h2>
+<h2>Parser classes for different file formats. Input- and output files.<a class="headerlink" href="#parser-classes-for-different-file-formats-input-and-output-files" title="Permalink to this heading">¶</a></h2>
 <p>We need the following basic Unix tools installed:</p>
 <div class="line-block">
 <div class="line">grep/egrep</div>
@@ -108,7 +109,7 @@
 whitespace as sed, Perl, Python or any other sane regex implementation
 does. Use <code class="docutils literal notranslate"><span class="pre">[</span> <span class="pre">]</span></code> instead.</p>
 <section id="using-parsing-classes">
-<h3>Using Parsing classes<a class="headerlink" href="#using-parsing-classes" title="Permalink to this headline">¶</a></h3>
+<h3>Using Parsing classes<a class="headerlink" href="#using-parsing-classes" title="Permalink to this heading">¶</a></h3>
 <p>All parsing classes:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Pw</span><span class="o">*</span><span class="n">OutputFile</span>
 <span class="n">Cpmd</span><span class="o">*</span><span class="n">OutputFile</span>
@@ -199,10 +200,6 @@ doesn’t set self.&lt;attr&gt; = self.get_&lt;attr&gt;(), so dump() would save 
 </section>
 </section>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pwtools.parse.AWK.html#pwtools.parse.AWK" title="pwtools.parse.AWK"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AWK</span></code></a></p></td>
 <td><p>str(object='') -&gt; str str(bytes_or_buffer[, encoding[, errors]]) -&gt; str</p></td>
@@ -321,7 +318,7 @@ doesn’t set self.&lt;attr&gt; = self.get_&lt;attr&gt;(), so dump() would save 
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

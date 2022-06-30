@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>dcd &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -82,7 +83,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -92,7 +93,7 @@
           <div class="body" role="main">
             
   <section id="dcd">
-<h1>dcd<a class="headerlink" href="#dcd" title="Permalink to this headline">¶</a></h1>
+<h1>dcd<a class="headerlink" href="#dcd" title="Permalink to this heading">¶</a></h1>
 <span class="target" id="module-pwtools.dcd"></span><p>Read dcd files. Some timings (in ipython). Reading lammps files, not using
 <cite>convang</cite> here, so angles are not converted but this is only a speed test.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="o">%</span><span class="n">timeit</span> <span class="n">cc</span><span class="p">,</span><span class="n">co</span><span class="o">=</span><span class="n">dcd</span><span class="o">.</span><span class="n">read_dcd_data_ref</span><span class="p">(</span><span class="s1">&#39;lmp.out.dcd&#39;</span><span class="p">)</span>
@@ -110,10 +111,6 @@
 </pre></div>
 </div>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pwtools.dcd.HEADER_DTYPE.html#pwtools.dcd.HEADER_DTYPE" title="pwtools.dcd.HEADER_DTYPE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HEADER_DTYPE</span></code></a></p></td>
 <td><p></p></td>
@@ -148,7 +145,7 @@
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

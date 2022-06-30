@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.dcd.read_dcd_data &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -84,7 +85,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,26 +95,26 @@
           <div class="body" role="main">
             
   <section id="pwtools-dcd-read-dcd-data">
-<h1>pwtools.dcd.read_dcd_data<a class="headerlink" href="#pwtools-dcd-read-dcd-data" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.dcd.read_dcd_data<a class="headerlink" href="#pwtools-dcd-read-dcd-data" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pwtools.dcd.read_dcd_data">
 <span class="sig-prename descclassname"><span class="pre">pwtools.dcd.</span></span><span class="sig-name descname"><span class="pre">read_dcd_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convang</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/dcd.html#read_dcd_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.dcd.read_dcd_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read dcd file. Fastest version. Calculates nstep from bytes between
 end-of-header and EOF.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fn</strong> (<em>str</em>) – filename</p></li>
 <li><p><strong>convang</strong> (<em>bool</em>) – convert angles from cosine to degree (only useful for lammps style dcd
 files)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>ret</strong> – | cryst_const : (nstep,6) float64 array, (a,b,c,alpha,beta,gamma),
 |               Angstrom, degrees
 | coords : (nstep, natoms, 3) float32 array, cartesian coords Angstrom</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>(cryst_const, coords)</p>
 </dd>
 </dl>
@@ -139,7 +140,7 @@ files)</p></li>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.batch.FileTemplate &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -84,7 +85,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,7 +95,7 @@
           <div class="body" role="main">
             
   <section id="pwtools-batch-filetemplate">
-<h1>pwtools.batch.FileTemplate<a class="headerlink" href="#pwtools-batch-filetemplate" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.batch.FileTemplate<a class="headerlink" href="#pwtools-batch-filetemplate" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pwtools.batch.FileTemplate">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pwtools.batch.</span></span><span class="sig-name descname"><span class="pre">FileTemplate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basename=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">txt=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">templ_dir='calc.templ'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func=&lt;function</span> <span class="pre">FileTemplate.&lt;lambda&gt;&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/batch.html#FileTemplate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.batch.FileTemplate" title="Permalink to this definition">¶</a></dt>
@@ -149,7 +150,7 @@ dictionary keys with <cite>func</cite>. In the example, this will be:</p>
 <dt class="sig sig-object py" id="pwtools.batch.FileTemplate.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basename=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">txt=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">templ_dir='calc.templ'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func=&lt;function</span> <span class="pre">FileTemplate.&lt;lambda&gt;&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/batch.html#FileTemplate.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.batch.FileTemplate.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>basename</strong> (<em>string</em>) – <div class="line-block">
 <div class="line">The name of the template file and target file.</div>
@@ -202,10 +203,6 @@ and basename=os.path.basename(filename)</p></li>
 
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pwtools.batch.FileTemplate.write.html#pwtools.batch.FileTemplate.write" title="pwtools.batch.FileTemplate.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write</span></code></a>(dct[, calc_dir, mode])</p></td>
 <td><p>Write file self.filename (e.g.</p></td>
@@ -230,7 +227,7 @@ and basename=os.path.basename(filename)</p></li>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

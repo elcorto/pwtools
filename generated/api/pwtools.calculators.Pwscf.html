@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.calculators.Pwscf &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -84,7 +85,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,11 +95,11 @@
           <div class="body" role="main">
             
   <section id="pwtools-calculators-pwscf">
-<h1>pwtools.calculators.Pwscf<a class="headerlink" href="#pwtools-calculators-pwscf" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.calculators.Pwscf<a class="headerlink" href="#pwtools-calculators-pwscf" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pwtools.calculators.Pwscf">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pwtools.calculators.</span></span><span class="sig-name descname"><span class="pre">Pwscf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/calculators.html#Pwscf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.calculators.Pwscf" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="pwtools.calculators.FileIOCalculator.html#pwtools.calculators.FileIOCalculator" title="pwtools.calculators.FileIOCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">pwtools.calculators.FileIOCalculator</span></code></a>, <a class="reference internal" href="pwtools.calculators.CalculatorBase.html#pwtools.calculators.CalculatorBase" title="pwtools.calculators.CalculatorBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">pwtools.calculators.CalculatorBase</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="pwtools.calculators.FileIOCalculator.html#pwtools.calculators.FileIOCalculator" title="pwtools.calculators.FileIOCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileIOCalculator</span></code></a>, <a class="reference internal" href="pwtools.calculators.CalculatorBase.html#pwtools.calculators.CalculatorBase" title="pwtools.calculators.CalculatorBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">CalculatorBase</span></code></a></p>
 <p>Pwscf (pw.x) calculator.</p>
 <p>ATM, we don’t write a <code class="docutils literal notranslate"><span class="pre">ase.calculators.calculator.Parameters</span></code> class
 (dict) and have no read() method so I guess that restarts don’t work. Only
@@ -138,7 +139,7 @@ simple SCF runs for now.</p>
 <dt class="sig sig-object py" id="pwtools.calculators.Pwscf.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/calculators.html#Pwscf.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.calculators.Pwscf.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>parameters</strong> (<em>All</em>) – </p></li>
 <li><p><strong>label</strong> (<em>str</em>) – Basename of input and output files (e.g. ‘pw’). ASE’s
@@ -187,10 +188,6 @@ then this is used for each atom type.</p></li>
 
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pwtools.calculators.Pwscf.fill_infile_templ.html#pwtools.calculators.Pwscf.fill_infile_templ" title="pwtools.calculators.Pwscf.fill_infile_templ"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fill_infile_templ</span></code></a>()</p></td>
 <td><p>Replace all placeholders in <code class="docutils literal notranslate"><span class="pre">self.infile_templ</span></code>.</p></td>
@@ -208,10 +205,6 @@ then this is used for each atom type.</p></li>
 </table>
 <p class="rubric">Attributes</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pwtools.calculators.Pwscf.default_parameters.html#pwtools.calculators.Pwscf.default_parameters" title="pwtools.calculators.Pwscf.default_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_parameters</span></code></a></p></td>
 <td><p></p></td>
@@ -239,7 +232,7 @@ then this is used for each atom type.</p></li>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.kpath.plot_dis &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -84,7 +85,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,7 +95,7 @@
           <div class="body" role="main">
             
   <section id="pwtools-kpath-plot-dis">
-<h1>pwtools.kpath.plot_dis<a class="headerlink" href="#pwtools-kpath-plot-dis" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.kpath.plot_dis<a class="headerlink" href="#pwtools-kpath-plot-dis" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pwtools.kpath.plot_dis">
 <span class="sig-prename descclassname"><span class="pre">pwtools.kpath.</span></span><span class="sig-name descname"><span class="pre">plot_dis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freqs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">special_points_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/kpath.html#plot_dis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.kpath.plot_dis" title="Permalink to this definition">¶</a></dt>
@@ -110,7 +111,7 @@ your plot much, then operate on the returned <cite>fig</cite>, <cite>ax</cite> (
 <cite>axdos</cite> (dos), or copy and hack the function, which might be actually the easiest
 way.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path_norm</strong> (<em>array</em><em> (</em><em>nks</em><em>,</em><em>)</em>) – x-axis with cumulative norms of points along the k-path, see
 <a class="reference internal" href="pwtools.kpath.get_path_norm.html#pwtools.kpath.get_path_norm" title="pwtools.kpath.get_path_norm"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_path_norm()</span></code></a></p></li>
@@ -124,7 +125,7 @@ x-axis label, on neither if None.</p></li>
 <li><p><strong>**kwargs</strong> (<em>keywords</em>) – passed to plot()</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><em>fig, ax, axdos</em></p></li>
 <li><p><strong>fig</strong> (<em>matplotlib Figure to ax</em>)</p></li>
@@ -169,7 +170,7 @@ x-axis label, on neither if None.</p></li>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

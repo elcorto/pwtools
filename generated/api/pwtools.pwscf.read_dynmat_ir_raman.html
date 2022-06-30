@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.pwscf.read_dynmat_ir_raman &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -84,7 +85,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,14 +95,14 @@
           <div class="body" role="main">
             
   <section id="pwtools-pwscf-read-dynmat-ir-raman">
-<h1>pwtools.pwscf.read_dynmat_ir_raman<a class="headerlink" href="#pwtools-pwscf-read-dynmat-ir-raman" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.pwscf.read_dynmat_ir_raman<a class="headerlink" href="#pwtools-pwscf-read-dynmat-ir-raman" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pwtools.pwscf.read_dynmat_ir_raman">
 <span class="sig-prename descclassname"><span class="pre">pwtools.pwscf.</span></span><span class="sig-name descname"><span class="pre">read_dynmat_ir_raman</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dynmat.out'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">natoms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{1:</span> <span class="pre">'freqs',</span> <span class="pre">3:</span> <span class="pre">'ir',</span> <span class="pre">4:</span> <span class="pre">'raman',</span> <span class="pre">5:</span> <span class="pre">'depol'}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/pwscf.html#read_dynmat_ir_raman"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.pwscf.read_dynmat_ir_raman" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read <code class="docutils literal notranslate"><span class="pre">dynmat.x</span></code> text output file and extract IR and Raman
 intensities.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>filename</strong> (<em>str</em>) – dynmat.x text output file (e.g. from <code class="docutils literal notranslate"><span class="pre">dynmat.x</span> <span class="pre">&lt;</span> <span class="pre">dynmat.in</span> <span class="pre">&gt;</span>
 <span class="pre">dynmat.out</span></code>)</p></li>
@@ -109,7 +110,7 @@ intensities.</p>
 <li><p><strong>cols</strong> (<em>dict</em>) – column numbers of the text block</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><em>cols = None</em> – Return the parsed array as found in the file</p></li>
 <li><p><em>cols = dict</em> – Return dict with keys from <cite>cols</cite> and 1d arrays <code class="docutils literal notranslate"><span class="pre">{'freqs':</span> <span class="pre">&lt;array&gt;,</span>
@@ -152,7 +153,7 @@ not present, the array is None.</p></li>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

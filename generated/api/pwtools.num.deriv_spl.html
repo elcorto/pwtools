@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.num.deriv_spl &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -84,7 +85,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,14 +95,14 @@
           <div class="body" role="main">
             
   <section id="pwtools-num-deriv-spl">
-<h1>pwtools.num.deriv_spl<a class="headerlink" href="#pwtools-num-deriv-spl" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.num.deriv_spl<a class="headerlink" href="#pwtools-num-deriv-spl" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pwtools.num.deriv_spl">
 <span class="sig-prename descclassname"><span class="pre">pwtools.num.</span></span><span class="sig-name descname"><span class="pre">deriv_spl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xnew</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fullout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">splrep_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/num.html#deriv_spl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.num.deriv_spl" title="Permalink to this definition">¶</a></dt>
 <dd><p>n-th derivative for 1d arrays of possibly nonuniformly sampled data.
 Returns matching x-axis for plotting. Splines are used.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x</strong> (<em>1d arrays of same length</em>) – if x=None, then x=arange(len(y)) is used</p></li>
 <li><p><strong>y</strong> (<em>1d arrays of same length</em>) – if x=None, then x=arange(len(y)) is used</p></li>
@@ -111,7 +112,7 @@ Returns matching x-axis for plotting. Splines are used.</p>
 <li><p><strong>splrep_kwargs</strong> (<em>keyword args to scipy.interpolate.splrep</em><em>, </em><em>default: k=3</em><em>, </em><em>s=0</em>) – </p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><em>if fullout</em> – xd, yd</p></li>
 <li><p><em>else</em> – yd</p></li>
@@ -139,7 +140,7 @@ the function signature of deriv_fd.</p>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

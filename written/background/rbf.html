@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Radial Basis Function interpolation an regression &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -92,7 +93,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -102,12 +103,12 @@
           <div class="body" role="main">
             
   <section id="radial-basis-function-interpolation-an-regression">
-<span id="rbf"></span><h1>Radial Basis Function interpolation an regression<a class="headerlink" href="#radial-basis-function-interpolation-an-regression" title="Permalink to this headline">¶</a></h1>
+<span id="rbf"></span><h1>Radial Basis Function interpolation an regression<a class="headerlink" href="#radial-basis-function-interpolation-an-regression" title="Permalink to this heading">¶</a></h1>
 <p>Some background information on the method implemented in <code class="xref py py-mod docutils literal notranslate"><span class="pre">rbf</span></code>.
 For code examples, see the doc string of <a class="reference internal" href="../../generated/api/pwtools.rbf.core.Rbf.html#pwtools.rbf.core.Rbf" title="pwtools.rbf.core.Rbf"><code class="xref py py-class docutils literal notranslate"><span class="pre">Rbf</span></code></a> and
 <code class="docutils literal notranslate"><span class="pre">examples/rbf</span></code>.</p>
 <section id="theory">
-<h2>Theory<a class="headerlink" href="#theory" title="Permalink to this headline">¶</a></h2>
+<h2>Theory<a class="headerlink" href="#theory" title="Permalink to this heading">¶</a></h2>
 <p>The goal is to interpolate or fit an unordered set of <span class="math notranslate nohighlight">\(M\)</span> ND data points
 <span class="math notranslate nohighlight">\(\mathbf x_i\)</span> and values <span class="math notranslate nohighlight">\(z_i\)</span> so as to obtain <span class="math notranslate nohighlight">\(z=f(\mathbf
 x)\)</span>. In radial basis function (RBF) interpolation, the interpolating function
@@ -143,7 +144,7 @@ singular, esp. large ones with the limit being
 should solve a regression problem instead (see below).</p>
 </section>
 <section id="rbf-parameter-p">
-<h2>RBF parameter <span class="math notranslate nohighlight">\(p\)</span><a class="headerlink" href="#rbf-parameter-p" title="Permalink to this headline">¶</a></h2>
+<h2>RBF parameter <span class="math notranslate nohighlight">\(p\)</span><a class="headerlink" href="#rbf-parameter-p" title="Permalink to this heading">¶</a></h2>
 <p>Each RBF has a single “length scale” parameter <span class="math notranslate nohighlight">\(p\)</span> (<code class="docutils literal notranslate"><span class="pre">Rbf(p=...)</span></code>,
 attribute <code class="docutils literal notranslate"><span class="pre">Rbf.p</span></code>). While <span class="math notranslate nohighlight">\(f(\mathbf x)\)</span> goes through all points
 (<span class="math notranslate nohighlight">\(\mathbf x_i\)</span>, <span class="math notranslate nohighlight">\(z_i\)</span>) by definition in interpolation, the behavior
@@ -153,7 +154,7 @@ be optimized for the data set at hand, which should be done by cross-validation
 as will be explained below.</p>
 <p>Nevertheless we provide two methods to estimate reasonable start values.</p>
 <p>The scipy implementation <span class="math notranslate nohighlight">\(p_{\text{scipy}}\)</span> in
-<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Rbf.html#scipy.interpolate.Rbf" title="(in SciPy v1.8.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.Rbf</span></code></a> uses something like the mean nearest neighbor
+<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Rbf.html#scipy.interpolate.Rbf" title="(in SciPy v1.8.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.Rbf</span></code></a> uses something like the mean nearest neighbor
 distance. We provide this as <code class="docutils literal notranslate"><span class="pre">Rbf(points,</span> <span class="pre">values,</span> <span class="pre">p='scipy')</span></code> or
 <code class="docutils literal notranslate"><span class="pre">rbf.estimate_p(points,</span> <span class="pre">'scipy')</span></code>. The default in <code class="xref py py-class docutils literal notranslate"><span class="pre">pwtools.rbf.Rbf</span></code>
 however is the mean distance of all points</p>
@@ -164,10 +165,10 @@ This is always bigger than <span class="math notranslate nohighlight">\(p_{\text
 guess for <span class="math notranslate nohighlight">\(p\)</span>, especially in case of regression.</p>
 </section>
 <section id="interpolation-vs-regression-regularization-and-numerical-stability">
-<h2>Interpolation vs. regression, regularization and numerical stability<a class="headerlink" href="#interpolation-vs-regression-regularization-and-numerical-stability" title="Permalink to this headline">¶</a></h2>
+<h2>Interpolation vs. regression, regularization and numerical stability<a class="headerlink" href="#interpolation-vs-regression-regularization-and-numerical-stability" title="Permalink to this heading">¶</a></h2>
 <p>In case of noisy data, we may want to do regression. Similar to the <cite>s</cite>
-parameter of <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.bisplrep.html#scipy.interpolate.bisplrep" title="(in SciPy v1.8.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.interpolate.bisplrep()</span></code></a> or the <cite>smooth</cite> parameter for
-regularization in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Rbf.html#scipy.interpolate.Rbf" title="(in SciPy v1.8.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.Rbf</span></code></a>, we solve a regularized
+parameter of <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.bisplrep.html#scipy.interpolate.bisplrep" title="(in SciPy v1.8.1)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.interpolate.bisplrep()</span></code></a> or the <cite>smooth</cite> parameter for
+regularization in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Rbf.html#scipy.interpolate.Rbf" title="(in SciPy v1.8.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.Rbf</span></code></a>, we solve a regularized
 version of the linear system</p>
 <div class="math notranslate nohighlight">
 \[(\mathbf K + r\,\mathbf I)\,\mathbf w = \mathbf z\]</div>
@@ -179,10 +180,10 @@ the RBF happens to imply a Mercer kernel (which the Gaussian one does), then
 this is equal to kernel ridge regression (KRR).</p>
 <p>Apart from smoothing, the regularization also deals with the numerical
 instability of <span class="math notranslate nohighlight">\(\mathbf K\,\mathbf w = \mathbf z\)</span>.</p>
-<p>One can also switch from <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.solve.html#scipy.linalg.solve" title="(in SciPy v1.8.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.linalg.solve()</span></code></a> to
-<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.lstsq.html#scipy.linalg.lstsq" title="(in SciPy v1.8.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.linalg.lstsq()</span></code></a> and solve the system in a least squares sense
+<p>One can also switch from <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.solve.html#scipy.linalg.solve" title="(in SciPy v1.8.1)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.linalg.solve()</span></code></a> to
+<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.lstsq.html#scipy.linalg.lstsq" title="(in SciPy v1.8.1)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.linalg.lstsq()</span></code></a> and solve the system in a least squares sense
 without regularization. You can do that by setting <code class="docutils literal notranslate"><span class="pre">Rbf(...,</span> <span class="pre">r=None</span></code>). In
-<a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.kernel_ridge.KernelRidge.html#sklearn.kernel_ridge.KernelRidge" title="(in scikit-learn v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">sklearn.kernel_ridge.KernelRidge</span></code></a> there is an automatic switch to least
+<a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.kernel_ridge.KernelRidge.html#sklearn.kernel_ridge.KernelRidge" title="(in scikit-learn v1.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">sklearn.kernel_ridge.KernelRidge</span></code></a> there is an automatic switch to least
 squares when a singular <span class="math notranslate nohighlight">\(\mathbf K\)</span> is detected. However, we observed
 that in many cases this results in numerical noise in the solution, esp. when
 <span class="math notranslate nohighlight">\(\mathbf K\)</span> is (near) singular. So while we provide that feature for
@@ -191,7 +192,7 @@ use a KRR setup and properly determine <span class="math notranslate nohighlight
 below.</p>
 </section>
 <section id="how-to-determine-p-and-r">
-<h2>How to determine <span class="math notranslate nohighlight">\(p\)</span> and <span class="math notranslate nohighlight">\(r\)</span><a class="headerlink" href="#how-to-determine-p-and-r" title="Permalink to this headline">¶</a></h2>
+<h2>How to determine <span class="math notranslate nohighlight">\(p\)</span> and <span class="math notranslate nohighlight">\(r\)</span><a class="headerlink" href="#how-to-determine-p-and-r" title="Permalink to this heading">¶</a></h2>
 <p><span class="math notranslate nohighlight">\(p\)</span> (and <span class="math notranslate nohighlight">\(r\)</span>) should always be tuned to the data set at hand by
 minimization of a cross validation (CV) score. You can do this with
 <a class="reference internal" href="../../generated/api/pwtools.rbf.hyperopt.fit_opt.html#pwtools.rbf.hyperopt.fit_opt" title="pwtools.rbf.hyperopt.fit_opt"><code class="xref py py-func docutils literal notranslate"><span class="pre">pwtools.rbf.hyperopt.fit_opt()</span></code></a>. Here is an example where we optimize only
@@ -216,18 +217,18 @@ lower <span class="math notranslate nohighlight">\(p\)</span> (narrow RBFs which
 <span class="math notranslate nohighlight">\(r\)</span> already provides enough stiffness to prevent overfitting.</p>
 </section>
 <section id="data-scaling">
-<h2>Data scaling<a class="headerlink" href="#data-scaling" title="Permalink to this headline">¶</a></h2>
+<h2>Data scaling<a class="headerlink" href="#data-scaling" title="Permalink to this heading">¶</a></h2>
 <p>In <a class="reference internal" href="../../generated/api/pwtools.num.PolyFit.html#pwtools.num.PolyFit" title="pwtools.num.PolyFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">pwtools.num.PolyFit</span></code></a> (see the <cite>scale</cite> keyword) we scale
 <span class="math notranslate nohighlight">\(\mathbf x\)</span> and <span class="math notranslate nohighlight">\(z\)</span> to <span class="math notranslate nohighlight">\([0,1]\)</span>. Here we don’t have that
 implemented but suggest to always scale at least <span class="math notranslate nohighlight">\(z\)</span>. Since in contrast
 to polynomials, the model here has no constant bias term, one should instead
 normalize to zero mean using something like
-<a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html#sklearn.preprocessing.StandardScaler" title="(in scikit-learn v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">sklearn.preprocessing.StandardScaler</span></code></a>.</p>
+<a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html#sklearn.preprocessing.StandardScaler" title="(in scikit-learn v1.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">sklearn.preprocessing.StandardScaler</span></code></a>.</p>
 </section>
 <section id="other-implementations">
-<h2>Other implementations<a class="headerlink" href="#other-implementations" title="Permalink to this headline">¶</a></h2>
+<h2>Other implementations<a class="headerlink" href="#other-implementations" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
-<li><p><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Rbf.html#scipy.interpolate.Rbf" title="(in SciPy v1.8.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.Rbf</span></code></a></p></li>
+<li><p><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Rbf.html#scipy.interpolate.Rbf" title="(in SciPy v1.8.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.Rbf</span></code></a></p></li>
 </ul>
 </section>
 </section>
@@ -243,7 +244,7 @@ normalize to zero mean using something like
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

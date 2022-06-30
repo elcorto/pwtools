@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.pwscf.ibrav2cell &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -84,7 +85,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,7 +95,7 @@
           <div class="body" role="main">
             
   <section id="pwtools-pwscf-ibrav2cell">
-<h1>pwtools.pwscf.ibrav2cell<a class="headerlink" href="#pwtools-pwscf-ibrav2cell" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.pwscf.ibrav2cell<a class="headerlink" href="#pwtools-pwscf-ibrav2cell" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pwtools.pwscf.ibrav2cell">
 <span class="sig-prename descclassname"><span class="pre">pwtools.pwscf.</span></span><span class="sig-name descname"><span class="pre">ibrav2cell</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ibrav</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">celldm</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/pwscf.html#ibrav2cell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.pwscf.ibrav2cell" title="Permalink to this definition">¶</a></dt>
@@ -116,17 +117,17 @@ primitive == conventional cell.</p>
 ibrav=12,13. See test/test_ibrav.py. If you really need that, have a look
 at the PWscf source for how they do it there.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ibrav</strong> (<em>int</em>) – 1 … 14</p></li>
 <li><p><strong>celldm</strong> (<em>sequence of length 6</em>) – This not the isame length 6 array <cite>celldm</cite> in crys.py. Here, the
 entries which are not needed can be None.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>array (3,3)</strong></p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>cell vectors as rows, unit is that of celldm[0], i.e. a</p>
 </dd>
 </dl>
@@ -152,7 +153,7 @@ returned from crys.cc2cell(): a along x, b in xy-plane.</p></li>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

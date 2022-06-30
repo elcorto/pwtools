@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.rbf.hyperopt.FitError &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -84,7 +85,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,7 +95,7 @@
           <div class="body" role="main">
             
   <section id="pwtools-rbf-hyperopt-fiterror">
-<h1>pwtools.rbf.hyperopt.FitError<a class="headerlink" href="#pwtools-rbf-hyperopt-fiterror" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.rbf.hyperopt.FitError<a class="headerlink" href="#pwtools-rbf-hyperopt-fiterror" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pwtools.rbf.hyperopt.FitError">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pwtools.rbf.hyperopt.</span></span><span class="sig-name descname"><span class="pre">FitError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rbf_kwds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'n_repeats':</span> <span class="pre">1,</span> <span class="pre">'n_splits':</span> <span class="pre">5}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cv_kwds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/rbf/hyperopt.html#FitError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.rbf.hyperopt.FitError" title="Permalink to this definition">¶</a></dt>
@@ -130,14 +131,14 @@ use <a class="reference internal" href="#pwtools.rbf.hyperopt.FitError.__call__"
 <dt class="sig sig-object py" id="pwtools.rbf.hyperopt.FitError.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rbf_kwds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'n_repeats':</span> <span class="pre">1,</span> <span class="pre">'n_splits':</span> <span class="pre">5}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cv_kwds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/rbf/hyperopt.html#FitError.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.rbf.hyperopt.FitError.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>points</strong> (see <code class="xref py py-class docutils literal notranslate"><span class="pre">Rbf</span></code>) – </p></li>
 <li><p><strong>values</strong> (see <code class="xref py py-class docutils literal notranslate"><span class="pre">Rbf</span></code>) – </p></li>
 <li><p><strong>rbf_kwds</strong> (<em>dict</em>) – for <code class="docutils literal notranslate"><span class="pre">Rbf(points,</span> <span class="pre">values,</span> <span class="pre">**rbf_kwds)</span></code></p></li>
 <li><p><strong>cv</strong> ({dict, <code class="xref py py-class docutils literal notranslate"><span class="pre">sklearn.model_selection.BaseCrossValidator</span></code> instance) – or anything with that API, None}, optional, if dict then
 cross-validation parameters for
-<a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RepeatedKFold.html#sklearn.model_selection.RepeatedKFold" title="(in scikit-learn v1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">sklearn.model_selection.RepeatedKFold</span></code></a>, if
+<a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RepeatedKFold.html#sklearn.model_selection.RepeatedKFold" title="(in scikit-learn v1.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">sklearn.model_selection.RepeatedKFold</span></code></a>, if
 <code class="docutils literal notranslate"><span class="pre">BaseCrossValidator</span></code>-like class then this is used to split data,
 if None then <a class="reference internal" href="#pwtools.rbf.hyperopt.FitError.__call__" title="pwtools.rbf.hyperopt.FitError.__call__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__call__()</span></code></a> will use <a class="reference internal" href="pwtools.rbf.hyperopt.FitError.err_direct.html#pwtools.rbf.hyperopt.FitError.err_direct" title="pwtools.rbf.hyperopt.FitError.err_direct"><code class="xref py py-meth docutils literal notranslate"><span class="pre">err_direct()</span></code></a>, else
 <a class="reference internal" href="pwtools.rbf.hyperopt.FitError.err_cv.html#pwtools.rbf.hyperopt.FitError.err_cv" title="pwtools.rbf.hyperopt.FitError.err_cv"><code class="xref py py-meth docutils literal notranslate"><span class="pre">err_cv()</span></code></a></p></li>
@@ -155,10 +156,6 @@ if None then <a class="reference internal" href="#pwtools.rbf.hyperopt.FitError.
 
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pwtools.rbf.hyperopt.FitError.cv.html#pwtools.rbf.hyperopt.FitError.cv" title="pwtools.rbf.hyperopt.FitError.cv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cv</span></code></a>(params)</p></td>
 <td><p>Cross validation fit errors.</p></td>
@@ -186,7 +183,7 @@ if None then <a class="reference internal" href="#pwtools.rbf.hyperopt.FitError.
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

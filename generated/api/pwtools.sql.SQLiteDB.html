@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.sql.SQLiteDB &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -84,7 +85,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,7 +95,7 @@
           <div class="body" role="main">
             
   <section id="pwtools-sql-sqlitedb">
-<h1>pwtools.sql.SQLiteDB<a class="headerlink" href="#pwtools-sql-sqlitedb" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.sql.SQLiteDB<a class="headerlink" href="#pwtools-sql-sqlitedb" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pwtools.sql.SQLiteDB">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pwtools.sql.</span></span><span class="sig-name descname"><span class="pre">SQLiteDB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/sql.html#SQLiteDB"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.sql.SQLiteDB" title="Permalink to this definition">¶</a></dt>
@@ -162,7 +163,7 @@ less precision!</p>
 <dt class="sig sig-object py" id="pwtools.sql.SQLiteDB.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/sql.html#SQLiteDB.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.sql.SQLiteDB.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>db_fn</strong> (<em>str</em>) – database filename</p></li>
 <li><p><strong>table</strong> (<em>str</em><em>, </em><em>optional</em>) – name of the database table, you can also use <a class="reference internal" href="pwtools.sql.SQLiteDB.set_table.html#pwtools.sql.SQLiteDB.set_table" title="pwtools.sql.SQLiteDB.set_table"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_table()</span></code></a>
@@ -175,10 +176,6 @@ which database table you’re talking</p></li>
 
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pwtools.sql.SQLiteDB.add_column.html#pwtools.sql.SQLiteDB.add_column" title="pwtools.sql.SQLiteDB.add_column"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_column</span></code></a>(col, sqltype[, table])</p></td>
 <td><p>Add column <cite>col</cite> with type <cite>sqltype</cite> to the header.</p></td>
@@ -260,7 +257,7 @@ which database table you’re talking</p></li>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

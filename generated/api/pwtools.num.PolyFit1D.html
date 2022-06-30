@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.num.PolyFit1D &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -84,7 +85,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,11 +95,11 @@
           <div class="body" role="main">
             
   <section id="pwtools-num-polyfit1d">
-<h1>pwtools.num.PolyFit1D<a class="headerlink" href="#pwtools-num-polyfit1d" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.num.PolyFit1D<a class="headerlink" href="#pwtools-num-polyfit1d" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pwtools.num.PolyFit1D">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pwtools.num.</span></span><span class="sig-name descname"><span class="pre">PolyFit1D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/num.html#PolyFit1D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.num.PolyFit1D" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="pwtools.num.Fit1D.html#pwtools.num.Fit1D" title="pwtools.num.Fit1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">pwtools.num.Fit1D</span></code></a>, <a class="reference internal" href="pwtools.num.PolyFit.html#pwtools.num.PolyFit" title="pwtools.num.PolyFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">pwtools.num.PolyFit</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="pwtools.num.Fit1D.html#pwtools.num.Fit1D" title="pwtools.num.Fit1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fit1D</span></code></a>, <a class="reference internal" href="pwtools.num.PolyFit.html#pwtools.num.PolyFit" title="pwtools.num.PolyFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">PolyFit</span></code></a></p>
 <p>1D special case version of <a class="reference internal" href="pwtools.num.PolyFit.html#pwtools.num.PolyFit" title="pwtools.num.PolyFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">PolyFit</span></code></a> which handles 1d and scalar
 <cite>points</cite> Also <a class="reference internal" href="pwtools.num.PolyFit1D.get_min.html#pwtools.num.PolyFit1D.get_min" title="pwtools.num.PolyFit1D.get_min"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_min()</span></code></a> uses the root of the poly’s 1st derivative
 instead of <code class="docutils literal notranslate"><span class="pre">fmin()</span></code>.</p>
@@ -124,7 +125,7 @@ instead of <code class="docutils literal notranslate"><span class="pre">fmin()</
 <dt class="sig sig-object py" id="pwtools.num.PolyFit1D.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/num.html#PolyFit1D.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.num.PolyFit1D.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>PolyFit</strong> (<em>See</em>) – </p>
 </dd>
 </dl>
@@ -138,10 +139,6 @@ instead of <code class="docutils literal notranslate"><span class="pre">fmin()</
 
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pwtools.num.PolyFit1D.get_max.html#pwtools.num.PolyFit1D.get_max" title="pwtools.num.PolyFit1D.get_max"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_max</span></code></a>([x0, xab])</p></td>
 <td><p>Convenience method.</p></td>
@@ -172,7 +169,7 @@ instead of <code class="docutils literal notranslate"><span class="pre">fmin()</
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

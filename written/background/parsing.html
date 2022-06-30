@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Parsing code output and using containers &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -93,7 +94,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -103,9 +104,9 @@
           <div class="body" role="main">
             
   <section id="parsing-code-output-and-using-containers">
-<h1>Parsing code output and using containers<a class="headerlink" href="#parsing-code-output-and-using-containers" title="Permalink to this headline">¶</a></h1>
+<h1>Parsing code output and using containers<a class="headerlink" href="#parsing-code-output-and-using-containers" title="Permalink to this heading">¶</a></h1>
 <section id="available-parsers">
-<span id="parser-classes"></span><h2>Available parsers<a class="headerlink" href="#available-parsers" title="Permalink to this headline">¶</a></h2>
+<span id="parser-classes"></span><h2>Available parsers<a class="headerlink" href="#available-parsers" title="Permalink to this heading">¶</a></h2>
 <p>A core feature of pwtools is a set of parsers for commonly used atomistic
 simulation codes. The parsers are located in <a class="reference internal" href="../../generated/api/__sphinx_autodoc_module__pwtools.parse.html#module-pwtools.parse" title="pwtools.parse"><code class="xref py py-mod docutils literal notranslate"><span class="pre">parse</span></code></a>. These
 parsers are available:</p>
@@ -147,7 +148,7 @@ the PWscf output and thus <code class="docutils literal notranslate"><span class
 that we can manually calculate it from <code class="docutils literal notranslate"><span class="pre">coords</span></code> and <code class="docutils literal notranslate"><span class="pre">cell</span></code>.</p>
 </section>
 <section id="container-classes-structure-and-trajectory">
-<span id="container-classes"></span><h2>Container classes <a class="reference internal" href="../../generated/api/pwtools.crys.Structure.html#pwtools.crys.Structure" title="pwtools.crys.Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code></a> and <a class="reference internal" href="../../generated/api/pwtools.crys.Trajectory.html#pwtools.crys.Trajectory" title="pwtools.crys.Trajectory"><code class="xref py py-class docutils literal notranslate"><span class="pre">Trajectory</span></code></a><a class="headerlink" href="#container-classes-structure-and-trajectory" title="Permalink to this headline">¶</a></h2>
+<span id="container-classes"></span><h2>Container classes <a class="reference internal" href="../../generated/api/pwtools.crys.Structure.html#pwtools.crys.Structure" title="pwtools.crys.Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code></a> and <a class="reference internal" href="../../generated/api/pwtools.crys.Trajectory.html#pwtools.crys.Trajectory" title="pwtools.crys.Trajectory"><code class="xref py py-class docutils literal notranslate"><span class="pre">Trajectory</span></code></a><a class="headerlink" href="#container-classes-structure-and-trajectory" title="Permalink to this heading">¶</a></h2>
 <p>In order to abstract away the differences between codes as much as possible, we
 have implemented unified container classes. These classes are
 <a class="reference internal" href="../../generated/api/pwtools.crys.Structure.html#pwtools.crys.Structure" title="pwtools.crys.Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code></a> and <a class="reference internal" href="../../generated/api/pwtools.crys.Trajectory.html#pwtools.crys.Trajectory" title="pwtools.crys.Trajectory"><code class="xref py py-class docutils literal notranslate"><span class="pre">Trajectory</span></code></a>. The
@@ -214,7 +215,7 @@ Trajectory:</p>
 </div>
 </section>
 <section id="high-level-parsing-functions">
-<span id="high-level-parsing"></span><h2>High-level parsing functions<a class="headerlink" href="#high-level-parsing-functions" title="Permalink to this headline">¶</a></h2>
+<span id="high-level-parsing"></span><h2>High-level parsing functions<a class="headerlink" href="#high-level-parsing-functions" title="Permalink to this heading">¶</a></h2>
 <p>The most simple way to parse code output and get a container class is to use
 the high-level functions in <a class="reference internal" href="../../generated/api/__sphinx_autodoc_module__pwtools.io.html#module-pwtools.io" title="pwtools.io"><code class="xref py py-mod docutils literal notranslate"><span class="pre">io</span></code></a>.</p>
 <dl>
@@ -271,16 +272,9 @@ can be used in exactly the same way as those obtained by using one of the
 <code class="docutils literal notranslate"><span class="pre">io.read_*()</span></code> functions.</p>
 </section>
 <section id="units">
-<h2>Units<a class="headerlink" href="#units" title="Permalink to this headline">¶</a></h2>
+<h2>Units<a class="headerlink" href="#units" title="Permalink to this heading">¶</a></h2>
 <p>Each parser will (try to) return the “natural” units of each code:</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 15%" />
-<col style="width: 12%" />
-<col style="width: 21%" />
-<col style="width: 25%" />
-<col style="width: 27%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>property</p></th>
 <th class="head"><p>PWscf</p></th>
@@ -344,11 +338,6 @@ are the ones you expect!</p>
 <p>In <a class="reference internal" href="../../generated/api/pwtools.crys.Structure.html#pwtools.crys.Structure" title="pwtools.crys.Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code></a> and <a class="reference internal" href="../../generated/api/pwtools.crys.Trajectory.html#pwtools.crys.Trajectory" title="pwtools.crys.Trajectory"><code class="xref py py-class docutils literal notranslate"><span class="pre">Trajectory</span></code></a>, we have
 units eV, Angstrom,…</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 20%" />
-<col style="width: 25%" />
-<col style="width: 55%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>property</p></th>
 <th class="head"><p>unit</p></th>
@@ -404,7 +393,7 @@ units eV, Angstrom,…</p>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

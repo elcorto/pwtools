@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.num.PolyFit &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -84,7 +85,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,7 +95,7 @@
           <div class="body" role="main">
             
   <section id="pwtools-num-polyfit">
-<h1>pwtools.num.PolyFit<a class="headerlink" href="#pwtools-num-polyfit" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.num.PolyFit<a class="headerlink" href="#pwtools-num-polyfit" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pwtools.num.PolyFit">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pwtools.num.</span></span><span class="sig-name descname"><span class="pre">PolyFit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/num.html#PolyFit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.num.PolyFit" title="Permalink to this definition">¶</a></dt>
@@ -105,7 +106,7 @@ and <a class="reference internal" href="pwtools.num.Interpol2D.html#pwtools.num.
 <a class="reference internal" href="pwtools.num.polyfit.html#pwtools.num.polyfit" title="pwtools.num.polyfit"><code class="xref py py-func docutils literal notranslate"><span class="pre">polyfit()</span></code></a>. Keywords to <a class="reference internal" href="#pwtools.num.PolyFit.__call__" title="pwtools.num.PolyFit.__call__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__call__()</span></code></a> are same as for
 <a class="reference internal" href="pwtools.num.polyval.html#pwtools.num.polyval" title="pwtools.num.polyval"><code class="xref py py-func docutils literal notranslate"><span class="pre">polyval()</span></code></a>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>points</strong> (<em>nd array</em><em> (</em><em>npoints</em><em>,</em><em>ndim</em><em>)</em>) – <cite>npoints</cite> points in <cite>ndim</cite>-space, to be fitted by a <cite>ndim</cite> polynomial
 f(x0,x1,…,x{ndim-1}).</p></li>
@@ -131,7 +132,7 @@ fmin()</div>
 <dt class="sig sig-object py" id="pwtools.num.PolyFit.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/num.html#PolyFit.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.num.PolyFit.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>points</strong> (<em>nd array</em><em> (</em><em>npoints</em><em>, </em><em>ndim</em><em>)</em>) – </p></li>
 <li><p><strong>values</strong> (<em>1d array</em><em> (</em><em>npoints</em><em>,</em><em>)</em>) – </p></li>
@@ -149,10 +150,6 @@ fmin()</div>
 
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pwtools.num.PolyFit.get_min.html#pwtools.num.PolyFit.get_min" title="pwtools.num.PolyFit.get_min"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_min</span></code></a>([x0])</p></td>
 <td><p>Minimize fit function by <cite>scipy.optimize.fmin()</cite>.</p></td>
@@ -174,7 +171,7 @@ fmin()</div>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

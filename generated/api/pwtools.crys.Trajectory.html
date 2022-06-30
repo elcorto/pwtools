@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.crys.Trajectory &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -84,7 +85,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,19 +95,14 @@
           <div class="body" role="main">
             
   <section id="pwtools-crys-trajectory">
-<h1>pwtools.crys.Trajectory<a class="headerlink" href="#pwtools-crys-trajectory" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.crys.Trajectory<a class="headerlink" href="#pwtools-crys-trajectory" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pwtools.crys.Trajectory">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pwtools.crys.</span></span><span class="sig-name descname"><span class="pre">Trajectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/crys.html#Trajectory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.crys.Trajectory" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="pwtools.crys.Structure.html#pwtools.crys.Structure" title="pwtools.crys.Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">pwtools.crys.Structure</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="pwtools.crys.Structure.html#pwtools.crys.Structure" title="pwtools.crys.Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code></a></p>
 <p>Like <a class="reference internal" href="pwtools.crys.Structure.html#pwtools.crys.Structure" title="pwtools.crys.Structure"><code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code></a>, but all attrs in <cite>attrs_nstep</cite> have a timeaxis
 along axis=0 and length <cite>nstep</cite>:</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 28%" />
-<col style="width: 31%" />
-<col style="width: 41%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>attribute</p></th>
 <th class="head"><p>Structure</p></th>
@@ -182,7 +178,7 @@ along axis=0 and length <cite>nstep</cite>:</p>
 <dt class="sig sig-object py" id="pwtools.crys.Trajectory.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/crys.html#Trajectory.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.crys.Trajectory.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>coords</strong> (<em>(</em><em>natoms</em><em>, </em><em>3</em><em>) </em><em>[</em><em>Ang</em><em>]</em>) – Cartesian coords.
 Optional if <cite>coords_frac</cite> given.</p></li>
@@ -223,10 +219,6 @@ from it. See coord_trans().</p>
 
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pwtools.crys.Trajectory.__getitem__.html#pwtools.crys.Trajectory.__getitem__" title="pwtools.crys.Trajectory.__getitem__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__getitem__</span></code></a>(idx)</p></td>
 <td><p></p></td>
@@ -391,10 +383,6 @@ from it. See coord_trans().</p>
 </table>
 <p class="rubric">Attributes</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pwtools.crys.Trajectory.is_struct.html#pwtools.crys.Trajectory.is_struct" title="pwtools.crys.Trajectory.is_struct"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_struct</span></code></a></p></td>
 <td><p></p></td>
@@ -422,7 +410,7 @@ from it. See coord_trans().</p>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

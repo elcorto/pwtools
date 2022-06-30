@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.crys.volume_cc &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -84,7 +85,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,29 +95,28 @@
           <div class="body" role="main">
             
   <section id="pwtools-crys-volume-cc">
-<h1>pwtools.crys.volume_cc<a class="headerlink" href="#pwtools-crys-volume-cc" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.crys.volume_cc<a class="headerlink" href="#pwtools-crys-volume-cc" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pwtools.crys.volume_cc">
 <span class="sig-prename descclassname"><span class="pre">pwtools.crys.</span></span><span class="sig-name descname"><span class="pre">volume_cc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cryst_const</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/crys.html#volume_cc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.crys.volume_cc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Volume of the unit cell from crystallographic constants <a class="footnote-reference brackets" href="#id2" id="id1">1</a>.</p>
+<dd><p>Volume of the unit cell from crystallographic constants <a class="footnote-reference brackets" href="#id2" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>cryst_const</strong> (<em>array_like</em><em>, </em><em>shape</em><em> (</em><em>6</em><em>,</em><em>)</em>) – [a, b, c, alpha, beta, gamma], where alpha=angle(b,c), beta=angle(a,c),
 gamma=angle(a,b)</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>volume, unit</strong></p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>[a]**3</p>
 </dd>
 </dl>
 <p class="rubric">References</p>
-<dl class="footnote brackets">
-<dt class="label" id="id2"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
-<dd><p><a class="reference external" href="http://en.wikipedia.org/wiki/Parallelepiped">http://en.wikipedia.org/wiki/Parallelepiped</a></p>
-</dd>
-</dl>
+<aside class="footnote brackets" id="id2" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="http://en.wikipedia.org/wiki/Parallelepiped">http://en.wikipedia.org/wiki/Parallelepiped</a></p>
+</aside>
 </dd></dl>
 
 </section>
@@ -132,7 +132,7 @@ gamma=angle(a,b)</p>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.mttk.particle_nhc_masses &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -84,7 +85,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,14 +95,14 @@
           <div class="body" role="main">
             
   <section id="pwtools-mttk-particle-nhc-masses">
-<h1>pwtools.mttk.particle_nhc_masses<a class="headerlink" href="#pwtools-mttk-particle-nhc-masses" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.mttk.particle_nhc_masses<a class="headerlink" href="#pwtools-mttk-particle-nhc-masses" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pwtools.mttk.particle_nhc_masses">
 <span class="sig-prename descclassname"><span class="pre">pwtools.mttk.</span></span><span class="sig-name descname"><span class="pre">particle_nhc_masses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nnos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/mttk.html#particle_nhc_masses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.mttk.particle_nhc_masses" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fictitious masses Q_p for the particle NHC to thermostat the atoms.</p>
 <p>Abinit: qmass for ionmov 13.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>freq</strong> (<em>scalar</em>) – Typical phonon frequency [Hz].</p></li>
 <li><p><strong>temp</strong> (<em>scalar</em>) – Temperature [K].</p></li>
@@ -110,7 +111,7 @@ with ndim==3 (x,y,z).</p></li>
 <li><p><strong>nnos</strong> (<em>scalar</em>) – Length of the NH chain.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>[q1, qi …]</strong> (list of length <cite>nnos</cite>)</p></li>
 <li><p><strong>q1</strong> (<em>mass for the 1st thermostat in the chain</em>)</p></li>
@@ -134,7 +135,7 @@ with ndim==3 (x,y,z).</p></li>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.rbf.core.Rbf &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -85,7 +86,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -95,7 +96,7 @@
           <div class="body" role="main">
             
   <section id="pwtools-rbf-core-rbf">
-<h1>pwtools.rbf.core.Rbf<a class="headerlink" href="#pwtools-rbf-core-rbf" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.rbf.core.Rbf<a class="headerlink" href="#pwtools-rbf-core-rbf" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pwtools.rbf.core.Rbf">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pwtools.rbf.core.</span></span><span class="sig-name descname"><span class="pre">Rbf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rbf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gauss'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/rbf/core.html#Rbf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.rbf.core.Rbf" title="Permalink to this definition">¶</a></dt>
@@ -171,7 +172,7 @@ evaluation.</p>
 <dt class="sig sig-object py" id="pwtools.rbf.core.Rbf.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rbf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gauss'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/rbf/core.html#Rbf.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.rbf.core.Rbf.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>points</strong> (<em>2d array</em><em>, </em><em>(</em><em>M</em><em>,</em><em>N</em><em>)</em>) – data points : M points in N-dim space, training set points</p></li>
 <li><p><strong>values</strong> (<em>1d array</em><em>, </em><em>(</em><em>M</em><em>,</em><em>)</em>) – function values at training points</p></li>
@@ -190,14 +191,14 @@ solver</p></li>
 <span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/rbf/core.html#Rbf.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.rbf.core.Rbf.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call <a class="reference internal" href="pwtools.rbf.core.Rbf.predict.html#pwtools.rbf.core.Rbf.predict" title="pwtools.rbf.core.Rbf.predict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">predict()</span></code></a> or <a class="reference internal" href="pwtools.rbf.core.Rbf.deriv.html#pwtools.rbf.core.Rbf.deriv" title="pwtools.rbf.core.Rbf.deriv"><code class="xref py py-meth docutils literal notranslate"><span class="pre">deriv()</span></code></a>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>points</strong> (<em>2d array</em><em> (</em><em>L</em><em>,</em><em>N</em><em>) or </em><em>(</em><em>N</em><em>,</em><em>)</em>) – L N-dim points to evaluate the model on.</p></li>
 <li><p><strong>der</strong> (<em>int</em>) – If 1 return (matrix of) partial derivatives (see <a class="reference internal" href="pwtools.rbf.core.Rbf.deriv.html#pwtools.rbf.core.Rbf.deriv" title="pwtools.rbf.core.Rbf.deriv"><code class="xref py py-meth docutils literal notranslate"><span class="pre">deriv()</span></code></a> and
 <a class="reference internal" href="pwtools.rbf.core.Rbf.deriv_jax.html#pwtools.rbf.core.Rbf.deriv_jax" title="pwtools.rbf.core.Rbf.deriv_jax"><code class="xref py py-meth docutils literal notranslate"><span class="pre">deriv_jax()</span></code></a>), else model prediction values (default).</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>vals</strong> (<em>1d array (L,) or scalar</em>) – Interpolated values.</p></li>
 <li><p><em>or</em></p></li>
@@ -210,10 +211,6 @@ solver</p></li>
 
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pwtools.rbf.core.Rbf.deriv.html#pwtools.rbf.core.Rbf.deriv" title="pwtools.rbf.core.Rbf.deriv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">deriv</span></code></a>(points)</p></td>
 <td><p>Analytic first partial derivatives.</p></td>
@@ -253,7 +250,7 @@ solver</p></li>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

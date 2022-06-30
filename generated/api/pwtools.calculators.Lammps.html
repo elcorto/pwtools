@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.calculators.Lammps &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -84,7 +85,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,11 +95,11 @@
           <div class="body" role="main">
             
   <section id="pwtools-calculators-lammps">
-<h1>pwtools.calculators.Lammps<a class="headerlink" href="#pwtools-calculators-lammps" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.calculators.Lammps<a class="headerlink" href="#pwtools-calculators-lammps" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pwtools.calculators.Lammps">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pwtools.calculators.</span></span><span class="sig-name descname"><span class="pre">Lammps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/calculators.html#Lammps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.calculators.Lammps" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="pwtools.calculators.FileIOCalculator.html#pwtools.calculators.FileIOCalculator" title="pwtools.calculators.FileIOCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">pwtools.calculators.FileIOCalculator</span></code></a>, <a class="reference internal" href="pwtools.calculators.CalculatorBase.html#pwtools.calculators.CalculatorBase" title="pwtools.calculators.CalculatorBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">pwtools.calculators.CalculatorBase</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="pwtools.calculators.FileIOCalculator.html#pwtools.calculators.FileIOCalculator" title="pwtools.calculators.FileIOCalculator"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileIOCalculator</span></code></a>, <a class="reference internal" href="pwtools.calculators.CalculatorBase.html#pwtools.calculators.CalculatorBase" title="pwtools.calculators.CalculatorBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">CalculatorBase</span></code></a></p>
 <p>LAMMPS calculator.</p>
 <p>Only for single-point calculations, no MD, i.e. run a single energy+force
 calculation for the input structure.</p>
@@ -119,7 +120,7 @@ calculation for the input structure.</p>
 <dt class="sig sig-object py" id="pwtools.calculators.Lammps.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/calculators.html#Lammps.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.calculators.Lammps.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>parameters</strong> (<em>All</em>) – </p>
 </dd>
 </dl>
@@ -127,10 +128,6 @@ calculation for the input structure.</p>
 
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pwtools.calculators.Lammps.fill_infile_templ.html#pwtools.calculators.Lammps.fill_infile_templ" title="pwtools.calculators.Lammps.fill_infile_templ"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fill_infile_templ</span></code></a>()</p></td>
 <td><p>Replace all placeholders in <code class="docutils literal notranslate"><span class="pre">self.infile_templ</span></code>.</p></td>
@@ -148,10 +145,6 @@ calculation for the input structure.</p>
 </table>
 <p class="rubric">Attributes</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pwtools.calculators.Lammps.default_parameters.html#pwtools.calculators.Lammps.default_parameters" title="pwtools.calculators.Lammps.default_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_parameters</span></code></a></p></td>
 <td><p></p></td>
@@ -179,7 +172,7 @@ calculation for the input structure.</p>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

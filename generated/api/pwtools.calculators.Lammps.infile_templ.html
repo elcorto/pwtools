@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.calculators.Lammps.infile_templ &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -86,7 +87,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -96,7 +97,7 @@
           <div class="body" role="main">
             
   <section id="pwtools-calculators-lammps-infile-templ">
-<h1>pwtools.calculators.Lammps.infile_templ<a class="headerlink" href="#pwtools-calculators-lammps-infile-templ" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.calculators.Lammps.infile_templ<a class="headerlink" href="#pwtools-calculators-lammps-infile-templ" title="Permalink to this heading">¶</a></h1>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="pwtools.calculators.Lammps.infile_templ">
 <span class="sig-prename descclassname"><span class="pre">Lammps.</span></span><span class="sig-name descname"><span class="pre">infile_templ</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\nclear\nunits</span> <span class="pre">metal\nboundary</span> <span class="pre">p</span> <span class="pre">p</span> <span class="pre">p\natom_style</span> <span class="pre">atomic\n\n#</span> <span class="pre">lmp.struct</span> <span class="pre">written</span> <span class="pre">by</span> <span class="pre">pwtools\nread_data</span> <span class="pre">{structfile}\n\n#</span> <span class="pre">interactions\npair_style</span> <span class="pre">{pair_style}\npair_coeff</span> <span class="pre">{pair_coeff}\n\n#</span> <span class="pre">IO\ndump</span> <span class="pre">dump_txt</span> <span class="pre">all</span> <span class="pre">custom</span> <span class="pre">1</span> <span class="pre">{dumpfile}</span> <span class="pre">id</span> <span class="pre">type</span> <span class="pre">xu</span> <span class="pre">yu</span> <span class="pre">zu</span> <span class="pre">fx</span> <span class="pre">fy</span> <span class="pre">fz\ndump_modify</span> <span class="pre">dump_txt</span> <span class="pre">sort</span> <span class="pre">id\n\nthermo_style</span> <span class="pre">custom</span> <span class="pre">step</span> <span class="pre">temp</span> <span class="pre">vol</span> <span class="pre">cella</span> <span class="pre">cellb</span> <span class="pre">cellc</span> <span class="pre">cellalpha</span> <span class="pre">cellbeta</span> <span class="pre">cellgamma</span> <span class="pre">&amp;\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">pe</span> <span class="pre">pxx</span> <span class="pre">pyy</span> <span class="pre">pzz</span> <span class="pre">pxy</span> <span class="pre">pxz</span> <span class="pre">pyz\nrun</span> <span class="pre">0\n</span>&#160;&#160;&#160; <span class="pre">'</span></em><a class="headerlink" href="#pwtools.calculators.Lammps.infile_templ" title="Permalink to this definition">¶</a></dt>
@@ -115,7 +116,7 @@
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

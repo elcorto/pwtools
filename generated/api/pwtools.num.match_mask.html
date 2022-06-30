@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.num.match_mask &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -84,7 +85,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,7 +95,7 @@
           <div class="body" role="main">
             
   <section id="pwtools-num-match-mask">
-<h1>pwtools.num.match_mask<a class="headerlink" href="#pwtools-num-match-mask" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.num.match_mask<a class="headerlink" href="#pwtools-num-match-mask" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pwtools.num.match_mask">
 <span class="sig-prename descclassname"><span class="pre">pwtools.num.</span></span><span class="sig-name descname"><span class="pre">match_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fullout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/num.html#match_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.num.match_mask" title="Permalink to this definition">¶</a></dt>
@@ -105,7 +106,7 @@ that <cite>some_value</cite> can be an array (numpy can only do <cite>some_value
 scalar). By default we assume integer arrays, unless <cite>eps</cite> is used.</p>
 <p>With <cite>eps=None</cite> and <cite>fullout=False</cite>, it behaves like <code class="docutils literal notranslate"><span class="pre">numpy.in1d</span></code>.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>arr</strong> (<em>1d array</em>) – </p></li>
 <li><p><strong>values</strong> (<em>1d array</em>) – Values to be found in <cite>arr</cite>.</p></li>
@@ -113,7 +114,7 @@ scalar). By default we assume integer arrays, unless <cite>eps</cite> is used.</
 <li><p><strong>eps</strong> (<em>float</em>) – Use this threshold to compare array values.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>ret</strong> (<em>fullout = False</em>)</p></li>
 <li><p><strong>ret, idx_lst</strong> (<em>fullout = True</em>)</p></li>
@@ -143,7 +144,7 @@ which are also in <cite>values</cite>.</p></li>
 </div>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.in1d.html#numpy.in1d" title="(in NumPy v1.22)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.in1d</span></code></a></p>
+<p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.in1d.html#numpy.in1d" title="(in NumPy v1.23)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.in1d</span></code></a></p>
 </div>
 </dd></dl>
 
@@ -160,7 +161,7 @@ which are also in <cite>values</cite>.</p></li>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

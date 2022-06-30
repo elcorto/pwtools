@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pydos &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -82,7 +83,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -92,29 +93,26 @@
           <div class="body" role="main">
             
   <section id="pydos">
-<h1>pydos<a class="headerlink" href="#pydos" title="Permalink to this headline">¶</a></h1>
+<h1>pydos<a class="headerlink" href="#pydos" title="Permalink to this heading">¶</a></h1>
 <span class="target" id="module-pwtools.pydos"></span><p>This module implements the functionality to calculate the phonon density of
 states (PDOS) from MD trajectories. For parsing output files into a format
 which is used here, see parse.py and test/* for examples. For a theory
-overview, see <a class="footnote-reference brackets" href="#id4" id="id1">1</a>.</p>
-<p>Other codes which do that are <a class="footnote-reference brackets" href="#id5" id="id2">2</a> and <a class="footnote-reference brackets" href="#id6" id="id3">3</a>.</p>
-<dl class="footnote brackets">
-<dt class="label" id="id4"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
-<dd><p>doc/source/written/background/phonon_dos.rst</p>
-</dd>
-<dt class="label" id="id5"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
-<dd><p>tfreq from Tim Teatro
+overview, see <a class="footnote-reference brackets" href="#id4" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
+<p>Other codes which do that are <a class="footnote-reference brackets" href="#id5" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a> and <a class="footnote-reference brackets" href="#id6" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>.</p>
+<aside class="footnote brackets" id="id4" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>doc/source/written/background/phonon_dos.rst</p>
+</aside>
+<aside class="footnote brackets" id="id5" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
+<p>tfreq from Tim Teatro
 <a class="reference external" href="http://www.timteatro.net/2010/09/29/velocity-autocorrelation-and-vibrational-spectrum-calculation">http://www.timteatro.net/2010/09/29/velocity-autocorrelation-and-vibrational-spectrum-calculation</a></p>
-</dd>
-<dt class="label" id="id6"><span class="brackets"><a class="fn-backref" href="#id3">3</a></span></dt>
-<dd><p>fourier.x from CPMD</p>
-</dd>
-</dl>
+</aside>
+<aside class="footnote brackets" id="id6" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">3</a><span class="fn-bracket">]</span></span>
+<p>fourier.x from CPMD</p>
+</aside>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="pwtools.pydos.direct_pdos.html#pwtools.pydos.direct_pdos" title="pwtools.pydos.direct_pdos"><code class="xref py py-obj docutils literal notranslate"><span class="pre">direct_pdos</span></code></a>(vel, *args, **kwds)</p></td>
 <td><p>Wrapper for <code class="docutils literal notranslate"><span class="pre">pdos(...,</span> <span class="pre">method='direct',</span> <span class="pre">npad=1)</span></code></p></td>
@@ -146,7 +144,7 @@ overview, see <a class="footnote-reference brackets" href="#id4" id="id1">1</a>.
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

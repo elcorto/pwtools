@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>pwtools.visualize.ViewFactory &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -84,7 +85,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="documentwrapper">
@@ -94,7 +95,7 @@
           <div class="body" role="main">
             
   <section id="pwtools-visualize-viewfactory">
-<h1>pwtools.visualize.ViewFactory<a class="headerlink" href="#pwtools-visualize-viewfactory" title="Permalink to this headline">¶</a></h1>
+<h1>pwtools.visualize.ViewFactory<a class="headerlink" href="#pwtools-visualize-viewfactory" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pwtools.visualize.ViewFactory">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pwtools.visualize.</span></span><span class="sig-name descname"><span class="pre">ViewFactory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assert_cmd=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suffix='.axsf'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">writer=&lt;function</span> <span class="pre">write_axsf&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/visualize.html#ViewFactory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.visualize.ViewFactory" title="Permalink to this definition">¶</a></dt>
@@ -105,7 +106,7 @@ viewers.</p>
 <dt class="sig sig-object py" id="pwtools.visualize.ViewFactory.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assert_cmd=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suffix='.axsf'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">writer=&lt;function</span> <span class="pre">write_axsf&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/visualize.html#ViewFactory.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.visualize.ViewFactory.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>cmd</strong> (<em>str</em>) – Shell command to call the viewer. Used as <code class="docutils literal notranslate"><span class="pre">&lt;cmd&gt;</span>
 <span class="pre">&lt;structfile&gt;</span></code>. Example: ‘jmol’, ‘xcrysden –axsf’.</p></li>
@@ -138,7 +139,7 @@ viewer.</p></li>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>obj</strong> (<a class="reference internal" href="pwtools.crys.Structure.html#pwtools.crys.Structure" title="pwtools.crys.Structure"><em>Structure</em></a><em> or </em><a class="reference internal" href="pwtools.crys.Trajectory.html#pwtools.crys.Trajectory" title="pwtools.crys.Trajectory"><em>Trajectory</em></a>) – </p></li>
 <li><p><strong>logfile</strong> (<em>str</em><em>, </em><em>optional</em>) – Filename of a logfile for the viewer’s text output.</p></li>
@@ -158,10 +159,6 @@ viewer program may complain.</p></li>
 
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 </tbody>
 </table>
@@ -180,7 +177,7 @@ viewer program may complain.</p></li>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
