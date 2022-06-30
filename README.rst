@@ -3,8 +3,6 @@
 
 About
 -----
-The pwtools package.
-
 ``pwtools`` is a Python package for pre- and postprocessing of atomistic
 calculations, mostly targeted to `Quantum Espresso`_, CPMD_, CP2K_ and
 LAMMPS_. It is almost, but not quite, entirely unlike ASE_, with some tools
@@ -17,14 +15,14 @@ files <dcd_ase_code_>`_. `Thanks <dcd_ase_pr_>`_!
 
 Documentation
 -------------
-Have a look at `the docs`_ -- html version of the files in `doc/`_ along with
-auto-generated `API documentation`_ (by using sphinx-autodoc_). Quick start
-instructions can be found in `the tutorial`_. Many examples, besides the ones
-in the doc strings are in `the tests`_.
+Have a look at `the docs`_. Quick start instructions can be found in `the
+tutorial`_. Many examples, besides the ones in the doc strings are in `the
+tests`_.
 
 Install
 -------
-See the `install notes`_.
+See the `install docs`_.
+
 
 .. ---------------------------------------------------------------------------
    link targets, see also doc/source/written/refs.rst
@@ -73,7 +71,7 @@ See the `install notes`_.
 .. _the tutorial: tutorial_
 .. _the tests: tests_
 .. _Quantum Espresso: QE_
-.. _install notes: install_
+.. _install docs: install_
 .. _feature overview: features_
 .. _the docs: docs_html_
 .. _doc/: docs_files_
