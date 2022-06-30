@@ -34,7 +34,7 @@ from setuptools.command.develop import develop
 
 
 here = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(here, 'README.rst')) as fd:
+with open(os.path.join(here, "README.rst")) as fd:
     long_description = fd.read()
 
 
@@ -47,7 +47,11 @@ def build_extensions():
     we just need to tell setuptools that these are "data files" that we wish to
     copy when installing, along with all *.py files.
     """
-    subprocess.run(r"cd src; make clean; make", shell=True, check=True)
+    subprocess.run(
+        r"cd src; make clean; make ${PWTOOLS_EXT_MAKE_TARGET:-}",
+        shell=True,
+        check=True,
+    )
 
 
 def make_cmd_class(base):
@@ -64,30 +68,32 @@ def make_cmd_class(base):
     -----
     https://stackoverflow.com/a/36902139
     """
+
     class CmdClass(base):
         def run(self):
             build_extensions()
             super().run()
+
     return CmdClass
 
 
 setup(
-    name='pwtools',
-    version='1.2.3',
-    description='pre- and postprocessing of atomistic calculations',
+    name="pwtools",
+    version="1.2.3",
+    description="pre- and postprocessing of atomistic calculations",
     long_description=long_description,
-    url='https://github.com/elcorto/pwtools',
-    author='Steve Schmerler',
-    author_email='git@elcorto.com',
-    license='BSD 3-Clause',
-    keywords='ase scipy atoms simulation database postprocessing qha',
+    url="https://github.com/elcorto/pwtools",
+    author="Steve Schmerler",
+    author_email="git@elcorto.com",
+    license="BSD 3-Clause",
+    keywords="ase scipy atoms simulation database postprocessing qha",
     packages=find_packages(),
-    install_requires=open('requirements.txt').read().splitlines(),
-    setup_requires=['numpy'],
-    python_requires='>=3',
-    package_data={'pwtools': ['*.so']},
+    install_requires=open("requirements.txt").read().splitlines(),
+    setup_requires=["numpy"],
+    python_requires=">=3",
+    package_data={"pwtools": ["*.so"]},
     cmdclass={
-        'build_py': make_cmd_class(build_py),
-        'develop': make_cmd_class(develop),
-        },
+        "build_py": make_cmd_class(build_py),
+        "develop": make_cmd_class(develop),
+    },
 )
