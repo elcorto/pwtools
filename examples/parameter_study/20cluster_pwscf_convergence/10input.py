@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Write PWscf input files for a convergence study: vary ecutwfc.
 

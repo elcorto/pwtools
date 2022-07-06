@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 # Create a PWscf MD "trajectory" where the CELL_PARAMETERS unit changes. This
 # is for testing if the parser can handle that. The output file consists only

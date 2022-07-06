@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 # Generate matdyn.modes file, filled with dummy data. Parsed and used in
 # test/test_read_matdyn.py .

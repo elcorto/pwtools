@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 """
 Study of cross-validation parameters. We use repeated K-fold cross-validation

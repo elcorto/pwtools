@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Use some real world MD data (only 10 steps :) and calculate some RPDFs with
 # crys.rpdf() and VMD, only up to rmax_auto.

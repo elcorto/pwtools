@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Sometimes, a signal needs to be zero-padded before an FFT (e.g. when one
 # calculates the correlation with FFT). That introduces "leakage" and sinc-like

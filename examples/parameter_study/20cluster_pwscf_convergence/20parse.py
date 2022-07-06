@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 # Parse each pw.out and write results/idx/struct.pk
 
