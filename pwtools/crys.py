@@ -1222,34 +1222,37 @@ def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None,
     # Below, "density" always means number density, i.e. (N atoms in the unit
     # cell)  / (unit cell volume V).
     #
-    # g(r) is (a) the average number of atoms in a shell [r,r+dr] around an
-    # atom at r=0 or (b) the average density of atoms in that shell -- relative
-    # to an "ideal gas" (random distribution) of density N/V. Also sometimes:
-    # The number of atom pairs with distance r relative to the number of pairs
-    # in a random distribution.
+    # g(r) is (a) the average atom density in a shell [r,r+dr] around an atom at
+    # r=0, relative to an "ideal gas" (random distribution) of density N/V.
+    # (b) Equivalent: The average number of atom pairs with distance r relative
+    # to the number of pairs with distance r in a random distribution.
     #
-    # For each atom i=1,N, count the number dn(r) of atoms j around it in the
-    # shell [r,r+dr] with r_ij = r_i - r_j, r < r_ij <= r+dr
+    # For each atom i=1,N, count the number of atoms j around it in the shell
+    # [r,r+dr] with r_ij = r_i - r_j, r < r_ij <= r+dr
     #
-    #   dn(r) = sum(i=1,N) sum(j=1,N, j!=i) delta(r - r_ij)
+    #   s(r) = sum(i=1,N) sum(j=1,N, j!=i) delta(r - r_ij)
     #
     # In practice, this is done by calculating all distances r_ij and bin them
-    # into a histogram dn(k) with k = r_ij / dr the histogram index.
+    # into a histogram s(k) with k = r_ij / dr the histogram index.
     #
-    # We sum over N atoms, so we have to divide by N -- that's why g(r) is an
-    # average. Also, we normalize to ideal gas values
-    #
-    #   g(r) = dn(r) / [N * (N/V) * V(r)]
-    #        = dn(r) / [N**2/V * V(r)]
+    #   g(r) = s(r) / [N * (N/V) * V(r)]
+    #        = s(r) / [N**2/V * V(r)]
     #   V(r) = 4*pi*r**2*dr = 4/3*pi*[(r+dr)**3 - r**3]
     #
     # where V(r) the volume of the shell. Normalization to V(r) is necessary
     # b/c the shell [r, r+dr] has on average more atoms for increasing "r".
     #
-    # Formulation (a) from above: (N/V) * V(r) is the number of atoms in the
-    # shell for an ideal gas (density*volume) or (b):  dn(r) / V(r) is the
-    # density of atoms in the shell and dn(r) / [V(r) * (N/V)] is that density
-    # relative to the ideal gas density N/V. Clear? :)
+    # We sum over N atoms, so we have to divide by N : s(r) / N -- that's why
+    # g(r) is an average.
+    #
+    # Interpretation (a): Since we further divide by the shell volume V(r), the
+    # average shell atom count s(r) / N becomes the average shell atom density
+    # s(r) / [N * V(r)]. We finally normalize by the ideal gas density N/V to
+    # get a the dimensionless g(r).
+    #
+    # Interpretation (b): The average shell atom count is s(r) / N. It has no
+    # unit. The denominator is then (N/V) * V(r), which is the shell atom count
+    # for a random distribution of density N/V.
     #
     # g(r) -> 1 for r -> inf in liquids, i.e. long distances are not
     # correlated. Their distribution is random. In a crystal, we get an
@@ -1260,7 +1263,7 @@ def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None,
     #
     #   I(r1,r2) = int(r=r1,r2) N/V*g(r)*4*pi*r**2*dr
     #            = int(r=r1,r2) N/V*g(r)*V(r)*dr
-    #            = int(r=r1,r2) 1/N*dn(r)*dr
+    #            = int(r=r1,r2) 1/N*s(r)*dr
     #
     # This can be used to calculate coordination numbers, i.e. it counts the
     # average (that's why 1/N) number of atoms around an atom in a shell
@@ -1303,36 +1306,36 @@ def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None,
     # Lets say you have 10 waters -> 10 x O (atom type A), 20 x H (type B),
     # then let A = 10, B = 20.
     #
-    #   dn(r) = sum(i=1,A) sum(j=1,B) delta(r - r_ij) =
-    #           dn_AB(r) + dn_BA(r)
+    #   s(r) = sum(i=1,A) sum(j=1,B) delta(r - r_ij)
+    #        = s_AB(r) + s_BA(r)
     #
-    # where dn_AB(r) is the number of B's around A's and vice versa. With the
+    # where s_AB(r) is the number of B's around A's and vice versa. With the
     # densities A/V and B/V, we get
     #
     #   g(r) = g_AB(r) + g_BA(r) =
-    #          dn_AB(r) / [A * (B/V) * V(r)] +
-    #          dn_BA(r) / [B * (A/V) * V(r)]
+    #          s_AB(r) / [A * (B/V) * V(r)] +
+    #          s_BA(r) / [B * (A/V) * V(r)]
     #
     # Note that the density used is always the density of the *sourrounding*
     # atom type. g_AB(r) or g_BA(r) is the result that you want. Finally, we
     # can also write g(r) for the all-all case, i.e. 1 atom type.
     #
-    #  g(r) = [dn_AB(r) +  dn_BA(r)] / [A*B/V * V(r)]
+    #  g(r) = [s_AB(r) +  s_BA(r)] / [A*B/V * V(r)]
     #
     # Note the similarity to the case of one atom type:
     #
-    #  g(r) = dn(r) / [N**2/V * V(r)]
+    #  g(r) = s(r) / [N**2/V * V(r)]
     #
     # The integrals are:
     #
     #  I_AB(r1,r2) = int(r=r1,r2) (B/V)*g_AB(r)*4*pi*r**2*dr
-    #                int(r=r1,r2) 1/A*dn_AB(r)*dr
+    #                int(r=r1,r2) 1/A*s_AB(r)*dr
     #  I_BA(r1,r2) = int(r=r1,r2) (A/V)*g_BA(r)*4*pi*r**2*dr
-    #                int(r=r1,r2) 1/B*dn_BA(r)*dr
+    #                int(r=r1,r2) 1/B*s_BA(r)*dr
     #
     # Note the similarity to the one-atom case:
     #
-    #  I(r1,r2)    = int(r=r1,r2) 1/N*dn(r)*dr
+    #  I(r1,r2)    = int(r=r1,r2) 1/N*s(r)*dr
     #
     # These integrals converge to the total number of *sourrounding*
     # atoms of the other type:
@@ -1434,7 +1437,7 @@ def rpdf(trajs, dr=0.05, rmax='auto', amask=None, tmask=None,
     # VMD calculates g(r) using this norm_fac, but the num_int is always
     # calculated using the textbook result
     #
-    #   I_AB(r1,r2) = int(r=r1,r2) 1/A*dn_AB(r)
+    #   I_AB(r1,r2) = int(r=r1,r2) 1/A*s_AB(r)
     #
     # which is what we do, i.e. just integrate the histogram. That means VMD's
     # results are inconsistent if duplicates != 0. In that case g(r) is
