@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>pwtools.signal.acorr &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -14,6 +14,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="pwtools.signal.cauchy" href="pwtools.signal.cauchy.html" />
@@ -156,12 +157,13 @@ acorr(v,4)) = O(1e-16) or so.</p>
   <span class="n">c</span> <span class="p">:</span> <span class="nb">input</span> <span class="n">rank</span><span class="o">-</span><span class="mi">1</span> <span class="n">array</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">)</span> <span class="k">with</span> <span class="n">bounds</span> <span class="p">(</span><span class="n">nstep</span><span class="p">)</span>
   <span class="n">method</span> <span class="p">:</span> <span class="nb">input</span> <span class="nb">int</span>
 <span class="n">Optional</span> <span class="n">arguments</span><span class="p">:</span>
-  <span class="n">nstep</span> <span class="p">:</span><span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="nb">input</span> <span class="nb">int</span>
+  <span class="n">nstep</span> <span class="o">:=</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="nb">input</span> <span class="nb">int</span>
 <span class="n">Return</span> <span class="n">objects</span><span class="p">:</span>
   <span class="n">c</span> <span class="p">:</span> <span class="n">rank</span><span class="o">-</span><span class="mi">1</span> <span class="n">array</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">)</span> <span class="k">with</span> <span class="n">bounds</span> <span class="p">(</span><span class="n">nstep</span><span class="p">)</span>
 </pre></div>
 </div>
 <p class="rubric">References</p>
+<aside class="footnote-list brackets">
 <aside class="footnote brackets" id="id1" role="note">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p>Numerical Recipes in Fortran, 2nd ed., ch. 13.2</p>
@@ -182,6 +184,7 @@ acorr(v,4)) = O(1e-16) or so.</p>
 <span class="label"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="http://mathworld.wolfram.com/Autocorrelation.html">http://mathworld.wolfram.com/Autocorrelation.html</a></p>
 </aside>
+</aside>
 </dd></dl>
 
 </section>
@@ -197,7 +200,7 @@ acorr(v,4)) = O(1e-16) or so.</p>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

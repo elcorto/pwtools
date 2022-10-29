@@ -13,6 +13,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -93,10 +94,10 @@
 
 <span class="kn">import</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">pwtools.common</span> <span class="k">import</span> <span class="n">fix_eps</span><span class="p">,</span> <span class="n">str_arr</span><span class="p">,</span> <span class="n">file_readlines</span><span class="p">,</span> <span class="n">pj</span>
-<span class="kn">from</span> <span class="nn">pwtools</span> <span class="k">import</span> <span class="n">parse</span><span class="p">,</span> <span class="n">crys</span><span class="p">,</span> <span class="n">common</span>
-<span class="kn">from</span> <span class="nn">pwtools.num</span> <span class="k">import</span> <span class="n">EPS</span>
-<span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">sin</span><span class="p">,</span> <span class="n">acos</span><span class="p">,</span> <span class="n">sqrt</span>
+<span class="kn">from</span> <span class="nn">pwtools.common</span> <span class="kn">import</span> <span class="n">fix_eps</span><span class="p">,</span> <span class="n">str_arr</span><span class="p">,</span> <span class="n">file_readlines</span><span class="p">,</span> <span class="n">pj</span>
+<span class="kn">from</span> <span class="nn">pwtools</span> <span class="kn">import</span> <span class="n">parse</span><span class="p">,</span> <span class="n">crys</span><span class="p">,</span> <span class="n">common</span>
+<span class="kn">from</span> <span class="nn">pwtools.num</span> <span class="kn">import</span> <span class="n">EPS</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sin</span><span class="p">,</span> <span class="n">acos</span><span class="p">,</span> <span class="n">sqrt</span>
 
 <div class="viewcode-block" id="atpos_str"><a class="viewcode-back" href="../../generated/api/pwtools.pwscf.atpos_str.html#pwtools.pwscf.atpos_str">[docs]</a><span class="k">def</span> <span class="nf">atpos_str</span><span class="p">(</span><span class="n">symbols</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%.16e</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">zero_eps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">EPS</span><span class="p">,</span> <span class="n">delim</span><span class="o">=</span><span class="mi">4</span><span class="o">*</span><span class="s1">&#39; &#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Convenience function to make a string for the ATOMIC_POSITIONS section</span>
@@ -778,7 +779,7 @@
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

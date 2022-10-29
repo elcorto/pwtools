@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>pwtools.random.RandomStructure &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -14,6 +14,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="pwtools.random.RandomStructure.get_random_cryst_const" href="pwtools.random.RandomStructure.get_random_cryst_const.html" />
@@ -119,15 +120,15 @@ bottleneck. Hint: <code class="docutils literal notranslate"><span class="pre">p
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>symbols</strong> (<em>list of strings</em>) – Atom symbols. Defines number of atoms and composition.</p></li>
+<li><p><strong>symbols</strong> (<em>list</em><em> of </em><em>strings</em>) – Atom symbols. Defines number of atoms and composition.</p></li>
 <li><p><strong>vol_scale</strong> (<em>float</em>) – Scale volume estimated from sum of covalent spheres (lower bound
 for volume). Only values &gt; 1 make sense. This is used
 to get the mean target volume (increase “the holes” between spheres).
 Large values will create large cells with much space between atoms.</p></li>
-<li><p><strong>angle_range</strong> (<em>sequence of 2 floats</em><em> [</em><em>min</em><em>, </em><em>max</em><em>]</em>) – Range of allowed random cell angles.</p></li>
-<li><p><strong>vol_range_scale</strong> (<em>sequence of 2 floats</em><em> [</em><em>min</em><em>, </em><em>max</em><em>]</em>) – Scale estimated mean volume by <cite>min</cite> and <cite>max</cite> to get allowed
+<li><p><strong>angle_range</strong> (<em>sequence</em><em> of </em><em>2 floats</em><em> [</em><em>min</em><em>, </em><em>max</em><em>]</em>) – Range of allowed random cell angles.</p></li>
+<li><p><strong>vol_range_scale</strong> (<em>sequence</em><em> of </em><em>2 floats</em><em> [</em><em>min</em><em>, </em><em>max</em><em>]</em>) – Scale estimated mean volume by <cite>min</cite> and <cite>max</cite> to get allowed
 volume range.</p></li>
-<li><p><strong>length_range_scale</strong> (<em>sequence of 2 floats</em><em> [</em><em>min</em><em>, </em><em>max</em><em>]</em>) – Scale estimated mean cell side length (3rd root of mean volume)
+<li><p><strong>length_range_scale</strong> (<em>sequence</em><em> of </em><em>2 floats</em><em> [</em><em>min</em><em>, </em><em>max</em><em>]</em>) – Scale estimated mean cell side length (3rd root of mean volume)
 by <cite>min</cite> and <cite>max</cite> to get allowed cell side range.</p></li>
 <li><p><strong>close_scale</strong> (<em>float</em>) – Scale allowed distance between atoms (from sum of covalent radii).
 Use &lt; 1.0 to make tightly packed structures, i.e. small values will
@@ -167,7 +168,7 @@ cell before RandomStructureFail is raised.</p></li>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

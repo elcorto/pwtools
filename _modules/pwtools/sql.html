@@ -13,6 +13,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -90,7 +91,7 @@
   <h1>Source code for pwtools.sql</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">sqlite3</span><span class="o">,</span> <span class="nn">types</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">pwtools</span> <span class="k">import</span> <span class="n">common</span>
+<span class="kn">from</span> <span class="nn">pwtools</span> <span class="kn">import</span> <span class="n">common</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
 
@@ -166,7 +167,7 @@
 <span class="sd">    There is the possibility that the entry has a slightly different value</span>
 <span class="sd">    in the db and in the actual input file. See fileval.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="SQLEntry.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLEntry.html#pwtools.sql.SQLEntry.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sqlval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sqltype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fileval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SQLEntry.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLEntry.html#pwtools.sql.SQLEntry.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sqlval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sqltype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fileval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -298,7 +299,7 @@
 <span class="sd">       float after less then 16 digits and thus store the 8-byte float with</span>
 <span class="sd">       less precision!</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="SQLiteDB.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.html#pwtools.sql.SQLiteDB.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_fn</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SQLiteDB.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.html#pwtools.sql.SQLiteDB.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_fn</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -596,7 +597,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span></div>
 
 
@@ -853,7 +854,7 @@
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

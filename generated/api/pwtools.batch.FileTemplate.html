@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>pwtools.batch.FileTemplate &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -14,6 +14,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="pwtools.batch.FileTemplate.write" href="pwtools.batch.FileTemplate.write.html" />
@@ -139,7 +140,7 @@ dictionary keys with <cite>func</cite>. In the example, this will be:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">templ</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">dct</span><span class="p">,</span> <span class="s1">&#39;calc/0&#39;</span><span class="p">)</span>
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># or with SQL foo in a parameter study</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sql</span> <span class="k">import</span> <span class="n">SQLEntry</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sql</span> <span class="kn">import</span> <span class="n">SQLEntry</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dct</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dct</span><span class="p">[</span><span class="s1">&#39;prefix&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="n">SQLEntry</span><span class="p">(</span><span class="n">sqlval</span><span class="o">=</span><span class="s1">&#39;foo_run_1&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sct</span><span class="p">[</span><span class="s1">&#39;ecutwfc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SQLEntry</span><span class="p">(</span><span class="n">sqlval</span><span class="o">=</span><span class="mf">23.0</span><span class="p">)</span>
@@ -163,7 +164,7 @@ dictionary keys with <cite>func</cite>. In the example, this will be:</p>
 </p></li>
 <li><p><strong>txt</strong> (<em>string</em><em>, </em><em>optional</em>) – Text of the template file. If None, then we assume a file
 <code class="docutils literal notranslate"><span class="pre">templ_dir/basename</span></code> and read that.</p></li>
-<li><p><strong>keys</strong> (<em>{None</em><em>, </em><em>list of strings</em><em>, </em><em>[</em><em>]</em><em>}</em>) – <div class="line-block">
+<li><p><strong>keys</strong> (<em>{None</em><em>, </em><em>list</em><em> of </em><em>strings</em><em>, </em><em>[</em><em>]</em><em>}</em>) – <div class="line-block">
 <div class="line">keys=None: All keys dct.keys() in self.write() are used. This is</div>
 <div class="line-block">
 <div class="line">useful if you have a dict holding many keys, whose placeholders</div>
@@ -227,7 +228,7 @@ and basename=os.path.basename(filename)</p></li>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

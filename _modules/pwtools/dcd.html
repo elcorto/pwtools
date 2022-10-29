@@ -13,6 +13,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -341,7 +342,7 @@
 <span class="sd">    &gt;&gt;&gt; # more safe if you don&#39;t trust nstep from the header</span>
 <span class="sd">    &gt;&gt;&gt; cc,co = read_dcd_data_f(&#39;lammps.dcd&#39;, convang=True, nstephdr=False)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">pwtools</span> <span class="k">import</span> <span class="n">_dcd</span>
+    <span class="kn">from</span> <span class="nn">pwtools</span> <span class="kn">import</span> <span class="n">_dcd</span>
     <span class="n">nstep</span><span class="p">,</span> <span class="n">natoms</span><span class="p">,</span> <span class="n">timestep</span> <span class="o">=</span> <span class="n">_dcd</span><span class="o">.</span><span class="n">get_dcd_file_info</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">nstephdr</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">_dcd</span><span class="o">.</span><span class="n">read_dcd_data</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">nstep</span><span class="p">,</span> <span class="n">natoms</span><span class="p">,</span> <span class="n">convang</span><span class="p">)</span></div>
 </pre></div>
@@ -356,7 +357,7 @@
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

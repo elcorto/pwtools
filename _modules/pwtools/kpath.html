@@ -13,6 +13,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -89,7 +90,7 @@
             
   <h1>Source code for pwtools.kpath</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">pwtools</span> <span class="k">import</span> <span class="n">num</span><span class="p">,</span> <span class="n">pwscf</span><span class="p">,</span> <span class="n">common</span><span class="p">,</span> <span class="n">mpl</span>
+<span class="kn">from</span> <span class="nn">pwtools</span> <span class="kn">import</span> <span class="n">num</span><span class="p">,</span> <span class="n">pwscf</span><span class="p">,</span> <span class="n">common</span><span class="p">,</span> <span class="n">mpl</span>
 
 <div class="viewcode-block" id="kpath"><a class="viewcode-back" href="../../generated/api/pwtools.kpath.kpath.html#pwtools.kpath.kpath">[docs]</a><span class="k">def</span> <span class="nf">kpath</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Simple k-path. Given a set of K vectors (special points in the BZ),</span>
@@ -149,7 +150,7 @@
 <div class="viewcode-block" id="SpecialPointsPath"><a class="viewcode-back" href="../../generated/api/pwtools.kpath.SpecialPointsPath.html#pwtools.kpath.SpecialPointsPath">[docs]</a><span class="k">class</span> <span class="nc">SpecialPointsPath</span><span class="p">:</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Sequence of special points. Calculate their path norm and store symbols</span>
 <span class="sd">    such as &quot;K&quot; or &quot;$\\Gamma$&quot;.&quot;&quot;&quot;</span>
-<div class="viewcode-block" id="SpecialPointsPath.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.kpath.SpecialPointsPath.html#pwtools.kpath.SpecialPointsPath.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ks_frac</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SpecialPointsPath.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.kpath.SpecialPointsPath.html#pwtools.kpath.SpecialPointsPath.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ks_frac</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -269,7 +270,7 @@
         <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;frequency (cm$^{-1}$)&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">dos</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># http://matplotlib.org/examples/axes_grid/scatter_hist.html</span>
-            <span class="kn">from</span> <span class="nn">mpl_toolkits.axes_grid1</span> <span class="k">import</span> <span class="n">make_axes_locatable</span>
+            <span class="kn">from</span> <span class="nn">mpl_toolkits.axes_grid1</span> <span class="kn">import</span> <span class="n">make_axes_locatable</span>
             <span class="n">divider</span> <span class="o">=</span> <span class="n">make_axes_locatable</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
             <span class="n">axdos</span> <span class="o">=</span> <span class="n">divider</span><span class="o">.</span><span class="n">append_axes</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
             <span class="n">axdos</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">dos</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="n">dos</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;b&#39;</span><span class="p">)</span>
@@ -291,7 +292,7 @@
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

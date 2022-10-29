@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>pwtools.crys.pbc_wrap_coords &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -14,6 +14,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="pwtools.crys.pi" href="pwtools.crys.pi.html" />
@@ -98,7 +99,7 @@
 <h1>pwtools.crys.pbc_wrap_coords<a class="headerlink" href="#pwtools-crys-pbc-wrap-coords" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pwtools.crys.pbc_wrap_coords">
-<span class="sig-prename descclassname"><span class="pre">pwtools.crys.</span></span><span class="sig-name descname"><span class="pre">pbc_wrap_coords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords_frac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[True,</span> <span class="pre">True,</span> <span class="pre">True]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xyz_axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/crys.html#pbc_wrap_coords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.crys.pbc_wrap_coords" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pwtools.crys.</span></span><span class="sig-name descname"><span class="pre">pbc_wrap_coords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords_frac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[True,</span> <span class="pre">True,</span> <span class="pre">True]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xyz_axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/crys.html#pbc_wrap_coords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.crys.pbc_wrap_coords" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply periodic boundary conditions to array of fractional coords.</p>
 <p>Wrap atoms with fractional coords &gt; 1 or &lt; 0 into the cell.</p>
 <dl class="field-list simple">
@@ -107,7 +108,7 @@
 <li><p><strong>coords_frac</strong> (<em>array 2d</em><em> or </em><em>3d</em>) – fractional coords, if 3d then one axis is assumed to be a time axis and
 the array is a MD trajectory or such</p></li>
 <li><p><strong>copy</strong> (<em>bool</em>) – Copy coords_frac before applying pbc.</p></li>
-<li><p><strong>mask</strong> (<em>sequence of bools</em><em>, </em><em>len = 3 for x</em><em>,</em><em>y</em><em>,</em><em>z</em>) – Apply pbc only x, y or z. E.g. [True, True, False] would not wrap the z
+<li><p><strong>mask</strong> (<em>sequence</em><em> of </em><em>bools</em><em>, </em><em>len = 3 for x</em><em>,</em><em>y</em><em>,</em><em>z</em>) – Apply pbc only x, y or z. E.g. [True, True, False] would not wrap the z
 coordinate.</p></li>
 <li><p><strong>xyz_axis</strong> (the axis of <cite>coords_frac</cite> where the indices 0,1,2 pull out the x,y,z) – coords. For a usual 2d array of coords with shape (natoms,3),
 xyz_axis=1 (= last axis = -1). For a 3d array (natoms, nstep, 3),
@@ -144,7 +145,7 @@ same:</p>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

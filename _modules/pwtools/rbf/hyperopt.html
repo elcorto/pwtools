@@ -13,6 +13,7 @@
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -93,16 +94,16 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">optimize</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">optimize</span>
 
-<span class="kn">from</span> <span class="nn">pwtools.rbf.core</span> <span class="k">import</span> <span class="n">Rbf</span><span class="p">,</span> <span class="n">estimate_p</span>
+<span class="kn">from</span> <span class="nn">pwtools.rbf.core</span> <span class="kn">import</span> <span class="n">Rbf</span><span class="p">,</span> <span class="n">estimate_p</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="k">import</span> <span class="n">RepeatedKFold</span>
+    <span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">RepeatedKFold</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
 
 <div class="viewcode-block" id="RepeatedKFold"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.hyperopt.RepeatedKFold.html#pwtools.rbf.hyperopt.RepeatedKFold">[docs]</a>    <span class="k">class</span> <span class="nc">RepeatedKFold</span><span class="p">:</span>
-<div class="viewcode-block" id="RepeatedKFold.__init__"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.hyperopt.RepeatedKFold.html#pwtools.rbf.hyperopt.RepeatedKFold.__init__">[docs]</a>        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+<div class="viewcode-block" id="RepeatedKFold.__init__"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.hyperopt.RepeatedKFold.html#pwtools.rbf.hyperopt.RepeatedKFold.__init__">[docs]</a>        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
                 <span class="s2">&quot;Failed to import RepeatedKFold from &quot;</span>
                 <span class="s2">&quot;sklearn, not installed?&quot;</span>
@@ -132,7 +133,7 @@
 <span class="sd">    `params`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="FitError.__init__"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.hyperopt.FitError.html#pwtools.rbf.hyperopt.FitError.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="FitError.__init__"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.hyperopt.FitError.html#pwtools.rbf.hyperopt.FitError.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">points</span><span class="p">,</span>
         <span class="n">values</span><span class="p">,</span>
@@ -172,7 +173,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">cv_cls</span> <span class="o">=</span> <span class="n">cv</span></div>
 
-<div class="viewcode-block" id="FitError.__call__"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.hyperopt.FitError.html#pwtools.rbf.hyperopt.FitError.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+<div class="viewcode-block" id="FitError.__call__"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.hyperopt.FitError.html#pwtools.rbf.hyperopt.FitError.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_cv</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">err_cv</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -186,7 +187,7 @@
             <span class="k">return</span> <span class="n">Rbf</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">rbf_kwds</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">kw</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">]:</span>
-                <span class="k">assert</span> <span class="n">kw</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rbf_kwds</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">f</span><span class="s2">&quot;&#39;</span><span class="si">{kw}</span><span class="s2">&#39; in kwds&quot;</span>
+                <span class="k">assert</span> <span class="n">kw</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rbf_kwds</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">kw</span><span class="si">}</span><span class="s2">&#39; in kwds&quot;</span>
             <span class="k">return</span> <span class="n">Rbf</span><span class="p">(</span>
                 <span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">r</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">rbf_kwds</span>
             <span class="p">)</span>
@@ -292,18 +293,18 @@
 <span class="sd">        Rbf instance initialized with `points`, `values` and found optimal `p` (and `r`).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">assert</span> <span class="n">what</span> <span class="ow">in</span> <span class="p">(</span>
-        <span class="n">what_ok</span> <span class="p">:</span><span class="o">=</span> <span class="p">[</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;pr&quot;</span><span class="p">]</span>
-    <span class="p">),</span> <span class="n">f</span><span class="s2">&quot;unknown value {what=}, allowed is </span><span class="si">{what_ok}</span><span class="s2">&quot;</span>
+        <span class="n">what_ok</span> <span class="o">:=</span> <span class="p">[</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;pr&quot;</span><span class="p">]</span>
+    <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;unknown value </span><span class="si">{</span><span class="n">what</span><span class="si">=}</span><span class="s2">, allowed is </span><span class="si">{</span><span class="n">what_ok</span><span class="si">}</span><span class="s2">&quot;</span>
     <span class="n">what_lst</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">what</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">kw</span> <span class="ow">in</span> <span class="n">what_lst</span><span class="p">:</span>
         <span class="k">assert</span> <span class="p">(</span>
             <span class="n">kw</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rbf_kwds</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
-        <span class="p">),</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{kw}</span><span class="s2"> in {rbf_kwds=} while </span><span class="si">{kw}</span><span class="s2"> should be optimized&quot;</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">kw</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">rbf_kwds</span><span class="si">=}</span><span class="s2"> while </span><span class="si">{</span><span class="n">kw</span><span class="si">}</span><span class="s2"> should be optimized&quot;</span>
     <span class="k">assert</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">[</span>
         <span class="s2">&quot;de&quot;</span><span class="p">,</span>
         <span class="s2">&quot;fmin&quot;</span><span class="p">,</span>
         <span class="s2">&quot;brute&quot;</span><span class="p">,</span>
-    <span class="p">],</span> <span class="n">f</span><span class="s2">&quot;unknown {method=}&quot;</span>
+    <span class="p">],</span> <span class="sa">f</span><span class="s2">&quot;unknown </span><span class="si">{</span><span class="n">method</span><span class="si">=}</span><span class="s2">&quot;</span>
     <span class="n">fit_err</span> <span class="o">=</span> <span class="n">FitError</span><span class="p">(</span>
         <span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="n">cv</span><span class="p">,</span> <span class="n">cv_kwds</span><span class="o">=</span><span class="n">cv_kwds</span><span class="p">,</span> <span class="n">rbf_kwds</span><span class="o">=</span><span class="n">rbf_kwds</span>
     <span class="p">)</span>
@@ -347,7 +348,7 @@
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

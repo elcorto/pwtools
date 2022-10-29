@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>pwtools.crys.rpdf &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -14,6 +14,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="pwtools.crys.scell" href="pwtools.crys.scell.html" />
@@ -106,7 +107,7 @@ Only fixed-cell MD at the moment.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>trajs</strong> (<a class="reference internal" href="pwtools.crys.Structure.html#pwtools.crys.Structure" title="pwtools.crys.Structure"><em>Structure</em></a><em> or </em><a class="reference internal" href="pwtools.crys.Trajectory.html#pwtools.crys.Trajectory" title="pwtools.crys.Trajectory"><em>Trajectory</em></a><em> or </em><em>list of one</em><em> or </em><em>two such objects</em>) – The case <code class="docutils literal notranslate"><span class="pre">len(trajs)==1</span></code> is the same as providing the object directly
+<li><p><strong>trajs</strong> (<a class="reference internal" href="pwtools.crys.Structure.html#pwtools.crys.Structure" title="pwtools.crys.Structure"><em>Structure</em></a><em> or </em><a class="reference internal" href="pwtools.crys.Trajectory.html#pwtools.crys.Trajectory" title="pwtools.crys.Trajectory"><em>Trajectory</em></a><em> or </em><em>list</em><em> of </em><em>one</em><em> or </em><em>two such objects</em>) – The case <code class="docutils literal notranslate"><span class="pre">len(trajs)==1</span></code> is the same as providing the object directly
 (most common case). Internally we expand the input to <code class="docutils literal notranslate"><span class="pre">[trajs,</span>
 <span class="pre">trajs]</span></code>, i.e. the RPDF of the 2nd coord set w.r.t. to the first is
 calculated – the order matters! This is like selection 1 and 2 in VMD,
@@ -124,7 +125,7 @@ For cubic boxes of side length L, this is L/2 [AT,MD].</p>
 <div class="line">float : set value yourself</div>
 </div>
 </p></li>
-<li><p><strong>amask</strong> (<em>None</em><em>, </em><em>list of one</em><em> or </em><em>two bool 1d arrays</em><em>, </em><em>list of one</em><em> or </em><em>two strings</em>) – Optional atom mask. This is the complementary functionality to
+<li><p><strong>amask</strong> (<em>None</em><em>, </em><em>list</em><em> of </em><em>one</em><em> or </em><em>two bool 1d arrays</em><em>, </em><em>list</em><em> of </em><em>one</em><em> or </em><em>two strings</em>) – Optional atom mask. This is the complementary functionality to
 <cite>sel</cite> in <a class="reference internal" href="pwtools.crys.vmd_measure_gofr.html#pwtools.crys.vmd_measure_gofr" title="pwtools.crys.vmd_measure_gofr"><code class="xref py py-func docutils literal notranslate"><span class="pre">vmd_measure_gofr()</span></code></a>. If <code class="docutils literal notranslate"><span class="pre">len(amask)==1</span></code>, then we expand
 to <code class="docutils literal notranslate"><span class="pre">[amask,</span> <span class="pre">amask]</span></code> internally, which would calculate the RPDF
 between the same atom selection. If two masks are given, then the first
@@ -248,7 +249,7 @@ Friedrich Vieweg &amp; Sohn Verlagsgesellschaft 1995</p>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

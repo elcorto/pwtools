@@ -13,6 +13,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -98,12 +99,12 @@
 
 <span class="kn">import</span> <span class="nn">pickle</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">pwtools.common</span> <span class="k">import</span> <span class="n">frepr</span><span class="p">,</span> <span class="n">cpickle_load</span>
-<span class="kn">from</span> <span class="nn">pwtools.constants</span> <span class="k">import</span> <span class="n">Ha</span><span class="p">,</span> <span class="n">eV</span>
-<span class="kn">from</span> <span class="nn">pwtools</span> <span class="k">import</span> <span class="n">parse</span><span class="p">,</span> <span class="n">atomic_data</span><span class="p">,</span> <span class="n">lammps</span>
-<span class="kn">from</span> <span class="nn">pwtools</span> <span class="k">import</span> <span class="n">crys</span>
-<span class="kn">from</span> <span class="nn">pwtools</span> <span class="k">import</span> <span class="n">common</span>
-<span class="kn">from</span> <span class="nn">pwtools</span> <span class="k">import</span> <span class="n">pwscf</span>
+<span class="kn">from</span> <span class="nn">pwtools.common</span> <span class="kn">import</span> <span class="n">frepr</span><span class="p">,</span> <span class="n">cpickle_load</span>
+<span class="kn">from</span> <span class="nn">pwtools.constants</span> <span class="kn">import</span> <span class="n">Ha</span><span class="p">,</span> <span class="n">eV</span>
+<span class="kn">from</span> <span class="nn">pwtools</span> <span class="kn">import</span> <span class="n">parse</span><span class="p">,</span> <span class="n">atomic_data</span><span class="p">,</span> <span class="n">lammps</span>
+<span class="kn">from</span> <span class="nn">pwtools</span> <span class="kn">import</span> <span class="n">crys</span>
+<span class="kn">from</span> <span class="nn">pwtools</span> <span class="kn">import</span> <span class="n">common</span>
+<span class="kn">from</span> <span class="nn">pwtools</span> <span class="kn">import</span> <span class="n">pwscf</span>
 <span class="c1">##warnings.simplefilter(&#39;always&#39;)</span>
 
 <span class="k">try</span><span class="p">:</span>
@@ -416,7 +417,7 @@
 
 <div class="viewcode-block" id="ReadFactory"><a class="viewcode-back" href="../../generated/api/pwtools.io.ReadFactory.html#pwtools.io.ReadFactory">[docs]</a><span class="k">class</span> <span class="nc">ReadFactory</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Factory class to construct callables to parse files.&quot;&quot;&quot;</span>
-<div class="viewcode-block" id="ReadFactory.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.io.ReadFactory.html#pwtools.io.ReadFactory.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">struct_or_traj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="ReadFactory.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.io.ReadFactory.html#pwtools.io.ReadFactory.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">struct_or_traj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -451,7 +452,7 @@
 <span class="s2">              :class:`~pwtools.crys.Trajectory` (MD-like runs)</span>
 <span class="s2">        &quot;&quot;&quot;</span></div>
 
-<div class="viewcode-block" id="ReadFactory.__call__"><a class="viewcode-back" href="../../generated/api/pwtools.io.ReadFactory.html#pwtools.io.ReadFactory.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+<div class="viewcode-block" id="ReadFactory.__call__"><a class="viewcode-back" href="../../generated/api/pwtools.io.ReadFactory.html#pwtools.io.ReadFactory.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -533,7 +534,7 @@
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

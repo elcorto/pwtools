@@ -13,6 +13,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -88,17 +89,17 @@
           <div class="body" role="main">
             
   <h1>Source code for pwtools.random</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">acos</span><span class="p">,</span> <span class="n">pi</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">cos</span><span class="p">,</span> <span class="n">sqrt</span>
+<span></span><span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">acos</span><span class="p">,</span> <span class="n">pi</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">cos</span><span class="p">,</span> <span class="n">sqrt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">numpy.random</span> <span class="k">import</span> <span class="n">uniform</span>
-<span class="kn">from</span> <span class="nn">pwtools</span> <span class="k">import</span> <span class="n">atomic_data</span><span class="p">,</span> <span class="n">_flib</span>
-<span class="kn">from</span> <span class="nn">pwtools.crys</span> <span class="k">import</span> <span class="n">cc2cell</span><span class="p">,</span> <span class="n">volume_cc</span><span class="p">,</span> <span class="n">Structure</span>
-<span class="kn">from</span> <span class="nn">pwtools.num</span> <span class="k">import</span> <span class="n">fempty</span>
+<span class="kn">from</span> <span class="nn">numpy.random</span> <span class="kn">import</span> <span class="n">uniform</span>
+<span class="kn">from</span> <span class="nn">pwtools</span> <span class="kn">import</span> <span class="n">atomic_data</span><span class="p">,</span> <span class="n">_flib</span>
+<span class="kn">from</span> <span class="nn">pwtools.crys</span> <span class="kn">import</span> <span class="n">cc2cell</span><span class="p">,</span> <span class="n">volume_cc</span><span class="p">,</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">pwtools.num</span> <span class="kn">import</span> <span class="n">fempty</span>
 
 <div class="viewcode-block" id="RandomStructureFail"><a class="viewcode-back" href="../../generated/api/pwtools.random.RandomStructureFail.html#pwtools.random.RandomStructureFail">[docs]</a><span class="k">class</span> <span class="nc">RandomStructureFail</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span>
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg</span></div>
 
 
@@ -127,7 +128,7 @@
     <span class="c1">#   warning / let user decide -- add arg error={True,False}.</span>
     <span class="c1"># * The bottleneck is get_random_struct() -- the loop over</span>
     <span class="c1">#   _atoms_too_close().</span>
-<div class="viewcode-block" id="RandomStructure.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.random.RandomStructure.html#pwtools.random.RandomStructure.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+<div class="viewcode-block" id="RandomStructure.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.random.RandomStructure.html#pwtools.random.RandomStructure.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">symbols</span><span class="p">,</span>
                  <span class="n">vol_scale</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
                  <span class="n">angle_range</span> <span class="o">=</span> <span class="p">[</span><span class="mf">60.0</span><span class="p">,</span> <span class="mf">120.0</span><span class="p">],</span>
@@ -368,7 +369,7 @@
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

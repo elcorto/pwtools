@@ -13,6 +13,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -101,12 +102,12 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">subprocess</span><span class="o">,</span> <span class="nn">types</span><span class="o">,</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">pwtools</span> <span class="k">import</span> <span class="n">common</span><span class="p">,</span> <span class="n">constants</span><span class="p">,</span> <span class="n">num</span>
-<span class="kn">from</span> <span class="nn">pwtools.constants</span> <span class="k">import</span> <span class="n">Ry</span><span class="p">,</span> <span class="n">Ha</span><span class="p">,</span> <span class="n">Bohr</span><span class="p">,</span> <span class="n">Ang</span><span class="p">,</span> <span class="n">eV</span><span class="p">,</span> <span class="n">eV_by_Ang3_to_GPa</span>
-<span class="kn">from</span> <span class="nn">pwtools.base</span> <span class="k">import</span> <span class="n">FlexibleGetters</span>
-<span class="kn">from</span> <span class="nn">pwtools.decorators</span> <span class="k">import</span> <span class="n">lazyprop</span>
-<span class="kn">from</span> <span class="nn">pwtools.num</span> <span class="k">import</span> <span class="n">Fit1D</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">leastsq</span>
+<span class="kn">from</span> <span class="nn">pwtools</span> <span class="kn">import</span> <span class="n">common</span><span class="p">,</span> <span class="n">constants</span><span class="p">,</span> <span class="n">num</span>
+<span class="kn">from</span> <span class="nn">pwtools.constants</span> <span class="kn">import</span> <span class="n">Ry</span><span class="p">,</span> <span class="n">Ha</span><span class="p">,</span> <span class="n">Bohr</span><span class="p">,</span> <span class="n">Ang</span><span class="p">,</span> <span class="n">eV</span><span class="p">,</span> <span class="n">eV_by_Ang3_to_GPa</span>
+<span class="kn">from</span> <span class="nn">pwtools.base</span> <span class="kn">import</span> <span class="n">FlexibleGetters</span>
+<span class="kn">from</span> <span class="nn">pwtools.decorators</span> <span class="kn">import</span> <span class="n">lazyprop</span>
+<span class="kn">from</span> <span class="nn">pwtools.num</span> <span class="kn">import</span> <span class="n">Fit1D</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">leastsq</span>
 
 
 <div class="viewcode-block" id="_vinet"><a class="viewcode-back" href="../../generated/api/pwtools.eos._vinet.html#pwtools.eos._vinet">[docs]</a><span class="k">def</span> <span class="nf">_vinet</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
@@ -137,15 +138,15 @@
 
 
 <div class="viewcode-block" id="MaxDerivException"><a class="viewcode-back" href="../../generated/api/pwtools.eos.MaxDerivException.html#pwtools.eos.MaxDerivException">[docs]</a><span class="k">class</span> <span class="nc">MaxDerivException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span>
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">msg</span></div>
 
 
 <div class="viewcode-block" id="EVFunction"><a class="viewcode-back" href="../../generated/api/pwtools.eos.EVFunction.html#pwtools.eos.EVFunction">[docs]</a><span class="k">class</span> <span class="nc">EVFunction</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Base class for E(V) models, such as the Vinet EOS.&quot;&quot;&quot;</span>
-<div class="viewcode-block" id="EVFunction.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.eos.EVFunction.html#pwtools.eos.EVFunction.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="EVFunction.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.eos.EVFunction.html#pwtools.eos.EVFunction.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">param_order</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;e0&#39;</span><span class="p">,</span> <span class="s1">&#39;b0&#39;</span><span class="p">,</span> <span class="s1">&#39;b1&#39;</span><span class="p">,</span> <span class="s1">&#39;v0&#39;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="EVFunction.evaluate"><a class="viewcode-back" href="../../generated/api/pwtools.eos.EVFunction.evaluate.html#pwtools.eos.EVFunction.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volume</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
@@ -178,7 +179,7 @@
 <div class="viewcode-block" id="EVFunction.get_min"><a class="viewcode-back" href="../../generated/api/pwtools.eos.EVFunction.get_min.html#pwtools.eos.EVFunction.get_min">[docs]</a>    <span class="k">def</span> <span class="nf">get_min</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span></div>
 
-<div class="viewcode-block" id="EVFunction.__call__"><a class="viewcode-back" href="../../generated/api/pwtools.eos.EVFunction.html#pwtools.eos.EVFunction.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volume</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">der</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="EVFunction.__call__"><a class="viewcode-back" href="../../generated/api/pwtools.eos.EVFunction.html#pwtools.eos.EVFunction.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volume</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">der</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">der</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">volume</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -229,7 +230,7 @@
 <span class="sd">    &gt;&gt;&gt; print(&quot;P0: %f GPa       &quot; %f.pressure(v0))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="EosFit.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.eos.EosFit.html#pwtools.eos.EosFit.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volume</span><span class="p">,</span> <span class="n">energy</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">Vinet</span><span class="p">(),</span> <span class="n">splpoints</span><span class="o">=</span><span class="mi">500</span><span class="p">):</span>
+<div class="viewcode-block" id="EosFit.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.eos.EosFit.html#pwtools.eos.EosFit.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volume</span><span class="p">,</span> <span class="n">energy</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">Vinet</span><span class="p">(),</span> <span class="n">splpoints</span><span class="o">=</span><span class="mi">500</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -277,7 +278,7 @@
                                <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">volume</span><span class="p">,))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">lst2dct</span><span class="p">(</span><span class="n">pp_opt</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="EosFit.__call__"><a class="viewcode-back" href="../../generated/api/pwtools.eos.EosFit.html#pwtools.eos.EosFit.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volume</span><span class="p">,</span> <span class="n">der</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="EosFit.__call__"><a class="viewcode-back" href="../../generated/api/pwtools.eos.EosFit.html#pwtools.eos.EosFit.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volume</span><span class="p">,</span> <span class="n">der</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -372,7 +373,7 @@
     <span class="c1"># pressure is calculated by finite differences, then ev.shape[0] == N,</span>
     <span class="c1"># pv.shape[0] == N-1 . This is mostly for historic reasons but also b/c</span>
     <span class="c1"># it&#39;s nice to have an array with x-y data right there.</span>
-<div class="viewcode-block" id="ExternEOS.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.eos.ExternEOS.html#pwtools.eos.ExternEOS.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">energy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">volume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="ExternEOS.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.eos.ExternEOS.html#pwtools.eos.ExternEOS.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">energy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">volume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">bv_method</span><span class="o">=</span><span class="s1">&#39;ev&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
@@ -564,7 +565,7 @@
 <span class="sd">    self.{ev,bv,pv} all have the same shape[0] b/c we do not use finite</span>
 <span class="sd">    differences for derivatives.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="ElkEOSFit.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.eos.ElkEOSFit.html#pwtools.eos.ElkEOSFit.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="o">=</span><span class="s1">&#39;eos.x&#39;</span><span class="p">,</span> <span class="n">natoms</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="n">etype</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<div class="viewcode-block" id="ElkEOSFit.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.eos.ElkEOSFit.html#pwtools.eos.ElkEOSFit.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="o">=</span><span class="s1">&#39;eos.x&#39;</span><span class="p">,</span> <span class="n">natoms</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;foo&#39;</span><span class="p">,</span> <span class="n">etype</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                  <span class="n">npoints</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
@@ -675,7 +676,7 @@
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

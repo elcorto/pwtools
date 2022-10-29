@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>pwtools.batch.Calculation &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -14,6 +14,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="pwtools.batch.Calculation.get_sql_record" href="pwtools.batch.Calculation.get_sql_record.html" />
@@ -115,7 +116,7 @@ own, but only by ParameterStudy.</p>
 <li><p><strong>machine</strong> (<a class="reference internal" href="pwtools.batch.Machine.html#pwtools.batch.Machine" title="pwtools.batch.Machine"><em>Machine</em></a><em>, </em><em>optional</em>) – Used to add machine specific attributes. Pulled from
 Machine.get_sql_record(). Used for FileTemplate replacement.</p></li>
 <li><p><strong>templates</strong> (<em>sequence</em>) – Sequence of FileTemplate instances.</p></li>
-<li><p><strong>params</strong> (<em>sequence of SQLEntry instances</em>) – A single “parameter set”. The <cite>key</cite> attribute (=sql column name) of
+<li><p><strong>params</strong> (<em>sequence</em><em> of </em><em>SQLEntry instances</em>) – A single “parameter set”. The <cite>key</cite> attribute (=sql column name) of
 each SQLEntry will be converted to a placeholder in each
 FileTemplate and an attempt to replacement in the template files is
 made.</p></li>
@@ -152,7 +153,7 @@ made.</p></li>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

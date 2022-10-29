@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>pwtools.parse.CifFile &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -14,6 +14,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="pwtools.parse.CifFile.apply_units" href="pwtools.parse.CifFile.apply_units.html" />
@@ -102,9 +103,11 @@
 <dd><p>Bases: <a class="reference internal" href="pwtools.parse.StructureFileParser.html#pwtools.parse.StructureFileParser" title="pwtools.parse.StructureFileParser"><code class="xref py py-class docutils literal notranslate"><span class="pre">StructureFileParser</span></code></a></p>
 <p>Parse Cif file. Uses PyCifRW <a class="footnote-reference brackets" href="#id2" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
 <p class="rubric">References</p>
+<aside class="footnote-list brackets">
 <aside class="footnote brackets" id="id2" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="https://bitbucket.org/jamesrhester/pycifrw">https://bitbucket.org/jamesrhester/pycifrw</a></p>
+</aside>
 </aside>
 <dl class="py method">
 <dt class="sig sig-object py" id="pwtools.parse.CifFile.__init__">
@@ -112,7 +115,7 @@
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>filename</strong> (<em>name of the input file</em>) – </p></li>
+<li><p><strong>filename</strong> (<em>name</em><em> of </em><em>the input file</em>) – </p></li>
 <li><p><strong>block</strong> (<em>data block name</em><em> (</em><em>i.e. 'data_foo' in the Cif file -&gt; 'foo'</em>) – here). If None then the first data block in the file is used.</p></li>
 </ul>
 </dd>
@@ -234,7 +237,7 @@
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -13,6 +13,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -88,7 +89,7 @@
           <div class="body" role="main">
             
   <h1>Source code for pwtools.timer</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">time</span>
+<span></span><span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
 
 <div class="viewcode-block" id="TagTimer"><a class="viewcode-back" href="../../generated/api/pwtools.timer.TagTimer.html#pwtools.timer.TagTimer">[docs]</a><span class="k">class</span> <span class="nc">TagTimer</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -129,7 +130,7 @@
 <span class="sd">            tt.t(&#39;inner-loop&#39;)</span>
 <span class="sd">        ....</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="TagTimer.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.timer.TagTimer.html#pwtools.timer.TagTimer.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">silence</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="TagTimer.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.timer.TagTimer.html#pwtools.timer.TagTimer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">silence</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">none_ar</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
         <span class="c1"># {&#39;tag0&#39;: array([val0, val1]), &#39;tag1&#39;: array([val2, val3]), ...}</span>
         <span class="c1"># Every `val` can be None or a float (= a time value). `tag` is a tag</span>
@@ -229,7 +230,7 @@
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

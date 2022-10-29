@@ -13,6 +13,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -88,7 +89,7 @@
           <div class="body" role="main">
             
   <h1>Source code for pwtools.crys</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">acos</span><span class="p">,</span> <span class="n">pi</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">cos</span><span class="p">,</span> <span class="n">sqrt</span>
+<span></span><span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">acos</span><span class="p">,</span> <span class="n">pi</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">cos</span><span class="p">,</span> <span class="n">sqrt</span>
 <span class="kn">import</span> <span class="nn">textwrap</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
@@ -96,14 +97,14 @@
 <span class="kn">import</span> <span class="nn">itertools</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.linalg</span> <span class="k">import</span> <span class="n">inv</span>
+<span class="kn">from</span> <span class="nn">scipy.linalg</span> <span class="kn">import</span> <span class="n">inv</span>
 
-<span class="kn">from</span> <span class="nn">pwtools</span> <span class="k">import</span> <span class="n">common</span><span class="p">,</span> <span class="n">signal</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">atomic_data</span><span class="p">,</span> <span class="n">constants</span><span class="p">,</span> <span class="n">_flib</span>
-<span class="kn">from</span> <span class="nn">pwtools.common</span> <span class="k">import</span> <span class="n">assert_cond</span>
-<span class="kn">from</span> <span class="nn">pwtools.decorators</span> <span class="k">import</span> <span class="n">crys_add_doc</span>
-<span class="kn">from</span> <span class="nn">pwtools.base</span> <span class="k">import</span> <span class="n">FlexibleGetters</span>
-<span class="kn">from</span> <span class="nn">pwtools.constants</span> <span class="k">import</span> <span class="n">Angstrom</span>
-<span class="kn">from</span> <span class="nn">pwtools.num</span> <span class="k">import</span> <span class="n">fempty</span><span class="p">,</span> <span class="n">rms3d</span><span class="p">,</span> <span class="n">match_mask</span><span class="p">,</span> <span class="n">norm</span>
+<span class="kn">from</span> <span class="nn">pwtools</span> <span class="kn">import</span> <span class="n">common</span><span class="p">,</span> <span class="n">signal</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">atomic_data</span><span class="p">,</span> <span class="n">constants</span><span class="p">,</span> <span class="n">_flib</span>
+<span class="kn">from</span> <span class="nn">pwtools.common</span> <span class="kn">import</span> <span class="n">assert_cond</span>
+<span class="kn">from</span> <span class="nn">pwtools.decorators</span> <span class="kn">import</span> <span class="n">crys_add_doc</span>
+<span class="kn">from</span> <span class="nn">pwtools.base</span> <span class="kn">import</span> <span class="n">FlexibleGetters</span>
+<span class="kn">from</span> <span class="nn">pwtools.constants</span> <span class="kn">import</span> <span class="n">Angstrom</span>
+<span class="kn">from</span> <span class="nn">pwtools.num</span> <span class="kn">import</span> <span class="n">fempty</span><span class="p">,</span> <span class="n">rms3d</span><span class="p">,</span> <span class="n">match_mask</span><span class="p">,</span> <span class="n">norm</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="c1">##warnings.simplefilter(&#39;always&#39;)</span>
 
@@ -1318,27 +1319,27 @@
     <span class="c1"># The number of atom pairs with distance r relative to the number of pairs</span>
     <span class="c1"># in a random distribution.</span>
     <span class="c1">#</span>
-    <span class="c1"># For each atom i=1,N, count the number dn(r) of atoms j around it in the</span>
+    <span class="c1"># For each atom i=1,N, count the number s(r) of atoms j around it in the</span>
     <span class="c1"># shell [r,r+dr] with r_ij = r_i - r_j, r &lt; r_ij &lt;= r+dr</span>
     <span class="c1">#</span>
-    <span class="c1">#   dn(r) = sum(i=1,N) sum(j=1,N, j!=i) delta(r - r_ij)</span>
+    <span class="c1">#   s(r) = sum(i=1,N) sum(j=1,N, j!=i) delta(r - r_ij)</span>
     <span class="c1">#</span>
     <span class="c1"># In practice, this is done by calculating all distances r_ij and bin them</span>
-    <span class="c1"># into a histogram dn(k) with k = r_ij / dr the histogram index.</span>
+    <span class="c1"># into a histogram s(k) with k = r_ij / dr the histogram index.</span>
     <span class="c1">#</span>
     <span class="c1"># We sum over N atoms, so we have to divide by N -- that&#39;s why g(r) is an</span>
     <span class="c1"># average. Also, we normalize to ideal gas values</span>
     <span class="c1">#</span>
-    <span class="c1">#   g(r) = dn(r) / [N * (N/V) * V(r)]</span>
-    <span class="c1">#        = dn(r) / [N**2/V * V(r)]</span>
+    <span class="c1">#   g(r) = s(r) / [N * (N/V) * V(r)]</span>
+    <span class="c1">#        = s(r) / [N**2/V * V(r)]</span>
     <span class="c1">#   V(r) = 4*pi*r**2*dr = 4/3*pi*[(r+dr)**3 - r**3]</span>
     <span class="c1">#</span>
     <span class="c1"># where V(r) the volume of the shell. Normalization to V(r) is necessary</span>
     <span class="c1"># b/c the shell [r, r+dr] has on average more atoms for increasing &quot;r&quot;.</span>
     <span class="c1">#</span>
     <span class="c1"># Formulation (a) from above: (N/V) * V(r) is the number of atoms in the</span>
-    <span class="c1"># shell for an ideal gas (density*volume) or (b):  dn(r) / V(r) is the</span>
-    <span class="c1"># density of atoms in the shell and dn(r) / [V(r) * (N/V)] is that density</span>
+    <span class="c1"># shell for an ideal gas (density*volume) or (b):  s(r) / V(r) is the</span>
+    <span class="c1"># density of atoms in the shell and s(r) / [V(r) * (N/V)] is that density</span>
     <span class="c1"># relative to the ideal gas density N/V. Clear? :)</span>
     <span class="c1">#</span>
     <span class="c1"># g(r) -&gt; 1 for r -&gt; inf in liquids, i.e. long distances are not</span>
@@ -1350,7 +1351,7 @@
     <span class="c1">#</span>
     <span class="c1">#   I(r1,r2) = int(r=r1,r2) N/V*g(r)*4*pi*r**2*dr</span>
     <span class="c1">#            = int(r=r1,r2) N/V*g(r)*V(r)*dr</span>
-    <span class="c1">#            = int(r=r1,r2) 1/N*dn(r)*dr</span>
+    <span class="c1">#            = int(r=r1,r2) 1/N*s(r)*dr</span>
     <span class="c1">#</span>
     <span class="c1"># This can be used to calculate coordination numbers, i.e. it counts the</span>
     <span class="c1"># average (that&#39;s why 1/N) number of atoms around an atom in a shell</span>
@@ -1393,36 +1394,36 @@
     <span class="c1"># Lets say you have 10 waters -&gt; 10 x O (atom type A), 20 x H (type B),</span>
     <span class="c1"># then let A = 10, B = 20.</span>
     <span class="c1">#</span>
-    <span class="c1">#   dn(r) = sum(i=1,A) sum(j=1,B) delta(r - r_ij) =</span>
-    <span class="c1">#           dn_AB(r) + dn_BA(r)</span>
+    <span class="c1">#   s(r) = sum(i=1,A) sum(j=1,B) delta(r - r_ij)</span>
+    <span class="c1">#        = s_AB(r) + s_BA(r)</span>
     <span class="c1">#</span>
-    <span class="c1"># where dn_AB(r) is the number of B&#39;s around A&#39;s and vice versa. With the</span>
+    <span class="c1"># where s_AB(r) is the number of B&#39;s around A&#39;s and vice versa. With the</span>
     <span class="c1"># densities A/V and B/V, we get</span>
     <span class="c1">#</span>
     <span class="c1">#   g(r) = g_AB(r) + g_BA(r) =</span>
-    <span class="c1">#          dn_AB(r) / [A * (B/V) * V(r)] +</span>
-    <span class="c1">#          dn_BA(r) / [B * (A/V) * V(r)]</span>
+    <span class="c1">#          s_AB(r) / [A * (B/V) * V(r)] +</span>
+    <span class="c1">#          s_BA(r) / [B * (A/V) * V(r)]</span>
     <span class="c1">#</span>
     <span class="c1"># Note that the density used is always the density of the *sourrounding*</span>
     <span class="c1"># atom type. g_AB(r) or g_BA(r) is the result that you want. Finally, we</span>
     <span class="c1"># can also write g(r) for the all-all case, i.e. 1 atom type.</span>
     <span class="c1">#</span>
-    <span class="c1">#  g(r) = [dn_AB(r) +  dn_BA(r)] / [A*B/V * V(r)]</span>
+    <span class="c1">#  g(r) = [s_AB(r) +  s_BA(r)] / [A*B/V * V(r)]</span>
     <span class="c1">#</span>
     <span class="c1"># Note the similarity to the case of one atom type:</span>
     <span class="c1">#</span>
-    <span class="c1">#  g(r) = dn(r) / [N**2/V * V(r)]</span>
+    <span class="c1">#  g(r) = s(r) / [N**2/V * V(r)]</span>
     <span class="c1">#</span>
     <span class="c1"># The integrals are:</span>
     <span class="c1">#</span>
     <span class="c1">#  I_AB(r1,r2) = int(r=r1,r2) (B/V)*g_AB(r)*4*pi*r**2*dr</span>
-    <span class="c1">#                int(r=r1,r2) 1/A*dn_AB(r)*dr</span>
+    <span class="c1">#                int(r=r1,r2) 1/A*s_AB(r)*dr</span>
     <span class="c1">#  I_BA(r1,r2) = int(r=r1,r2) (A/V)*g_BA(r)*4*pi*r**2*dr</span>
-    <span class="c1">#                int(r=r1,r2) 1/B*dn_BA(r)*dr</span>
+    <span class="c1">#                int(r=r1,r2) 1/B*s_BA(r)*dr</span>
     <span class="c1">#</span>
     <span class="c1"># Note the similarity to the one-atom case:</span>
     <span class="c1">#</span>
-    <span class="c1">#  I(r1,r2)    = int(r=r1,r2) 1/N*dn(r)*dr</span>
+    <span class="c1">#  I(r1,r2)    = int(r=r1,r2) 1/N*s(r)*dr</span>
     <span class="c1">#</span>
     <span class="c1"># These integrals converge to the total number of *sourrounding*</span>
     <span class="c1"># atoms of the other type:</span>
@@ -1524,7 +1525,7 @@
     <span class="c1"># VMD calculates g(r) using this norm_fac, but the num_int is always</span>
     <span class="c1"># calculated using the textbook result</span>
     <span class="c1">#</span>
-    <span class="c1">#   I_AB(r1,r2) = int(r=r1,r2) 1/A*dn_AB(r)</span>
+    <span class="c1">#   I_AB(r1,r2) = int(r=r1,r2) 1/A*s_AB(r)</span>
     <span class="c1">#</span>
     <span class="c1"># which is what we do, i.e. just integrate the histogram. That means VMD&#39;s</span>
     <span class="c1"># results are inconsistent if duplicates != 0. In that case g(r) is</span>
@@ -1850,7 +1851,7 @@
 <span class="sd">        the (averaged) number integral ``number_density*hist*4*pi*r**2.0*dr``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Need to import here b/c of cyclic dependency crys -&gt; io -&gt; crys ...</span>
-    <span class="kn">from</span> <span class="nn">pwtools</span> <span class="k">import</span> <span class="n">io</span>
+    <span class="kn">from</span> <span class="nn">pwtools</span> <span class="kn">import</span> <span class="n">io</span>
     <span class="n">traj</span> <span class="o">=</span> <span class="n">struct2traj</span><span class="p">(</span><span class="n">traj</span><span class="p">)</span>
     <span class="c1"># Speed: The VMD command &quot;measure gofr&quot; is multithreaded and written in C.</span>
     <span class="c1"># That&#39;s why it is faster than the pure Python rpdf() above when we have to</span>
@@ -2213,7 +2214,7 @@
 
 <div class="viewcode-block" id="UnitsHandler"><a class="viewcode-back" href="../../generated/api/pwtools.crys.UnitsHandler.html#pwtools.crys.UnitsHandler">[docs]</a><span class="k">class</span> <span class="nc">UnitsHandler</span><span class="p">(</span><span class="n">FlexibleGetters</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Base class for :class:`Structure`, providing unit conversion methods.&quot;&quot;&quot;</span>
-<div class="viewcode-block" id="UnitsHandler.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.crys.UnitsHandler.html#pwtools.crys.UnitsHandler.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="UnitsHandler.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.crys.UnitsHandler.html#pwtools.crys.UnitsHandler.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># XXX cryst_const is not in &#39;length&#39; and needs to be treated specially,</span>
         <span class="c1"># see _apply_units_raw()</span>
 
@@ -2365,7 +2366,7 @@
     <span class="n">is_traj</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">is_struct</span> <span class="o">=</span> <span class="kc">True</span>
 
-<div class="viewcode-block" id="Structure.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.crys.Structure.html#pwtools.crys.Structure.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">set_all_auto</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+<div class="viewcode-block" id="Structure.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.crys.Structure.html#pwtools.crys.Structure.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">set_all_auto</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -2937,7 +2938,7 @@
         <span class="n">req</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;coords_frac&#39;</span><span class="p">,</span> <span class="s1">&#39;cell&#39;</span><span class="p">,</span> <span class="s1">&#39;symbols&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_set_attr_lst</span><span class="p">(</span><span class="n">req</span><span class="p">):</span>
             <span class="c1"># We don&#39;t wanna make ase a dependency. Import only when needed.</span>
-            <span class="kn">from</span> <span class="nn">ase</span> <span class="k">import</span> <span class="n">Atoms</span>
+            <span class="kn">from</span> <span class="nn">ase</span> <span class="kn">import</span> <span class="n">Atoms</span>
             <span class="n">_kwds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;pbc&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
             <span class="n">_kwds</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwds</span><span class="p">)</span>
             <span class="n">at</span> <span class="o">=</span> <span class="n">Atoms</span><span class="p">(</span><span class="n">symbols</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">symbols</span><span class="p">,</span>
@@ -3016,13 +3017,13 @@
     <span class="n">is_traj</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">is_struct</span> <span class="o">=</span> <span class="kc">False</span>
 
-<div class="viewcode-block" id="Trajectory.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.crys.Trajectory.html#pwtools.crys.Trajectory.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+<div class="viewcode-block" id="Trajectory.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.crys.Trajectory.html#pwtools.crys.Trajectory.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Trajectory</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span>
 
-<div class="viewcode-block" id="Trajectory.__getitem__"><a class="viewcode-back" href="../../generated/api/pwtools.crys.Trajectory.__getitem__.html#pwtools.crys.Trajectory.__getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+<div class="viewcode-block" id="Trajectory.__getitem__"><a class="viewcode-back" href="../../generated/api/pwtools.crys.Trajectory.__getitem__.html#pwtools.crys.Trajectory.__getitem__">[docs]</a>    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
         <span class="n">want_traj</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
             <span class="n">obj</span> <span class="o">=</span> <span class="n">Trajectory</span><span class="p">(</span><span class="n">set_all_auto</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -3060,7 +3061,7 @@
                 <span class="n">obj</span><span class="o">.</span><span class="n">timestep</span> <span class="o">*=</span> <span class="n">timestep_fac</span>
         <span class="k">return</span> <span class="n">obj</span></div>
 
-    <span class="k">def</span> <span class="nf">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nstep</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
@@ -3130,7 +3131,7 @@
 <span class="sd">    Used to be used as input for ``spglib`` in symmetry.py, but not anymore as</span>
 <span class="sd">    of spglib 1.9.x. Now, we use :meth:`Structure.get_spglib`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="FakeASEAtoms.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.crys.FakeASEAtoms.html#pwtools.crys.FakeASEAtoms.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scaled_positions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cell</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="FakeASEAtoms.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.crys.FakeASEAtoms.html#pwtools.crys.FakeASEAtoms.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scaled_positions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cell</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">FakeASEAtoms</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">coords_frac</span><span class="o">=</span><span class="n">scaled_positions</span><span class="p">,</span>
                                            <span class="n">cell</span><span class="o">=</span><span class="n">cell</span><span class="p">,</span>
                                            <span class="n">symbols</span><span class="o">=</span><span class="n">symbols</span><span class="p">)</span>
@@ -3550,7 +3551,7 @@
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

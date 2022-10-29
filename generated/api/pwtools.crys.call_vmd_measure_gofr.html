@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>pwtools.crys.call_vmd_measure_gofr &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -14,6 +14,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="pwtools.crys.cc2cell" href="pwtools.crys.cc2cell.html" />
@@ -98,7 +99,7 @@
 <h1>pwtools.crys.call_vmd_measure_gofr<a class="headerlink" href="#pwtools-crys-call-vmd-measure-gofr" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="pwtools.crys.call_vmd_measure_gofr">
-<span class="sig-prename descclassname"><span class="pre">pwtools.crys.</span></span><span class="sig-name descname"><span class="pre">call_vmd_measure_gofr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajfn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['all',</span> <span class="pre">'all']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fntype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'xsf'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">usepbc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datafn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scriptfn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logfn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmpdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/crys.html#call_vmd_measure_gofr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.crys.call_vmd_measure_gofr" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pwtools.crys.</span></span><span class="sig-name descname"><span class="pre">call_vmd_measure_gofr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajfn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['all',</span> <span class="pre">'all']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fntype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'xsf'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">usepbc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datafn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scriptfn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logfn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmpdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/crys.html#call_vmd_measure_gofr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.crys.call_vmd_measure_gofr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call VMD’s “measure gofr” command. This is a simple interface which does
 in fact the same thing as the gofr GUI, only scriptable. Accepts a file
 with trajectory data.</p>
@@ -106,11 +107,11 @@ with trajectory data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>trajfn</strong> (<em>filename of trajectory which is fed to VMD</em><em> (</em><em>e.g. foo.axsf</em><em>)</em>) – </p></li>
+<li><p><strong>trajfn</strong> (<em>filename</em><em> of </em><em>trajectory which is fed to VMD</em><em> (</em><em>e.g. foo.axsf</em><em>)</em>) – </p></li>
 <li><p><strong>dr</strong> (<em>float</em>) – dr in Angstrom</p></li>
 <li><p><strong>rmax</strong> (<em>float</em>) – Max. radius up to which minimum image nearest neighbors are counted.
 For cubic boxes of side length L, this is L/2 [AT,MD].</p></li>
-<li><p><strong>sel</strong> (<em>list of two strings</em><em>, </em><em>optional</em>) – string to select atoms, [“name Ca”, “name O”], [“all”, “all”], …,
+<li><p><strong>sel</strong> (<em>list</em><em> of </em><em>two strings</em><em>, </em><em>optional</em>) – string to select atoms, [“name Ca”, “name O”], [“all”, “all”], …,
 where sel[0] is selection 1, sel[1] is selection 2 in VMD</p></li>
 <li><p><strong>fntype</strong> (<em>str</em><em>, </em><em>optional</em>) – file type of <cite>fn</cite> for the VMD “mol” command</p></li>
 <li><p><strong>first</strong> (<em>int</em><em>, </em><em>optional</em>) – Select which MD steps are averaged. Like Python, VMD starts counting at
@@ -153,7 +154,7 @@ histogram bin</p></li>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

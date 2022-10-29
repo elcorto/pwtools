@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>pwtools.signal.FIRFilter &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -14,6 +14,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="pwtools.signal.acorr" href="pwtools.signal.acorr.html" />
@@ -131,10 +132,10 @@ band-stop). Uses firwin() and in some cases kaiserord().</p>
 
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">pwtools</span> <span class="k">import</span> <span class="n">mpl</span>
-<span class="kn">from</span> <span class="nn">scipy.signal</span> <span class="k">import</span> <span class="n">hann</span>
-<span class="kn">from</span> <span class="nn">scipy.fftpack</span> <span class="k">import</span> <span class="n">fft</span>
-<span class="kn">from</span> <span class="nn">pwtools.signal</span> <span class="k">import</span> <span class="n">fftsample</span><span class="p">,</span> <span class="n">FIRFilter</span><span class="p">,</span> <span class="n">pad_zeros</span>
+<span class="kn">from</span> <span class="nn">pwtools</span> <span class="kn">import</span> <span class="n">mpl</span>
+<span class="kn">from</span> <span class="nn">scipy.signal</span> <span class="kn">import</span> <span class="n">hann</span>
+<span class="kn">from</span> <span class="nn">scipy.fftpack</span> <span class="kn">import</span> <span class="n">fft</span>
+<span class="kn">from</span> <span class="nn">pwtools.signal</span> <span class="kn">import</span> <span class="n">fftsample</span><span class="p">,</span> <span class="n">FIRFilter</span><span class="p">,</span> <span class="n">pad_zeros</span>
 <span class="n">pi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
 <span class="n">plt</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">plt</span>
 
@@ -172,9 +173,11 @@ band-stop). Uses firwin() and in some cases kaiserord().</p>
 </pre></div>
 </div>
 <p class="rubric">References</p>
+<aside class="footnote-list brackets">
 <aside class="footnote brackets" id="id1" role="note">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="http://www.scipy.org/Cookbook/FIRFilter">http://www.scipy.org/Cookbook/FIRFilter</a></p>
+</aside>
 </aside>
 <dl class="py method">
 <dt class="sig sig-object py" id="pwtools.signal.FIRFilter.__init__">
@@ -199,7 +202,7 @@ minimum ripple in stopband. Large values (like 1000) remove the
 response almost “square” (if <cite>width</cite> is small) but also
 lead to a large number of filter coeffs (ntaps).</p></li>
 <li><p><strong>width</strong> (<em>float</em>) – Width of transition region (same unit as <cite>nyq</cite>, e.g. Hz).</p></li>
-<li><p><strong>window</strong> (<em>string</em><em> or </em><em>tuple of string and parameter values</em>) – Desired window to use. See <cite>scipy.signal.get_window</cite> for a list
+<li><p><strong>window</strong> (<em>string</em><em> or </em><em>tuple</em><em> of </em><em>string and parameter values</em>) – Desired window to use. See <cite>scipy.signal.get_window</cite> for a list
 of windows and required parameters. Default is “hamming”. Ignored
 if <cite>width</cite> and <cite>ripple</cite> givem b/c then <code class="docutils literal notranslate"><span class="pre">kaiserord</span></code> is used to
 build a Kaiser window.</p></li>
@@ -211,7 +214,7 @@ build a Kaiser window.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pwtools.signal.FIRFilter.__call__">
-<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/signal.html#FIRFilter.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.signal.FIRFilter.__call__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/signal.html#FIRFilter.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.signal.FIRFilter.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply filter to signal.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -243,7 +246,7 @@ build a Kaiser window.</p></li>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

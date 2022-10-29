@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>pwtools.mpl.new_axis &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -14,6 +14,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="pwtools.mpl.plotlines3d" href="pwtools.mpl.plotlines3d.html" />
@@ -107,11 +108,11 @@ completely free-standing axis lines (off &gt; 0).</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fig</strong> (<em>mpl Figure</em>) – </p></li>
-<li><p><strong>hostax</strong> (<em>Instance of matplotlib.axes.HostAxesSubplot. This is the subplot</em>) – of the figure <cite>fig</cite> w.r.t which all new axis lines are placed. See
+<li><p><strong>hostax</strong> (<em>Instance</em><em> of </em><em>matplotlib.axes.HostAxesSubplot. This is the subplot</em>) – of the figure <cite>fig</cite> w.r.t which all new axis lines are placed. See
 make_axes_grid_fig().</p></li>
 <li><p><strong>off</strong> (<em>offset in points</em><em>, </em><em>used with parax.get_grid_helper</em><em>(</em><em>)</em><em>.new_fixed_axis</em>) – </p></li>
-<li><p><strong>loc</strong> (<em>one of 'left'</em><em>, </em><em>'right'</em><em>, </em><em>'top'</em><em>, </em><em>'bottom'</em><em>, </em><em>where to place the new axis</em>) – line</p></li>
-<li><p><strong>ticks</strong> (<em>sequence of ticks</em><em> (</em><em>numbers</em><em>)</em>) – </p></li>
+<li><p><strong>loc</strong> (<em>one</em><em> of </em><em>'left'</em><em>, </em><em>'right'</em><em>, </em><em>'top'</em><em>, </em><em>'bottom'</em><em>, </em><em>where to place the new axis</em>) – line</p></li>
+<li><p><strong>ticks</strong> (<em>sequence</em><em> of </em><em>ticks</em><em> (</em><em>numbers</em><em>)</em>) – </p></li>
 <li><p><strong>wsadd</strong> (Whitespace to add at the location <cite>loc</cite> to make space for the new) – axis line (only useful if off &gt; 0). The number is a relative unit
 and is used to change the bounding box: hostax.get_position().</p></li>
 <li><p><strong>label</strong> (<em>str</em><em>, </em><em>xlabel</em><em> (</em><em>ylabel</em><em>) </em><em>for 'top'</em><em>,</em><em>'bottom'</em><em> (</em><em>'left'</em><em>, </em><em>'right'</em><em>)</em>) – </p></li>
@@ -148,7 +149,7 @@ and is used to change the bounding box: hostax.get_position().</p></li>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

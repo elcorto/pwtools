@@ -13,6 +13,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -123,15 +124,15 @@
 <span class="sd">    $ vmd script_to_execute.tcl</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">tempfile</span> <span class="k">import</span> <span class="n">mkstemp</span>
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">mkstemp</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">pwtools</span> <span class="k">import</span> <span class="n">io</span><span class="p">,</span> <span class="n">common</span>
+<span class="kn">from</span> <span class="nn">pwtools</span> <span class="kn">import</span> <span class="n">io</span><span class="p">,</span> <span class="n">common</span>
 
 
 <div class="viewcode-block" id="ViewFactory"><a class="viewcode-back" href="../../generated/api/pwtools.visualize.ViewFactory.html#pwtools.visualize.ViewFactory">[docs]</a><span class="k">class</span> <span class="nc">ViewFactory</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Factory for creating interface functions to external molecular</span>
 <span class="sd">    viewers.&quot;&quot;&quot;</span>
-<div class="viewcode-block" id="ViewFactory.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.visualize.ViewFactory.html#pwtools.visualize.ViewFactory.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">assert_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.axsf&#39;</span><span class="p">,</span>
+<div class="viewcode-block" id="ViewFactory.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.visualize.ViewFactory.html#pwtools.visualize.ViewFactory.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">assert_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.axsf&#39;</span><span class="p">,</span>
                  <span class="n">writer</span><span class="o">=</span><span class="n">io</span><span class="o">.</span><span class="n">write_axsf</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
@@ -163,7 +164,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">suffix</span> <span class="o">=</span> <span class="n">suffix</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">writer</span> <span class="o">=</span> <span class="n">writer</span></div>
 
-<div class="viewcode-block" id="ViewFactory.__call__"><a class="viewcode-back" href="../../generated/api/pwtools.visualize.ViewFactory.html#pwtools.visualize.ViewFactory.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">logfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">structfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">disp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<div class="viewcode-block" id="ViewFactory.__call__"><a class="viewcode-back" href="../../generated/api/pwtools.visualize.ViewFactory.html#pwtools.visualize.ViewFactory.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">logfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">structfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">disp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">keepfiles</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tmpdir</span><span class="o">=</span><span class="s1">&#39;/tmp&#39;</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">options</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -275,7 +276,7 @@
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

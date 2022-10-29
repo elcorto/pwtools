@@ -4,7 +4,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>pwtools.crys.nearest_neighbors &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -14,6 +14,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="pwtools.crys.nearest_neighbors_from_dists" href="pwtools.crys.nearest_neighbors_from_dists.html" />
@@ -106,7 +107,7 @@ whose symbols are <cite>skip</cite>.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>struct</strong> (<a class="reference internal" href="pwtools.crys.Structure.html#pwtools.crys.Structure" title="pwtools.crys.Structure"><em>Structure</em></a>) – </p></li>
 <li><p><strong>idx</strong> (<em>int</em>) – Atom index of the central atom.</p></li>
-<li><p><strong>skip</strong> (<em>str</em><em> or </em><em>sequence of strings</em>) – Symbol(s) of the atoms to skip.</p></li>
+<li><p><strong>skip</strong> (<em>str</em><em> or </em><em>sequence</em><em> of </em><em>strings</em>) – Symbol(s) of the atoms to skip.</p></li>
 <li><p><strong>num</strong> (<em>int</em>) – number of requested nearest neighbors</p></li>
 <li><p><strong>cutoff</strong> (<em>float</em>) – Cutoff radius in unit defined in <cite>struct</cite>, e.g. Angstrom. Return all
 neighbors within that radius. Use either <cite>num</cite> of <cite>cutoff</cite>.</p></li>
@@ -144,7 +145,7 @@ array.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ni</span><span class="o">=</span><span class="n">nearest_neighbors</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="n">struct</span><span class="o">.</span><span class="n">symbols</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;Ca&#39;</span><span class="p">),</span> <span class="n">num</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="s1">&#39;H&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ni</span><span class="o">=</span><span class="n">nearest_neighbors</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="mi">23</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mf">5.3</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;H&#39;</span><span class="p">,</span><span class="s1">&#39;Cl&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># simple rock salt example (used ASE to build dummy struct)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ase</span> <span class="k">import</span> <span class="n">lattice</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ase</span> <span class="kn">import</span> <span class="n">lattice</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">at</span><span class="o">=</span><span class="n">lattice</span><span class="o">.</span><span class="n">bulk</span><span class="p">(</span><span class="s1">&#39;AlN&#39;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">crystalstructure</span><span class="o">=</span><span class="s1">&#39;rocksalt&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">st</span><span class="o">=</span><span class="n">crys</span><span class="o">.</span><span class="n">atoms2struct</span><span class="p">(</span><span class="n">at</span><span class="p">);</span> <span class="n">st</span><span class="o">=</span><span class="n">crys</span><span class="o">.</span><span class="n">scell</span><span class="p">(</span><span class="n">st</span><span class="p">,(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ni</span><span class="p">,</span><span class="n">nd</span><span class="o">=</span><span class="n">crys</span><span class="o">.</span><span class="n">nearest_neighbors</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">fullout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -181,7 +182,7 @@ array.</p>
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
