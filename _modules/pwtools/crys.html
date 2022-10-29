@@ -1313,22 +1313,18 @@
     <span class="c1"># Below, &quot;density&quot; always means number density, i.e. (N atoms in the unit</span>
     <span class="c1"># cell)  / (unit cell volume V).</span>
     <span class="c1">#</span>
-    <span class="c1"># g(r) is (a) the average number of atoms in a shell [r,r+dr] around an</span>
-    <span class="c1"># atom at r=0 or (b) the average density of atoms in that shell -- relative</span>
-    <span class="c1"># to an &quot;ideal gas&quot; (random distribution) of density N/V. Also sometimes:</span>
-    <span class="c1"># The number of atom pairs with distance r relative to the number of pairs</span>
-    <span class="c1"># in a random distribution.</span>
+    <span class="c1"># g(r) is (a) the average atom density in a shell [r,r+dr] around an atom at</span>
+    <span class="c1"># r=0, relative to an &quot;ideal gas&quot; (random distribution) of density N/V.</span>
+    <span class="c1"># (b) Equivalent: The average number of atom pairs with distance r relative</span>
+    <span class="c1"># to the number of pairs with distance r in a random distribution.</span>
     <span class="c1">#</span>
-    <span class="c1"># For each atom i=1,N, count the number s(r) of atoms j around it in the</span>
-    <span class="c1"># shell [r,r+dr] with r_ij = r_i - r_j, r &lt; r_ij &lt;= r+dr</span>
+    <span class="c1"># For each atom i=1,N, count the number of atoms j around it in the shell</span>
+    <span class="c1"># [r,r+dr] with r_ij = r_i - r_j, r &lt; r_ij &lt;= r+dr</span>
     <span class="c1">#</span>
     <span class="c1">#   s(r) = sum(i=1,N) sum(j=1,N, j!=i) delta(r - r_ij)</span>
     <span class="c1">#</span>
     <span class="c1"># In practice, this is done by calculating all distances r_ij and bin them</span>
     <span class="c1"># into a histogram s(k) with k = r_ij / dr the histogram index.</span>
-    <span class="c1">#</span>
-    <span class="c1"># We sum over N atoms, so we have to divide by N -- that&#39;s why g(r) is an</span>
-    <span class="c1"># average. Also, we normalize to ideal gas values</span>
     <span class="c1">#</span>
     <span class="c1">#   g(r) = s(r) / [N * (N/V) * V(r)]</span>
     <span class="c1">#        = s(r) / [N**2/V * V(r)]</span>
@@ -1337,10 +1333,17 @@
     <span class="c1"># where V(r) the volume of the shell. Normalization to V(r) is necessary</span>
     <span class="c1"># b/c the shell [r, r+dr] has on average more atoms for increasing &quot;r&quot;.</span>
     <span class="c1">#</span>
-    <span class="c1"># Formulation (a) from above: (N/V) * V(r) is the number of atoms in the</span>
-    <span class="c1"># shell for an ideal gas (density*volume) or (b):  s(r) / V(r) is the</span>
-    <span class="c1"># density of atoms in the shell and s(r) / [V(r) * (N/V)] is that density</span>
-    <span class="c1"># relative to the ideal gas density N/V. Clear? :)</span>
+    <span class="c1"># We sum over N atoms, so we have to divide by N : s(r) / N -- that&#39;s why</span>
+    <span class="c1"># g(r) is an average.</span>
+    <span class="c1">#</span>
+    <span class="c1"># Interpretation (a): Since we further divide by the shell volume V(r), the</span>
+    <span class="c1"># average shell atom count s(r) / N becomes the average shell atom density</span>
+    <span class="c1"># s(r) / [N * V(r)]. We finally normalize by the ideal gas density N/V to</span>
+    <span class="c1"># get a the dimensionless g(r).</span>
+    <span class="c1">#</span>
+    <span class="c1"># Interpretation (b): The average shell atom count is s(r) / N. It has no</span>
+    <span class="c1"># unit. The denominator is then (N/V) * V(r), which is the shell atom count</span>
+    <span class="c1"># for a random distribution of density N/V.</span>
     <span class="c1">#</span>
     <span class="c1"># g(r) -&gt; 1 for r -&gt; inf in liquids, i.e. long distances are not</span>
     <span class="c1"># correlated. Their distribution is random. In a crystal, we get an</span>
