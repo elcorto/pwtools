@@ -116,5 +116,5 @@ io.write_lammps('vc-relax/lmp.struct', st)
 io.write_lammps('md-nvt/lmp.struct', crys.scell(st,(2,2,2)))
 io.write_lammps('md-npt/lmp.struct', crys.scell(st,(2,2,2)))
 
-for dr,txt in lmp_in.iteritems():
+for dr,txt in lmp_in.items():
     common.file_write('%s/lmp.in' %dr, txt)
