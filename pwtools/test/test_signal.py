@@ -1,9 +1,8 @@
 import numpy as np
-from scipy.signal import hanning, gaussian
+from scipy.signal import gaussian
 from pwtools.signal import gauss, find_peaks, smooth, fft_1d_loop, ezfft
 from pwtools import signal
 from scipy.fftpack import fft
-from pwtools import num
 rand = np.random.rand
 
 def test_slices():
