@@ -21,16 +21,16 @@ if __name__ == '__main__':
     freq = np.linspace(0,1000,300) # cm^-1
     # use linear T axis to avoid numerical noise in derivatives (alpha_V, ...) at low
     # T, which we would see when using a log scale
-    T = np.linspace(5, 2000, 50)
-    P = np.linspace(0,5,2)
+    T = np.linspace(5, 2000, 50) # K
+    P = np.linspace(0,5,2) # GPa
 
     # 2d case
     case = '2d'
-    cell_a = np.linspace(2.5,3.5,nax)
-    cell_c = np.linspace(3,3.8,nax)
+    cell_a = np.linspace(2.5,3.5,nax) # Ang
+    cell_c = np.linspace(3,3.8,nax) # Ang
     volfunc_ax = lambda x: x[0]**2 * x[1]
     axes_flat = np.array([x for x in product(cell_a, cell_c)])
-    V = np.array([volfunc_ax(x) for x in axes_flat])
+    V = np.array([volfunc_ax(x) for x in axes_flat]) # Ang**3
     cell_a_mean = cell_a.mean()
     cell_c_mean = cell_c.mean()
     cell_a_min = cell_a.min()
