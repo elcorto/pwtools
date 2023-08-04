@@ -19,7 +19,7 @@
 
 import os
 import numpy as np
-from pwtools import crys, parse, io
+from pwtools import crys, parse, arrayio
 pj = os.path.join
 
 if __name__ == '__main__':
@@ -39,8 +39,8 @@ if __name__ == '__main__':
             msk2 = sy=='H'
             coords = [coords_in[msk1, ..., 10:], coords_in[msk1, ..., 10:]]
             np.savetxt(pj(dd, name + '.cell.txt'), cell)
-            io.writetxt(pj(dd, name + '.coords0.txt'), coords[0])
-            io.writetxt(pj(dd, name + '.coords1.txt'), coords[1])
+            arrayio.writetxt(pj(dd, name + '.coords0.txt'), coords[0])
+            arrayio.writetxt(pj(dd, name + '.coords1.txt'), coords[1])
         else:
             pp = parse.CifFile(pj(dd, name + '.cif'))
             pp.parse()
