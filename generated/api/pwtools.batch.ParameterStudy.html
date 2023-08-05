@@ -1,20 +1,16 @@
-
 <!DOCTYPE html>
 
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>pwtools.batch.ParameterStudy &#8212; pwtools  documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b76e3c8a" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9121de03" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="pwtools.batch.ParameterStudy.write_input" href="pwtools.batch.ParameterStudy.write_input.html" />
@@ -129,7 +125,7 @@ continues at the end. This can be changed with the <cite>mode</cite> kwarg of
 added which numbers each addition.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Here are some examples for constructing `params_lst`.</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Vary two (three, ...) parameters on a 2d (3d, ...) grid: In fact, the</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># way you are constructing params_lst is only a matter of zip() and</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># comb.nested_loops()</span>
@@ -147,7 +143,7 @@ added which numbers each addition.</p>
 <span class="gp">... </span>                               <span class="n">sql</span><span class="o">.</span><span class="n">SQLEntry</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s1">&#39;par2&#39;</span><span class="p">,</span> <span class="n">sqlval</span><span class="o">=</span><span class="n">par2</span><span class="p">),</span>
 <span class="gp">... </span>                               <span class="n">sql</span><span class="o">.</span><span class="n">SQLEntry</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s1">&#39;par3&#39;</span><span class="p">,</span> <span class="n">sqlval</span><span class="o">=</span><span class="n">par3</span><span class="p">),</span>
 <span class="gp">... </span>                               <span class="p">])</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># vary par1 and par2 together, and par3 -&gt; 2d grid w/ par1+par2 on one</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># axis and par3 on the other</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">params_lst</span> <span class="o">=</span> <span class="n">comb</span><span class="o">.</span><span class="n">nested_loops</span><span class="p">([</span><span class="nb">zip</span><span class="p">(</span><span class="n">par1</span><span class="p">,</span> <span class="n">par2</span><span class="p">),</span> <span class="n">par3</span><span class="p">],</span> <span class="n">flatten</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -223,8 +219,8 @@ files and job name etc. will be built. By default, a string
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="../../_sources/generated/api/pwtools.batch.ParameterStudy.rst.txt"

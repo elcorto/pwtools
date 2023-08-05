@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 
 <html lang="en">
@@ -6,14 +5,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>pwtools.pydos &#8212; pwtools  documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b76e3c8a" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9121de03" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -112,7 +108,7 @@
 <span class="kn">from</span> <span class="nn">pwtools.signal</span> <span class="kn">import</span> <span class="n">pad_zeros</span><span class="p">,</span> <span class="n">welch</span><span class="p">,</span> <span class="n">mirror</span>
 
 <div class="viewcode-block" id="pyvacf"><a class="viewcode-back" href="../../generated/api/pwtools.pydos.pyvacf.html#pwtools.pydos.pyvacf">[docs]</a><span class="k">def</span> <span class="nf">pyvacf</span><span class="p">(</span><span class="n">vel</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Reference implementation for calculating the VACF of velocities in 3d</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reference implementation for calculating the VACF of velocities in 3d</span>
 <span class="sd">    array `vel`. This is slow. Use for debugging only. For production, use</span>
 <span class="sd">    fvacf().</span>
 
@@ -165,7 +161,7 @@
 
 
 <div class="viewcode-block" id="fvacf"><a class="viewcode-back" href="../../generated/api/pwtools.pydos.fvacf.html#pwtools.pydos.fvacf">[docs]</a><span class="k">def</span> <span class="nf">fvacf</span><span class="p">(</span><span class="n">vel</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nthreads</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Interface to Fortran function _flib.vacf(). Otherwise same</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface to Fortran function _flib.vacf(). Otherwise same</span>
 <span class="sd">    functionallity as pyvacf(). Use this for production calculations.</span>
 
 <span class="sd">    Parameters</span>
@@ -264,7 +260,7 @@
 
 <div class="viewcode-block" id="pdos"><a class="viewcode-back" href="../../generated/api/pwtools.pydos.pdos.html#pwtools.pydos.pdos">[docs]</a><span class="k">def</span> <span class="nf">pdos</span><span class="p">(</span><span class="n">vel</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">full_out</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">area</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
          <span class="n">npad</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tonext</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mirr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;direct&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Phonon DOS by FFT of the VACF or direct FFT of atomic velocities.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Phonon DOS by FFT of the VACF or direct FFT of atomic velocities.</span>
 
 <span class="sd">    Integral area is normalized to `area`. It is possible (and recommended) to</span>
 <span class="sd">    zero-padd the velocities (see `npad`).</span>
@@ -415,14 +411,14 @@
 
 
 <div class="viewcode-block" id="vacf_pdos"><a class="viewcode-back" href="../../generated/api/pwtools.pydos.vacf_pdos.html#pwtools.pydos.vacf_pdos">[docs]</a><span class="k">def</span> <span class="nf">vacf_pdos</span><span class="p">(</span><span class="n">vel</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Wrapper for ``pdos(..., method=&#39;vacf&#39;, mirr=True, npad=None)``&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrapper for ``pdos(..., method=&#39;vacf&#39;, mirr=True, npad=None)``&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="s1">&#39;mirr&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwds</span><span class="p">:</span>
         <span class="n">kwds</span><span class="p">[</span><span class="s1">&#39;mirr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">return</span> <span class="n">pdos</span><span class="p">(</span><span class="n">vel</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;vacf&#39;</span><span class="p">,</span> <span class="n">npad</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="direct_pdos"><a class="viewcode-back" href="../../generated/api/pwtools.pydos.direct_pdos.html#pwtools.pydos.direct_pdos">[docs]</a><span class="k">def</span> <span class="nf">direct_pdos</span><span class="p">(</span><span class="n">vel</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Wrapper for ``pdos(..., method=&#39;direct&#39;, npad=1)``&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrapper for ``pdos(..., method=&#39;direct&#39;, npad=1)``&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="s1">&#39;npad&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwds</span><span class="p">:</span>
         <span class="n">kwds</span><span class="p">[</span><span class="s1">&#39;npad&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="k">if</span> <span class="s1">&#39;pad_tonext&#39;</span> <span class="ow">in</span> <span class="n">kwds</span><span class="p">:</span>
@@ -444,8 +440,8 @@
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>
 

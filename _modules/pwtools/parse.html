@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 
 <html lang="en">
@@ -6,14 +5,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>pwtools.parse &#8212; pwtools  documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b76e3c8a" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9121de03" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -262,7 +258,7 @@
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">txt</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="traj_from_txt"><a class="viewcode-back" href="../../generated/api/pwtools.parse.traj_from_txt.html#pwtools.parse.traj_from_txt">[docs]</a><span class="k">def</span> <span class="nf">traj_from_txt</span><span class="p">(</span><span class="n">txt</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Used for 3d trajectories where the exact shape of the array as written</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Used for 3d trajectories where the exact shape of the array as written</span>
 <span class="sd">    by the MD code must be known, e.g. (nstep,N,3) where N=3 (cell, stress) or</span>
 <span class="sd">    N=natoms (coords, forces, ...).</span>
 
@@ -312,7 +308,7 @@
         <span class="k">return</span> <span class="n">ret</span></div>
 
 <div class="viewcode-block" id="axis_lens"><a class="viewcode-back" href="../../generated/api/pwtools.parse.axis_lens.html#pwtools.parse.axis_lens">[docs]</a><span class="k">def</span> <span class="nf">axis_lens</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return length of `axis` of all arrays in `seq`.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return length of `axis` of all arrays in `seq`.</span>
 
 <span class="sd">    If an entry in `seq` is None instead of an array, return 0. All arrays must</span>
 <span class="sd">    have at least axis+1 dimensions, of course (i.e. axis=1 -&gt; all arrays at</span>
@@ -338,7 +334,7 @@
 <span class="c1">#-----------------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="StructureFileParser"><a class="viewcode-back" href="../../generated/api/pwtools.parse.StructureFileParser.html#pwtools.parse.StructureFileParser">[docs]</a><span class="k">class</span> <span class="nc">StructureFileParser</span><span class="p">(</span><span class="n">UnitsHandler</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Base class for single-structure parsers.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for single-structure parsers.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">Container</span> <span class="o">=</span> <span class="n">crys</span><span class="o">.</span><span class="n">Structure</span>
     <span class="n">default_units</span> <span class="o">=</span> <span class="p">{}</span>
@@ -368,7 +364,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">parse_called</span> <span class="o">=</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="StructureFileParser.get_cont"><a class="viewcode-back" href="../../generated/api/pwtools.parse.StructureFileParser.get_cont.html#pwtools.parse.StructureFileParser.get_cont">[docs]</a>    <span class="k">def</span> <span class="nf">get_cont</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">auto_calc</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Populate and return a Container object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Populate and return a Container object.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -400,7 +396,7 @@
 
 
 <div class="viewcode-block" id="TrajectoryFileParser"><a class="viewcode-back" href="../../generated/api/pwtools.parse.TrajectoryFileParser.html#pwtools.parse.TrajectoryFileParser">[docs]</a><span class="k">class</span> <span class="nc">TrajectoryFileParser</span><span class="p">(</span><span class="n">StructureFileParser</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Base class for MD-like parsers.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for MD-like parsers.&quot;&quot;&quot;</span>
     <span class="n">Container</span> <span class="o">=</span> <span class="n">crys</span><span class="o">.</span><span class="n">Trajectory</span>
     <span class="c1"># timeaxis in Trajectory defined before __init__, so we don&#39;t need to</span>
     <span class="c1"># instantiate the object</span>
@@ -414,14 +410,14 @@
 
 
 <div class="viewcode-block" id="CifFile"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CifFile.html#pwtools.parse.CifFile">[docs]</a><span class="k">class</span> <span class="nc">CifFile</span><span class="p">(</span><span class="n">StructureFileParser</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Parse Cif file. Uses PyCifRW [1]_.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse Cif file. Uses PyCifRW [1]_.</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
 <span class="sd">    .. [1] https://bitbucket.org/jamesrhester/pycifrw</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="CifFile.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CifFile.html#pwtools.parse.CifFile.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">block</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        filename : name of the input file</span>
@@ -441,13 +437,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">init_attr_lst</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="CifFile.cif_str2float"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CifFile.cif_str2float.html#pwtools.parse.CifFile.cif_str2float">[docs]</a>    <span class="k">def</span> <span class="nf">cif_str2float</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">st</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;&#39;7.3782(7)&#39; -&gt; 7.3782&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;&#39;7.3782(7)&#39; -&gt; 7.3782&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s1">&#39;(&#39;</span> <span class="ow">in</span> <span class="n">st</span><span class="p">:</span>
             <span class="n">st</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(&#39;</span> <span class="o">+</span> <span class="n">regex</span><span class="o">.</span><span class="n">float_re</span>  <span class="o">+</span> <span class="sa">r</span><span class="s1">&#39;)(\(.*)&#39;</span><span class="p">,</span> <span class="n">st</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">st</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="CifFile.cif_clear_atom_symbol"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CifFile.cif_clear_atom_symbol.html#pwtools.parse.CifFile.cif_clear_atom_symbol">[docs]</a>    <span class="k">def</span> <span class="nf">cif_clear_atom_symbol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">rex</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;([a-zA-Z]+)([0-9+-]*)&#39;</span><span class="p">)):</span>
-        <span class="sd">&quot;&quot;&quot;Remove digits and &quot;+,-&quot; from atom names.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove digits and &quot;+,-&quot; from atom names.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -520,7 +516,7 @@
 
 
 <div class="viewcode-block" id="PDBFile"><a class="viewcode-back" href="../../generated/api/pwtools.parse.PDBFile.html#pwtools.parse.PDBFile">[docs]</a><span class="k">class</span> <span class="nc">PDBFile</span><span class="p">(</span><span class="n">StructureFileParser</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Very very simple pdb file parser.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Very very simple pdb file parser.</span>
 
 <span class="sd">    Extract only ATOM/HETATM and CRYST1 (if present) records. If you want smth</span>
 <span class="sd">    serious, check biopython or openbabel.</span>
@@ -627,7 +623,7 @@
 
 
 <div class="viewcode-block" id="PwSCFOutputFile"><a class="viewcode-back" href="../../generated/api/pwtools.parse.PwSCFOutputFile.html#pwtools.parse.PwSCFOutputFile">[docs]</a><span class="k">class</span> <span class="nc">PwSCFOutputFile</span><span class="p">(</span><span class="n">StructureFileParser</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Parse a pw.x SCF output file (calculation=&#39;scf&#39;).</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Parse a pw.x SCF output file (calculation=&#39;scf&#39;).</span>
 
 <span class="sd">    Some getters (_get_&lt;attr&gt;_raw) work for MD-like output, too. Here in the</span>
 <span class="sd">    SCF case, only the first item along the time axis is returned and should</span>
@@ -814,7 +810,7 @@
         <span class="k">return</span> <span class="n">arr1d_from_txt</span><span class="p">(</span><span class="n">com</span><span class="o">.</span><span class="n">backtick</span><span class="p">(</span><span class="n">cmd</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_coords_symbols</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Grep start coords and symbols from pw.out header. This is always in</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Grep start coords and symbols from pw.out header. This is always in</span>
 <span class="sd">        cartesian alat units (i.e. divided by alat) and printed with low</span>
 <span class="sd">        precision.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -833,7 +829,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;coords&#39;</span><span class="p">:</span> <span class="n">coords</span><span class="p">,</span> <span class="s1">&#39;symbols&#39;</span><span class="p">:</span> <span class="n">symbols</span><span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">_get_cell_2d</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Start 2d cell in alat units.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Start 2d cell in alat units.</span>
 
 <span class="sd">        Grep start cell from pw.out. Multiplication by alat in</span>
 <span class="sd">        :meth:`get_cell`.</span>
@@ -847,7 +843,7 @@
         <span class="k">return</span> <span class="n">arr2d_from_txt</span><span class="p">(</span><span class="n">com</span><span class="o">.</span><span class="n">backtick</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span>
 
 <div class="viewcode-block" id="PwSCFOutputFile.get_alat"><a class="viewcode-back" href="../../generated/api/pwtools.parse.PwSCFOutputFile.get_alat.html#pwtools.parse.PwSCFOutputFile.get_alat">[docs]</a>    <span class="k">def</span> <span class="nf">get_alat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_alat</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Lattice parameter &quot;alat&quot; [Bohr]. If use_alat or self.use_alat is</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Lattice parameter &quot;alat&quot; [Bohr]. If use_alat or self.use_alat is</span>
 <span class="sd">        False, return 1.0, i.e. disbale alat.</span>
 
 <span class="sd">        Parameters</span>
@@ -864,7 +860,7 @@
             <span class="k">return</span> <span class="mf">1.0</span></div>
 
 <div class="viewcode-block" id="PwSCFOutputFile.get_coords"><a class="viewcode-back" href="../../generated/api/pwtools.parse.PwSCFOutputFile.get_coords.html#pwtools.parse.PwSCFOutputFile.get_coords">[docs]</a>    <span class="k">def</span> <span class="nf">get_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Cartesian start coords [Bohr] if self.alat in [Bohr].&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Cartesian start coords [Bohr] if self.alat in [Bohr].&quot;&quot;&quot;</span>
         <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;getting coords&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_set_attr_lst</span><span class="p">([</span><span class="s1">&#39;_coords_symbols&#39;</span><span class="p">,</span> <span class="s1">&#39;alat&#39;</span><span class="p">]):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords_symbols</span><span class="p">[</span><span class="s1">&#39;coords&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">alat</span>
@@ -879,15 +875,15 @@
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="PwSCFOutputFile.get_stress"><a class="viewcode-back" href="../../generated/api/pwtools.parse.PwSCFOutputFile.get_stress.html#pwtools.parse.PwSCFOutputFile.get_stress">[docs]</a>    <span class="k">def</span> <span class="nf">get_stress</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Stress tensor [kbar].&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stress tensor [kbar].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_slice_get</span><span class="p">(</span><span class="s1">&#39;stress&#39;</span><span class="p">,</span> <span class="n">sl</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeaxis</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PwSCFOutputFile.get_etot"><a class="viewcode-back" href="../../generated/api/pwtools.parse.PwSCFOutputFile.get_etot.html#pwtools.parse.PwSCFOutputFile.get_etot">[docs]</a>    <span class="k">def</span> <span class="nf">get_etot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Total enery [Ry].&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Total enery [Ry].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_slice_get</span><span class="p">(</span><span class="s1">&#39;etot&#39;</span><span class="p">,</span> <span class="n">sl</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PwSCFOutputFile.get_forces"><a class="viewcode-back" href="../../generated/api/pwtools.parse.PwSCFOutputFile.get_forces.html#pwtools.parse.PwSCFOutputFile.get_forces">[docs]</a>    <span class="k">def</span> <span class="nf">get_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Forces [Ry / Bohr].&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Forces [Ry / Bohr].&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_set_attr</span><span class="p">(</span><span class="s1">&#39;natoms&#39;</span><span class="p">):</span>
             <span class="c1"># Assume that the first forces block printed are the forces on the</span>
             <span class="c1"># ions. Skip vdw forces or whatever else is printed after that.</span>
@@ -902,7 +898,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_slice_get</span><span class="p">(</span><span class="s1">&#39;nstep_scf&#39;</span><span class="p">,</span> <span class="n">sl</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PwSCFOutputFile.get_cell"><a class="viewcode-back" href="../../generated/api/pwtools.parse.PwSCFOutputFile.get_cell.html#pwtools.parse.PwSCFOutputFile.get_cell">[docs]</a>    <span class="k">def</span> <span class="nf">get_cell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Start cell [Bohr].</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Start cell [Bohr].</span>
 
 <span class="sd">        Apply self.alat unit to _cell_2d.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_set_attr_lst</span><span class="p">([</span><span class="s1">&#39;_cell_2d&#39;</span><span class="p">,</span> <span class="s1">&#39;alat&#39;</span><span class="p">]):</span>
@@ -932,7 +928,7 @@
 
 
 <div class="viewcode-block" id="PwMDOutputFile"><a class="viewcode-back" href="../../generated/api/pwtools.parse.PwMDOutputFile.html#pwtools.parse.PwMDOutputFile">[docs]</a><span class="k">class</span> <span class="nc">PwMDOutputFile</span><span class="p">(</span><span class="n">TrajectoryFileParser</span><span class="p">,</span> <span class="n">PwSCFOutputFile</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Parse pw.x MD-like output.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse pw.x MD-like output.</span>
 
 <span class="sd">    Tested so far: md, relax, vc-relax. For vc-md, see PwVCMDOutputFile.</span>
 
@@ -989,7 +985,7 @@
 
 
     <span class="k">def</span> <span class="nf">_get_block_header_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Parse things like</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse things like</span>
 
 <span class="sd">            ATOMIC_POSITIONS            -&gt; None</span>
 <span class="sd">            ATOMIC_POSITIONS unit       -&gt; unit</span>
@@ -1017,7 +1013,7 @@
             <span class="k">return</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_get_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Parse ATOMIC_POSITIONS block. Unit is handled by get_coords_unit().&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse ATOMIC_POSITIONS block. Unit is handled by get_coords_unit().&quot;&quot;&quot;</span>
         <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;getting _coords&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_set_attr</span><span class="p">(</span><span class="s1">&#39;natoms&#39;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">try_set_attr</span><span class="p">(</span><span class="s1">&#39;natoms&#39;</span><span class="p">)</span>
@@ -1038,7 +1034,7 @@
             <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">_get_cell_3d</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Parse CELL_PARAMETERS block.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse CELL_PARAMETERS block.</span>
 
 <span class="sd">        The block unit is ignored here. Only the content of the block is parsed</span>
 <span class="sd">        (i.e. the CELL_PARAMETERS as they are in the file). See also</span>
@@ -1056,7 +1052,7 @@
                              <span class="n">axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeaxis</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_get_cell_3d_factors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Parse CELL_PARAMETERS unit factor printed at each time step.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse CELL_PARAMETERS unit factor printed at each time step.</span>
 
 <span class="sd">        ::</span>
 <span class="sd">            CELL_PARAMETERS (alat= 22.75306514)</span>
@@ -1088,7 +1084,7 @@
                 <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">_match_nstep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arr</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Get nstep from _coords.shape[0] and return the last nstep steps from</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get nstep from _coords.shape[0] and return the last nstep steps from</span>
 <span class="sd">        the array `arr` along self.timeaxis.</span>
 
 <span class="sd">        Used to match forces,stress,... etc to coords b/c for MDs, the former</span>
@@ -1116,7 +1112,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_block_header_unit</span><span class="p">(</span><span class="s1">&#39;CELL_PARAMETERS&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PwMDOutputFile.get_coords"><a class="viewcode-back" href="../../generated/api/pwtools.parse.PwMDOutputFile.get_coords.html#pwtools.parse.PwMDOutputFile.get_coords">[docs]</a>    <span class="k">def</span> <span class="nf">get_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Cartesian coords [Bohr]. If coords_unit=&#39;alat&#39;, then [Bohr] if</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Cartesian coords [Bohr]. If coords_unit=&#39;alat&#39;, then [Bohr] if</span>
 <span class="sd">        self.alat in [Bohr].&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_set_attr_lst</span><span class="p">([</span><span class="s1">&#39;_coords&#39;</span><span class="p">,</span> <span class="s1">&#39;coords_unit&#39;</span><span class="p">,</span> <span class="s1">&#39;alat&#39;</span><span class="p">]):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords_unit</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;bohr&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
@@ -1131,7 +1127,7 @@
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="PwMDOutputFile.get_cell"><a class="viewcode-back" href="../../generated/api/pwtools.parse.PwMDOutputFile.get_cell.html#pwtools.parse.PwMDOutputFile.get_cell">[docs]</a>    <span class="k">def</span> <span class="nf">get_cell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Cell [Bohr]. Return 3d array from CELL_PARAMETERS or 2d array</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Cell [Bohr]. Return 3d array from CELL_PARAMETERS or 2d array</span>
 <span class="sd">        self._cell_2d. Beware: complicated units logic ahead!&quot;&quot;&quot;</span>
         <span class="c1"># From the manual, regarding the unit of CELL_PARAMETERS in the input</span>
         <span class="c1"># file:</span>
@@ -1173,7 +1169,7 @@
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="PwMDOutputFile.get_coords_frac"><a class="viewcode-back" href="../../generated/api/pwtools.parse.PwMDOutputFile.get_coords_frac.html#pwtools.parse.PwMDOutputFile.get_coords_frac">[docs]</a>    <span class="k">def</span> <span class="nf">get_coords_frac</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Fractional coords.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fractional coords.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_set_attr_lst</span><span class="p">([</span><span class="s1">&#39;_coords&#39;</span><span class="p">,</span> <span class="s1">&#39;coords_unit&#39;</span><span class="p">]):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords_unit</span> <span class="o">==</span> <span class="s1">&#39;crystal&#39;</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span>
@@ -1183,14 +1179,14 @@
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="PwMDOutputFile.get_ekin"><a class="viewcode-back" href="../../generated/api/pwtools.parse.PwMDOutputFile.get_ekin.html#pwtools.parse.PwMDOutputFile.get_ekin">[docs]</a>    <span class="k">def</span> <span class="nf">get_ekin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Ion kinetic energy [Ry].&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Ion kinetic energy [Ry].&quot;&quot;&quot;</span>
         <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;getting ekin&quot;</span><span class="p">)</span>
         <span class="n">cmd</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;grep &#39;kinetic energy&#39; </span><span class="si">%s</span><span class="s2"> | </span><span class="si">%s</span><span class="s2"> &#39;{print $5}&#39;&quot;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
                                                               <span class="n">AWK</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">arr1d_from_txt</span><span class="p">(</span><span class="n">com</span><span class="o">.</span><span class="n">backtick</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="PwMDOutputFile.get_temperature"><a class="viewcode-back" href="../../generated/api/pwtools.parse.PwMDOutputFile.get_temperature.html#pwtools.parse.PwMDOutputFile.get_temperature">[docs]</a>    <span class="k">def</span> <span class="nf">get_temperature</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Temperature [K]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Temperature [K]&quot;&quot;&quot;</span>
         <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;getting temperature&quot;</span><span class="p">)</span>
         <span class="n">cmd</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;egrep &#39;temperature[ ]*=&#39; </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">+</span> \
               <span class="sa">r</span><span class="s2">&quot;| sed -re &#39;s/.*temp.*=\s*(&quot;</span> <span class="o">+</span> <span class="n">regex</span><span class="o">.</span><span class="n">float_re</span> <span class="o">+</span> \
@@ -1198,21 +1194,21 @@
         <span class="k">return</span> <span class="n">arr1d_from_txt</span><span class="p">(</span><span class="n">com</span><span class="o">.</span><span class="n">backtick</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="PwMDOutputFile.get_timestep"><a class="viewcode-back" href="../../generated/api/pwtools.parse.PwMDOutputFile.get_timestep.html#pwtools.parse.PwMDOutputFile.get_timestep">[docs]</a>    <span class="k">def</span> <span class="nf">get_timestep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Time step [tryd].&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Time step [tryd].&quot;&quot;&quot;</span>
         <span class="n">cmd</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;grep -m1 &#39;Time.*step&#39; </span><span class="si">%s</span><span class="s2"> | sed -re </span><span class="se">\</span>
 <span class="s2">              &#39;s/.*step\s+=\s+(.*)a.u..*/\1/&#39;&quot;</span> <span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span>
         <span class="k">return</span> <span class="n">float_from_txt</span><span class="p">(</span><span class="n">com</span><span class="o">.</span><span class="n">backtick</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="PwMDOutputFile.get_stress"><a class="viewcode-back" href="../../generated/api/pwtools.parse.PwMDOutputFile.get_stress.html#pwtools.parse.PwMDOutputFile.get_stress">[docs]</a>    <span class="k">def</span> <span class="nf">get_stress</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Stress tensor [kbar].&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stress tensor [kbar].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_match_nstep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_return</span><span class="p">(</span><span class="s1">&#39;stress&#39;</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="PwMDOutputFile.get_etot"><a class="viewcode-back" href="../../generated/api/pwtools.parse.PwMDOutputFile.get_etot.html#pwtools.parse.PwMDOutputFile.get_etot">[docs]</a>    <span class="k">def</span> <span class="nf">get_etot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[Ry] &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;[Ry] &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_match_nstep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_return</span><span class="p">(</span><span class="s1">&#39;etot&#39;</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="PwMDOutputFile.get_forces"><a class="viewcode-back" href="../../generated/api/pwtools.parse.PwMDOutputFile.get_forces.html#pwtools.parse.PwMDOutputFile.get_forces">[docs]</a>    <span class="k">def</span> <span class="nf">get_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[Ry / Bohr] &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;[Ry / Bohr] &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_set_attr</span><span class="p">(</span><span class="s1">&#39;natoms&#39;</span><span class="p">):</span>
             <span class="n">forces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_match_nstep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_return</span><span class="p">(</span><span class="s1">&#39;forces&#39;</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">forces</span><span class="p">[:,:</span><span class="bp">self</span><span class="o">.</span><span class="n">natoms</span><span class="p">,:]</span>
@@ -1224,7 +1220,7 @@
 
 
 <div class="viewcode-block" id="PwVCMDOutputFile"><a class="viewcode-back" href="../../generated/api/pwtools.parse.PwVCMDOutputFile.html#pwtools.parse.PwVCMDOutputFile">[docs]</a><span class="k">class</span> <span class="nc">PwVCMDOutputFile</span><span class="p">(</span><span class="n">PwMDOutputFile</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Parse only calculation=&#39;vc-md&#39;.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse only calculation=&#39;vc-md&#39;.&quot;&quot;&quot;</span>
 <div class="viewcode-block" id="PwVCMDOutputFile.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.parse.PwVCMDOutputFile.html#pwtools.parse.PwVCMDOutputFile.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
         <span class="n">PwMDOutputFile</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_attr_lst</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attr_lst</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;econst&#39;</span><span class="p">])</span></div>
@@ -1259,7 +1255,7 @@
 
 
 <div class="viewcode-block" id="CpmdSCFOutputFile"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CpmdSCFOutputFile.html#pwtools.parse.CpmdSCFOutputFile">[docs]</a><span class="k">class</span> <span class="nc">CpmdSCFOutputFile</span><span class="p">(</span><span class="n">StructureFileParser</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Parse output from a CPMD &quot;single point calculation&quot; (wave function</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse output from a CPMD &quot;single point calculation&quot; (wave function</span>
 <span class="sd">    optimization).</span>
 
 <span class="sd">    Some extra files are assumed to be in the same directory as self.filename.</span>
@@ -1317,7 +1313,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">init_attr_lst</span><span class="p">()</span></div>
 
     <span class="k">def</span> <span class="nf">_get_coords_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Low precision cartesian coords [Bohr] + forces [Ha / Bohr] I guess.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Low precision cartesian coords [Bohr] + forces [Ha / Bohr] I guess.</span>
 <span class="sd">        Only printed in this form if we use</span>
 <span class="sd">        &amp;CPMD</span>
 <span class="sd">            PRINT ON COORDINATES FORCES</span>
@@ -1337,7 +1333,7 @@
             <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">_get_scale_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Read GEOMETRY.scale file with fractional coords.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read GEOMETRY.scale file with fractional coords.&quot;&quot;&quot;</span>
         <span class="n">fn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basedir</span><span class="p">,</span> <span class="s1">&#39;GEOMETRY.scale&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
             <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;grep -A3 &#39;CELL MATRIX (BOHR)&#39; </span><span class="si">%s</span><span class="s2"> | tail -n3&quot;</span> <span class="o">%</span><span class="n">fn</span>
@@ -1355,7 +1351,7 @@
             <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">_get_cell_2d</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;2d array `cell` [Bohr] for fixed-cell MD or SCF from GEOMETRY.scale</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;2d array `cell` [Bohr] for fixed-cell MD or SCF from GEOMETRY.scale</span>
 <span class="sd">        file.&quot;&quot;&quot;</span>
         <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;getting _cell_2d&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_set_attr</span><span class="p">(</span><span class="s1">&#39;_scale_file&#39;</span><span class="p">):</span>
@@ -1364,18 +1360,18 @@
             <span class="k">return</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="CpmdSCFOutputFile.get_cell"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CpmdSCFOutputFile.get_cell.html#pwtools.parse.CpmdSCFOutputFile.get_cell">[docs]</a>    <span class="k">def</span> <span class="nf">get_cell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;2d cell [Bohr]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;2d cell [Bohr]&quot;&quot;&quot;</span>
         <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;getting cell&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_return_attr</span><span class="p">(</span><span class="s1">&#39;_cell_2d&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="CpmdSCFOutputFile.get_stress"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CpmdSCFOutputFile.get_stress.html#pwtools.parse.CpmdSCFOutputFile.get_stress">[docs]</a>    <span class="k">def</span> <span class="nf">get_stress</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[kbar]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;[kbar]&quot;&quot;&quot;</span>
         <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;getting stress&quot;</span><span class="p">)</span>
         <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;grep -A3 &#39;TOTAL STRESS TENSOR&#39; </span><span class="si">%s</span><span class="s2"> | tail -n3&quot;</span> <span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span>
         <span class="k">return</span> <span class="n">arr2d_from_txt</span><span class="p">(</span><span class="n">com</span><span class="o">.</span><span class="n">backtick</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="CpmdSCFOutputFile.get_etot"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CpmdSCFOutputFile.get_etot.html#pwtools.parse.CpmdSCFOutputFile.get_etot">[docs]</a>    <span class="k">def</span> <span class="nf">get_etot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[Ha]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;[Ha]&quot;&quot;&quot;</span>
         <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;getting etot&quot;</span><span class="p">)</span>
         <span class="n">cmd</span> <span class="o">=</span>  <span class="sa">r</span><span class="s2">&quot;grep &#39;TOTAL ENERGY =&#39; </span><span class="si">%s</span><span class="s2"> | tail -n1 | </span><span class="si">%s</span><span class="s2"> &#39;{print $5}&#39;&quot;</span> \
         <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">AWK</span><span class="p">)</span>
@@ -1396,7 +1392,7 @@
            <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="CpmdSCFOutputFile.get_forces"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CpmdSCFOutputFile.get_forces.html#pwtools.parse.CpmdSCFOutputFile.get_forces">[docs]</a>    <span class="k">def</span> <span class="nf">get_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[Ha / Bohr]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;[Ha / Bohr]&quot;&quot;&quot;</span>
         <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;getting forces&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_set_attr</span><span class="p">(</span><span class="s1">&#39;_coords_forces&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords_forces</span><span class="p">[:,</span><span class="mi">3</span><span class="p">:]</span>
@@ -1404,7 +1400,7 @@
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="CpmdSCFOutputFile.get_natoms"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CpmdSCFOutputFile.get_natoms.html#pwtools.parse.CpmdSCFOutputFile.get_natoms">[docs]</a>    <span class="k">def</span> <span class="nf">get_natoms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Number of atoms. Apparently only printed as &quot;NUMBER OF ATOMS ...&quot; in</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Number of atoms. Apparently only printed as &quot;NUMBER OF ATOMS ...&quot; in</span>
 <span class="sd">        the SCF case, not in MD. So we use &quot;grep -c&quot; on the GEOMETRY file, which</span>
 <span class="sd">        has `natoms` lines (normally) and 6 colunms. Sometimes (so far seen in</span>
 <span class="sd">        variable cell calcs) there are some additional lines w/ 3 columns,</span>
@@ -1439,7 +1435,7 @@
 
 
 <div class="viewcode-block" id="CpmdMDOutputFile"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CpmdMDOutputFile.html#pwtools.parse.CpmdMDOutputFile">[docs]</a><span class="k">class</span> <span class="nc">CpmdMDOutputFile</span><span class="p">(</span><span class="n">TrajectoryFileParser</span><span class="p">,</span> <span class="n">CpmdSCFOutputFile</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Parse CPMD MD output.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse CPMD MD output.</span>
 
 <span class="sd">    Works with BO-MD and CP-MD, fixed and variable cell. Some attrs may be None</span>
 <span class="sd">    or have different shapes (2d va 3d arrays) depending on what type of MD is</span>
@@ -1553,7 +1549,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="CpmdMDOutputFile.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CpmdMDOutputFile.html#pwtools.parse.CpmdMDOutputFile.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        filename : file to parse</span>
@@ -1632,7 +1628,7 @@
 
     <span class="k">def</span> <span class="nf">_get_coords_vel_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;getting _coords_vel_forces&quot;</span><span class="p">)</span>
-        <span class="sd">&quot;&quot;&quot;Parse (F)TRAJECTORY file. Ignore lines which say</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse (F)TRAJECTORY file. Ignore lines which say</span>
 <span class="sd">        &quot;&lt;&lt;&lt;&lt;&lt;&lt;  NEW DATA  &gt;&gt;&gt;&gt;&gt;&gt;&quot; from restarts.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># cols (both files):</span>
@@ -1687,7 +1683,7 @@
 
 <div class="viewcode-block" id="CpmdMDOutputFile.get_cell"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CpmdMDOutputFile.get_cell.html#pwtools.parse.CpmdMDOutputFile.get_cell">[docs]</a>    <span class="k">def</span> <span class="nf">get_cell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;getting cell&quot;</span><span class="p">)</span>
-        <span class="sd">&quot;&quot;&quot;Parse CELL file [Bohr]. If CELL is not there, return 2d cell</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse CELL file [Bohr]. If CELL is not there, return 2d cell</span>
 <span class="sd">        from GEOMETRY.scale (self.cell from CpmdSCFOutputFile).&quot;&quot;&quot;</span>
         <span class="c1"># So far tested CELL files have 6 cols:</span>
         <span class="c1"># 1-3: x,y,z cell vectors</span>
@@ -1711,14 +1707,14 @@
 
 <div class="viewcode-block" id="CpmdMDOutputFile.get_coords"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CpmdMDOutputFile.get_coords.html#pwtools.parse.CpmdMDOutputFile.get_coords">[docs]</a>    <span class="k">def</span> <span class="nf">get_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;getting coords&quot;</span><span class="p">)</span>
-        <span class="sd">&quot;&quot;&quot;Cartesian coords [Bohr].&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Cartesian coords [Bohr].&quot;&quot;&quot;</span>
         <span class="n">req</span> <span class="o">=</span> <span class="s1">&#39;_coords_vel_forces&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">try_set_attr</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords_vel_forces</span><span class="p">[</span><span class="s1">&#39;coords&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_set_attr</span><span class="p">(</span><span class="n">req</span><span class="p">)</span> \
             <span class="k">else</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="CpmdMDOutputFile.get_econst"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CpmdMDOutputFile.get_econst.html#pwtools.parse.CpmdMDOutputFile.get_econst">[docs]</a>    <span class="k">def</span> <span class="nf">get_econst</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[Ha]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;[Ha]&quot;&quot;&quot;</span>
         <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;getting econst&quot;</span><span class="p">)</span>
         <span class="n">req</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_energies_file&#39;</span><span class="p">,</span> <span class="s1">&#39;etot&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">try_set_attr_lst</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
@@ -1732,7 +1728,7 @@
 
 <div class="viewcode-block" id="CpmdMDOutputFile.get_ekinc"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CpmdMDOutputFile.get_ekinc.html#pwtools.parse.CpmdMDOutputFile.get_ekinc">[docs]</a>    <span class="k">def</span> <span class="nf">get_ekinc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;getting ekinc&quot;</span><span class="p">)</span>
-        <span class="sd">&quot;&quot;&quot;Fictitious electron kinetic energy [Ha].&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fictitious electron kinetic energy [Ha].&quot;&quot;&quot;</span>
         <span class="n">req</span> <span class="o">=</span> <span class="s1">&#39;_energies_file&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">try_set_attr</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_set_attr</span><span class="p">(</span><span class="n">req</span><span class="p">)</span> <span class="ow">and</span> <span class="s1">&#39;ekinc&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_energies_file</span><span class="p">:</span>
@@ -1742,7 +1738,7 @@
 
 <div class="viewcode-block" id="CpmdMDOutputFile.get_etot"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CpmdMDOutputFile.get_etot.html#pwtools.parse.CpmdMDOutputFile.get_etot">[docs]</a>    <span class="k">def</span> <span class="nf">get_etot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;getting etot&quot;</span><span class="p">)</span>
-        <span class="sd">&quot;&quot;&quot;Totat energy = EKS = Kohn Sham energy? [Ha].&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Totat energy = EKS = Kohn Sham energy? [Ha].&quot;&quot;&quot;</span>
         <span class="n">req</span> <span class="o">=</span> <span class="s1">&#39;_energies_file&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">try_set_attr</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_energies_file</span><span class="p">[</span><span class="s1">&#39;eks&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_set_attr</span><span class="p">(</span><span class="n">req</span><span class="p">)</span> \
@@ -1750,7 +1746,7 @@
 
 <div class="viewcode-block" id="CpmdMDOutputFile.get_ekinh"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CpmdMDOutputFile.get_ekinh.html#pwtools.parse.CpmdMDOutputFile.get_ekinh">[docs]</a>    <span class="k">def</span> <span class="nf">get_ekinh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;getting ekinh&quot;</span><span class="p">)</span>
-        <span class="sd">&quot;&quot;&quot;Fictitious cell kinetic energy [Ha].</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fictitious cell kinetic energy [Ha].</span>
 <span class="sd">        From prcpmd.F:</span>
 <span class="sd">            EKINH [J] = 9/2 * kb [J/K] * TEMPH [K]</span>
 <span class="sd">            EKINH [Ha] = 9/2 * kb [J/K] * TEMPH [K] / Ha</span>
@@ -1774,7 +1770,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ekinc</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="CpmdMDOutputFile.get_temperature_cell"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CpmdMDOutputFile.get_temperature_cell.html#pwtools.parse.CpmdMDOutputFile.get_temperature_cell">[docs]</a>    <span class="k">def</span> <span class="nf">get_temperature_cell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[K]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;[K]&quot;&quot;&quot;</span>
         <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;getting temperature_cell&quot;</span><span class="p">)</span>
         <span class="n">req</span> <span class="o">=</span> <span class="s1">&#39;ekin_cell&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">try_set_attr</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
@@ -1784,7 +1780,7 @@
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="CpmdMDOutputFile.get_forces"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CpmdMDOutputFile.get_forces.html#pwtools.parse.CpmdMDOutputFile.get_forces">[docs]</a>    <span class="k">def</span> <span class="nf">get_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Cartesian forces [Ha/Bohr].&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Cartesian forces [Ha/Bohr].&quot;&quot;&quot;</span>
         <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;getting forces&quot;</span><span class="p">)</span>
         <span class="n">req</span> <span class="o">=</span> <span class="s1">&#39;_coords_vel_forces&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">try_set_attr</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
@@ -1792,7 +1788,7 @@
             <span class="k">else</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="CpmdMDOutputFile.get_stress"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CpmdMDOutputFile.get_stress.html#pwtools.parse.CpmdMDOutputFile.get_stress">[docs]</a>    <span class="k">def</span> <span class="nf">get_stress</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Stress tensor from STRESS file if available [kbar]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stress tensor from STRESS file if available [kbar]&quot;&quot;&quot;</span>
         <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;getting stress&quot;</span><span class="p">)</span>
         <span class="n">fn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basedir</span><span class="p">,</span> <span class="s1">&#39;STRESS&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
@@ -1806,7 +1802,7 @@
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="CpmdMDOutputFile.get_temperature"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CpmdMDOutputFile.get_temperature.html#pwtools.parse.CpmdMDOutputFile.get_temperature">[docs]</a>    <span class="k">def</span> <span class="nf">get_temperature</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[K]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;[K]&quot;&quot;&quot;</span>
         <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;getting temperature&quot;</span><span class="p">)</span>
         <span class="n">req</span> <span class="o">=</span> <span class="s1">&#39;_energies_file&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">try_set_attr</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
@@ -1815,21 +1811,21 @@
 
 <div class="viewcode-block" id="CpmdMDOutputFile.get_velocity"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CpmdMDOutputFile.get_velocity.html#pwtools.parse.CpmdMDOutputFile.get_velocity">[docs]</a>    <span class="k">def</span> <span class="nf">get_velocity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;getting velocity&quot;</span><span class="p">)</span>
-        <span class="sd">&quot;&quot;&quot;Cartesian velocity [Bohr / thart]. Not sure about the unit!&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Cartesian velocity [Bohr / thart]. Not sure about the unit!&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_set_attr</span><span class="p">(</span><span class="s1">&#39;_coords_vel_forces&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords_vel_forces</span><span class="p">[</span><span class="s1">&#39;velocity&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="CpmdMDOutputFile.get_timestep"><a class="viewcode-back" href="../../generated/api/pwtools.parse.CpmdMDOutputFile.get_timestep.html#pwtools.parse.CpmdMDOutputFile.get_timestep">[docs]</a>    <span class="k">def</span> <span class="nf">get_timestep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Timestep [thart].&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Timestep [thart].&quot;&quot;&quot;</span>
         <span class="n">cmd</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;grep &#39;TIME STEP FOR IONS&#39; </span><span class="si">%s</span><span class="s2"> | </span><span class="se">\</span>
 <span class="s2">            sed -re &#39;s/.*IONS:\s+(.*)$/\1/&#39;&quot;</span> <span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span>
         <span class="k">return</span> <span class="n">float_from_txt</span><span class="p">(</span><span class="n">com</span><span class="o">.</span><span class="n">backtick</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span></div></div>
 
 
 <div class="viewcode-block" id="Cp2kSCFOutputFile"><a class="viewcode-back" href="../../generated/api/pwtools.parse.Cp2kSCFOutputFile.html#pwtools.parse.Cp2kSCFOutputFile">[docs]</a><span class="k">class</span> <span class="nc">Cp2kSCFOutputFile</span><span class="p">(</span><span class="n">StructureFileParser</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;CP2K SCF output parser (&quot;global/run_type energy_force,print_level low&quot;).</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;CP2K SCF output parser (&quot;global/run_type energy_force,print_level low&quot;).</span>
 
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
@@ -1887,20 +1883,20 @@
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Cp2kSCFOutputFile.get_forces"><a class="viewcode-back" href="../../generated/api/pwtools.parse.Cp2kSCFOutputFile.get_forces.html#pwtools.parse.Cp2kSCFOutputFile.get_forces">[docs]</a>    <span class="k">def</span> <span class="nf">get_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[Ha/Bohr]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;[Ha/Bohr]&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_set_attr</span><span class="p">(</span><span class="s1">&#39;_natoms_symbols_forces&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_natoms_symbols_forces</span><span class="p">[</span><span class="s1">&#39;forces&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Cp2kSCFOutputFile.get_etot"><a class="viewcode-back" href="../../generated/api/pwtools.parse.Cp2kSCFOutputFile.get_etot.html#pwtools.parse.Cp2kSCFOutputFile.get_etot">[docs]</a>    <span class="k">def</span> <span class="nf">get_etot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[Ha]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;[Ha]&quot;&quot;&quot;</span>
         <span class="n">cmd</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;sed -nre &#39;s/.*ENERGY.*Total.*energy.*:(.*)/\1/p&#39; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span>
         <span class="k">return</span> <span class="n">float_from_txt</span><span class="p">(</span><span class="n">com</span><span class="o">.</span><span class="n">backtick</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="Cp2kSCFOutputFile.get_stress"><a class="viewcode-back" href="../../generated/api/pwtools.parse.Cp2kSCFOutputFile.get_stress.html#pwtools.parse.Cp2kSCFOutputFile.get_stress">[docs]</a>    <span class="k">def</span> <span class="nf">get_stress</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[GPa]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;[GPa]&quot;&quot;&quot;</span>
         <span class="n">cmd</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;grep -A5 &#39;STRESS TENSOR.*GPa&#39; </span><span class="si">%s</span><span class="s2"> | egrep -v &#39;X[ ]+Y[ ]+Z&#39; | </span><span class="se">\</span>
 <span class="s2">            egrep &#39;^[ ]+(X|Y|Z)&#39;&quot;</span> <span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">backtick</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
@@ -1909,7 +1905,7 @@
 
 
 <div class="viewcode-block" id="Cp2kMDOutputFile"><a class="viewcode-back" href="../../generated/api/pwtools.parse.Cp2kMDOutputFile.html#pwtools.parse.Cp2kMDOutputFile">[docs]</a><span class="k">class</span> <span class="nc">Cp2kMDOutputFile</span><span class="p">(</span><span class="n">TrajectoryFileParser</span><span class="p">,</span> <span class="n">Cp2kSCFOutputFile</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;CP2K MD output parser. Tested with cp2k v2.4, &quot;global/run_type</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;CP2K MD output parser. Tested with cp2k v2.4, &quot;global/run_type</span>
 <span class="sd">    md,print_level low&quot;.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="Cp2kMDOutputFile.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.parse.Cp2kMDOutputFile.html#pwtools.parse.Cp2kMDOutputFile.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
@@ -1940,7 +1936,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_cp2k_repack_arr</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Convert arr, which is an unrolled (nstep,3,3) array, back.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert arr, which is an unrolled (nstep,3,3) array, back.&quot;&quot;&quot;</span>
         <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="n">out</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span>
         <span class="n">out</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[:,</span><span class="mi">3</span><span class="p">]</span>
@@ -1954,7 +1950,7 @@
         <span class="k">return</span> <span class="n">out</span>
 
     <span class="k">def</span> <span class="nf">_cp2k_xyz2arr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Parse cp2k style XYZ files and return the 3d array.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse cp2k style XYZ files and return the 3d array.&quot;&quot;&quot;</span>
         <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;grep -c &#39;i = .*E =&#39; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">fn</span>
         <span class="n">nstep</span> <span class="o">=</span> <span class="n">nstep_from_txt</span><span class="p">(</span><span class="n">com</span><span class="o">.</span><span class="n">backtick</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span>
         <span class="n">natoms</span> <span class="o">=</span> <span class="n">int_from_txt</span><span class="p">(</span><span class="n">com</span><span class="o">.</span><span class="n">backtick</span><span class="p">(</span><span class="s2">&quot;head -n1 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">fn</span><span class="p">))</span>
@@ -1987,7 +1983,7 @@
         <span class="k">return</span> <span class="n">int_from_txt</span><span class="p">(</span><span class="n">com</span><span class="o">.</span><span class="n">backtick</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="Cp2kMDOutputFile.get_timestep"><a class="viewcode-back" href="../../generated/api/pwtools.parse.Cp2kMDOutputFile.get_timestep.html#pwtools.parse.Cp2kMDOutputFile.get_timestep">[docs]</a>    <span class="k">def</span> <span class="nf">get_timestep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[fs]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;[fs]&quot;&quot;&quot;</span>
         <span class="n">cmd</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;egrep -m1 &#39;MD\| Time Step \[fs\]&#39; </span><span class="si">%s</span><span class="s2"> | </span><span class="se">\</span>
 <span class="s2">            sed -re &#39;s/.*\](.*)/\1/&#39;&quot;</span> <span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span>
         <span class="k">return</span> <span class="n">float_from_txt</span><span class="p">(</span><span class="n">com</span><span class="o">.</span><span class="n">backtick</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span></div>
@@ -2016,70 +2012,70 @@
             <span class="k">return</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="Cp2kMDOutputFile.get_coords"><a class="viewcode-back" href="../../generated/api/pwtools.parse.Cp2kMDOutputFile.get_coords.html#pwtools.parse.Cp2kMDOutputFile.get_coords">[docs]</a>    <span class="k">def</span> <span class="nf">get_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Cartesian [Ang]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Cartesian [Ang]&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pos_file</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cp2k_xyz2arr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pos_file</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Cp2kMDOutputFile.get_forces"><a class="viewcode-back" href="../../generated/api/pwtools.parse.Cp2kMDOutputFile.get_forces.html#pwtools.parse.Cp2kMDOutputFile.get_forces">[docs]</a>    <span class="k">def</span> <span class="nf">get_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[Ha/Bohr]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;[Ha/Bohr]&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frc_file</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cp2k_xyz2arr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frc_file</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_forces_from_outfile</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Cp2kMDOutputFile.get_velocity"><a class="viewcode-back" href="../../generated/api/pwtools.parse.Cp2kMDOutputFile.get_velocity.html#pwtools.parse.Cp2kMDOutputFile.get_velocity">[docs]</a>    <span class="k">def</span> <span class="nf">get_velocity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[Bohr/thart]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;[Bohr/thart]&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vel_file</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cp2k_xyz2arr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vel_file</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Cp2kMDOutputFile.get_stress"><a class="viewcode-back" href="../../generated/api/pwtools.parse.Cp2kMDOutputFile.get_stress.html#pwtools.parse.Cp2kMDOutputFile.get_stress">[docs]</a>    <span class="k">def</span> <span class="nf">get_stress</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[bar]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;[bar]&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_set_attr</span><span class="p">(</span><span class="s1">&#39;_stress_file_arr&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cp2k_repack_arr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_stress_file_arr</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Cp2kMDOutputFile.get_ekin"><a class="viewcode-back" href="../../generated/api/pwtools.parse.Cp2kMDOutputFile.get_ekin.html#pwtools.parse.Cp2kMDOutputFile.get_ekin">[docs]</a>    <span class="k">def</span> <span class="nf">get_ekin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[Ha]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;[Ha]&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_set_attr</span><span class="p">(</span><span class="s1">&#39;_ener_file_arr&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ener_file_arr</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Cp2kMDOutputFile.get_temperature"><a class="viewcode-back" href="../../generated/api/pwtools.parse.Cp2kMDOutputFile.get_temperature.html#pwtools.parse.Cp2kMDOutputFile.get_temperature">[docs]</a>    <span class="k">def</span> <span class="nf">get_temperature</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[K]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;[K]&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_set_attr</span><span class="p">(</span><span class="s1">&#39;_ener_file_arr&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ener_file_arr</span><span class="p">[:,</span><span class="mi">3</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Cp2kMDOutputFile.get_etot"><a class="viewcode-back" href="../../generated/api/pwtools.parse.Cp2kMDOutputFile.get_etot.html#pwtools.parse.Cp2kMDOutputFile.get_etot">[docs]</a>    <span class="k">def</span> <span class="nf">get_etot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[Ha]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;[Ha]&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_set_attr</span><span class="p">(</span><span class="s1">&#39;_ener_file_arr&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ener_file_arr</span><span class="p">[:,</span><span class="mi">4</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Cp2kMDOutputFile.get_econst"><a class="viewcode-back" href="../../generated/api/pwtools.parse.Cp2kMDOutputFile.get_econst.html#pwtools.parse.Cp2kMDOutputFile.get_econst">[docs]</a>    <span class="k">def</span> <span class="nf">get_econst</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[Ha]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;[Ha]&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_set_attr</span><span class="p">(</span><span class="s1">&#39;_ener_file_arr&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ener_file_arr</span><span class="p">[:,</span><span class="mi">5</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Cp2kMDOutputFile.get_cell"><a class="viewcode-back" href="../../generated/api/pwtools.parse.Cp2kMDOutputFile.get_cell.html#pwtools.parse.Cp2kMDOutputFile.get_cell">[docs]</a>    <span class="k">def</span> <span class="nf">get_cell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[Ang]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;[Ang]&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_set_attr</span><span class="p">(</span><span class="s1">&#39;_cell_file_arr&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cp2k_repack_arr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cell_file_arr</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Cp2kMDOutputFile.get_volume"><a class="viewcode-back" href="../../generated/api/pwtools.parse.Cp2kMDOutputFile.get_volume.html#pwtools.parse.Cp2kMDOutputFile.get_volume">[docs]</a>    <span class="k">def</span> <span class="nf">get_volume</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[Ang^3]&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;[Ang^3]&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_set_attr</span><span class="p">(</span><span class="s1">&#39;_cell_file_arr&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cell_file_arr</span><span class="p">[:,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
@@ -2087,7 +2083,7 @@
 
 
 <div class="viewcode-block" id="Cp2kRelaxOutputFile"><a class="viewcode-back" href="../../generated/api/pwtools.parse.Cp2kRelaxOutputFile.html#pwtools.parse.Cp2kRelaxOutputFile">[docs]</a><span class="k">class</span> <span class="nc">Cp2kRelaxOutputFile</span><span class="p">(</span><span class="n">Cp2kMDOutputFile</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Parse cp2k global/run_type cell_opt. geo_opt might also work, but not</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse cp2k global/run_type cell_opt. geo_opt might also work, but not</span>
 <span class="sd">    tested yet.&quot;&quot;&quot;</span>
 <div class="viewcode-block" id="Cp2kRelaxOutputFile.get_natoms"><a class="viewcode-back" href="../../generated/api/pwtools.parse.Cp2kRelaxOutputFile.get_natoms.html#pwtools.parse.Cp2kRelaxOutputFile.get_natoms">[docs]</a>    <span class="k">def</span> <span class="nf">get_natoms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pos_file</span><span class="p">):</span>
@@ -2135,7 +2131,7 @@
 
 
 <div class="viewcode-block" id="DcdOutputFile"><a class="viewcode-back" href="../../generated/api/pwtools.parse.DcdOutputFile.html#pwtools.parse.DcdOutputFile">[docs]</a><span class="k">class</span> <span class="nc">DcdOutputFile</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Base class which implements dcd file reading. Used only for</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class which implements dcd file reading. Used only for</span>
 <span class="sd">    inheritance.&quot;&quot;&quot;</span>
     <span class="n">_dcd_convang</span> <span class="o">=</span> <span class="kc">False</span>
 
@@ -2186,7 +2182,7 @@
 
 
 <div class="viewcode-block" id="Cp2kDcdMDOutputFile"><a class="viewcode-back" href="../../generated/api/pwtools.parse.Cp2kDcdMDOutputFile.html#pwtools.parse.Cp2kDcdMDOutputFile">[docs]</a><span class="k">class</span> <span class="nc">Cp2kDcdMDOutputFile</span><span class="p">(</span><span class="n">DcdOutputFile</span><span class="p">,</span> <span class="n">Cp2kMDOutputFile</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Same as :class:`Cp2kMDOutputFile` (all ``PROJECT*`` files are text),</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Same as :class:`Cp2kMDOutputFile` (all ``PROJECT*`` files are text),</span>
 <span class="sd">    only that the coordinates file is a dcd format binary file</span>
 <span class="sd">    ``PROJECT-pos-1.dcd``.&quot;&quot;&quot;</span>
 <div class="viewcode-block" id="Cp2kDcdMDOutputFile.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.parse.Cp2kDcdMDOutputFile.html#pwtools.parse.Cp2kDcdMDOutputFile.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
@@ -2211,7 +2207,7 @@
 
 
 <div class="viewcode-block" id="LammpsTextMDOutputFile"><a class="viewcode-back" href="../../generated/api/pwtools.parse.LammpsTextMDOutputFile.html#pwtools.parse.LammpsTextMDOutputFile">[docs]</a><span class="k">class</span> <span class="nc">LammpsTextMDOutputFile</span><span class="p">(</span><span class="n">TrajectoryFileParser</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Parse LAMMPS text output.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse LAMMPS text output.</span>
 
 <span class="sd">    We parse the default ``log.lammps`` file (`filename`) with ``thermo``</span>
 <span class="sd">    output and, if present, a custom dump file ``lmp.out.dump`` created by</span>
@@ -2288,7 +2284,7 @@
 <span class="sd">      ``dump_modify ... element`` line in `filename` if found.</span>
 <span class="sd">      &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="LammpsTextMDOutputFile.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.parse.LammpsTextMDOutputFile.html#pwtools.parse.LammpsTextMDOutputFile.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s1">&#39;log.lammps&#39;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        filename : str</span>
@@ -2344,7 +2340,7 @@
         <span class="k">assert</span> <span class="n">mod</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">msg</span>
 
     <span class="k">def</span> <span class="nf">_get_thermo_dct</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Parse all text between &quot;Step ...&quot; and &quot;Loop ...&quot; in self.filename::</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse all text between &quot;Step ...&quot; and &quot;Loop ...&quot; in self.filename::</span>
 
 <span class="sd">            Step Temp Volume Cella Cellb Cellc</span>
 <span class="sd">                   0            0    37.412297            3            3          4.8</span>
@@ -2425,7 +2421,7 @@
             <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="LammpsTextMDOutputFile.get_etot"><a class="viewcode-back" href="../../generated/api/pwtools.parse.LammpsTextMDOutputFile.get_etot.html#pwtools.parse.LammpsTextMDOutputFile.get_etot">[docs]</a>    <span class="k">def</span> <span class="nf">get_etot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Potetntial energy PotEng [eV]. etot+ekin here is</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Potetntial energy PotEng [eV]. etot+ekin here is</span>
 <span class="sd">        TotEng=PotEng+KinEng in lammps. In DFT, the potential energy is usually</span>
 <span class="sd">        called &quot;total energy&quot;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -2558,7 +2554,7 @@
 
 
 <div class="viewcode-block" id="LammpsDcdMDOutputFile"><a class="viewcode-back" href="../../generated/api/pwtools.parse.LammpsDcdMDOutputFile.html#pwtools.parse.LammpsDcdMDOutputFile">[docs]</a><span class="k">class</span> <span class="nc">LammpsDcdMDOutputFile</span><span class="p">(</span><span class="n">DcdOutputFile</span><span class="p">,</span> <span class="n">LammpsTextMDOutputFile</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Parse Lammps DCD binary output + ``log.lammps`` text output.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse Lammps DCD binary output + ``log.lammps`` text output.</span>
 
 <span class="sd">    Hardcodes files:</span>
 <span class="sd">        | `dcdfilename` = ``basedir/lmp.out.dcd``</span>
@@ -2602,8 +2598,8 @@
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>
 

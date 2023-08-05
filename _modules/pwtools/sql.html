@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 
 <html lang="en">
@@ -6,14 +5,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>pwtools.sql &#8212; pwtools  documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b76e3c8a" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9121de03" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -97,7 +93,7 @@
 
 
 <div class="viewcode-block" id="get_test_db"><a class="viewcode-back" href="../../generated/api/pwtools.sql.get_test_db.html#pwtools.sql.get_test_db">[docs]</a><span class="k">def</span> <span class="nf">get_test_db</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;Return in-memory database for playing around.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return in-memory database for playing around.&quot;&quot;&quot;</span>
     <span class="n">db</span> <span class="o">=</span> <span class="n">SQLiteDB</span><span class="p">(</span><span class="s1">&#39;:memory:&#39;</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="s1">&#39;calc&#39;</span><span class="p">)</span>
     <span class="n">db</span><span class="o">.</span><span class="n">create_table</span><span class="p">([(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;TEXT&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;FLOAT&#39;</span><span class="p">)])</span>
     <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;insert into calc (a,b) values (&#39;lala&#39;, 1.0)&quot;</span><span class="p">)</span>
@@ -107,7 +103,7 @@
 
 
 <div class="viewcode-block" id="find_sqltype"><a class="viewcode-back" href="../../generated/api/pwtools.sql.find_sqltype.html#pwtools.sql.find_sqltype">[docs]</a><span class="k">def</span> <span class="nf">find_sqltype</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Find sqlite data type which matches the type of `val`.</span>
 
 <span class="sd">    Parameters</span>
@@ -133,7 +129,7 @@
 
 
 <div class="viewcode-block" id="fix_sqltype"><a class="viewcode-back" href="../../generated/api/pwtools.sql.fix_sqltype.html#pwtools.sql.fix_sqltype">[docs]</a><span class="k">def</span> <span class="nf">fix_sqltype</span><span class="p">(</span><span class="n">sqltype</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Fix `sqltype` string. Force uppercase string and</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fix `sqltype` string. Force uppercase string and</span>
 <span class="sd">    change &#39;FLOAT&#39; -&gt; &#39;REAL&#39;.</span>
 
 <span class="sd">    Parameters</span>
@@ -151,12 +147,12 @@
 
 
 <div class="viewcode-block" id="fix_sql_header"><a class="viewcode-back" href="../../generated/api/pwtools.sql.fix_sql_header.html#pwtools.sql.fix_sql_header">[docs]</a><span class="k">def</span> <span class="nf">fix_sql_header</span><span class="p">(</span><span class="n">header</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;fix_sqltype() applied to any sqltype in `header`&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;fix_sqltype() applied to any sqltype in `header`&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">[(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">fix_sqltype</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">header</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="SQLEntry"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLEntry.html#pwtools.sql.SQLEntry">[docs]</a><span class="k">class</span> <span class="nc">SQLEntry</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Represent an entry in a SQLite database. An entry is one single</span>
 <span class="sd">    value of one column and record (record = row).</span>
 
@@ -168,7 +164,7 @@
 <span class="sd">    in the db and in the actual input file. See fileval.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="SQLEntry.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLEntry.html#pwtools.sql.SQLEntry.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sqlval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sqltype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fileval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        sqlval : Any Python type (str, unicode, float, integer, ...)</span>
@@ -240,7 +236,7 @@
 <span class="c1"># like attach_column() are already as complicated as it gets and almost not</span>
 <span class="c1"># used, even though they work!</span>
 <div class="viewcode-block" id="SQLiteDB"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.html#pwtools.sql.SQLiteDB">[docs]</a><span class="k">class</span> <span class="nc">SQLiteDB</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Interface class which wraps the sqlite3 module. It abstacts away the</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface class which wraps the sqlite3 module. It abstacts away the</span>
 <span class="sd">    connecting to the database and cursor setup and adds some convenience</span>
 <span class="sd">    methods.</span>
 
@@ -300,7 +296,7 @@
 <span class="sd">       less precision!</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="SQLiteDB.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.html#pwtools.sql.SQLiteDB.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_fn</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        db_fn : str</span>
@@ -325,7 +321,7 @@
             <span class="k">return</span> <span class="n">table</span>
 
 <div class="viewcode-block" id="SQLiteDB.set_table"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.set_table.html#pwtools.sql.SQLiteDB.set_table">[docs]</a>    <span class="k">def</span> <span class="nf">set_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set the table name (aka switch to another table).</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the table name (aka switch to another table).</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -335,31 +331,31 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="n">table</span></div>
 
 <div class="viewcode-block" id="SQLiteDB.get_table"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.get_table.html#pwtools.sql.SQLiteDB.get_table">[docs]</a>    <span class="k">def</span> <span class="nf">get_table</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return string self.table.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return string self.table.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span></div>
 
 <div class="viewcode-block" id="SQLiteDB.execute"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.execute.html#pwtools.sql.SQLiteDB.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;This calls self.cur.execute().&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;This calls self.cur.execute().&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SQLiteDB.executemany"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.executemany.html#pwtools.sql.SQLiteDB.executemany">[docs]</a>    <span class="k">def</span> <span class="nf">executemany</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;This calls self.cur.executemany().&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;This calls self.cur.executemany().&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SQLiteDB.executescript"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.executescript.html#pwtools.sql.SQLiteDB.executescript">[docs]</a>    <span class="k">def</span> <span class="nf">executescript</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;This calls self.cur.executescript().</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;This calls self.cur.executescript().</span>
 
 <span class="sd">        Returns what `executescript` returns. Calling</span>
 <span class="sd">        ``executescript().fetchall()`` returns [].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">executescript</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SQLiteDB.has_table"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.has_table.html#pwtools.sql.SQLiteDB.has_table">[docs]</a>    <span class="k">def</span> <span class="nf">has_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Check if a table named `table` already extists.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if a table named `table` already extists.&quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="n">table</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;table is None&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;pragma table_info(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span><span class="n">table</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span> <span class="o">!=</span> <span class="p">[]</span></div>
 
 <div class="viewcode-block" id="SQLiteDB.has_column"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.has_column.html#pwtools.sql.SQLiteDB.has_column">[docs]</a>    <span class="k">def</span> <span class="nf">has_column</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Check if `table`  already has the column `col`.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if `table`  already has the column `col`.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -373,7 +369,7 @@
         <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="SQLiteDB.add_column"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.add_column.html#pwtools.sql.SQLiteDB.add_column">[docs]</a>    <span class="k">def</span> <span class="nf">add_column</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">sqltype</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add column `col` with type `sqltype` to the header. To actually put</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add column `col` with type `sqltype` to the header. To actually put</span>
 <span class="sd">        data into that, use :meth:`execute` and standard sql statements or see</span>
 <span class="sd">        :meth:`attach_column` or :meth:`fill_column`.</span>
 
@@ -391,7 +387,7 @@
                         <span class="o">%</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">fix_sqltype</span><span class="p">(</span><span class="n">sqltype</span><span class="p">)))</span></div>
 
 <div class="viewcode-block" id="SQLiteDB.add_columns"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.add_columns.html#pwtools.sql.SQLiteDB.add_columns">[docs]</a>    <span class="k">def</span> <span class="nf">add_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">header</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Convenience function to add multiple columns from `header`. See</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convenience function to add multiple columns from `header`. See</span>
 <span class="sd">        :meth:`get_header`.</span>
 
 <span class="sd">        Parameters</span>
@@ -412,7 +408,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">add_column</span><span class="p">(</span><span class="o">*</span><span class="n">entry</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SQLiteDB.get_max_rowid"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.get_max_rowid.html#pwtools.sql.SQLiteDB.get_max_rowid">[docs]</a>    <span class="k">def</span> <span class="nf">get_max_rowid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return max(rowid), which is equal to the number of rows in</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return max(rowid), which is equal to the number of rows in</span>
 <span class="sd">        `table`.</span>
 
 <span class="sd">        Parameters</span>
@@ -423,7 +419,7 @@
 
 <div class="viewcode-block" id="SQLiteDB.fill_column"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.fill_column.html#pwtools.sql.SQLiteDB.fill_column">[docs]</a>    <span class="k">def</span> <span class="nf">fill_column</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">extend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                     <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Fill existing column `col` with values from `values`, starting from</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fill existing column `col` with values from `values`, starting from</span>
 <span class="sd">        rowid `start`. &quot;rowid&quot; is a special sqlite column which is always</span>
 <span class="sd">        present and which numbers all rows.</span>
 
@@ -472,7 +468,7 @@
             <span class="n">rowid</span> <span class="o">+=</span> <span class="mi">1</span></div>
 
 <div class="viewcode-block" id="SQLiteDB.attach_column"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.attach_column.html#pwtools.sql.SQLiteDB.attach_column">[docs]</a>    <span class="k">def</span> <span class="nf">attach_column</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">sqltype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Attach (add) a new column named `col` of `sqltype` and fill it with</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Attach (add) a new column named `col` of `sqltype` and fill it with</span>
 <span class="sd">        `values`. With overwrite=True, allow writing into existing columns,</span>
 <span class="sd">        i.e. behave like :meth:`fill_column`.</span>
 
@@ -506,7 +502,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">fill_column</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="o">**</span><span class="n">current_kwds</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SQLiteDB.get_header"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.get_header.html#pwtools.sql.SQLiteDB.get_header">[docs]</a>    <span class="k">def</span> <span class="nf">get_header</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the header of the `table`:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the header of the `table`:</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -523,7 +519,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;PRAGMA table_info(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_table</span><span class="p">(</span><span class="n">table</span><span class="p">))]</span></div>
 
 <div class="viewcode-block" id="SQLiteDB.create_table"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.create_table.html#pwtools.sql.SQLiteDB.create_table">[docs]</a>    <span class="k">def</span> <span class="nf">create_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">header</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a `table` from `header`. `header` is in the</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a `table` from `header`. `header` is in the</span>
 <span class="sd">        same format which :meth:`get_header` returns.</span>
 
 <span class="sd">        Parameters</span>
@@ -537,32 +533,32 @@
                                             <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">fix_sql_header</span><span class="p">(</span><span class="n">header</span><span class="p">))))</span></div>
 
 <div class="viewcode-block" id="SQLiteDB.get_list1d"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.get_list1d.html#pwtools.sql.SQLiteDB.get_list1d">[docs]</a>    <span class="k">def</span> <span class="nf">get_list1d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Shortcut for commonly used functionality. If one extracts a single</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Shortcut for commonly used functionality. If one extracts a single</span>
 <span class="sd">        column, then ``self.cur.fetchall()`` returns a list of tuples like</span>
 <span class="sd">        ``[(1,), (2,)]`` We call ``fetchall()`` and return the flattened list.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">common</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="SQLiteDB.get_single"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.get_single.html#pwtools.sql.SQLiteDB.get_single">[docs]</a>    <span class="k">def</span> <span class="nf">get_single</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return single entry from the table.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return single entry from the table.&quot;&quot;&quot;</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_list1d</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;nothing returned&quot;</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;no unique result&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ret</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="SQLiteDB.get_array1d"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.get_array1d.html#pwtools.sql.SQLiteDB.get_array1d">[docs]</a>    <span class="k">def</span> <span class="nf">get_array1d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Same as :meth:`get_list1d`, but return numpy array.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Same as :meth:`get_list1d`, but return numpy array.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_list1d</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="SQLiteDB.get_array"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.get_array.html#pwtools.sql.SQLiteDB.get_array">[docs]</a>    <span class="k">def</span> <span class="nf">get_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return result of ``self.execute().fetchall()`` as numpy array.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return result of ``self.execute().fetchall()`` as numpy array.</span>
 
 <span class="sd">        Usful for 2d arrays, i.e. convert result of extracting &gt;1 columns to</span>
 <span class="sd">        numpy 2d array. The result depends on the data types of the columns.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="SQLiteDB.get_dict"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.get_dict.html#pwtools.sql.SQLiteDB.get_dict">[docs]</a>    <span class="k">def</span> <span class="nf">get_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;For the provided select statement, return a dict where each key is</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;For the provided select statement, return a dict where each key is</span>
 <span class="sd">        the column name and the column is a list. Column names are obtained</span>
 <span class="sd">        from the ``Cursor.description`` attribute.</span>
 
@@ -589,11 +585,11 @@
         <span class="k">return</span> <span class="n">dct</span></div>
 
 <div class="viewcode-block" id="SQLiteDB.commit"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.commit.html#pwtools.sql.SQLiteDB.commit">[docs]</a>    <span class="k">def</span> <span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Commit changes to connection.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Commit changes to connection.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="SQLiteDB.finish"><a class="viewcode-back" href="../../generated/api/pwtools.sql.SQLiteDB.finish.html#pwtools.sql.SQLiteDB.finish">[docs]</a>    <span class="k">def</span> <span class="nf">finish</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Commit and close cursor.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Commit and close cursor.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
@@ -605,7 +601,7 @@
 <span class="c1"># either replace sql_column -&gt; sql_column_old in your script or explitely use</span>
 <span class="c1"># sql_column(key=..., sqltype=..., lst=...).</span>
 <div class="viewcode-block" id="sql_column_old"><a class="viewcode-back" href="../../generated/api/pwtools.sql.sql_column_old.html#pwtools.sql.sql_column_old">[docs]</a><span class="k">def</span> <span class="nf">sql_column_old</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">sqltype</span><span class="p">,</span> <span class="n">lst</span><span class="p">,</span> <span class="n">sqlval_func</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="n">fileval_func</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; _vals = [25,50,75]</span>
@@ -624,7 +620,7 @@
 
 
 <div class="viewcode-block" id="sql_column"><a class="viewcode-back" href="../../generated/api/pwtools.sql.sql_column.html#pwtools.sql.sql_column">[docs]</a><span class="k">def</span> <span class="nf">sql_column</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">lst</span><span class="p">,</span> <span class="n">sqltype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sqlval_func</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="n">fileval_func</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Convert a list `lst` of values of the same type (i.e. all floats) to a</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a list `lst` of values of the same type (i.e. all floats) to a</span>
 <span class="sd">    list of SQLEntry instances of the same column name `key` and `sqltype`</span>
 <span class="sd">    (e.g. &#39;float&#39;).</span>
 
@@ -676,7 +672,7 @@
 
 
 <div class="viewcode-block" id="sql_matrix"><a class="viewcode-back" href="../../generated/api/pwtools.sql.sql_matrix.html#pwtools.sql.sql_matrix">[docs]</a><span class="k">def</span> <span class="nf">sql_matrix</span><span class="p">(</span><span class="n">lists</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sqlval_funcs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fileval_funcs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Convert each entry in a list of lists (&quot;matrix&quot; = sql table) to an</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert each entry in a list of lists (&quot;matrix&quot; = sql table) to an</span>
 <span class="sd">    SQLEntry based on `header`. This can be used to quickly convert the result</span>
 <span class="sd">    of comb.nested_loops() (nested lists) to input `params_lst` for</span>
 <span class="sd">    ParameterStudy.</span>
@@ -763,7 +759,7 @@
 
 
 <div class="viewcode-block" id="makedb"><a class="viewcode-back" href="../../generated/api/pwtools.sql.makedb.html#pwtools.sql.makedb">[docs]</a><span class="k">def</span> <span class="nf">makedb</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">lists</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">close</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Create sqlite db `filename` (mode=&#39;w&#39;) or append to existing db</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Create sqlite db `filename` (mode=&#39;w&#39;) or append to existing db</span>
 <span class="sd">    (mode=&#39;a&#39;). The database is build up from `lists` and `colnames`, see</span>
 <span class="sd">    sql_matrix().</span>
 
@@ -854,8 +850,8 @@
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>
 

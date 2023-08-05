@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 
 <html lang="en">
@@ -6,14 +5,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>pwtools.mpl &#8212; pwtools  documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b76e3c8a" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9121de03" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -116,7 +112,7 @@
 <span class="c1">#----------------------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="plotlines3d"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.plotlines3d.html#pwtools.mpl.plotlines3d">[docs]</a><span class="k">def</span> <span class="nf">plotlines3d</span><span class="p">(</span><span class="n">ax3d</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Plot x-z curves stacked along y.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot x-z curves stacked along y.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -161,12 +157,12 @@
 
 
 <div class="viewcode-block" id="fig_ax"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.fig_ax.html#pwtools.mpl.fig_ax">[docs]</a><span class="k">def</span> <span class="nf">fig_ax</span><span class="p">(</span><span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;``fig,ax = fig_ax()``&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;``fig,ax = fig_ax()``&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="fig_ax3d"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.fig_ax3d.html#pwtools.mpl.fig_ax3d">[docs]</a><span class="k">def</span> <span class="nf">fig_ax3d</span><span class="p">(</span><span class="n">clean</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;``fig,ax3d = fig_ax()``</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;``fig,ax3d = fig_ax()``</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -185,7 +181,7 @@
 
 
 <div class="viewcode-block" id="clean_ax3d"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.clean_ax3d.html#pwtools.mpl.clean_ax3d">[docs]</a><span class="k">def</span> <span class="nf">clean_ax3d</span><span class="p">(</span><span class="n">ax</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;On ``Axes3DSubplot`` `ax`, set x,y,z pane color to white and remove</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;On ``Axes3DSubplot`` `ax`, set x,y,z pane color to white and remove</span>
 <span class="sd">    grid.&quot;&quot;&quot;</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">w_xaxis</span><span class="o">.</span><span class="n">set_pane_color</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">w_yaxis</span><span class="o">.</span><span class="n">set_pane_color</span><span class="p">((</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
@@ -194,7 +190,7 @@
 
 
 <div class="viewcode-block" id="color_ax"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.color_ax.html#pwtools.mpl.color_ax">[docs]</a><span class="k">def</span> <span class="nf">color_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">spine_loc</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">spine_invisible</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Change ax color.</span>
 
 <span class="sd">    Parameters</span>
@@ -244,7 +240,7 @@
 
 
 <div class="viewcode-block" id="Plot"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.Plot.html#pwtools.mpl.Plot">[docs]</a><span class="k">class</span> <span class="nc">Plot</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Container for a plot figure with (by default one) axis `ax`.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Container for a plot figure with (by default one) axis `ax`.</span>
 
 <span class="sd">    You can add more axes with twinx() etc and operate on them.</span>
 
@@ -264,7 +260,7 @@
 <span class="sd">    &gt;&gt;&gt; pp.savefig(&#39;lala&#39;, ext=[&#39;png&#39;, &#39;pdf&#39;])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="Plot.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.Plot.html#pwtools.mpl.Plot.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;2d&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        fig, ax : Figure + Axis instance (e.g. from fig_ax())</span>
@@ -289,7 +285,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">ax</span> <span class="o">=</span> <span class="n">ax</span></div>
 
 <div class="viewcode-block" id="Plot.collect_legends"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.Plot.collect_legends.html#pwtools.mpl.Plot.collect_legends">[docs]</a>    <span class="k">def</span> <span class="nf">collect_legends</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ax&#39;</span><span class="p">]):</span>
-        <span class="sd">&quot;&quot;&quot;If self has more then one axis object attached, then collect legends</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;If self has more then one axis object attached, then collect legends</span>
 <span class="sd">        from all axes specified in axnames. Useful for handling legend entries</span>
 <span class="sd">        of lines on differend axes (in case of twinx, for instance).</span>
 
@@ -308,7 +304,7 @@
                                       <span class="n">axnames</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="Plot.legend"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.Plot.legend.html#pwtools.mpl.Plot.legend">[docs]</a>    <span class="k">def</span> <span class="nf">legend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axnames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">legaxname</span><span class="o">=</span><span class="s1">&#39;ax&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Collect legend entries from all axes in `axnames` and place legend on</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Collect legend entries from all axes in `axnames` and place legend on</span>
 <span class="sd">        the axis named with `legaxname`.</span>
 
 <span class="sd">        Parameters</span>
@@ -355,7 +351,7 @@
 
 
 <div class="viewcode-block" id="collect_legends"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.collect_legends.html#pwtools.mpl.collect_legends">[docs]</a><span class="k">def</span> <span class="nf">collect_legends</span><span class="p">(</span><span class="o">*</span><span class="n">axs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Collect legend data from multiple axes, return input for legend().</span>
 
 <span class="sd">    Examples</span>
@@ -376,7 +372,7 @@
 
 
 <div class="viewcode-block" id="prepare_plots"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.prepare_plots.html#pwtools.mpl.prepare_plots">[docs]</a><span class="k">def</span> <span class="nf">prepare_plots</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;2d&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return a dict of Plot instances.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a dict of Plot instances.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -405,7 +401,7 @@
 
 
 <div class="viewcode-block" id="Data2D"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.Data2D.html#pwtools.mpl.Data2D">[docs]</a><span class="k">class</span> <span class="nc">Data2D</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Container which converts between different x-y-z data formats frequently</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Container which converts between different x-y-z data formats frequently</span>
 <span class="sd">    used by ``scipy.interpolate.bispl{rep,ev}`` and ``mpl_toolkits.mplot3d``</span>
 <span class="sd">    fuctions.</span>
 
@@ -421,7 +417,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="Data2D.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.Data2D.html#pwtools.mpl.Data2D.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">yy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">zz</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">X</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">Y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Z</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">XY</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Use either `x`, `y` or `xx`, `yy` or `X`, `Y` or `XY` to define the x-y</span>
 <span class="sd">        data. z-data is optional. For that, use `Z` or `zz`. Conversion to all</span>
 <span class="sd">        forms is done automatically.</span>
@@ -577,7 +573,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">zz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Data2D.update"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.Data2D.update.html#pwtools.mpl.Data2D.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Update object with new or more input data. Input args are the same</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update object with new or more input data. Input args are the same</span>
 <span class="sd">        as in the constructor, i.e. `x`, `y`, `xx`, ...&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">val</span> <span class="ow">in</span> <span class="n">kwds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">assert</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr_lst</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;&#39;</span><span class="si">%s</span><span class="s2">&#39; not allowed&quot;</span> <span class="o">%</span><span class="n">key</span><span class="p">)</span>
@@ -585,7 +581,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_update</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Data2D.copy"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.Data2D.copy.html#pwtools.mpl.Data2D.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Copy object. numpy arrays are real copies, not views.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Copy object. numpy arrays are real copies, not views.&quot;&quot;&quot;</span>
         <span class="n">kwds</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr_lst</span><span class="p">:</span>
             <span class="n">attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
@@ -600,7 +596,7 @@
 <span class="n">Data3D</span> <span class="o">=</span> <span class="n">Data2D</span>
 
 <div class="viewcode-block" id="get_2d_testdata"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.get_2d_testdata.html#pwtools.mpl.get_2d_testdata">[docs]</a><span class="k">def</span> <span class="nf">get_2d_testdata</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;2D sin + cos data.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;2D sin + cos data.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -668,7 +664,7 @@
 
 
 <div class="viewcode-block" id="smooth_color"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.smooth_color.html#pwtools.mpl.smooth_color">[docs]</a><span class="k">def</span> <span class="nf">smooth_color</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">niter</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Helper for creating color transitions in loops.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper for creating color transitions in loops.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -683,7 +679,7 @@
 
 
 <div class="viewcode-block" id="smooth_color_func"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.smooth_color_func.html#pwtools.mpl.smooth_color_func">[docs]</a><span class="k">def</span> <span class="nf">smooth_color_func</span><span class="p">(</span><span class="n">niter</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Version of :func:`smooth_color` that accepts a function.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Version of :func:`smooth_color` that accepts a function.</span>
 
 <span class="sd">    Can be used to pre-calculate a color list outside of a loop.</span>
 
@@ -719,7 +715,7 @@
 <span class="c1">#     not tested both, but looks good.</span>
 <div class="viewcode-block" id="new_axis"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.new_axis.html#pwtools.mpl.new_axis">[docs]</a><span class="k">def</span> <span class="nf">new_axis</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">hostax</span><span class="p">,</span> <span class="n">off</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span> <span class="n">ticks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wsadd</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
              <span class="n">label</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Make a new axis line using mpl_toolkits.axes_grid&#39;s SubplotHost and</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Make a new axis line using mpl_toolkits.axes_grid&#39;s SubplotHost and</span>
 <span class="sd">    ParasiteAxes. The new axis line will be an instance of ParasiteAxes</span>
 <span class="sd">    attached to `hostax`. You can do twinx()/twiny() type axis (off=0) or</span>
 <span class="sd">    completely free-standing axis lines (off &gt; 0).</span>
@@ -815,7 +811,7 @@
 
 
 <div class="viewcode-block" id="make_axes_grid_fig"><a class="viewcode-back" href="../../generated/api/pwtools.mpl.make_axes_grid_fig.html#pwtools.mpl.make_axes_grid_fig">[docs]</a><span class="k">def</span> <span class="nf">make_axes_grid_fig</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create an mpl Figure and add to it an axes_grid.SubplotHost subplot</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create an mpl Figure and add to it an axes_grid.SubplotHost subplot</span>
 <span class="sd">    (`hostax`).</span>
 
 <span class="sd">    Returns</span>
@@ -940,8 +936,8 @@
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>
 

@@ -1,20 +1,16 @@
-
 <!DOCTYPE html>
 
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Installation &#8212; pwtools  documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b76e3c8a" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=9121de03" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Tutorial" href="tutorial.html" />
@@ -106,18 +102,18 @@
 <section id="quick-start">
 <h2>Quick start<a class="headerlink" href="#quick-start" title="Permalink to this heading">¶</a></h2>
 <p>Debian and derivatives: Fortran compiler, Python headers, lapack</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ sudo apt install python3-dev gfortran liblapack-dev
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>python3-dev<span class="w"> </span>gfortran<span class="w"> </span>liblapack-dev
 </pre></div>
 </div>
 <p>Then</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># &lt;&lt;probably make a venv&gt;&gt;</span>
-$ pip install git+https://github.com/elcorto/pwtools
+$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/elcorto/pwtools
 </pre></div>
 </div>
 <p>or</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/elcorto/pwtools
-$ <span class="nb">cd</span> pwtools
-$ pip install <span class="o">[</span>-e<span class="o">]</span> .
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/elcorto/pwtools
+$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>pwtools
+$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="o">[</span>-e<span class="o">]</span><span class="w"> </span>.
 </pre></div>
 </div>
 </section>
@@ -125,16 +121,16 @@ $ pip install <span class="o">[</span>-e<span class="o">]</span> .
 <h2>Detailed instructions<a class="headerlink" href="#detailed-instructions" title="Permalink to this heading">¶</a></h2>
 <p>To build the extension modules and install all Python dependencies via
 <code class="docutils literal notranslate"><span class="pre">pip</span></code></p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/elcorto/pwtools
-$ pip install .
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/elcorto/pwtools
+$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.
 </pre></div>
 </div>
 <p>or the setuptools “development install” (no copy of files)</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ pip install -e .
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 </pre></div>
 </div>
 <p>In both cases we build the extension modules via</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">cd</span> src <span class="o">&amp;&amp;</span> make clean <span class="o">&amp;&amp;</span> make <span class="nv">$PWTOOLS_EXT_MAKE_TARGET</span> <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ..
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>src<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>clean<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span><span class="nv">$PWTOOLS_EXT_MAKE_TARGET</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>..
 </pre></div>
 </div>
 <p>in the background, where <code class="docutils literal notranslate"><span class="pre">$PWTOOLS_EXT_MAKE_TARGET</span></code> is optional (more details
@@ -142,19 +138,19 @@ in the <a class="reference internal" href="#extensions"><span class="std std-ref
 <p>If all dependencies are installed, e.g. by a package manager such as <code class="docutils literal notranslate"><span class="pre">apt</span></code>,
 then recent <code class="docutils literal notranslate"><span class="pre">pip</span></code> versions should pick those up. Alternatively force <code class="docutils literal notranslate"><span class="pre">pip</span></code>
 to install only the package without installing dependencies from pypi</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ pip install --no-deps .
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-deps<span class="w"> </span>.
 </pre></div>
 </div>
 <p>When using a virtual environment, you can map in the system site-packages (here
 we use <a class="reference external" href="https://virtualenvwrapper.readthedocs.io">virtualenvwrapper</a>)</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ mkvirtualenv --system-site-packages -p /usr/bin/python3 pwtools
-<span class="o">(</span>pwtools<span class="o">)</span> $ pip install .
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>mkvirtualenv<span class="w"> </span>--system-site-packages<span class="w"> </span>-p<span class="w"> </span>/usr/bin/python3<span class="w"> </span>pwtools
+<span class="o">(</span>pwtools<span class="o">)</span><span class="w"> </span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.
 </pre></div>
 </div>
 <p>Alternatively, you may also simply build the extensions and set <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code></p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">cd</span> src <span class="o">&amp;&amp;</span> make clean <span class="o">&amp;&amp;</span> make <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ..
-$ <span class="o">[</span> -n <span class="s2">&quot;</span><span class="nv">$PYTHONPATH</span><span class="s2">&quot;</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="nv">pp</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:<span class="nv">$PYTHONPATH</span> <span class="o">||</span> <span class="nv">pp</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>
-$ <span class="nb">export</span> <span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$pp</span>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>src<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>clean<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>..
+$<span class="w"> </span><span class="o">[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$PYTHONPATH</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nv">pp</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:<span class="nv">$PYTHONPATH</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nv">pp</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>
+$<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$pp</span>
 </pre></div>
 </div>
 </section>
@@ -162,25 +158,25 @@ $ <span class="nb">export</span> <span class="nv">PYTHONPATH</span><span class="
 <h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this heading">¶</a></h2>
 <p>Python dependencies: see <code class="docutils literal notranslate"><span class="pre">requirements*.txt</span></code>. You can use
 <code class="docutils literal notranslate"><span class="pre">test/check_dependencies.py</span></code> to find out what your system has installed</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ ./check_dependencies.py
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>./check_dependencies.py
 requirements_test.txt
-  pytest               ... ok <span class="o">(</span>import<span class="o">)</span>
-  pytest-xdist         ... ok <span class="o">(</span>pip list<span class="o">)</span>
-  pytest-timeout       ... ok <span class="o">(</span>pip list<span class="o">)</span>
+<span class="w">  </span>pytest<span class="w">               </span>...<span class="w"> </span>ok<span class="w"> </span><span class="o">(</span>import<span class="o">)</span>
+<span class="w">  </span>pytest-xdist<span class="w">         </span>...<span class="w"> </span>ok<span class="w"> </span><span class="o">(</span>pip<span class="w"> </span>list<span class="o">)</span>
+<span class="w">  </span>pytest-timeout<span class="w">       </span>...<span class="w"> </span>ok<span class="w"> </span><span class="o">(</span>pip<span class="w"> </span>list<span class="o">)</span>
 requirements.txt
-  PyCifRW              ... ok <span class="o">(</span>pip list<span class="o">)</span>
-  h5py                 ... ok <span class="o">(</span>import<span class="o">)</span>
-  matplotlib           ... ok <span class="o">(</span>import<span class="o">)</span>
-  numpy                ... ok <span class="o">(</span>import<span class="o">)</span>
-  scipy                ... ok <span class="o">(</span>import<span class="o">)</span>
-  spglib               ... ok <span class="o">(</span>import<span class="o">)</span>
+<span class="w">  </span>PyCifRW<span class="w">              </span>...<span class="w"> </span>ok<span class="w"> </span><span class="o">(</span>pip<span class="w"> </span>list<span class="o">)</span>
+<span class="w">  </span>h5py<span class="w">                 </span>...<span class="w"> </span>ok<span class="w"> </span><span class="o">(</span>import<span class="o">)</span>
+<span class="w">  </span>matplotlib<span class="w">           </span>...<span class="w"> </span>ok<span class="w"> </span><span class="o">(</span>import<span class="o">)</span>
+<span class="w">  </span>numpy<span class="w">                </span>...<span class="w"> </span>ok<span class="w"> </span><span class="o">(</span>import<span class="o">)</span>
+<span class="w">  </span>scipy<span class="w">                </span>...<span class="w"> </span>ok<span class="w"> </span><span class="o">(</span>import<span class="o">)</span>
+<span class="w">  </span>spglib<span class="w">               </span>...<span class="w"> </span>ok<span class="w"> </span><span class="o">(</span>import<span class="o">)</span>
 requirements_optional.txt
-  ase                  ... ok <span class="o">(</span>import<span class="o">)</span>
-  sklearn              ... ok <span class="o">(</span>import<span class="o">)</span>
+<span class="w">  </span>ase<span class="w">                  </span>...<span class="w"> </span>ok<span class="w"> </span><span class="o">(</span>import<span class="o">)</span>
+<span class="w">  </span>sklearn<span class="w">              </span>...<span class="w"> </span>ok<span class="w"> </span><span class="o">(</span>import<span class="o">)</span>
 requirements_doc.txt
-  sphinx               ... ok <span class="o">(</span>import<span class="o">)</span>
-optional executables:
-  eos.x                ... NOT FOUND
+<span class="w">  </span>sphinx<span class="w">               </span>...<span class="w"> </span>ok<span class="w"> </span><span class="o">(</span>import<span class="o">)</span>
+optional<span class="w"> </span>executables:
+<span class="w">  </span>eos.x<span class="w">                </span>...<span class="w"> </span>NOT<span class="w"> </span>FOUND
 </pre></div>
 </div>
 <p>Optional packages (<code class="docutils literal notranslate"><span class="pre">ase</span></code>, <code class="docutils literal notranslate"><span class="pre">sklearn</span></code>) are only used in corner cases and are
@@ -190,8 +186,8 @@ might use <code class="docutils literal notranslate"><span class="pre">ase</span
 change depending on usage.</p>
 <p>You also need the following to compile extensions. On a Debian-ish system</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># apt</span>
-python3-dev     <span class="c1"># for compiling extensions</span>
-gfortran        <span class="c1"># or ifort, see src/Makefile</span>
+python3-dev<span class="w">     </span><span class="c1"># for compiling extensions</span>
+gfortran<span class="w">        </span><span class="c1"># or ifort, see src/Makefile</span>
 liblapack-dev
 </pre></div>
 </div>
@@ -246,13 +242,13 @@ fragments in lesser used parts of the code base.</p>
 <section id="fortran-extensions-and-openmp-notes">
 <span id="extensions"></span><h2>Fortran extensions and OpenMP notes<a class="headerlink" href="#fortran-extensions-and-openmp-notes" title="Permalink to this heading">¶</a></h2>
 <p>Use <code class="docutils literal notranslate"><span class="pre">src/Makefile</span></code>:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ make <span class="nb">help</span>
-make gfortran            <span class="c1"># gfortran, default</span>
-make gfortran-omp        <span class="c1"># gfortran + OpenMP</span>
-make gfortran-mkl        <span class="c1"># gfortran, Intel MKL lapack, set MKL_LIB</span>
-make ifort               <span class="c1"># ifort</span>
-make ifort-omp           <span class="c1"># ifort + OpenMP</span>
-make ifort-mkl           <span class="c1"># ifort, Intel MKL lapack, set MKL_LIB</span>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>make<span class="w"> </span><span class="nb">help</span>
+make<span class="w"> </span>gfortran<span class="w">            </span><span class="c1"># gfortran, default</span>
+make<span class="w"> </span>gfortran-omp<span class="w">        </span><span class="c1"># gfortran + OpenMP</span>
+make<span class="w"> </span>gfortran-mkl<span class="w">        </span><span class="c1"># gfortran, Intel MKL lapack, set MKL_LIB</span>
+make<span class="w"> </span>ifort<span class="w">               </span><span class="c1"># ifort</span>
+make<span class="w"> </span>ifort-omp<span class="w">           </span><span class="c1"># ifort + OpenMP</span>
+make<span class="w"> </span>ifort-mkl<span class="w">           </span><span class="c1"># ifort, Intel MKL lapack, set MKL_LIB</span>
 </pre></div>
 </div>
 <p>Generates <code class="docutils literal notranslate"><span class="pre">*.so</span></code> and <code class="docutils literal notranslate"><span class="pre">*.pyf</span></code> (f2py interface) files.</p>
@@ -269,15 +265,15 @@ make ifort-mkl           <span class="c1"># ifort, Intel MKL lapack, set MKL_LIB
 using system BLAS and LAPACK (e.g. from <code class="docutils literal notranslate"><span class="pre">liblapack-dev</span></code>). If you want another
 target (e.g. <code class="docutils literal notranslate"><span class="pre">ifort-mkl</span></code>), then</p>
 <blockquote>
-<div><div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">cd</span> src
-$ make clean
-$ make ifort-mkl
+<div><div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>src
+$<span class="w"> </span>make<span class="w"> </span>clean
+$<span class="w"> </span>make<span class="w"> </span>ifort-mkl
 </pre></div>
 </div>
 </div></blockquote>
 <p>or when using <code class="docutils literal notranslate"><span class="pre">pip</span></code> (or anything calling <code class="docutils literal notranslate"><span class="pre">setup.py</span></code>) set
 <code class="docutils literal notranslate"><span class="pre">$PWTOOLS_EXT_MAKE_TARGET</span></code>.</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ <span class="nv">PWTOOLS_EXT_MAKE_TARGET</span><span class="o">=</span>ifort-mkl pip install ...
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nv">PWTOOLS_EXT_MAKE_TARGET</span><span class="o">=</span>ifort-mkl<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>...
 </pre></div>
 </div>
 <p>This will use the Intel <code class="docutils literal notranslate"><span class="pre">ifort</span></code> compiler instead fo the default <code class="docutils literal notranslate"><span class="pre">gfortran</span></code> and
@@ -286,8 +282,8 @@ link against the MKL.</p>
 to the location where things like <code class="docutils literal notranslate"><span class="pre">libmkl_core.so</span></code> live. You may need to set
 this. On a HPC cluster, that could look like this.</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># module only sets MKL_ROOT=/path/to/intel/20.4/mkl</span>
-$ module load intel/20.4
-$ <span class="nv">MKL_LIB</span><span class="o">=</span><span class="nv">$MKL_ROOT</span>/lib/intel64 <span class="nv">PWTOOLS_EXT_MAKE_TARGET</span><span class="o">=</span>ifort-mkl pip install ...
+$<span class="w"> </span>module<span class="w"> </span>load<span class="w"> </span>intel/20.4
+$<span class="w"> </span><span class="nv">MKL_LIB</span><span class="o">=</span><span class="nv">$MKL_ROOT</span>/lib/intel64<span class="w"> </span><span class="nv">PWTOOLS_EXT_MAKE_TARGET</span><span class="o">=</span>ifort-mkl<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>...
 </pre></div>
 </div>
 <p>See <code class="docutils literal notranslate"><span class="pre">src/Makefile</span></code> for more details.</p>
@@ -301,7 +297,7 @@ the Makefile.</p>
 override this. We get <code class="docutils literal notranslate"><span class="pre">-O3</span> <span class="pre">-O2</span></code> and a compiler warning. We have to use f2py’s
 <code class="docutils literal notranslate"><span class="pre">--opt=</span></code> flag.</p>
 <p>On some systems (Debian), you may have:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>/usr/bin/f2py -&gt; f2py2.6
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>/usr/bin/f2py<span class="w"> </span>-&gt;<span class="w"> </span>f2py2.6
 /usr/bin/f2py2.5
 /usr/bin/f2py2.6
 </pre></div>
@@ -315,12 +311,12 @@ pragmas in <code class="docutils literal notranslate"><span class="pre">*.f90</s
 case.</p>
 <p>If all went well, <code class="docutils literal notranslate"><span class="pre">_flib.so</span></code> should be linked to <code class="docutils literal notranslate"><span class="pre">libgomp</span></code> (or <code class="docutils literal notranslate"><span class="pre">libiomp</span></code>
 for <code class="docutils literal notranslate"><span class="pre">ifort</span></code>). Check with:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ ldd _flib.so
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>ldd<span class="w"> </span>_flib.so
 </pre></div>
 </div>
 <p>Setting the number of threads:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">export</span> <span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="m">2</span>
-$ python -c <span class="s2">&quot;import numpy as np; from pwtools.pydos import fvacf; \</span>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="m">2</span>
+$<span class="w"> </span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import numpy as np; from pwtools.pydos import fvacf; \</span>
 <span class="s2">             fvacf(np.random.rand(5000,1000,3))&quot;</span>
 </pre></div>
 </div>
@@ -342,14 +338,14 @@ results, even if it runs, if OpenMP is used incorrectly :) The test script
 <code class="docutils literal notranslate"><span class="pre">test/runtests.sh</span></code> calls <cite>make gfortran-omp</cite>, so if code is broken by OpenMP,
 all test using the Fortran extensions might fail. To run tests with other
 builds, use one of</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ make gfortran
-$ make ifort
-$ make ifort-omp
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>make<span class="w"> </span>gfortran
+$<span class="w"> </span>make<span class="w"> </span>ifort
+$<span class="w"> </span>make<span class="w"> </span>ifort-omp
 </pre></div>
 </div>
 <p>and</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ <span class="nb">cd</span> <span class="nb">test</span>
-$ ./runtests.sh --nobuild
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span><span class="nb">test</span>
+$<span class="w"> </span>./runtests.sh<span class="w"> </span>--nobuild
 </pre></div>
 </div>
 </section>
@@ -367,8 +363,8 @@ $ ./runtests.sh --nobuild
       &copy;2022, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="../_sources/written/install.rst.txt"
