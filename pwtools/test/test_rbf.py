@@ -147,7 +147,7 @@ def test_opt_api():
         X,
         z,
         method="fmin",
-        opt_kwds=dict(disp=True, x0=5, maxiter=3),
+        opt_kwds=dict(disp=False, x0=5, maxiter=3),
         what="p",
         rbf_kwds=rbf_kwds,
     )
