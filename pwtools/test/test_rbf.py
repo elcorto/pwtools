@@ -1,3 +1,4 @@
+from contextlib import nullcontext
 import numpy as np
 import pytest
 
@@ -183,12 +184,16 @@ class TestOptAPICVKwds:
         z = rand(10)
         rbf_kwds = dict(rbf="inv_multi")
 
-        rbf_hyperopt.fit_opt(
-            X,
-            z,
-            method="fmin",
-            what="pr",
-            rbf_kwds=rbf_kwds,
-            opt_kwds=dict(disp=True, x0=[5, 1e-8], maxiter=3),
-            **opt_cv_kwds,
+        ctx = (
+            pytest.deprecated_call if "cv_kwds" in opt_cv_kwds else nullcontext
         )
+        with ctx():
+            rbf_hyperopt.fit_opt(
+                X,
+                z,
+                method="fmin",
+                what="pr",
+                rbf_kwds=rbf_kwds,
+                opt_kwds=dict(disp=False, x0=[5, 1e-8], maxiter=3),
+                **opt_cv_kwds,
+            )
