@@ -5,7 +5,7 @@ import datetime
 
 import pytest
 
-from .testenv import testdir
+from pwtools.test.testenv import testdir
 
 
 # Intermediate way to transition all tests to using this fixture instead of

@@ -3,7 +3,7 @@ import numpy as np
 from pwtools import io, parse,common
 from pwtools.test.tools import assert_attrs_not_none
 from pwtools.constants import Bohr,Ang,Ha,eV
-from .testenv import testdir
+from pwtools.test.testenv import testdir
 from pwtools.test.tools import unpack_compressed
 pj = common.pj
 

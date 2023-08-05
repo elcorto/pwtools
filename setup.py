@@ -48,7 +48,7 @@ def build_extensions():
     copy when installing, along with all *.py files.
     """
     subprocess.run(
-        r"cd src; make clean; make ${PWTOOLS_EXT_MAKE_TARGET:-}",
+        r"cd src/_ext_src; make clean; make ${PWTOOLS_EXT_MAKE_TARGET:-}",
         shell=True,
         check=True,
     )
@@ -87,7 +87,8 @@ setup(
     author_email="git@elcorto.com",
     license="BSD 3-Clause",
     keywords="ase scipy atoms simulation database postprocessing qha",
-    packages=find_packages(),
+    package_dir={"": "src"},
+    packages=find_packages(where="src", exclude="pwtools/src"),
     install_requires=open("requirements.txt").read().splitlines(),
     setup_requires=["numpy"],
     python_requires=">=3",

@@ -5,7 +5,7 @@ import numpy as np
 
 from pwtools import mpl, num
 from pwtools.test import tools
-from .testenv import testdir
+from pwtools.test.testenv import testdir
 
 
 def return_min(inter):

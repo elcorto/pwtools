@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from pwtools.common import is_seq, file_write
-from .testenv import testdir
+from pwtools.test.testenv import testdir
 
 def test_is_seq():
     fn = os.path.join(testdir, 'is_seq_test_file')

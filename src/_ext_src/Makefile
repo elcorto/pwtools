@@ -56,8 +56,9 @@ help:
 # OBJ_LOCAL are the result of the compilation done here: _flib.so, _dcd.so . f2py
 # generates files such as _foo.cpython-36m-x86_64-linux-gnu.so, which we rename
 # below to _foo.so in the compile target.
+COPY_TGT_DIR = ../pwtools/
 OBJ_LOCAL = _dcd.so _flib.so
-OBJ = $(addprefix ../pwtools/,$(OBJ_LOCAL))
+OBJ = $(addprefix $(COPY_TGT_DIR),$(OBJ_LOCAL))
 
 # internal targets
 libs: $(OBJ)
@@ -69,7 +70,7 @@ libs: $(OBJ)
 #
 # $? = _foo.so _bar.so (all dependencies)
 $(OBJ): $(OBJ_LOCAL)
-	cp $? ../pwtools/
+	cp $? $(COPY_TGT_DIR)
 
 # http://www.cprogramming.com/tutorial/makefiles_continued.html
 # %   = foo

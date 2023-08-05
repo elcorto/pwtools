@@ -4,7 +4,7 @@ from io import StringIO
 from pwtools import arrayio, parse
 import os
 import numpy as np
-from .testenv import testdir
+from pwtools.test.testenv import testdir
 pj = os.path.join
 rand = np.random.rand
 

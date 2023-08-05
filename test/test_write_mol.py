@@ -11,7 +11,7 @@ import os
 from io import StringIO
 import numpy as np
 from pwtools import io, common, crys
-from .testenv import testdir
+from pwtools.test.testenv import testdir
 from pwtools.crys import Structure, Trajectory
 from pwtools.constants import Ha, eV
 pj = os.path.join

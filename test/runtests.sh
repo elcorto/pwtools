@@ -1,8 +1,32 @@
 #!/bin/sh
 
-# NOTE: This script, or at least the part where we copy the source tree to a temp
-# location and run there, should be removed once all tests have been migrated to using
-# random temp directories.
+# This script does
+#
+# * testenv hack
+# * copy package to testdir
+# * run pytest there
+#
+# testenv hack
+# ------------
+# We communicate the $testdir variable to test_*.py modules by writing it to
+# $testenv_module before running pytest. All tests which write temp files must
+# import this module and write their files to "testdir":
+#
+#   >>> from pwtools.test.testenv import testdir
+#   >>> filename = os.path.join(testdir, 'foo_tmp.txt')
+#   >>> ...
+#
+# We should update to better temp dir tools such as pytest's tmp_path fixture
+# or the stdlib tempfile.TemporaryDirectory in all tests. Then the testenv hack
+# can be removed.
+#
+# copy package
+# ------------
+# ATM many tests still write temp data as they please, e.g. into a relative path
+# next to the test script. Until then we keep this script and copy the package
+# to $testdir first in order to not pollute this repo with test artifact files.
+
+set -u
 
 usage(){
     cat << EOF
@@ -86,7 +110,6 @@ else
 fi
 
 runner_opts="$params --color=yes"
-found_runner=false
 for runner in pytest pytest-3; do
     if which $runner > /dev/null; then
         found_runner=true
@@ -95,9 +118,12 @@ for runner in pytest pytest-3; do
 done
 $found_runner || err "no pytest runner found"
 
+# /path/to/pwtools
+repo_root=$(realpath $scriptdir/../)
+
 testdir=/tmp/pwtools-test.$$
-tgtdir=$testdir/pwtools
-mkdir -pv $tgtdir
+testenv_module=$testdir/pwtools/src/pwtools/test/testenv.py
+mkdir -pv $testdir
 logfile=$testdir/runtests.log
 rsync_excl=$testdir/_rsync.excl
 
@@ -110,29 +136,22 @@ cat > $rsync_excl << EOF
 *.pyf
 **/__pycache__
 doc/
+.*_cache
 EOF
 $build && echo '**.so' >> $rsync_excl
-rsync -av $scriptdir/../../ $tgtdir --exclude-from=$rsync_excl > $logfile 2>&1
+rsync -av $repo_root $testdir --exclude-from=$rsync_excl > $logfile 2>&1
 prnt "... ready"
 
 if $build; then
     prnt "build extension modules ..."
-    cd $tgtdir/src && make gfortran-omp -B >> $logfile && cd $here 2>&1
+    cd $testdir/src/_ext_src/ && make gfortran-omp -B >> $logfile && cd $here 2>&1
     prnt "... ready"
 fi
 
-cd $tgtdir/pwtools/test
+cd $testdir/pwtools/test
 
-# HACK: communicate variable to test_*.py modules. All tests which write temp
-# files must import this module and write their files to "testdir":
-#   >>> from pwtools.test.testenv import testdir
-#   >>> filename = os.path.join(testdir, 'foo_tmp.txt')
-#   >>> ...
-#
-# ATM some tests still write temp data as they please, into testdir. We should
-# update to better temp dir tools such as pytest's tmpdir fixture or the stdlib
-# tempfile.TemporaryDirectory
-echo "testdir='$testdir'" > testenv.py
+[ -e $testenv_module ] || err "$testenv_module doesn't exist"
+echo "testdir='$testdir'" > $testenv_module
 
 # logfile: We could use another pytest plugin
 # https://pypi.org/project/pytest-reportlog/ to write a logfile. But in order
@@ -142,8 +161,9 @@ echo "testdir='$testdir'" > testenv.py
 # --color=auto). Then we just remove the color sequences from the logfile.
 prnt "running tests ..."
 
-eval "PYTHONPATH=$testdir:$PYTHONPATH \
-      OMP_NUM_THREADS=3 $runner \
+add_to_pp=$testdir/pwtools/src
+[ -n "${PYTHONPATH:-}" ] && pp=$add_to_pp:$PYTHONPATH || pp=$add_to_pp
+eval "PYTHONPATH=$pp OMP_NUM_THREADS=3 $runner \
       $runner_opts" 2>&1 | tee -a $logfile
 
 # Remove color sequences.

@@ -13,7 +13,7 @@
 import os
 import numpy as np
 from pwtools import crys, parse, arrayio, io
-from .testenv import testdir
+from pwtools.test.testenv import testdir
 from pwtools.test.tools import aae
 pj = os.path.join
 rand = np.random.rand

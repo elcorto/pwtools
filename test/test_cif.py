@@ -6,7 +6,7 @@ import numpy as np
 from pwtools.parse import CifFile
 from pwtools import io
 
-from .testenv import testdir
+from pwtools.test.testenv import testdir
 
 
 def test_cif_parse():
@@ -31,13 +31,13 @@ def test_cif_parse():
 
 def test_cif2any():
     exe = os.path.join(os.path.dirname(__file__),
-                       '../../bin/cif2any.py')
+                       '../bin/cif2any.py')
     cmd = '{e} files/cif_struct.cif > cif2any.log'.format(e=exe)
     sp.run(cmd, check=True, shell=True)
 
 
 def test_cif2sgroup():
     exe = os.path.join(os.path.dirname(__file__),
-                       '../../bin/cif2sgroup.py')
+                       '../bin/cif2sgroup.py')
     cmd = '{e} files/cif_struct.cif > cif2sgroup.log'.format(e=exe)
     sp.run(cmd, check=True, shell=True)

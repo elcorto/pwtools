@@ -6,7 +6,7 @@ import os, tempfile
 import numpy as np
 from pwtools.parse import PwMDOutputFile
 from pwtools import common, crys, io
-from .testenv import testdir
+from pwtools.test.testenv import testdir
 from pwtools.test import tools
 from pwtools.test.tools import ade
 

@@ -1,6 +1,6 @@
 from pwtools import common as co
 import tempfile, os
-from .testenv import testdir
+from pwtools.test.testenv import testdir
 
 def test_makedirs():
     tmpdir = tempfile.mkdtemp(dir=testdir, prefix=__file__)

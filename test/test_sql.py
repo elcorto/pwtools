@@ -7,7 +7,7 @@ import numpy as np
 from pwtools.sql import SQLiteDB, SQLEntry
 from pwtools import sql
 from pwtools import common
-from .testenv import testdir
+from pwtools.test.testenv import testdir
 pj = os.path.join
 
 def test_sql():

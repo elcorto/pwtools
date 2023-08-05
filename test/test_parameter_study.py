@@ -2,7 +2,7 @@ import os
 import numpy as np
 from pwtools import comb, batch, common, sql
 from pwtools.test.tools import all_types_equal, assert_all_types_equal
-from .testenv import testdir
+from pwtools.test.testenv import testdir
 pj = os.path.join
 
 def check_key_in_file(lines, key, file_target):

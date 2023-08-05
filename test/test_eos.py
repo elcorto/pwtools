@@ -18,7 +18,7 @@ from pwtools.eos import ElkEOSFit, EosFit
 from pwtools import common, num
 from pwtools.constants import Ry, Ha, Bohr, Ang, eV, eV_by_Ang3_to_GPa
 from pwtools.test import tools
-from .testenv import testdir
+from pwtools.test.testenv import testdir
 
 Bohr3_to_Ang3 = (Bohr**3 / Ang**3)
 

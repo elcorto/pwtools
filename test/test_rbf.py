@@ -5,7 +5,7 @@ import pytest
 from pwtools import rbf
 import pwtools.rbf.hyperopt as rbf_hyperopt
 import pwtools.config
-from .tools import have_pkg
+from pwtools.test.tools import have_pkg
 
 rand = np.random.rand
 
