@@ -141,7 +141,6 @@ def test_opt_api():
     X = rand(10, 3)
     z = rand(10)
     rnd = np.random.RandomState(seed=1234)
-    cv_kwds = dict(n_splits=5, n_repeats=1, random_state=rnd)
     rbf_kwds = dict(rbf="inv_multi")
 
     rbf_hyperopt.fit_opt(
