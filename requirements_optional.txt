@@ -1,2 +1,2 @@
 ase
-sklearn
+scikit-learn
