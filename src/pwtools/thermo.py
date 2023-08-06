@@ -384,9 +384,11 @@ class Gibbs:
             pressure [GPa]
         etot : 1d array, (axes_flat.shape[0],)
             Total energy [eV] for each axes_flat[i,...]
-        phdos : sequence (axes_flat.shape[0],)
-            Phonon dos arrays for each axes grid point.
+        phdos : sequence of 2d arrays (axes_flat.shape[0],)
+            Phonon dos arrays (nfreq, 2) for each axes grid point.
             axes_flat[i,...] -> phdos[i] = <2d array (nfreq,2)>, units see
+            :class:`HarmonicThermo`. For each array ``phdos[i][:,0] = freq``,
+            ``phdos[i][:,1] = dos``. Those are passed to
             :class:`HarmonicThermo`.
         axes_flat : 1d or 2d array
             Flattened cell axes variation grid (for example result of nested
