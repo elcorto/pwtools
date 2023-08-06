@@ -92,7 +92,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'pwtools'
-copyright = '2022, Steve Schmerler'
+copyright = '2023, Steve Schmerler'
 author = 'Steve Schmerler'
 
 # The version info for the project you're documenting, acts as replacement for
