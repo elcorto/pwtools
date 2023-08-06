@@ -109,14 +109,10 @@ else
     params=$@
 fi
 
+# Avoid possible conflicts arising when using system pytest
+# (/usr/bin/pytest) instead of the one in a venv
+runner="python3 -m pytest"
 runner_opts="$params --color=yes"
-for runner in pytest pytest-3; do
-    if which $runner > /dev/null; then
-        found_runner=true
-        break
-    fi
-done
-$found_runner || err "no pytest runner found"
 
 # /path/to/pwtools
 repo_root=$(realpath $scriptdir/../)
