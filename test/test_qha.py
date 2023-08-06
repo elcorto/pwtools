@@ -2,6 +2,8 @@
 #
 # Test thermo.HarmonicThermo against results from F_QHA.f90 from QE 4.2 .
 
+import pytest
+
 import numpy as np
 from scipy.integrate import simps, trapz
 from pwtools.thermo import HarmonicThermo
@@ -68,6 +70,10 @@ def test_qha():
     x=ha.fvib(temp)
     x=ha.cv(temp)
     x=ha.svib(temp)
+
+    HarmonicThermo(pdos[:,0], pdos[:,1], T=temp)
+    with pytest.deprecated_call():
+        HarmonicThermo(pdos[:,0], pdos[:,1], temp=temp)
 
     msg('skip and fix')
     freq = np.linspace(1, 10, 100)

@@ -1,5 +1,7 @@
 """(Quasi)harmonic approximation. Thermal expansion tools."""
 
+import warnings
+
 import numpy as np
 from scipy.integrate import simps, trapz
 from pwtools.constants import kb, hplanck, R, pi, c0, Ry_to_J, eV,\
@@ -16,7 +18,7 @@ class HarmonicThermo:
     [eV]), entropy (Svib [R,kb]) and isochoric heat capacity (Cv [R,kb]) in the
     harmonic approximation from a phonon density of states.
     """
-    def __init__(self, freq, dos, temp=None, skipfreq=False,
+    def __init__(self, freq, dos, T=None, temp=None, skipfreq=False,
                  eps=1.5*num.EPS, fixnan=False, nanfill=0.0,
                  dosarea=None, integrator=trapz, verbose=True):
         """
@@ -26,7 +28,7 @@ class HarmonicThermo:
             frequency f (NOT 2*pi*f) [cm^-1]
         dos : 1d array
             phonon dos such that int(freq) dos = 3*natom
-        temp : 1d array, optional
+        T : 1d array, optional
             temperature range [K], if not given in the constructor then use
             `temp` in the calculation methods
         skipfreq : bool, optional
@@ -112,9 +114,14 @@ class HarmonicThermo:
         # 1/s   -> cm^-1     : / (c0*100)
         # s     -> cm        : * c0*100
         # => hbar or h: J*s -> J*cm : *c0*100
+        if temp is None:
+            self.T = T
+        else:
+            warnings.warn("'temp' is deprecated, use 'T'", DeprecationWarning)
+            assert T is None, "Can't use both T and temp."
+            self.T = temp
         self.f = freq
         self.dos = dos
-        self.T = temp
         self.h = hplanck * c0 * 100
         self.kb = kb
         self.fixnan = fixnan
@@ -599,7 +606,7 @@ class Gibbs:
                 print("calc_F: axes_flat idx = %i" %idx)
             ha = HarmonicThermo(freq=self.phdos[idx][:,0],
                                 dos=self.phdos[idx][:,1],
-                                temp=self.T,
+                                T=self.T,
                                 **self.kwds)
             fvib = ha.fvib()
             ret[self.axes_prefix + '/T/F'][idx,:] = self.etot[idx] + fvib
