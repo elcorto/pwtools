@@ -5,27 +5,19 @@
 import pytest
 
 import numpy as np
+from numpy.testing import assert_array_almost_equal as aaae
+
 from scipy.integrate import simps, trapz
 from pwtools.thermo import HarmonicThermo
 from pwtools import common
 from pwtools.constants import Ry_to_J, eV, Ry, kb
-
-def assrt_aae(*args, **kwargs):
-    np.testing.assert_array_almost_equal(*args, **kwargs)
+from pwtools.test.tools import unpack_compressed
 
 def msg(txt):
     bar = '-'*79
     print(bar)
     print(txt)
     print(bar)
-
-def pack(fns):
-    for fn in fns:
-        common.system('gzip %s' %fn)
-
-def unpack(fns):
-    for fn in fns:
-        common.system('gunzip %s' %fn)
 
 class Store:
     def __init__(self, arr1, arr2):
@@ -34,13 +26,10 @@ class Store:
 
 
 def test_qha():
-    fqha_fn = 'files/fqha.out'
-    pdos_fn = 'files/si.phdos'
-    files = [fqha_fn, pdos_fn]
-    unpack([x + '.gz' for x in files])
+    fqha_fn = unpack_compressed('files/fqha.out.gz')
+    pdos_fn = unpack_compressed('files/si.phdos.gz')
     fqha = np.loadtxt(fqha_fn)
     pdos = np.loadtxt(pdos_fn)
-    pack(files)
     temp = fqha[:,0]
 
     msg('Verify against ref data')
@@ -54,13 +43,13 @@ def test_qha():
            'svib': Store(arr1=ha.svib(), arr2=fqha[:,4]),
            }
     for key, store in dct.items():
-        assrt_aae(store.arr1, store.arr2, decimal=2)
+        aaae(store.arr1, store.arr2, decimal=2)
 
     msg('Consistency')
 
     # Fvib = Evib -T*Svib
-    assrt_aae(dct['fvib'].arr1,
-              (dct['evib'].arr1 - temp*dct['svib'].arr1*kb/eV))
+    aaae(dct['fvib'].arr1,
+        (dct['evib'].arr1 - temp*dct['svib'].arr1*kb/eV))
 
     msg('API tests')
 
