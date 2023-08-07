@@ -42,6 +42,7 @@ extensions = [
     'sphinx.ext.githubpages',
     'sphinx.ext.intersphinx',
     'sphinx.ext.napoleon',
+    'myst_parser',
     ]
 
 #-----------------------------------------------------------------------------
@@ -76,7 +77,11 @@ napoleon_numpy_docstring = True
 # extra TeX
 #-----------------------------------------------------------------------------
 pngmath_latex_preamble = r"\newcommand{\ve}[1]{\mathbf{#1}} "
+myst_enable_extensions = [
+        "dollarmath",
+        ]
 
+#-----------------------------------------------------------------------------
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -84,8 +89,7 @@ templates_path = ['_templates']
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-# source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_suffix = ['.rst', '.md']
 
 # The master toctree document.
 master_doc = 'index'

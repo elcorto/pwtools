@@ -1,4 +1,5 @@
 sphinx
+myst-parser
 
 # For doc/generate-doc.sh
 git+https://github.com/elcorto/sphinx-autodoc
