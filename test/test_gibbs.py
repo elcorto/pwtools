@@ -60,11 +60,11 @@ same test data.
 """
 
 import numpy as np
-import copy, os
+import os
 from itertools import product
 from pwtools.thermo import Gibbs
 from pwtools.signal import gauss
-from pwtools import num, crys, io, constants
+from pwtools import num, io, constants
 from pwtools.test import tools
 
 
@@ -73,90 +73,116 @@ def compare_dicts_with_arrays(a, b):
     difference."""
     for k in list(a.keys()):
         if k in b and b[k] is not None:
-            df = abs(a[k]-b[k]).max()
+            df = abs(a[k] - b[k]).max()
             fmt = "{:20}  {:8.3g}   {:8.3g}"
             print(fmt.format(k, df, df / abs(a[k]).max()))
 
 
-def test_gibbs():
+def test_gibbs_1d():
     # number of varied axis points
     nax = 6
     # phonon freq axis
-    freq = np.linspace(0,1000,300) # cm^-1
-    T = np.linspace(5, 2000, 50) # K
-    P = np.linspace(0,5,2) # GPa
+    freq = np.linspace(0, 1000, 300)  # cm^-1
+    T = np.linspace(5, 2000, 50)  # K
+    P = np.linspace(0, 5, 2)  # GPa
 
-    # 2d case
-    case = '2d'
-    cell_a = np.linspace(2.5,3.5,nax) # Ang
-    cell_c = np.linspace(3,3.8,nax) # Ang
-    volfunc_ax = lambda x: x[0]**2 * x[1]
-    axes_flat = np.array([x for x in product(cell_a, cell_c)])
-    V = np.array([volfunc_ax(x) for x in axes_flat]) # Ang**3
-    cell_a_mean = cell_a.mean()
-    cell_c_mean = cell_c.mean()
-    cell_a_min = cell_a.min()
-    cell_c_min = cell_c.min()
-    etot = np.array([(a-cell_a_mean)**2.0 + (c-cell_c_mean)**2.0 for a,c in axes_flat])
-    phdos = []
-    Vmax = V.max()
-    # phonon dos (just a gaussian) shifted to lower (higher) freqs for higher
-    # (lower) volume
-    for ii in range(axes_flat.shape[0]):
-        a,c = axes_flat[ii,:]
-        fc = 550 - 50 * V[ii] / Vmax
-        phdos.append(np.array([freq,gauss(freq-fc,100)*0.01]).T)
-
-    gibbs = Gibbs(T=T, P=P, etot=etot, phdos=phdos, axes_flat=axes_flat,
-                  volfunc_ax=volfunc_ax, case=case, dosarea=None)
-    gibbs.set_fitfunc('C', lambda x,y: num.Spline(x,y,s=None,k=5, eps=1e-5))
-    g = gibbs.calc_G(calc_all=True)
-
-    dr = 'files/gibbs/2d'
-    for name in os.listdir(dr):
-        fn = '%s/%s' %(dr, name)
-        gref = io.read_h5(fn)
-        print("testing: %s" %fn)
-        compare_dicts_with_arrays(gref, g)
-        tools.assert_dict_with_all_types_almost_equal(gref,
-                                                      g,
-                                                      keys=list(gref.keys()),
-                                                      atol=1e-8, rtol=1e-3)
-
-    # 1d case
-    case = '1d'
-    V = np.linspace(10,20,nax)
-    axes_flat = V**(1/3.) # cubic
-    volfunc_ax = lambda x: x[0]**3.0
-    etot = (V-V.mean())**2
-    fcenter = 450 + 100*(axes_flat - axes_flat.min())
+    case = "1d"
+    V = np.linspace(10, 20, nax)
+    axes_flat = V ** (1 / 3.0)  # cubic
+    volfunc_ax = lambda x: x[0] ** 3.0
+    etot = (V - V.mean()) ** 2
+    fcenter = 450 + 100 * (axes_flat - axes_flat.min())
     # fake phonon dos data (Gaussian), shift to lower freq for higher volume
-    phdos = [np.array([freq,gauss(freq-fc, 100)]).T for fc in
-             fcenter[::-1]]
+    phdos = [np.array([freq, gauss(freq - fc, 100)]).T for fc in fcenter[::-1]]
 
-    gibbs = Gibbs(T=T, P=P, etot=etot, phdos=phdos, axes_flat=axes_flat,
-                  volfunc_ax=volfunc_ax, case=case, dosarea=None)
-    gibbs.set_fitfunc('C', lambda x,y: num.Spline(x,y,s=None,k=5, eps=1e-5))
+    gibbs = Gibbs(
+        T=T,
+        P=P,
+        etot=etot,
+        phdos=phdos,
+        axes_flat=axes_flat,
+        volfunc_ax=volfunc_ax,
+        case=case,
+        dosarea=None,
+    )
+    gibbs.set_fitfunc(
+        "C", lambda x, y: num.Spline(x, y, s=None, k=5, eps=1e-5)
+    )
     g = gibbs.calc_G(calc_all=True)
 
-    dr = 'files/gibbs/1d'
+    dr = "files/gibbs/1d"
     for name in os.listdir(dr):
-        fn = '%s/%s' %(dr, name)
+        fn = "%s/%s" % (dr, name)
         gref = io.read_h5(fn)
-        print("testing: %s" %fn)
+        print("testing: %s" % fn)
         compare_dicts_with_arrays(gref, g)
-        tools.assert_dict_with_all_types_almost_equal(gref,
-                                                      g,
-                                                      keys=list(gref.keys()),
-                                                      atol=1e-14, rtol=1e-8)
+        tools.assert_dict_with_all_types_almost_equal(
+            gref, g, keys=list(gref.keys()), atol=1e-14, rtol=1e-8
+        )
 
     # test enthalpy stuff for 1d case
     # E(V)
-    ev = num.PolyFit1D(g['/ax0/V'], g['/ax0/Etot'], deg=5)
+    ev = num.PolyFit1D(g["/ax0/V"], g["/ax0/Etot"], deg=5)
     # P(V)
-    pv = lambda v: -ev(v, der=1)*constants.eV_by_Ang3_to_GPa
-    assert np.allclose(g['/P/P'], pv(g['/#opt/P/V']))
-    assert np.allclose(g['/#opt/P/H'],
-                       ev(g['/#opt/P/V']) + g['/P/P']*g['/#opt/P/V'] / \
-                       constants.eV_by_Ang3_to_GPa)
+    pv = lambda v: -ev(v, der=1) * constants.eV_by_Ang3_to_GPa
+    assert np.allclose(g["/P/P"], pv(g["/#opt/P/V"]))
+    assert np.allclose(
+        g["/#opt/P/H"],
+        ev(g["/#opt/P/V"])
+        + g["/P/P"] * g["/#opt/P/V"] / constants.eV_by_Ang3_to_GPa,
+    )
 
+
+def test_gibbs_2d():
+    # number of varied axis points
+    nax = 6
+    # phonon freq axis
+    freq = np.linspace(0, 1000, 300)  # cm^-1
+    T = np.linspace(5, 2000, 50)  # K
+    P = np.linspace(0, 5, 2)  # GPa
+
+    case = "2d"
+    cell_a = np.linspace(2.5, 3.5, nax)  # Ang
+    cell_c = np.linspace(3, 3.8, nax)  # Ang
+    volfunc_ax = lambda x: x[0] ** 2 * x[1]
+    axes_flat = np.array([x for x in product(cell_a, cell_c)])
+    V = np.array([volfunc_ax(x) for x in axes_flat])  # Ang**3
+    cell_a_mean = cell_a.mean()
+    cell_c_mean = cell_c.mean()
+    etot = np.array(
+        [
+            (a - cell_a_mean) ** 2.0 + (c - cell_c_mean) ** 2.0
+            for a, c in axes_flat
+        ]
+    )
+    phdos = []
+    Vmax = V.max()
+    for ii in range(axes_flat.shape[0]):
+        a, c = axes_flat[ii, :]
+        fc = 550 - 50 * V[ii] / Vmax
+        phdos.append(np.array([freq, gauss(freq - fc, 100) * 0.01]).T)
+
+    gibbs = Gibbs(
+        T=T,
+        P=P,
+        etot=etot,
+        phdos=phdos,
+        axes_flat=axes_flat,
+        volfunc_ax=volfunc_ax,
+        case=case,
+        dosarea=None,
+    )
+    gibbs.set_fitfunc(
+        "C", lambda x, y: num.Spline(x, y, s=None, k=5, eps=1e-5)
+    )
+    g = gibbs.calc_G(calc_all=True)
+
+    dr = "files/gibbs/2d"
+    for name in os.listdir(dr):
+        fn = "%s/%s" % (dr, name)
+        gref = io.read_h5(fn)
+        print("testing: %s" % fn)
+        compare_dicts_with_arrays(gref, g)
+        tools.assert_dict_with_all_types_almost_equal(
+            gref, g, keys=list(gref.keys()), atol=1e-8, rtol=1e-3
+        )
