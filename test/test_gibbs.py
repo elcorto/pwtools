@@ -59,9 +59,12 @@ In the 1d case, we have *zero* difference, i.e. different machines produce the
 same test data.
 """
 
-import numpy as np
 import os
 from itertools import product
+
+import numpy as np
+import pytest
+
 from pwtools.thermo import Gibbs
 from pwtools.signal import gauss
 from pwtools import num, io, constants
@@ -178,6 +181,75 @@ def test_gibbs_2d():
     g = gibbs.calc_G(calc_all=True)
 
     dr = "files/gibbs/2d"
+    for name in os.listdir(dr):
+        fn = "%s/%s" % (dr, name)
+        gref = io.read_h5(fn)
+        print("testing: %s" % fn)
+        compare_dicts_with_arrays(gref, g)
+        tools.assert_dict_with_all_types_almost_equal(
+            gref, g, keys=list(gref.keys()), atol=1e-8, rtol=1e-3
+        )
+
+
+@pytest.mark.parametrize(
+    "case",
+    [
+        "1d",
+        pytest.param("2d", marks=pytest.mark.xfail),
+        pytest.param("3d", marks=pytest.mark.xfail),
+    ],
+)
+def test_gibbs_3d_fake_1d(case):
+    def volfunc_ax(x):
+        assert len(x) == 3
+        # e.g. orthorhombic, all angles 90
+        return np.prod(x)
+
+    # number of varied axis points
+    nax = 6
+    # phonon freq axis
+    freq = np.linspace(0, 1000, 300)  # cm^-1
+    T = np.linspace(5, 2000, 50)  # K
+    P = np.linspace(0, 5, 2)  # GPa
+    cell_a = np.linspace(2.5, 3.5, nax)  # Ang
+    cell_b = np.linspace(3, 3.8, nax)  # Ang
+    cell_c = np.linspace(2, 3, nax)  # Ang
+    # in 1d case, scale all 3 axes together
+    axes_flat = np.array([x for x in zip(cell_a, cell_b, cell_c)])
+    V = np.array([volfunc_ax(x) for x in axes_flat])  # Ang**3
+    cell_a_mean = cell_a.mean()
+    cell_b_mean = cell_b.mean()
+    cell_c_mean = cell_c.mean()
+    etot = np.array(
+        [
+            (a - cell_a_mean) ** 2.0
+            + (a - cell_b_mean) ** 2.0
+            + (c - cell_c_mean) ** 2.0
+            for a, b, c in axes_flat
+        ]
+    )
+    phdos = []
+    Vmax = V.max()
+    for ii in range(axes_flat.shape[0]):
+        fc = 550 - 50 * V[ii] / Vmax
+        phdos.append(np.array([freq, gauss(freq - fc, 100) * 0.01]).T)
+
+    gibbs = Gibbs(
+        T=T,
+        P=P,
+        etot=etot,
+        phdos=phdos,
+        axes_flat=axes_flat,
+        volfunc_ax=volfunc_ax,
+        case=case,
+        dosarea=None,
+    )
+    gibbs.set_fitfunc(
+        "C", lambda x, y: num.Spline(x, y, s=None, k=5, eps=1e-5)
+    )
+    g = gibbs.calc_G(calc_all=True)
+
+    dr = "files/gibbs/3d-fake-1d"
     for name in os.listdir(dr):
         fn = "%s/%s" % (dr, name)
         gref = io.read_h5(fn)
