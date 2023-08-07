@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Quasi-harmonic approximation &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9121de03" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="Radial Basis Function interpolation an regression" href="rbf.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../generated/api/index.html">API Reference</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Background, details, special topics</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="ase.html">Relation to ASE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coord_trans.html">Coordinate transformation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="param_study.html">Parameter studies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parsing.html">Parsing code output and using containers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="phonon_dos.html">Velocity autocorrelation function and phonon DOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pwscf.html">Pwscf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rbf.html">Radial Basis Function interpolation an regression</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Quasi-harmonic approximation</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">&lt;no title&gt;</a><ul>
+  <li><a href="index.html">Background, details, special topics</a><ul>
+      <li>Previous: <a href="rbf.html" title="previous chapter">Radial Basis Function interpolation an regression</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="quasi-harmonic-approximation">
+<h1>Quasi-harmonic approximation<a class="headerlink" href="#quasi-harmonic-approximation" title="Permalink to this heading">¶</a></h1>
+<p>See <a class="reference internal" href="../../generated/api/pwtools.thermo.HarmonicThermo.html#pwtools.thermo.HarmonicThermo" title="pwtools.thermo.HarmonicThermo"><code class="xref py py-class docutils literal notranslate"><span class="pre">HarmonicThermo</span></code></a> +
+<code class="docutils literal notranslate"><span class="pre">test/test_qha.py</span></code>, <a class="reference internal" href="../../generated/api/pwtools.thermo.Gibbs.html#pwtools.thermo.Gibbs" title="pwtools.thermo.Gibbs"><code class="xref py py-class docutils literal notranslate"><span class="pre">Gibbs</span></code></a> + <code class="docutils literal notranslate"><span class="pre">tesst/test_gibbs.py</span></code>.</p>
+<p>The distinctive feature of the pwtools implementation is that in
+<a class="reference internal" href="../../generated/api/pwtools.thermo.Gibbs.html#pwtools.thermo.Gibbs" title="pwtools.thermo.Gibbs"><code class="xref py py-class docutils literal notranslate"><span class="pre">Gibbs</span></code></a>, we treat unit cell axes instead of just the
+volume, allowing to calculate per-axis thermal expansion rates. See for
+instance <a class="reference external" href="https://journals.aps.org/prb/abstract/10.1103/PhysRevB.89.064109">Schmerler and Kortus, Phys. Rev. B 89,
+064109</a>.</p>
+<p>When only one unit cell parameter is scaled (e.g. <code class="docutils literal notranslate"><span class="pre">a</span></code> in case of cubic
+cells), we call this the “1d” case. If two unit cell axes are scaled
+independently on a grid (say <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">c</span></code> in a hexagonal setting), this
+is called “2d” case.</p>
+<p>Example results from <code class="docutils literal notranslate"><span class="pre">Gibbs</span></code> for rocksalt AlN (vary cell parameter <code class="docutils literal notranslate"><span class="pre">a</span></code> = <code class="docutils literal notranslate"><span class="pre">ax0</span></code>
+of the primitive cell, so 1d case). <code class="docutils literal notranslate"><span class="pre">Gibbs</span></code> returns a dictionary with keys
+named as below (such as <code class="docutils literal notranslate"><span class="pre">/#opt/P/ax0</span></code>). The naming scheme is explained in
+<a class="reference internal" href="../../generated/api/pwtools.thermo.Gibbs.html#pwtools.thermo.Gibbs" title="pwtools.thermo.Gibbs"><code class="xref py py-class docutils literal notranslate"><span class="pre">Gibbs</span></code></a>. Below is the result of inspecting an HDF5 file
+written by</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="c1"># See /path/to/pwtools/src/pwtools/test/utils/gibbs_test_data.py</span>
+<span class="n">gibbs</span> <span class="o">=</span> <span class="n">Gibbs</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gibbs</span><span class="o">.</span><span class="n">calc_G</span><span class="p">(</span><span class="n">calc_all</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">pwtools</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">write_h5</span><span class="p">(</span><span class="s2">&quot;thermo.h5&quot;</span><span class="p">,</span> <span class="n">g</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>which we can query for array shapes like so:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ h5ls -rl thermo.h5 | grep Dataset
+/#opt/P/B                Dataset {21}
+/#opt/P/H                Dataset {21}
+/#opt/P/V                Dataset {21}
+/#opt/P/ax0              Dataset {21}
+/#opt/T/P/B              Dataset {200, 21}
+/#opt/T/P/Cp             Dataset {200, 21}
+/#opt/T/P/G              Dataset {200, 21}
+/#opt/T/P/V              Dataset {200, 21}
+/#opt/T/P/alpha_V        Dataset {200, 21}
+/#opt/T/P/alpha_ax0      Dataset {200, 21}
+/#opt/T/P/ax0            Dataset {200, 21}
+/P/P                     Dataset {21}
+/P/ax0/H                 Dataset {21, 51}
+/T/P/ax0/G               Dataset {200, 21, 51}
+/T/T                     Dataset {200}
+/ax0/Etot                Dataset {51}
+/ax0/T/Cv                Dataset {51, 200}
+/ax0/T/Evib              Dataset {51, 200}
+/ax0/T/F                 Dataset {51, 200}
+/ax0/T/Fvib              Dataset {51, 200}
+/ax0/T/Svib              Dataset {51, 200}
+/ax0/V                   Dataset {51}
+/ax0/ax0                 Dataset {51, 1}
+</pre></div>
+</div>
+<p>The T,P grid has</p>
+<ul class="simple">
+<li><p>21 P points (<code class="docutils literal notranslate"><span class="pre">/P/P</span></code>)</p></li>
+<li><p>200 T points (<code class="docutils literal notranslate"><span class="pre">/T/T</span></code>)</p></li>
+</ul>
+<p>Further, we have</p>
+<ul class="simple">
+<li><p>51 volumes (<code class="docutils literal notranslate"><span class="pre">/ax0/ax0</span></code>, <code class="docutils literal notranslate"><span class="pre">/ax0/V</span></code>), <code class="docutils literal notranslate"><span class="pre">V=volfunc_ax([ax0]</span></code>)</p></li>
+<li><p>51 <span class="math notranslate nohighlight">\(C_V\)</span> curves (<code class="docutils literal notranslate"><span class="pre">/ax0/T/Cv</span></code>), one per volume, 200 T grid points each</p></li>
+<li><p>same for F, Fvib, etc</p></li>
+<li><p>Gibbs energy <span class="math notranslate nohighlight">\(\mathcal G(V,T,P)\)</span> = <span class="math notranslate nohighlight">\(\mathcal G(\texttt{ax0}, T, P)\)</span>: <code class="docutils literal notranslate"><span class="pre">/T/P/ax0/G</span></code></p></li>
+<li><p>minimized Gibbs energy <span class="math notranslate nohighlight">\(\min_V \mathcal G(V,T,P) = G(T,P)\)</span>: <code class="docutils literal notranslate"><span class="pre">/#opt/T/P/G</span></code> on T,P grid
+(200x21)</p></li>
+<li><p>21 <span class="math notranslate nohighlight">\(C_P(T)\)</span> curves (200 T points): <code class="docutils literal notranslate"><span class="pre">/#opt/T/P/Cp</span></code>, where for each P,
+<span class="math notranslate nohighlight">\(C_P(T) = -T (∂^2 G(T,P) / ∂T^2)_P\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">/#opt/P/{B,H,V}</span></code>: results from <span class="math notranslate nohighlight">\(\min_V H = \min_V(E+PV)\)</span> without phonon
+contributions, at <span class="math notranslate nohighlight">\(T=0\)</span></p></li>
+</ul>
+<p>2d case (hexagonal wurtzite AlN, vary cell axis <code class="docutils literal notranslate"><span class="pre">a</span></code> = <code class="docutils literal notranslate"><span class="pre">ax0</span></code> and <code class="docutils literal notranslate"><span class="pre">c</span></code> = <code class="docutils literal notranslate"><span class="pre">ax1</span></code>):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ h5ls -rl thermo.h5 | grep Dataset
+/#opt/P/H                Dataset {21}
+/#opt/P/V                Dataset {21}
+/#opt/P/ax0              Dataset {21}
+/#opt/P/ax1              Dataset {21}
+/#opt/T/P/Cp             Dataset {200, 21}
+/#opt/T/P/G              Dataset {200, 21}
+/#opt/T/P/V              Dataset {200, 21}
+/#opt/T/P/alpha_V        Dataset {200, 21}
+/#opt/T/P/alpha_ax0      Dataset {200, 21}
+/#opt/T/P/alpha_ax1      Dataset {200, 21}
+/#opt/T/P/ax0            Dataset {200, 21}
+/#opt/T/P/ax1            Dataset {200, 21}
+/P/P                     Dataset {21}
+/P/ax0-ax1/H             Dataset {21, 263}
+/T/P/ax0-ax1/G           Dataset {200, 21, 263}
+/T/T                     Dataset {200}
+/ax0-ax1/Etot            Dataset {263}
+/ax0-ax1/T/Cv            Dataset {263, 200}
+/ax0-ax1/T/Evib          Dataset {263, 200}
+/ax0-ax1/T/F             Dataset {263, 200}
+/ax0-ax1/T/Fvib          Dataset {263, 200}
+/ax0-ax1/T/Svib          Dataset {263, 200}
+/ax0-ax1/V               Dataset {263}
+/ax0-ax1/ax0-ax1         Dataset {263, 2}
+</pre></div>
+</div>
+<p>Here we see the individual axis expansion rates <span class="math notranslate nohighlight">\(\alpha_a\)</span> =
+<code class="docutils literal notranslate"><span class="pre">/#opt/T/P/alpha_ax0</span></code> and <span class="math notranslate nohighlight">\(\alpha_c\)</span> = <code class="docutils literal notranslate"><span class="pre">/#opt/T/P/alpha_ax1</span></code> in addition to
+<span class="math notranslate nohighlight">\(\alpha_V\)</span> = <code class="docutils literal notranslate"><span class="pre">/#opt/T/P/alpha_V</span></code>.</p>
+<p>Other tools</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://phonopy.github.io/phonopy/">https://phonopy.github.io/phonopy/</a></p>
+<ul>
+<li><p>1d only (vary volume)</p></li>
+<li><p><a class="reference external" href="https://phonopy.github.io/phonopy/qha.html">https://phonopy.github.io/phonopy/qha.html</a></p></li>
+<li><p>also calculates phonons using supercell method (finite diffs), uses VASP by
+default, can also use QE</p></li>
+</ul>
+</li>
+<li><p>several projects listed at <a class="reference external" href="https://github.com/topics/quasi-harmonic-approximation">https://github.com/topics/quasi-harmonic-approximation</a></p>
+<ul>
+<li><p>untested</p></li>
+</ul>
+</li>
+<li><p><a class="reference external" href="https://github.com/gfulian/quantas">https://github.com/gfulian/quantas</a></p>
+<ul>
+<li><p>untested</p></li>
+</ul>
+</li>
+</ul>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2023, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../../_sources/written/background/qha.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

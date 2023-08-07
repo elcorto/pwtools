@@ -15,7 +15,7 @@ Then
 
 .. code-block:: sh
 
-    # <<probably make a venv>>
+    # <<probably make a venv before, see below for examples>>
     $ pip install git+https://github.com/elcorto/pwtools
 
 or
@@ -36,19 +36,20 @@ To build the extension modules and install all Python dependencies via
 .. code-block:: sh
 
     $ git clone https://github.com/elcorto/pwtools
+    $ cd pwtools
     $ pip install .
 
-or the setuptools "development install" (no copy of files)
+or the editable mode (no copy of files), a.k.a. setuptools "develop mode"
 
 .. code-block:: sh
 
     $ pip install -e .
 
-In both cases we build the extension modules via
+In both cases we build the extension modules (see ``setup.py``) via
 
 .. code-block:: sh
 
-    $ cd src && make clean && make $PWTOOLS_EXT_MAKE_TARGET && cd ..
+    $ cd src/_ext_src && make clean && make $PWTOOLS_EXT_MAKE_TARGET
 
 in the background, where ``$PWTOOLS_EXT_MAKE_TARGET`` is optional (more details
 in the :ref:`extensions` section).
@@ -61,8 +62,15 @@ to install only the package without installing dependencies from pypi
 
     $ pip install --no-deps .
 
-When using a virtual environment, you can map in the system site-packages (here
-we use virtualenvwrapper_)
+When using a virtual environment, you can map in the system site-packages
+
+.. code-block:: sh
+
+    $ python -m venv --system-site-packages pwtools_venv
+    $ ./pwtools_venv/bin/activate
+    (pwtools) $ pip install .
+
+or using virtualenvwrapper_
 
 .. code-block:: sh
 
@@ -73,7 +81,7 @@ Alternatively, you may also simply build the extensions and set ``PYTHONPATH``
 
 .. code-block:: sh
 
-    $ cd src && make clean && make && cd ..
+    $ cd src/_ext_src && make clean && make
     $ [ -n "$PYTHONPATH" ] && pp=$(pwd):$PYTHONPATH || pp=$(pwd)
     $ export PYTHONPATH=$pp
 
@@ -86,11 +94,9 @@ Python dependencies: see ``requirements*.txt``. You can use
 
 .. code-block:: sh
 
-    $ ./check_dependencies.py
-    requirements_test.txt
-      pytest               ... ok (import)
-      pytest-xdist         ... ok (pip list)
-      pytest-timeout       ... ok (pip list)
+    $ ./test/check_dependencies.py
+    requirements_doc.txt
+      sphinx               ... ok (import)
     requirements.txt
       PyCifRW              ... ok (pip list)
       h5py                 ... ok (import)
@@ -98,11 +104,13 @@ Python dependencies: see ``requirements*.txt``. You can use
       numpy                ... ok (import)
       scipy                ... ok (import)
       spglib               ... ok (import)
+    requirements_test.txt
+      pytest               ... ok (import)
+      pytest-xdist         ... ok (pip list)
+      pytest-timeout       ... ok (import)
     requirements_optional.txt
       ase                  ... ok (import)
-      sklearn              ... ok (import)
-    requirements_doc.txt
-      sphinx               ... ok (import)
+      scikit-learn         ... ok (pip list)
     optional executables:
       eos.x                ... NOT FOUND
 
@@ -168,7 +176,7 @@ See test/README. Actually, all of these are good examples, too!
 Python versions
 ---------------
 
-Only Python3 is supported, tested: Python 3.6-3.10
+Only Python3 is supported, tested: Python 3.6-3.11
 
 The package was developed mostly with Python 2.5-2.7 and ported using 2to3 +
 manual changes. Therefore, you might find some crufty Python 2 style code

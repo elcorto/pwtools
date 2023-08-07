@@ -13,3 +13,4 @@ Background, details, special topics
    phonon_dos
    pwscf
    rbf
+   qha

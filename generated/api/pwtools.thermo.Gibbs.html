@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>pwtools.thermo.Gibbs &#8212; pwtools  documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b76e3c8a" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9121de03" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b3ba4146"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
@@ -301,8 +301,10 @@ Really, go there and have a look. Now!</p>
 <li><p><strong>T</strong> (<em>1d array</em>) – temperature [K]</p></li>
 <li><p><strong>P</strong> (<em>1d array</em>) – pressure [GPa]</p></li>
 <li><p><strong>etot</strong> (<em>1d array</em><em>, </em><em>(</em><em>axes_flat.shape</em><em>[</em><em>0</em><em>]</em><em>,</em><em>)</em>) – Total energy [eV] for each axes_flat[i,…]</p></li>
-<li><p><strong>phdos</strong> (<em>sequence</em><em> (</em><em>axes_flat.shape</em><em>[</em><em>0</em><em>]</em><em>,</em><em>)</em>) – Phonon dos arrays for each axes grid point.
+<li><p><strong>phdos</strong> (<em>sequence</em><em> of </em><em>2d arrays</em><em> (</em><em>axes_flat.shape</em><em>[</em><em>0</em><em>]</em><em>,</em><em>)</em>) – Phonon dos arrays (nfreq, 2) for each axes grid point.
 axes_flat[i,…] -&gt; phdos[i] = &lt;2d array (nfreq,2)&gt;, units see
+<a class="reference internal" href="pwtools.thermo.HarmonicThermo.html#pwtools.thermo.HarmonicThermo" title="pwtools.thermo.HarmonicThermo"><code class="xref py py-class docutils literal notranslate"><span class="pre">HarmonicThermo</span></code></a>. For each array <code class="docutils literal notranslate"><span class="pre">phdos[i][:,0]</span> <span class="pre">=</span> <span class="pre">freq</span></code>,
+<code class="docutils literal notranslate"><span class="pre">phdos[i][:,1]</span> <span class="pre">=</span> <span class="pre">dos</span></code>. Those are passed to
 <a class="reference internal" href="pwtools.thermo.HarmonicThermo.html#pwtools.thermo.HarmonicThermo" title="pwtools.thermo.HarmonicThermo"><code class="xref py py-class docutils literal notranslate"><span class="pre">HarmonicThermo</span></code></a>.</p></li>
 <li><p><strong>axes_flat</strong> (<em>1d</em><em> or </em><em>2d array</em>) – <p>Flattened cell axes variation grid (for example result of nested
 loop over axes to vary). Will be cast to shape (N,1) if 1d with
@@ -370,7 +372,7 @@ case=’1d’ but let <cite>axes_flat</cite> be (N,2) or (N,3)</p></li>
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;2022, Steve Schmerler.
+      &copy;2023, Steve Schmerler.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
