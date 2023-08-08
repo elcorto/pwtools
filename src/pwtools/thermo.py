@@ -256,19 +256,24 @@ class Gibbs:
     approximation, given some variation grid of unit cell axes (`axes_flat`) and
     corresponding phonon DOS data for each grid point.
 
+    The `axes_flat` approach allows us to easily calculate per-axis thermal
+    expansion rates.
+
     We have 3 cases for how unit cell axis can be be varied.
 
     ==== ===============  ========================  ==============   ============
     case axes_flat.shape  cell parameter grid       fitfunc          bulk modulus
     ==== ===============  ========================  ==============   ============
     1d   (N,) or (N,1)    ax0 = a (-> V)            G(V), thus any   V*d^2G/dV^2
-                          (cubic)                   EOS will do
+                          (e.g. cubic or            EOS will do
+                          rhombohedral)
 
     2d   (N,2)            (ax0,ax1) = (a,b), (a,c)  G(ax0, ax1)      not
-                          or (b,c)                                   implemented
-                          (e.g. hexaonal: (a,c))
+                          or (b,c)                                   defined
+                          (e.g. hexagonal: (a,c))
 
-    3d   not implemented
+    3d   (N,3)            (ax0,ax1,ax2)             no default       not
+                          (e.g. triclinic)                           defined
     ==== ===============  ========================  ==============   ============
 
     Internally, we only deal with `ax0` (1d), `ax0` + `ax1` (2d) and
@@ -292,18 +297,20 @@ class Gibbs:
 
     Here is a list of all valid `fitfunc` keys and what they do:
 
-    ========  ==========================================================
+    ========  ==============================================================
     key       value
-    ========  ==========================================================
+    ========  ==============================================================
     '1d-G'    fit G(V), ``__call__(V,der=2)`` for B(V) =
               V*d^2G/dV^2
     '2d-G'    fit G(ax0,ax1)
+    '3d-G'    fit G(ax0,ax1,ax2), no default, define and test youself,
+              please
     '1d-ax'   fit V(ax0)
     'alpha'   fit x_opt(T), x=ax0,ax1,ax2,V,
               ``__call__(T,der=1)`` for alpha_x = 1/x * dx/dT
     'C'       fit G_opt(T), ``__call__(T,der=2)`` for
               Cp = -T * d^G_opt(T,P)/dT^2
-    ========  ==========================================================
+    ========  ==============================================================
 
     Hints for which fitfuncs to choose: The defaults are pretty good, but
     nevertheless tessting is mandatory! Good choices are
@@ -356,11 +363,11 @@ class Gibbs:
     Examples
     --------
 
-    See also ``test/test_gibbs.py`` for worked examples using fake data.
+    See ``test/test_gibbs.py`` for worked examples using fake data.
     Really, go there and have a look. Now!
 
     >>> from pwtools import mpl, crys, eos
-    >>> # isotropic cell
+    >>> # cubic cell, 1d case
     >>> volfunc_ax = lambda x: crys.volume_cc(np.array([[x[0]]*3 + [90]*3]))
     >>> gibbs=Gibbs(axes_flat=..., etot=..., phdos=...,
     ...             T=linspace(5,2500,100), P=linspace(0,20,5),
@@ -422,6 +429,8 @@ class Gibbs:
         """
         assert axes_flat.shape[0] == len(phdos), ("axes_flat and phdos "
             "not equally long")
+        assert axes_flat.shape[0] == len(etot), ("axes_flat and etot "
+            "not equally long")
         self.kwds = dict(verbose=False, fixnan=False, skipfreq=True,
                          dosarea=None)
         self.kwds.update(kwds)
@@ -449,8 +458,12 @@ class Gibbs:
             if self.case is None:
                 self.case = '2d'
             self.axes_prefix = '/ax0-ax1'
+        elif self.nax == 3:
+            if self.case is None:
+                self.case = '3d'
+            self.axes_prefix = '/ax0-ax1-ax2'
         else:
-            raise Exception("case 3d not implemented")
+            raise ValueError(f"{self.axes_flat.shape=} not supported")
         self.ret = {}
         self.ret['/T/T'] = self.T
         self.ret['/P/P'] = self.P
@@ -460,6 +473,7 @@ class Gibbs:
         self.fitfunc = {\
             '1d-G': self._default_fit_1d_G,
             '2d-G': self._default_fit_2d_G,
+            '3d-G': self._default_fit_3d_G,
             '1d-ax': self._default_fit_1d_ax,
             'alpha': self._default_fit_alpha,
             'C': self._default_fit_C,
@@ -486,6 +500,16 @@ class Gibbs:
     @staticmethod
     def _default_fit_2d_G(points, values):
         return num.PolyFit(points, values, deg=5, scale=True)
+
+    @staticmethod
+    def _default_fit_3d_G(points, values):
+        ##return num.PolyFit(points, values, deg=5, scale=True)
+        # PolyFit probably works, but force user to specify own 3d fit method.
+        # Probably sklearn.gaussian_process.GaussianProcessRegressor or smth is
+        # even better.
+        raise NotImplementedError(
+            "Please set a 3d fit method using Gibbs.set_fitfunc()"
+            )
 
     @staticmethod
     def _default_fit_1d_ax(x, y):
@@ -528,6 +552,9 @@ class Gibbs:
                 ret['/#opt%s/ax%i' %(prfx,iax)][tpsl] = self.fitax[iax](vopt)
             ret['/#opt%s/B' %prfx][tpsl] = vopt * fit(vopt, der=2) * eV_by_Ang3_to_GPa
         elif self.case == '2d':
+            assert self.axes_flat.shape[1] == 2, (
+                f"{self.axes_flat.shape[1]=} makes no sense for {self.case=}"
+            )
             # XXX The fit function alone should take care of scaling, see
             # num.PolyFit(..., scale=True). Doing this here is OK but redundant.
             # Maybe also introduces additional numerical noise?
@@ -541,8 +568,18 @@ class Gibbs:
             ret['/#opt%s/%s' %(prfx, ghsym)][tpsl] = fit(xopt) * (ggmax - ggmin) + ggmin
             if self.volfunc_ax is not None:
                 ret['/#opt%s/V' %prfx][tpsl] = self.volfunc_ax(xopt)
+        elif self.case == '3d':
+            ##assert self.axes_flat.shape[1] == 3, (
+            ##    f"{self.axes_flat.shape[1]=} makes no sense for {self.case=}"
+            ##)
+            # We have _default_fit_3d_G (raises NotImplementedError ATM), but
+            # need to test a modification of the fitting business of case=2d
+            # with a real-world use case before implementing this feature
+            # publicly.
+            raise ValueError("Fits for 3d-G not yet supported, only fake-1d where "
+                             "case='1d' but axes_flat.shape[1] > 1.")
         else:
-            raise Exception("unknown case: %s" %self.case)
+            raise ValueError(f"Unknown {case=}")
 
     def _set_not_calc_none(self, ret, prfx='/T/P'):
         """We know that the stuff below was not calculated, so set them to
