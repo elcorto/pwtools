@@ -39,7 +39,7 @@ class HarmonicThermo:
         eps : float, optional
             Threshold for `skipfreq`. Default is ~1.5*2.2e-16 .
         fixnan : bool, optional
-            Use if YKWYAD, test before using! Currently, set all NaNs occuring
+            Use if YKWYAD, test before using! Currently, set all NaNs occurring
             during integration to `nanfill`. This is a HACK b/c we must assume
             that these numbers should be `nanfill`.
         nanfill : float, optional
@@ -51,19 +51,19 @@ class HarmonicThermo:
             Function which integrates x-y data. Called as ``integrator(y,x)``,
             like ``scipy.integrate.{trapz,simps}``. Usually, `trapz` is
             numerically more stable for weird DOS data and accurate enough if
-            the freqeuency axis resolution is good.
+            the frequency axis resolution is good.
         verbose : bool, optional
             Print warnings. Recommended for testing.
 
         Notes
         -----
-        `skipfreq` and `fixnan`: Sometimes, a few frequencies (ususally the 1st
+        `skipfreq` and `fixnan`: Sometimes, a few frequencies (usually the 1st
         few values only) are close to zero and negative, and the DOS is very
         small there. `skipfreq` can be used to ignore this region. The default
         is False b/c it may hide large negative frequencies (i.e. unstable
         structure), which is a perfectly valid result (but you shouldn't do
         thermodynamics with that :) Even if there are no negative frequencies,
-        you can have frequencies (usually the first) beeing exactly zero or
+        you can have frequencies (usually the first) being exactly zero or
         close to that (order 1e-17). That can cause numerical problems (NaNs)
         in some calculations so we may skip them and their DOS values, which
         must be assumed to be small. If you still encounter NaNs during
@@ -313,7 +313,7 @@ class Gibbs:
     ========  ==============================================================
 
     Hints for which fitfuncs to choose: The defaults are pretty good, but
-    nevertheless tessting is mandatory! Good choices are
+    nevertheless testing is mandatory! Good choices are
     :class:`~pwtools.num.PolyFit` / :class:`~pwtools.num.PolyFit1D` for all
     axes-related grids (1d-G, 2d-G, 1d-ax) since you won't have too many
     points here. Then a fit is better than a :class:`~pwtools.num.Spline`.
@@ -324,7 +324,7 @@ class Gibbs:
     C(T).
 
     The methods :meth:`calc_F`, :meth:`calc_H` and :meth:`calc_G` return dicts
-    with nd-arrays holding calculated thermodynamic properites. Naming
+    with nd-arrays holding calculated thermodynamic properties. Naming
     convention for dict keys returned by methods: The keys (strings) mimic HDF5
     path names, e.g. ``/group0/group1/array``, thus the last name in the path
     is the name of the array (`z` in the examples below). All previous names
@@ -345,7 +345,7 @@ class Gibbs:
     `axes_flat` : Usually, flat grids like "ax0-ax1" or "ax0-ax1-ax2" are
     created by nested loops ``[(ax0_i,ax1_i) for ax0_i in ax0 for ax1_i in
     ax1]`` and therefore have shape (nax0*nax1,2) or (nax0*nax1*nax2,3) . But
-    that is not required. They can be completely unctructured (e.g. if points
+    that is not required. They can be completely unstructured (e.g. if points
     have been added later to the grid manually) -- only `fitfunc` must be able
     to handle that.
 
@@ -480,7 +480,7 @@ class Gibbs:
             }
 
     def set_fitfunc(self, what, func):
-        """Update dict with fitting fucntions: ``self.fitfunc[what] = func``.
+        """Update dict with fitting functions: ``self.fitfunc[what] = func``.
 
         Parameters
         ----------
@@ -583,7 +583,7 @@ class Gibbs:
 
     def _set_not_calc_none(self, ret, prfx='/T/P'):
         """We know that the stuff below was not calculated, so set them to
-        None. Needs to be done since all arrays are inited to be np.empty().
+        None. Needs to be done since all arrays are initialized to be np.empty().
         Little hackish, but OK For Me (tm)."""
         if self.volfunc_ax is None:
             ret['/#opt%s/V' %prfx] = None
@@ -694,7 +694,7 @@ class Gibbs:
 
         Needs :meth:`calc_F` results. Called here if not provided.
         Also calls :meth:`calc_H` if `calc_all` is ``True``, i.e. this is the
-        you-get-it-all method and the only one you sould really use.
+        you-get-it-all method and the only one you should really use.
 
         Parameters
         ----------
@@ -703,7 +703,7 @@ class Gibbs:
             used to add additional contributions to F, such as electronic
             entropy.
         calc_all : bool
-            Calcluate thermal properties from G(ax0,ax1,ax2,T,P): Cp,
+            Calculate thermal properties from G(ax0,ax1,ax2,T,P): Cp,
             alpha_x, B. If False, then calculate and store only G.
 
         Returns
