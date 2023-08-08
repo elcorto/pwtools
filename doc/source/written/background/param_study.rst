@@ -1,3 +1,5 @@
+.. _param_study:
+
 Parameter studies
 =================
 

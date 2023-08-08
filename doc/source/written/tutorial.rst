@@ -268,6 +268,10 @@ Work with SQLite databases
 See :class:`~pwtools.sql.SQLiteDB`.
 
 
+Quasi-harmonic approximation
+----------------------------
+See :ref:`qha`
+
 More
 ----
 * :ref:`dispersion_example`
