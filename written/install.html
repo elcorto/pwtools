@@ -145,12 +145,12 @@ to install only the package without installing dependencies from pypi</p>
 <p>When using a virtual environment, you can map in the system site-packages</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>--system-site-packages<span class="w"> </span>pwtools_venv
 $<span class="w"> </span>./pwtools_venv/bin/activate
-<span class="o">(</span>pwtools<span class="o">)</span><span class="w"> </span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.
+<span class="o">(</span>pwtools_venv<span class="o">)</span><span class="w"> </span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.
 </pre></div>
 </div>
 <p>or using <a class="reference external" href="https://virtualenvwrapper.readthedocs.io">virtualenvwrapper</a></p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>mkvirtualenv<span class="w"> </span>--system-site-packages<span class="w"> </span>-p<span class="w"> </span>/usr/bin/python3<span class="w"> </span>pwtools
-<span class="o">(</span>pwtools<span class="o">)</span><span class="w"> </span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>mkvirtualenv<span class="w"> </span>--system-site-packages<span class="w"> </span>-p<span class="w"> </span>/usr/bin/python3<span class="w"> </span>pwtools_venv
+<span class="o">(</span>pwtools_venv<span class="o">)</span><span class="w"> </span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.
 </pre></div>
 </div>
 <p>Alternatively, you may also simply build the extensions and set <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code></p>
@@ -197,8 +197,8 @@ gfortran<span class="w">        </span><span class="c1"># or ifort, see src/Make
 liblapack-dev
 </pre></div>
 </div>
-<p>Also note that you can get may Python packages via your system’s package
-manager</p>
+<p>Also note that you can get most Python packages via your system’s package
+manager. Debian and derivatives:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>python3-ase
 python3-h5py
 python3-matplotlib
@@ -209,9 +209,10 @@ python3-pytest-xdist
 python3-scipy
 python3-sklearn
 python3-sphinx
+python3-spglib
+python3-pycifrw
 </pre></div>
 </div>
-<p>But usually not <code class="docutils literal notranslate"><span class="pre">PyCifRW</span></code> and <code class="docutils literal notranslate"><span class="pre">spglib</span></code>.</p>
 <section id="optional-dependencies">
 <h3>Optional dependencies<a class="headerlink" href="#optional-dependencies" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
