@@ -91,7 +91,7 @@ setup(
     packages=find_packages(where="src", exclude="pwtools/src"),
     install_requires=open("requirements.txt").read().splitlines(),
     setup_requires=["numpy"],
-    python_requires=">=3",
+    python_requires=">=3.8",
     package_data={"pwtools": ["*.so"]},
     cmdclass={
         "build_py": make_cmd_class(build_py),
