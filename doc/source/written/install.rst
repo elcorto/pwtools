@@ -129,8 +129,8 @@ You also need the following to compile extensions. On a Debian-ish system
     gfortran        # or ifort, see src/Makefile
     liblapack-dev
 
-Also note that you can get may Python packages via your system's package
-manager
+Also note that you can get most Python packages via your system's package
+manager. Debian and derivatives:
 
 .. code-block:: sh
 
@@ -144,8 +144,8 @@ manager
     python3-scipy
     python3-sklearn
     python3-sphinx
-
-But usually not ``PyCifRW`` and ``spglib``.
+    python3-spglib
+    python3-pycifrw
 
 
 Optional dependencies
