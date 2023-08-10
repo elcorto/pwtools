@@ -162,7 +162,7 @@ prnt "... ready"
 
 if $build; then
     prnt "build extension modules ..."
-    cd $testdir/src/_ext_src/ && make gfortran-omp -B >> $logfile && cd $here 2>&1
+    cd $testdir/pwtools/src/_ext_src/ && make gfortran-omp -B >> $logfile && cd $here 2>&1
     prnt "... ready"
 fi
 
