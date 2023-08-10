@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # This script does
 #
@@ -26,7 +26,29 @@
 # next to the test script. Until then we keep this script and copy the package
 # to $testdir first in order to not pollute this repo with test artifact files.
 
-set -u
+
+
+# We use bash only b/c dash (/bin/sh in Debian) doesn't have pipefail. We need
+# this b/c we want to run
+#
+#   pytest ... | tee -a $logfile
+#   runner_exit_code=$?
+#   <<other stuff>>
+#   exit $runner_exit_code
+#
+# and see output scroll by while still catching pytest's exit code. W/o
+# pipefail (i) it would be tee's exit code which is always 0 and (ii) we'd need
+# to do
+#
+#   out=$(pytest ...)
+#   runner_exit_code=$?
+#   echo "$out" | tee -a $logfile
+#   <<other stuff>>
+#   exit $runner_exit_code
+#
+# which buffers all pytest text output.
+#
+set -u -o pipefail
 
 usage(){
     cat << EOF
@@ -159,8 +181,8 @@ prnt "running tests ..."
 
 add_to_pp=$testdir/pwtools/src
 [ -n "${PYTHONPATH:-}" ] && pp=$add_to_pp:$PYTHONPATH || pp=$add_to_pp
-eval "PYTHONPATH=$pp OMP_NUM_THREADS=3 $runner \
-      $runner_opts" 2>&1 | tee -a $logfile
+PYTHONPATH=$pp OMP_NUM_THREADS=3 $runner $runner_opts 2>&1 | tee -a $logfile
+runner_exit_code=$?
 
 # Remove color sequences.
 sed -i -re "s/[[:cntrl:]]\[[0-9]{1,3}m//g" $logfile
@@ -168,3 +190,5 @@ sed -i -re "s/[[:cntrl:]]\[[0-9]{1,3}m//g" $logfile
 prnt "... ready"
 
 echo "logfile: $logfile"
+
+exit $runner_exit_code
