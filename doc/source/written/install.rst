@@ -68,14 +68,14 @@ When using a virtual environment, you can map in the system site-packages
 
     $ python -m venv --system-site-packages pwtools_venv
     $ ./pwtools_venv/bin/activate
-    (pwtools) $ pip install .
+    (pwtools_venv) $ pip install .
 
 or using virtualenvwrapper_
 
 .. code-block:: sh
 
-    $ mkvirtualenv --system-site-packages -p /usr/bin/python3 pwtools
-    (pwtools) $ pip install .
+    $ mkvirtualenv --system-site-packages -p /usr/bin/python3 pwtools_venv
+    (pwtools_venv) $ pip install .
 
 Alternatively, you may also simply build the extensions and set ``PYTHONPATH``
 
