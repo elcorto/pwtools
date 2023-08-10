@@ -1,5 +1,6 @@
 import os
 import time
+from importlib.util import find_spec
 
 import numpy as np
 
@@ -11,15 +12,11 @@ from pwtools.calculators import Pwscf, Lammps, find_exe
 pj = os.path.join
 
 lammps_exe_names = ["lammps", "lmp"]
+here = common.fullpath(os.path.dirname(__file__))
 
 
 def have_ase():
-    try:
-        import ase
-
-        return True
-    except ImportError:
-        return False
+    return find_spec("ase") is not None
 
 
 def have_pwx():
@@ -96,7 +93,7 @@ def setup_lmp(tmpdir):
     at = get_atoms_with_calc_lammps(tmpdir)
     at.rattle(stdev=0.001, seed=int(time.time()))
     common.makedirs(at.calc.directory)
-    common.backtick(f"cp -v utils/lammps/AlN.tersoff {at.calc.directory}/")
+    common.backtick(f"cp -v {here}/../src/pwtools/test/utils/lammps/AlN.tersoff {at.calc.directory}/")
     return at
 
 
