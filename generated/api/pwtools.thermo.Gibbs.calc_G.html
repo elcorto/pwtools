@@ -102,14 +102,14 @@
 Uses self.fitfunc.</p>
 <p>Needs <a class="reference internal" href="pwtools.thermo.Gibbs.calc_F.html#pwtools.thermo.Gibbs.calc_F" title="pwtools.thermo.Gibbs.calc_F"><code class="xref py py-meth docutils literal notranslate"><span class="pre">calc_F()</span></code></a> results. Called here if not provided.
 Also calls <a class="reference internal" href="pwtools.thermo.Gibbs.calc_H.html#pwtools.thermo.Gibbs.calc_H" title="pwtools.thermo.Gibbs.calc_H"><code class="xref py py-meth docutils literal notranslate"><span class="pre">calc_H()</span></code></a> if <cite>calc_all</cite> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, i.e. this is the
-you-get-it-all method and the only one you sould really use.</p>
+you-get-it-all method and the only one you should really use.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ret</strong> (<em>dict</em><em>, </em><em>optional</em>) – Result from calc_F(). If None then calc_F() is called here. Can be
 used to add additional contributions to F, such as electronic
 entropy.</p></li>
-<li><p><strong>calc_all</strong> (<em>bool</em>) – Calcluate thermal properties from G(ax0,ax1,ax2,T,P): Cp,
+<li><p><strong>calc_all</strong> (<em>bool</em>) – Calculate thermal properties from G(ax0,ax1,ax2,T,P): Cp,
 alpha_x, B. If False, then calculate and store only G.</p></li>
 </ul>
 </dd>

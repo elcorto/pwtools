@@ -126,7 +126,7 @@
 <span class="sd">        eps : float, optional</span>
 <span class="sd">            Threshold for `skipfreq`. Default is ~1.5*2.2e-16 .</span>
 <span class="sd">        fixnan : bool, optional</span>
-<span class="sd">            Use if YKWYAD, test before using! Currently, set all NaNs occuring</span>
+<span class="sd">            Use if YKWYAD, test before using! Currently, set all NaNs occurring</span>
 <span class="sd">            during integration to `nanfill`. This is a HACK b/c we must assume</span>
 <span class="sd">            that these numbers should be `nanfill`.</span>
 <span class="sd">        nanfill : float, optional</span>
@@ -138,19 +138,19 @@
 <span class="sd">            Function which integrates x-y data. Called as ``integrator(y,x)``,</span>
 <span class="sd">            like ``scipy.integrate.{trapz,simps}``. Usually, `trapz` is</span>
 <span class="sd">            numerically more stable for weird DOS data and accurate enough if</span>
-<span class="sd">            the freqeuency axis resolution is good.</span>
+<span class="sd">            the frequency axis resolution is good.</span>
 <span class="sd">        verbose : bool, optional</span>
 <span class="sd">            Print warnings. Recommended for testing.</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
-<span class="sd">        `skipfreq` and `fixnan`: Sometimes, a few frequencies (ususally the 1st</span>
+<span class="sd">        `skipfreq` and `fixnan`: Sometimes, a few frequencies (usually the 1st</span>
 <span class="sd">        few values only) are close to zero and negative, and the DOS is very</span>
 <span class="sd">        small there. `skipfreq` can be used to ignore this region. The default</span>
 <span class="sd">        is False b/c it may hide large negative frequencies (i.e. unstable</span>
 <span class="sd">        structure), which is a perfectly valid result (but you shouldn&#39;t do</span>
 <span class="sd">        thermodynamics with that :) Even if there are no negative frequencies,</span>
-<span class="sd">        you can have frequencies (usually the first) beeing exactly zero or</span>
+<span class="sd">        you can have frequencies (usually the first) being exactly zero or</span>
 <span class="sd">        close to that (order 1e-17). That can cause numerical problems (NaNs)</span>
 <span class="sd">        in some calculations so we may skip them and their DOS values, which</span>
 <span class="sd">        must be assumed to be small. If you still encounter NaNs during</span>
@@ -343,19 +343,24 @@
 <span class="sd">    approximation, given some variation grid of unit cell axes (`axes_flat`) and</span>
 <span class="sd">    corresponding phonon DOS data for each grid point.</span>
 
+<span class="sd">    The `axes_flat` approach allows us to easily calculate per-axis thermal</span>
+<span class="sd">    expansion rates.</span>
+
 <span class="sd">    We have 3 cases for how unit cell axis can be be varied.</span>
 
 <span class="sd">    ==== ===============  ========================  ==============   ============</span>
 <span class="sd">    case axes_flat.shape  cell parameter grid       fitfunc          bulk modulus</span>
 <span class="sd">    ==== ===============  ========================  ==============   ============</span>
 <span class="sd">    1d   (N,) or (N,1)    ax0 = a (-&gt; V)            G(V), thus any   V*d^2G/dV^2</span>
-<span class="sd">                          (cubic)                   EOS will do</span>
+<span class="sd">                          (e.g. cubic or            EOS will do</span>
+<span class="sd">                          rhombohedral)</span>
 
 <span class="sd">    2d   (N,2)            (ax0,ax1) = (a,b), (a,c)  G(ax0, ax1)      not</span>
-<span class="sd">                          or (b,c)                                   implemented</span>
-<span class="sd">                          (e.g. hexaonal: (a,c))</span>
+<span class="sd">                          or (b,c)                                   defined</span>
+<span class="sd">                          (e.g. hexagonal: (a,c))</span>
 
-<span class="sd">    3d   not implemented</span>
+<span class="sd">    3d   (N,3)            (ax0,ax1,ax2)             no default       not</span>
+<span class="sd">                          (e.g. triclinic)                           defined</span>
 <span class="sd">    ==== ===============  ========================  ==============   ============</span>
 
 <span class="sd">    Internally, we only deal with `ax0` (1d), `ax0` + `ax1` (2d) and</span>
@@ -379,21 +384,23 @@
 
 <span class="sd">    Here is a list of all valid `fitfunc` keys and what they do:</span>
 
-<span class="sd">    ========  ==========================================================</span>
+<span class="sd">    ========  ==============================================================</span>
 <span class="sd">    key       value</span>
-<span class="sd">    ========  ==========================================================</span>
+<span class="sd">    ========  ==============================================================</span>
 <span class="sd">    &#39;1d-G&#39;    fit G(V), ``__call__(V,der=2)`` for B(V) =</span>
 <span class="sd">              V*d^2G/dV^2</span>
 <span class="sd">    &#39;2d-G&#39;    fit G(ax0,ax1)</span>
+<span class="sd">    &#39;3d-G&#39;    fit G(ax0,ax1,ax2), no default, define and test youself,</span>
+<span class="sd">              please</span>
 <span class="sd">    &#39;1d-ax&#39;   fit V(ax0)</span>
 <span class="sd">    &#39;alpha&#39;   fit x_opt(T), x=ax0,ax1,ax2,V,</span>
 <span class="sd">              ``__call__(T,der=1)`` for alpha_x = 1/x * dx/dT</span>
 <span class="sd">    &#39;C&#39;       fit G_opt(T), ``__call__(T,der=2)`` for</span>
 <span class="sd">              Cp = -T * d^G_opt(T,P)/dT^2</span>
-<span class="sd">    ========  ==========================================================</span>
+<span class="sd">    ========  ==============================================================</span>
 
 <span class="sd">    Hints for which fitfuncs to choose: The defaults are pretty good, but</span>
-<span class="sd">    nevertheless tessting is mandatory! Good choices are</span>
+<span class="sd">    nevertheless testing is mandatory! Good choices are</span>
 <span class="sd">    :class:`~pwtools.num.PolyFit` / :class:`~pwtools.num.PolyFit1D` for all</span>
 <span class="sd">    axes-related grids (1d-G, 2d-G, 1d-ax) since you won&#39;t have too many</span>
 <span class="sd">    points here. Then a fit is better than a :class:`~pwtools.num.Spline`.</span>
@@ -404,7 +411,7 @@
 <span class="sd">    C(T).</span>
 
 <span class="sd">    The methods :meth:`calc_F`, :meth:`calc_H` and :meth:`calc_G` return dicts</span>
-<span class="sd">    with nd-arrays holding calculated thermodynamic properites. Naming</span>
+<span class="sd">    with nd-arrays holding calculated thermodynamic properties. Naming</span>
 <span class="sd">    convention for dict keys returned by methods: The keys (strings) mimic HDF5</span>
 <span class="sd">    path names, e.g. ``/group0/group1/array``, thus the last name in the path</span>
 <span class="sd">    is the name of the array (`z` in the examples below). All previous names</span>
@@ -425,7 +432,7 @@
 <span class="sd">    `axes_flat` : Usually, flat grids like &quot;ax0-ax1&quot; or &quot;ax0-ax1-ax2&quot; are</span>
 <span class="sd">    created by nested loops ``[(ax0_i,ax1_i) for ax0_i in ax0 for ax1_i in</span>
 <span class="sd">    ax1]`` and therefore have shape (nax0*nax1,2) or (nax0*nax1*nax2,3) . But</span>
-<span class="sd">    that is not required. They can be completely unctructured (e.g. if points</span>
+<span class="sd">    that is not required. They can be completely unstructured (e.g. if points</span>
 <span class="sd">    have been added later to the grid manually) -- only `fitfunc` must be able</span>
 <span class="sd">    to handle that.</span>
 
@@ -443,11 +450,11 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 
-<span class="sd">    See also ``test/test_gibbs.py`` for worked examples using fake data.</span>
+<span class="sd">    See ``test/test_gibbs.py`` for worked examples using fake data.</span>
 <span class="sd">    Really, go there and have a look. Now!</span>
 
 <span class="sd">    &gt;&gt;&gt; from pwtools import mpl, crys, eos</span>
-<span class="sd">    &gt;&gt;&gt; # isotropic cell</span>
+<span class="sd">    &gt;&gt;&gt; # cubic cell, 1d case</span>
 <span class="sd">    &gt;&gt;&gt; volfunc_ax = lambda x: crys.volume_cc(np.array([[x[0]]*3 + [90]*3]))</span>
 <span class="sd">    &gt;&gt;&gt; gibbs=Gibbs(axes_flat=..., etot=..., phdos=...,</span>
 <span class="sd">    ...             T=linspace(5,2500,100), P=linspace(0,20,5),</span>
@@ -509,6 +516,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="n">axes_flat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">phdos</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;axes_flat and phdos &quot;</span>
             <span class="s2">&quot;not equally long&quot;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">axes_flat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">etot</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;axes_flat and etot &quot;</span>
+            <span class="s2">&quot;not equally long&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kwds</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fixnan</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">skipfreq</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                          <span class="n">dosarea</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kwds</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwds</span><span class="p">)</span>
@@ -536,8 +545,12 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">case</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">case</span> <span class="o">=</span> <span class="s1">&#39;2d&#39;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">axes_prefix</span> <span class="o">=</span> <span class="s1">&#39;/ax0-ax1&#39;</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">nax</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">case</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">case</span> <span class="o">=</span> <span class="s1">&#39;3d&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">axes_prefix</span> <span class="o">=</span> <span class="s1">&#39;/ax0-ax1-ax2&#39;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;case 3d not implemented&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axes_flat</span><span class="o">.</span><span class="n">shape</span><span class="si">=}</span><span class="s2"> not supported&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ret</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ret</span><span class="p">[</span><span class="s1">&#39;/T/T&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ret</span><span class="p">[</span><span class="s1">&#39;/P/P&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span>
@@ -547,13 +560,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">fitfunc</span> <span class="o">=</span> <span class="p">{</span>\
             <span class="s1">&#39;1d-G&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_fit_1d_G</span><span class="p">,</span>
             <span class="s1">&#39;2d-G&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_fit_2d_G</span><span class="p">,</span>
+            <span class="s1">&#39;3d-G&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_fit_3d_G</span><span class="p">,</span>
             <span class="s1">&#39;1d-ax&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_fit_1d_ax</span><span class="p">,</span>
             <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_fit_alpha</span><span class="p">,</span>
             <span class="s1">&#39;C&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_fit_C</span><span class="p">,</span>
             <span class="p">}</span></div>
 
 <div class="viewcode-block" id="Gibbs.set_fitfunc"><a class="viewcode-back" href="../../generated/api/pwtools.thermo.Gibbs.set_fitfunc.html#pwtools.thermo.Gibbs.set_fitfunc">[docs]</a>    <span class="k">def</span> <span class="nf">set_fitfunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">what</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update dict with fitting fucntions: ``self.fitfunc[what] = func``.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update dict with fitting functions: ``self.fitfunc[what] = func``.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -573,6 +587,16 @@
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_default_fit_2d_G</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">PolyFit</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">deg</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_default_fit_3d_G</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="c1">##return num.PolyFit(points, values, deg=5, scale=True)</span>
+        <span class="c1"># PolyFit probably works, but force user to specify own 3d fit method.</span>
+        <span class="c1"># Probably sklearn.gaussian_process.GaussianProcessRegressor or smth is</span>
+        <span class="c1"># even better.</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;Please set a 3d fit method using Gibbs.set_fitfunc()&quot;</span>
+            <span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_default_fit_1d_ax</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
@@ -615,6 +639,9 @@
                 <span class="n">ret</span><span class="p">[</span><span class="s1">&#39;/#opt</span><span class="si">%s</span><span class="s1">/ax</span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">prfx</span><span class="p">,</span><span class="n">iax</span><span class="p">)][</span><span class="n">tpsl</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitax</span><span class="p">[</span><span class="n">iax</span><span class="p">](</span><span class="n">vopt</span><span class="p">)</span>
             <span class="n">ret</span><span class="p">[</span><span class="s1">&#39;/#opt</span><span class="si">%s</span><span class="s1">/B&#39;</span> <span class="o">%</span><span class="n">prfx</span><span class="p">][</span><span class="n">tpsl</span><span class="p">]</span> <span class="o">=</span> <span class="n">vopt</span> <span class="o">*</span> <span class="n">fit</span><span class="p">(</span><span class="n">vopt</span><span class="p">,</span> <span class="n">der</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">eV_by_Ang3_to_GPa</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">case</span> <span class="o">==</span> <span class="s1">&#39;2d&#39;</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes_flat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">axes_flat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">=}</span><span class="s2"> makes no sense for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">case</span><span class="si">=}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
             <span class="c1"># XXX The fit function alone should take care of scaling, see</span>
             <span class="c1"># num.PolyFit(..., scale=True). Doing this here is OK but redundant.</span>
             <span class="c1"># Maybe also introduces additional numerical noise?</span>
@@ -628,12 +655,22 @@
             <span class="n">ret</span><span class="p">[</span><span class="s1">&#39;/#opt</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">prfx</span><span class="p">,</span> <span class="n">ghsym</span><span class="p">)][</span><span class="n">tpsl</span><span class="p">]</span> <span class="o">=</span> <span class="n">fit</span><span class="p">(</span><span class="n">xopt</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">ggmax</span> <span class="o">-</span> <span class="n">ggmin</span><span class="p">)</span> <span class="o">+</span> <span class="n">ggmin</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">volfunc_ax</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">ret</span><span class="p">[</span><span class="s1">&#39;/#opt</span><span class="si">%s</span><span class="s1">/V&#39;</span> <span class="o">%</span><span class="n">prfx</span><span class="p">][</span><span class="n">tpsl</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">volfunc_ax</span><span class="p">(</span><span class="n">xopt</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">case</span> <span class="o">==</span> <span class="s1">&#39;3d&#39;</span><span class="p">:</span>
+            <span class="c1">##assert self.axes_flat.shape[1] == 3, (</span>
+            <span class="c1">##    f&quot;{self.axes_flat.shape[1]=} makes no sense for {self.case=}&quot;</span>
+            <span class="c1">##)</span>
+            <span class="c1"># We have _default_fit_3d_G (raises NotImplementedError ATM), but</span>
+            <span class="c1"># need to test a modification of the fitting business of case=2d</span>
+            <span class="c1"># with a real-world use case before implementing this feature</span>
+            <span class="c1"># publicly.</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Fits for 3d-G not yet supported, only fake-1d where &quot;</span>
+                             <span class="s2">&quot;case=&#39;1d&#39; but axes_flat.shape[1] &gt; 1.&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;unknown case: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">case</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown </span><span class="si">{</span><span class="n">case</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_set_not_calc_none</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ret</span><span class="p">,</span> <span class="n">prfx</span><span class="o">=</span><span class="s1">&#39;/T/P&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;We know that the stuff below was not calculated, so set them to</span>
-<span class="sd">        None. Needs to be done since all arrays are inited to be np.empty().</span>
+<span class="sd">        None. Needs to be done since all arrays are initialized to be np.empty().</span>
 <span class="sd">        Little hackish, but OK For Me (tm).&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">volfunc_ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">ret</span><span class="p">[</span><span class="s1">&#39;/#opt</span><span class="si">%s</span><span class="s1">/V&#39;</span> <span class="o">%</span><span class="n">prfx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
@@ -744,7 +781,7 @@
 
 <span class="sd">        Needs :meth:`calc_F` results. Called here if not provided.</span>
 <span class="sd">        Also calls :meth:`calc_H` if `calc_all` is ``True``, i.e. this is the</span>
-<span class="sd">        you-get-it-all method and the only one you sould really use.</span>
+<span class="sd">        you-get-it-all method and the only one you should really use.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -753,7 +790,7 @@
 <span class="sd">            used to add additional contributions to F, such as electronic</span>
 <span class="sd">            entropy.</span>
 <span class="sd">        calc_all : bool</span>
-<span class="sd">            Calcluate thermal properties from G(ax0,ax1,ax2,T,P): Cp,</span>
+<span class="sd">            Calculate thermal properties from G(ax0,ax1,ax2,T,P): Cp,</span>
 <span class="sd">            alpha_x, B. If False, then calculate and store only G.</span>
 
 <span class="sd">        Returns</span>

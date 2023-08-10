@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Quasi-harmonic approximation &#8212; pwtools  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=9121de03" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">pwtools</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=elcorto&repo=pwtools&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../generated/api/index.html">API Reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="background/index.html">Background, details, special topics</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="quasi-harmonic-approximation">
+<span id="qha"></span><h1>Quasi-harmonic approximation<a class="headerlink" href="#quasi-harmonic-approximation" title="Permalink to this heading">¶</a></h1>
+<p>See <a class="reference internal" href="../generated/api/pwtools.thermo.HarmonicThermo.html#pwtools.thermo.HarmonicThermo" title="pwtools.thermo.HarmonicThermo"><code class="xref py py-class docutils literal notranslate"><span class="pre">HarmonicThermo</span></code></a> +
+<code class="docutils literal notranslate"><span class="pre">test/test_qha.py</span></code>, <a class="reference internal" href="../generated/api/pwtools.thermo.Gibbs.html#pwtools.thermo.Gibbs" title="pwtools.thermo.Gibbs"><code class="xref py py-class docutils literal notranslate"><span class="pre">Gibbs</span></code></a> + <code class="docutils literal notranslate"><span class="pre">tesst/test_gibbs.py</span></code>.</p>
+<p>The distinctive feature of the pwtools implementation is that in
+<a class="reference internal" href="../generated/api/pwtools.thermo.Gibbs.html#pwtools.thermo.Gibbs" title="pwtools.thermo.Gibbs"><code class="xref py py-class docutils literal notranslate"><span class="pre">Gibbs</span></code></a>, we treat unit cell axes instead of just the
+volume, allowing to calculate per-axis thermal expansion rates. See for
+instance <a class="reference external" href="https://journals.aps.org/prb/abstract/10.1103/PhysRevB.89.064109" title="Schmerler and Kortus, Phys. Rev. B 89, 064109">Schmerler and Kortus, Phys. Rev. B 89, 064109</a>.</p>
+<p>When only one unit cell parameter is scaled (e.g. <code class="docutils literal notranslate"><span class="pre">a</span></code> in case of cubic cells),
+we call this the “1d” case. If two unit cell axes are scaled independently on a
+2d grid (say <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">c</span></code> in a hexagonal setting), this is called “2d” case.
+Varying <code class="docutils literal notranslate"><span class="pre">a</span></code>, <code class="docutils literal notranslate"><span class="pre">b</span></code> and <code class="docutils literal notranslate"><span class="pre">c</span></code> on a 3d grid, called “3d” case, is partially supported
+but has not been used in practice.</p>
+<p>The case where you only have a series of volumes (say from variable cell
+relaxations at different pressures) is called “fake 1d” case. See below for
+more.</p>
+<section id="d">
+<h2>1d<a class="headerlink" href="#d" title="Permalink to this heading">¶</a></h2>
+<p>See <code class="docutils literal notranslate"><span class="pre">test_gibbs.py::test_gibbs_1d</span></code> (using generated data).</p>
+<p>Example results from <code class="docutils literal notranslate"><span class="pre">Gibbs</span></code> for rocksalt AlN from <a class="reference external" href="https://journals.aps.org/prb/abstract/10.1103/PhysRevB.89.064109" title="Schmerler and Kortus, Phys. Rev. B 89, 064109">the paper above</a>
+(vary cell parameter <code class="docutils literal notranslate"><span class="pre">a</span></code> = <code class="docutils literal notranslate"><span class="pre">ax0</span></code> of the primitive cell, so 1d case). <code class="docutils literal notranslate"><span class="pre">Gibbs</span></code>
+returns a dictionary with keys named as below (such as <code class="docutils literal notranslate"><span class="pre">/#opt/P/ax0</span></code>). The
+naming scheme is explained in <a class="reference internal" href="../generated/api/pwtools.thermo.Gibbs.html#pwtools.thermo.Gibbs" title="pwtools.thermo.Gibbs"><code class="xref py py-class docutils literal notranslate"><span class="pre">Gibbs</span></code></a>. Below is the
+result of inspecting an HDF5 file written by</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="c1"># See /path/to/pwtools/src/pwtools/test/utils/gibbs_test_data.py</span>
+<span class="n">gibbs</span> <span class="o">=</span> <span class="n">Gibbs</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gibbs</span><span class="o">.</span><span class="n">calc_G</span><span class="p">(</span><span class="n">calc_all</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">pwtools</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">write_h5</span><span class="p">(</span><span class="s2">&quot;thermo.h5&quot;</span><span class="p">,</span> <span class="n">g</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>which we can query for array shapes like so:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ h5ls -rl thermo.h5 | grep Dataset
+/#opt/P/B                Dataset {21}
+/#opt/P/H                Dataset {21}
+/#opt/P/V                Dataset {21}
+/#opt/P/ax0              Dataset {21}
+/#opt/T/P/B              Dataset {200, 21}
+/#opt/T/P/Cp             Dataset {200, 21}
+/#opt/T/P/G              Dataset {200, 21}
+/#opt/T/P/V              Dataset {200, 21}
+/#opt/T/P/alpha_V        Dataset {200, 21}
+/#opt/T/P/alpha_ax0      Dataset {200, 21}
+/#opt/T/P/ax0            Dataset {200, 21}
+/P/P                     Dataset {21}
+/P/ax0/H                 Dataset {21, 51}
+/T/P/ax0/G               Dataset {200, 21, 51}
+/T/T                     Dataset {200}
+/ax0/Etot                Dataset {51}
+/ax0/T/Cv                Dataset {51, 200}
+/ax0/T/Evib              Dataset {51, 200}
+/ax0/T/F                 Dataset {51, 200}
+/ax0/T/Fvib              Dataset {51, 200}
+/ax0/T/Svib              Dataset {51, 200}
+/ax0/V                   Dataset {51}
+/ax0/ax0                 Dataset {51, 1}
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>The (T,P) grid <code class="docutils literal notranslate"><span class="pre">/T/P</span></code> is of size (200,21)</p>
+<ul>
+<li><p>200 T points <code class="docutils literal notranslate"><span class="pre">/T/T</span></code></p></li>
+<li><p>21 pressure values <code class="docutils literal notranslate"><span class="pre">/P/P</span></code></p></li>
+</ul>
+</li>
+</ul>
+<p>This is the grid you define manually via <code class="docutils literal notranslate"><span class="pre">Gibbs(T=...,</span> <span class="pre">P=...)</span></code>.</p>
+<ul class="simple">
+<li><p>51 cell parameter points <code class="docutils literal notranslate"><span class="pre">/ax0/ax0</span></code> and thus 51 volumes (<code class="docutils literal notranslate"><span class="pre">/ax0/V</span></code>,
+<code class="docutils literal notranslate"><span class="pre">V=volfunc_ax([ax0]</span></code>)</p></li>
+</ul>
+<p>Further, we have</p>
+<ul class="simple">
+<li><p>51 <span class="math notranslate nohighlight">\(C_V\)</span> curves (<code class="docutils literal notranslate"><span class="pre">/ax0/T/Cv</span></code>), one per volume, 200 T grid points each</p></li>
+<li><p>same for F, Fvib, etc</p></li>
+<li><p>Gibbs energy <span class="math notranslate nohighlight">\(\mathcal G(V,T,P)\)</span> = <span class="math notranslate nohighlight">\(\mathcal G(\texttt{ax0}, T, P)\)</span>: <code class="docutils literal notranslate"><span class="pre">/T/P/ax0/G</span></code></p></li>
+<li><p>minimized Gibbs energy <span class="math notranslate nohighlight">\(\min_V \mathcal G(V,T,P) = G(T,P)\)</span>: <code class="docutils literal notranslate"><span class="pre">/#opt/T/P/G</span></code> on T,P grid
+(200x21)</p></li>
+<li><p>21 <span class="math notranslate nohighlight">\(C_P(T)\)</span> curves (200 T points): <code class="docutils literal notranslate"><span class="pre">/#opt/T/P/Cp</span></code>, where for each P,
+<span class="math notranslate nohighlight">\(C_P(T) = -T (∂^2 G(T,P) / ∂T^2)_P\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">/#opt/P/{B,H,V}</span></code>: results from <span class="math notranslate nohighlight">\(\min_V H = \min_V(E+PV)\)</span> without phonon
+contributions, at <span class="math notranslate nohighlight">\(T=0\)</span></p></li>
+</ul>
+</section>
+<section id="id1">
+<h2>2d<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
+<p>See <code class="docutils literal notranslate"><span class="pre">test_gibbs.py::test_gibbs_2d</span></code> (using generated data).</p>
+<p>2d case (hexagonal wurtzite AlN from <a class="reference external" href="https://journals.aps.org/prb/abstract/10.1103/PhysRevB.89.064109" title="Schmerler and Kortus, Phys. Rev. B 89, 064109">the paper above</a>, vary cell axis
+<code class="docutils literal notranslate"><span class="pre">a</span></code> = <code class="docutils literal notranslate"><span class="pre">ax0</span></code> and <code class="docutils literal notranslate"><span class="pre">c</span></code> = <code class="docutils literal notranslate"><span class="pre">ax1</span></code>):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ h5ls -rl thermo.h5 | grep Dataset
+/#opt/P/H                Dataset {21}
+/#opt/P/V                Dataset {21}
+/#opt/P/ax0              Dataset {21}
+/#opt/P/ax1              Dataset {21}
+/#opt/T/P/Cp             Dataset {200, 21}
+/#opt/T/P/G              Dataset {200, 21}
+/#opt/T/P/V              Dataset {200, 21}
+/#opt/T/P/alpha_V        Dataset {200, 21}
+/#opt/T/P/alpha_ax0      Dataset {200, 21}
+/#opt/T/P/alpha_ax1      Dataset {200, 21}
+/#opt/T/P/ax0            Dataset {200, 21}
+/#opt/T/P/ax1            Dataset {200, 21}
+/P/P                     Dataset {21}
+/P/ax0-ax1/H             Dataset {21, 263}
+/T/P/ax0-ax1/G           Dataset {200, 21, 263}
+/T/T                     Dataset {200}
+/ax0-ax1/Etot            Dataset {263}
+/ax0-ax1/T/Cv            Dataset {263, 200}
+/ax0-ax1/T/Evib          Dataset {263, 200}
+/ax0-ax1/T/F             Dataset {263, 200}
+/ax0-ax1/T/Fvib          Dataset {263, 200}
+/ax0-ax1/T/Svib          Dataset {263, 200}
+/ax0-ax1/V               Dataset {263}
+/ax0-ax1/ax0-ax1         Dataset {263, 2}
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>The (T,P) grid <code class="docutils literal notranslate"><span class="pre">/T/P</span></code> is of size (200,21)</p>
+<ul>
+<li><p>200 T points <code class="docutils literal notranslate"><span class="pre">/T/T</span></code></p></li>
+<li><p>21 pressure values <code class="docutils literal notranslate"><span class="pre">/P/P</span></code></p></li>
+</ul>
+</li>
+<li><p>The 2d (a,c) grid <code class="docutils literal notranslate"><span class="pre">/ax0-ax1/ax0-ax1</span></code> has 263 points (of successful Phonon
+calculations), represented as an array of shape (263,2).</p></li>
+<li><p>At each (T,P) point, the Gibbs energy will be fitted by <code class="docutils literal notranslate"><span class="pre">fitfunc[&quot;2d-G&quot;]</span></code> as
+<code class="docutils literal notranslate"><span class="pre">G(a,c)</span></code>, producing <code class="docutils literal notranslate"><span class="pre">/#opt/T/P/G</span></code> of shape (200,21) .. same shape as the
+<code class="docutils literal notranslate"><span class="pre">/T/P</span></code> grid.</p></li>
+</ul>
+<p>Here we see the individual axis expansion rates <span class="math notranslate nohighlight">\(\alpha_a\)</span> =
+<code class="docutils literal notranslate"><span class="pre">/#opt/T/P/alpha_ax0</span></code> and <span class="math notranslate nohighlight">\(\alpha_c\)</span> = <code class="docutils literal notranslate"><span class="pre">/#opt/T/P/alpha_ax1</span></code> in addition to
+<span class="math notranslate nohighlight">\(\alpha_V\)</span> = <code class="docutils literal notranslate"><span class="pre">/#opt/T/P/alpha_V</span></code>.</p>
+</section>
+<section id="fake-1d-a-k-a-usual-qha-with-varying-volume">
+<h2>“Fake” 1d a.k.a. usual QHA with varying volume<a class="headerlink" href="#fake-1d-a-k-a-usual-qha-with-varying-volume" title="Permalink to this heading">¶</a></h2>
+<p>See <code class="docutils literal notranslate"><span class="pre">test_gibbs.py::test_gibbs_3d_fake_1d</span></code> (using generated data). The HDF5
+data below is from that test.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ h5ls -rl thermo.h5 | grep Dataset
+/#opt/P/B                Dataset {2}
+/#opt/P/H                Dataset {2}
+/#opt/P/V                Dataset {2}
+/#opt/P/ax0              Dataset {2}
+/#opt/P/ax1              Dataset {2}
+/#opt/P/ax2              Dataset {2}
+/#opt/T/P/B              Dataset {50, 2}
+/#opt/T/P/Cp             Dataset {50, 2}
+/#opt/T/P/G              Dataset {50, 2}
+/#opt/T/P/V              Dataset {50, 2}
+/#opt/T/P/alpha_V        Dataset {50, 2}
+/#opt/T/P/alpha_ax0      Dataset {50, 2}
+/#opt/T/P/alpha_ax1      Dataset {50, 2}
+/#opt/T/P/alpha_ax2      Dataset {50, 2}
+/#opt/T/P/ax0            Dataset {50, 2}
+/#opt/T/P/ax1            Dataset {50, 2}
+/#opt/T/P/ax2            Dataset {50, 2}
+/P/P                     Dataset {2}
+/P/ax0-ax1-ax2/H         Dataset {2, 6}
+/T/P/ax0-ax1-ax2/G       Dataset {50, 2, 6}
+/T/T                     Dataset {50}
+/ax0-ax1-ax2/Etot        Dataset {6}
+/ax0-ax1-ax2/T/Cv        Dataset {6, 50}
+/ax0-ax1-ax2/T/Evib      Dataset {6, 50}
+/ax0-ax1-ax2/T/F         Dataset {6, 50}
+/ax0-ax1-ax2/T/Fvib      Dataset {6, 50}
+/ax0-ax1-ax2/T/Svib      Dataset {6, 50}
+/ax0-ax1-ax2/V           Dataset {6}
+/ax0-ax1-ax2/ax0-ax1-ax2 Dataset {6, 3}
+</pre></div>
+</div>
+<p>Here we have only 2 pressure values (<code class="docutils literal notranslate"><span class="pre">/P/P</span></code>), 50 T steps <code class="docutils literal notranslate"><span class="pre">/T/T</span></code>, 6 axis points
+<code class="docutils literal notranslate"><span class="pre">/ax0-ax1-ax2/ax0-ax1-ax2</span></code> where we change all 3 axes at once in each step,
+therefore we also have 6 volumes (<code class="docutils literal notranslate"><span class="pre">/ax0-ax1-ax2/V</span></code>).</p>
+<p>How to supply simple 1d volumes:</p>
+<p>tl;dr Use a <code class="docutils literal notranslate"><span class="pre">(N,2)</span></code> or <code class="docutils literal notranslate"><span class="pre">(N,3)</span></code> shaped <code class="docutils literal notranslate"><span class="pre">axes_flat</span></code> but set
+<code class="docutils literal notranslate"><span class="pre">case=&quot;1d&quot;</span></code>.</p>
+<p>This is what most other QHA tools do by default. In the general triclinic
+case (or more symmetric such as hexagonal), you can always do a variable
+cell relaxation (QE: “vc-relax”) for several target pressures and generate
+structures that way. Then provide <code class="docutils literal notranslate"><span class="pre">axes_flat</span></code> as shape <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">2)</span></code> or <code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">3)</span></code> data (the latter is the most generic and always works, independently
+of the actual symmetry). For instance use <a class="reference internal" href="../generated/api/pwtools.io.read_pw_scf.html#pwtools.io.read_pw_scf" title="pwtools.io.read_pw_scf"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_pw_scf()</span></code></a>,
+<a class="reference internal" href="../generated/api/pwtools.io.read_cif.html#pwtools.io.read_cif" title="pwtools.io.read_cif"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_cif()</span></code></a> or <a class="reference internal" href="../generated/api/pwtools.io.read_pickle.html#pwtools.io.read_pickle" title="pwtools.io.read_pickle"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_pickle()</span></code></a> to access
+cell parameters. Calculate the volume with <a class="reference internal" href="../generated/api/pwtools.crys.volume_cc.html#pwtools.crys.volume_cc" title="pwtools.crys.volume_cc"><code class="xref py py-func docutils literal notranslate"><span class="pre">volume_cc()</span></code></a>.</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">volfunc_ax</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;General triclinic case.</span>
+
+<span class="sd">        axes_flat.shape = (N,3)</span>
+<span class="sd">        x = axes_flat[i,...]</span>
+<span class="sd">        x.shape = (3,)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span>
+    <span class="k">return</span> <span class="n">pwtools</span><span class="o">.</span><span class="n">crys</span><span class="o">.</span><span class="n">volume_cc</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">gamma</span><span class="p">])</span>
+
+<span class="n">axes_flat</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_volumes</span><span class="p">):</span>
+    <span class="c1"># written by pwtools.crys.Structure.dump()</span>
+    <span class="n">st</span> <span class="o">=</span> <span class="n">pwtools</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read_pickle</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/path/to/calc/</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">/struct.pk&quot;</span><span class="p">)</span>
+    <span class="n">axes_flat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">cryst_const</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+<span class="n">axes_flat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">axes_flat</span><span class="p">)</span>
+
+<span class="n">gibbs</span> <span class="o">=</span> <span class="n">Gibbs</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">case</span><span class="o">=</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">gibbs</span><span class="o">.</span><span class="n">calc_G</span><span class="p">(</span><span class="n">calc_all</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Cp(T) for all P</span>
+<span class="n">plot</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s2">&quot;/T/T&quot;</span><span class="p">],</span> <span class="n">g</span><span class="p">[</span><span class="s2">&quot;/#opt/T/P/Cp&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Set <code class="docutils literal notranslate"><span class="pre">Gibbs(...,</span> <span class="pre">case=&quot;1d&quot;)</span></code>. This will calculate <code class="docutils literal notranslate"><span class="pre">V[i]</span> <span class="pre">=</span> <span class="pre">volfunc_ax[axes_flat[i,...]]</span></code> and do a 1D fit <code class="docutils literal notranslate"><span class="pre">G(V)</span></code>. You still need to
+supply <code class="docutils literal notranslate"><span class="pre">volfunc_ax</span></code>, but this is straight forward as shown above for the
+most general triclinic case. You have to know the cell angles and that’s it
+(we always assume that all cell angles are constant during compression and
+expansion).</p>
+<p>Other ways to access cell parameters:</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="c1"># Written by pwtools.io.write_cif()</span>
+<span class="n">st</span> <span class="o">=</span> <span class="n">pwtools</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read_cif</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/path/to/calc/</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">/struct.cif&quot;</span><span class="p">)</span>
+
+<span class="c1"># Lattice params in pw.out files are not very accurate, better</span>
+<span class="c1"># store generated structures in another file format and read from</span>
+<span class="c1"># there. But anyway this is handy to access total energy, stress tensor and</span>
+<span class="c1"># other DFT results.</span>
+<span class="n">st</span> <span class="o">=</span> <span class="n">pwtools</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read_pw_scf</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/path/to/calc/</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">/pw.out&quot;</span><span class="p">)</span>
+
+<span class="c1"># Anything that ASE can read. See https://wiki.fysik.dtu.dk/ase/ase/io/io.html</span>
+<span class="n">st</span> <span class="o">=</span> <span class="n">pwtools</span><span class="o">.</span><span class="n">crys</span><span class="o">.</span><span class="n">atoms2struct</span><span class="p">(</span><span class="n">ase</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="o">...</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>For generating structures and post-processing calculations beyond simple loops,
+see <a class="reference internal" href="background/param_study.html#param-study"><span class="std std-ref">Parameter studies</span></a> with <a class="reference internal" href="../generated/api/__sphinx_autodoc_module__pwtools.batch.html#module-pwtools.batch" title="pwtools.batch"><code class="xref py py-mod docutils literal notranslate"><span class="pre">batch</span></code></a> or a more modern version of
+that in <a class="reference external" href="https://github.com/elcorto/psweep">psweep</a>.</p>
+</section>
+<section id="other-tools">
+<h2>Other tools<a class="headerlink" href="#other-tools" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://phonopy.github.io/phonopy/">https://phonopy.github.io/phonopy/</a></p>
+<ul>
+<li><p>1d only (vary volume)</p></li>
+<li><p><a class="reference external" href="https://phonopy.github.io/phonopy/qha.html">https://phonopy.github.io/phonopy/qha.html</a></p></li>
+<li><p>also calculates phonons using supercell method (finite diffs), uses VASP by
+default, can also use QE</p></li>
+</ul>
+</li>
+<li><p><a class="reference external" href="https://wiki.fysik.dtu.dk/ase/ase/thermochemistry/thermochemistry.html#crystals">https://wiki.fysik.dtu.dk/ase/ase/thermochemistry/thermochemistry.html#crystals</a></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">ase.thermochemistry.CrystalThermo</span></code> is like
+<a class="reference internal" href="../generated/api/pwtools.thermo.HarmonicThermo.html#pwtools.thermo.HarmonicThermo" title="pwtools.thermo.HarmonicThermo"><code class="xref py py-class docutils literal notranslate"><span class="pre">HarmonicThermo</span></code></a> but w/o <span class="math notranslate nohighlight">\(C_V\)</span>
+(<a class="reference internal" href="../generated/api/pwtools.thermo.HarmonicThermo.isochoric_heat_capacity.html#pwtools.thermo.HarmonicThermo.isochoric_heat_capacity" title="pwtools.thermo.HarmonicThermo.isochoric_heat_capacity"><code class="xref py py-meth docutils literal notranslate"><span class="pre">isochoric_heat_capacity()</span></code></a>)</p></li>
+</ul>
+</li>
+<li><p>several projects listed at <a class="reference external" href="https://github.com/topics/quasi-harmonic-approximation">https://github.com/topics/quasi-harmonic-approximation</a></p>
+<ul>
+<li><p>untested</p></li>
+</ul>
+</li>
+<li><p><a class="reference external" href="https://github.com/gfulian/quantas">https://github.com/gfulian/quantas</a></p>
+<ul>
+<li><p>untested</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2023, Steve Schmerler.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/written/qha.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -100,6 +100,8 @@
 <p>Calculate thermodynamic properties on a T-P grid in the quasiharmonic
 approximation, given some variation grid of unit cell axes (<cite>axes_flat</cite>) and
 corresponding phonon DOS data for each grid point.</p>
+<p>The <cite>axes_flat</cite> approach allows us to easily calculate per-axis thermal
+expansion rates.</p>
 <p>We have 3 cases for how unit cell axis can be be varied.</p>
 <table class="docutils align-default">
 <thead>
@@ -114,7 +116,8 @@ corresponding phonon DOS data for each grid point.</p>
 <tr class="row-even"><td><p>1d</p></td>
 <td><p>(N,) or (N,1)</p></td>
 <td><p>ax0 = a (-&gt; V)
-(cubic)</p></td>
+(e.g. cubic or
+rhombohedral)</p></td>
 <td><p>G(V), thus any
 EOS will do</p></td>
 <td><p>V*d^2G/dV^2</p></td>
@@ -123,16 +126,18 @@ EOS will do</p></td>
 <td><p>(N,2)</p></td>
 <td><p>(ax0,ax1) = (a,b), (a,c)
 or (b,c)
-(e.g. hexaonal: (a,c))</p></td>
+(e.g. hexagonal: (a,c))</p></td>
 <td><p>G(ax0, ax1)</p></td>
 <td><p>not
-implemented</p></td>
+defined</p></td>
 </tr>
 <tr class="row-even"><td><p>3d</p></td>
-<td><p>not implemented</p></td>
-<td></td>
-<td></td>
-<td></td>
+<td><p>(N,3)</p></td>
+<td><p>(ax0,ax1,ax2)
+(e.g. triclinic)</p></td>
+<td><p>no default</p></td>
+<td><p>not
+defined</p></td>
 </tr>
 </tbody>
 </table>
@@ -167,21 +172,25 @@ V*d^2G/dV^2</p></td>
 <tr class="row-odd"><td><p>‘2d-G’</p></td>
 <td><p>fit G(ax0,ax1)</p></td>
 </tr>
-<tr class="row-even"><td><p>‘1d-ax’</p></td>
+<tr class="row-even"><td><p>‘3d-G’</p></td>
+<td><p>fit G(ax0,ax1,ax2), no default, define and test youself,
+please</p></td>
+</tr>
+<tr class="row-odd"><td><p>‘1d-ax’</p></td>
 <td><p>fit V(ax0)</p></td>
 </tr>
-<tr class="row-odd"><td><p>‘alpha’</p></td>
+<tr class="row-even"><td><p>‘alpha’</p></td>
 <td><p>fit x_opt(T), x=ax0,ax1,ax2,V,
 <code class="docutils literal notranslate"><span class="pre">__call__(T,der=1)</span></code> for alpha_x = 1/x * dx/dT</p></td>
 </tr>
-<tr class="row-even"><td><p>‘C’</p></td>
+<tr class="row-odd"><td><p>‘C’</p></td>
 <td><p>fit G_opt(T), <code class="docutils literal notranslate"><span class="pre">__call__(T,der=2)</span></code> for
 Cp = -T * d^G_opt(T,P)/dT^2</p></td>
 </tr>
 </tbody>
 </table>
 <p>Hints for which fitfuncs to choose: The defaults are pretty good, but
-nevertheless tessting is mandatory! Good choices are
+nevertheless testing is mandatory! Good choices are
 <a class="reference internal" href="pwtools.num.PolyFit.html#pwtools.num.PolyFit" title="pwtools.num.PolyFit"><code class="xref py py-class docutils literal notranslate"><span class="pre">PolyFit</span></code></a> / <a class="reference internal" href="pwtools.num.PolyFit1D.html#pwtools.num.PolyFit1D" title="pwtools.num.PolyFit1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">PolyFit1D</span></code></a> for all
 axes-related grids (1d-G, 2d-G, 1d-ax) since you won’t have too many
 points here. Then a fit is better than a <a class="reference internal" href="pwtools.num.Spline.html#pwtools.num.Spline" title="pwtools.num.Spline"><code class="xref py py-class docutils literal notranslate"><span class="pre">Spline</span></code></a>.
@@ -191,7 +200,7 @@ fine T-axis (e.g. <code class="docutils literal notranslate"><span class="pre">T
 <a class="reference internal" href="pwtools.num.Spline.html#pwtools.num.Spline" title="pwtools.num.Spline"><code class="xref py py-class docutils literal notranslate"><span class="pre">Spline</span></code></a>. Needed to resolve details of alpha(T) and
 C(T).</p>
 <p>The methods <a class="reference internal" href="pwtools.thermo.Gibbs.calc_F.html#pwtools.thermo.Gibbs.calc_F" title="pwtools.thermo.Gibbs.calc_F"><code class="xref py py-meth docutils literal notranslate"><span class="pre">calc_F()</span></code></a>, <a class="reference internal" href="pwtools.thermo.Gibbs.calc_H.html#pwtools.thermo.Gibbs.calc_H" title="pwtools.thermo.Gibbs.calc_H"><code class="xref py py-meth docutils literal notranslate"><span class="pre">calc_H()</span></code></a> and <a class="reference internal" href="pwtools.thermo.Gibbs.calc_G.html#pwtools.thermo.Gibbs.calc_G" title="pwtools.thermo.Gibbs.calc_G"><code class="xref py py-meth docutils literal notranslate"><span class="pre">calc_G()</span></code></a> return dicts
-with nd-arrays holding calculated thermodynamic properites. Naming
+with nd-arrays holding calculated thermodynamic properties. Naming
 convention for dict keys returned by methods: The keys (strings) mimic HDF5
 path names, e.g. <code class="docutils literal notranslate"><span class="pre">/group0/group1/array</span></code>, thus the last name in the path
 is the name of the array (<cite>z</cite> in the examples below). All previous names
@@ -241,7 +250,7 @@ with “#” is just a prefix. Below, <cite>na=len(a)</cite>, etc.</p>
 <p><cite>axes_flat</cite> : Usually, flat grids like “ax0-ax1” or “ax0-ax1-ax2” are
 created by nested loops <code class="docutils literal notranslate"><span class="pre">[(ax0_i,ax1_i)</span> <span class="pre">for</span> <span class="pre">ax0_i</span> <span class="pre">in</span> <span class="pre">ax0</span> <span class="pre">for</span> <span class="pre">ax1_i</span> <span class="pre">in</span>
 <span class="pre">ax1]</span></code> and therefore have shape (nax0*nax1,2) or (nax0*nax1*nax2,3) . But
-that is not required. They can be completely unctructured (e.g. if points
+that is not required. They can be completely unstructured (e.g. if points
 have been added later to the grid manually) – only <cite>fitfunc</cite> must be able
 to handle that.</p>
 <p>Units</p>
@@ -268,10 +277,10 @@ to handle that.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<p>See also <code class="docutils literal notranslate"><span class="pre">test/test_gibbs.py</span></code> for worked examples using fake data.
+<p>See <code class="docutils literal notranslate"><span class="pre">test/test_gibbs.py</span></code> for worked examples using fake data.
 Really, go there and have a look. Now!</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pwtools</span> <span class="kn">import</span> <span class="n">mpl</span><span class="p">,</span> <span class="n">crys</span><span class="p">,</span> <span class="n">eos</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># isotropic cell</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># cubic cell, 1d case</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">volfunc_ax</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">crys</span><span class="o">.</span><span class="n">volume_cc</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">*</span><span class="mi">3</span> <span class="o">+</span> <span class="p">[</span><span class="mi">90</span><span class="p">]</span><span class="o">*</span><span class="mi">3</span><span class="p">]))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gibbs</span><span class="o">=</span><span class="n">Gibbs</span><span class="p">(</span><span class="n">axes_flat</span><span class="o">=...</span><span class="p">,</span> <span class="n">etot</span><span class="o">=...</span><span class="p">,</span> <span class="n">phdos</span><span class="o">=...</span><span class="p">,</span>
 <span class="gp">... </span>            <span class="n">T</span><span class="o">=</span><span class="n">linspace</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">2500</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">P</span><span class="o">=</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">5</span><span class="p">),</span>
@@ -356,7 +365,7 @@ case=’1d’ but let <cite>axes_flat</cite> be (N,2) or (N,3)</p></li>
 <td><p>Enthalpy H=E+P*V, B and related properties on P grid without zero-point contributions.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="pwtools.thermo.Gibbs.set_fitfunc.html#pwtools.thermo.Gibbs.set_fitfunc" title="pwtools.thermo.Gibbs.set_fitfunc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_fitfunc</span></code></a>(what, func)</p></td>
-<td><p>Update dict with fitting fucntions: <code class="docutils literal notranslate"><span class="pre">self.fitfunc[what]</span> <span class="pre">=</span> <span class="pre">func</span></code>.</p></td>
+<td><p>Update dict with fitting functions: <code class="docutils literal notranslate"><span class="pre">self.fitfunc[what]</span> <span class="pre">=</span> <span class="pre">func</span></code>.</p></td>
 </tr>
 </tbody>
 </table>

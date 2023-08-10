@@ -115,7 +115,7 @@ negative or close to zero, i.e. all DOS curve values where <cite>freq</cite> &lt
 <cite>eps</cite>. The number and rms of the skipped values is printed if
 <cite>verbose=True</cite>.</p></li>
 <li><p><strong>eps</strong> (<em>float</em><em>, </em><em>optional</em>) – Threshold for <cite>skipfreq</cite>. Default is ~1.5*2.2e-16 .</p></li>
-<li><p><strong>fixnan</strong> (<em>bool</em><em>, </em><em>optional</em>) – Use if YKWYAD, test before using! Currently, set all NaNs occuring
+<li><p><strong>fixnan</strong> (<em>bool</em><em>, </em><em>optional</em>) – Use if YKWYAD, test before using! Currently, set all NaNs occurring
 during integration to <cite>nanfill</cite>. This is a HACK b/c we must assume
 that these numbers should be <cite>nanfill</cite>.</p></li>
 <li><p><strong>nanfill</strong> (<em>float</em><em>, </em><em>optional</em>) – During integration over temperature, set NaNs to this value.</p></li>
@@ -124,19 +124,19 @@ after <cite>skipfreq</cite> was applied if used.</p></li>
 <li><p><strong>integrator</strong> (<em>callable</em>) – Function which integrates x-y data. Called as <code class="docutils literal notranslate"><span class="pre">integrator(y,x)</span></code>,
 like <code class="docutils literal notranslate"><span class="pre">scipy.integrate.{trapz,simps}</span></code>. Usually, <cite>trapz</cite> is
 numerically more stable for weird DOS data and accurate enough if
-the freqeuency axis resolution is good.</p></li>
+the frequency axis resolution is good.</p></li>
 <li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Print warnings. Recommended for testing.</p></li>
 </ul>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
-<p><cite>skipfreq</cite> and <cite>fixnan</cite>: Sometimes, a few frequencies (ususally the 1st
+<p><cite>skipfreq</cite> and <cite>fixnan</cite>: Sometimes, a few frequencies (usually the 1st
 few values only) are close to zero and negative, and the DOS is very
 small there. <cite>skipfreq</cite> can be used to ignore this region. The default
 is False b/c it may hide large negative frequencies (i.e. unstable
 structure), which is a perfectly valid result (but you shouldn’t do
 thermodynamics with that :) Even if there are no negative frequencies,
-you can have frequencies (usually the first) beeing exactly zero or
+you can have frequencies (usually the first) being exactly zero or
 close to that (order 1e-17). That can cause numerical problems (NaNs)
 in some calculations so we may skip them and their DOS values, which
 must be assumed to be small. If you still encounter NaNs during
