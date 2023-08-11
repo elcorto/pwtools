@@ -1,4 +1,5 @@
 [![image](https://zenodo.org/badge/51149109.svg)](https://zenodo.org/badge/latestdoi/51149109)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/elcorto/pwtools/ci.yml?label=tests)
 
 # About
 
