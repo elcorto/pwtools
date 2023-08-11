@@ -34,7 +34,7 @@ from setuptools.command.develop import develop
 
 
 here = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(here, "README.rst")) as fd:
+with open(os.path.join(here, "README.md")) as fd:
     long_description = fd.read()
 
 
