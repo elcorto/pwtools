@@ -31,7 +31,7 @@ See the `install docs`_.
 .. _QE: http://www.quantum-espresso.org
 .. _CPMD: http://www.cpmd.org
 .. _CP2K: http://cp2k.org
-.. _LAMMPS: http://lammps.sandia.gov
+.. _LAMMPS: http://lammps.org
 .. _ASE: https://wiki.fysik.dtu.dk/ase
 .. _numpy: http://www.numpy.org
 .. _scipy: http://www.scipy.org
@@ -42,9 +42,9 @@ See the `install docs`_.
 .. _docs_files: https://github.com/elcorto/pwtools/tree/master/doc
 .. _features: http://elcorto.github.io/pwtools/written/features.html
 .. _api: http://elcorto.github.io/pwtools/generated/api/index.html
-.. _tests: https://github.com/elcorto/pwtools/tree/master/pwtools/test
+.. _tests: https://github.com/elcorto/pwtools/tree/master/test
 .. _sphinx-autodoc: https://github.com/elcorto/sphinx-autodoc
-.. _dcd_code: https://github.com/elcorto/pwtools/blob/master/pwtools/dcd.py
+.. _dcd_code: https://github.com/elcorto/pwtools/blob/master/src/pwtools/dcd.py
 .. _dcd_ase_pr: https://gitlab.com/ase/ase/merge_requests/1109
 .. _dcd_ase_code: https://gitlab.com/ase/ase/blob/master/ase/io/cp2k.py
 
