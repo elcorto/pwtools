@@ -36,6 +36,11 @@ gfortran-omp: F2PY_OMP_F90_FLAGS=-lgomp
 gfortran-mkl: LAPACK=-L$(MKL_LIB) -lmkl_gf_lp64  -lmkl_sequential -lmkl_core -lmkl_def
 ifort-mkl: LAPACK=-L$(MKL_LIB) -lmkl_intel_lp64  -lmkl_sequential -lmkl_core -lmkl_def
 
+# We assume that the path to libopenblas.so is in e.g. LD_LIBRARY_PATH
+gfortran-openblas: LAPACK=-lopenblas
+# untested
+ifort-openblas: LAPACK=-lopenblas
+
 # user targets (e.g. make gfortran)
 gfortran: libs
 ifort: libs
@@ -43,6 +48,8 @@ gfortran-omp: gfortran
 ifort-omp: ifort
 gfortran-mkl: gfortran
 ifort-mkl: ifort
+gfortran-openblas: gfortran
+ifort-openblas: ifort
 
 help:
 	@echo "make gfortran            # gfortran, default"
