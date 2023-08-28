@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,9 +8,9 @@
     <title>pwtools.thermo.HarmonicThermo &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9121de03" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="pwtools.thermo.HarmonicThermo.cv" href="pwtools.thermo.HarmonicThermo.cv.html" />
@@ -92,17 +92,17 @@
           <div class="body" role="main">
             
   <section id="pwtools-thermo-harmonicthermo">
-<h1>pwtools.thermo.HarmonicThermo<a class="headerlink" href="#pwtools-thermo-harmonicthermo" title="Permalink to this heading">¶</a></h1>
+<h1>pwtools.thermo.HarmonicThermo<a class="headerlink" href="#pwtools-thermo-harmonicthermo" title="Link to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="pwtools.thermo.HarmonicThermo">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pwtools.thermo.</span></span><span class="sig-name descname"><span class="pre">HarmonicThermo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skipfreq=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps=3.3306690738754696e-16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixnan=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nanfill=0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dosarea=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrator=&lt;function</span> <span class="pre">trapz&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/thermo.html#HarmonicThermo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.thermo.HarmonicThermo" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pwtools.thermo.</span></span><span class="sig-name descname"><span class="pre">HarmonicThermo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skipfreq=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps=3.3306690738754696e-16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixnan=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nanfill=0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dosarea=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrator=&lt;function</span> <span class="pre">trapz&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/thermo.html#HarmonicThermo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.thermo.HarmonicThermo" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Calculate vibrational internal energy (Evib [eV]), free energy (Fvib
 [eV]), entropy (Svib [R,kb]) and isochoric heat capacity (Cv [R,kb]) in the
 harmonic approximation from a phonon density of states.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="pwtools.thermo.HarmonicThermo.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skipfreq=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps=3.3306690738754696e-16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixnan=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nanfill=0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dosarea=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrator=&lt;function</span> <span class="pre">trapz&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/thermo.html#HarmonicThermo.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.thermo.HarmonicThermo.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skipfreq=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps=3.3306690738754696e-16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixnan=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nanfill=0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dosarea=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrator=&lt;function</span> <span class="pre">trapz&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/pwtools/thermo.html#HarmonicThermo.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pwtools.thermo.HarmonicThermo.__init__" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -189,7 +189,7 @@ data is probably fishy!</p>
       &copy;2023, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |

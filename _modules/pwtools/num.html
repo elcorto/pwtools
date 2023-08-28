@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>pwtools.num &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9121de03" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -116,7 +116,9 @@
 <span class="n">EPS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">eps</span>
 
 
-<div class="viewcode-block" id="normalize"><a class="viewcode-back" href="../../generated/api/pwtools.num.normalize.html#pwtools.num.normalize">[docs]</a><span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+<div class="viewcode-block" id="normalize">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.normalize.html#pwtools.num.normalize">[docs]</a>
+<span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalize array by it&#39;s max value. Works also for complex arrays.</span>
 
 <span class="sd">    Examples</span>
@@ -132,7 +134,10 @@
     <span class="k">return</span> <span class="n">a</span> <span class="o">/</span> <span class="n">a</span><span class="o">.</span><span class="n">max</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="vlinspace"><a class="viewcode-back" href="../../generated/api/pwtools.num.vlinspace.html#pwtools.num.vlinspace">[docs]</a><span class="k">def</span> <span class="nf">vlinspace</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+<div class="viewcode-block" id="vlinspace">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.vlinspace.html#pwtools.num.vlinspace">[docs]</a>
+<span class="k">def</span> <span class="nf">vlinspace</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Like numpy.linspace, but for 1d arrays. Generate uniformly spaced points</span>
 <span class="sd">    (vectors) along the distance vector connecting a and b.</span>
 
@@ -161,7 +166,10 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="norm_int"><a class="viewcode-back" href="../../generated/api/pwtools.num.norm_int.html#pwtools.num.norm_int">[docs]</a><span class="k">def</span> <span class="nf">norm_int</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">area</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">simps</span><span class="p">):</span>
+
+<div class="viewcode-block" id="norm_int">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.norm_int.html#pwtools.num.norm_int">[docs]</a>
+<span class="k">def</span> <span class="nf">norm_int</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">area</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">simps</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalize integral area of y(x) to `area`.</span>
 
 <span class="sd">    Parameters</span>
@@ -198,7 +206,10 @@
     <span class="k">return</span> <span class="n">y</span> <span class="o">*</span> <span class="n">area</span> <span class="o">/</span> <span class="n">_area</span></div>
 
 
-<div class="viewcode-block" id="deriv_spl"><a class="viewcode-back" href="../../generated/api/pwtools.num.deriv_spl.html#pwtools.num.deriv_spl">[docs]</a><span class="k">def</span> <span class="nf">deriv_spl</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xnew</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fullout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">splrep_kwargs</span><span class="p">):</span>
+
+<div class="viewcode-block" id="deriv_spl">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.deriv_spl.html#pwtools.num.deriv_spl">[docs]</a>
+<span class="k">def</span> <span class="nf">deriv_spl</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xnew</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fullout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">splrep_kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;n-th derivative for 1d arrays of possibly nonuniformly sampled data.</span>
 <span class="sd">    Returns matching x-axis for plotting. Splines are used.</span>
 
@@ -244,7 +255,10 @@
         <span class="k">return</span> <span class="n">yd</span></div>
 
 
-<div class="viewcode-block" id="findmin"><a class="viewcode-back" href="../../generated/api/pwtools.num.findmin.html#pwtools.num.findmin">[docs]</a><span class="k">def</span> <span class="nf">findmin</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+
+<div class="viewcode-block" id="findmin">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.findmin.html#pwtools.num.findmin">[docs]</a>
+<span class="k">def</span> <span class="nf">findmin</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Find minimum of x-y curve by searching for the root of the 1st</span>
 <span class="sd">    derivative of a spline thru x,y. `x` must be sorted min -&gt; max and the</span>
 <span class="sd">    interval [x[0], x[-1]] must contain the minimum.</span>
@@ -266,7 +280,10 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x0</span><span class="p">,</span> <span class="n">spl</span><span class="p">(</span><span class="n">x0</span><span class="p">)])</span></div>
 
 
-<div class="viewcode-block" id="findroot"><a class="viewcode-back" href="../../generated/api/pwtools.num.findroot.html#pwtools.num.findroot">[docs]</a><span class="k">def</span> <span class="nf">findroot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+
+<div class="viewcode-block" id="findroot">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.findroot.html#pwtools.num.findroot">[docs]</a>
+<span class="k">def</span> <span class="nf">findroot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Find root of x-y curve by searching for the root of a spline thru x,y.</span>
 <span class="sd">    `x` must be sorted min -&gt; max and the interval [x[0], x[-1]] must contain</span>
 <span class="sd">    the root.</span>
@@ -288,7 +305,10 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x0</span><span class="p">,</span> <span class="n">spl</span><span class="p">(</span><span class="n">x0</span><span class="p">)])</span></div>
 
 
-<div class="viewcode-block" id="Fit1D"><a class="viewcode-back" href="../../generated/api/pwtools.num.Fit1D.html#pwtools.num.Fit1D">[docs]</a><span class="k">class</span> <span class="nc">Fit1D</span><span class="p">:</span>
+
+<div class="viewcode-block" id="Fit1D">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.Fit1D.html#pwtools.num.Fit1D">[docs]</a>
+<span class="k">class</span> <span class="nc">Fit1D</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 1D data fit/interpolation classes (:class:`Spline`,</span>
 <span class="sd">    :class:`PolyFit1D`). It provides :meth:`get_min`, :meth:`get_max`,</span>
 <span class="sd">    :meth:`get_root`, :meth:`is_mono`.</span>
@@ -297,9 +317,12 @@
 <span class="sd">    causes it to calculate derivatives, i.e. ``__call__(x, der=1)`` is the</span>
 <span class="sd">    first deriv.&quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Fit1D.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.num.Fit1D.html#pwtools.num.Fit1D.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+<div class="viewcode-block" id="Fit1D.__init__">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.Fit1D.html#pwtools.num.Fit1D.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span></div>
+
 
     <span class="c1"># XXX once the now deprecated module-level findroot() is gone, we can turn</span>
     <span class="c1"># this into a new module-level findroot(), with another API however.</span>
@@ -331,13 +354,18 @@
             <span class="n">xx</span> <span class="o">=</span> <span class="n">optimize</span><span class="o">.</span><span class="n">brentq</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">xab</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xab</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">xx</span>
 
-<div class="viewcode-block" id="Fit1D.is_mono"><a class="viewcode-back" href="../../generated/api/pwtools.num.Fit1D.is_mono.html#pwtools.num.Fit1D.is_mono">[docs]</a>    <span class="k">def</span> <span class="nf">is_mono</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Fit1D.is_mono">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.Fit1D.is_mono.html#pwtools.num.Fit1D.is_mono">[docs]</a>
+    <span class="k">def</span> <span class="nf">is_mono</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return True if the curve described by the fit function f(x) is</span>
 <span class="sd">        monotonic.&quot;&quot;&quot;</span>
         <span class="n">tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="bp">self</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">))))</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">tmp</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Fit1D.get_min"><a class="viewcode-back" href="../../generated/api/pwtools.num.Fit1D.get_min.html#pwtools.num.Fit1D.get_min">[docs]</a>    <span class="k">def</span> <span class="nf">get_min</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xab</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Fit1D.get_min">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.Fit1D.get_min.html#pwtools.num.Fit1D.get_min">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_min</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xab</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return x where y(x) = min(y) by calculating the root of the</span>
 <span class="sd">        fit&#39;s 1st derivative (by calling ``self(x, der=1)``).</span>
 
@@ -355,14 +383,20 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_findroot</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">der</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">x0</span><span class="o">=</span><span class="n">x0</span><span class="p">,</span> <span class="n">xab</span><span class="o">=</span><span class="n">xab</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Fit1D.get_max"><a class="viewcode-back" href="../../generated/api/pwtools.num.Fit1D.get_max.html#pwtools.num.Fit1D.get_max">[docs]</a>    <span class="k">def</span> <span class="nf">get_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xab</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Fit1D.get_max">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.Fit1D.get_max.html#pwtools.num.Fit1D.get_max">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xab</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Convenience method. Same as :meth:`get_min`, just for local maxima,</span>
 <span class="sd">        simply using ``-self(x, der=1)``.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_findroot</span><span class="p">(</span>
             <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="o">-</span><span class="bp">self</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">der</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">x0</span><span class="o">=</span><span class="n">x0</span><span class="p">,</span> <span class="n">xab</span><span class="o">=</span><span class="n">xab</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="Fit1D.get_root"><a class="viewcode-back" href="../../generated/api/pwtools.num.Fit1D.get_root.html#pwtools.num.Fit1D.get_root">[docs]</a>    <span class="k">def</span> <span class="nf">get_root</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xab</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Fit1D.get_root">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.Fit1D.get_root.html#pwtools.num.Fit1D.get_root">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_root</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xab</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return x where y(x) = 0 by calculating the root of the fit function.</span>
 
 <span class="sd">        In :class:`Spline`, this is the same as ``Spline.invsplev(0.0, ...)``,</span>
@@ -380,10 +414,14 @@
 <span class="sd">        xx : scalar</span>
 <span class="sd">            y(xx) = 0</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_findroot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="n">x0</span><span class="p">,</span> <span class="n">xab</span><span class="o">=</span><span class="n">xab</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_findroot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="n">x0</span><span class="p">,</span> <span class="n">xab</span><span class="o">=</span><span class="n">xab</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div>
+</div>
 
 
-<div class="viewcode-block" id="Spline"><a class="viewcode-back" href="../../generated/api/pwtools.num.Spline.html#pwtools.num.Spline">[docs]</a><span class="k">class</span> <span class="nc">Spline</span><span class="p">(</span><span class="n">Fit1D</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Spline">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.Spline.html#pwtools.num.Spline">[docs]</a>
+<span class="k">class</span> <span class="nc">Spline</span><span class="p">(</span><span class="n">Fit1D</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;:class:`Fit1D`-based spline interpolator.</span>
 
 <span class="sd">    Like ``scipy.interpolate.UnivariateSpline``, this is a wrapper around</span>
@@ -414,7 +452,9 @@
 <span class="sd">    &gt;&gt;&gt; legend()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Spline.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.num.Spline.html#pwtools.num.Spline.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span> <span class="n">checkeps</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">splrep_kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Spline.__init__">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.Spline.html#pwtools.num.Spline.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span> <span class="n">checkeps</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">splrep_kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -443,7 +483,10 @@
                 <span class="n">err</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="Spline.__call__"><a class="viewcode-back" href="../../generated/api/pwtools.num.Spline.html#pwtools.num.Spline.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Spline.__call__">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.Spline.html#pwtools.num.Spline.__call__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="n">splev</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tck</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="c1"># splev() retrns array(&lt;number&gt;) for scalar input, convert to scalar</span>
         <span class="c1"># float</span>
@@ -452,14 +495,20 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">ret</span></div>
 
-<div class="viewcode-block" id="Spline.splev"><a class="viewcode-back" href="../../generated/api/pwtools.num.Spline.splev.html#pwtools.num.Spline.splev">[docs]</a>    <span class="k">def</span> <span class="nf">splev</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Spline.splev">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.Spline.splev.html#pwtools.num.Spline.splev">[docs]</a>
+    <span class="k">def</span> <span class="nf">splev</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">&quot;use Spline(x,y)(new_x) instead of Spline.splev()&quot;</span><span class="p">,</span>
             <span class="ne">DeprecationWarning</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Spline.invsplev"><a class="viewcode-back" href="../../generated/api/pwtools.num.Spline.invsplev.html#pwtools.num.Spline.invsplev">[docs]</a>    <span class="k">def</span> <span class="nf">invsplev</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xab</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Spline.invsplev">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.Spline.invsplev.html#pwtools.num.Spline.invsplev">[docs]</a>
+    <span class="k">def</span> <span class="nf">invsplev</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xab</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Lookup x for a given y, i.e. &quot;inverse spline evaluation&quot;, hence</span>
 <span class="sd">        the name. Find x where y(x) == y0 by calculating the root of y(x) -</span>
 <span class="sd">        y0. We can use Newton&#39;s (x0) or Brent&#39;s (xab) methods. Use only one of</span>
@@ -500,10 +549,14 @@
             <span class="n">ymx</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="n">y0</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_findroot</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="n">x0</span><span class="p">,</span> <span class="n">xab</span><span class="o">=</span><span class="n">xab</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_findroot</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="n">x0</span><span class="p">,</span> <span class="n">xab</span><span class="o">=</span><span class="n">xab</span><span class="p">)</span></div>
+</div>
 
 
-<div class="viewcode-block" id="slicetake"><a class="viewcode-back" href="../../generated/api/pwtools.num.slicetake.html#pwtools.num.slicetake">[docs]</a><span class="k">def</span> <span class="nf">slicetake</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">sl</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="slicetake">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.slicetake.html#pwtools.num.slicetake">[docs]</a>
+<span class="k">def</span> <span class="nf">slicetake</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">sl</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The equivalent of numpy.take(a, ..., axis=&lt;axis&gt;), but accepts slice</span>
 <span class="sd">    objects instead of an index array. Also by default, it returns a *view* and</span>
 <span class="sd">    no copy.</span>
@@ -619,7 +672,10 @@
         <span class="k">return</span> <span class="n">a</span><span class="p">[</span><span class="n">slices</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="sliceput"><a class="viewcode-back" href="../../generated/api/pwtools.num.sliceput.html#pwtools.num.sliceput">[docs]</a><span class="k">def</span> <span class="nf">sliceput</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">sl</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="sliceput">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.sliceput.html#pwtools.num.sliceput">[docs]</a>
+<span class="k">def</span> <span class="nf">sliceput</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">sl</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The equivalent of a[&lt;slice or index&gt;]=b, but accepts slices objects</span>
 <span class="sd">    instead of array indices or fancy indexing (e.g. a[:,1:]).</span>
 
@@ -664,7 +720,10 @@
     <span class="k">return</span> <span class="n">a</span></div>
 
 
-<div class="viewcode-block" id="extend_array"><a class="viewcode-back" href="../../generated/api/pwtools.num.extend_array.html#pwtools.num.extend_array">[docs]</a><span class="k">def</span> <span class="nf">extend_array</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">nstep</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+
+<div class="viewcode-block" id="extend_array">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.extend_array.html#pwtools.num.extend_array">[docs]</a>
+<span class="k">def</span> <span class="nf">extend_array</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">nstep</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Repeat an array along ``axis`` by inserting a new axis (dimension)</span>
 <span class="sd">    before ``axis``. Use this to &quot;broadcast&quot; e.g. a 2d array (3,3) -&gt;</span>
 <span class="sd">    (3,3,nstep).</span>
@@ -728,7 +787,10 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">sl</span><span class="p">)],</span> <span class="n">nstep</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="sum"><a class="viewcode-back" href="../../generated/api/pwtools.num.sum.html#pwtools.num.sum">[docs]</a><span class="k">def</span> <span class="nf">sum</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+
+<div class="viewcode-block" id="sum">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.sum.html#pwtools.num.sum">[docs]</a>
+<span class="k">def</span> <span class="nf">sum</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;This numpy.sum() with some features implemented which can be found in</span>
 <span class="sd">    numpy v1.7 and later: `axis` can be a tuple to select arbitrary axes to sum</span>
 <span class="sd">    over.</span>
@@ -812,7 +874,10 @@
         <span class="k">return</span> <span class="n">_sum</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">tosum</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Interpol2D"><a class="viewcode-back" href="../../generated/api/pwtools.num.Interpol2D.html#pwtools.num.Interpol2D">[docs]</a><span class="k">class</span> <span class="nc">Interpol2D</span><span class="p">:</span>
+
+<div class="viewcode-block" id="Interpol2D">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.Interpol2D.html#pwtools.num.Interpol2D">[docs]</a>
+<span class="k">class</span> <span class="nc">Interpol2D</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Common 2D interpolator API.</span>
 
 <span class="sd">    The API is the same as in ``scipy.interpolate``, e.g.</span>
@@ -824,7 +889,9 @@
 <span class="sd">    which is given as an unordered set of points.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Interpol2D.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.num.Interpol2D.html#pwtools.num.Interpol2D.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="Interpol2D.__init__">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.Interpol2D.html#pwtools.num.Interpol2D.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">points</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1023,13 +1090,16 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;unknown interpolator type: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">what</span><span class="p">)</span></div>
 
+
     <span class="c1"># See pwtools.test.test_polyfit.test_api: work around subtle PolyFit API</span>
     <span class="c1"># difference to all other interpolators w/o breaking neither Interpol2D&#39;s</span>
     <span class="c1"># nor PolyFit&#39;s API</span>
     <span class="k">def</span> <span class="nf">_poly_format_return</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inter</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">))</span>
 
-<div class="viewcode-block" id="Interpol2D.__call__"><a class="viewcode-back" href="../../generated/api/pwtools.num.Interpol2D.html#pwtools.num.Interpol2D.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="o">**</span><span class="n">callkwds</span><span class="p">):</span>
+<div class="viewcode-block" id="Interpol2D.__call__">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.Interpol2D.html#pwtools.num.Interpol2D.__call__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="o">**</span><span class="n">callkwds</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1048,7 +1118,10 @@
             <span class="n">points</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="o">**</span><span class="n">callkwds</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Interpol2D.get_min"><a class="viewcode-back" href="../../generated/api/pwtools.num.Interpol2D.get_min.html#pwtools.num.Interpol2D.get_min">[docs]</a>    <span class="k">def</span> <span class="nf">get_min</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Interpol2D.get_min">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.Interpol2D.get_min.html#pwtools.num.Interpol2D.get_min">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_min</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return [x,y] where z(x,y) = min(z) by minimizing z(x,y) w/</span>
 <span class="sd">        scipy.optimize.fmin().</span>
 
@@ -1068,14 +1141,21 @@
             <span class="n">idx0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">argmin</span><span class="p">()</span>
             <span class="n">x0</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">xx</span><span class="p">[</span><span class="n">idx0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">yy</span><span class="p">[</span><span class="n">idx0</span><span class="p">]]</span>
         <span class="n">xopt</span> <span class="o">=</span> <span class="n">optimize</span><span class="o">.</span><span class="n">fmin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwds</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">xopt</span></div></div>
+        <span class="k">return</span> <span class="n">xopt</span></div>
+</div>
 
 
-<div class="viewcode-block" id="fempty"><a class="viewcode-back" href="../../generated/api/pwtools.num.fempty.html#pwtools.num.fempty">[docs]</a><span class="k">def</span> <span class="nf">fempty</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">):</span>
+
+<div class="viewcode-block" id="fempty">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.fempty.html#pwtools.num.fempty">[docs]</a>
+<span class="k">def</span> <span class="nf">fempty</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;F&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="distsq"><a class="viewcode-back" href="../../generated/api/pwtools.num.distsq.html#pwtools.num.distsq">[docs]</a><span class="k">def</span> <span class="nf">distsq</span><span class="p">(</span><span class="n">arrx</span><span class="p">,</span> <span class="n">arry</span><span class="p">):</span>
+
+<div class="viewcode-block" id="distsq">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.distsq.html#pwtools.num.distsq">[docs]</a>
+<span class="k">def</span> <span class="nf">distsq</span><span class="p">(</span><span class="n">arrx</span><span class="p">,</span> <span class="n">arry</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Squared distances between all points in `arrx` and `arry`:</span>
 
 <span class="sd">    .. math::</span>
@@ -1116,7 +1196,10 @@
     <span class="k">return</span> <span class="n">_flib</span><span class="o">.</span><span class="n">distsq</span><span class="p">(</span><span class="n">arrx</span><span class="p">,</span> <span class="n">arry</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">ndim</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="DataND"><a class="viewcode-back" href="../../generated/api/pwtools.num.DataND.html#pwtools.num.DataND">[docs]</a><span class="k">class</span> <span class="nc">DataND</span><span class="p">:</span>
+
+<div class="viewcode-block" id="DataND">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.DataND.html#pwtools.num.DataND">[docs]</a>
+<span class="k">class</span> <span class="nc">DataND</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Transform 2d array `a2` to nd array `an`. The 2d array&#39;s last column are</span>
 <span class="sd">    values on a grid represented by the nd array. The 2d array is the</span>
@@ -1161,7 +1244,9 @@
 <span class="sd">    [array([0, 1, 2]), array([0, 1]), array([0, 1, 2, 3])]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="DataND.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.num.DataND.html#pwtools.num.DataND.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">an</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="DataND.__init__">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.DataND.html#pwtools.num.DataND.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">an</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1177,7 +1262,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">a2</span> <span class="o">=</span> <span class="n">a2</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">an</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">axes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">a2_to_an</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="DataND.a2_to_an"><a class="viewcode-back" href="../../generated/api/pwtools.num.DataND.a2_to_an.html#pwtools.num.DataND.a2_to_an">[docs]</a>    <span class="k">def</span> <span class="nf">a2_to_an</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DataND.a2_to_an">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.DataND.a2_to_an.html#pwtools.num.DataND.a2_to_an">[docs]</a>
+    <span class="k">def</span> <span class="nf">a2_to_an</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">axes</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">dims</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">colidx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
@@ -1190,10 +1278,14 @@
         <span class="c1"># an[1,2,3] == an[(1,2,3)], need way to eliminate loop over index array</span>
         <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">_idx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
             <span class="n">an</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">_idx</span><span class="p">)]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">a2</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">an</span><span class="p">,</span> <span class="n">axes</span></div></div>
+        <span class="k">return</span> <span class="n">an</span><span class="p">,</span> <span class="n">axes</span></div>
+</div>
 
 
-<div class="viewcode-block" id="rms"><a class="viewcode-back" href="../../generated/api/pwtools.num.rms.html#pwtools.num.rms">[docs]</a><span class="k">def</span> <span class="nf">rms</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">nitems</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="rms">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.rms.html#pwtools.num.rms">[docs]</a>
+<span class="k">def</span> <span class="nf">rms</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">nitems</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;RMS of all elements in a ndarray.</span>
 
 <span class="sd">    Parameters</span>
@@ -1216,7 +1308,10 @@
     <span class="k">return</span> <span class="n">rms</span></div>
 
 
-<div class="viewcode-block" id="rms3d"><a class="viewcode-back" href="../../generated/api/pwtools.num.rms3d.html#pwtools.num.rms3d">[docs]</a><span class="k">def</span> <span class="nf">rms3d</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">nitems</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="rms3d">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.rms3d.html#pwtools.num.rms3d">[docs]</a>
+<span class="k">def</span> <span class="nf">rms3d</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">nitems</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;RMS of 3d array along `axis`. Sum all elements of all axes != axis.</span>
 
 <span class="sd">    Parameters</span>
@@ -1255,7 +1350,10 @@
     <span class="k">return</span> <span class="n">rms</span></div>
 
 
-<div class="viewcode-block" id="inner_points_mask"><a class="viewcode-back" href="../../generated/api/pwtools.num.inner_points_mask.html#pwtools.num.inner_points_mask">[docs]</a><span class="k">def</span> <span class="nf">inner_points_mask</span><span class="p">(</span><span class="n">points</span><span class="p">):</span>
+
+<div class="viewcode-block" id="inner_points_mask">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.inner_points_mask.html#pwtools.num.inner_points_mask">[docs]</a>
+<span class="k">def</span> <span class="nf">inner_points_mask</span><span class="p">(</span><span class="n">points</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask array into `points` where ``points[msk]`` are all &quot;inner&quot; points,</span>
 <span class="sd">    i.e. `points` with one level of edge points removed. For 1D, this is simply</span>
 <span class="sd">    points[1:-1,:] (assuming ordered points). For ND, we calculate and remove</span>
@@ -1284,7 +1382,10 @@
     <span class="k">return</span> <span class="n">msk</span></div>
 
 
-<div class="viewcode-block" id="poly_str"><a class="viewcode-back" href="../../generated/api/pwtools.num.poly_str.html#pwtools.num.poly_str">[docs]</a><span class="k">def</span> <span class="nf">poly_str</span><span class="p">(</span><span class="n">ndim</span><span class="p">,</span> <span class="n">deg</span><span class="p">):</span>
+
+<div class="viewcode-block" id="poly_str">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.poly_str.html#pwtools.num.poly_str">[docs]</a>
+<span class="k">def</span> <span class="nf">poly_str</span><span class="p">(</span><span class="n">ndim</span><span class="p">,</span> <span class="n">deg</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;String representation of a `ndim`-poly of degree `deg`.&quot;&quot;&quot;</span>
     <span class="n">st</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
     <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">pwr</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">poly_powers</span><span class="p">(</span><span class="n">ndim</span><span class="p">,</span> <span class="n">deg</span><span class="p">)):</span>
@@ -1297,7 +1398,10 @@
     <span class="k">return</span> <span class="n">st</span></div>
 
 
-<div class="viewcode-block" id="poly_powers"><a class="viewcode-back" href="../../generated/api/pwtools.num.poly_powers.html#pwtools.num.poly_powers">[docs]</a><span class="k">def</span> <span class="nf">poly_powers</span><span class="p">(</span><span class="n">ndim</span><span class="p">,</span> <span class="n">deg</span><span class="p">):</span>
+
+<div class="viewcode-block" id="poly_powers">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.poly_powers.html#pwtools.num.poly_powers">[docs]</a>
+<span class="k">def</span> <span class="nf">poly_powers</span><span class="p">(</span><span class="n">ndim</span><span class="p">,</span> <span class="n">deg</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Powers for building a n-dim polynomial and columns of the n-dim</span>
 <span class="sd">    Vandermonde matrix.</span>
 
@@ -1370,7 +1474,10 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">deg</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">repeat</span><span class="o">=</span><span class="n">ndim</span><span class="p">)))</span></div>
 
 
-<div class="viewcode-block" id="vander"><a class="viewcode-back" href="../../generated/api/pwtools.num.vander.html#pwtools.num.vander">[docs]</a><span class="k">def</span> <span class="nf">vander</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">deg</span><span class="p">):</span>
+
+<div class="viewcode-block" id="vander">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.vander.html#pwtools.num.vander">[docs]</a>
+<span class="k">def</span> <span class="nf">vander</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">deg</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;N-dim Vandermonde matrix for data `points` and a polynomial of degree</span>
 <span class="sd">    `deg`.</span>
 
@@ -1394,7 +1501,10 @@
     <span class="k">return</span> <span class="n">tmp</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="polyfit"><a class="viewcode-back" href="../../generated/api/pwtools.num.polyfit.html#pwtools.num.polyfit">[docs]</a><span class="k">def</span> <span class="nf">polyfit</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">deg</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">scale_vand</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="polyfit">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.polyfit.html#pwtools.num.polyfit">[docs]</a>
+<span class="k">def</span> <span class="nf">polyfit</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">deg</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">scale_vand</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Fit nd polynomial of dregree `deg`. The dimension is ``points.shape[1]``.</span>
 
 <span class="sd">    Parameters</span>
@@ -1475,7 +1585,10 @@
     <span class="p">}</span></div>
 
 
-<div class="viewcode-block" id="polyval"><a class="viewcode-back" href="../../generated/api/pwtools.num.polyval.html#pwtools.num.polyval">[docs]</a><span class="k">def</span> <span class="nf">polyval</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">der</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+
+<div class="viewcode-block" id="polyval">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.polyval.html#pwtools.num.polyval">[docs]</a>
+<span class="k">def</span> <span class="nf">polyval</span><span class="p">(</span><span class="n">fit</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">der</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Evaluate polynomial generated by :func:`polyfit` on `points`.</span>
 
 <span class="sd">    Parameters</span>
@@ -1515,7 +1628,10 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vand</span><span class="p">,</span> <span class="n">fit</span><span class="p">[</span><span class="s2">&quot;coeffs&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="n">vscale</span> <span class="o">+</span> <span class="n">vmin</span></div>
 
 
-<div class="viewcode-block" id="PolyFit"><a class="viewcode-back" href="../../generated/api/pwtools.num.PolyFit.html#pwtools.num.PolyFit">[docs]</a><span class="k">class</span> <span class="nc">PolyFit</span><span class="p">:</span>
+
+<div class="viewcode-block" id="PolyFit">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.PolyFit.html#pwtools.num.PolyFit">[docs]</a>
+<span class="k">class</span> <span class="nc">PolyFit</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;High level interface to poly{fit,val}, similar to :class:`Spline`</span>
 <span class="sd">    and :class:`Interpol2D`.</span>
 
@@ -1547,7 +1663,9 @@
 <span class="sd">    &gt;&gt;&gt; f1=PolyFit(points, values, 3); f1(new_points)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="PolyFit.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.num.PolyFit.html#pwtools.num.PolyFit.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyFit.__init__">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.PolyFit.html#pwtools.num.PolyFit.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1561,6 +1679,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">fitfunc</span> <span class="o">=</span> <span class="n">polyfit</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">evalfunc</span> <span class="o">=</span> <span class="n">polyval</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitfunc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div>
+
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_fix_shape_init</span><span class="p">(</span><span class="n">points</span><span class="p">):</span>
@@ -1577,12 +1696,17 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="n">points</span>
 
-<div class="viewcode-block" id="PolyFit.__call__"><a class="viewcode-back" href="../../generated/api/pwtools.num.PolyFit.html#pwtools.num.PolyFit.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyFit.__call__">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.PolyFit.html#pwtools.num.PolyFit.__call__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
         <span class="n">_got_single_point</span><span class="p">,</span> <span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fix_shape_call</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evalfunc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ret</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">_got_single_point</span> <span class="k">else</span> <span class="n">ret</span></div>
 
-<div class="viewcode-block" id="PolyFit.get_min"><a class="viewcode-back" href="../../generated/api/pwtools.num.PolyFit.get_min.html#pwtools.num.PolyFit.get_min">[docs]</a>    <span class="k">def</span> <span class="nf">get_min</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+
+<div class="viewcode-block" id="PolyFit.get_min">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.PolyFit.get_min.html#pwtools.num.PolyFit.get_min">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_min</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Minimize fit function by `scipy.optimize.fmin()`.</span>
 
 <span class="sd">        Parameters</span>
@@ -1602,12 +1726,16 @@
             <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">argmin</span><span class="p">()</span>
             <span class="n">x0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
         <span class="n">xopt</span> <span class="o">=</span> <span class="n">optimize</span><span class="o">.</span><span class="n">fmin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwds</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">xopt</span></div></div>
+        <span class="k">return</span> <span class="n">xopt</span></div>
+</div>
+
 
 
 <span class="c1"># Need to inherit first Fit1D such that Fit1D.get_min() is used instead of</span>
 <span class="c1"># PolyFit.get_min().</span>
-<div class="viewcode-block" id="PolyFit1D"><a class="viewcode-back" href="../../generated/api/pwtools.num.PolyFit1D.html#pwtools.num.PolyFit1D">[docs]</a><span class="k">class</span> <span class="nc">PolyFit1D</span><span class="p">(</span><span class="n">Fit1D</span><span class="p">,</span> <span class="n">PolyFit</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyFit1D">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.PolyFit1D.html#pwtools.num.PolyFit1D">[docs]</a>
+<span class="k">class</span> <span class="nc">PolyFit1D</span><span class="p">(</span><span class="n">Fit1D</span><span class="p">,</span> <span class="n">PolyFit</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;1D special case version of :class:`PolyFit` which handles 1d and scalar</span>
 <span class="sd">    `points` Also :meth:`get_min()` uses the root of the poly&#39;s 1st derivative</span>
 <span class="sd">    instead of ``fmin()``.</span>
@@ -1630,7 +1758,9 @@
 <span class="sd">    &gt;&gt;&gt; legend()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="PolyFit1D.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.num.PolyFit1D.html#pwtools.num.PolyFit1D.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+<div class="viewcode-block" id="PolyFit1D.__init__">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.PolyFit1D.html#pwtools.num.PolyFit1D.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1646,6 +1776,7 @@
         <span class="p">)</span>
         <span class="c1"># set self.x, self.y, need that in Fit1D._findroot()</span>
         <span class="n">Fit1D</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span></div>
+
 
     <span class="k">def</span> <span class="nf">_fix_shape_init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
         <span class="n">pp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
@@ -1684,7 +1815,10 @@
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;points has wrong shape or dim&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="match_mask"><a class="viewcode-back" href="../../generated/api/pwtools.num.match_mask.html#pwtools.num.match_mask">[docs]</a><span class="k">def</span> <span class="nf">match_mask</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">fullout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="match_mask">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.match_mask.html#pwtools.num.match_mask">[docs]</a>
+<span class="k">def</span> <span class="nf">match_mask</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">fullout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Bool array of ``len(arr)`` which is True if ``arr[i] == values[j],</span>
 <span class="sd">    j=0..len(values)``.</span>
 
@@ -1749,7 +1883,10 @@
         <span class="k">return</span> <span class="n">ret</span></div>
 
 
-<div class="viewcode-block" id="order_similar"><a class="viewcode-back" href="../../generated/api/pwtools.num.order_similar.html#pwtools.num.order_similar">[docs]</a><span class="k">def</span> <span class="nf">order_similar</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+
+<div class="viewcode-block" id="order_similar">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.order_similar.html#pwtools.num.order_similar">[docs]</a>
+<span class="k">def</span> <span class="nf">order_similar</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Band ordering algorithm. Uses up to quadradic extrapolation. Handles</span>
 <span class="sd">    crossing points.</span>
 
@@ -1840,7 +1977,10 @@
     <span class="k">return</span> <span class="n">arr2</span></div>
 
 
-<div class="viewcode-block" id="round_up_next_multiple"><a class="viewcode-back" href="../../generated/api/pwtools.num.round_up_next_multiple.html#pwtools.num.round_up_next_multiple">[docs]</a><span class="k">def</span> <span class="nf">round_up_next_multiple</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">mult</span><span class="p">):</span>
+
+<div class="viewcode-block" id="round_up_next_multiple">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.round_up_next_multiple.html#pwtools.num.round_up_next_multiple">[docs]</a>
+<span class="k">def</span> <span class="nf">round_up_next_multiple</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">mult</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Round integer `x` up to the next possible multiple of `mult`.&quot;&quot;&quot;</span>
     <span class="n">rem</span> <span class="o">=</span> <span class="n">x</span> <span class="o">%</span> <span class="n">mult</span>
     <span class="k">if</span> <span class="n">rem</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1849,14 +1989,20 @@
         <span class="k">return</span> <span class="n">x</span></div>
 
 
-<div class="viewcode-block" id="norm"><a class="viewcode-back" href="../../generated/api/pwtools.num.norm.html#pwtools.num.norm">[docs]</a><span class="k">def</span> <span class="nf">norm</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+
+<div class="viewcode-block" id="norm">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.norm.html#pwtools.num.norm">[docs]</a>
+<span class="k">def</span> <span class="nf">norm</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;2-norm for real vectors.&quot;&quot;&quot;</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;input must be 1d array&quot;</span>
     <span class="c1"># math.sqrt is faster than np.sqrt for scalar args</span>
     <span class="k">return</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">a</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="meshgridt"><a class="viewcode-back" href="../../generated/api/pwtools.num.meshgridt.html#pwtools.num.meshgridt">[docs]</a><span class="k">def</span> <span class="nf">meshgridt</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+
+<div class="viewcode-block" id="meshgridt">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.meshgridt.html#pwtools.num.meshgridt">[docs]</a>
+<span class="k">def</span> <span class="nf">meshgridt</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Shortcut for ``numpy.meshgrid(x, y, indexing=&quot;ij&quot;)``</span>
 
 <span class="sd">    A version of ``X,Y = numpy.meshgrid(x,y)`` which returns X and Y</span>
@@ -1874,7 +2020,10 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="euler_matrix"><a class="viewcode-back" href="../../generated/api/pwtools.num.euler_matrix.html#pwtools.num.euler_matrix">[docs]</a><span class="k">def</span> <span class="nf">euler_matrix</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">psi</span><span class="p">,</span> <span class="n">deg</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="euler_matrix">
+<a class="viewcode-back" href="../../generated/api/pwtools.num.euler_matrix.html#pwtools.num.euler_matrix">[docs]</a>
+<span class="k">def</span> <span class="nf">euler_matrix</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">psi</span><span class="p">,</span> <span class="n">deg</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Euler&#39;s rotation matrix.</span>
 
 <span class="sd">    We use the x-convention, as in [1]_.</span>
@@ -1924,6 +2073,7 @@
                   <span class="p">[</span>     <span class="mi">0</span><span class="p">,</span>      <span class="mi">0</span><span class="p">,</span>      <span class="mi">1</span><span class="p">]])</span><span class="o">*</span><span class="mf">1.0</span>
     <span class="c1"># fmt: on</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">D</span><span class="p">))</span></div>
+
 </pre></div>
 
           </div>
@@ -1936,7 +2086,7 @@
       &copy;2023, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>

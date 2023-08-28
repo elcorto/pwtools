@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>pwtools.rbf.core &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=9121de03" />
-    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -117,14 +117,19 @@
     <span class="c1"># if JAX_MODE:</span>
     <span class="c1">#   jax_func = jit(func)</span>
     <span class="c1">#</span>
-<div class="viewcode-block" id="jit"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.jit.html#pwtools.rbf.core.jit">[docs]</a>    <span class="k">def</span> <span class="nf">jit</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+<div class="viewcode-block" id="jit">
+<a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.jit.html#pwtools.rbf.core.jit">[docs]</a>
+    <span class="k">def</span> <span class="nf">jit</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">func</span></div>
+
 
 
 <span class="kn">import</span> <span class="nn">scipy.linalg</span> <span class="k">as</span> <span class="nn">linalg</span>
 
 
-<div class="viewcode-block" id="rbf_gauss"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.rbf_gauss.html#pwtools.rbf.core.rbf_gauss">[docs]</a><span class="k">def</span> <span class="nf">rbf_gauss</span><span class="p">(</span><span class="n">rsq</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+<div class="viewcode-block" id="rbf_gauss">
+<a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.rbf_gauss.html#pwtools.rbf.core.rbf_gauss">[docs]</a>
+<span class="k">def</span> <span class="nf">rbf_gauss</span><span class="p">(</span><span class="n">rsq</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Gaussian RBF :math:`\exp\left(-\frac{r^2}{2\,p^2}\right)`</span>
 
 <span class="sd">    Parameters</span>
@@ -137,7 +142,10 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">rsq</span> <span class="o">/</span> <span class="n">p</span><span class="o">**</span><span class="mf">2.0</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="rbf_multi"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.rbf_multi.html#pwtools.rbf.core.rbf_multi">[docs]</a><span class="k">def</span> <span class="nf">rbf_multi</span><span class="p">(</span><span class="n">rsq</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+
+<div class="viewcode-block" id="rbf_multi">
+<a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.rbf_multi.html#pwtools.rbf.core.rbf_multi">[docs]</a>
+<span class="k">def</span> <span class="nf">rbf_multi</span><span class="p">(</span><span class="n">rsq</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Multiquadric RBF :math:`\sqrt{r^2 + p^2}`</span>
 
 <span class="sd">    Parameters</span>
@@ -150,7 +158,10 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">rsq</span> <span class="o">+</span> <span class="n">p</span><span class="o">**</span><span class="mf">2.0</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="rbf_inv_multi"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.rbf_inv_multi.html#pwtools.rbf.core.rbf_inv_multi">[docs]</a><span class="k">def</span> <span class="nf">rbf_inv_multi</span><span class="p">(</span><span class="n">rsq</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+
+<div class="viewcode-block" id="rbf_inv_multi">
+<a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.rbf_inv_multi.html#pwtools.rbf.core.rbf_inv_multi">[docs]</a>
+<span class="k">def</span> <span class="nf">rbf_inv_multi</span><span class="p">(</span><span class="n">rsq</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Inverse Multiquadric RBF :math:`\frac{1}{\sqrt{r^2 + p^2}}`</span>
 
 <span class="sd">    Parameters</span>
@@ -163,6 +174,7 @@
     <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">rbf_multi</span><span class="p">(</span><span class="n">rsq</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span></div>
 
 
+
 <span class="n">rbf_dct</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;gauss&quot;</span><span class="p">:</span> <span class="n">rbf_gauss</span><span class="p">,</span>
     <span class="s2">&quot;multi&quot;</span><span class="p">:</span> <span class="n">rbf_multi</span><span class="p">,</span>
@@ -171,7 +183,9 @@
 
 
 <span class="c1"># Consider using jax-md space.py here</span>
-<div class="viewcode-block" id="_np_distsq"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core._np_distsq.html#pwtools.rbf.core._np_distsq">[docs]</a><span class="k">def</span> <span class="nf">_np_distsq</span><span class="p">(</span><span class="n">aa</span><span class="p">,</span> <span class="n">bb</span><span class="p">):</span>
+<div class="viewcode-block" id="_np_distsq">
+<a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core._np_distsq.html#pwtools.rbf.core._np_distsq">[docs]</a>
+<span class="k">def</span> <span class="nf">_np_distsq</span><span class="p">(</span><span class="n">aa</span><span class="p">,</span> <span class="n">bb</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;(Slow) pure numpy squared distance matrix.</span>
 
 <span class="sd">    Need that in JAX_MODE b/c we cannot diff thru</span>
@@ -191,29 +205,38 @@
     <span class="k">return</span> <span class="p">((</span><span class="n">aa</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">bb</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span></div>
 
 
+
 <span class="k">if</span> <span class="n">JAX_MODE</span><span class="p">:</span>
     <span class="n">_jax_np_distsq</span> <span class="o">=</span> <span class="n">jit</span><span class="p">(</span><span class="n">_np_distsq</span><span class="p">)</span>
     <span class="n">_jax_np_dist</span> <span class="o">=</span> <span class="n">jit</span><span class="p">(</span><span class="k">lambda</span> <span class="n">aa</span><span class="p">,</span> <span class="n">bb</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">_np_distsq</span><span class="p">(</span><span class="n">aa</span><span class="p">,</span> <span class="n">bb</span><span class="p">)))</span>
 
 
-<div class="viewcode-block" id="squared_dists"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.squared_dists.html#pwtools.rbf.core.squared_dists">[docs]</a><span class="k">def</span> <span class="nf">squared_dists</span><span class="p">(</span><span class="n">aa</span><span class="p">,</span> <span class="n">bb</span><span class="p">):</span>
+<div class="viewcode-block" id="squared_dists">
+<a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.squared_dists.html#pwtools.rbf.core.squared_dists">[docs]</a>
+<span class="k">def</span> <span class="nf">squared_dists</span><span class="p">(</span><span class="n">aa</span><span class="p">,</span> <span class="n">bb</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">JAX_MODE</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_jax_np_distsq</span><span class="p">(</span><span class="n">aa</span><span class="p">,</span> <span class="n">bb</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">cdist</span><span class="p">(</span><span class="n">aa</span><span class="p">,</span> <span class="n">bb</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;sqeuclidean&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="euclidean_dists"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.euclidean_dists.html#pwtools.rbf.core.euclidean_dists">[docs]</a><span class="k">def</span> <span class="nf">euclidean_dists</span><span class="p">(</span><span class="n">aa</span><span class="p">,</span> <span class="n">bb</span><span class="p">):</span>
+
+<div class="viewcode-block" id="euclidean_dists">
+<a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.euclidean_dists.html#pwtools.rbf.core.euclidean_dists">[docs]</a>
+<span class="k">def</span> <span class="nf">euclidean_dists</span><span class="p">(</span><span class="n">aa</span><span class="p">,</span> <span class="n">bb</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">JAX_MODE</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">_jax_np_dist</span><span class="p">(</span><span class="n">aa</span><span class="p">,</span> <span class="n">bb</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">cdist</span><span class="p">(</span><span class="n">aa</span><span class="p">,</span> <span class="n">bb</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;euclidean&quot;</span><span class="p">)</span></div>
 
 
+
 <span class="c1"># I think this doesn&#39;t need to use jax.numpy, but due to circular deps core</span>
 <span class="c1"># &lt;-&gt; hyperopt, we need that here. Once we switch to jax-only and drop</span>
 <span class="c1"># JAX_MODE, we can use np (=numpy) here and jnp (=jax.numpy) elsewhere.</span>
-<div class="viewcode-block" id="estimate_p"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.estimate_p.html#pwtools.rbf.core.estimate_p">[docs]</a><span class="k">def</span> <span class="nf">estimate_p</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="estimate_p">
+<a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.estimate_p.html#pwtools.rbf.core.estimate_p">[docs]</a>
+<span class="k">def</span> <span class="nf">estimate_p</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Estimate :math:`p`.</span>
 
 <span class="sd">    Parameters</span>
@@ -235,7 +258,10 @@
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;illegal method: </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Rbf"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.html#pwtools.rbf.core.Rbf">[docs]</a><span class="k">class</span> <span class="nc">Rbf</span><span class="p">:</span>
+
+<div class="viewcode-block" id="Rbf">
+<a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.html#pwtools.rbf.core.Rbf">[docs]</a>
+<span class="k">class</span> <span class="nc">Rbf</span><span class="p">:</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Radial basis function network interpolation and regression.</span>
 
 <span class="sd">    Notes</span>
@@ -307,7 +333,9 @@
 <span class="sd">    &gt;&gt;&gt; ax2.legend()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Rbf.__init__"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.html#pwtools.rbf.core.Rbf.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">rbf</span><span class="o">=</span><span class="s2">&quot;gauss&quot;</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="n">fit</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Rbf.__init__">
+<a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.html#pwtools.rbf.core.Rbf.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">rbf</span><span class="o">=</span><span class="s2">&quot;gauss&quot;</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="n">fit</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -353,6 +381,7 @@
         <span class="k">if</span> <span class="n">fit</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span></div>
 
+
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">attrs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;rbf&quot;</span><span class="p">,</span> <span class="s2">&quot;ndim&quot;</span><span class="p">]</span>
         <span class="k">return</span> <span class="s2">&quot;Rbf</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">pformat</span><span class="p">(</span>
@@ -367,7 +396,9 @@
         <span class="c1"># fmt: on</span>
         <span class="k">return</span> <span class="n">ret</span>
 
-<div class="viewcode-block" id="Rbf.get_distsq"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.get_distsq.html#pwtools.rbf.core.Rbf.get_distsq">[docs]</a>    <span class="k">def</span> <span class="nf">get_distsq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Rbf.get_distsq">
+<a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.get_distsq.html#pwtools.rbf.core.Rbf.get_distsq">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_distsq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Matrix of distance values :math:`R_{ij} = |\mathbf x_i - \mathbf</span>
 <span class="sd">        c_j|`.</span>
 
@@ -402,11 +433,17 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">squared_dists</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Rbf.get_params"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.get_params.html#pwtools.rbf.core.Rbf.get_params">[docs]</a>    <span class="k">def</span> <span class="nf">get_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Rbf.get_params">
+<a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.get_params.html#pwtools.rbf.core.Rbf.get_params">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return ``(p,r)``.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span></div>
 
-<div class="viewcode-block" id="Rbf.fit"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.fit.html#pwtools.rbf.core.Rbf.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Rbf.fit">
+<a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.fit.html#pwtools.rbf.core.Rbf.fit">[docs]</a>
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Solve linear system for the weights.</span>
 
 <span class="sd">        The weights  `self.w` (:math:`\mathbf w`) are found from: :math:`\mathbf</span>
@@ -445,6 +482,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solve</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solve</span><span class="p">(</span><span class="n">G</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">r</span><span class="p">)</span></div>
+
 
     <span class="k">def</span> <span class="nf">_solve_lstsq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">G</span><span class="p">):</span>
         <span class="n">x</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">rnk</span><span class="p">,</span> <span class="n">svs</span> <span class="o">=</span> <span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
@@ -493,7 +531,9 @@
     <span class="c1"># test never finishes. W/o the jit, the jax.numpy predict is 4x slower than</span>
     <span class="c1"># numpy.</span>
     <span class="c1">##@partial(jit, static_argnums=0)</span>
-<div class="viewcode-block" id="Rbf.predict"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.predict.html#pwtools.rbf.core.Rbf.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
+<div class="viewcode-block" id="Rbf.predict">
+<a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.predict.html#pwtools.rbf.core.Rbf.predict">[docs]</a>
+    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate model at `points`.</span>
 
 <span class="sd">        Parameters</span>
@@ -518,7 +558,10 @@
         <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">/</span> <span class="n">maxw</span><span class="p">)</span> <span class="o">*</span> <span class="n">maxw</span>
         <span class="k">return</span> <span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">_got_single_point</span> <span class="k">else</span> <span class="n">values</span></div>
 
-<div class="viewcode-block" id="Rbf.deriv_jax"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.deriv_jax.html#pwtools.rbf.core.Rbf.deriv_jax">[docs]</a>    <span class="k">def</span> <span class="nf">deriv_jax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Rbf.deriv_jax">
+<a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.deriv_jax.html#pwtools.rbf.core.Rbf.deriv_jax">[docs]</a>
+    <span class="k">def</span> <span class="nf">deriv_jax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Partial derivs from jax.</span>
 
 <span class="sd">        Same API as :meth:`deriv`: ``grad`` for 1d input or ``vmap(grad)`` for</span>
@@ -558,7 +601,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
-<div class="viewcode-block" id="Rbf.deriv"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.deriv.html#pwtools.rbf.core.Rbf.deriv">[docs]</a>    <span class="k">def</span> <span class="nf">deriv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Rbf.deriv">
+<a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.deriv.html#pwtools.rbf.core.Rbf.deriv">[docs]</a>
+    <span class="k">def</span> <span class="nf">deriv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Analytic first partial derivatives.</span>
 
 <span class="sd">        Analytic reference implementation of ``jax`` ``grad`` for 1d input or</span>
@@ -680,13 +726,19 @@
                 <span class="n">D</span><span class="p">[</span><span class="n">zz</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">zz</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">D</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">_got_single_point</span> <span class="k">else</span> <span class="n">D</span></div>
 
-<div class="viewcode-block" id="Rbf.fit_error"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.fit_error.html#pwtools.rbf.core.Rbf.fit_error">[docs]</a>    <span class="k">def</span> <span class="nf">fit_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Rbf.fit_error">
+<a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.fit_error.html#pwtools.rbf.core.Rbf.fit_error">[docs]</a>
+    <span class="k">def</span> <span class="nf">fit_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Sum of squared fit errors with penalty on negative `p`.&quot;&quot;&quot;</span>
         <span class="n">res</span> <span class="o">=</span> <span class="n">values</span> <span class="o">-</span> <span class="bp">self</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
         <span class="n">err</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">res</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">err</span><span class="p">))</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">err</span></div>
 
-<div class="viewcode-block" id="Rbf.__call__"><a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.html#pwtools.rbf.core.Rbf.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Rbf.__call__">
+<a class="viewcode-back" href="../../../generated/api/pwtools.rbf.core.Rbf.html#pwtools.rbf.core.Rbf.__call__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Call :meth:`predict` or :meth:`deriv`.</span>
 
@@ -724,7 +776,9 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">deriv</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</div>
+
 </pre></div>
 
           </div>
@@ -737,7 +791,7 @@
       &copy;2023, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>

@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>pwtools.timer &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9121de03" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -87,7 +87,9 @@
   <h1>Source code for pwtools.timer</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
 
-<div class="viewcode-block" id="TagTimer"><a class="viewcode-back" href="../../generated/api/pwtools.timer.TagTimer.html#pwtools.timer.TagTimer">[docs]</a><span class="k">class</span> <span class="nc">TagTimer</span><span class="p">:</span>
+<div class="viewcode-block" id="TagTimer">
+<a class="viewcode-back" href="../../generated/api/pwtools.timer.TagTimer.html#pwtools.timer.TagTimer">[docs]</a>
+<span class="k">class</span> <span class="nc">TagTimer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Helper class for timimg. It&#39;s meant to be used for manually inspecting</span>
 <span class="sd">    code.</span>
@@ -126,7 +128,9 @@
 <span class="sd">            tt.t(&#39;inner-loop&#39;)</span>
 <span class="sd">        ....</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="TagTimer.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.timer.TagTimer.html#pwtools.timer.TagTimer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">silence</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="TagTimer.__init__">
+<a class="viewcode-back" href="../../generated/api/pwtools.timer.TagTimer.html#pwtools.timer.TagTimer.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">silence</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">none_ar</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
         <span class="c1"># {&#39;tag0&#39;: array([val0, val1]), &#39;tag1&#39;: array([val2, val3]), ...}</span>
         <span class="c1"># Every `val` can be None or a float (= a time value). `tag` is a tag</span>
@@ -134,7 +138,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">time_ar_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">silence</span> <span class="o">=</span> <span class="n">silence</span></div>
 
-<div class="viewcode-block" id="TagTimer.t"><a class="viewcode-back" href="../../generated/api/pwtools.timer.TagTimer.t.html#pwtools.timer.TagTimer.t">[docs]</a>    <span class="k">def</span> <span class="nf">t</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TagTimer.t">
+<a class="viewcode-back" href="../../generated/api/pwtools.timer.TagTimer.t.html#pwtools.timer.TagTimer.t">[docs]</a>
+    <span class="k">def</span> <span class="nf">t</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Assign and save a numeric value (a time value) in a storage array</span>
 <span class="sd">        associated with `tag`.</span>
@@ -177,7 +184,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">time_ar_dict</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">none_ar</span><span class="p">[:]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="TagTimer.pt"><a class="viewcode-back" href="../../generated/api/pwtools.timer.TagTimer.pt.html#pwtools.timer.TagTimer.pt">[docs]</a>    <span class="k">def</span> <span class="nf">pt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TagTimer.pt">
+<a class="viewcode-back" href="../../generated/api/pwtools.timer.TagTimer.pt.html#pwtools.timer.TagTimer.pt">[docs]</a>
+    <span class="k">def</span> <span class="nf">pt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Print time difference since last ``t(tag)`` call for `tag`, which is</span>
 <span class="sd">        ``self.time_ar_dict[tag][1] - self.time_ar_dict[tag][0]``.</span>
@@ -209,10 +219,15 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;illegal array content for tag &#39;</span><span class="si">%s</span><span class="s2">&#39; &quot;</span> <span class="o">%</span><span class="n">tag</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="TagTimer.p"><a class="viewcode-back" href="../../generated/api/pwtools.timer.TagTimer.p.html#pwtools.timer.TagTimer.p">[docs]</a>    <span class="k">def</span> <span class="nf">p</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TagTimer.p">
+<a class="viewcode-back" href="../../generated/api/pwtools.timer.TagTimer.p.html#pwtools.timer.TagTimer.p">[docs]</a>
+    <span class="k">def</span> <span class="nf">p</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Simply print `msg`. &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">silence</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;--TagTimer--: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span></div></div>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;--TagTimer--: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span></div>
+</div>
+
 
 </pre></div>
 
@@ -226,7 +241,7 @@
       &copy;2023, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>

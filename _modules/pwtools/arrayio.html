@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>pwtools.arrayio &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9121de03" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -101,7 +101,9 @@
 <span class="n">TXT_MAXDIM</span> <span class="o">=</span> <span class="mi">3</span>
 
 
-<div class="viewcode-block" id="_read_header_config"><a class="viewcode-back" href="../../generated/api/pwtools.arrayio._read_header_config.html#pwtools.arrayio._read_header_config">[docs]</a><span class="nd">@open_and_close</span>
+<div class="viewcode-block" id="_read_header_config">
+<a class="viewcode-back" href="../../generated/api/pwtools.arrayio._read_header_config.html#pwtools.arrayio._read_header_config">[docs]</a>
+<span class="nd">@open_and_close</span>
 <span class="k">def</span> <span class="nf">_read_header_config</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">header_maxlines</span><span class="o">=</span><span class="n">HEADER_MAXLINES</span><span class="p">,</span>
                         <span class="n">header_comment</span><span class="o">=</span><span class="n">HEADER_COMMENT</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read a ini-style file from the header of a text file. Return a</span>
@@ -154,10 +156,13 @@
     <span class="k">return</span> <span class="n">c</span></div>
 
 
+
 <span class="c1"># the open_and_close decorator cannot be used here b/c it only opens</span>
 <span class="c1"># files in read mode, not for writing</span>
 <span class="c1"># XXX really? can&#39;t decorator take arguments as well</span>
-<div class="viewcode-block" id="_write_header_config"><a class="viewcode-back" href="../../generated/api/pwtools.arrayio._write_header_config.html#pwtools.arrayio._write_header_config">[docs]</a><span class="k">def</span> <span class="nf">_write_header_config</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">header_comment</span><span class="o">=</span><span class="n">HEADER_COMMENT</span><span class="p">,</span>
+<div class="viewcode-block" id="_write_header_config">
+<a class="viewcode-back" href="../../generated/api/pwtools.arrayio._write_header_config.html#pwtools.arrayio._write_header_config">[docs]</a>
+<span class="k">def</span> <span class="nf">_write_header_config</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">header_comment</span><span class="o">=</span><span class="n">HEADER_COMMENT</span><span class="p">,</span>
                          <span class="n">header_maxlines</span><span class="o">=</span><span class="n">HEADER_MAXLINES</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Write ini-style config file from `config` prefixed with `header_comment` to</span>
 <span class="sd">    file handle `fh`.&quot;&quot;&quot;</span>
@@ -177,8 +182,11 @@
     <span class="n">ftmp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 
+
 <span class="c1"># XXX same here, what about an argument for the decorator</span>
-<div class="viewcode-block" id="writetxt"><a class="viewcode-back" href="../../generated/api/pwtools.arrayio.writetxt.html#pwtools.arrayio.writetxt">[docs]</a><span class="k">def</span> <span class="nf">writetxt</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">arr</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">maxdim</span><span class="o">=</span><span class="n">TXT_MAXDIM</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="writetxt">
+<a class="viewcode-back" href="../../generated/api/pwtools.arrayio.writetxt.html#pwtools.arrayio.writetxt">[docs]</a>
+<span class="k">def</span> <span class="nf">writetxt</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">arr</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">maxdim</span><span class="o">=</span><span class="n">TXT_MAXDIM</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Write 1d, 2d or 3d arrays to txt file.</span>
 
 <span class="sd">    If 3d, write as 2d chunks. Take the 2d chunks along `axis`. Write a</span>
@@ -218,7 +226,10 @@
     <span class="n">fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="readtxt"><a class="viewcode-back" href="../../generated/api/pwtools.arrayio.readtxt.html#pwtools.arrayio.readtxt">[docs]</a><span class="nd">@open_and_close</span>
+
+<div class="viewcode-block" id="readtxt">
+<a class="viewcode-back" href="../../generated/api/pwtools.arrayio.readtxt.html#pwtools.arrayio.readtxt">[docs]</a>
+<span class="nd">@open_and_close</span>
 <span class="k">def</span> <span class="nf">readtxt</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">header_maxlines</span><span class="o">=</span><span class="n">HEADER_MAXLINES</span><span class="p">,</span>
             <span class="n">header_comment</span><span class="o">=</span><span class="n">HEADER_COMMENT</span><span class="p">,</span> <span class="n">maxdim</span><span class="o">=</span><span class="n">TXT_MAXDIM</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read arrays from .txt file using np.loadtxt().</span>
@@ -292,7 +303,10 @@
     <span class="k">return</span> <span class="n">arr</span></div>
 
 
-<div class="viewcode-block" id="arr2d_to_3d"><a class="viewcode-back" href="../../generated/api/pwtools.arrayio.arr2d_to_3d.html#pwtools.arrayio.arr2d_to_3d">[docs]</a><span class="k">def</span> <span class="nf">arr2d_to_3d</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+
+<div class="viewcode-block" id="arr2d_to_3d">
+<a class="viewcode-back" href="../../generated/api/pwtools.arrayio.arr2d_to_3d.html#pwtools.arrayio.arr2d_to_3d">[docs]</a>
+<span class="k">def</span> <span class="nf">arr2d_to_3d</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Reshape 2d array `arr` to 3d array of `shape`, with 2d chunks aligned</span>
 <span class="sd">    along `axis`.</span>
 
@@ -332,6 +346,7 @@
         <span class="n">arr3d</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">sl</span><span class="p">)]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="n">ind</span><span class="o">*</span><span class="n">shape_2d_chunk</span><span class="p">[</span><span class="mi">0</span><span class="p">]:(</span><span class="n">ind</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">shape_2d_chunk</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">:]</span>
     <span class="k">return</span> <span class="n">arr3d</span></div>
 
+
 </pre></div>
 
           </div>
@@ -344,7 +359,7 @@
       &copy;2023, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>

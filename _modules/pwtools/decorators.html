@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>pwtools.decorators &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9121de03" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -91,7 +91,9 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
 
-<div class="viewcode-block" id="open_and_close"><a class="viewcode-back" href="../../generated/api/pwtools.decorators.open_and_close.html#pwtools.decorators.open_and_close">[docs]</a><span class="k">def</span> <span class="nf">open_and_close</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+<div class="viewcode-block" id="open_and_close">
+<a class="viewcode-back" href="../../generated/api/pwtools.decorators.open_and_close.html#pwtools.decorators.open_and_close">[docs]</a>
+<span class="k">def</span> <span class="nf">open_and_close</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Decorator for all parsing functions that originally got a file name and</span>
 <span class="sd">    went thru the whole file b/c the things that they search can occur in</span>
 <span class="sd">    arbitrary order.</span>
@@ -155,7 +157,10 @@
     <span class="k">return</span> <span class="n">wrapper</span></div>
 
 
-<div class="viewcode-block" id="crys_add_doc"><a class="viewcode-back" href="../../generated/api/pwtools.decorators.crys_add_doc.html#pwtools.decorators.crys_add_doc">[docs]</a><span class="k">def</span> <span class="nf">crys_add_doc</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+
+<div class="viewcode-block" id="crys_add_doc">
+<a class="viewcode-back" href="../../generated/api/pwtools.decorators.crys_add_doc.html#pwtools.decorators.crys_add_doc">[docs]</a>
+<span class="k">def</span> <span class="nf">crys_add_doc</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Decorator to add common docstrings to functions with crystal/unit cell</span>
 <span class="sd">    related functionallity.&quot;&quot;&quot;</span>
     <span class="n">dct</span> <span class="o">=</span> <span class="p">{}</span>
@@ -181,17 +186,23 @@
     <span class="k">return</span> <span class="n">func</span></div>
 
 
+
 <span class="c1"># NOTE: can be drop-in replaced by functools.cached_property() as of Python 3.8</span>
-<div class="viewcode-block" id="lazyprop"><a class="viewcode-back" href="../../generated/api/pwtools.decorators.lazyprop.html#pwtools.decorators.lazyprop">[docs]</a><span class="k">class</span> <span class="nc">lazyprop</span><span class="p">:</span>
+<div class="viewcode-block" id="lazyprop">
+<a class="viewcode-back" href="../../generated/api/pwtools.decorators.lazyprop.html#pwtools.decorators.lazyprop">[docs]</a>
+<span class="k">class</span> <span class="nc">lazyprop</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Decorator for creating lazy evaluated properties.</span>
 <span class="sd">    The property should represent non-mutable data, as it replaces itself.</span>
 
 <span class="sd">    kudos: Cyclone over at stackoverflow!</span>
 <span class="sd">    http://stackoverflow.com/questions/3012421/python-lazy-property-decorator</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="lazyprop.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.decorators.lazyprop.html#pwtools.decorators.lazyprop.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fget</span><span class="p">):</span>
+<div class="viewcode-block" id="lazyprop.__init__">
+<a class="viewcode-back" href="../../generated/api/pwtools.decorators.lazyprop.html#pwtools.decorators.lazyprop.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fget</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fget</span> <span class="o">=</span> <span class="n">fget</span>
         <span class="bp">self</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">fget</span><span class="o">.</span><span class="vm">__name__</span></div>
+
 
     <span class="k">def</span> <span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">obj</span><span class="p">,</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -199,6 +210,7 @@
         <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fget</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
         <span class="nb">setattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span><span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">value</span></div>
+
 
 <span class="c1"># http://stackoverflow.com/questions/3012421/python-lazy-property-decorator</span>
 <span class="c1">##def lazyprop(fn):</span>
@@ -221,7 +233,7 @@
       &copy;2023, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>

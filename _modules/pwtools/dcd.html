@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>pwtools.dcd &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9121de03" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -147,7 +147,9 @@
 <span class="n">HEADER_DTYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">HEADER_TYPES</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="read_dcd_header"><a class="viewcode-back" href="../../generated/api/pwtools.dcd.read_dcd_header.html#pwtools.dcd.read_dcd_header">[docs]</a><span class="k">def</span> <span class="nf">read_dcd_header</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+<div class="viewcode-block" id="read_dcd_header">
+<a class="viewcode-back" href="../../generated/api/pwtools.dcd.read_dcd_header.html#pwtools.dcd.read_dcd_header">[docs]</a>
+<span class="k">def</span> <span class="nf">read_dcd_header</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Shortcut function for reading the header from `fn`, using HEADER_DTYPE.</span>
 
 <span class="sd">    Parameters</span>
@@ -165,7 +167,10 @@
     <span class="k">return</span> <span class="nb">dict</span><span class="p">((</span><span class="n">key</span><span class="p">,</span><span class="n">arr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="read_dcd_data_ref"><a class="viewcode-back" href="../../generated/api/pwtools.dcd.read_dcd_data_ref.html#pwtools.dcd.read_dcd_data_ref">[docs]</a><span class="k">def</span> <span class="nf">read_dcd_data_ref</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">convang</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="read_dcd_data_ref">
+<a class="viewcode-back" href="../../generated/api/pwtools.dcd.read_dcd_data_ref.html#pwtools.dcd.read_dcd_data_ref">[docs]</a>
+<span class="k">def</span> <span class="nf">read_dcd_data_ref</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">convang</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read dcd file. Pure Python version. Slow, only reference implementation.</span>
 <span class="sd">    Use :func:`read_dcd_data` instead.</span>
 
@@ -237,7 +242,10 @@
     <span class="k">return</span> <span class="n">cryst_const</span><span class="p">,</span> <span class="n">coords</span></div>
 
 
-<div class="viewcode-block" id="read_dcd_data"><a class="viewcode-back" href="../../generated/api/pwtools.dcd.read_dcd_data.html#pwtools.dcd.read_dcd_data">[docs]</a><span class="k">def</span> <span class="nf">read_dcd_data</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">convang</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="read_dcd_data">
+<a class="viewcode-back" href="../../generated/api/pwtools.dcd.read_dcd_data.html#pwtools.dcd.read_dcd_data">[docs]</a>
+<span class="k">def</span> <span class="nf">read_dcd_data</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">convang</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read dcd file. Fastest version. Calculates nstep from bytes between</span>
 <span class="sd">    end-of-header and EOF.</span>
 
@@ -311,7 +319,10 @@
     <span class="k">return</span> <span class="n">cryst_const</span><span class="p">,</span> <span class="n">coords</span></div>
 
 
-<div class="viewcode-block" id="read_dcd_data_f"><a class="viewcode-back" href="../../generated/api/pwtools.dcd.read_dcd_data_f.html#pwtools.dcd.read_dcd_data_f">[docs]</a><span class="k">def</span> <span class="nf">read_dcd_data_f</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">convang</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nstephdr</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="read_dcd_data_f">
+<a class="viewcode-back" href="../../generated/api/pwtools.dcd.read_dcd_data_f.html#pwtools.dcd.read_dcd_data_f">[docs]</a>
+<span class="k">def</span> <span class="nf">read_dcd_data_f</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">convang</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nstephdr</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read dcd file. Wrapper for the Fortran version in ``dcd.f90``.</span>
 <span class="sd">    Deprecated, use :func:`read_dcd_data` instead.</span>
 
@@ -341,6 +352,7 @@
     <span class="kn">from</span> <span class="nn">pwtools</span> <span class="kn">import</span> <span class="n">_dcd</span>
     <span class="n">nstep</span><span class="p">,</span> <span class="n">natoms</span><span class="p">,</span> <span class="n">timestep</span> <span class="o">=</span> <span class="n">_dcd</span><span class="o">.</span><span class="n">get_dcd_file_info</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">nstephdr</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">_dcd</span><span class="o">.</span><span class="n">read_dcd_data</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">nstep</span><span class="p">,</span> <span class="n">natoms</span><span class="p">,</span> <span class="n">convang</span><span class="p">)</span></div>
+
 </pre></div>
 
           </div>
@@ -353,7 +365,7 @@
       &copy;2023, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>

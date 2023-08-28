@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,9 +8,9 @@
     <title>Quasi-harmonic approximation &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=9121de03" />
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -86,7 +86,7 @@
           <div class="body" role="main">
             
   <section class="tex2jax_ignore mathjax_ignore" id="quasi-harmonic-approximation">
-<span id="qha"></span><h1>Quasi-harmonic approximation<a class="headerlink" href="#quasi-harmonic-approximation" title="Permalink to this heading">¶</a></h1>
+<span id="qha"></span><h1>Quasi-harmonic approximation<a class="headerlink" href="#quasi-harmonic-approximation" title="Link to this heading">¶</a></h1>
 <p>See <a class="reference internal" href="../generated/api/pwtools.thermo.HarmonicThermo.html#pwtools.thermo.HarmonicThermo" title="pwtools.thermo.HarmonicThermo"><code class="xref py py-class docutils literal notranslate"><span class="pre">HarmonicThermo</span></code></a> +
 <code class="docutils literal notranslate"><span class="pre">test/test_qha.py</span></code>, <a class="reference internal" href="../generated/api/pwtools.thermo.Gibbs.html#pwtools.thermo.Gibbs" title="pwtools.thermo.Gibbs"><code class="xref py py-class docutils literal notranslate"><span class="pre">Gibbs</span></code></a> + <code class="docutils literal notranslate"><span class="pre">tesst/test_gibbs.py</span></code>.</p>
 <p>The distinctive feature of the pwtools implementation is that in
@@ -102,7 +102,7 @@ but has not been used in practice.</p>
 relaxations at different pressures) is called “fake 1d” case. See below for
 more.</p>
 <section id="d">
-<h2>1d<a class="headerlink" href="#d" title="Permalink to this heading">¶</a></h2>
+<h2>1d<a class="headerlink" href="#d" title="Link to this heading">¶</a></h2>
 <p>See <code class="docutils literal notranslate"><span class="pre">test_gibbs.py::test_gibbs_1d</span></code> (using generated data).</p>
 <p>Example results from <code class="docutils literal notranslate"><span class="pre">Gibbs</span></code> for rocksalt AlN from <a class="reference external" href="https://journals.aps.org/prb/abstract/10.1103/PhysRevB.89.064109" title="Schmerler and Kortus, Phys. Rev. B 89, 064109">the paper above</a>
 (vary cell parameter <code class="docutils literal notranslate"><span class="pre">a</span></code> = <code class="docutils literal notranslate"><span class="pre">ax0</span></code> of the primitive cell, so 1d case). <code class="docutils literal notranslate"><span class="pre">Gibbs</span></code>
@@ -169,7 +169,7 @@ contributions, at <span class="math notranslate nohighlight">\(T=0\)</span></p><
 </ul>
 </section>
 <section id="id1">
-<h2>2d<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
+<h2>2d<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
 <p>See <code class="docutils literal notranslate"><span class="pre">test_gibbs.py::test_gibbs_2d</span></code> (using generated data).</p>
 <p>2d case (hexagonal wurtzite AlN from <a class="reference external" href="https://journals.aps.org/prb/abstract/10.1103/PhysRevB.89.064109" title="Schmerler and Kortus, Phys. Rev. B 89, 064109">the paper above</a>, vary cell axis
 <code class="docutils literal notranslate"><span class="pre">a</span></code> = <code class="docutils literal notranslate"><span class="pre">ax0</span></code> and <code class="docutils literal notranslate"><span class="pre">c</span></code> = <code class="docutils literal notranslate"><span class="pre">ax1</span></code>):</p>
@@ -218,7 +218,7 @@ calculations), represented as an array of shape (263,2).</p></li>
 <span class="math notranslate nohighlight">\(\alpha_V\)</span> = <code class="docutils literal notranslate"><span class="pre">/#opt/T/P/alpha_V</span></code>.</p>
 </section>
 <section id="fake-1d-a-k-a-usual-qha-with-varying-volume">
-<h2>“Fake” 1d a.k.a. usual QHA with varying volume<a class="headerlink" href="#fake-1d-a-k-a-usual-qha-with-varying-volume" title="Permalink to this heading">¶</a></h2>
+<h2>“Fake” 1d a.k.a. usual QHA with varying volume<a class="headerlink" href="#fake-1d-a-k-a-usual-qha-with-varying-volume" title="Link to this heading">¶</a></h2>
 <p>See <code class="docutils literal notranslate"><span class="pre">test_gibbs.py::test_gibbs_3d_fake_1d</span></code> (using generated data). The HDF5
 data below is from that test.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ h5ls -rl thermo.h5 | grep Dataset
@@ -314,7 +314,7 @@ see <a class="reference internal" href="background/param_study.html#param-study"
 that in <a class="reference external" href="https://github.com/elcorto/psweep">psweep</a>.</p>
 </section>
 <section id="other-tools">
-<h2>Other tools<a class="headerlink" href="#other-tools" title="Permalink to this heading">¶</a></h2>
+<h2>Other tools<a class="headerlink" href="#other-tools" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://phonopy.github.io/phonopy/">https://phonopy.github.io/phonopy/</a></p>
 <ul>
@@ -356,7 +356,7 @@ default, can also use QE</p></li>
       &copy;2023, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |

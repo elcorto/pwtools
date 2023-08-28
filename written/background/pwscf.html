@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,9 +8,9 @@
     <title>Pwscf &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9121de03" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Radial Basis Function interpolation an regression" href="rbf.html" />
@@ -101,9 +101,9 @@
           <div class="body" role="main">
             
   <section id="pwscf">
-<h1>Pwscf<a class="headerlink" href="#pwscf" title="Permalink to this heading">¶</a></h1>
+<h1>Pwscf<a class="headerlink" href="#pwscf" title="Link to this heading">¶</a></h1>
 <section id="units">
-<h2>Units<a class="headerlink" href="#units" title="Permalink to this heading">¶</a></h2>
+<h2>Units<a class="headerlink" href="#units" title="Link to this heading">¶</a></h2>
 <p>From <a class="reference external" href="http://www.quantum-espresso.org/input-syntax/INPUT_PW.html">http://www.quantum-espresso.org/input-syntax/INPUT_PW.html</a>:
 “All quantities whose dimensions are not explicitly specified are in
 RYDBERG ATOMIC UNITS”. See also <code class="docutils literal notranslate"><span class="pre">constants.py</span></code>.</p>
@@ -116,7 +116,7 @@ frequency as in “hbar*omega”, then use f*2*pi!</p>
 </dl>
 </section>
 <section id="atomic-coordinates">
-<h2>Atomic coordinates<a class="headerlink" href="#atomic-coordinates" title="Permalink to this heading">¶</a></h2>
+<h2>Atomic coordinates<a class="headerlink" href="#atomic-coordinates" title="Link to this heading">¶</a></h2>
 <p>In PWscf terms, alat = celldm(1) = lattice constant “a” in a.u. . A length in
 a.u. means a unit or Bohr = a0 = 0.52917720859 Angstrom.</p>
 <p>To calculate the PDOS, atomic coordinates from MD trajectories have to be in
@@ -163,7 +163,7 @@ files).</p>
 </div>
 </section>
 <section id="total-force-on-atoms">
-<h2>Total force on atoms<a class="headerlink" href="#total-force-on-atoms" title="Permalink to this heading">¶</a></h2>
+<h2>Total force on atoms<a class="headerlink" href="#total-force-on-atoms" title="Link to this heading">¶</a></h2>
 <p>Pwscf writes a “Total Force” after the “Forces acting on atoms” section . This
 value is kind of an RMS of the force matrix (f_ij, i=1,natoms j=1,2,3) printed.
 According to …/PW/forces.f90, variable “sumfor”, the “Total Force” is:</p>
@@ -190,7 +190,7 @@ crys.rms3d() for MD runs where the RMS of each (f_ij) is:</p>
       &copy;2023, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |

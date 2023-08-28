@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>pwtools.io &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9121de03" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -109,7 +109,9 @@
     <span class="k">pass</span>
 
 
-<div class="viewcode-block" id="wien_sgroup_input"><a class="viewcode-back" href="../../generated/api/pwtools.io.wien_sgroup_input.html#pwtools.io.wien_sgroup_input">[docs]</a><span class="k">def</span> <span class="nf">wien_sgroup_input</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">lat_symbol</span><span class="o">=</span><span class="s1">&#39;P&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="wien_sgroup_input">
+<a class="viewcode-back" href="../../generated/api/pwtools.io.wien_sgroup_input.html#pwtools.io.wien_sgroup_input">[docs]</a>
+<span class="k">def</span> <span class="nf">wien_sgroup_input</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">lat_symbol</span><span class="o">=</span><span class="s1">&#39;P&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate input for WIEN2K&#39;s ``sgroup`` symmetry analysis tool.</span>
 
 <span class="sd">    length: can be any</span>
@@ -173,7 +175,10 @@
     <span class="k">return</span> <span class="n">txt</span></div>
 
 
-<div class="viewcode-block" id="write_wien_sgroup"><a class="viewcode-back" href="../../generated/api/pwtools.io.write_wien_sgroup.html#pwtools.io.write_wien_sgroup">[docs]</a><span class="k">def</span> <span class="nf">write_wien_sgroup</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">struct</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+
+<div class="viewcode-block" id="write_wien_sgroup">
+<a class="viewcode-back" href="../../generated/api/pwtools.io.write_wien_sgroup.html#pwtools.io.write_wien_sgroup">[docs]</a>
+<span class="k">def</span> <span class="nf">write_wien_sgroup</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">struct</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Write `struct` to input file for WIEN2K&#39;s ``sgroup`` symmetry analysis</span>
 <span class="sd">    tool.</span>
@@ -189,7 +194,10 @@
     <span class="n">common</span><span class="o">.</span><span class="n">file_write</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">txt</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="write_cif"><a class="viewcode-back" href="../../generated/api/pwtools.io.write_cif.html#pwtools.io.write_cif">[docs]</a><span class="k">def</span> <span class="nf">write_cif</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">struct</span><span class="p">):</span>
+
+<div class="viewcode-block" id="write_cif">
+<a class="viewcode-back" href="../../generated/api/pwtools.io.write_cif.html#pwtools.io.write_cif">[docs]</a>
+<span class="k">def</span> <span class="nf">write_cif</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">struct</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Q&#39;n&#39;D Cif writer. Uses PyCifRW.</span>
 
 <span class="sd">    length: Angstrom</span>
@@ -240,7 +248,10 @@
     <span class="n">common</span><span class="o">.</span><span class="n">file_write</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">cf</span><span class="o">.</span><span class="n">WriteOut</span><span class="p">(</span><span class="n">wraplength</span><span class="o">=</span><span class="mi">2048</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="write_xyz"><a class="viewcode-back" href="../../generated/api/pwtools.io.write_xyz.html#pwtools.io.write_xyz">[docs]</a><span class="k">def</span> <span class="nf">write_xyz</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;pwtools_dummy_mol_name&#39;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="write_xyz">
+<a class="viewcode-back" href="../../generated/api/pwtools.io.write_xyz.html#pwtools.io.write_xyz">[docs]</a>
+<span class="k">def</span> <span class="nf">write_xyz</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;pwtools_dummy_mol_name&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Write VMD-style [VMD] XYZ file.</span>
 
 <span class="sd">    length: Angstrom</span>
@@ -267,7 +278,10 @@
     <span class="n">common</span><span class="o">.</span><span class="n">file_write</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">xyz_str</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="write_axsf"><a class="viewcode-back" href="../../generated/api/pwtools.io.write_axsf.html#pwtools.io.write_axsf">[docs]</a><span class="k">def</span> <span class="nf">write_axsf</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+
+<div class="viewcode-block" id="write_axsf">
+<a class="viewcode-back" href="../../generated/api/pwtools.io.write_axsf.html#pwtools.io.write_axsf">[docs]</a>
+<span class="k">def</span> <span class="nf">write_axsf</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Write animated XSF file for Structure (only 1 step) or Trajectory.</span>
 
 <span class="sd">    Note that forces are converted eV / Ang -&gt; Ha / Ang.</span>
@@ -312,7 +326,10 @@
     <span class="n">common</span><span class="o">.</span><span class="n">file_write</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">axsf_str</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="write_lammps"><a class="viewcode-back" href="../../generated/api/pwtools.io.write_lammps.html#pwtools.io.write_lammps">[docs]</a><span class="k">def</span> <span class="nf">write_lammps</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">struct</span><span class="p">,</span> <span class="n">symbolsbasename</span><span class="o">=</span><span class="s1">&#39;lmp.struct.symbols&#39;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="write_lammps">
+<a class="viewcode-back" href="../../generated/api/pwtools.io.write_lammps.html#pwtools.io.write_lammps">[docs]</a>
+<span class="k">def</span> <span class="nf">write_lammps</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">struct</span><span class="p">,</span> <span class="n">symbolsbasename</span><span class="o">=</span><span class="s1">&#39;lmp.struct.symbols&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Write Structure object to lammps format. That file can be read in a</span>
 <span class="sd">    lammps input file by ``read_data``. Write file ``lmp.struct.symbols`` with</span>
 <span class="sd">    atom symbols.</span>
@@ -335,7 +352,10 @@
     <span class="n">common</span><span class="o">.</span><span class="n">file_write</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">lammps</span><span class="o">.</span><span class="n">struct_str</span><span class="p">(</span><span class="n">struct</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="write_h5"><a class="viewcode-back" href="../../generated/api/pwtools.io.write_h5.html#pwtools.io.write_h5">[docs]</a><span class="k">def</span> <span class="nf">write_h5</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+
+<div class="viewcode-block" id="write_h5">
+<a class="viewcode-back" href="../../generated/api/pwtools.io.write_h5.html#pwtools.io.write_h5">[docs]</a>
+<span class="k">def</span> <span class="nf">write_h5</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Write dictionary with arrays (or whatever HDF5 handles) to h5 file.</span>
 
 <span class="sd">    Dict keys are supposed to be HDF group + dataset names like `/a/b/c/dset`.</span>
@@ -370,7 +390,10 @@
     <span class="n">fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="read_h5"><a class="viewcode-back" href="../../generated/api/pwtools.io.read_h5.html#pwtools.io.read_h5">[docs]</a><span class="k">def</span> <span class="nf">read_h5</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+
+<div class="viewcode-block" id="read_h5">
+<a class="viewcode-back" href="../../generated/api/pwtools.io.read_h5.html#pwtools.io.read_h5">[docs]</a>
+<span class="k">def</span> <span class="nf">read_h5</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read h5 file into dict.</span>
 
 <span class="sd">    Dict keys are the group + dataset names, e.g. &#39;/a/b/c/dset&#39;. All keys start</span>
@@ -398,22 +421,33 @@
     <span class="k">return</span> <span class="n">dct</span></div>
 
 
-<div class="viewcode-block" id="load_h5"><a class="viewcode-back" href="../../generated/api/pwtools.io.load_h5.html#pwtools.io.load_h5">[docs]</a><span class="k">def</span> <span class="nf">load_h5</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+
+<div class="viewcode-block" id="load_h5">
+<a class="viewcode-back" href="../../generated/api/pwtools.io.load_h5.html#pwtools.io.load_h5">[docs]</a>
+<span class="k">def</span> <span class="nf">load_h5</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Alias for :func:`read_h5`. Deprecated.&quot;&quot;&quot;</span>
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;load_h5() is deprcated, use read_h5() instead&quot;</span><span class="p">,</span>
                    <span class="ne">DeprecationWarning</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">read_h5</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="read_pickle"><a class="viewcode-back" href="../../generated/api/pwtools.io.read_pickle.html#pwtools.io.read_pickle">[docs]</a><span class="k">def</span> <span class="nf">read_pickle</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+
+<div class="viewcode-block" id="read_pickle">
+<a class="viewcode-back" href="../../generated/api/pwtools.io.read_pickle.html#pwtools.io.read_pickle">[docs]</a>
+<span class="k">def</span> <span class="nf">read_pickle</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load object written by ``pickle.dump()``, e.g. files written by</span>
 <span class="sd">    :meth:`~pwtools.base.FlexibleGetters.dump()`.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="ReadFactory"><a class="viewcode-back" href="../../generated/api/pwtools.io.ReadFactory.html#pwtools.io.ReadFactory">[docs]</a><span class="k">class</span> <span class="nc">ReadFactory</span><span class="p">:</span>
+
+<div class="viewcode-block" id="ReadFactory">
+<a class="viewcode-back" href="../../generated/api/pwtools.io.ReadFactory.html#pwtools.io.ReadFactory">[docs]</a>
+<span class="k">class</span> <span class="nc">ReadFactory</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Factory class to construct callables to parse files.&quot;&quot;&quot;</span>
-<div class="viewcode-block" id="ReadFactory.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.io.ReadFactory.html#pwtools.io.ReadFactory.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">struct_or_traj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="ReadFactory.__init__">
+<a class="viewcode-back" href="../../generated/api/pwtools.io.ReadFactory.html#pwtools.io.ReadFactory.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parser</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">struct_or_traj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -448,7 +482,10 @@
 <span class="s2">              :class:`~pwtools.crys.Trajectory` (MD-like runs)</span>
 <span class="s2">        &quot;&quot;&quot;</span></div>
 
-<div class="viewcode-block" id="ReadFactory.__call__"><a class="viewcode-back" href="../../generated/api/pwtools.io.ReadFactory.html#pwtools.io.ReadFactory.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+
+<div class="viewcode-block" id="ReadFactory.__call__">
+<a class="viewcode-back" href="../../generated/api/pwtools.io.ReadFactory.html#pwtools.io.ReadFactory.__call__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -462,7 +499,9 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">struct_or_traj</span> <span class="o">==</span> <span class="s1">&#39;traj&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span><span class="o">.</span><span class="n">get_traj</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;unknown struct_or_traj: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">struct_or_traj</span><span class="p">)</span></div></div>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;unknown struct_or_traj: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="n">struct_or_traj</span><span class="p">)</span></div>
+</div>
+
 
 
 <span class="n">read_cif</span> <span class="o">=</span> <span class="n">ReadFactory</span><span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="n">parse</span><span class="o">.</span><span class="n">CifFile</span><span class="p">,</span>
@@ -530,7 +569,7 @@
       &copy;2023, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>

@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>pwtools.common &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9121de03" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -100,7 +100,9 @@
 <span class="kn">from</span> <span class="nn">pwtools.verbose</span> <span class="kn">import</span> <span class="n">verbose</span>
 <span class="kn">from</span> <span class="nn">pwtools.num</span> <span class="kn">import</span> <span class="n">EPS</span>
 
-<div class="viewcode-block" id="assert_cond"><a class="viewcode-back" href="../../generated/api/pwtools.common.assert_cond.html#pwtools.common.assert_cond">[docs]</a><span class="k">def</span> <span class="nf">assert_cond</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="n">string</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="assert_cond">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.assert_cond.html#pwtools.common.assert_cond">[docs]</a>
+<span class="k">def</span> <span class="nf">assert_cond</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="n">string</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Use this instead of `assert cond, string`. It&#39;s been said on</span>
 <span class="sd">    numpy-discussions that the assert statement shouldn&#39;t be used to test user</span>
 <span class="sd">    input in functions b/c with `python ... -O0` or __debug__ not beeing</span>
@@ -122,11 +124,14 @@
         <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="n">string</span><span class="p">)</span></div>
 
 
+
 <span class="c1">#-----------------------------------------------------------------------------</span>
 <span class="c1"># Config file stuff</span>
 <span class="c1">#-----------------------------------------------------------------------------</span>
 
-<div class="viewcode-block" id="add_to_config"><a class="viewcode-back" href="../../generated/api/pwtools.common.add_to_config.html#pwtools.common.add_to_config">[docs]</a><span class="k">def</span> <span class="nf">add_to_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
+<div class="viewcode-block" id="add_to_config">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.add_to_config.html#pwtools.common.add_to_config">[docs]</a>
+<span class="k">def</span> <span class="nf">add_to_config</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Add sections and key-val paris in `info` to `config`.</span>
 
 <span class="sd">    Parameters</span>
@@ -145,11 +150,14 @@
     <span class="k">return</span> <span class="n">config</span></div>
 
 
+
 <span class="c1">#-----------------------------------------------------------------------------</span>
 <span class="c1"># Type converters / light numerical stuff</span>
 <span class="c1">#-----------------------------------------------------------------------------</span>
 
-<div class="viewcode-block" id="toslice"><a class="viewcode-back" href="../../generated/api/pwtools.common.toslice.html#pwtools.common.toslice">[docs]</a><span class="k">def</span> <span class="nf">toslice</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+<div class="viewcode-block" id="toslice">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.toslice.html#pwtools.common.toslice">[docs]</a>
+<span class="k">def</span> <span class="nf">toslice</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A simple wrapper around numpy.s_() taking strings as argument.</span>
 <span class="sd">    Convert strings representing Python/numpy slice to slice</span>
 <span class="sd">    objects.</span>
@@ -195,7 +203,10 @@
     <span class="k">return</span> <span class="nb">eval</span><span class="p">(</span><span class="s1">&#39;np.s_[</span><span class="si">%s</span><span class="s1">]&#39;</span> <span class="o">%</span><span class="n">val</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="tobool"><a class="viewcode-back" href="../../generated/api/pwtools.common.tobool.html#pwtools.common.tobool">[docs]</a><span class="k">def</span> <span class="nf">tobool</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+
+<div class="viewcode-block" id="tobool">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.tobool.html#pwtools.common.tobool">[docs]</a>
+<span class="k">def</span> <span class="nf">tobool</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert `val` to boolean value True or False.</span>
 
 <span class="sd">    Parameters</span>
@@ -237,7 +248,10 @@
     <span class="k">return</span> <span class="n">ret</span></div>
 
 
-<div class="viewcode-block" id="ffloat"><a class="viewcode-back" href="../../generated/api/pwtools.common.ffloat.html#pwtools.common.ffloat">[docs]</a><span class="k">def</span> <span class="nf">ffloat</span><span class="p">(</span><span class="n">st</span><span class="p">):</span>
+
+<div class="viewcode-block" id="ffloat">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.ffloat.html#pwtools.common.ffloat">[docs]</a>
+<span class="k">def</span> <span class="nf">ffloat</span><span class="p">(</span><span class="n">st</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert strings representing numbers to Python floats using</span>
 <span class="sd">    float(). The returned value is a double (or whatever the float() of your</span>
 <span class="sd">    Python installation  returns).</span>
@@ -277,7 +291,10 @@
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="frepr"><a class="viewcode-back" href="../../generated/api/pwtools.common.frepr.html#pwtools.common.frepr">[docs]</a><span class="k">def</span> <span class="nf">frepr</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">ffmt</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%.16e</span><span class="s2">&quot;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="frepr">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.frepr.html#pwtools.common.frepr">[docs]</a>
+<span class="k">def</span> <span class="nf">frepr</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">ffmt</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%.16e</span><span class="s2">&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Similar to Python&#39;s repr(), but return floats formated with `ffmt` if</span>
 <span class="sd">    `var` is a float.</span>
 
@@ -309,12 +326,18 @@
         <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="n">var</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="seq2str"><a class="viewcode-back" href="../../generated/api/pwtools.common.seq2str.html#pwtools.common.seq2str">[docs]</a><span class="k">def</span> <span class="nf">seq2str</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="seq2str">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.seq2str.html#pwtools.common.seq2str">[docs]</a>
+<span class="k">def</span> <span class="nf">seq2str</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;(1,2,3) -&gt; &quot;1 2 3&quot; &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">seq</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="str2seq"><a class="viewcode-back" href="../../generated/api/pwtools.common.str2seq.html#pwtools.common.str2seq">[docs]</a><span class="k">def</span> <span class="nf">str2seq</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="str2seq">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.str2seq.html#pwtools.common.str2seq">[docs]</a>
+<span class="k">def</span> <span class="nf">str2seq</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; &quot;1 2 3&quot; -&gt; [func(&#39;1&#39;), func(&#39;2&#39;), func(&#39;3&#39;)]&quot;&quot;&quot;</span>
     <span class="c1"># XXX check usage of this, check if we need list() at all</span>
     <span class="k">if</span> <span class="n">sep</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -323,11 +346,17 @@
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">st</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">sep</span><span class="p">)))</span></div>
 
 
-<div class="viewcode-block" id="str2tup"><a class="viewcode-back" href="../../generated/api/pwtools.common.str2tup.html#pwtools.common.str2tup">[docs]</a><span class="k">def</span> <span class="nf">str2tup</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+<div class="viewcode-block" id="str2tup">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.str2tup.html#pwtools.common.str2tup">[docs]</a>
+<span class="k">def</span> <span class="nf">str2tup</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">str2seq</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="fix_eps"><a class="viewcode-back" href="../../generated/api/pwtools.common.fix_eps.html#pwtools.common.fix_eps">[docs]</a><span class="k">def</span> <span class="nf">fix_eps</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">EPS</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+<div class="viewcode-block" id="fix_eps">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.fix_eps.html#pwtools.common.fix_eps">[docs]</a>
+<span class="k">def</span> <span class="nf">fix_eps</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">EPS</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set values of arr to zero where abs(arr) &lt;= eps.</span>
 
 <span class="sd">    Parameters</span>
@@ -347,7 +376,10 @@
     <span class="k">return</span> <span class="n">_arr</span></div>
 
 
-<div class="viewcode-block" id="str_arr"><a class="viewcode-back" href="../../generated/api/pwtools.common.str_arr.html#pwtools.common.str_arr">[docs]</a><span class="k">def</span> <span class="nf">str_arr</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%.16e</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">delim</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="o">*</span><span class="mi">4</span><span class="p">,</span> <span class="n">zero_eps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">EPS</span><span class="p">):</span>
+
+<div class="viewcode-block" id="str_arr">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.str_arr.html#pwtools.common.str_arr">[docs]</a>
+<span class="k">def</span> <span class="nf">str_arr</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%.16e</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">delim</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="o">*</span><span class="mi">4</span><span class="p">,</span> <span class="n">zero_eps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">EPS</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert array `arr` to nice string representation for printing.</span>
 
 <span class="sd">    Parameters</span>
@@ -401,11 +433,14 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;rank &gt; 2 arrays not supported&#39;</span><span class="p">)</span></div>
 
 
+
 <span class="c1">#-----------------------------------------------------------------------------</span>
 <span class="c1"># Some handy file operations.</span>
 <span class="c1">#-----------------------------------------------------------------------------</span>
 
-<div class="viewcode-block" id="makedirs"><a class="viewcode-back" href="../../generated/api/pwtools.common.makedirs.html#pwtools.common.makedirs">[docs]</a><span class="k">def</span> <span class="nf">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+<div class="viewcode-block" id="makedirs">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.makedirs.html#pwtools.common.makedirs">[docs]</a>
+<span class="k">def</span> <span class="nf">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Same as os.makedirs() but silently skips empty paths.</span>
 
 <span class="sd">    The common use case is when we always create a path for a file w/o knowing</span>
@@ -418,7 +453,10 @@
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="get_filename"><a class="viewcode-back" href="../../generated/api/pwtools.common.get_filename.html#pwtools.common.get_filename">[docs]</a><span class="k">def</span> <span class="nf">get_filename</span><span class="p">(</span><span class="n">fh</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_filename">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.get_filename.html#pwtools.common.get_filename">[docs]</a>
+<span class="k">def</span> <span class="nf">get_filename</span><span class="p">(</span><span class="n">fh</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Try to get the `name` attribute from file-like objects. If it fails</span>
 <span class="sd">    (fh=cStringIO.StringIO(), fh=StringIO.StringIO(), fh=gzip.open(), ...),</span>
 <span class="sd">    then return a dummy name.&quot;&quot;&quot;</span>
@@ -429,7 +467,10 @@
     <span class="k">return</span> <span class="n">name</span></div>
 
 
-<div class="viewcode-block" id="file_read"><a class="viewcode-back" href="../../generated/api/pwtools.common.file_read.html#pwtools.common.file_read">[docs]</a><span class="k">def</span> <span class="nf">file_read</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+
+<div class="viewcode-block" id="file_read">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.file_read.html#pwtools.common.file_read">[docs]</a>
+<span class="k">def</span> <span class="nf">file_read</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Open file with name `fn`, return open(fn).read().&quot;&quot;&quot;</span>
     <span class="n">fd</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
     <span class="n">txt</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
@@ -437,7 +478,10 @@
     <span class="k">return</span> <span class="n">txt</span></div>
 
 
-<div class="viewcode-block" id="file_write"><a class="viewcode-back" href="../../generated/api/pwtools.common.file_write.html#pwtools.common.file_write">[docs]</a><span class="k">def</span> <span class="nf">file_write</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">txt</span><span class="p">):</span>
+
+<div class="viewcode-block" id="file_write">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.file_write.html#pwtools.common.file_write">[docs]</a>
+<span class="k">def</span> <span class="nf">file_write</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">txt</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Write string `txt` to file with name `fn`. No check is made wether the</span>
 <span class="sd">    file exists and/or is nonempty. Yah shalleth know whath thy is doingth.</span>
 <span class="sd">    shell$ echo $string &gt; $file &quot;&quot;&quot;</span>
@@ -446,7 +490,10 @@
     <span class="n">fd</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="file_readlines"><a class="viewcode-back" href="../../generated/api/pwtools.common.file_readlines.html#pwtools.common.file_readlines">[docs]</a><span class="k">def</span> <span class="nf">file_readlines</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+
+<div class="viewcode-block" id="file_readlines">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.file_readlines.html#pwtools.common.file_readlines">[docs]</a>
+<span class="k">def</span> <span class="nf">file_readlines</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Open file with name `fn`, return open(fn).readlines().&quot;&quot;&quot;</span>
     <span class="n">fd</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
     <span class="n">lst</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
@@ -454,17 +501,26 @@
     <span class="k">return</span> <span class="n">lst</span></div>
 
 
-<div class="viewcode-block" id="fullpath"><a class="viewcode-back" href="../../generated/api/pwtools.common.fullpath.html#pwtools.common.fullpath">[docs]</a><span class="k">def</span> <span class="nf">fullpath</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+
+<div class="viewcode-block" id="fullpath">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.fullpath.html#pwtools.common.fullpath">[docs]</a>
+<span class="k">def</span> <span class="nf">fullpath</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Complete path: absolute path + $HOME expansion.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">s</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="fullpathjoin"><a class="viewcode-back" href="../../generated/api/pwtools.common.fullpathjoin.html#pwtools.common.fullpathjoin">[docs]</a><span class="k">def</span> <span class="nf">fullpathjoin</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+
+<div class="viewcode-block" id="fullpathjoin">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.fullpathjoin.html#pwtools.common.fullpathjoin">[docs]</a>
+<span class="k">def</span> <span class="nf">fullpathjoin</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">fullpath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">))</span></div>
 
 
+
 <span class="c1"># XXX remove dict mode</span>
-<div class="viewcode-block" id="template_replace"><a class="viewcode-back" href="../../generated/api/pwtools.common.template_replace.html#pwtools.common.template_replace">[docs]</a><span class="k">def</span> <span class="nf">template_replace</span><span class="p">(</span><span class="n">txt</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">conv</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">warn_mult_found</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<div class="viewcode-block" id="template_replace">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.template_replace.html#pwtools.common.template_replace">[docs]</a>
+<span class="k">def</span> <span class="nf">template_replace</span><span class="p">(</span><span class="n">txt</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">conv</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">warn_mult_found</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                      <span class="n">warn_not_found</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">disp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;dct&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Replace placeholders dct.keys() with string values dct.values() in a</span>
 <span class="sd">    text string. This function adds some bells and whistles such as warnings</span>
@@ -568,7 +624,10 @@
     <span class="k">return</span> <span class="n">new_txt</span></div>
 
 
-<div class="viewcode-block" id="file_template_replace"><a class="viewcode-back" href="../../generated/api/pwtools.common.file_template_replace.html#pwtools.common.file_template_replace">[docs]</a><span class="k">def</span> <span class="nf">file_template_replace</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">bak</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+<div class="viewcode-block" id="file_template_replace">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.file_template_replace.html#pwtools.common.file_template_replace">[docs]</a>
+<span class="k">def</span> <span class="nf">file_template_replace</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">bak</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Replace placeholders in file `fn`.</span>
 
 <span class="sd">    Parameters</span>
@@ -596,7 +655,10 @@
     <span class="n">file_write</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">txt</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="backup"><a class="viewcode-back" href="../../generated/api/pwtools.common.backup.html#pwtools.common.backup">[docs]</a><span class="k">def</span> <span class="nf">backup</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="backup">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.backup.html#pwtools.common.backup">[docs]</a>
+<span class="k">def</span> <span class="nf">backup</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Backup (copy) `src` to &lt;src&gt;&lt;prefix&gt;&lt;num&gt;, where &lt;num&gt; is an integer</span>
 <span class="sd">    starting at 0 which is incremented until there is no destination with that</span>
 <span class="sd">    name.</span>
@@ -629,22 +691,31 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">copy</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span></div>
 
+
 <span class="c1">#-----------------------------------------------------------------------------</span>
 <span class="c1"># Dictionary tricks</span>
 <span class="c1">#-----------------------------------------------------------------------------</span>
 
-<div class="viewcode-block" id="dict2str"><a class="viewcode-back" href="../../generated/api/pwtools.common.dict2str.html#pwtools.common.dict2str">[docs]</a><span class="k">def</span> <span class="nf">dict2str</span><span class="p">(</span><span class="n">dct</span><span class="p">):</span>
+<div class="viewcode-block" id="dict2str">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.dict2str.html#pwtools.common.dict2str">[docs]</a>
+<span class="k">def</span> <span class="nf">dict2str</span><span class="p">(</span><span class="n">dct</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Nicer than simply __repr__.&quot;&quot;&quot;</span>
     <span class="n">st</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">dct</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">st</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">st</span></div>
 
+
 <span class="c1"># backward compat only</span>
-<div class="viewcode-block" id="print_dct"><a class="viewcode-back" href="../../generated/api/pwtools.common.print_dct.html#pwtools.common.print_dct">[docs]</a><span class="k">def</span> <span class="nf">print_dct</span><span class="p">(</span><span class="n">dct</span><span class="p">):</span>
+<div class="viewcode-block" id="print_dct">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.print_dct.html#pwtools.common.print_dct">[docs]</a>
+<span class="k">def</span> <span class="nf">print_dct</span><span class="p">(</span><span class="n">dct</span><span class="p">):</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">dict2str</span><span class="p">(</span><span class="n">dct</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="dict2class"><a class="viewcode-back" href="../../generated/api/pwtools.common.dict2class.html#pwtools.common.dict2class">[docs]</a><span class="k">def</span> <span class="nf">dict2class</span><span class="p">(</span><span class="n">dct</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Dummy&#39;</span><span class="p">):</span>
+
+<div class="viewcode-block" id="dict2class">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.dict2class.html#pwtools.common.dict2class">[docs]</a>
+<span class="k">def</span> <span class="nf">dict2class</span><span class="p">(</span><span class="n">dct</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Dummy&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convert a dict to a class.</span>
 
@@ -666,11 +737,14 @@
     <span class="k">return</span> <span class="n">cl</span></div>
 
 
+
 <span class="c1">#-----------------------------------------------------------------------------</span>
 <span class="c1"># Sequence tricks</span>
 <span class="c1">#-----------------------------------------------------------------------------</span>
 
-<div class="viewcode-block" id="is_seq"><a class="viewcode-back" href="../../generated/api/pwtools.common.is_seq.html#pwtools.common.is_seq">[docs]</a><span class="k">def</span> <span class="nf">is_seq</span><span class="p">(</span><span class="n">seq</span><span class="p">):</span>
+<div class="viewcode-block" id="is_seq">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.is_seq.html#pwtools.common.is_seq">[docs]</a>
+<span class="k">def</span> <span class="nf">is_seq</span><span class="p">(</span><span class="n">seq</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Test if `seq` is some kind of sequence, based on calling iter(seq), i.e.</span>
 <span class="sd">    if the object is iterable.</span>
 
@@ -692,7 +766,10 @@
             <span class="k">return</span> <span class="kc">False</span></div>
 
 
-<div class="viewcode-block" id="iflatten"><a class="viewcode-back" href="../../generated/api/pwtools.common.iflatten.html#pwtools.common.iflatten">[docs]</a><span class="k">def</span> <span class="nf">iflatten</span><span class="p">(</span><span class="n">seq</span><span class="p">):</span>
+
+<div class="viewcode-block" id="iflatten">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.iflatten.html#pwtools.common.iflatten">[docs]</a>
+<span class="k">def</span> <span class="nf">iflatten</span><span class="p">(</span><span class="n">seq</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Flatten a sequence. After matplotlib.cbook.flatten(). Returns an</span>
 <span class="sd">    generator object.&quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">seq</span><span class="p">:</span>
@@ -703,12 +780,18 @@
                 <span class="k">yield</span> <span class="n">subitem</span></div>
 
 
-<div class="viewcode-block" id="flatten"><a class="viewcode-back" href="../../generated/api/pwtools.common.flatten.html#pwtools.common.flatten">[docs]</a><span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="n">seq</span><span class="p">):</span>
+
+<div class="viewcode-block" id="flatten">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.flatten.html#pwtools.common.flatten">[docs]</a>
+<span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="n">seq</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Same as iflatten(), but returns a list.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">iflatten</span><span class="p">(</span><span class="n">seq</span><span class="p">)]</span></div>
 
 
-<div class="viewcode-block" id="pop_from_list"><a class="viewcode-back" href="../../generated/api/pwtools.common.pop_from_list.html#pwtools.common.pop_from_list">[docs]</a><span class="k">def</span> <span class="nf">pop_from_list</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">items</span><span class="p">):</span>
+
+<div class="viewcode-block" id="pop_from_list">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.pop_from_list.html#pwtools.common.pop_from_list">[docs]</a>
+<span class="k">def</span> <span class="nf">pop_from_list</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">items</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Pop all `items` from `lst` and return a shorter copy of</span>
 <span class="sd">    `lst`.</span>
 
@@ -728,7 +811,10 @@
     <span class="k">return</span> <span class="n">lst2</span></div>
 
 
-<div class="viewcode-block" id="asseq"><a class="viewcode-back" href="../../generated/api/pwtools.common.asseq.html#pwtools.common.asseq">[docs]</a><span class="k">def</span> <span class="nf">asseq</span><span class="p">(</span><span class="n">arg</span><span class="p">):</span>
+
+<div class="viewcode-block" id="asseq">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.asseq.html#pwtools.common.asseq">[docs]</a>
+<span class="k">def</span> <span class="nf">asseq</span><span class="p">(</span><span class="n">arg</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Assert `arg` to be a sequence. If it already is one (see ``is_seq``)</span>
 <span class="sd">    then return it, else return a length 1 list.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">is_seq</span><span class="p">(</span><span class="n">arg</span><span class="p">):</span>
@@ -736,11 +822,14 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">arg</span><span class="p">]</span></div>
 
+
 <span class="c1">#-----------------------------------------------------------------------------</span>
 <span class="c1"># Child processes &amp; shell calls</span>
 <span class="c1">#-----------------------------------------------------------------------------</span>
 
-<div class="viewcode-block" id="system"><a class="viewcode-back" href="../../generated/api/pwtools.common.system.html#pwtools.common.system">[docs]</a><span class="k">def</span> <span class="nf">system</span><span class="p">(</span><span class="n">call</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="system">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.system.html#pwtools.common.system">[docs]</a>
+<span class="k">def</span> <span class="nf">system</span><span class="p">(</span><span class="n">call</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Fire up shell commamd line `call`.</span>
 
 <span class="sd">    Shorthand for ``subprocess.run(call, shell=True, check=True)``.</span>
@@ -756,7 +845,10 @@
     <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">call</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="permit_sigpipe"><a class="viewcode-back" href="../../generated/api/pwtools.common.permit_sigpipe.html#pwtools.common.permit_sigpipe">[docs]</a><span class="k">def</span> <span class="nf">permit_sigpipe</span><span class="p">():</span>
+
+<div class="viewcode-block" id="permit_sigpipe">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.permit_sigpipe.html#pwtools.common.permit_sigpipe">[docs]</a>
+<span class="k">def</span> <span class="nf">permit_sigpipe</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper for subprocess.Popen(). Handle SIGPIPE. To be used as preexec_fn.</span>
 
 <span class="sd">    Notes</span>
@@ -782,12 +874,15 @@
     <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGPIPE</span><span class="p">,</span> <span class="n">signal</span><span class="o">.</span><span class="n">SIG_DFL</span><span class="p">)</span></div>
 
 
+
 <span class="c1"># XXX The error handling is not safe since we raise the exception only when</span>
 <span class="c1"># stderr is not empty w/o checking the retcode. This fails if we do</span>
 <span class="c1"># backtick(&#39;dhwjqdhwjwqdk 2&gt;/dev/null&#39;). This may have been a design decision</span>
 <span class="c1"># in order to deal with flaky shell commands. But we should never use that in</span>
 <span class="c1"># tests.</span>
-<div class="viewcode-block" id="backtick"><a class="viewcode-back" href="../../generated/api/pwtools.common.backtick.html#pwtools.common.backtick">[docs]</a><span class="k">def</span> <span class="nf">backtick</span><span class="p">(</span><span class="n">call</span><span class="p">):</span>
+<div class="viewcode-block" id="backtick">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.backtick.html#pwtools.common.backtick">[docs]</a>
+<span class="k">def</span> <span class="nf">backtick</span><span class="p">(</span><span class="n">call</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convenient shell backtick replacement. Raise exception if stderr is not</span>
 <span class="sd">    empty.</span>
 
@@ -804,16 +899,20 @@
             <span class="s2">&quot;follows:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">call</span><span class="p">,</span> <span class="n">err</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span></div>
 
+
 <span class="c1">#-----------------------------------------------------------------------------</span>
 <span class="c1"># pickle</span>
 <span class="c1">#-----------------------------------------------------------------------------</span>
 
-<div class="viewcode-block" id="cpickle_load"><a class="viewcode-back" href="../../generated/api/pwtools.common.cpickle_load.html#pwtools.common.cpickle_load">[docs]</a><span class="k">def</span> <span class="nf">cpickle_load</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+<div class="viewcode-block" id="cpickle_load">
+<a class="viewcode-back" href="../../generated/api/pwtools.common.cpickle_load.html#pwtools.common.cpickle_load">[docs]</a>
+<span class="k">def</span> <span class="nf">cpickle_load</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Load object written by ``cPickle.dump()``. Deprecated, use</span>
 <span class="sd">    :func:`~pwtools.io.read_pickle` instead.&quot;&quot;&quot;</span>
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;cpickle_load() is deprcated, use io.read_pickle() instead&quot;</span><span class="p">,</span>
                    <span class="ne">DeprecationWarning</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">))</span></div>
+
 
 <span class="c1">#-----------------------------------------------------------------------------</span>
 <span class="c1"># aliases</span>
@@ -834,7 +933,7 @@
       &copy;2023, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>

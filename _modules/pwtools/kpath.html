@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>pwtools.kpath &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9121de03" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -88,7 +88,9 @@
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">pwtools</span> <span class="kn">import</span> <span class="n">num</span><span class="p">,</span> <span class="n">pwscf</span><span class="p">,</span> <span class="n">common</span><span class="p">,</span> <span class="n">mpl</span>
 
-<div class="viewcode-block" id="kpath"><a class="viewcode-back" href="../../generated/api/pwtools.kpath.kpath.html#pwtools.kpath.kpath">[docs]</a><span class="k">def</span> <span class="nf">kpath</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<div class="viewcode-block" id="kpath">
+<a class="viewcode-back" href="../../generated/api/pwtools.kpath.kpath.html#pwtools.kpath.kpath">[docs]</a>
+<span class="k">def</span> <span class="nf">kpath</span><span class="p">(</span><span class="n">vecs</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Simple k-path. Given a set of K vectors (special points in the BZ),</span>
 <span class="sd">    generate a &quot;fine path&quot; of N*(K-1)+1 vectors along the path defined by the</span>
 <span class="sd">    vectors in `vecs`. The K vectors are the &quot;vertices&quot; of the k-path and we</span>
@@ -124,7 +126,10 @@
     <span class="k">return</span> <span class="n">new_vecs</span></div>
 
 
-<div class="viewcode-block" id="get_path_norm"><a class="viewcode-back" href="../../generated/api/pwtools.kpath.get_path_norm.html#pwtools.kpath.get_path_norm">[docs]</a><span class="k">def</span> <span class="nf">get_path_norm</span><span class="p">(</span><span class="n">ks</span><span class="p">):</span>
+
+<div class="viewcode-block" id="get_path_norm">
+<a class="viewcode-back" href="../../generated/api/pwtools.kpath.get_path_norm.html#pwtools.kpath.get_path_norm">[docs]</a>
+<span class="k">def</span> <span class="nf">get_path_norm</span><span class="p">(</span><span class="n">ks</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Like in QE&#39;s ``plotband.f90``, path_norm = kx there. Return a sequence of</span>
 <span class="sd">    cumulative norms of the difference vectors which connect each two adjacent</span>
 <span class="sd">    k-points.</span>
@@ -143,10 +148,15 @@
     <span class="k">return</span> <span class="n">path_norm</span></div>
 
 
-<div class="viewcode-block" id="SpecialPointsPath"><a class="viewcode-back" href="../../generated/api/pwtools.kpath.SpecialPointsPath.html#pwtools.kpath.SpecialPointsPath">[docs]</a><span class="k">class</span> <span class="nc">SpecialPointsPath</span><span class="p">:</span>
+
+<div class="viewcode-block" id="SpecialPointsPath">
+<a class="viewcode-back" href="../../generated/api/pwtools.kpath.SpecialPointsPath.html#pwtools.kpath.SpecialPointsPath">[docs]</a>
+<span class="k">class</span> <span class="nc">SpecialPointsPath</span><span class="p">:</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Sequence of special points. Calculate their path norm and store symbols</span>
 <span class="sd">    such as &quot;K&quot; or &quot;$\\Gamma$&quot;.&quot;&quot;&quot;</span>
-<div class="viewcode-block" id="SpecialPointsPath.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.kpath.SpecialPointsPath.html#pwtools.kpath.SpecialPointsPath.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ks_frac</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SpecialPointsPath.__init__">
+<a class="viewcode-back" href="../../generated/api/pwtools.kpath.SpecialPointsPath.html#pwtools.kpath.SpecialPointsPath.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ks_frac</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -163,10 +173,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">ks_frac</span> <span class="o">=</span> <span class="n">ks_frac</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">symbols</span> <span class="o">=</span> <span class="n">symbols</span>
         <span class="c1"># 1d array (nks,) of cumulative norms</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">path_norm</span> <span class="o">=</span> <span class="n">get_path_norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ks</span><span class="p">)</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path_norm</span> <span class="o">=</span> <span class="n">get_path_norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ks</span><span class="p">)</span></div>
+</div>
 
 
-<div class="viewcode-block" id="plot_dis"><a class="viewcode-back" href="../../generated/api/pwtools.kpath.plot_dis.html#pwtools.kpath.plot_dis">[docs]</a><span class="k">def</span> <span class="nf">plot_dis</span><span class="p">(</span><span class="n">path_norm</span><span class="p">,</span> <span class="n">freqs</span><span class="p">,</span> <span class="n">special_points_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+
+<div class="viewcode-block" id="plot_dis">
+<a class="viewcode-back" href="../../generated/api/pwtools.kpath.plot_dis.html#pwtools.kpath.plot_dis">[docs]</a>
+<span class="k">def</span> <span class="nf">plot_dis</span><span class="p">(</span><span class="n">path_norm</span><span class="p">,</span> <span class="n">freqs</span><span class="p">,</span> <span class="n">special_points_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
              <span class="n">show_coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dos</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot dispersion.</span>
 
@@ -276,6 +290,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">axdos</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">axdos</span></div>
+
 </pre></div>
 
           </div>
@@ -288,7 +303,7 @@
       &copy;2023, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>

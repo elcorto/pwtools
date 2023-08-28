@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>pwtools.thermo &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9121de03" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -96,16 +96,23 @@
 <span class="kn">from</span> <span class="nn">pwtools.verbose</span> <span class="kn">import</span> <span class="n">verbose</span>
 <span class="kn">from</span> <span class="nn">pwtools</span> <span class="kn">import</span> <span class="n">num</span><span class="p">,</span> <span class="n">mpl</span>
 
-<div class="viewcode-block" id="coth"><a class="viewcode-back" href="../../generated/api/pwtools.thermo.coth.html#pwtools.thermo.coth">[docs]</a><span class="k">def</span> <span class="nf">coth</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<div class="viewcode-block" id="coth">
+<a class="viewcode-back" href="../../generated/api/pwtools.thermo.coth.html#pwtools.thermo.coth">[docs]</a>
+<span class="k">def</span> <span class="nf">coth</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
     <span class="k">return</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="HarmonicThermo"><a class="viewcode-back" href="../../generated/api/pwtools.thermo.HarmonicThermo.html#pwtools.thermo.HarmonicThermo">[docs]</a><span class="k">class</span> <span class="nc">HarmonicThermo</span><span class="p">:</span>
+
+<div class="viewcode-block" id="HarmonicThermo">
+<a class="viewcode-back" href="../../generated/api/pwtools.thermo.HarmonicThermo.html#pwtools.thermo.HarmonicThermo">[docs]</a>
+<span class="k">class</span> <span class="nc">HarmonicThermo</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate vibrational internal energy (Evib [eV]), free energy (Fvib</span>
 <span class="sd">    [eV]), entropy (Svib [R,kb]) and isochoric heat capacity (Cv [R,kb]) in the</span>
 <span class="sd">    harmonic approximation from a phonon density of states.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="HarmonicThermo.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.thermo.HarmonicThermo.html#pwtools.thermo.HarmonicThermo.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">dos</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">skipfreq</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<div class="viewcode-block" id="HarmonicThermo.__init__">
+<a class="viewcode-back" href="../../generated/api/pwtools.thermo.HarmonicThermo.html#pwtools.thermo.HarmonicThermo.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">dos</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">skipfreq</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">eps</span><span class="o">=</span><span class="mf">1.5</span><span class="o">*</span><span class="n">num</span><span class="o">.</span><span class="n">EPS</span><span class="p">,</span> <span class="n">fixnan</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">nanfill</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
                  <span class="n">dosarea</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">integrator</span><span class="o">=</span><span class="n">trapz</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -240,6 +247,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dosarea</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">dos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_norm_int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dos</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">,</span> <span class="n">area</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dosarea</span><span class="p">))</span></div>
 
+
     <span class="k">def</span> <span class="nf">_norm_int</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">area</span><span class="p">):</span>
         <span class="n">fx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
         <span class="n">fy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
@@ -281,7 +289,9 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;temp input and self.T are None&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="k">if</span> <span class="n">temp</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">temp</span>
 
-<div class="viewcode-block" id="HarmonicThermo.vibrational_internal_energy"><a class="viewcode-back" href="../../generated/api/pwtools.thermo.HarmonicThermo.vibrational_internal_energy.html#pwtools.thermo.HarmonicThermo.vibrational_internal_energy">[docs]</a>    <span class="k">def</span> <span class="nf">vibrational_internal_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="HarmonicThermo.vibrational_internal_energy">
+<a class="viewcode-back" href="../../generated/api/pwtools.thermo.HarmonicThermo.vibrational_internal_energy.html#pwtools.thermo.HarmonicThermo.vibrational_internal_energy">[docs]</a>
+    <span class="k">def</span> <span class="nf">vibrational_internal_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Evib [eV]&quot;&quot;&quot;</span>
         <span class="n">h</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">kb</span><span class="p">,</span> <span class="n">dos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">h</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dos</span>
         <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_temp</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
@@ -290,7 +300,10 @@
         <span class="n">eint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integrate</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">eint</span> <span class="o">*</span> <span class="p">(</span><span class="n">h</span><span class="o">/</span><span class="n">eV</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="HarmonicThermo.isochoric_heat_capacity"><a class="viewcode-back" href="../../generated/api/pwtools.thermo.HarmonicThermo.isochoric_heat_capacity.html#pwtools.thermo.HarmonicThermo.isochoric_heat_capacity">[docs]</a>    <span class="k">def</span> <span class="nf">isochoric_heat_capacity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HarmonicThermo.isochoric_heat_capacity">
+<a class="viewcode-back" href="../../generated/api/pwtools.thermo.HarmonicThermo.isochoric_heat_capacity.html#pwtools.thermo.HarmonicThermo.isochoric_heat_capacity">[docs]</a>
+    <span class="k">def</span> <span class="nf">isochoric_heat_capacity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Cv [R, kb]&quot;&quot;&quot;</span>
         <span class="n">h</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">kb</span><span class="p">,</span> <span class="n">dos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">h</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dos</span>
         <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_temp</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
@@ -300,7 +313,10 @@
         <span class="n">cv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integrate</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="o">*</span> <span class="n">fac</span>
         <span class="k">return</span> <span class="n">cv</span></div>
 
-<div class="viewcode-block" id="HarmonicThermo.vibrational_free_energy"><a class="viewcode-back" href="../../generated/api/pwtools.thermo.HarmonicThermo.vibrational_free_energy.html#pwtools.thermo.HarmonicThermo.vibrational_free_energy">[docs]</a>    <span class="k">def</span> <span class="nf">vibrational_free_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HarmonicThermo.vibrational_free_energy">
+<a class="viewcode-back" href="../../generated/api/pwtools.thermo.HarmonicThermo.vibrational_free_energy.html#pwtools.thermo.HarmonicThermo.vibrational_free_energy">[docs]</a>
+    <span class="k">def</span> <span class="nf">vibrational_free_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fvib [eV]&quot;&quot;&quot;</span>
         <span class="n">h</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">kb</span><span class="p">,</span> <span class="n">dos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">h</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dos</span>
         <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_temp</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
@@ -309,7 +325,10 @@
         <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integrate</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">f</span><span class="p">)</span> <span class="o">*</span> <span class="n">T</span>
         <span class="k">return</span> <span class="n">ret</span> <span class="o">*</span> <span class="p">(</span><span class="n">kb</span> <span class="o">/</span> <span class="n">eV</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="HarmonicThermo.vibrational_entropy"><a class="viewcode-back" href="../../generated/api/pwtools.thermo.HarmonicThermo.vibrational_entropy.html#pwtools.thermo.HarmonicThermo.vibrational_entropy">[docs]</a>    <span class="k">def</span> <span class="nf">vibrational_entropy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HarmonicThermo.vibrational_entropy">
+<a class="viewcode-back" href="../../generated/api/pwtools.thermo.HarmonicThermo.vibrational_entropy.html#pwtools.thermo.HarmonicThermo.vibrational_entropy">[docs]</a>
+    <span class="k">def</span> <span class="nf">vibrational_entropy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Svib [R, kb]&quot;&quot;&quot;</span>
         <span class="n">h</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">kb</span><span class="p">,</span> <span class="n">dos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">h</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dos</span>
         <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_temp</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
@@ -319,25 +338,41 @@
         <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integrate</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ret</span></div>
 
+
     <span class="c1"># aliases</span>
-<div class="viewcode-block" id="HarmonicThermo.evib"><a class="viewcode-back" href="../../generated/api/pwtools.thermo.HarmonicThermo.evib.html#pwtools.thermo.HarmonicThermo.evib">[docs]</a>    <span class="k">def</span> <span class="nf">evib</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="HarmonicThermo.evib">
+<a class="viewcode-back" href="../../generated/api/pwtools.thermo.HarmonicThermo.evib.html#pwtools.thermo.HarmonicThermo.evib">[docs]</a>
+    <span class="k">def</span> <span class="nf">evib</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Same as vibrational_internal_energy().&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vibrational_internal_energy</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="HarmonicThermo.cv"><a class="viewcode-back" href="../../generated/api/pwtools.thermo.HarmonicThermo.cv.html#pwtools.thermo.HarmonicThermo.cv">[docs]</a>    <span class="k">def</span> <span class="nf">cv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HarmonicThermo.cv">
+<a class="viewcode-back" href="../../generated/api/pwtools.thermo.HarmonicThermo.cv.html#pwtools.thermo.HarmonicThermo.cv">[docs]</a>
+    <span class="k">def</span> <span class="nf">cv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Same as isochoric_heat_capacity().&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">isochoric_heat_capacity</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="HarmonicThermo.fvib"><a class="viewcode-back" href="../../generated/api/pwtools.thermo.HarmonicThermo.fvib.html#pwtools.thermo.HarmonicThermo.fvib">[docs]</a>    <span class="k">def</span> <span class="nf">fvib</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HarmonicThermo.fvib">
+<a class="viewcode-back" href="../../generated/api/pwtools.thermo.HarmonicThermo.fvib.html#pwtools.thermo.HarmonicThermo.fvib">[docs]</a>
+    <span class="k">def</span> <span class="nf">fvib</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Same as vibrational_free_energy().&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vibrational_free_energy</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="HarmonicThermo.svib"><a class="viewcode-back" href="../../generated/api/pwtools.thermo.HarmonicThermo.svib.html#pwtools.thermo.HarmonicThermo.svib">[docs]</a>    <span class="k">def</span> <span class="nf">svib</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HarmonicThermo.svib">
+<a class="viewcode-back" href="../../generated/api/pwtools.thermo.HarmonicThermo.svib.html#pwtools.thermo.HarmonicThermo.svib">[docs]</a>
+    <span class="k">def</span> <span class="nf">svib</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Same as vibrational_entropy().&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vibrational_entropy</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vibrational_entropy</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</div>
 
 
-<div class="viewcode-block" id="Gibbs"><a class="viewcode-back" href="../../generated/api/pwtools.thermo.Gibbs.html#pwtools.thermo.Gibbs">[docs]</a><span class="k">class</span> <span class="nc">Gibbs</span><span class="p">:</span>
+
+<div class="viewcode-block" id="Gibbs">
+<a class="viewcode-back" href="../../generated/api/pwtools.thermo.Gibbs.html#pwtools.thermo.Gibbs">[docs]</a>
+<span class="k">class</span> <span class="nc">Gibbs</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate thermodynamic properties on a T-P grid in the quasiharmonic</span>
 <span class="sd">    approximation, given some variation grid of unit cell axes (`axes_flat`) and</span>
@@ -474,7 +509,9 @@
 <span class="sd">    &gt;&gt;&gt; d=mpl.Data2D(XY=axes_flat, zz=G[-1,0,:])</span>
 <span class="sd">    &gt;&gt;&gt; fig,ax=mpl.fig_ax3d(); ax.scatter(d.xx,d.yy,d.zz); show()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="Gibbs.__init__"><a class="viewcode-back" href="../../generated/api/pwtools.thermo.Gibbs.html#pwtools.thermo.Gibbs.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">etot</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">phdos</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axes_flat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="Gibbs.__init__">
+<a class="viewcode-back" href="../../generated/api/pwtools.thermo.Gibbs.html#pwtools.thermo.Gibbs.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">etot</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">phdos</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axes_flat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">volfunc_ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">case</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
@@ -566,7 +603,10 @@
             <span class="s1">&#39;C&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_fit_C</span><span class="p">,</span>
             <span class="p">}</span></div>
 
-<div class="viewcode-block" id="Gibbs.set_fitfunc"><a class="viewcode-back" href="../../generated/api/pwtools.thermo.Gibbs.set_fitfunc.html#pwtools.thermo.Gibbs.set_fitfunc">[docs]</a>    <span class="k">def</span> <span class="nf">set_fitfunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">what</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Gibbs.set_fitfunc">
+<a class="viewcode-back" href="../../generated/api/pwtools.thermo.Gibbs.set_fitfunc.html#pwtools.thermo.Gibbs.set_fitfunc">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_fitfunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">what</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update dict with fitting functions: ``self.fitfunc[what] = func``.</span>
 
 <span class="sd">        Parameters</span>
@@ -579,6 +619,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="n">what</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitfunc</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;unknown key: &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span><span class="n">what</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fitfunc</span><span class="p">[</span><span class="n">what</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span></div>
+
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_default_fit_1d_G</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
@@ -691,7 +732,9 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">fitax</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fitfunc</span><span class="p">[</span><span class="s1">&#39;1d-ax&#39;</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="p">,</span>
                                                         <span class="bp">self</span><span class="o">.</span><span class="n">axes_flat</span><span class="p">[:,</span><span class="n">iax</span><span class="p">]))</span>
 
-<div class="viewcode-block" id="Gibbs.calc_F"><a class="viewcode-back" href="../../generated/api/pwtools.thermo.Gibbs.calc_F.html#pwtools.thermo.Gibbs.calc_F">[docs]</a>    <span class="k">def</span> <span class="nf">calc_F</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calc_all</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Gibbs.calc_F">
+<a class="viewcode-back" href="../../generated/api/pwtools.thermo.Gibbs.calc_F.html#pwtools.thermo.Gibbs.calc_F">[docs]</a>
+    <span class="k">def</span> <span class="nf">calc_F</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calc_all</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Free energy properties along T axis for each axes grid point</span>
 <span class="sd">        (ax0,ax1,ax2) in `self.axes_flat`. Also used by :meth:`calc_G`. Uses</span>
 <span class="sd">        :class:`~pwtools.thermo.HarmonicThermo`.</span>
@@ -745,7 +788,10 @@
         <span class="n">ret</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ret</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ret</span></div>
 
-<div class="viewcode-block" id="Gibbs.calc_H"><a class="viewcode-back" href="../../generated/api/pwtools.thermo.Gibbs.calc_H.html#pwtools.thermo.Gibbs.calc_H">[docs]</a>    <span class="k">def</span> <span class="nf">calc_H</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calc_all</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Gibbs.calc_H">
+<a class="viewcode-back" href="../../generated/api/pwtools.thermo.Gibbs.calc_H.html#pwtools.thermo.Gibbs.calc_H">[docs]</a>
+    <span class="k">def</span> <span class="nf">calc_H</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calc_all</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Enthalpy H=E+P*V, B and related properties on P grid</span>
 <span class="sd">        without zero-point contributions. Doesn&#39;t need any other method&#39;s</span>
 <span class="sd">        results.</span>
@@ -775,7 +821,10 @@
         <span class="n">ret</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ret</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ret</span></div>
 
-<div class="viewcode-block" id="Gibbs.calc_G"><a class="viewcode-back" href="../../generated/api/pwtools.thermo.Gibbs.calc_G.html#pwtools.thermo.Gibbs.calc_G">[docs]</a>    <span class="k">def</span> <span class="nf">calc_G</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ret</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">calc_all</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Gibbs.calc_G">
+<a class="viewcode-back" href="../../generated/api/pwtools.thermo.Gibbs.calc_G.html#pwtools.thermo.Gibbs.calc_G">[docs]</a>
+    <span class="k">def</span> <span class="nf">calc_G</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ret</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">calc_all</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Gibbs free energy and related properties on T-P grid.</span>
 <span class="sd">        Uses self.fitfunc.</span>
 
@@ -842,10 +891,14 @@
                 <span class="n">fit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitfunc</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">ret</span><span class="p">[</span><span class="s1">&#39;/#opt/T/P/G&#39;</span><span class="p">][:,</span><span class="n">pidx</span><span class="p">]</span><span class="o">*</span><span class="n">eV</span><span class="o">/</span><span class="n">kb</span><span class="p">)</span>
                 <span class="n">ret</span><span class="p">[</span><span class="s1">&#39;/#opt/T/P/Cp&#39;</span><span class="p">][:,</span><span class="n">pidx</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">der</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="n">ret</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ret</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">ret</span></div></div>
+        <span class="k">return</span> <span class="n">ret</span></div>
+</div>
 
 
-<div class="viewcode-block" id="debye_func"><a class="viewcode-back" href="../../generated/api/pwtools.thermo.debye_func.html#pwtools.thermo.debye_func">[docs]</a><span class="k">def</span> <span class="nf">debye_func</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">nstep</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">):</span>
+
+<div class="viewcode-block" id="debye_func">
+<a class="viewcode-back" href="../../generated/api/pwtools.thermo.debye_func.html#pwtools.thermo.debye_func">[docs]</a>
+<span class="k">def</span> <span class="nf">debye_func</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">nstep</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Debye function</span>
 
 <span class="sd">    :math:`f(x) = 3 \int_0^1 t^3 / [\exp(t x) - 1] dt`</span>
@@ -867,7 +920,10 @@
     <span class="k">return</span> <span class="mf">3.0</span> <span class="o">*</span> <span class="n">trapz</span><span class="p">(</span><span class="n">tt</span><span class="o">**</span><span class="mf">3.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">tt</span><span class="o">*</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">tt</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="einstein_func"><a class="viewcode-back" href="../../generated/api/pwtools.thermo.einstein_func.html#pwtools.thermo.einstein_func">[docs]</a><span class="k">def</span> <span class="nf">einstein_func</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+
+<div class="viewcode-block" id="einstein_func">
+<a class="viewcode-back" href="../../generated/api/pwtools.thermo.einstein_func.html#pwtools.thermo.einstein_func">[docs]</a>
+<span class="k">def</span> <span class="nf">einstein_func</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Einstein function</span>
 
 <span class="sd">    :math:`f(x) = 1 / [ \exp(x) - 1 ]`</span>
@@ -880,7 +936,10 @@
     <span class="k">return</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="expansion"><a class="viewcode-back" href="../../generated/api/pwtools.thermo.expansion.html#pwtools.thermo.expansion">[docs]</a><span class="k">def</span> <span class="nf">expansion</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">debye_func</span><span class="p">):</span>
+
+<div class="viewcode-block" id="expansion">
+<a class="viewcode-back" href="../../generated/api/pwtools.thermo.expansion.html#pwtools.thermo.expansion">[docs]</a>
+<span class="k">def</span> <span class="nf">expansion</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">debye_func</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate thermal expansion according to the model in `func`.</span>
 
 <span class="sd">    Parameters</span>
@@ -913,6 +972,7 @@
 <span class="sd">    [1] Figge et al., Appl. Phys. Lett. 94, 101915 (2009)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">x0</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">theta</span> <span class="o">*</span> <span class="n">func</span><span class="p">(</span><span class="n">theta</span> <span class="o">/</span> <span class="n">temp</span><span class="p">))</span></div>
+
 </pre></div>
 
           </div>
@@ -925,7 +985,7 @@
       &copy;2023, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>
