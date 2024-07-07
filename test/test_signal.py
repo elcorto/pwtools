@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.signal import gaussian
+from scipy.signal.windows import gaussian
 from pwtools.signal import gauss, find_peaks, smooth, fft_1d_loop, ezfft
 from pwtools import signal
 from scipy.fftpack import fft

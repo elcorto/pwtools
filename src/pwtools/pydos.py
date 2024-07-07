@@ -15,8 +15,7 @@ Other codes which do that are [2]_ and [3]_.
 import os, warnings
 import numpy as np
 from scipy.fftpack import fft
-from scipy.signal import convolve, gaussian
-from pwtools import constants, _flib, num
+from pwtools import _flib, num
 from pwtools.verbose import verbose
 from pwtools.signal import pad_zeros, welch, mirror
 

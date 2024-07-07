@@ -4,7 +4,7 @@ import types
 import copy
 
 import numpy as np
-from scipy.signal import hann
+from scipy.signal.windows import hann
 
 from pwtools.crys import Trajectory, Structure
 from pwtools import crys, constants

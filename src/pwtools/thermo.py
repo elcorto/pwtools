@@ -3,7 +3,7 @@
 import warnings
 
 import numpy as np
-from scipy.integrate import simps, trapz
+from scipy.integrate import trapezoid as trapz
 from pwtools.constants import kb, hplanck, R, pi, c0, Ry_to_J, eV,\
     eV_by_Ang3_to_GPa
 from pwtools.verbose import verbose
@@ -48,7 +48,7 @@ class HarmonicThermo:
             If not None, then re-normalize the area int(freq) dos to `dosarea`,
             after `skipfreq` was applied if used.
         integrator : callable
-            Function which integrates x-y data. Called as ``integrator(y,x)``,
+            Function which integrates x-y data. Called as ``integrator(y,x=x)``,
             like ``scipy.integrate.{trapz,simps}``. Usually, `trapz` is
             numerically more stable for weird DOS data and accurate enough if
             the frequency axis resolution is good.
@@ -158,7 +158,7 @@ class HarmonicThermo:
         fy = np.abs(y).max()
         sx = x / fx
         sy = y / fy
-        _area = self.integrator(sy, sx) * fx * fy
+        _area = self.integrator(sy, x=sx) * fx * fy
         return y*area/_area
 
     def _printwarn(self, msg):

@@ -3,7 +3,7 @@ import numpy as np
 from math import sqrt, sin, cos, radians, pi
 import scipy.optimize as optimize
 from scipy.interpolate import bisplrep, bisplev, splev, splrep
-from scipy.integrate import simps
+from scipy.integrate import simpson as simps
 from pwtools import _flib
 import warnings
 
@@ -87,7 +87,7 @@ def norm_int(y, x, area=1.0, scale=True, func=simps):
         different scales.
     func : callable
         Function to do integration (like scipy.integrate.{simps,trapz,...}
-        Called as ``func(y,x)``. Default: simps
+        Called as ``func(y,x=x)``. Default: simps
 
     Returns
     -------
@@ -107,7 +107,7 @@ def norm_int(y, x, area=1.0, scale=True, func=simps):
         fx = fy = 1.0
         sx, sy = x, y
     # Area under unscaled y(x).
-    _area = func(sy, sx) * fx * fy
+    _area = func(sy, x=sx) * fx * fy
     return y * area / _area
 
 
@@ -1097,7 +1097,7 @@ class DataND:
             a = np.unique(self.a2[:, colidx])
             axes.append(a)
             dims.append(len(a))
-        assert np.product(dims) == self.a2.shape[0]
+        assert np.prod(dims) == self.a2.shape[0]
         idx = itertools.product(*tuple(map(range, dims)))
         an = np.empty(dims, dtype=self.a2.dtype)
         # an[1,2,3] == an[(1,2,3)], need way to eliminate loop over index array

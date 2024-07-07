@@ -34,14 +34,14 @@
 
 import sys
 import numpy as np
-from scipy.integrate import simps
+from scipy.integrate import simpson as simps
 
 filename = sys.argv[1]
 arr = np.loadtxt(filename)
 freq = arr[:,0]
 dos = arr[:,1]
 
-integral = simps(dos, freq)
+integral = simps(dos, x=freq)
 
 natom = integral / 3.
 nstep = len(freq)

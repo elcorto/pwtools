@@ -6,8 +6,7 @@ reference implementations plus some utilities.
 from itertools import product
 import numpy as np
 from scipy.fftpack import fft, ifft
-from scipy.signal import fftconvolve, gaussian, kaiserord, firwin, lfilter, freqz
-from scipy.integrate import trapz
+from scipy.signal import fftconvolve, kaiserord, firwin, lfilter, freqz
 from pwtools import _flib, num
 
 
@@ -300,7 +299,7 @@ def pad_zeros(arr, axis=0, where='end', nadd=None, upto=None, tonext=None,
 
 def welch(M, sym=1):
     """Welch window. Function skeleton shamelessly stolen from
-    scipy.signal.bartlett() and others."""
+    scipy.signal.windows.bartlett() and others."""
     if M < 1:
         return np.array([])
     if M == 1:
@@ -316,7 +315,7 @@ def welch(M, sym=1):
 
 def lorentz(M, std=1.0, sym=True):
     r"""Lorentz window (same as Cauchy function). Function skeleton stolen from
-    scipy.signal.gaussian().
+    scipy.signal.windows.gaussian().
 
     The Lorentz function is
 
@@ -621,35 +620,37 @@ def smooth(data, kern, axis=0, edge='m', norm=True):
 
     Examples
     --------
-    >>> from pwtools.signal import welch
+    >>> from pwtools.signal import welch, smooth
     >>> from numpy.random import rand
+    >>> from scipy.signal.windows import hann, gaussian
+    >>> from scipy.signal import convolve
     >>> x = linspace(0,2*pi,500); a=cos(x)+rand(500)
     >>> plot(a, color='0.7')
-    >>> k=scipy.signal.hann(21)
-    >>> plot(signal.smooth(a,k), 'r', label='hann')
-    >>> k=scipy.signal.gaussian(21, 3)
-    >>> plot(signal.smooth(a,k), 'g', label='gauss')
+    >>> k=hann(21)
+    >>> plot(smooth(a,k), 'r', label='hann')
+    >>> k=gaussian(21, 3)
+    >>> plot(smooth(a,k), 'g', label='gauss')
     >>> k=welch(21)
-    >>> plot(signal.smooth(a,k), 'y', label='welch')
+    >>> plot(smooth(a,k), 'y', label='welch')
     >>> legend()
     >>> # odd kernel [0,1,0] reproduces data exactly, i.e. convolution with
     >>> # delta peak
     >>> figure(); title('smooth with delta [0,1,0]')
     >>> x=linspace(0,2*pi,15); k=scipy.signal.hann(3)
     >>> plot(cos(x))
-    >>> plot(signal.smooth(cos(x),k), 'r')
+    >>> plot(smooth(cos(x),k), 'r')
     >>> legend()
     >>> # edge effects with normal convolution
     >>> figure(); title('edge effects')
-    >>> x=rand(20)+10; k=scipy.signal.hann(11);
-    >>> plot(x); plot(signal.smooth(x,k),label="smooth");
-    >>> plot(scipy.signal.convolve(x,k/k.sum(),'same'), label='convolve')
+    >>> x=rand(20)+10; k=hann(11);
+    >>> plot(x); plot(smooth(x,k),label="smooth");
+    >>> plot(convolve(x,k/k.sum(),'same'), label='convolve')
     >>> legend()
     >>> # edge effect methods
     >>> figure(); title('edge effect methods')
-    >>> x=rand(20)+10; k=scipy.signal.hann(20);
-    >>> plot(x); plot(signal.smooth(x,k,edge='m'),label="edge='m'");
-    >>> plot(signal.smooth(x,k,edge='c'),label="edge='c'");
+    >>> x=rand(20)+10; k=hann(20);
+    >>> plot(x); plot(smooth(x,k,edge='m'),label="edge='m'");
+    >>> plot(smooth(x,k,edge='c'),label="edge='c'");
     >>> legend()
     >>> # smooth a trajectory of atomic coordinates
     >>> figure(); title('trajectory')
@@ -657,8 +658,8 @@ def smooth(data, kern, axis=0, edge='m', norm=True):
     >>> a = rand(500,2,3) # (nstep, natoms, 3)
     >>> a[:,0,:] += cos(x)[:,None]
     >>> a[:,1,:] += sin(x)[:,None]
-    >>> k=scipy.signal.hann(21)[:,None,None]
-    >>> y = signal.smooth(a,k)
+    >>> k=hann(21)[:,None,None]
+    >>> y = smooth(a,k)
     >>> plot(a[:,0,0], color='0.7'); plot(y[:,0,0],'b',
     ...                                   label='atom1 x')
     >>> plot(a[:,1,0], color='0.7'); plot(y[:,1,0],'r',

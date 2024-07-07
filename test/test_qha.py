@@ -7,7 +7,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_array_almost_equal as aaae
 
-from scipy.integrate import simps, trapz
+from scipy.integrate import simpson as simps
 from pwtools.thermo import HarmonicThermo
 from pwtools import common
 from pwtools.constants import Ry_to_J, eV, Ry, kb
@@ -91,4 +91,4 @@ def test_qha():
     area = np.random.rand()*10
     ha = HarmonicThermo(pdos[:,0], pdos[:,1], skipfreq=True, dosarea=area,
                         integrator=simps)
-    assert np.allclose(simps(ha.dos, ha.f), area)
+    assert np.allclose(simps(ha.dos, x=ha.f), area)
