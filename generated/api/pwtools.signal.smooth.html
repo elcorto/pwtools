@@ -7,9 +7,9 @@
 
     <title>pwtools.signal.smooth &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9121de03" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=3b47c8d5" />
     <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -18,8 +18,9 @@
    
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
   
+
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
 
   </head><body>
   <div class="document">
@@ -28,7 +29,7 @@
         <div class="sphinxsidebarwrapper">
 <p class="logo">
   <a href="../../index.html">
-    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    <img class="logo" src="../../_static/logo.png" alt="Logo" />
     
     <h1 class="logo logo-name">pwtools</h1>
     
@@ -73,7 +74,7 @@
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
@@ -81,7 +82,7 @@
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
@@ -136,35 +137,37 @@ with very big spread (i.e. <code class="docutils literal notranslate"><span clas
 </dd>
 </dl>
 <p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pwtools.signal</span> <span class="kn">import</span> <span class="n">welch</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pwtools.signal</span> <span class="kn">import</span> <span class="n">welch</span><span class="p">,</span> <span class="n">smooth</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">numpy.random</span> <span class="kn">import</span> <span class="n">rand</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scipy.signal.windows</span> <span class="kn">import</span> <span class="n">hann</span><span class="p">,</span> <span class="n">gaussian</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scipy.signal</span> <span class="kn">import</span> <span class="n">convolve</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">pi</span><span class="p">,</span><span class="mi">500</span><span class="p">);</span> <span class="n">a</span><span class="o">=</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">+</span><span class="n">rand</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;0.7&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">hann</span><span class="p">(</span><span class="mi">21</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">smooth</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">k</span><span class="p">),</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;hann&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="mi">21</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">smooth</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">k</span><span class="p">),</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;gauss&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">=</span><span class="n">hann</span><span class="p">(</span><span class="mi">21</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">smooth</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">k</span><span class="p">),</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;hann&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">=</span><span class="n">gaussian</span><span class="p">(</span><span class="mi">21</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">smooth</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">k</span><span class="p">),</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;gauss&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">=</span><span class="n">welch</span><span class="p">(</span><span class="mi">21</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">smooth</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">k</span><span class="p">),</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;welch&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">smooth</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">k</span><span class="p">),</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;welch&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">legend</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># odd kernel [0,1,0] reproduces data exactly, i.e. convolution with</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># delta peak</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">figure</span><span class="p">();</span> <span class="n">title</span><span class="p">(</span><span class="s1">&#39;smooth with delta [0,1,0]&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">pi</span><span class="p">,</span><span class="mi">15</span><span class="p">);</span> <span class="n">k</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">hann</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">smooth</span><span class="p">(</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">),</span><span class="n">k</span><span class="p">),</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">smooth</span><span class="p">(</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">),</span><span class="n">k</span><span class="p">),</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">legend</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># edge effects with normal convolution</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">figure</span><span class="p">();</span> <span class="n">title</span><span class="p">(</span><span class="s1">&#39;edge effects&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">rand</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span><span class="o">+</span><span class="mi">10</span><span class="p">;</span> <span class="n">k</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">hann</span><span class="p">(</span><span class="mi">11</span><span class="p">);</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">);</span> <span class="n">plot</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">smooth</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">k</span><span class="p">),</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;smooth&quot;</span><span class="p">);</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">k</span><span class="o">/</span><span class="n">k</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span><span class="s1">&#39;same&#39;</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;convolve&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">rand</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span><span class="o">+</span><span class="mi">10</span><span class="p">;</span> <span class="n">k</span><span class="o">=</span><span class="n">hann</span><span class="p">(</span><span class="mi">11</span><span class="p">);</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">);</span> <span class="n">plot</span><span class="p">(</span><span class="n">smooth</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">k</span><span class="p">),</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;smooth&quot;</span><span class="p">);</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">convolve</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">k</span><span class="o">/</span><span class="n">k</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span><span class="s1">&#39;same&#39;</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;convolve&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">legend</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># edge effect methods</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">figure</span><span class="p">();</span> <span class="n">title</span><span class="p">(</span><span class="s1">&#39;edge effect methods&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">rand</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span><span class="o">+</span><span class="mi">10</span><span class="p">;</span> <span class="n">k</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">hann</span><span class="p">(</span><span class="mi">20</span><span class="p">);</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">);</span> <span class="n">plot</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">smooth</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">edge</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">),</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;edge=&#39;m&#39;&quot;</span><span class="p">);</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">smooth</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">edge</span><span class="o">=</span><span class="s1">&#39;c&#39;</span><span class="p">),</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;edge=&#39;c&#39;&quot;</span><span class="p">);</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">=</span><span class="n">rand</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span><span class="o">+</span><span class="mi">10</span><span class="p">;</span> <span class="n">k</span><span class="o">=</span><span class="n">hann</span><span class="p">(</span><span class="mi">20</span><span class="p">);</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">);</span> <span class="n">plot</span><span class="p">(</span><span class="n">smooth</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">edge</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">),</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;edge=&#39;m&#39;&quot;</span><span class="p">);</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">smooth</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">edge</span><span class="o">=</span><span class="s1">&#39;c&#39;</span><span class="p">),</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;edge=&#39;c&#39;&quot;</span><span class="p">);</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">legend</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># smooth a trajectory of atomic coordinates</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">figure</span><span class="p">();</span> <span class="n">title</span><span class="p">(</span><span class="s1">&#39;trajectory&#39;</span><span class="p">)</span>
@@ -172,8 +175,8 @@ with very big spread (i.e. <code class="docutils literal notranslate"><span clas
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">rand</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="c1"># (nstep, natoms, 3)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:]</span> <span class="o">+=</span> <span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">)[:,</span><span class="kc">None</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">[:,</span><span class="mi">1</span><span class="p">,:]</span> <span class="o">+=</span> <span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)[:,</span><span class="kc">None</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">=</span><span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">hann</span><span class="p">(</span><span class="mi">21</span><span class="p">)[:,</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">smooth</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">k</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">=</span><span class="n">hann</span><span class="p">(</span><span class="mi">21</span><span class="p">)[:,</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">smooth</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">k</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">a</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;0.7&#39;</span><span class="p">);</span> <span class="n">plot</span><span class="p">(</span><span class="n">y</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="s1">&#39;b&#39;</span><span class="p">,</span>
 <span class="gp">... </span>                                  <span class="n">label</span><span class="o">=</span><span class="s1">&#39;atom1 x&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">a</span><span class="p">[:,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;0.7&#39;</span><span class="p">);</span> <span class="n">plot</span><span class="p">(</span><span class="n">y</span><span class="p">[:,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="s1">&#39;r&#39;</span><span class="p">,</span>
@@ -253,11 +256,11 @@ of course. We do exactly this in <a class="reference internal" href="pwtools.cry
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;2023, Steve Schmerler.
+      &#169;2023, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
       |
       <a href="../../_sources/generated/api/pwtools.signal.smooth.rst.txt"

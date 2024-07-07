@@ -6,17 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>pwtools.thermo &#8212; pwtools  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=9121de03" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=3b47c8d5" />
     <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
   
+
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
 
   </head><body>
   <div class="document">
@@ -25,7 +26,7 @@
         <div class="sphinxsidebarwrapper">
 <p class="logo">
   <a href="../../index.html">
-    <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+    <img class="logo" src="../../_static/logo.png" alt="Logo" />
     
     <h1 class="logo logo-name">pwtools</h1>
     
@@ -66,7 +67,7 @@
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
@@ -74,7 +75,7 @@
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
@@ -90,7 +91,7 @@
 <span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">simps</span><span class="p">,</span> <span class="n">trapz</span>
+<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">trapezoid</span> <span class="k">as</span> <span class="n">trapz</span>
 <span class="kn">from</span> <span class="nn">pwtools.constants</span> <span class="kn">import</span> <span class="n">kb</span><span class="p">,</span> <span class="n">hplanck</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">pi</span><span class="p">,</span> <span class="n">c0</span><span class="p">,</span> <span class="n">Ry_to_J</span><span class="p">,</span> <span class="n">eV</span><span class="p">,</span>\
     <span class="n">eV_by_Ang3_to_GPa</span>
 <span class="kn">from</span> <span class="nn">pwtools.verbose</span> <span class="kn">import</span> <span class="n">verbose</span>
@@ -142,7 +143,7 @@
 <span class="sd">            If not None, then re-normalize the area int(freq) dos to `dosarea`,</span>
 <span class="sd">            after `skipfreq` was applied if used.</span>
 <span class="sd">        integrator : callable</span>
-<span class="sd">            Function which integrates x-y data. Called as ``integrator(y,x)``,</span>
+<span class="sd">            Function which integrates x-y data. Called as ``integrator(y,x=x)``,</span>
 <span class="sd">            like ``scipy.integrate.{trapz,simps}``. Usually, `trapz` is</span>
 <span class="sd">            numerically more stable for weird DOS data and accurate enough if</span>
 <span class="sd">            the frequency axis resolution is good.</span>
@@ -253,7 +254,7 @@
         <span class="n">fy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
         <span class="n">sx</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="n">fx</span>
         <span class="n">sy</span> <span class="o">=</span> <span class="n">y</span> <span class="o">/</span> <span class="n">fy</span>
-        <span class="n">_area</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">integrator</span><span class="p">(</span><span class="n">sy</span><span class="p">,</span> <span class="n">sx</span><span class="p">)</span> <span class="o">*</span> <span class="n">fx</span> <span class="o">*</span> <span class="n">fy</span>
+        <span class="n">_area</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">integrator</span><span class="p">(</span><span class="n">sy</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">sx</span><span class="p">)</span> <span class="o">*</span> <span class="n">fx</span> <span class="o">*</span> <span class="n">fy</span>
         <span class="k">return</span> <span class="n">y</span><span class="o">*</span><span class="n">area</span><span class="o">/</span><span class="n">_area</span>
 
     <span class="k">def</span> <span class="nf">_printwarn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
@@ -982,11 +983,11 @@
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;2023, Steve Schmerler.
+      &#169;2023, Steve Schmerler.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
     </div>
 
