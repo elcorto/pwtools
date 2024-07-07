@@ -2,7 +2,7 @@
 #
 # See doc/ for more information on building the extension modules.
 
-F2PY=f2py3
+F2PY=f2py
 F2PY_FLAGS=--opt='-O2' \
 			--f90exec=$(F90) \
 			--f77exec=$(F90) \
