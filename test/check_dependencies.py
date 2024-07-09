@@ -87,7 +87,7 @@ if __name__ == '__main__':
     # pip has no Python API, so ... yeah. This is slow, do it only once. Yes
     # this is a global var, but hey the script is tiny.
     pip_list = [x['name'] for x in
-                json.loads(backtick("pip list --format=json"))]
+                json.loads(backtick("pip list --format=json 2> /dev/null"))]
 
     path = '../'
     req_files = glob.fnmatch.filter(os.listdir(path), "requirements*.txt")
