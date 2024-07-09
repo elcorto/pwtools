@@ -584,7 +584,11 @@ def find_peaks(y, x=None, k=3, spread=2, ymin=None):
 def smooth(data, kern, axis=0, edge='m', norm=True):
     """Smooth N-dim `data` by convolution with a kernel `kern`.
 
-    Uses scipy.signal.fftconvolve().
+    Uses ``scipy.signal.fftconvolve()``.
+
+    Note: This function is actually a specical case of
+    ``scipy.ndimage.convolve()``, so you may also use that. See the Notes
+    section below for details.
 
     Note that due to edge effect handling (padding) and kernal normalization,
     the convolution identity convolve(data,kern) == convolve(kern,data) doesn't
@@ -669,6 +673,7 @@ def smooth(data, kern, axis=0, edge='m', norm=True):
     References
     ----------
     [1] http://wiki.scipy.org/Cookbook/SignalSmooth
+    [2] https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.convolve.html#scipy.ndimage.convolve
 
     See Also
     --------
@@ -677,6 +682,30 @@ def smooth(data, kern, axis=0, edge='m', norm=True):
 
     Notes
     -----
+
+    ``scipy.ndimage.convolve``:
+
+    We only apply padding and convolution along `axis` (since the main ndarray
+    use case is :func:`pwtools.crys.smooth`), while ``ndimage.convolve``
+    supports this for all dimensions. Also ``ndimage.convolve`` has more edge
+    effect handling methods available :-)
+
+    >>> a=rand(100,200,300)
+    >>> k=rand(3,1,1)
+
+    >>> # Defaults
+    >>> np.allclose(pwtools.signal.smooth(a, k, edge="m", norm=True, axis=0),
+    ...             scipy.ndimage.convolve(a, k/k.sum(), mode="mirror"))
+
+    >>> # Without kernel normalization
+    >>> np.allclose(pwtools.signal.smooth(a, k, edge="m", norm=False, axis=0),
+    ...             scipy.ndimage.convolve(a, k, mode="mirror"))
+
+    >>> # Use another axis and another edge method
+    >>> k=rand(1,3,1)
+    >>> np.allclose(pwtools.signal.smooth(a, k, edge="c", norm=True, axis=1),
+    ...             scipy.ndimage.convolve(a, k/k.sum(), mode="nearest"))
+
 
     Kernels:
 
