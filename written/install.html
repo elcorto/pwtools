@@ -61,7 +61,6 @@
 <li class="toctree-l2"><a class="reference internal" href="#detailed-instructions">Detailed instructions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#running-tests">Running tests</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#python-versions">Python versions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#fortran-extensions-and-openmp-notes">Fortran extensions and OpenMP notes</a></li>
 </ul>
 </li>
@@ -102,8 +101,8 @@
 <h1>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h1>
 <section id="quick-start">
 <h2>Quick start<a class="headerlink" href="#quick-start" title="Link to this heading">¶</a></h2>
-<p>Debian and derivatives: Fortran compiler, Python headers, lapack</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>python3-dev<span class="w"> </span>gfortran<span class="w"> </span>liblapack-dev
+<p>Fortran compiler, Python headers, lapack, meson on Debian/Ubuntu:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>python3-dev<span class="w"> </span>gfortran<span class="w"> </span>liblapack-dev<span class="w"> </span>meson
 </pre></div>
 </div>
 <p>Then</p>
@@ -191,13 +190,6 @@ therefore not hard dependencies. Importing modules that use them (e.g. <code cla
 might use <code class="docutils literal notranslate"><span class="pre">ase</span></code>) won’t fail at import time, but later at runtime when e.g.
 <code class="docutils literal notranslate"><span class="pre">crys.Structure.get_ase_atoms()</span></code> is called. What packages are optional might
 change depending on usage.</p>
-<p>You also need the following to compile extensions. On a Debian-ish system</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># apt</span>
-python3-dev<span class="w">     </span><span class="c1"># for compiling extensions</span>
-gfortran<span class="w">        </span><span class="c1"># or ifort, see src/Makefile</span>
-liblapack-dev
-</pre></div>
-</div>
 <p>Also note that you can get most Python packages via your system’s package
 manager. Debian and derivatives:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>python3-ase
@@ -240,16 +232,9 @@ there is no use of eos.x in pwtools anymore.</p>
 <h2>Running tests<a class="headerlink" href="#running-tests" title="Link to this heading">¶</a></h2>
 <p>See test/README. Actually, all of these are good examples, too!</p>
 </section>
-<section id="python-versions">
-<h2>Python versions<a class="headerlink" href="#python-versions" title="Link to this heading">¶</a></h2>
-<p>Only Python3 is supported, tested: Python 3.6-3.11</p>
-<p>The package was developed mostly with Python 2.5-2.7 and ported using 2to3 +
-manual changes. Therefore, you might find some crufty Python 2 style code
-fragments in lesser used parts of the code base.</p>
-</section>
 <section id="fortran-extensions-and-openmp-notes">
 <span id="extensions"></span><h2>Fortran extensions and OpenMP notes<a class="headerlink" href="#fortran-extensions-and-openmp-notes" title="Link to this heading">¶</a></h2>
-<p>Use <code class="docutils literal notranslate"><span class="pre">src/Makefile</span></code>:</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">src/_ext_src/Makefile</span></code>:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>make<span class="w"> </span><span class="nb">help</span>
 make<span class="w"> </span>gfortran<span class="w">            </span><span class="c1"># gfortran, default</span>
 make<span class="w"> </span>gfortran-omp<span class="w">        </span><span class="c1"># gfortran + OpenMP</span>
@@ -259,21 +244,36 @@ make<span class="w"> </span>ifort-omp<span class="w">           </span><span cla
 make<span class="w"> </span>ifort-mkl<span class="w">           </span><span class="c1"># ifort, Intel MKL lapack, set MKL_LIB</span>
 </pre></div>
 </div>
-<p>Generates <code class="docutils literal notranslate"><span class="pre">*.so</span></code> and <code class="docutils literal notranslate"><span class="pre">*.pyf</span></code> (f2py interface) files.</p>
-<p>You need:</p>
-<ul class="simple">
-<li><p>numpy for f2py</p></li>
-<li><p>a Fortran compiler</p></li>
-<li><p>Python headers (Debian/Ubuntu: python-dev)</p></li>
-<li><p>Lapack (Debian: liblapack-dev)</p></li>
-</ul>
-<p>The module is compiled with f2py (currently part of numpy, tested with numpy
-1.1.0 .. 1.21.x).</p>
+<p>Generates <code class="docutils literal notranslate"><span class="pre">*.so</span></code> files</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>src/_ext_src/_dcd.so<span class="w">     </span><span class="c1"># will be copied to src/pwtools/_dcd.so</span>
+src/_ext_src/_flib.so<span class="w">    </span><span class="c1"># will be copied to src/pwtools/_flib.so</span>
+</pre></div>
+</div>
+<p>You need the following to compile extensions. On Debian/Ubuntu</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># apt</span>
+python3-numpy<span class="w">       </span><span class="c1"># for f2py</span>
+python3-dev<span class="w">         </span><span class="c1"># Python headers</span>
+gfortran<span class="w">            </span><span class="c1"># or ifort, see src/_ext_src/Makefile</span>
+liblapack-dev<span class="w">       </span><span class="c1"># see below</span>
+meson<span class="w">               </span><span class="c1"># f2py build backend as of Python 3.12, will also install ninja</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">liblapack-dev</span></code> is only one option, maybe the slowest. On Debian/Ubuntu,
+there are other options, i.e. anything that provides a <code class="docutils literal notranslate"><span class="pre">liblapack.so</span></code> works.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>apt-file<span class="w"> </span>search<span class="w"> </span>-x<span class="w"> </span><span class="s1">&#39;liblapack.so$&#39;</span>
+libatlas-base-dev:<span class="w"> </span>/usr/lib/x86_64-linux-gnu/atlas/liblapack.so
+liblapack-dev:<span class="w"> </span>/usr/lib/x86_64-linux-gnu/lapack/liblapack.so
+libmkl-dev:<span class="w"> </span>/usr/lib/x86_64-linux-gnu/mkl/liblapack.so
+libopenblas-openmp-dev:<span class="w"> </span>/usr/lib/x86_64-linux-gnu/openblas-openmp/liblapack.so
+libopenblas-pthread-dev:<span class="w"> </span>/usr/lib/x86_64-linux-gnu/openblas-pthread/liblapack.so
+libopenblas-serial-dev:<span class="w"> </span>/usr/lib/x86_64-linux-gnu/openblas-serial/liblapack.so
+</pre></div>
+</div>
 <p>The default <code class="docutils literal notranslate"><span class="pre">make</span></code> target is “gfortran” which tries to build a serial version
-using system BLAS and LAPACK (e.g. from <code class="docutils literal notranslate"><span class="pre">liblapack-dev</span></code>). If you want another
+using system LAPACK (e.g. from <code class="docutils literal notranslate"><span class="pre">liblapack-dev</span></code>). If you want another
 target (e.g. <code class="docutils literal notranslate"><span class="pre">ifort-mkl</span></code>), then</p>
 <blockquote>
-<div><div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>src
+<div><div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>src/_ext_src
 $<span class="w"> </span>make<span class="w"> </span>clean
 $<span class="w"> </span>make<span class="w"> </span>ifort-mkl
 </pre></div>
@@ -284,9 +284,9 @@ $<span class="w"> </span>make<span class="w"> </span>ifort-mkl
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nv">PWTOOLS_EXT_MAKE_TARGET</span><span class="o">=</span>ifort-mkl<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>...
 </pre></div>
 </div>
-<p>This will use the Intel <code class="docutils literal notranslate"><span class="pre">ifort</span></code> compiler instead fo the default <code class="docutils literal notranslate"><span class="pre">gfortran</span></code> and
+<p>This will use the Intel <code class="docutils literal notranslate"><span class="pre">ifort</span></code> compiler instead of the default <code class="docutils literal notranslate"><span class="pre">gfortran</span></code> and
 link against the MKL.</p>
-<p>In the MKL case, the Makefile uses the env var <code class="docutils literal notranslate"><span class="pre">$MKL_LIB</span></code> which sould point
+<p>In the MKL case, the Makefile uses the env var <code class="docutils literal notranslate"><span class="pre">$MKL_LIB</span></code> which should point
 to the location where things like <code class="docutils literal notranslate"><span class="pre">libmkl_core.so</span></code> live. You may need to set
 this. On a HPC cluster, that could look like this.</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># module only sets MKL_ROOT=/path/to/intel/20.4/mkl</span>
@@ -294,24 +294,7 @@ $<span class="w"> </span>module<span class="w"> </span>load<span class="w"> </sp
 $<span class="w"> </span><span class="nv">MKL_LIB</span><span class="o">=</span><span class="nv">$MKL_ROOT</span>/lib/intel64<span class="w"> </span><span class="nv">PWTOOLS_EXT_MAKE_TARGET</span><span class="o">=</span>ifort-mkl<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>...
 </pre></div>
 </div>
-<p>See <code class="docutils literal notranslate"><span class="pre">src/Makefile</span></code> for more details.</p>
-<section id="compiler-f2py">
-<h3>Compiler / f2py<a class="headerlink" href="#compiler-f2py" title="Link to this heading">¶</a></h3>
-<p>Instead of letting numpy.distutils pick a compiler + special flags, which is
-not trivial and therefore almost never works, it is much easier to simply
-define the compiler to use + architecture-specific flags. See F90 and ARCH in
-the Makefile.</p>
-<p>Also, numpy.distutils has default -03 for fcompiler. <code class="docutils literal notranslate"><span class="pre">--f90flags=&quot;-02&quot;</span></code> does NOT
-override this. We get <code class="docutils literal notranslate"><span class="pre">-O3</span> <span class="pre">-O2</span></code> and a compiler warning. We have to use f2py’s
-<code class="docutils literal notranslate"><span class="pre">--opt=</span></code> flag.</p>
-<p>On some systems (Debian), you may have:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>/usr/bin/f2py<span class="w"> </span>-&gt;<span class="w"> </span>f2py2.6
-/usr/bin/f2py2.5
-/usr/bin/f2py2.6
-</pre></div>
-</div>
-<p>and such. But usually <code class="docutils literal notranslate"><span class="pre">F2PY=f2py</span></code> is fine.</p>
-</section>
+<p>See <code class="docutils literal notranslate"><span class="pre">src/_ext_src/Makefile</span></code> for more details.</p>
 <section id="openmp">
 <h3>OpenMP<a class="headerlink" href="#openmp" title="Link to this heading">¶</a></h3>
 <p>We managed to speed up the calculations by sprinkling some OpenMP
@@ -330,14 +313,8 @@ $<span class="w"> </span>python<span class="w"> </span>-c<span class="w"> </span
 </div>
 <p>If this env var is NOT set, then OpenMP uses all available cores (e.g. 4 on a
 quad-core box).</p>
-<dl class="simple">
-<dt>IMPORTANT:</dt><dd><p>Note that we may have found a f2py bug (see test/test_f2py_flib_openmp.py)
-re. OMP_NUM_THREADS. We have a workaround for that in pydos.fvacf().</p>
-</dd>
-</dl>
-<p>There is also an optional arg ‘nthreads’ to _flib.vacf(). If this is
-supplied, then it will override OMP_NUM_THREADS. Currently, this is the
-safest way to set the number of threads.</p>
+<p>There is also an optional arg ‘nthreads’ to <code class="docutils literal notranslate"><span class="pre">_flib.vacf()</span></code>. If this is
+supplied, then it will override <code class="docutils literal notranslate"><span class="pre">OMP_NUM_THREADS</span></code>.</p>
 </section>
 <section id="tests">
 <h3>Tests<a class="headerlink" href="#tests" title="Link to this heading">¶</a></h3>
