@@ -3,32 +3,24 @@
 # See doc/ for more information on building the extension modules.
 
 F2PY=f2py
-F2PY_FLAGS=--opt='-O2' \
-			--f90exec=$(F90) \
-			--f77exec=$(F90) \
-			--arch="$(ARCH)" \
-			--f90flags="$(F90FLAGS) $(OMP_F90_FLAGS)" \
-			--f77flags="$(F90FLAGS) $(OMP_F90_FLAGS)" \
-			$(F2PY_OMP_F90_FLAGS) \
-			$(LAPACK) \
-##			-DF2PY_REPORT_ON_ARRAY_COPY=1 \
-
 LAPACK=-llapack
 OMP_F90_FLAGS=
-F2PY_OMP_F90_FLAGS=
+OMP_F2PY_FLAGS=
 
 # compiler specific variables
 ifort: F90=ifort
 ifort: F90FLAGS=-fpp -no-prec-div -fast-transcendentals
 ifort: ARCH=-xHost
+ifort: OPT=-O2
 ifort-omp: OMP_F90_FLAGS=-openmp -D__OPENMP
-ifort-omp: F2PY_OMP_F90_FLAGS=-liomp5
+ifort-omp: OMP_F2PY_FLAGS=-liomp5
 
 gfortran: F90=gfortran
 gfortran: F90FLAGS=-x f95-cpp-input -Wall
 gfortran: ARCH=-march=native
+gfortran: OPT=-O2
 gfortran-omp: OMP_F90_FLAGS=-fopenmp -D__OPENMP
-gfortran-omp: F2PY_OMP_F90_FLAGS=-lgomp
+gfortran-omp: OMP_F2PY_FLAGS=-lgomp
 
 # MKL_LIB should be something like
 #	/sw/global/compilers/intel/2013/composer_xe_2013.1.117/mkl/lib/intel64
@@ -55,6 +47,7 @@ help:
 	@echo "make gfortran            # gfortran, default"
 	@echo "make gfortran-omp        # gfortran + OpenMP"
 	@echo "make gfortran-mkl        # gfortran, Intel MKL lapack, set MKL_LIB"
+	@echo "make gfortran-openblas   # gfortran, OpenBLAS"
 	@echo "make ifort               # ifort"
 	@echo "make ifort-omp           # ifort + OpenMP"
 	@echo "make ifort-mkl           # ifort, Intel MKL lapack, set MKL_LIB"
@@ -92,10 +85,15 @@ $(OBJ): $(OBJ_LOCAL)
 # thinks that the cp/mv target is a directory. Hmmpf. However, we need to do
 # that only here, not above in the OBJ target.
 #
+# All compiler flags (-O2 -xHost ...) have to go into FFLAGS. All linked libs
+# (-llapack -lgomp ...) have to be appended to the f2py command. See
+# https://numpy.org/doc/stable/f2py/buildtools/distutils-to-meson.html
+#
 # Here we use a make feature called target pattern. Fancy, eh?
 $(OBJ_LOCAL): _%.so: %.f90
-	CC=gcc CXX=g++ $(F2PY) -h $*.pyf $? -m _$* --overwrite-signature; \
-	CC=gcc CXX=g++ $(F2PY) -c $*.pyf $? $(F2PY_FLAGS); \
+	CC=gcc CXX=g++ CFLAGS=$(OPT) \
+		FC=$(F90) FFLAGS="$(F90FLAGS) $(ARCH) $(OMP_F90_FLAGS) $(OPT)" \
+		$(F2PY) -c $? -m _$* --backend meson $(LAPACK) $(OMP_F2PY_FLAGS)
 	rm -f $@; mv _$**.so $@
 
 
