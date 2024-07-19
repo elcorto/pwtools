@@ -4,11 +4,11 @@ Installation
 Quick start
 -----------
 
-Debian and derivatives: Fortran compiler, Python headers, lapack
+Fortran compiler, Python headers, lapack, meson on Debian/Ubuntu:
 
 .. code-block:: sh
 
-    $ sudo apt install python3-dev gfortran liblapack-dev
+    $ sudo apt install python3-dev gfortran liblapack-dev meson
 
 Then
 
@@ -120,15 +120,6 @@ might use ``ase``) won't fail at import time, but later at runtime when e.g.
 ``crys.Structure.get_ase_atoms()`` is called. What packages are optional might
 change depending on usage.
 
-You also need the following to compile extensions. On a Debian-ish system
-
-.. code-block:: sh
-
-    # apt
-    python3-dev     # for compiling extensions
-    gfortran        # or ifort, see src/Makefile
-    liblapack-dev
-
 Also note that you can get most Python packages via your system's package
 manager. Debian and derivatives:
 
@@ -173,22 +164,13 @@ Running tests
 
 See test/README. Actually, all of these are good examples, too!
 
-Python versions
----------------
-
-Only Python3 is supported, tested: Python 3.6-3.11
-
-The package was developed mostly with Python 2.5-2.7 and ported using 2to3 +
-manual changes. Therefore, you might find some crufty Python 2 style code
-fragments in lesser used parts of the code base.
-
 
 .. _extensions:
 
 Fortran extensions and OpenMP notes
 -----------------------------------
 
-Use ``src/Makefile``:
+Use ``src/_ext_src/Makefile``:
 
 .. code-block:: sh
 
@@ -200,25 +182,44 @@ Use ``src/Makefile``:
     make ifort-omp           # ifort + OpenMP
     make ifort-mkl           # ifort, Intel MKL lapack, set MKL_LIB
 
-Generates ``*.so`` and ``*.pyf`` (f2py interface) files.
+Generates ``*.so`` files
 
-You need:
+.. code-block:: sh
 
-* numpy for f2py
-* a Fortran compiler
-* Python headers (Debian/Ubuntu: python-dev)
-* Lapack (Debian: liblapack-dev)
+    src/_ext_src/_dcd.so     # will be copied to src/pwtools/_dcd.so
+    src/_ext_src/_flib.so    # will be copied to src/pwtools/_flib.so
 
-The module is compiled with f2py (currently part of numpy, tested with numpy
-1.1.0 .. 1.21.x).
+You need the following to compile extensions. On Debian/Ubuntu
+
+.. code-block:: sh
+
+    # apt
+    python3-numpy       # for f2py
+    python3-dev         # Python headers
+    gfortran            # or ifort, see src/_ext_src/Makefile
+    liblapack-dev       # see below
+    meson               # f2py build backend as of Python 3.12, will also install ninja
+
+``liblapack-dev`` is only one option, maybe the slowest. On Debian/Ubuntu,
+there are other options, i.e. anything that provides a ``liblapack.so`` works.
+
+.. code-block:: sh
+
+    $ apt-file search -x 'liblapack.so$'
+    libatlas-base-dev: /usr/lib/x86_64-linux-gnu/atlas/liblapack.so
+    liblapack-dev: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so
+    libmkl-dev: /usr/lib/x86_64-linux-gnu/mkl/liblapack.so
+    libopenblas-openmp-dev: /usr/lib/x86_64-linux-gnu/openblas-openmp/liblapack.so
+    libopenblas-pthread-dev: /usr/lib/x86_64-linux-gnu/openblas-pthread/liblapack.so
+    libopenblas-serial-dev: /usr/lib/x86_64-linux-gnu/openblas-serial/liblapack.so
 
 The default ``make`` target is "gfortran" which tries to build a serial version
-using system BLAS and LAPACK (e.g. from ``liblapack-dev``). If you want another
+using system LAPACK (e.g. from ``liblapack-dev``). If you want another
 target (e.g. ``ifort-mkl``), then
 
    .. code-block:: sh
 
-    $ cd src
+    $ cd src/_ext_src
     $ make clean
     $ make ifort-mkl
 
@@ -229,10 +230,10 @@ or when using ``pip`` (or anything calling ``setup.py``) set
 
     $ PWTOOLS_EXT_MAKE_TARGET=ifort-mkl pip install ...
 
-This will use the Intel ``ifort`` compiler instead fo the default ``gfortran`` and
+This will use the Intel ``ifort`` compiler instead of the default ``gfortran`` and
 link against the MKL.
 
-In the MKL case, the Makefile uses the env var ``$MKL_LIB`` which sould point
+In the MKL case, the Makefile uses the env var ``$MKL_LIB`` which should point
 to the location where things like ``libmkl_core.so`` live. You may need to set
 this. On a HPC cluster, that could look like this.
 
@@ -242,28 +243,8 @@ this. On a HPC cluster, that could look like this.
     $ module load intel/20.4
     $ MKL_LIB=$MKL_ROOT/lib/intel64 PWTOOLS_EXT_MAKE_TARGET=ifort-mkl pip install ...
 
-See ``src/Makefile`` for more details.
+See ``src/_ext_src/Makefile`` for more details.
 
-Compiler / f2py
-^^^^^^^^^^^^^^^
-Instead of letting numpy.distutils pick a compiler + special flags, which is
-not trivial and therefore almost never works, it is much easier to simply
-define the compiler to use + architecture-specific flags. See F90 and ARCH in
-the Makefile.
-
-Also, numpy.distutils has default -03 for fcompiler. ``--f90flags="-02"`` does NOT
-override this. We get ``-O3 -O2`` and a compiler warning. We have to use f2py's
-``--opt=`` flag.
-
-On some systems (Debian), you may have:
-
-.. code-block:: sh
-
-  /usr/bin/f2py -> f2py2.6
-  /usr/bin/f2py2.5
-  /usr/bin/f2py2.6
-
-and such. But usually ``F2PY=f2py`` is fine.
 
 OpenMP
 ^^^^^^
@@ -289,13 +270,8 @@ Setting the number of threads:
 If this env var is NOT set, then OpenMP uses all available cores (e.g. 4 on a
 quad-core box).
 
-IMPORTANT:
-    Note that we may have found a f2py bug (see test/test_f2py_flib_openmp.py)
-    re. OMP_NUM_THREADS. We have a workaround for that in pydos.fvacf().
-
-There is also an optional arg 'nthreads' to _flib.vacf(). If this is
-supplied, then it will override OMP_NUM_THREADS. Currently, this is the
-safest way to set the number of threads.
+There is also an optional arg 'nthreads' to ``_flib.vacf()``. If this is
+supplied, then it will override ``OMP_NUM_THREADS``.
 
 Tests
 ^^^^^
