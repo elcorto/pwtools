@@ -755,7 +755,8 @@
 <span class="sd">    &gt;&gt;&gt; plot(a, color=&#39;0.7&#39;)</span>
 <span class="sd">    &gt;&gt;&gt; k=hann(21)</span>
 <span class="sd">    &gt;&gt;&gt; plot(smooth(a,k), &#39;r&#39;, label=&#39;hann&#39;)</span>
-<span class="sd">    &gt;&gt;&gt; k=gaussian(21, 3)</span>
+<span class="sd">    &gt;&gt;&gt; # To match hann and gaussian, use sigma 1/5 hann window length</span>
+<span class="sd">    &gt;&gt;&gt; k=gaussian(51, 21/5)</span>
 <span class="sd">    &gt;&gt;&gt; plot(smooth(a,k), &#39;g&#39;, label=&#39;gauss&#39;)</span>
 <span class="sd">    &gt;&gt;&gt; k=welch(21)</span>
 <span class="sd">    &gt;&gt;&gt; plot(smooth(a,k), &#39;y&#39;, label=&#39;welch&#39;)</span>
@@ -806,12 +807,13 @@
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
 
-<span class="sd">    ``scipy.ndimage.convolve``:</span>
+<span class="sd">    ``scipy.ndimage`` tools:</span>
 
 <span class="sd">    We only apply padding and convolution along `axis` (since the main ndarray</span>
 <span class="sd">    use case is :func:`pwtools.crys.smooth`), while ``ndimage.convolve``</span>
 <span class="sd">    supports this for all dimensions. Also ``ndimage.convolve`` has more edge</span>
-<span class="sd">    effect handling methods available :-)</span>
+<span class="sd">    effect handling methods available. Might be slower than</span>
+<span class="sd">    ``scipy.signal.fftconvolve()``, though.</span>
 
 <span class="sd">    &gt;&gt;&gt; a=rand(100,200,300)</span>
 <span class="sd">    &gt;&gt;&gt; k=rand(3,1,1)</span>
@@ -830,25 +832,28 @@
 <span class="sd">    ...             scipy.ndimage.convolve(a, k/k.sum(), mode=&quot;nearest&quot;))</span>
 
 
+<span class="sd">    In addition, a Gaussian kernel can also be applied using</span>
+<span class="sd">    ``scipy.ndimage.gaussian_filter()``. This implements the same edge effect</span>
+<span class="sd">    handling as ``ndimage.convolve``.</span>
+
 <span class="sd">    Kernels:</span>
 
 <span class="sd">    Even kernels result in shifted signals, odd kernels are better.</span>
 <span class="sd">    However, for N &gt;&gt; M, it doesn&#39;t make a difference really.</span>
 
 <span class="sd">    Usual kernels (window functions) are created by e.g.</span>
-<span class="sd">    ``scipy.signal.hann(M)``. For ``kern=scipy.signal.gaussian(M,</span>
-<span class="sd">    std)``, two values are needed, namely `M` and `std`, where  `M`</span>
-<span class="sd">    determines the number of points calculated for the convolution kernel, as</span>
-<span class="sd">    in the other cases. But what is actually important is `std`, which</span>
-<span class="sd">    determines the &quot;used width&quot; of the gaussian. Say we use N=100</span>
-<span class="sd">    and M=50. That would be a massively wide window and we would</span>
-<span class="sd">    smooth away all details. OTOH, using ``gaussian(50,3)`` would generate a</span>
-<span class="sd">    kernel with the same number `M` of data points, but the gauss peak which is</span>
-<span class="sd">    effectively used for convolution is much smaller. For ``gaussian()``,</span>
-<span class="sd">    `M` should be bigger then `std`. The convolved signal will converge</span>
-<span class="sd">    with increasing `M`. Good values are `M=6*std` and bigger. For</span>
-<span class="sd">    :func:`lorentz`, much wider kernels are needed such as `M=100*std` b/c</span>
-<span class="sd">    of the long tails of the Lorentz function. Testing is mandatory!</span>
+<span class="sd">    ``scipy.signal.windows.hann(M)``. For</span>
+<span class="sd">    ``kern=scipy.signal.windows.gaussian(M, std)``, two values are needed,</span>
+<span class="sd">    namely `M` and `std`, where  `M` determines the number of points calculated</span>
+<span class="sd">    for the convolution kernel, as in the other cases. But what is actually</span>
+<span class="sd">    important is `std`, which determines the &quot;used width&quot; of the gaussian. For</span>
+<span class="sd">    ``gaussian()``, `M` should be bigger then `std`. The convolved signal will</span>
+<span class="sd">    converge with increasing `M`. Good values are `M=6*std` and bigger. To</span>
+<span class="sd">    match the results when using a Hann window of size `M_hann`, use</span>
+<span class="sd">    approximately `std=1/5*M_hann`, as in ``hann(21)`` and ``gaussian(51,</span>
+<span class="sd">    21/5)`` with a large enough `M`, here 51. For :func:`lorentz`, much wider</span>
+<span class="sd">    kernels are needed such as `M=100*std` b/c of the long tails of the Lorentz</span>
+<span class="sd">    function. Testing is mandatory!</span>
 
 <span class="sd">    Edge effects:</span>
 

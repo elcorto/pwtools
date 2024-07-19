@@ -148,7 +148,8 @@ with very big spread (i.e. <code class="docutils literal notranslate"><span clas
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;0.7&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">=</span><span class="n">hann</span><span class="p">(</span><span class="mi">21</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">smooth</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">k</span><span class="p">),</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;hann&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">=</span><span class="n">gaussian</span><span class="p">(</span><span class="mi">21</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># To match hann and gaussian, use sigma 1/5 hann window length</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">=</span><span class="n">gaussian</span><span class="p">(</span><span class="mi">51</span><span class="p">,</span> <span class="mi">21</span><span class="o">/</span><span class="mi">5</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">smooth</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">k</span><span class="p">),</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;gauss&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">=</span><span class="n">welch</span><span class="p">(</span><span class="mi">21</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">plot</span><span class="p">(</span><span class="n">smooth</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">k</span><span class="p">),</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;welch&#39;</span><span class="p">)</span>
@@ -195,11 +196,12 @@ with very big spread (i.e. <code class="docutils literal notranslate"><span clas
 <p><a class="reference internal" href="pwtools.signal.welch.html#pwtools.signal.welch" title="pwtools.signal.welch"><code class="xref py py-func docutils literal notranslate"><span class="pre">welch()</span></code></a>, <a class="reference internal" href="pwtools.signal.lorentz.html#pwtools.signal.lorentz" title="pwtools.signal.lorentz"><code class="xref py py-func docutils literal notranslate"><span class="pre">lorentz()</span></code></a></p>
 </div>
 <p class="rubric">Notes</p>
-<p><code class="docutils literal notranslate"><span class="pre">scipy.ndimage.convolve</span></code>:</p>
+<p><code class="docutils literal notranslate"><span class="pre">scipy.ndimage</span></code> tools:</p>
 <p>We only apply padding and convolution along <cite>axis</cite> (since the main ndarray
 use case is <a class="reference internal" href="pwtools.crys.smooth.html#pwtools.crys.smooth" title="pwtools.crys.smooth"><code class="xref py py-func docutils literal notranslate"><span class="pre">pwtools.crys.smooth()</span></code></a>), while <code class="docutils literal notranslate"><span class="pre">ndimage.convolve</span></code>
 supports this for all dimensions. Also <code class="docutils literal notranslate"><span class="pre">ndimage.convolve</span></code> has more edge
-effect handling methods available :-)</p>
+effect handling methods available. Might be slower than
+<code class="docutils literal notranslate"><span class="pre">scipy.signal.fftconvolve()</span></code>, though.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">=</span><span class="n">rand</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">200</span><span class="p">,</span><span class="mi">300</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">k</span><span class="o">=</span><span class="n">rand</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
@@ -220,23 +222,25 @@ effect handling methods available :-)</p>
 <span class="gp">... </span>            <span class="n">scipy</span><span class="o">.</span><span class="n">ndimage</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">k</span><span class="o">/</span><span class="n">k</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span><span class="p">))</span>
 </pre></div>
 </div>
+<p>In addition, a Gaussian kernel can also be applied using
+<code class="docutils literal notranslate"><span class="pre">scipy.ndimage.gaussian_filter()</span></code>. This implements the same edge effect
+handling as <code class="docutils literal notranslate"><span class="pre">ndimage.convolve</span></code>.</p>
 <p>Kernels:</p>
 <p>Even kernels result in shifted signals, odd kernels are better.
 However, for N &gt;&gt; M, it doesn’t make a difference really.</p>
 <p>Usual kernels (window functions) are created by e.g.
-<code class="docutils literal notranslate"><span class="pre">scipy.signal.hann(M)</span></code>. For <code class="docutils literal notranslate"><span class="pre">kern=scipy.signal.gaussian(M,</span>
-<span class="pre">std)</span></code>, two values are needed, namely <cite>M</cite> and <cite>std</cite>, where  <cite>M</cite>
-determines the number of points calculated for the convolution kernel, as
-in the other cases. But what is actually important is <cite>std</cite>, which
-determines the “used width” of the gaussian. Say we use N=100
-and M=50. That would be a massively wide window and we would
-smooth away all details. OTOH, using <code class="docutils literal notranslate"><span class="pre">gaussian(50,3)</span></code> would generate a
-kernel with the same number <cite>M</cite> of data points, but the gauss peak which is
-effectively used for convolution is much smaller. For <code class="docutils literal notranslate"><span class="pre">gaussian()</span></code>,
-<cite>M</cite> should be bigger then <cite>std</cite>. The convolved signal will converge
-with increasing <cite>M</cite>. Good values are <cite>M=6*std</cite> and bigger. For
-<a class="reference internal" href="pwtools.signal.lorentz.html#pwtools.signal.lorentz" title="pwtools.signal.lorentz"><code class="xref py py-func docutils literal notranslate"><span class="pre">lorentz()</span></code></a>, much wider kernels are needed such as <cite>M=100*std</cite> b/c
-of the long tails of the Lorentz function. Testing is mandatory!</p>
+<code class="docutils literal notranslate"><span class="pre">scipy.signal.windows.hann(M)</span></code>. For
+<code class="docutils literal notranslate"><span class="pre">kern=scipy.signal.windows.gaussian(M,</span> <span class="pre">std)</span></code>, two values are needed,
+namely <cite>M</cite> and <cite>std</cite>, where  <cite>M</cite> determines the number of points calculated
+for the convolution kernel, as in the other cases. But what is actually
+important is <cite>std</cite>, which determines the “used width” of the gaussian. For
+<code class="docutils literal notranslate"><span class="pre">gaussian()</span></code>, <cite>M</cite> should be bigger then <cite>std</cite>. The convolved signal will
+converge with increasing <cite>M</cite>. Good values are <cite>M=6*std</cite> and bigger. To
+match the results when using a Hann window of size <cite>M_hann</cite>, use
+approximately <cite>std=1/5*M_hann</cite>, as in <code class="docutils literal notranslate"><span class="pre">hann(21)</span></code> and <code class="docutils literal notranslate"><span class="pre">gaussian(51,</span>
+<span class="pre">21/5)</span></code> with a large enough <cite>M</cite>, here 51. For <a class="reference internal" href="pwtools.signal.lorentz.html#pwtools.signal.lorentz" title="pwtools.signal.lorentz"><code class="xref py py-func docutils literal notranslate"><span class="pre">lorentz()</span></code></a>, much wider
+kernels are needed such as <cite>M=100*std</cite> b/c of the long tails of the Lorentz
+function. Testing is mandatory!</p>
 <p>Edge effects:</p>
 <p>We use padding of the signal with <code class="docutils literal notranslate"><span class="pre">M=len(kern)</span></code> values at both ends such
 that the convolution with <cite>kern</cite> doesn’t zero the <cite>data</cite> at the signal
