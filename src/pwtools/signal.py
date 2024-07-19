@@ -1,5 +1,5 @@
 """
-Some general signal procressing tools (FFT, correlation). Mostly textbook and
+Some general signal processing tools (FFT, correlation). Mostly textbook and
 reference implementations plus some utilities.
 """
 
@@ -404,9 +404,9 @@ def acorr(v, method=7, norm=True):
     The x-axis is the offset "t" (or "lag" in Digital Signal Processing lit.).
     Since the ACF is symmetric around t=0, we return only t=0...len(v)-1 .
 
-    Several Python and Fortran implememtations. The Python versions are mostly
+    Several Python and Fortran implementations. The Python versions are mostly
     for reference and are slow, except for fft-based, which is by far the
-    fastet.
+    fastest.
 
     Parameters
     ----------
@@ -485,7 +485,7 @@ def acorr(v, method=7, norm=True):
         return _flib.acorr(v, c, 2, _norm)
     elif method == 7:
         # Correlation via fft. After ifft, the imaginary part is (in theory) =
-        # 0, in practise < 1e-16, so we are safe to return the real part only.
+        # 0, in practice < 1e-16, so we are safe to return the real part only.
         vv = np.concatenate((v, np.zeros((nstep,),dtype=float)))
         c = ifft(np.abs(fft(vv))**2.0)[:nstep].real
     else:
@@ -586,11 +586,11 @@ def smooth(data, kern, axis=0, edge='m', norm=True):
 
     Uses ``scipy.signal.fftconvolve()``.
 
-    Note: This function is actually a specical case of
+    Note: This function is actually a special case of
     ``scipy.ndimage.convolve()``, so you may also use that. See the Notes
     section below for details.
 
-    Note that due to edge effect handling (padding) and kernal normalization,
+    Note that due to edge effect handling (padding) and kernel normalization,
     the convolution identity convolve(data,kern) == convolve(kern,data) doesn't
     apply here. We always return an array of ``data.shape``.
 
@@ -752,7 +752,7 @@ def smooth(data, kern, axis=0, edge='m', norm=True):
     >>> kern = scipy.signal.hann(101)
     >>> ret = scipy.signal.fftconvolve(arr, kern[:,None,None])
 
-    Then it is better to loop over some or all of the remaing dimensions::
+    Then it is better to loop over some or all of the remaining dimensions::
 
     >>> ret = np.empty_like(arr)
     >>> for jj in range(arr.shape[1]):
@@ -764,7 +764,7 @@ def smooth(data, kern, axis=0, edge='m', norm=True):
     >>>     for kk in range(arr.shape[2]):
     >>>         ret[:,jj,kk] = smooth(arr[:,jj,kk], kern)
 
-    The size of the chunk over which you explicitely loop depends on the data
+    The size of the chunk over which you explicitly loop depends on the data
     of course. We do exactly this in :func:`pwtools.crys.smooth`.
     """
     # edge = 'm'
@@ -838,7 +838,7 @@ def smooth(data, kern, axis=0, edge='m', norm=True):
 def odd(n, add=1):
     """Return next odd integer to `n`.
 
-    Can be used to construt odd smoothing kernels in :func:`smooth`.
+    Can be used to construct odd smoothing kernels in :func:`smooth`.
 
     Parameters
     ----------
@@ -922,7 +922,7 @@ class FIRFilter:
         window : string or tuple of string and parameter values
             Desired window to use. See `scipy.signal.get_window` for a list
             of windows and required parameters. Default is "hamming". Ignored
-            if `width` and `ripple` givem b/c then ``kaiserord`` is used to
+            if `width` and `ripple` given b/c then ``kaiserord`` is used to
             build a Kaiser window.
         mode : str
             'lowpass', 'highpass', 'bandpass', 'bandstop'
