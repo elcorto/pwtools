@@ -20,11 +20,11 @@ jobs:
     strategy:
       matrix:
         python-version:
-          - "3.8"
-          ##- "3.9"
-          ##- "3.10"
+          - "3.9"
+          - "3.10"
           - "3.11"
-      fail-fast: true
+          - "3.12"
+      fail-fast: True
 
     steps:
       - name: checkout
@@ -39,12 +39,15 @@ jobs:
         run: |
           sudo apt update
 
-          # For Fortran extensions
+          # For Fortran extensions. ninja is needed by meson.
           sudo apt install -y --no-install-recommends \
-            python3-dev gfortran liblapack-dev
+            python3-dev gfortran liblapack-dev ninja-build
 
           sudo apt install -y --no-install-recommends \
             lammps quantum-espresso
+
+          # The meson Ubuntu package is outdated, so install via pip.
+          sudo pip install meson
 
           pip install -e .
           pip install -r requirements_optional.txt
@@ -74,14 +77,15 @@ jobs:
         run: |
           sudo apt update
 
-          # For Fortran extensions
+          # For Fortran extensions. ninja is needed by meson.
           sudo apt install -y --no-install-recommends \
-            python3-dev gfortran liblapack-dev
+            python3-dev gfortran liblapack-dev ninja-build
 
           # sphinx related
           pip install -r requirements_doc.txt
 
           # sphinx-autodoc needs target package to be installed
+          sudo pip install meson
           pip install -e .
 
       - name: build
@@ -93,5 +97,5 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          # base dir is checkout: /path/to/psweep
+          # base dir is checkout: /path/to/pwtools
           publish_dir: doc/build/html
