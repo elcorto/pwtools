@@ -79,7 +79,7 @@ def make_cmd_class(base):
 
 setup(
     name="pwtools",
-    version="1.2.3",
+    version="1.3.0",
     description="pre- and postprocessing of atomistic calculations",
     long_description=long_description,
     url="https://github.com/elcorto/pwtools",
