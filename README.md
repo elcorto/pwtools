@@ -33,3 +33,12 @@ tests](https://github.com/elcorto/pwtools/tree/master/test).
 
 See the [install
 docs](http://elcorto.github.io/pwtools/written/install.html).
+
+# Publications
+
+`pwtools` was used in these works:
+
+* [S. Schmerler,  J. Kortus, "Ab initio study of AlN: Anisotropic thermal
+  expansion, phase diagram, and high-temperature rocksalt to wurtzite phase
+  transition", PRB 89, 064109,
+  2014](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.89.064109)
