@@ -1,3 +1,5 @@
+"""Tools for parameter studies. See :ref:`param_study`."""
+
 import os
 import copy
 import shutil
