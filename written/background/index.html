@@ -15,7 +15,7 @@
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Relation to ASE" href="ase.html" />
+    <link rel="next" title="Parsing code output and using containers" href="parsing.html" />
     <link rel="prev" title="Tutorial" href="../tutorial.html" />
    
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
@@ -61,13 +61,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Background, details, special topics</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ase.html">Relation to ASE</a></li>
-<li class="toctree-l2"><a class="reference internal" href="coord_trans.html">Coordinate transformation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="param_study.html">Parameter studies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="parsing.html">Parsing code output and using containers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="phonon_dos.html">Velocity autocorrelation function and phonon DOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qha.html">Quasi-harmonic approximation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="param_study.html">Parameter studies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pwscf.html">Pwscf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ase.html">Relation to ASE</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbf.html">Radial Basis Function interpolation an regression</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coord_trans.html">Coordinate transformation</a></li>
 </ul>
 </li>
 </ul>
@@ -78,7 +79,7 @@
   <li><a href="../../index.html">Documentation overview</a><ul>
   <li><a href="../index.html">&lt;no title&gt;</a><ul>
       <li>Previous: <a href="../tutorial.html" title="previous chapter">Tutorial</a></li>
-      <li>Next: <a href="ase.html" title="next chapter">Relation to ASE</a></li>
+      <li>Next: <a href="parsing.html" title="next chapter">Parsing code output and using containers</a></li>
   </ul></li>
   </ul></li>
 </ul>
@@ -105,18 +106,6 @@
 <h1>Background, details, special topics<a class="headerlink" href="#background-details-special-topics" title="Link to this heading">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="ase.html">Relation to ASE</a></li>
-<li class="toctree-l1"><a class="reference internal" href="coord_trans.html">Coordinate transformation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="coord_trans.html#notation">Notation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="coord_trans.html#row-vs-column-form">Row vs. column form</a></li>
-<li class="toctree-l2"><a class="reference internal" href="coord_trans.html#theory">Theory</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="coord_trans.html#notes-for-the-special-case-fractional-cartesian">Notes for the special case fractional &lt;-&gt; cartesian</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="coord_trans.html#implementation">Implementation</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="param_study.html">Parameter studies</a></li>
 <li class="toctree-l1"><a class="reference internal" href="parsing.html">Parsing code output and using containers</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="parsing.html#available-parsers">Available parsers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="parsing.html#container-classes-structure-and-trajectory">Container classes <code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code> and <code class="xref py py-class docutils literal notranslate"><span class="pre">Trajectory</span></code></a></li>
@@ -130,12 +119,21 @@
 <li class="toctree-l2"><a class="reference internal" href="phonon_dos.html#calculation-of-the-phonon-dos-from-md-data">Calculation of the phonon DOS from MD data</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="qha.html">Quasi-harmonic approximation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="qha.html#d">1d</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qha.html#id1">2d</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qha.html#fake-1d-a-k-a-usual-qha-with-varying-volume">“Fake” 1d a.k.a. usual QHA with varying volume</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qha.html#other-tools">Other tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="param_study.html">Parameter studies</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pwscf.html">Pwscf</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="pwscf.html#units">Units</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pwscf.html#atomic-coordinates">Atomic coordinates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pwscf.html#total-force-on-atoms">Total force on atoms</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="ase.html">Relation to ASE</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rbf.html">Radial Basis Function interpolation an regression</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="rbf.html#theory">Theory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbf.html#rbf-parameter-p">RBF parameter <span class="math notranslate nohighlight">\(p\)</span></a></li>
@@ -143,6 +141,16 @@
 <li class="toctree-l2"><a class="reference internal" href="rbf.html#how-to-determine-p-and-r">How to determine <span class="math notranslate nohighlight">\(p\)</span> and <span class="math notranslate nohighlight">\(r\)</span></a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbf.html#data-scaling">Data scaling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rbf.html#other-implementations">Other implementations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="coord_trans.html">Coordinate transformation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="coord_trans.html#notation">Notation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coord_trans.html#row-vs-column-form">Row vs. column form</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coord_trans.html#theory">Theory</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="coord_trans.html#notes-for-the-special-case-fractional-cartesian">Notes for the special case fractional &lt;-&gt; cartesian</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="coord_trans.html#implementation">Implementation</a></li>
 </ul>
 </li>
 </ul>
