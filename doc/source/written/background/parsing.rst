@@ -1,3 +1,5 @@
+.. _parsers_and_containers:
+
 Parsing code output and using containers
 ========================================
 
