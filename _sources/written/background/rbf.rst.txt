@@ -2,9 +2,18 @@
 
 .. _rbf:
 
-
 Radial Basis Function interpolation an regression
 =================================================
+
+.. note::
+   While the material here is a useful reference and the code has been used in
+   production, we actually recommend to use Gaussian process regression
+   instead, e.g. :class:`sklearn.gaussian_process.GaussianProcessRegressor`,
+   or, if you want to replicate :mod:`~pwtools.rbf`, then use KRR
+   (:class:`sklearn.kernel_ridge.KernelRidge`). See
+   https://github.com/elcorto/gp_playground for a detailed `comparison of GPs
+   and KRR
+   <https://elcorto.github.io/gp_playground/content/gp_krr_hyperopt/intro.html>`_.
 
 Some background information on the method implemented in :mod:`~pwtools.rbf`.
 For code examples, see the doc string of :class:`~pwtools.rbf.core.Rbf` and
@@ -164,3 +173,4 @@ Other implementations
 ---------------------
 
 * :class:`scipy.interpolate.Rbf`
+* :class:`sklearn.kernel_ridge.KernelRidge`

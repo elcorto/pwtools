@@ -1,3 +1,5 @@
+.. _pdos_from_vacf:
+
 Velocity autocorrelation function and phonon DOS
 ================================================
 
