@@ -2,7 +2,7 @@
 # Quasi-harmonic approximation
 
 See {class}`~pwtools.thermo.HarmonicThermo` +
-`test/test_qha.py`, {class}`~pwtools.thermo.Gibbs` + `tesst/test_gibbs.py`.
+`test/test_qha.py`, {class}`~pwtools.thermo.Gibbs` + `test/test_gibbs.py`.
 
 The distinctive feature of the pwtools implementation is that in
 {class}`~pwtools.thermo.Gibbs`, we treat unit cell axes instead of just the

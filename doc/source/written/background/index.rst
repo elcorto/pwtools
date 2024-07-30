@@ -6,10 +6,11 @@ Background, details, special topics
 
 .. toctree::
 
-   ase
-   coord_trans
-   param_study
    parsing
    phonon_dos
+   qha
+   param_study
    pwscf
+   ase
    rbf
+   coord_trans
