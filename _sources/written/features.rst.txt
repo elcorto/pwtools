@@ -45,7 +45,8 @@ Features
   and a number of convenient 1D classes (polynomial, spline) with a common
   API (:mod:`~pwtools.num`).
 
-* N-dim radial basis function interpolation and fitting (:mod:`~pwtools.rbf`)
+* N-dim radial basis function interpolation and fitting
+  (:mod:`~pwtools.rbf.core`, :mod:`~pwtools.rbf.hyperopt`). See :ref:`rbf`.
 
 * Basic signal processing / fft related tools (:mod:`~pwtools.signal`)
 

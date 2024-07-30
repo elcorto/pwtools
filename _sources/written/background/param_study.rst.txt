@@ -3,6 +3,10 @@
 Parameter studies
 =================
 
+.. note::
+   For a modern version of the tools in :mod:`~pwtools.batch` with more
+   features, see https://github.com/elcorto/psweep.
+
 :mod:`~pwtools.batch` has tools for setting up parameter studies: automatic
 input generation, database tools (see also :mod:`~pwtools.sql`), ...
 
