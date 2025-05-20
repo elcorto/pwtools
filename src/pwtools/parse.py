@@ -4,14 +4,14 @@ Parser classes for different file formats. Input- and output files.
 
 We need the following basic Unix tools installed:
 
-| grep/egrep
+| grep
 | sed
 | awk (better mawk)
 | tail
 | wc
 | ...
 
-The tested egrep versions don't know the ``\s`` character class for
+The tested grep versions don't know the ``\s`` character class for
 whitespace as sed, Perl, Python or any other sane regex implementation
 does. Use ``[ ]`` instead.
 
@@ -694,7 +694,7 @@ class PwSCFOutputFile(StructureFileParser):
             # nstep: get it from outfile b/c the value in any input file will be
             # wrong if the output file is a concatenation of multiple smaller files
             key = r'Forces\s+acting\s+on\s+atoms.*$'
-            cmd = r"egrep -c '%s' %s" %(key.replace(r'\s', r'[ ]'), self.filename)
+            cmd = r"grep -E -c '%s' %s" %(key.replace(r'\s', r'[ ]'), self.filename)
             nstep = nstep_from_txt(com.backtick(cmd))
             if nstep > 0:
                 # Need to split traj_from_txt() up into loadtxt() + arr2d_to_3d() b/c
@@ -731,11 +731,11 @@ class PwSCFOutputFile(StructureFileParser):
         self.try_set_attr('natoms')
         natoms = self.natoms
         # coords
-        cmd = r"egrep -m1 -A%i 'site.*atom.*positions.*units.*\)' %s | tail -n%i | \
+        cmd = r"grep -E -m1 -A%i 'site.*atom.*positions.*units.*\)' %s | tail -n%i | \
               sed -re 's/.*\((.*)\)/\1/g'" \
               %(natoms, self.filename, natoms)
         coords = arr2d_from_txt(com.backtick(cmd))
-        cmd = r"egrep -m1 -A%i 'site.*atom.*positions.*units.*\)' %s | tail -n%i | \
+        cmd = r"grep -E -m1 -A%i 'site.*atom.*positions.*units.*\)' %s | tail -n%i | \
               %s '{print $2}'" \
               %(natoms, self.filename, natoms, AWK)
         symbols = com.backtick(cmd).strip().split()
@@ -751,7 +751,7 @@ class PwSCFOutputFile(StructureFileParser):
         printed with much less precision compared to the input file. If you
         need this information for further calculations, use the input file
         value."""
-        cmd = "egrep -m1 -A3 'crystal.*axes.*units.*(a_0|alat)' %s | tail -n3 | \
+        cmd = "grep -E -m1 -A3 'crystal.*axes.*units.*(a_0|alat)' %s | tail -n3 | \
                %s '{print $4\" \"$5\" \"$6}'" %(self.filename, AWK)
         return arr2d_from_txt(com.backtick(cmd))
 
@@ -1101,7 +1101,7 @@ class PwMDOutputFile(TrajectoryFileParser, PwSCFOutputFile):
     def get_temperature(self):
         """Temperature [K]"""
         verbose("getting temperature")
-        cmd = r"egrep 'temperature[ ]*=' %s " %self.filename + \
+        cmd = r"grep -E 'temperature[ ]*=' %s " %self.filename + \
               r"| sed -re 's/.*temp.*=\s*(" + regex.float_re + \
               r")\s*K/\1/'"
         return arr1d_from_txt(com.backtick(cmd))
@@ -1237,7 +1237,7 @@ class CpmdSCFOutputFile(StructureFileParser):
         verbose("getting _coords_forces")
         self.try_set_attr('natoms')
         if self.is_set_attr('natoms'):
-            cmd = "egrep -A%i 'ATOM[ ]+COORDINATES[ ]+GRADIENTS' %s \
+            cmd = "grep -E -A%i 'ATOM[ ]+COORDINATES[ ]+GRADIENTS' %s \
                   | tail -n%i \
                   | %s '{print $3\" \"$4\" \"$5\" \"$6\" \"$7\" \"$8}'" \
                   %(self.natoms, self.filename, self.natoms, AWK)
@@ -1321,7 +1321,7 @@ class CpmdSCFOutputFile(StructureFileParser):
         verbose("getting natoms")
         fn = os.path.join(self.basedir, 'GEOMETRY')
         if os.path.exists(fn):
-            cmd = "egrep -c '([0-9][ ]+.*){5,}' %s" %fn
+            cmd = "grep -E -c '([0-9][ ]+.*){5,}' %s" %fn
             return int_from_txt(com.backtick(cmd))
         else:
             return None
@@ -1810,8 +1810,8 @@ class Cp2kSCFOutputFile(StructureFileParser):
 
     def get_stress(self):
         """[GPa]"""
-        cmd = r"grep -A5 'STRESS TENSOR.*GPa' %s | egrep -v 'X[ ]+Y[ ]+Z' | \
-            egrep '^[ ]+(X|Y|Z)'" %self.filename
+        cmd = r"grep -A5 'STRESS TENSOR.*GPa' %s | grep -E -v 'X[ ]+Y[ ]+Z' | \
+            grep -E '^[ ]+(X|Y|Z)'" %self.filename
         ret = com.backtick(cmd).strip()
         arr = np.array([x.split() for x in ret.splitlines()])
         return arr[:,1:].astype(float)
@@ -1897,7 +1897,7 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
 
     def get_timestep(self):
         """[fs]"""
-        cmd = r"egrep -m1 'MD\| Time Step \[fs\]' %s | \
+        cmd = r"grep -E -m1 'MD\| Time Step \[fs\]' %s | \
             sed -re 's/.*\](.*)/\1/'" %self.filename
         return float_from_txt(com.backtick(cmd))
 
@@ -1915,7 +1915,7 @@ class Cp2kMDOutputFile(TrajectoryFileParser, Cp2kSCFOutputFile):
             cmd = r"grep -c 'ATOMIC FORCES in' %s" %self.filename
             nstep = nstep_from_txt(com.backtick(cmd))
             cmd = r"sed -re '/^\s*$/d' {fn} | grep -A{nlines} 'ATOMIC FORCES in' \
-                 | egrep -v -e 'ATOM|--|Kind' \
+                 | grep -E -v -e 'ATOM|--|Kind' \
                  | tr -s ' ' | cut -d ' ' -f5-".format(fn=self.filename,
                                                        nlines=self.natoms+1)
             return traj_from_txt(com.backtick(cmd),
@@ -2278,7 +2278,7 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
             # multiple ``run`` or ``minimize`` commands in one input file,
             # which cause wildly mixed text.
             cmd = r"sed -nre '/^Step/,/^Loop/p' %s | \
-                    egrep -v 'Step|Loop'" %self.filename
+                    grep -E -v 'Step|Loop'" %self.filename
             arr = arr2d_from_txt(com.backtick(cmd))
             return dict((x, arr[:,ii]) for ii,x in enumerate(header))
         else:
@@ -2292,7 +2292,7 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
             header = com.backtick("grep -m1 'ITEM: ATOMS' %s \
                 | sed -re 's/.*TOMS //'" %self.dumpfilename).split()
             cmd = r"grep -A%i 'ITEM: ATOMS' %s | \
-                    egrep -ve '--|ITEM'" %(self.natoms, self.dumpfilename)
+                    grep -E -ve '--|ITEM'" %(self.natoms, self.dumpfilename)
             arr = np.fromstring(com.backtick(cmd),
                                 sep=' ').reshape(nstep*self.natoms,len(header))
             self._assert_shape_mod('dump', arr.shape[0], self.natoms)
@@ -2435,7 +2435,7 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
             cmd = r"grep -c 'ITEM: BOX BOUNDS' %s" %self.dumpfilename
             nstep = nstep_from_txt(com.backtick(cmd))
             cmd = r"grep -A3 'ITEM: BOX BOUNDS' %s | \
-                    egrep -ve '--|ITEM'" %self.dumpfilename
+                    grep -E -ve '--|ITEM'" %self.dumpfilename
             arr = np.fromstring(com.backtick(cmd), sep=' ').reshape((nstep,3,3))
             cell = np.zeros_like(arr)
             for ii in range(nstep):
