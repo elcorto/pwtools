@@ -39,15 +39,12 @@ jobs:
         run: |
           sudo apt update
 
-          # For Fortran extensions. ninja is needed by meson.
+          # For Fortran extensions.
           sudo apt install -y --no-install-recommends \
-            python3-dev gfortran liblapack-dev ninja-build
+            python3-dev gfortran liblapack-dev
 
           sudo apt install -y --no-install-recommends \
             lammps quantum-espresso
-
-          # The meson Ubuntu package is outdated, so install via pip.
-          sudo pip install meson
 
           pip install -e .
           pip install -r requirements_optional.txt
