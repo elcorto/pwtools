@@ -1,0 +1,6 @@
+# setup.py still drives the custom build; these declarations make pip install
+# its Python build tools temporarily (temp build env) instead of falling back
+# to the system's /usr/bin/meson (should that exist).
+[build-system]
+requires = ["setuptools", "numpy", "meson", "ninja"]
+build-backend = "setuptools.build_meta"

@@ -2,17 +2,8 @@
 Notes on building extensions
 ----------------------------
 
-Since we build extensions using f2py, we need numpy during the build phase.
-
-We use
-
-    setup(setup_requires=['numpy'],...)
-
-which, if no numpy install is found, downloads smth like
-
-    .eggs/numpy-1.17.2-py3.7-linux-x86_64.egg/
-
-and used its f2py to compile extensions.
+Since we build extensions using f2py's Meson backend, the build dependencies
+in pyproject.toml include NumPy, Meson, and Ninja.
 
 We build the extensions using src/Makefile (see doc/source/written/install.rst)
 instead of setuptools.extension.Extension or
@@ -90,7 +81,6 @@ setup(
     package_dir={"": "src"},
     packages=find_packages(where="src", exclude="pwtools/src"),
     install_requires=open("requirements.txt").read().splitlines(),
-    setup_requires=["numpy"],
     python_requires=">=3.9",
     package_data={"pwtools": ["*.so"]},
     cmdclass={
