@@ -4,11 +4,15 @@ Installation
 Quick start
 -----------
 
-Fortran compiler, Python headers, lapack, meson on Debian/Ubuntu:
+Fortran compiler, Python headers, lapack, on Debian/Ubuntu:
 
 .. code-block:: sh
 
-    $ sudo apt install python3-dev gfortran liblapack-dev meson
+    # For just using pip below
+    $ sudo apt install python3-dev gfortran liblapack-dev
+
+    # In case you want to run `make` yourself (e.g. for development)
+    $ sudo apt install ninja-build meson
 
 Then
 
