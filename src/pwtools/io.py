@@ -125,8 +125,8 @@ def write_cif(filename, struct):
     block['_cell_angle_gamma'] = frepr(struct.cryst_const[5], ffmt=ffmt)
     block['_symmetry_space_group_name_H-M'] = 'P 1'
     block['_symmetry_Int_Tables_number'] = 1
-    # assigning a list produces a "loop_"
     block['_symmetry_equiv_pos_as_xyz'] = ['x,y,z']
+    block.CreateLoop(['_symmetry_equiv_pos_as_xyz'])
 
     # atoms
     #
@@ -145,7 +145,9 @@ def write_cif(filename, struct):
             _xyz2str(struct.coords_frac[:,2]),
             struct.symbols]
     # "loop_" with multiple columns
-    block.AddCifItem([[data_names], [data]])
+    for data_name, values in zip(data_names, data):
+        block[data_name] = values
+    block.CreateLoop(data_names)
     cf['pwtools'] = block
     # maxoutlength = 2048 is default for cif 1.1 standard (which is default in
     # pycifrw 3.x). Reset default wraplength=80 b/c ASE's cif reader cannot
@@ -430,4 +432,3 @@ read_lammps_md_dcd = ReadFactory(parser=parse.LammpsDcdMDOutputFile,
                                  struct_or_traj='traj',
                                  doc="Read LAMMPS MD run ouput (coordinates in dcd format)."
                                  )
-
