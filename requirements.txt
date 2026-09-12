@@ -1,6 +1,6 @@
 PyCifRW >= 4.1
 h5py
 matplotlib
-numpy
+numpy >= 2
 scipy
 spglib
