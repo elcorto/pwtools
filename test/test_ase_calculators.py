@@ -117,7 +117,7 @@ def test_pwscf_calculator_scf(pwtools_tmpdir):
 def test_pwscf_calculator_vc_relax(pwtools_tmpdir):
     at = setup_pwscf(pwtools_tmpdir)
     from ase.optimize import BFGS
-    from ase.constraints import UnitCellFilter
+    from ase.filters import UnitCellFilter
     from ase.io.trajectory import Trajectory
 
     traj_fn = f"{at.calc.directory}/test_pwscf_calculator_vc_relax.traj"

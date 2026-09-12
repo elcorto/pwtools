@@ -1,2 +1,4 @@
-ase
+# This version moved ase.constraints.UnitCellFilter -> ase.filters
+ase >= 3.23
+
 scikit-learn
