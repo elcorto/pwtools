@@ -2277,7 +2277,7 @@ class LammpsTextMDOutputFile(TrajectoryFileParser):
             # Strip all text except for the data columns. Also works for
             # multiple ``run`` or ``minimize`` commands in one input file,
             # which cause wildly mixed text.
-            cmd = r"sed -nre '/^Step/,/^Loop/p' %s | \
+            cmd = r"sed -nre '/^[[:space:]]*Step/,/^[[:space:]]*Loop/p' %s | \
                     grep -E -v 'Step|Loop'" %self.filename
             arr = arr2d_from_txt(com.backtick(cmd))
             return dict((x, arr[:,ii]) for ii,x in enumerate(header))
