@@ -1,5 +1,5 @@
 import numpy as np
-from numpy import array, int32, int64, float32, float64, string_
+from numpy import array, int32, int64, float32, float64, bytes_
 from pwtools.common import pj
 from pwtools.test import tools
 from pwtools import dcd, _dcd
@@ -26,7 +26,7 @@ header_types = [\
 # scalars, that's what the recarrays retrurned by fromfile contain if shape=1
 hdr_lmp_ref = {
     'blk0-0':   array([84], dtype=int32)[0],
-    'hdr':      array(['CORD'], dtype=string_)[0],
+    'hdr':      array(['CORD'], dtype=bytes_)[0],
     '9int':     array([101,0,1,100,0,0,0,0,0], dtype=int32),
     'timestep': array([ 0.0005], dtype=float32)[0],
     '10int':    array([1,0,0,0,0,0,0,0,0,24], dtype=int32),
@@ -41,7 +41,7 @@ hdr_lmp_ref = {
 
 hdr_cp2k_ref = {
     'blk0-0':   array([84], dtype=int32)[0],
-    'hdr':      array(['CORD'], dtype=string_)[0],
+    'hdr':      array(['CORD'], dtype=bytes_)[0],
     '9int':     array([0,0,1,0,0,0,0,0,0], dtype=int32),
     'timestep': array([1.0], dtype=float32)[0],
     '10int':    array([1,0,0,0,0,0,0,0,0,24], dtype=int32),
